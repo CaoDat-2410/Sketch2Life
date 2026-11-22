@@ -56,8 +56,8 @@
 .s2l-password-form input { width: 100%; min-height: 42px; padding: 0 11px; border: 1px solid #d4dcd5; border-radius: 8px; background: #fff; color: var(--s2l-ink); font: inherit; font-size: 13px; }
 .s2l-password-form input:focus { border-color: #5e9a87; outline: 3px solid rgba(94, 154, 135, .17); }
 .s2l-password-form p { margin: 0; color: var(--s2l-muted); font-size: 12px; }
-.s2l-password-form button { min-height: 42px; justify-self: end; padding: 0 17px; border: 1px solid var(--s2l-teal); border-radius: 8px; background: var(--s2l-teal); color: #fff; cursor: pointer; font: inherit; font-size: 12px; font-weight: 750; }
-.s2l-password-form button:disabled { cursor: wait; opacity: .7; }
+.s2l-password-form button:where(:not(.s2l-ui-button)) { min-height: 42px; justify-self: end; padding: 0 17px; border: 1px solid var(--s2l-teal); border-radius: 8px; background: var(--s2l-teal); color: #fff; cursor: pointer; font: inherit; font-size: 12px; font-weight: 750; }
+.s2l-password-form button:where(:not(.s2l-ui-button)):disabled { cursor: wait; opacity: .7; }
 .s2l-workspace { min-height: 100dvh; margin-left: 264px; }
 .s2l-topbar { position: sticky; top: 0; z-index: 20; display: flex; min-height: 78px; align-items: center; justify-content: space-between; gap: 18px; padding: 12px clamp(22px, 4vw, 58px); border-bottom: 1px solid rgba(220, 226, 219, .85); background: rgba(255, 254, 250, .92); backdrop-filter: blur(14px); }
 .s2l-topbar-title { display: flex; min-width: 0; align-items: center; gap: 13px; }

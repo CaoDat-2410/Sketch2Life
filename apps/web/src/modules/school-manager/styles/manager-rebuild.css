@@ -142,7 +142,8 @@
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-inline-boundary svg { flex: 0 0 auto; }
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-inline-boundary p { font-size: 10px; line-height: 1.5; }
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-roster-picker { display: grid; max-width: 440px; gap: 5px; margin-bottom: 14px; }
-:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-roster-picker label, :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-reason-label { color: var(--manager-ink); font-size: 10px; font-weight: 750; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-roster-picker label { color: var(--manager-ink); font-size: 10px; font-weight: 750; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-reason-label { color: var(--manager-ink); font-size: 13px; font-weight: 700; }
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-roster-picker select { width: 100%; min-height: 43px; padding: 0 11px; border: 1px solid var(--manager-rule-strong); border-radius: 10px; background: var(--s2l-ui-paper); color: var(--manager-ink); }
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-roster-list { display: grid; gap: 6px; margin: 10px 0; }
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-roster-row { display: flex; min-height: 45px; align-items: center; gap: 9px; padding: 6px 9px; border: 1px solid var(--s2l-ui-rule); border-radius: 10px; background: var(--s2l-ui-paper); color: var(--manager-ink); font-size: 11px; font-weight: 650; }
@@ -184,7 +185,8 @@
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-activity-block h3 { color: var(--manager-ink); font-size: 11px; }
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-activity-block p strong { color: var(--manager-ink); }
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-review-decision { display: grid; gap: 8px; padding-top: 12px; border-top: 1px solid var(--manager-rule); }
-:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-confirm-row { display: flex; min-height: 38px; align-items: center; gap: 8px; padding: 7px 9px; border: 1px solid var(--s2l-ui-mint-300); border-radius: 10px; background: var(--s2l-ui-mint-soft); color: var(--manager-ink); cursor: pointer; font-size: 10px; font-weight: 650; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-confirm-row { display: flex; min-height: 44px; align-items: center; gap: 8px; padding: 7px 10px; border: 1px solid var(--manager-rule); border-radius: 10px; background: var(--s2l-ui-paper); color: var(--manager-ink); cursor: pointer; font-size: 13px; font-weight: 650; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-confirm-row:has(input:checked) { border-color: var(--s2l-ui-mint-300); background: var(--s2l-ui-mint-soft); color: var(--s2l-ui-mint-ink); }
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-confirm-row.is-disabled { cursor: not-allowed; opacity: .55; }
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-confirm-row input { width: 17px; height: 17px; flex: 0 0 17px; accent-color: var(--manager-green); }
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-reason-label span { color: var(--manager-muted); font-weight: 500; }
@@ -256,7 +258,7 @@
   :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-review-item-copy { min-width: calc(100% - 58px); }
   :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-status-tag { margin-left: 44px; }
   :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-review-detail-heading { flex-direction: column; }
-  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-decision-actions { display: grid; grid-template-columns: 1fr; }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-decision-actions { display: flex; flex-direction: column-reverse; align-items: stretch; }
   :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-decision-actions .manager-button { width: 100%; min-height: 44px; }
   :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-roster-picker { max-width: none; }
 }

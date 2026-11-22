@@ -154,7 +154,7 @@ html[data-portal="teacher"] h4 { font-size: 13px; font-weight: 600; }
 
 html[data-portal="teacher"] p { margin: 0; text-wrap: pretty; }
 html[data-portal="teacher"] a { color: var(--color-accent); text-decoration: none; }
-html[data-portal="teacher"] button, html[data-portal="teacher"] input, html[data-portal="teacher"] select, html[data-portal="teacher"] textarea { font: inherit; color: inherit; }
+html[data-portal="teacher"] button:where(:not(.s2l-ui-button)), html[data-portal="teacher"] input, html[data-portal="teacher"] select, html[data-portal="teacher"] textarea { font: inherit; color: inherit; }
 
 /* ── Typography Helpers ── */
 html[data-portal="teacher"] .muted { color: var(--color-muted); }

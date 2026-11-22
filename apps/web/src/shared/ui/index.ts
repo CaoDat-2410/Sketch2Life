@@ -7,6 +7,8 @@ export type { CardTone } from "./Card";
 export { DataTable } from "./DataTable";
 export type { DataTableColumn } from "./DataTable";
 export { EmptyState } from "./EmptyState";
+export { FormField } from "./FormField";
+export type { FormFieldProps } from "./FormField";
 export { PageHeader } from "./PageHeader";
 export { Section } from "./Section";
 export { Select } from "./Select";

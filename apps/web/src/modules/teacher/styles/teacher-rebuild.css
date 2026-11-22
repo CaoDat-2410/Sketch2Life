@@ -47,8 +47,8 @@ html[data-portal="teacher"] .teacher-occurrence-main { display: grid; min-width:
 html[data-portal="teacher"] .teacher-occurrence-sidebar h2,
 html[data-portal="teacher"] .teacher-occurrence-main h2 { margin: 4px 0 0; color: var(--teacher-ink); font-size: 18px; line-height: 1.3; }
 html[data-portal="teacher"] .teacher-occurrence-main h3 { margin: 4px 0 10px; color: var(--teacher-ink); font-size: 15px; }
-html[data-portal="teacher"] .teacher-occurrence-sidebar label,
-html[data-portal="teacher"] .teacher-occurrence-main label { display: block; margin: 7px 0 5px; color: var(--teacher-ink); font-size: 13px; font-weight: 700; }
+html[data-portal="teacher"] .teacher-occurrence-sidebar label:not(.cozy-form-label):not(.teacher-file-picker),
+html[data-portal="teacher"] .teacher-occurrence-main label:not(.cozy-form-label):not(.teacher-file-picker) { display: block; margin: 7px 0 5px; color: var(--teacher-ink); font-size: 13px; font-weight: 700; }
 html[data-portal="teacher"] .teacher-occurrence-sidebar input,
 html[data-portal="teacher"] .teacher-occurrence-sidebar select,
 html[data-portal="teacher"] .teacher-occurrence-main input,
@@ -77,11 +77,8 @@ html[data-portal="teacher"] .teacher-occurrence-heading { display: flex; min-wid
 html[data-portal="teacher"] .teacher-occurrence-heading > span { flex: 0 0 auto; color: var(--teacher-muted); font-size: 12px; }
 html[data-portal="teacher"] .teacher-occurrence-eyebrow { margin: 0 0 5px; color: var(--teacher-blue-deep); font-size: 11px; font-weight: 750; letter-spacing: .04em; }
 html[data-portal="teacher"] .teacher-occurrence-section-title h2 { display: flex; align-items: center; gap: 8px; }
-html[data-portal="teacher"] .teacher-occurrence-upload { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: end; padding: 12px; border: 1px dashed var(--teacher-rule-strong); border-radius: 12px; background: var(--s2l-ui-paper); }
-html[data-portal="teacher"] .teacher-occurrence-upload label { grid-column: 1 / -1; margin: 0; }
-html[data-portal="teacher"] .teacher-occurrence-upload input { grid-column: 1; border: 0; padding: 4px; }
-html[data-portal="teacher"] .teacher-occurrence-upload button { grid-column: 2; grid-row: 2; }
-html[data-portal="teacher"] .teacher-occurrence-upload [role="status"] { grid-column: 1 / -1; color: var(--teacher-muted); font-size: 12px; }
+html[data-portal="teacher"] .teacher-occurrence-upload { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; align-items: stretch; padding: 12px; border: 1px dashed var(--teacher-rule-strong); border-radius: 12px; background: var(--s2l-ui-paper); }
+html[data-portal="teacher"] .teacher-occurrence-upload [role="status"] { color: var(--teacher-muted); font-size: 12px; }
 html[data-portal="teacher"] .teacher-occurrence-document-grid,
 html[data-portal="teacher"] .teacher-occurrence-plan-layout { display: grid; grid-template-columns: minmax(180px, .8fr) minmax(0, 1.2fr); gap: 14px; align-items: start; }
 html[data-portal="teacher"] .teacher-occurrence-revisions,
@@ -96,6 +93,7 @@ html[data-portal="teacher"] .teacher-occurrence-empty p { color: var(--teacher-m
   html[data-portal="teacher"] .teacher-occurrence-layout { grid-template-columns: minmax(0, 1fr); }
   html[data-portal="teacher"] .teacher-occurrence-sidebar { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
   html[data-portal="teacher"] .teacher-occurrence-sidebar > label,
+  html[data-portal="teacher"] .teacher-occurrence-sidebar > .cozy-form-field,
   html[data-portal="teacher"] .teacher-occurrence-sidebar > select,
   html[data-portal="teacher"] .teacher-occurrence-sidebar > h2,
   html[data-portal="teacher"] .teacher-occurrence-sidebar > .teacher-occurrence-list,
@@ -105,9 +103,6 @@ html[data-portal="teacher"] .teacher-occurrence-empty p { color: var(--teacher-m
   html[data-portal="teacher"] .teacher-occurrence-sidebar,
   html[data-portal="teacher"] .teacher-occurrence-document-grid,
   html[data-portal="teacher"] .teacher-occurrence-plan-layout { grid-template-columns: minmax(0, 1fr); }
-  html[data-portal="teacher"] .teacher-occurrence-upload { grid-template-columns: minmax(0, 1fr); }
-  html[data-portal="teacher"] .teacher-occurrence-upload button,
-  html[data-portal="teacher"] .teacher-occurrence-upload input { grid-column: 1; grid-row: auto; }
   html[data-portal="teacher"] .teacher-occurrence-heading { flex-direction: column; }
 }
 html[data-portal="teacher"] .teacher-session-card strong { overflow: hidden; color: var(--teacher-ink); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
@@ -133,7 +128,7 @@ html[data-portal="teacher"] .teacher-page-actions { display: flex; align-items: 
 html[data-portal="teacher"] .teacher-main .tw-page { display: grid; gap: 17px; min-width: 0; }
 html[data-portal="teacher"] .teacher-main .tw-title { color: var(--teacher-ink) !important; font-size: clamp(25px, 3vw, 32px); letter-spacing: -.03em; }
 html[data-portal="teacher"] .teacher-main .tw-sub, html[data-portal="teacher"] .teacher-main .tw-meta { color: var(--teacher-muted) !important; }
-html[data-portal="teacher"] .teacher-main .tw-card { border: 1px solid var(--teacher-rule) !important; border-radius: 16px; background: var(--teacher-sheet) !important; box-shadow: 0 3px 12px color-mix(in srgb, var(--s2l-ui-shadow-tint) 3%, transparent) !important; }
+html[data-portal="teacher"] .teacher-main .tw-card:not(.cozy-form-card) { border: 1px solid var(--teacher-rule) !important; border-radius: 16px; background: var(--teacher-sheet) !important; box-shadow: 0 3px 12px color-mix(in srgb, var(--s2l-ui-shadow-tint) 3%, transparent) !important; }
 html[data-portal="teacher"] .teacher-main .tw-item { border: 1px solid var(--teacher-rule) !important; border-radius: 11px; background: var(--s2l-ui-paper) !important; }
 html[data-portal="teacher"] .teacher-main .tw-btn { min-height: 44px; border: 1px solid var(--teacher-blue) !important; border-radius: 11px; background: var(--teacher-blue) !important; box-shadow: none !important; font-size: 13px; }
 html[data-portal="teacher"] .teacher-main .tw-btn.is-ghost { border-color: var(--s2l-ui-primary-hover) !important; background: var(--s2l-ui-paper) !important; color: var(--teacher-blue-deep) !important; }
@@ -254,13 +249,9 @@ html[data-portal="teacher"] .teacher-frame :focus-visible { outline: 3px solid v
   html[data-portal="teacher"] .teacher-frame *, html[data-portal="teacher"] .teacher-frame *::before, html[data-portal="teacher"] .teacher-frame *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
 /* Goal v3 Phase B (T-7c/T-7d): synthetic profile create form and enrollment move controls. */
-html[data-portal="teacher"] .teacher-roster-create form { display: grid; grid-template-columns: minmax(0, 1fr) 140px; gap: 6px 10px; align-items: end; }
+html[data-portal="teacher"] .teacher-roster-create-fields { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; }
 html[data-portal="teacher"] .teacher-roster-create h2 { display: flex; align-items: center; gap: 8px; }
-html[data-portal="teacher"] .teacher-roster-create label { grid-row: 1; font-size: 12px; font-weight: 700; }
-html[data-portal="teacher"] .teacher-roster-create input { min-width: 0; min-height: 40px; padding: 7px 10px; border: 1px solid var(--teacher-rule-strong); border-radius: 10px; background: var(--s2l-ui-paper); font: inherit; }
-html[data-portal="teacher"] .teacher-roster-create form > :is(p, button) { grid-column: 1 / -1; width: fit-content; }
-html[data-portal="teacher"] .teacher-roster-move { display: flex; flex-wrap: wrap; flex-basis: 100%; gap: 6px 10px; align-items: end; }
-html[data-portal="teacher"] .teacher-roster-move label { display: grid; gap: 3px; font-size: 12px; font-weight: 700; }
-html[data-portal="teacher"] .teacher-roster-move select { min-height: 36px; border: 1px solid var(--teacher-rule-strong); border-radius: 9px; background: var(--s2l-ui-paper); font: inherit; }
-html[data-portal="teacher"] .teacher-roster-move small { flex-basis: 100%; color: var(--teacher-muted); }
-@media (max-width: 620px) { html[data-portal="teacher"] .teacher-roster-create form { grid-template-columns: minmax(0, 1fr); } html[data-portal="teacher"] .teacher-roster-create label { grid-row: auto; } }
+html[data-portal="teacher"] .teacher-roster-move { display: grid; flex-basis: 100%; gap: 10px; }
+html[data-portal="teacher"] .teacher-roster-move small { color: var(--teacher-muted); }
+html[data-portal="teacher"] .teacher-roster-move-actions { margin-top: 0; }
+@media (max-width: 620px) { html[data-portal="teacher"] .teacher-roster-create-fields { grid-template-columns: minmax(0, 1fr); } }

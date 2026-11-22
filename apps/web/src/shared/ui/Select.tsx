@@ -14,6 +14,9 @@ export type SelectProps = {
   disabled?: boolean;
   required?: boolean;
   "aria-label"?: string;
+  "aria-describedby"?: string;
+  "aria-invalid"?: boolean;
+  "aria-required"?: boolean;
   className?: string;
   style?: CSSProperties;
 };
@@ -26,7 +29,20 @@ function optionText(value: ReactNode): string {
 }
 
 /** Cozy combobox with a hidden native control for standard form submission and validation. */
-export function Select({ value, onChange, children, id, disabled, required, "aria-label": ariaLabel, className, style }: SelectProps) {
+export function Select({
+  value,
+  onChange,
+  children,
+  id,
+  disabled,
+  required,
+  "aria-label": ariaLabel,
+  "aria-describedby": ariaDescribedBy,
+  "aria-invalid": ariaInvalid,
+  "aria-required": ariaRequired,
+  className,
+  style,
+}: SelectProps) {
   const generated = useId();
   const triggerId = id ?? generated + "-trigger";
   const listId = generated + "-list";
@@ -135,7 +151,9 @@ export function Select({ value, onChange, children, id, disabled, required, "ari
         className={cn("s2l-select-trigger box-border flex min-h-11 w-full min-w-0 items-center justify-between gap-3 rounded-xl border border-rule bg-paper px-3.5 py-2 font-ui text-sm font-medium text-ink shadow-cozy transition-colors disabled:cursor-not-allowed disabled:opacity-55", className)}
         style={style}
         aria-label={ariaLabel}
-        aria-required={required || undefined}
+        aria-describedby={ariaDescribedBy}
+        aria-invalid={ariaInvalid || undefined}
+        aria-required={required || ariaRequired || undefined}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={open ? listId : undefined}

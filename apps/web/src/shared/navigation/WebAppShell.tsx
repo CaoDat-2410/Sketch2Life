@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import platformAdminLogo from "../assets/sketch2life-logo-mark-128.png";
 import { AccessibleDialog } from "../components/ui";
+import { Alert, Button, FormField } from "../ui";
 import { authService } from "../../modules/school-manager/be1/services/authService";
 
 export type PortalNavigationItem = {
@@ -398,15 +399,35 @@ export function WebAppShell({
         onOpenChange={setPasswordDialogOpen}
         title="Đổi mật khẩu"
         description="Xác minh mật khẩu hiện tại và đặt mật khẩu mới cho tài khoản."
+        showTitle
         className="s2l-password-dialog"
       >
-        <form className="s2l-password-form" onSubmit={(event) => void changePassword(event)} aria-busy={passwordBusy}>
-          <h2>Đổi mật khẩu</h2>
-          <label>Mật khẩu hiện tại<input type="password" autoComplete="current-password" required value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} /></label>
-          <label>Mật khẩu mới<input type="password" autoComplete="new-password" minLength={6} required value={newPassword} onChange={(event) => setNewPassword(event.target.value)} /></label>
-          <label>Xác nhận mật khẩu mới<input type="password" autoComplete="new-password" minLength={6} required value={passwordConfirmation} onChange={(event) => setPasswordConfirmation(event.target.value)} /></label>
-          {passwordMessage && <p role="status" aria-live="polite">{passwordMessage}</p>}
-          <button type="submit" disabled={passwordBusy}>{passwordBusy ? "Đang lưu…" : "Cập nhật"}</button>
+        <form className="s2l-password-form cozy-form-stack" onSubmit={(event) => void changePassword(event)} aria-busy={passwordBusy}>
+          <FormField label="Mật khẩu hiện tại" htmlFor="s2l-current-password" required>
+            <input id="s2l-current-password" className="cozy-input" type="password" autoComplete="current-password" required value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} />
+          </FormField>
+          <FormField label="Mật khẩu mới" htmlFor="s2l-new-password" required>
+            <input id="s2l-new-password" className="cozy-input" type="password" autoComplete="new-password" minLength={6} required value={newPassword} onChange={(event) => setNewPassword(event.target.value)} />
+          </FormField>
+          <FormField label="Xác nhận mật khẩu mới" htmlFor="s2l-confirm-password" required>
+            <input id="s2l-confirm-password" className="cozy-input" type="password" autoComplete="new-password" minLength={6} required value={passwordConfirmation} onChange={(event) => setPasswordConfirmation(event.target.value)} />
+          </FormField>
+          {passwordMessage && (
+            <Alert
+              tone={passwordMessage === "Đã đổi mật khẩu." ? "success" : "danger"}
+              role={passwordMessage === "Đã đổi mật khẩu." ? "status" : "alert"}
+            >
+              {passwordMessage}
+            </Alert>
+          )}
+          <div className="cozy-form-actions">
+            <Button type="button" variant="secondary" disabled={passwordBusy} onClick={() => setPasswordDialogOpen(false)}>
+              Hủy
+            </Button>
+            <Button type="submit" variant="primary" loading={passwordBusy} disabled={passwordBusy}>
+              {passwordBusy ? "Đang lưu…" : "Cập nhật"}
+            </Button>
+          </div>
         </form>
       </AccessibleDialog>
     </div>

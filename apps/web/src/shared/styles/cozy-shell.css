@@ -513,14 +513,6 @@ html[data-cozy="1"] .s2l-password-form input {
   color: var(--s2l-ui-ink);
 }
 html[data-cozy="1"] .s2l-password-form input:focus { border-color: var(--s2l-ui-input-focus); outline: 3px solid color-mix(in srgb, var(--s2l-ui-focus) 18%, transparent); }
-html[data-cozy="1"] .s2l-password-form button {
-  min-height: 44px;
-  border-color: var(--s2l-ui-primary);
-  border-radius: 14px;
-  background: var(--s2l-ui-primary-gradient);
-  color: var(--s2l-ui-on-primary);
-}
-html[data-cozy="1"] .s2l-password-form button:disabled { border-color: var(--s2l-ui-primary-disabled); background: var(--s2l-ui-primary-disabled); color: var(--s2l-ui-primary-disabled-ink); cursor: not-allowed; opacity: 1; }
 
 /* Legacy Teacher and School Manager content uses the same token-driven cards and states. */
 html[data-cozy="1"] .s2l-page { width: 100%; min-width: 0; }
@@ -775,6 +767,21 @@ html[data-cozy="1"] .s2l-access-action:focus-visible { outline: 3px solid var(--
   html[data-cozy="1"] *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
 
+html[data-cozy="1"] .s2l-ui-button.bg-primary:disabled {
+  border-color: color-mix(in srgb, var(--s2l-ui-primary) 38%, var(--s2l-ui-rule));
+  background: var(--s2l-ui-primary-disabled);
+  color: var(--s2l-ui-primary-disabled-ink);
+  box-shadow: none;
+  opacity: 1;
+}
+html[data-cozy="1"] .s2l-ui-button.bg-paper:disabled {
+  border-color: color-mix(in srgb, var(--s2l-ui-ink) 20%, var(--s2l-ui-rule));
+  background: var(--s2l-ui-neutral-soft);
+  color: var(--s2l-ui-neutral-ink);
+  box-shadow: none;
+  opacity: 1;
+}
+
 /* Shared in-app form rhythm. Product copy and form behavior stay in their existing components. */
 html[data-cozy="1"] {
   --s2l-form-card-padding: 22px;
@@ -791,8 +798,20 @@ html[data-cozy="1"] {
 
 html[data-cozy="1"] .cozy-form-card {
   box-sizing: border-box;
+  width: 100%;
+  max-width: 40rem;
   min-width: 0;
   padding: var(--s2l-form-card-padding);
+  border: 1px solid var(--s2l-ui-rule);
+  border-radius: 20px;
+  background: var(--s2l-ui-paper-muted);
+  box-shadow: var(--s2l-ui-shadow);
+}
+
+html[data-cozy="1"] .cozy-form-limit {
+  width: 100%;
+  max-width: 40rem;
+  min-width: 0;
 }
 
 html[data-cozy="1"] .cozy-form-stack {
@@ -802,165 +821,268 @@ html[data-cozy="1"] .cozy-form-stack {
   gap: var(--s2l-form-field-gap);
 }
 
-html[data-cozy="1"] .cozy-form-field { display: grid; min-width: 0; gap: var(--s2l-form-label-gap); }
-html[data-cozy="1"] .cozy-form-hint { margin: var(--s2l-form-helper-gap) 0 0; font-size: var(--s2l-form-helper-size); line-height: 1.5; }
-html[data-cozy="1"] .cozy-form-controls { display: grid; min-width: 0; gap: var(--s2l-form-control-gap); }
-html[data-cozy="1"] .cozy-form-actions { display: flex; min-width: 0; flex-wrap: wrap; justify-content: flex-end; gap: var(--s2l-form-control-gap); margin-top: var(--s2l-form-action-gap); }
-html[data-cozy="1"] .cozy-form-section { box-sizing: border-box; min-width: 0; padding: var(--s2l-form-section-padding); }
-html[data-cozy="1"] .cozy-form-section > :first-child { margin-bottom: var(--s2l-form-section-gap); }
+html[data-cozy="1"] .cozy-form-card--wide { max-width: none; }
+html[data-cozy="1"] .cozy-form-grid { display: grid; min-width: 0; align-content: start; gap: var(--s2l-form-field-gap); grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 800px) {
+  html[data-cozy="1"] .cozy-form-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  html[data-cozy="1"] .cozy-form-grid > * { grid-column: span 6; }
+  html[data-cozy="1"] .cozy-form-grid > .cozy-span-4 { grid-column: span 4; }
+  html[data-cozy="1"] .cozy-form-grid > .cozy-span-3 { grid-column: span 3; }
+  html[data-cozy="1"] .cozy-form-grid > .cozy-span-2 { grid-column: span 2; }
+}
 
-/* Teacher and School Manager legacy forms inherit the shared rhythm without JSX changes. */
-:is(html[data-cozy="1"][data-portal="teacher"], html[data-cozy="1"][data-portal="school-be1"]) .s2l-app-shell :is(.s2l-data-card, .tw-card, .manager-business-card, .manager-review-detail):has(form, .manager-business-form, .manager-decision-actions, .teacher-occurrence-create, .teacher-occurrence-plan-form) {
+html[data-cozy="1"] .cozy-form-checkbox-card {
+  display: flex;
   box-sizing: border-box;
-  padding: var(--s2l-form-card-padding);
+  min-height: 44px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--s2l-ui-ink) 18%, var(--s2l-ui-rule));
+  border-radius: 13px;
+  background: var(--s2l-ui-paper);
+  color: var(--s2l-ui-ink);
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+}
+html[data-cozy="1"] .cozy-form-checkbox-card input[type="checkbox"] {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--s2l-ui-primary);
 }
 
-:is(html[data-cozy="1"][data-portal="teacher"], html[data-cozy="1"][data-portal="school-be1"]) .s2l-app-shell :is(form.tw-card, .s2l-data-card.teacher-roster-create, .teacher-occurrence-create, .teacher-occurrence-plan-form, .teacher-ai-workflow > section:has(label input, label textarea)) {
-  display: grid;
+html[data-cozy="1"] .cozy-form-field { display: grid; min-width: 0; align-content: start; gap: var(--s2l-form-label-gap); }
+html[data-cozy="1"] .cozy-form-field-header { display: flex; min-width: 0; align-items: baseline; justify-content: space-between; gap: var(--s2l-form-control-gap); }
+html[data-cozy="1"] .cozy-form-label-group { display: block; min-width: 0; line-height: 1.45; }
+html[data-cozy="1"] .cozy-form-label { display: inline; color: var(--s2l-ui-ink); font-size: 13px; font-weight: 700; line-height: 1.45; }
+html[data-cozy="1"] .cozy-form-label-group .cozy-form-required { margin-left: 4px; white-space: nowrap; }
+html[data-cozy="1"] .cozy-form-label-tail { white-space: nowrap; }
+html[data-cozy="1"] .cozy-form-label-tail .cozy-form-required { margin-left: 4px; }
+html[data-cozy="1"] .cozy-form-required { color: var(--s2l-ui-danger-ink); font-weight: 700; }
+html[data-cozy="1"] .cozy-form-optional,
+html[data-cozy="1"] .cozy-form-counter { flex: 0 0 auto; color: var(--s2l-ui-ink-soft); font-size: var(--s2l-form-helper-size); font-weight: 500; font-variant-numeric: tabular-nums; line-height: 1.4; }
+html[data-cozy="1"] .cozy-form-hint { margin: var(--s2l-form-helper-gap) 0 0; color: var(--s2l-ui-ink-soft); font-size: var(--s2l-form-helper-size); line-height: 1.5; }
+html[data-cozy="1"] .cozy-form-field > .cozy-form-hint { margin: 0; }
+html[data-cozy="1"] .cozy-form-disabled-hint { margin: 0; color: var(--s2l-ui-ink-soft); font-size: var(--s2l-form-helper-size); line-height: 1.5; text-align: right; }
+html[data-cozy="1"] .cozy-form-error { margin: 0; padding: 0; border: 0; background: transparent; color: var(--s2l-ui-danger-ink); font-size: var(--s2l-form-helper-size); font-weight: 600; line-height: 1.45; }
+html[data-cozy="1"] .cozy-input,
+html[data-cozy="1"] .cozy-textarea {
+  box-sizing: border-box;
+  width: 100%;
   min-width: 0;
-  align-content: start;
-  gap: var(--s2l-form-field-gap);
+  min-height: 44px;
+  padding: 9px 12px;
+  border: 1px solid color-mix(in srgb, var(--s2l-ui-ink) 18%, var(--s2l-ui-rule));
+  border-radius: 13px;
+  background: var(--s2l-ui-paper);
+  color: var(--s2l-ui-ink);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
 }
-
-:is(html[data-cozy="1"][data-portal="teacher"] , html[data-cozy="1"][data-portal="school-be1"]) .s2l-app-shell :is(.s2l-data-card, .tw-card, .manager-business-card, .manager-review-detail) :is(h2, h3):first-child { margin-block-start: 0; }
-
-:is(html[data-cozy="1"][data-portal="teacher"], html[data-cozy="1"][data-portal="school-be1"]) .s2l-app-shell :is(.s2l-field, .tw-label, .teacher-roster-create form label, .teacher-occurrence-create label, .teacher-occurrence-plan-form label, .teacher-ai-workflow label:has(input:not([type="checkbox"])), .teacher-ai-workflow label:has(select), .teacher-ai-workflow label:has(textarea), .manager-business-class-picker label, .manager-business-create-class label, .manager-business-create-form > label, .manager-business-form label, .manager-feedback-form > label, .manager-reason-label) {
-  display: grid;
-  min-width: 0;
-  gap: var(--s2l-form-label-gap);
+html[data-cozy="1"] .cozy-textarea { min-height: 96px; resize: vertical; }
+html[data-cozy="1"] :is(.cozy-input, .cozy-textarea)::placeholder { color: var(--s2l-ui-ink-soft); opacity: 1; }
+html[data-cozy="1"] :is(.cozy-input, .cozy-textarea):focus-visible {
+  border-color: var(--s2l-ui-input-focus);
+  outline: 3px solid color-mix(in srgb, var(--s2l-ui-focus) 20%, transparent);
+  outline-offset: 1px;
 }
+html[data-cozy="1"] :is(.cozy-input, .cozy-textarea):disabled {
+  background: var(--s2l-ui-paper-muted);
+  color: var(--s2l-ui-ink-soft);
+  cursor: not-allowed;
+}
+html[data-cozy="1"] .cozy-form-field :is(input[aria-invalid="true"], textarea[aria-invalid="true"], .s2l-select-trigger[aria-invalid="true"]) {
+  border-color: var(--s2l-ui-coral);
+}
+html[data-cozy="1"] .cozy-progress {
+  display: block;
+  width: 100%;
+  height: 10px;
+  overflow: hidden;
+  border: 1px solid var(--s2l-ui-rule);
+  border-radius: 999px;
+  background: var(--s2l-ui-paper-muted);
+  accent-color: var(--s2l-ui-primary);
+}
+html[data-cozy="1"] .cozy-progress::-webkit-progress-bar { background: var(--s2l-ui-paper-muted); border-radius: 999px; }
+html[data-cozy="1"] .cozy-progress::-webkit-progress-value { background: var(--s2l-ui-primary); border-radius: 999px; }
+html[data-cozy="1"] .cozy-progress::-moz-progress-bar { background: var(--s2l-ui-primary); border-radius: 999px; }
+html[data-cozy="1"] .s2l-dialog-title { margin: 0 0 14px; padding-right: 40px; color: var(--s2l-ui-ink); font-size: 20px; font-weight: 700; line-height: 1.3; }
+html[data-cozy="1"] .cozy-form-controls { display: grid; min-width: 0; gap: var(--s2l-form-control-gap); }
+html[data-cozy="1"] .cozy-form-actions { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--s2l-form-control-gap); margin-top: var(--s2l-form-action-gap); }
+html[data-cozy="1"] .cozy-form-action-danger { margin-right: auto; }
+html[data-cozy="1"] .cozy-form-section { box-sizing: border-box; min-width: 0; padding: var(--s2l-form-section-padding); border: 1px solid var(--s2l-ui-rule); border-radius: 16px; background: var(--s2l-ui-paper); }
+html[data-cozy="1"] .cozy-form-section > :first-child { margin-bottom: var(--s2l-form-section-gap); }
+html[data-cozy="1"] .cozy-form-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--s2l-ui-rule);
+}
+html[data-cozy="1"] .cozy-form-section-head > :is(h2, h3, strong) { margin: 0; color: var(--s2l-ui-ink); font-size: 15px; font-weight: 750; line-height: 1.35; }
+
+/* Shared form cards and cozy utility classes govern Teacher and School Manager forms directly. */
+:is(html[data-cozy="1"][data-portal="teacher"], html[data-cozy="1"][data-portal="school-be1"]) .s2l-app-shell :is(.s2l-data-card, .tw-card, .manager-business-card, .manager-review-detail) :is(h2, h3):first-child { margin-block-start: 0; }
 
 :is(html[data-cozy="1"][data-portal="teacher"], html[data-cozy="1"][data-portal="school-be1"]) .s2l-app-shell :is(.s2l-note, .s2l-alert, .manager-business-alert, .manager-business-success) {
   margin-block: 0;
 }
 
 /* Teacher lesson authoring and import cards. */
-html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .tw-page > form.tw-card {
-  padding: var(--s2l-form-card-padding);
-  width: 100%;
-  max-width: 100%;
-}
-
-html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .tw-page > section.tw-card:has(.teacher-file-field) {
+html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .teacher-lesson-layout {
   display: grid;
-  min-width: 0;
-  align-content: start;
-  gap: var(--s2l-form-field-gap);
-  width: 100%;
-  max-width: 100% !important;
+  grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+  align-items: start;
+  gap: 18px;
+}
+html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .tw-page > form.tw-card:not(.cozy-form-card--wide) {
   padding: var(--s2l-form-card-padding);
+  width: 100%;
+  max-width: 40rem;
+}
+html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .tw-page form.tw-card.cozy-form-card--wide {
+  padding: var(--s2l-form-card-padding);
+  width: 100%;
+  max-width: none;
 }
 
-html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .tw-page > :is(form.tw-card, section.tw-card:has(.teacher-file-field)) > :is(h2, .tw-h2):first-child { margin: 0; }
-html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .teacher-file-field { display: grid; min-width: 0; gap: var(--s2l-form-helper-gap); margin-top: 0 !important; }
+html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .tw-page > :is(form.tw-card, section.tw-card.cozy-form-card) > :is(h2, .tw-h2):first-child { margin: 0; }
+html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .teacher-file-field { display: grid; min-width: 0; gap: var(--s2l-form-helper-gap); margin-top: 0; }
 html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .teacher-file-help { margin: var(--s2l-form-helper-gap) 0 0; font-size: var(--s2l-form-helper-size); }
-html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .tw-page > section.tw-card:has(.teacher-file-field) > button.tw-btn { justify-self: end; margin-top: 4px; }
-html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .teacher-lesson-activities { display: grid; gap: var(--s2l-form-section-gap); padding: var(--s2l-form-section-padding) !important; }
+html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .teacher-lesson-activities { display: grid; gap: var(--s2l-form-section-gap); padding: 0; }
 html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .teacher-lesson-activities > .tw-row:first-child { column-gap: var(--s2l-form-control-gap); margin-bottom: 0; }
-html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell form.tw-card > .tw-row:last-child { gap: var(--s2l-form-control-gap); margin-top: var(--s2l-form-action-gap) !important; }
 
 /* Teacher roster, occurrence, and AI editor cards. */
 html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .s2l-data-card.teacher-roster-create { display: grid; align-content: start; gap: var(--s2l-form-field-gap); }
 html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .teacher-roster-create > h2 { margin: 0; }
-html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .teacher-roster-create form { row-gap: var(--s2l-form-field-gap); column-gap: var(--s2l-form-control-gap); }
-html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .teacher-roster-create form > button { justify-self: end; margin-top: 4px; }
 html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .teacher-occurrence-page :is(.teacher-occurrence-create, .teacher-occurrence-plan-form) { gap: var(--s2l-form-field-gap); padding: var(--s2l-form-card-padding); }
 html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .teacher-occurrence-page :is(.teacher-occurrence-create, .teacher-occurrence-plan-form) > h2 { margin: 0; }
 html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .teacher-occurrence-upload { gap: var(--s2l-form-control-gap); padding: var(--s2l-form-section-padding); }
 html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .teacher-occurrence-upload [role="status"] { font-size: var(--s2l-form-helper-size); }
-html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .teacher-ai-workflow > section:has(label input, label textarea) { padding: var(--s2l-form-card-padding); }
-html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .teacher-ai-workflow > section:has(label input, label textarea) > :is(h2, h3):first-child { margin: 0; }
+html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .teacher-ai-workflow > section.cozy-form-card > :is(h2, h3):first-child { margin: 0; }
 
 /* School Manager create, reply, assignment and review forms. */
-html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-card:has(form, .manager-business-form) {
-  display: grid;
-  min-width: 0;
-  align-content: start;
-  gap: var(--s2l-form-field-gap);
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-card.cozy-form-card {
+  width: 100%;
+  max-width: 40rem;
+  background: var(--s2l-ui-paper-muted);
 }
-
-html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .s2l-data-card:has(.manager-business-filter) {
-  display: grid;
-  min-width: 0;
-  align-content: start;
-  gap: var(--s2l-form-field-gap);
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-card.cozy-form-card.cozy-form-card--wide {
+  max-width: none;
 }
-html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .s2l-data-card:has(.manager-business-filter) > h2 { margin: 0; }
-html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-filter { margin: 0; }
-html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-card:has(.manager-business-form) > div > .manager-business-form { margin-top: var(--s2l-form-field-gap); }
-
-html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-create-class { row-gap: var(--s2l-form-field-gap); }
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-create-class { row-gap: var(--s2l-form-field-gap); max-width: 40rem; }
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-create-class.cozy-form-card--wide { max-width: none; }
 html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-create-class form {
   grid-template-columns: minmax(0, 1fr);
-  gap: var(--s2l-form-label-gap);
+  gap: var(--s2l-form-field-gap);
   align-items: stretch;
 }
-html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-create-class form label { grid-column: 1; margin: 0 0 -1px; }
-html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-create-class form input { grid-column: 1; width: 100%; }
-html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-create-class form button { grid-column: 1; justify-self: end; margin-top: 13px; }
-
 html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-create-form { row-gap: var(--s2l-form-field-gap); margin-top: 0; }
-html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-create-form > label { margin-bottom: -9px; }
-html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-create-row { display: grid; grid-template-columns: minmax(0, 1fr); row-gap: var(--s2l-form-action-gap); }
-html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-create-row > button { justify-self: end; width: auto; }
-html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-create-form > .manager-business-subtle { margin: 0; font-size: var(--s2l-form-helper-size); }
-
-html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-form {
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-split {
   display: grid;
-  min-width: 0;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: end;
-  gap: var(--s2l-form-control-gap);
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: 20px;
 }
-html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-form > label { grid-column: 1 / -1; }
-html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-form > button { justify-self: end; margin-top: 8px; }
-html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-form > button:last-child { grid-column: 2; }
-
-html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-feedback-form { display: grid; min-width: 0; gap: var(--s2l-form-field-gap); }
-html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-feedback-form > label { margin-bottom: -9px; }
-html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-feedback-form > span { margin-top: -10px; font-size: var(--s2l-form-helper-size); }
-html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-feedback-form > button { justify-self: end; width: auto; margin-top: 4px; }
-html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-review-detail { display: grid; align-content: start; gap: var(--s2l-form-field-gap); padding: var(--s2l-form-card-padding); }
-html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-review-decision { display: grid; gap: var(--s2l-form-field-gap); }
-html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-reason-label { margin-bottom: -9px; }
+@media (min-width: 960px) {
+  html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-split {
+    grid-template-columns: minmax(320px, 1fr) minmax(0, 1.25fr);
+  }
+}
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-card-head-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+}
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-card-head-row > h2 { margin: 0; }
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-filter-inline {
+  min-width: min(100%, 220px);
+  margin: 0;
+}
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-lifecycle > .cozy-form-section,
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-lifecycle > .cozy-form-stack {
+  display: grid;
+  width: 100%;
+  margin-top: 12px;
+}
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-feedback-threads {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-feedback-list {
+  margin: 0;
+  padding-left: 1.35rem;
+}
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-feedback-form textarea {
+  min-height: 96px;
+}
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-review-detail { display: grid; align-content: start; max-width: none; gap: var(--s2l-form-field-gap); padding: var(--s2l-form-card-padding); }
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-review-decision {
+  display: grid;
+  max-width: none;
+  gap: var(--s2l-form-section-gap);
+  padding: var(--s2l-form-section-padding);
+  border: 1px solid var(--s2l-ui-rule);
+  border-radius: 16px;
+  background: var(--s2l-ui-paper-muted);
+}
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-review-decision textarea {
+  min-height: 76px;
+}
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-feedback-list li {
+  padding: 12px;
+  border: 1px solid var(--s2l-ui-rule);
+  border-radius: 14px;
+  background: var(--s2l-ui-paper);
+}
 html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-decision-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--s2l-form-control-gap); margin-top: 4px; }
 html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-counter-boundary { margin: 0; font-size: var(--s2l-form-helper-size); }
-html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-lifecycle [role="group"] { display: grid; gap: var(--s2l-form-control-gap); }
-html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-lifecycle [role="group"] > button { justify-self: end; }
+@media (min-width: 800px) {
+  html[data-cozy="1"] .cozy-form-inline-action {
+    display: flex;
+    align-self: start;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--s2l-form-control-gap);
+    padding-top: 26px;
+  }
+  html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .cozy-form-grid > .manager-business-assignment-list.cozy-span-4 {
+    grid-column: span 4;
+    margin-top: 0;
+  }
+}
 
 :is(html[data-cozy="1"][data-portal="teacher"], html[data-cozy="1"][data-portal="school-be1"]) .s2l-password-dialog { padding: var(--s2l-form-card-padding); }
 :is(html[data-cozy="1"][data-portal="teacher"], html[data-cozy="1"][data-portal="school-be1"]) .s2l-password-form { display: grid; min-width: 0; gap: var(--s2l-form-field-gap); padding: 0; }
-:is(html[data-cozy="1"][data-portal="teacher"], html[data-cozy="1"][data-portal="school-be1"]) .s2l-password-form > h2 { margin: 0; }
-:is(html[data-cozy="1"][data-portal="teacher"], html[data-cozy="1"][data-portal="school-be1"]) .s2l-password-form > label { display: grid; min-width: 0; gap: var(--s2l-form-label-gap); }
-:is(html[data-cozy="1"][data-portal="teacher"], html[data-cozy="1"][data-portal="school-be1"]) .s2l-password-form > button { justify-self: end; margin-top: 4px; }
+
+@media (max-width: 900px) {
+  html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .teacher-lesson-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 
 @media (max-width: 620px) {
-  :is(html[data-cozy="1"][data-portal="teacher"], html[data-cozy="1"][data-portal="school-be1"]) .s2l-app-shell :is(form.tw-card, .tw-page > section.tw-card:has(.teacher-file-field), .s2l-data-card.teacher-roster-create, .teacher-occurrence-create, .teacher-occurrence-plan-form, .teacher-ai-workflow > section:has(label input, label textarea), .manager-business-card:has(form, .manager-business-form), .manager-review-detail, .s2l-password-dialog) {
-    padding: 20px;
-  }
-  html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .teacher-roster-create form { grid-template-columns: minmax(0, 1fr); }
-  html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .teacher-roster-create form > * { grid-column: 1; }
-  html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .teacher-roster-create form > button,
-  html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .tw-page > section.tw-card:has(.teacher-file-field) > button.tw-btn,
-  html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell form.tw-card > .tw-row:last-child > *,
-  html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-create-class form button,
-  html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-create-row > button,
-  html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-form > button,
-  html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-feedback-form > button,
-  html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-decision-actions > button,
-  html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-lifecycle [role="group"] > button {
+  html[data-cozy="1"] .cozy-form-card { padding: 16px; }
+  html[data-cozy="1"] .cozy-form-disabled-hint { text-align: left; }
+  html[data-cozy="1"] .cozy-form-actions { display: flex; flex-direction: column-reverse; align-items: stretch; gap: 10px; }
+  html[data-cozy="1"] .cozy-form-action-danger { margin-right: 0; margin-top: 6px; }
+  html[data-cozy="1"] .cozy-form-actions > * {
     box-sizing: border-box;
     width: 100%;
     max-width: 100%;
-    justify-self: stretch;
   }
-  html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell form.tw-card > .tw-row:last-child { display: grid; grid-template-columns: minmax(0, 1fr); }
-  html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-create-class form button { margin-top: 13px; }
-  html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-form { grid-template-columns: minmax(0, 1fr); }
-  html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-form > button,
-  html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-form > button:last-child { grid-column: 1; }
-  html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-feedback-form > button { margin-top: 4px; }
-  html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-decision-actions { display: grid; grid-template-columns: minmax(0, 1fr); }
-  :is(html[data-cozy="1"][data-portal="teacher"], html[data-cozy="1"][data-portal="school-be1"]) .s2l-password-dialog { padding: 20px; }
-  :is(html[data-cozy="1"][data-portal="teacher"], html[data-cozy="1"][data-portal="school-be1"]) .s2l-password-form > button { width: 100%; justify-self: stretch; }
+  :is(html[data-cozy="1"][data-portal="teacher"], html[data-cozy="1"][data-portal="school-be1"]) .s2l-password-dialog { padding: 16px; }
 }

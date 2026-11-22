@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Alert, Button, Card, PageHeader, Section, Select, StatusBadge } from "../ui";
+import { Alert, Button, Card, FormField, PageHeader, Section, Select, StatusBadge } from "../ui";
 import { BackendApiError, backendMessage } from "../api/backendApi";
 import { getPreferences, updatePreferences, type AccountPreferences } from "../api/accountPreferencesApi";
 import "./AccountSettingsPage.css";
@@ -9,26 +9,30 @@ type AccountSettingsRole = "Teacher" | "School Manager";
 function PreferenceForm({
   value,
   saving,
+  saveError,
   onSave,
 }: {
   value: AccountPreferences;
   saving: boolean;
+  saveError: string;
   onSave: (enabled: boolean) => void;
 }) {
   const [enabled, setEnabled] = useState(value.email_notifications);
+  const unchanged = enabled === value.email_notifications;
 
   return (
     <form
-      className="grid min-w-0 gap-4"
+      className="cozy-form-stack"
       onSubmit={(event) => {
         event.preventDefault();
         onSave(enabled);
       }}
     >
-      <div className="grid min-w-0 gap-2">
-        <label htmlFor="account-email-notifications" className="font-ui text-sm font-semibold text-ink">
-          Thông báo qua email
-        </label>
+      <FormField
+        label="Thông báo qua email"
+        htmlFor="account-email-notifications"
+        help="Email bảo mật và thiết lập tài khoản vẫn được gửi."
+      >
         <Select
           id="account-email-notifications"
           value={String(enabled)}
@@ -38,17 +42,17 @@ function PreferenceForm({
           <option value="true">Nhận thông báo</option>
           <option value="false">Tắt thông báo tùy chọn</option>
         </Select>
-        <p className="m-0 font-ui text-xs leading-5 text-ink-soft">
-          Email bảo mật và thiết lập tài khoản vẫn được gửi.
-        </p>
-      </div>
-      <div className="cozy-form-actions">
+      </FormField>
+      {saveError && <Alert tone="danger" role="alert">{saveError}</Alert>}
+      {!saving && unchanged && (
+        <p className="cozy-form-disabled-hint">Thay đổi lựa chọn ở trên để bật nút lưu.</p>
+      )}
+      <div className="cozy-form-actions" style={{ marginTop: 0 }}>
         <Button
           type="submit"
           variant="primary"
           loading={saving}
-          disabled={saving || enabled === value.email_notifications}
-          className="account-settings-save w-full sm:w-auto"
+          disabled={saving || unchanged}
         >
           Lưu tùy chọn
         </Button>
@@ -129,13 +133,12 @@ export function AccountSettingsPage({ role }: { role: AccountSettingsRole }) {
         description="Quản lý thông báo cho tài khoản của bạn."
       />
 
-      <div className="grid min-w-0 gap-3" aria-live={saveError || loadError ? "assertive" : "polite"} aria-atomic="true">
+      <div className="grid min-w-0 gap-3" aria-live={loadError ? "assertive" : "polite"} aria-atomic="true">
         {saved && <Alert tone="success">Đã lưu thay đổi.</Alert>}
-        {saveError && <Alert tone="danger">{saveError}</Alert>}
         {loadError && <Alert tone="danger">{loadError}</Alert>}
       </div>
 
-      <Card className="w-full max-w-3xl">
+      <Card tone="subtle" className="w-full">
         <Section
           title="Thông báo cá nhân"
           variant="plain"
@@ -148,7 +151,7 @@ export function AccountSettingsPage({ role }: { role: AccountSettingsRole }) {
               <span className="h-4 w-72 max-w-full animate-pulse rounded bg-neutral-soft" />
             </div>
           ) : preferences ? (
-            <PreferenceForm key={preferences.revision} value={preferences} saving={saving} onSave={save} />
+            <PreferenceForm key={preferences.revision} value={preferences} saving={saving} saveError={saveError} onSave={save} />
           ) : (
             <div className="grid min-w-0 gap-3">
               <p className="m-0 font-ui text-sm leading-6 text-ink-soft">Không tải được tùy chọn tài khoản.</p>

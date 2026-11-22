@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { RefreshCw, Users } from "lucide-react";
 import { PageHeading } from "../../../../shared/components/FeatureAvailability";
-import { Alert, EmptyState, Select, StatCard, StatusBadge, type StatusTone } from "../../../../shared/ui";
+import { Alert, EmptyState, FormField, Select, StatCard, StatusBadge, type StatusTone } from "../../../../shared/ui";
 import { classService, classStateLabel, type Be1Class } from "../services/classService";
 import { AdminBe1Error } from "../services/be1Client";
 import { TeacherAssignmentCard } from "./TeacherAssignmentCard";
@@ -174,8 +174,7 @@ export function RosterConsentPage() {
 
       {classError && <Alert role="alert" tone="danger">{classError}</Alert>}
 
-      <section className="manager-business-card manager-business-class-picker">
-        <label htmlFor="manager-roster-class">Lớp đang xem</label>
+      <section className="manager-business-card cozy-form-card cozy-form-card--wide cozy-form-stack">
         {classState === "loading" ? (
           <Alert role="status">Đang tải lớp được cấp quyền…</Alert>
         ) : classState === "error" ? (
@@ -183,22 +182,32 @@ export function RosterConsentPage() {
         ) : classes.length === 0 ? (
           <EmptyState title="Organization chưa có lớp được cấp quyền. Roster và consent chỉ tải sau khi chọn một lớp." />
         ) : (
-          <Select
-            id="manager-roster-class"
-            value={selectedClassId}
-            onChange={(event) => changeSelectedClass(event.target.value)}
-          >
-            {classes.map((item) => (
-              <option value={item.class_id} key={item.class_id}>{item.display_name}</option>
-            ))}
-          </Select>
-        )}
-        {selectedClass && (
-          <p className="manager-business-subtle">
-            Trạng thái lớp từ BE1: {classStateLabel(selectedClass.state)}
-            {selectedClass.state === "suspended" ? " · Lớp tạm ngưng chỉ đọc, mọi dữ liệu vẫn được giữ." : ""}
-            {selectedClass.state === "archived" ? " · Lớp đã lưu trữ; chỉ School Manager còn xem được." : ""}
-          </p>
+          <div className="cozy-form-grid">
+            <FormField
+              className="cozy-span-3"
+              label="Lớp đang xem"
+              htmlFor="manager-roster-class"
+            >
+              <Select
+                id="manager-roster-class"
+                value={selectedClassId}
+                onChange={(event) => changeSelectedClass(event.target.value)}
+              >
+                {classes.map((item) => (
+                  <option value={item.class_id} key={item.class_id}>{item.display_name}</option>
+                ))}
+              </Select>
+            </FormField>
+            {selectedClass && (
+              <div className="cozy-span-3 cozy-form-field" style={{ alignSelf: "end" }}>
+                <p className="s2l-note" style={{ margin: 0 }}>
+                  Trạng thái lớp từ BE1: {classStateLabel(selectedClass.state)}
+                  {selectedClass.state === "suspended" ? " · Lớp tạm ngưng chỉ đọc, mọi dữ liệu vẫn được giữ." : ""}
+                  {selectedClass.state === "archived" ? " · Lớp đã lưu trữ; chỉ School Manager còn xem được." : ""}
+                </p>
+              </div>
+            )}
+          </div>
         )}
       </section>
 

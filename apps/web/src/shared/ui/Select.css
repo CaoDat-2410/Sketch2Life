@@ -21,7 +21,7 @@ html[data-cozy="1"] button.s2l-select-trigger {
   justify-content: space-between;
   gap: 12px;
   padding: 10px 13px;
-  border: 1px solid var(--s2l-ui-rule);
+  border: 1px solid color-mix(in srgb, var(--s2l-ui-ink) 18%, var(--s2l-ui-rule));
   border-radius: 12px;
   background: var(--s2l-ui-paper);
   color: var(--s2l-ui-ink);

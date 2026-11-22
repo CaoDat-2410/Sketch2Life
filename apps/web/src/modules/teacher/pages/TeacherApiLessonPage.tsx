@@ -17,7 +17,7 @@ import {
 import { usePortalSession } from "../../../shared/auth/PortalSessionContext";
 import { Icon } from "../components/Icon";
 import { PageHeading } from "../../../shared/components/FeatureAvailability";
-import { Select } from "../../../shared/ui";
+import { Button, FormField, Select } from "../../../shared/ui";
 import { commandSignature, isStaleRevision, keyForCommand } from "../services/commandKeys";
 
 const blankActivity = (): LessonActivity => ({
@@ -45,9 +45,6 @@ const blankContent = (): LessonContent => ({
   script_following_allowed: false,
   activities: [blankActivity()],
 });
-
-const fieldStyle: React.CSSProperties = { display: "grid", gap: 6, fontWeight: 700, fontSize: 13.5 };
-const inputStyle: React.CSSProperties = { width: "100%", boxSizing: "border-box" };
 
 export function TeacherApiLessonPage() {
   const navigate = useNavigate();
@@ -293,7 +290,7 @@ export function TeacherApiLessonPage() {
       <PageHeading eyebrow="Teacher · Học liệu" title="Giáo án" description="Giáo án, mục tiêu học tập và hoạt động trong phạm vi tổ chức." action={<div className="teacher-page-actions"><button type="button" className="tw-btn is-ghost" onClick={() => navigate("/teacher/t03-document-import-review")}><Icon name="upload" size={16} /> Nhập tài liệu</button><button type="button" className="tw-btn" onClick={newLesson}><Icon name="plus" size={16} /> Giáo án mới</button></div>} />
       <BackendModeNotice roleLabel="Giáo viên" />
       {pageError && <BackendNotice title="Không tải được danh sách giáo án" tone="error">{pageError}</BackendNotice>}
-      <div className="tw-grid-2" style={{ alignItems: "start", gap: 18 }}>
+      <div className="teacher-lesson-layout">
         <section className="tw-card">
           <div className="tw-row tw-between"><h2 className="tw-h2">Giáo án</h2><button type="button" className="tw-btn is-ghost is-sm" disabled={loading} onClick={() => setReload((value) => value + 1)}>Tải lại</button></div>
           {loading && <p className="tw-sub">Đang tải danh sách…</p>}
@@ -306,66 +303,99 @@ export function TeacherApiLessonPage() {
           <BackendNotice title="Trạng thái quyền công khai" tone="info">Gửi grant PUBLIC sẽ tạo PENDING_REVIEW. Chỉ Manager mới duyệt được; thao tác này không tự phát hành bài học.</BackendNotice>
         </section>
 
-        <form className="tw-card" onSubmit={(event) => void save(event)}>
+        <form className="tw-card cozy-form-card cozy-form-card--wide cozy-form-stack teacher-lesson-form" onSubmit={(event) => void save(event)}>
           <div className="tw-row tw-between tw-wrap"><h2 className="tw-h2" style={{ margin: 0 }}>{detail ? "Cập nhật giáo án" : "Tạo giáo án"}</h2>{detail && <span className="tw-chip is-gray">Revision {detail.revision} · {detail.current_version.review_state}</span>}</div>
-          {detailError && <BackendNotice title="Không thể lưu hoặc tải phiên bản" tone="error">{detailError}{staleRevision && detail && <> <button type="button" className="tw-btn is-ghost is-sm" disabled={saving} onClick={() => void reloadCurrentVersion()}>Tải lại bản hiện tại (bỏ chỉnh sửa chưa lưu)</button></>}</BackendNotice>}
           {selectedId && !detail && !detailError && <p className="tw-sub">Đang tải nội dung có revision hiện tại…</p>}
 
-          <div style={{ display: "grid", gap: 12, marginTop: 14 }}>
-            <label className="tw-label" style={fieldStyle}>Tiêu đề
-              <input className="tw-input" style={inputStyle} maxLength={160} required value={content.title} onChange={(event) => updateContent({ title: event.target.value })} />
-            </label>
-            <label className="tw-label" style={fieldStyle}>Chủ đề
-              <input className="tw-input" style={inputStyle} maxLength={120} required value={content.topic} onChange={(event) => updateContent({ topic: event.target.value })} />
-            </label>
-            <div className="tw-grid-2">
-              <label className="tw-label" style={fieldStyle}>Mã nhóm tuổi theo hợp đồng
-                <input className="tw-input" style={inputStyle} maxLength={256} required value={content.target_age_band_ref} onChange={(event) => updateContent({ target_age_band_ref: event.target.value })} />
-              </label>
-              <label className="tw-label" style={fieldStyle}>Phiên bản nhóm tuổi
-                <input className="tw-input" style={inputStyle} type="number" min={1} step={1} required value={content.target_age_band_version || ""} onChange={(event) => updateContent({ target_age_band_version: event.target.value ? Number(event.target.value) : 0 })} />
-              </label>
+          <div className="cozy-form-grid">
+            <FormField className="cozy-span-3" label="Tiêu đề" htmlFor="lesson-title" required>
+              <input id="lesson-title" className="cozy-input" maxLength={160} required value={content.title} onChange={(event) => updateContent({ title: event.target.value })} />
+            </FormField>
+            <FormField className="cozy-span-3" label="Chủ đề" htmlFor="lesson-topic" required>
+              <input id="lesson-topic" className="cozy-input" maxLength={120} required value={content.topic} onChange={(event) => updateContent({ topic: event.target.value })} />
+            </FormField>
+            <FormField className="cozy-span-2" label="Mã nhóm tuổi theo hợp đồng" htmlFor="lesson-age-band" required>
+              <input id="lesson-age-band" className="cozy-input" maxLength={256} required value={content.target_age_band_ref} onChange={(event) => updateContent({ target_age_band_ref: event.target.value })} />
+            </FormField>
+            <FormField className="cozy-span-2" label="Phiên bản nhóm tuổi" htmlFor="lesson-age-version" required>
+              <input id="lesson-age-version" className="cozy-input" type="number" min={1} step={1} required value={content.target_age_band_version || ""} onChange={(event) => updateContent({ target_age_band_version: event.target.value ? Number(event.target.value) : 0 })} />
+            </FormField>
+            <FormField className="cozy-span-2" label="Đối tượng cần vẽ" htmlFor="lesson-drawing-subject" required>
+              <input id="lesson-drawing-subject" className="cozy-input" maxLength={160} required value={content.drawing_subject} onChange={(event) => updateContent({ drawing_subject: event.target.value })} />
+            </FormField>
+            <FormField className="cozy-span-3" label="Mục tiêu học tập (mỗi dòng một mục)" htmlFor="lesson-objectives" required help="Tối đa 12 mục tiêu, mỗi mục tiêu tối đa 1.000 ký tự.">
+              <textarea id="lesson-objectives" className="cozy-textarea" rows={3} maxLength={12000} value={content.objectives.join("\n")} onChange={(event) => updateContent({ objectives: event.target.value.split("\n") })} />
+            </FormField>
+            <FormField className="cozy-span-3" label="Các bước hướng dẫn vẽ" htmlFor="lesson-drawing-steps" required>
+              <textarea id="lesson-drawing-steps" className="cozy-textarea" rows={3} maxLength={4000} required value={content.drawing_steps_text} onChange={(event) => updateContent({ drawing_steps_text: event.target.value })} />
+            </FormField>
+            <FormField className="cozy-span-3" label="Ghi chú kiến thức" htmlFor="lesson-learning-notes" required>
+              <textarea id="lesson-learning-notes" className="cozy-textarea" rows={2} maxLength={5000} required value={content.subject_learning_notes} onChange={(event) => updateContent({ subject_learning_notes: event.target.value })} />
+            </FormField>
+            <FormField className="cozy-span-3" label="Định hướng kịch bản (tùy chọn)" htmlFor="lesson-script-direction">
+              <textarea id="lesson-script-direction" className="cozy-textarea" rows={2} maxLength={2000} value={content.script_direction ?? ""} onChange={(event) => updateContent({ script_direction: event.target.value || null })} />
+            </FormField>
+            <label className="cozy-form-checkbox-card"><input type="checkbox" checked={content.script_following_allowed} onChange={(event) => updateContent({ script_following_allowed: event.target.checked })} /><span>Cho phép bám theo định hướng kịch bản</span></label>
+          </div>
+
+          <div className="teacher-lesson-activities">
+            <div className="tw-row tw-between">
+              <h3 className="tw-h2" style={{ fontSize: 17 }}>Hoạt động thực hành</h3>
+              <Button type="button" variant="secondary" size="sm" disabled={content.activities.length >= 24} iconLeft={<Icon name="plus" size={15} />} onClick={() => updateContent({ activities: [...content.activities, blankActivity()] })}>
+                Thêm hoạt động
+              </Button>
             </div>
-            <label className="tw-label" style={fieldStyle}>Mục tiêu học tập (mỗi dòng một mục)
-              <textarea className="tw-input" style={inputStyle} rows={3} maxLength={12000} value={content.objectives.join("\n")} onChange={(event) => updateContent({ objectives: event.target.value.split("\n") })} />
-            </label>
-            <label className="tw-label" style={fieldStyle}>Đối tượng cần vẽ
-              <input className="tw-input" style={inputStyle} maxLength={160} required value={content.drawing_subject} onChange={(event) => updateContent({ drawing_subject: event.target.value })} />
-            </label>
-            <label className="tw-label" style={fieldStyle}>Các bước hướng dẫn vẽ
-              <textarea className="tw-input" style={inputStyle} rows={4} maxLength={4000} required value={content.drawing_steps_text} onChange={(event) => updateContent({ drawing_steps_text: event.target.value })} />
-            </label>
-            <label className="tw-label" style={fieldStyle}>Ghi chú kiến thức
-              <textarea className="tw-input" style={inputStyle} rows={3} maxLength={5000} required value={content.subject_learning_notes} onChange={(event) => updateContent({ subject_learning_notes: event.target.value })} />
-            </label>
-            <label className="tw-label" style={fieldStyle}>Định hướng kịch bản (tùy chọn)
-              <textarea className="tw-input" style={inputStyle} rows={2} maxLength={2000} value={content.script_direction ?? ""} onChange={(event) => updateContent({ script_direction: event.target.value || null })} />
-            </label>
-            <label className="tw-row" style={{ gap: 8, fontWeight: 650 }}><input type="checkbox" checked={content.script_following_allowed} onChange={(event) => updateContent({ script_following_allowed: event.target.checked })} /> Cho phép bám theo định hướng kịch bản</label>
+            {content.activities.map((activity, index) => (
+              <section key={index} className="cozy-form-section cozy-form-grid">
+                <div className="cozy-form-section-head">
+                  <h4>Hoạt động {index + 1}</h4>
+                  {content.activities.length > 1 && (
+                    <Button type="button" variant="secondary" size="sm" onClick={() => updateContent({ activities: content.activities.filter((_, i) => i !== index) })}>
+                      Xóa hoạt động này
+                    </Button>
+                  )}
+                </div>
+                <FormField className="cozy-span-4" label="Tên hoạt động" htmlFor={`lesson-activity-title-${index}`} required>
+                  <input id={`lesson-activity-title-${index}`} className="cozy-input" maxLength={160} required value={activity.title} onChange={(event) => updateActivity(index, { title: event.target.value })} />
+                </FormField>
+                <FormField className="cozy-span-2" label="Loại hoạt động" htmlFor={`lesson-activity-kind-${index}`} required>
+                  <Select id={`lesson-activity-kind-${index}`} aria-label="Loại hoạt động" value={activity.activity_kind} onChange={(event) => updateActivity(index, { activity_kind: event.target.value as LessonActivity["activity_kind"] })}>
+                    <option value="outdoor">Ngoài trời</option><option value="indoor">Trong lớp</option><option value="mixed">Kết hợp</option>
+                  </Select>
+                </FormField>
+                <FormField className="cozy-span-3" label="Mục tiêu" htmlFor={`lesson-activity-objective-${index}`} required>
+                  <textarea id={`lesson-activity-objective-${index}`} className="cozy-textarea" rows={2} maxLength={1000} required value={activity.objective} onChange={(event) => updateActivity(index, { objective: event.target.value })} />
+                </FormField>
+                <FormField className="cozy-span-3" label="Hướng dẫn" htmlFor={`lesson-activity-instructions-${index}`} required>
+                  <textarea id={`lesson-activity-instructions-${index}`} className="cozy-textarea" rows={2} maxLength={5000} required value={activity.instructions_text} onChange={(event) => updateActivity(index, { instructions_text: event.target.value })} />
+                </FormField>
+                <FormField className="cozy-span-3" label="Vật liệu" htmlFor={`lesson-activity-materials-${index}`}>
+                  <textarea id={`lesson-activity-materials-${index}`} className="cozy-textarea" rows={2} maxLength={2000} value={activity.materials_text} onChange={(event) => updateActivity(index, { materials_text: event.target.value })} />
+                </FormField>
+                <FormField className="cozy-span-3" label="Chuẩn bị" htmlFor={`lesson-activity-prep-${index}`}>
+                  <textarea id={`lesson-activity-prep-${index}`} className="cozy-textarea" rows={2} maxLength={2000} value={activity.preparation_text} onChange={(event) => updateActivity(index, { preparation_text: event.target.value })} />
+                </FormField>
+                <FormField className="cozy-span-3" label="Lưu ý quan sát" htmlFor={`lesson-activity-observation-${index}`}>
+                  <textarea id={`lesson-activity-observation-${index}`} className="cozy-textarea" rows={2} maxLength={3000} value={activity.observation_notes} onChange={(event) => updateActivity(index, { observation_notes: event.target.value })} />
+                </FormField>
+                <FormField className="cozy-span-3" label="An toàn" htmlFor={`lesson-activity-safety-${index}`}>
+                  <textarea id={`lesson-activity-safety-${index}`} className="cozy-textarea" rows={2} maxLength={3000} value={activity.safety_notes} onChange={(event) => updateActivity(index, { safety_notes: event.target.value })} />
+                </FormField>
+              </section>
+            ))}
           </div>
 
-          <div className="tw-card teacher-lesson-activities" style={{ marginTop: 18, padding: 16 }}>
-            <div className="tw-row tw-between"><h3 className="tw-h2" style={{ fontSize: 17 }}>Hoạt động thực hành</h3><button type="button" className="tw-btn is-ghost is-sm" disabled={content.activities.length >= 24} onClick={() => updateContent({ activities: [...content.activities, blankActivity()] })}><Icon name="plus" size={15} /> Thêm hoạt động</button></div>
-            {content.activities.map((activity, index) => <fieldset key={index} style={{ border: "1px solid var(--s2l-ui-rule)", borderRadius: 14, padding: 14, margin: "12px 0" }}>
-              <legend style={{ padding: "0 6px", fontWeight: 750 }}>Hoạt động {index + 1}</legend>
-              <div style={{ display: "grid", gap: 10 }}>
-                <label className="tw-label" style={fieldStyle}>Tên hoạt động<input className="tw-input" style={inputStyle} maxLength={160} required value={activity.title} onChange={(event) => updateActivity(index, { title: event.target.value })} /></label>
-                <label className="tw-label" style={fieldStyle}>Mục tiêu<input className="tw-input" style={inputStyle} maxLength={1000} required value={activity.objective} onChange={(event) => updateActivity(index, { objective: event.target.value })} /></label>
-                <label className="tw-label" style={fieldStyle}>Hướng dẫn<textarea className="tw-input" style={inputStyle} rows={3} maxLength={5000} required value={activity.instructions_text} onChange={(event) => updateActivity(index, { instructions_text: event.target.value })} /></label>
-                <label className="tw-label" style={fieldStyle}>Vật liệu<textarea className="tw-input" style={inputStyle} rows={2} maxLength={2000} value={activity.materials_text} onChange={(event) => updateActivity(index, { materials_text: event.target.value })} /></label>
-                <label className="tw-label" style={fieldStyle}>Chuẩn bị<textarea className="tw-input" style={inputStyle} rows={2} maxLength={2000} value={activity.preparation_text} onChange={(event) => updateActivity(index, { preparation_text: event.target.value })} /></label>
-                <label className="tw-label" style={fieldStyle}>Lưu ý quan sát<textarea className="tw-input" style={inputStyle} rows={2} maxLength={3000} value={activity.observation_notes} onChange={(event) => updateActivity(index, { observation_notes: event.target.value })} /></label>
-                <label className="tw-label" style={fieldStyle}>An toàn<textarea className="tw-input" style={inputStyle} rows={2} maxLength={3000} value={activity.safety_notes} onChange={(event) => updateActivity(index, { safety_notes: event.target.value })} /></label>
-                <label className="tw-label" style={fieldStyle}>Loại hoạt động<Select aria-label="Loại hoạt động" className="tw-input" style={inputStyle} value={activity.activity_kind} onChange={(event) => updateActivity(index, { activity_kind: event.target.value as LessonActivity["activity_kind"] })}><option value="outdoor">Ngoài trời</option><option value="indoor">Trong lớp</option><option value="mixed">Kết hợp</option></Select></label>
-                {content.activities.length > 1 && <button type="button" className="tw-btn is-ghost is-sm" onClick={() => updateContent({ activities: content.activities.filter((_, i) => i !== index) })}>Xóa hoạt động này</button>}
-              </div>
-            </fieldset>)}
-          </div>
+          {detailError && <BackendNotice title="Không thể lưu hoặc tải phiên bản" tone="error">{detailError}{staleRevision && detail && <> <Button type="button" variant="secondary" size="sm" disabled={saving} onClick={() => void reloadCurrentVersion()}>Tải lại bản hiện tại (bỏ chỉnh sửa chưa lưu)</Button></>}</BackendNotice>}
+          {!saving && selectedId && !detail && (
+            <p className="cozy-form-disabled-hint">Đang tải dữ liệu giáo án để bật nút lưu.</p>
+          )}
 
-          <div className="tw-row tw-wrap" style={{ justifyContent: "flex-end", marginTop: 16 }}>
-            {detail && <button type="button" className="tw-btn is-ghost" disabled={saving} onClick={() => void archive()}>Lưu trữ</button>}
-            {detail && detail.current_version.review_state !== "PENDING_REVIEW" && detail.visibility !== "PUBLIC" && <button type="button" className="tw-btn is-ghost" disabled={saving} onClick={() => void requestPublic()}><Icon name="share" size={16} /> Gửi duyệt công khai</button>}
-            <button type="submit" className="tw-btn" disabled={saving || Boolean(selectedId && !detail)}><Icon name="check" size={16} />{saving ? "Đang lưu…" : detail ? "Lưu cập nhật" : "Tạo giáo án"}</button>
+          <div className="cozy-form-actions" style={{ marginTop: 0 }}>
+            {detail && <Button type="button" variant="danger" className="cozy-form-action-danger" disabled={saving} onClick={() => void archive()}>Lưu trữ</Button>}
+            {detail && detail.current_version.review_state !== "PENDING_REVIEW" && detail.visibility !== "PUBLIC" && <Button type="button" variant="secondary" disabled={saving} iconLeft={<Icon name="share" size={16} />} onClick={() => void requestPublic()}>Gửi duyệt công khai</Button>}
+            <Button type="submit" variant="primary" loading={saving} disabled={saving || Boolean(selectedId && !detail)} iconLeft={<Icon name="check" size={16} />}>
+              {saving ? "Đang lưu…" : detail ? "Lưu cập nhật" : "Tạo giáo án"}
+            </Button>
           </div>
         </form>
       </div>

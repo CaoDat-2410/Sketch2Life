@@ -1,5 +1,1 @@
-.account-settings-page .account-settings-save:disabled {
-  background: var(--s2l-ui-primary-soft);
-  color: var(--s2l-ui-primary-ink);
-  box-shadow: none;
-}
+/* AccountSettingsPage relies on shared Button and FormField tokens. */

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, LockKeyhole, RefreshCw, UserPlus, Users } from "lucide-react";
 import { PageHeading } from "../../../shared/components/FeatureAvailability";
-import { Alert, Select } from "../../../shared/ui";
+import { Alert, Button, FormField, Select } from "../../../shared/ui";
 import {
   BackendApiError,
   backendApi,
@@ -16,6 +16,7 @@ import {
   CLASS_READ_ONLY,
   NOT_FOUND_OR_NO_ACCESS,
   PROFILE_AGE_MONTHS,
+  PROFILE_NAME_MAX,
   STALE_RELOADED,
   SYNTHETIC_NAME_PREFIX,
   TeacherRosterApiError,
@@ -227,6 +228,17 @@ function TeacherApiClassDetailPage({ classId }: { classId: string }) {
   const age = Number(ageMonths);
   const profileInput = { display_name: profileName, age_months: age };
   const inputProblem = profileInputProblem(profileInput);
+  const showFieldProblems = profileName !== SYNTHETIC_NAME_PREFIX || ageMonths !== "60";
+  const nameProblem = showFieldProblems
+    ? !profileName.startsWith(SYNTHETIC_NAME_PREFIX) || profileName.trim().length <= SYNTHETIC_NAME_PREFIX.trim().length
+      ? `Tên hồ sơ thử nghiệm phải bắt đầu bằng “${SYNTHETIC_NAME_PREFIX}” và có thêm tên phía sau.`
+      : profileName.length > PROFILE_NAME_MAX
+        ? `Tên hồ sơ tối đa ${PROFILE_NAME_MAX} ký tự.`
+        : undefined
+    : undefined;
+  const ageProblem = showFieldProblems && (!Number.isInteger(age) || age < PROFILE_AGE_MONTHS.min || age > PROFILE_AGE_MONTHS.max)
+    ? `Tuổi tính theo tháng phải từ ${PROFILE_AGE_MONTHS.min} đến ${PROFILE_AGE_MONTHS.max}.`
+    : undefined;
   const createSignature = JSON.stringify(["create", classId, profileName, age, classRevision]);
   const createProfile = () => {
     if (!writable || inputProblem || classRevision === undefined) return;
@@ -257,7 +269,6 @@ function TeacherApiClassDetailPage({ classId }: { classId: string }) {
       {loading && <p className="s2l-data-card" role="status">Đang xác minh phạm vi và consent…</p>}
       {error && <div className="s2l-alert" role="alert">{error}</div>}
       {classItem && !error && classItem.state !== "active" && <div className="s2l-note" role="status"><LockKeyhole size={15} aria-hidden="true" />{CLASS_READ_ONLY}</div>}
-      {commandError && <div className="s2l-alert" role="alert">{commandError}</div>}
       {notice && <p className="s2l-note" role="status">{notice}</p>}
       {classItem && !error && profileError && (profileErrorCode === "CONSENT_NOT_EFFECTIVE"
         ? <Alert role="status" tone="info" icon={<LockKeyhole size={16} aria-hidden="true" />} className="teacher-consent-locked">
@@ -284,18 +295,25 @@ function TeacherApiClassDetailPage({ classId }: { classId: string }) {
                       <button type="button" className="s2l-button" disabled={busy} onClick={() => { setMoveDraft({ childId: profile.child_id, targetClassId: "" }); setCommandError(null); }}>Chuyển lớp</button>
                     )}
                     {moving && (
-                      <span className="teacher-roster-move" role="group" aria-label={`Chuyển lớp cho ${profile.display_name}`}>
-                        <label>
-                          Lớp đích
-                          <Select aria-label="Lớp đích" value={moveDraft.targetClassId} disabled={busy} onChange={(event) => setMoveDraft({ childId: profile.child_id, targetClassId: event.target.value })}>
+                      <div className="teacher-roster-move" role="group" aria-label={`Chuyển lớp cho ${profile.display_name}`}>
+                        <FormField label="Lớp đích" htmlFor={`move-target-${profile.child_id}`} required>
+                          <Select id={`move-target-${profile.child_id}`} aria-label="Lớp đích" value={moveDraft.targetClassId} disabled={busy} onChange={(event) => setMoveDraft({ childId: profile.child_id, targetClassId: event.target.value })}>
                             <option value="" disabled>Chọn lớp</option>
                             {moveTargets.map((item) => <option key={item.class_id} value={item.class_id}>{item.display_name}</option>)}
                           </Select>
-                        </label>
-                        <small>Khi chuyển lớp, enrollment trước đó được đóng và lưu lại.</small>
-                        <button type="button" className="s2l-button" disabled={busy || !moveTarget} onClick={moveProfile}>{retrySignature !== null && retrySignature === moveSignature ? "Gửi lại cùng yêu cầu" : "Xác nhận chuyển lớp"}</button>
-                        <button type="button" className="s2l-button" disabled={busy} onClick={() => setMoveDraft(null)}>Hủy</button>
-                      </span>
+                        </FormField>
+                        <p className="cozy-form-hint" style={{ marginTop: 0 }}>Khi chuyển lớp, enrollment trước đó được đóng và lưu lại.</p>
+                        {commandError && <Alert role="alert" tone="danger">{commandError}</Alert>}
+                        {!busy && !moveTarget && (
+                          <p className="cozy-form-disabled-hint">Chọn lớp đích để bật nút xác nhận chuyển lớp.</p>
+                        )}
+                        <div className="cozy-form-actions teacher-roster-move-actions" style={{ marginTop: 0 }}>
+                          <Button type="button" variant="secondary" disabled={busy} onClick={() => setMoveDraft(null)}>Hủy</Button>
+                          <Button type="button" variant="primary" loading={busy} disabled={busy || !moveTarget} onClick={moveProfile}>
+                            {retrySignature !== null && retrySignature === moveSignature ? "Gửi lại cùng yêu cầu" : "Xác nhận chuyển lớp"}
+                          </Button>
+                        </div>
+                      </div>
                     )}
                   </li>
                 );
@@ -309,18 +327,27 @@ function TeacherApiClassDetailPage({ classId }: { classId: string }) {
         {consents.length === 0 ? <p>API không trả consent record cho lớp này.</p> : <ul className="s2l-consent-list">{consents.map((consent) => <li key={consent.consent_id}><span>{consent.purpose_ref}</span><span className={"s2l-status-tag" + (consent.effective ? " is-available" : "")}>{consent.effective ? "Hiệu lực" : consent.state + " · chưa hiệu lực"}</span></li>)}</ul>}
       </section>}
       {classItem && !loading && !error && writable && (
-        <section className="s2l-data-card teacher-roster-create" aria-labelledby="teacher-profile-create-title">
+        <section className="s2l-data-card cozy-form-card cozy-form-card--wide teacher-roster-create" aria-labelledby="teacher-profile-create-title">
           <h2 id="teacher-profile-create-title"><UserPlus size={17} aria-hidden="true" />Tạo hồ sơ thử nghiệm</h2>
-          <p className="s2l-note">Chỉ tạo hồ sơ synthetic để thử nghiệm: chưa nhận dữ liệu trẻ thật và không giả consent. Tên phải bắt đầu bằng “{SYNTHETIC_NAME_PREFIX}”.</p>
-          <form onSubmit={(event) => { event.preventDefault(); createProfile(); }}>
-            <label htmlFor="teacher-profile-name">Tên hiển thị</label>
-            <input id="teacher-profile-name" value={profileName} maxLength={200} disabled={busy} onChange={(event) => setProfileName(event.target.value)} />
-            <label htmlFor="teacher-profile-age">Tuổi (tháng)</label>
-            <input id="teacher-profile-age" type="number" min={PROFILE_AGE_MONTHS.min} max={PROFILE_AGE_MONTHS.max} step={1} value={ageMonths} disabled={busy} onChange={(event) => setAgeMonths(event.target.value)} />
-            {inputProblem && profileName !== SYNTHETIC_NAME_PREFIX && <p className="s2l-note">{inputProblem}</p>}
-            <button type="submit" className="s2l-button" disabled={busy || Boolean(inputProblem)}>
-              {busy ? "Đang gửi…" : retrySignature !== null && retrySignature === createSignature ? "Gửi lại cùng yêu cầu" : "Tạo hồ sơ"}
-            </button>
+          <p className="cozy-form-hint" style={{ marginTop: 0 }}>Chỉ tạo hồ sơ synthetic để thử nghiệm: chưa nhận dữ liệu trẻ thật và không giả consent. Tên phải bắt đầu bằng “{SYNTHETIC_NAME_PREFIX}”.</p>
+          <form className="cozy-form-stack" onSubmit={(event) => { event.preventDefault(); createProfile(); }}>
+            <div className="cozy-form-grid">
+              <FormField className="cozy-span-4" label="Tên hiển thị" htmlFor="teacher-profile-name" required error={nameProblem}>
+                <input id="teacher-profile-name" className="cozy-input" value={profileName} maxLength={PROFILE_NAME_MAX} required disabled={busy} onChange={(event) => setProfileName(event.target.value)} />
+              </FormField>
+              <FormField className="cozy-span-2" label="Tuổi (tháng)" htmlFor="teacher-profile-age" required error={ageProblem}>
+                <input id="teacher-profile-age" className="cozy-input" type="number" min={PROFILE_AGE_MONTHS.min} max={PROFILE_AGE_MONTHS.max} step={1} value={ageMonths} required disabled={busy} onChange={(event) => setAgeMonths(event.target.value)} />
+              </FormField>
+            </div>
+            {commandError && !moveDraft && <Alert role="alert" tone="danger">{commandError}</Alert>}
+            {!busy && inputProblem && (
+              <p className="cozy-form-disabled-hint">Nhập tên hợp lệ và tuổi từ {PROFILE_AGE_MONTHS.min}–{PROFILE_AGE_MONTHS.max} tháng để bật nút tạo hồ sơ.</p>
+            )}
+            <div className="cozy-form-actions" style={{ marginTop: 0 }}>
+              <Button type="submit" variant="primary" loading={busy} disabled={busy || Boolean(inputProblem)}>
+                {busy ? "Đang gửi…" : retrySignature !== null && retrySignature === createSignature ? "Gửi lại cùng yêu cầu" : "Tạo hồ sơ"}
+              </Button>
+            </div>
           </form>
         </section>
       )}

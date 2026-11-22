@@ -80,6 +80,8 @@ describe("shared cozy UI primitives", () => {
     expect(ref.current).toBe(button);
     expect(button.className).toContain("bg-primary");
     expect(button.className).toContain("text-on-primary");
+    expect(button.className).toContain("disabled:bg-primary-soft");
+    expect(button.className).toContain("disabled:text-neutral-ink");
   });
 
   it("moves focus and selection with tab-list arrow keys", () => {

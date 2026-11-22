@@ -3,6 +3,7 @@ import { ArrowRight, Eye, EyeOff, GraduationCap, LoaderCircle, School, ShieldChe
 import { Link, useLocation } from "react-router-dom";
 import "./WebPortalLoginPage.css";
 import { backendMessage } from "../api/backendApi";
+import { Alert, FormField } from "../ui";
 import sketch2lifeLogo from "../assets/sketch2life-logo-mark-256.png";
 
 export type WebPortalAppRole = "TEACHER" | "MANAGER" | "ADMIN";
@@ -20,6 +21,7 @@ type LoginFieldState = {
   password: string;
   showPassword: boolean;
   error: string | null;
+  errorFields: { email?: boolean; password?: boolean };
 };
 
 const PORTALS: Record<WebPortalAppRole, PortalDetails> = {
@@ -69,25 +71,26 @@ export function WebPortalLoginPage({
     password: "",
     showPassword: false,
     error: null,
+    errorFields: {},
   });
   const [pending, setPending] = useState(false);
   const [notice, setNotice] = useState("");
   const [recovering, setRecovering] = useState(false);
   const fields = formState.role === portalRole
     ? formState
-    : { role: portalRole, password: "", showPassword: false, error: null };
+    : { role: portalRole, password: "", showPassword: false, error: null, errorFields: {} };
 
   const updateFields = (updates: Partial<Omit<LoginFieldState, "role">>) => {
     setFormState((current) => ({
       ...(current.role === portalRole
         ? current
-        : { role: portalRole, password: "", showPassword: false, error: null }),
+        : { role: portalRole, password: "", showPassword: false, error: null, errorFields: {} }),
       ...updates,
     }));
   };
 
   const changeRole = (role: WebPortalAppRole) => {
-    setFormState({ role, password: "", showPassword: false, error: null });
+    setFormState({ role, password: "", showPassword: false, error: null, errorFields: {} });
     onRoleChange(role);
   };
 
@@ -95,12 +98,18 @@ export function WebPortalLoginPage({
     event.preventDefault();
     if (pending) return;
     setNotice("");
-    updateFields({ error: null });
+    updateFields({ error: null, errorFields: {} });
     setPending(true);
     try {
       await onAuthenticate(portalRole, email.trim(), fields.password);
     } catch (cause) {
-      updateFields({ error: backendMessage(cause) });
+      const code = (cause as { code?: string }).code;
+      const errorFields = !email.trim() || code === "auth/invalid-email" || code === "auth/user-not-found"
+        ? { email: true }
+        : !fields.password || code === "auth/wrong-password"
+          ? { password: true }
+          : {};
+      updateFields({ error: backendMessage(cause), errorFields });
     } finally {
       setPending(false);
     }
@@ -108,10 +117,10 @@ export function WebPortalLoginPage({
 
   const resetPassword = async () => {
     if (pending) return;
-    updateFields({ error: null });
+    updateFields({ error: null, errorFields: {} });
     setNotice("");
     if (!email.trim()) {
-      updateFields({ error: "Nhập email để nhận hướng dẫn đặt lại mật khẩu." });
+      updateFields({ error: "Nhập email để nhận hướng dẫn đặt lại mật khẩu.", errorFields: { email: true } });
       return;
     }
 
@@ -121,9 +130,12 @@ export function WebPortalLoginPage({
     } catch (cause) {
       const code = (cause as { code?: string }).code;
       if (code !== "auth/user-not-found") {
-        updateFields({ error: code === "auth/too-many-requests" || code === "RATE_LIMITED"
-          ? "Bạn đã gửi quá nhiều yêu cầu. Vui lòng thử lại sau."
-          : "Chưa thể gửi hướng dẫn. Kiểm tra kết nối và thử lại." });
+        updateFields({
+          error: code === "auth/too-many-requests" || code === "RATE_LIMITED"
+            ? "Bạn đã gửi quá nhiều yêu cầu. Vui lòng thử lại sau."
+            : "Chưa thể gửi hướng dẫn. Kiểm tra kết nối và thử lại.",
+          errorFields: code === "auth/invalid-email" ? { email: true } : {},
+        });
         return;
       }
     } finally {
@@ -176,24 +188,45 @@ export function WebPortalLoginPage({
           </div>}
 
           <form className="s2l-login-form" onSubmit={(event) => { if (recovering) { event.preventDefault(); void resetPassword(); } else { void submit(event); } }} aria-busy={pending}>
-            <label className="s2l-login-field" htmlFor="s2l-login-email">Email tài khoản
-              <input id="s2l-login-email" type="email" autoComplete="username" inputMode="email" required value={email} onChange={(event) => { setEmail(event.target.value); setNotice(""); updateFields({ error: null }); }} aria-invalid={Boolean(fields.error)} aria-describedby={fields.error ? "s2l-login-error" : undefined} />
-            </label>
-            {!recovering && <label className="s2l-login-field" htmlFor="s2l-login-password">Mật khẩu
-              <span className="s2l-password-input">
-                <input id="s2l-login-password" type={fields.showPassword ? "text" : "password"} autoComplete="current-password" required value={fields.password} onChange={(event) => updateFields({ password: event.target.value })} aria-invalid={Boolean(fields.error)} aria-describedby={fields.error ? "s2l-login-error" : undefined} />
-                <button type="button" className="s2l-password-toggle" aria-label={fields.showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"} aria-pressed={fields.showPassword} onClick={() => updateFields({ showPassword: !fields.showPassword })}><span aria-hidden="true">{fields.showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</span></button>
-              </span>
-            </label>}
+            <FormField label="Email tài khoản" htmlFor="s2l-login-email" required className="s2l-login-field">
+              <input
+                id="s2l-login-email"
+                type="email"
+                autoComplete="username"
+                inputMode="email"
+                required
+                value={email}
+                onChange={(event) => { setEmail(event.target.value); setNotice(""); updateFields({ error: null, errorFields: {} }); }}
+                aria-invalid={fields.errorFields.email || undefined}
+                aria-describedby={fields.error ? "s2l-login-error" : undefined}
+              />
+            </FormField>
+            {!recovering && (
+              <FormField label="Mật khẩu" htmlFor="s2l-login-password" required className="s2l-login-field">
+                <span className="s2l-password-input">
+                  <input
+                    id="s2l-login-password"
+                    type={fields.showPassword ? "text" : "password"}
+                    autoComplete="current-password"
+                    required
+                    value={fields.password}
+                    onChange={(event) => updateFields({ password: event.target.value, errorFields: {} })}
+                    aria-invalid={fields.errorFields.password || undefined}
+                    aria-describedby={fields.error ? "s2l-login-error" : undefined}
+                  />
+                  <button type="button" className="s2l-password-toggle" aria-label={fields.showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"} aria-pressed={fields.showPassword} onClick={() => updateFields({ showPassword: !fields.showPassword })}><span aria-hidden="true">{fields.showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</span></button>
+                </span>
+              </FormField>
+            )}
             {fields.error && <div id="s2l-login-error" className="s2l-alert" role="alert">{fields.error}</div>}
-            {notice && <p className="s2l-reset-notice" role="status">{notice}</p>}
+            {notice && <Alert tone="success" role="status" className="s2l-reset-notice">{notice}</Alert>}
             <button className="s2l-login-submit" type="submit" disabled={pending || (recovering && Boolean(notice))}>
               <span>{pending ? "Đang xử lý…" : recovering ? "Gửi liên kết đặt lại" : "Đăng nhập"}</span>
               <span className="s2l-login-submit-icon">{pending ? <LoaderCircle size={17} aria-hidden="true" /> : <ArrowRight size={16} aria-hidden="true" />}</span>
             </button>
           </form>
           <div className="s2l-login-recovery">
-            <button type="button" onClick={() => { setRecovering(!recovering); setNotice(""); updateFields({ error: null, password: "" }); }} disabled={pending}>
+            <button type="button" onClick={() => { setRecovering(!recovering); setNotice(""); updateFields({ error: null, errorFields: {}, password: "" }); }} disabled={pending}>
               {recovering ? "← Quay lại đăng nhập" : "Quên mật khẩu?"}
             </button>
           </div>

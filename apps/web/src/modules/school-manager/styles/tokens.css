@@ -160,7 +160,7 @@
 
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) p { margin: 0; text-wrap: pretty; }
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) a { color: var(--color-accent); text-decoration: none; }
-:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) button, :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) input, :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) select, :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) textarea { font: inherit; color: inherit; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) button:where(:not(.s2l-ui-button)), :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) input, :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) select, :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) textarea { font: inherit; color: inherit; }
 
 /* ── Typography Helpers ── */
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .muted { color: var(--color-muted); }

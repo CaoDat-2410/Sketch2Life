@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { PageHeading } from "../../../../shared/components/FeatureAvailability";
+import { Alert, Button, FormField } from "../../../../shared/ui";
 import { AdminBe1Error } from "../services/be1Client";
 import { managerBusinessService, type FeedbackSummary, type FeedbackThread } from "../services/managerBusinessService";
 
@@ -104,19 +105,37 @@ export function FeedbackPage() {
       {listError && <p role="alert" className="manager-business-alert">{listError} <button className="manager-business-button" onClick={() => void loadList()}>Tải lại</button></p>}
       {listLoading && <p role="status">Đang tải phản hồi…</p>}
       {!listLoading && !listError && threads.length === 0 && <p>Chưa có phản hồi nào trong trường.</p>}
-      <ul className="manager-feedback-list">{threads.map((item) => <li key={item.thread_id}><button type="button" className="manager-business-button" aria-pressed={selected === item.thread_id} onClick={() => select(item.thread_id)}>Giáo án {item.lesson_id} · Phiên bản {item.version_id} · {Number.isNaN(Date.parse(item.created_at)) ? "Không rõ ngày" : new Date(item.created_at).toLocaleDateString("vi-VN")}</button></li>)}</ul>
+      <ul className="manager-feedback-threads">{threads.map((item) => <li key={item.thread_id}><button type="button" className="manager-business-button" aria-pressed={selected === item.thread_id} onClick={() => select(item.thread_id)}>Giáo án {item.lesson_id} · Phiên bản {item.version_id} · {Number.isNaN(Date.parse(item.created_at)) ? "Không rõ ngày" : new Date(item.created_at).toLocaleDateString("vi-VN")}</button></li>)}</ul>
       {next && <button className="manager-business-button" disabled={listLoading} onClick={() => void loadList(next)}>Tải thêm</button>}
     </section>
-    {selected && <section className="manager-business-card">
+    {selected && <section className="manager-business-card cozy-form-card cozy-form-card--wide cozy-form-stack">
       <h2>Nội dung phản hồi</h2>
       {threadLoading && <p role="status">Đang tải nội dung…</p>}
       {threadError && <p role="alert" className="manager-business-alert">{threadError} <button className="manager-business-button" onClick={() => void loadThread(selected)}>Tải lại</button></p>}
-      {thread && <>
-        <ol className="manager-feedback-list">{thread.items.map((item) => <li key={item.message_id}><strong>{item.from_you ? "Bạn" : "Phụ huynh hoặc nhân sự trường"}</strong><p>{item.body}</p></li>)}</ol>
-        {thread.next_cursor && <button className="manager-business-button" disabled={threadLoading || busy} onClick={() => void loadThread(selected, thread.next_cursor ?? undefined)}>Tải thêm tin nhắn</button>}
-        <form className="manager-feedback-form" onSubmit={(event) => void submit(event)}><label htmlFor="feedback-reply">Nội dung phản hồi</label><textarea id="feedback-reply" maxLength={2000} value={body} disabled={busy} onChange={(event) => setBody(event.target.value)} /><span>{body.length}/2000</span><button className="manager-business-button is-primary" disabled={busy || threadLoading || !!threadError || !body.trim()}>Gửi phản hồi</button></form>
-      </>}
-      {replyProblem && <p role="alert" className="manager-business-alert">{replyProblem}</p>}{notice && <p role="status" className="manager-business-success">{notice}</p>}
+      {thread && <div className="cozy-form-grid">
+        <div className="cozy-span-3 cozy-form-stack">
+          <ol className="manager-feedback-list">{thread.items.map((item) => <li key={item.message_id}><strong>{item.from_you ? "Bạn" : "Phụ huynh hoặc nhân sự trường"}</strong><p>{item.body}</p></li>)}</ol>
+          {thread.next_cursor && <div><button className="manager-business-button" disabled={threadLoading || busy} onClick={() => void loadThread(selected, thread.next_cursor ?? undefined)}>Tải thêm tin nhắn</button></div>}
+        </div>
+        <form className="manager-feedback-form cozy-form-stack cozy-span-3" style={{ marginTop: 0 }} onSubmit={(event) => void submit(event)}>
+          <FormField
+            label="Nội dung phản hồi"
+            htmlFor="feedback-reply"
+            required
+            labelAction={<span className="cozy-form-counter">{body.length}/2000</span>}
+          >
+            <textarea id="feedback-reply" className="cozy-textarea" maxLength={2000} value={body} disabled={busy} onChange={(event) => setBody(event.target.value)} />
+          </FormField>
+          {replyProblem && <Alert role="alert" tone="danger">{replyProblem}</Alert>}
+          {notice && <Alert role="status" tone="success">{notice}</Alert>}
+          {!busy && !threadLoading && !threadError && !body.trim() && (
+            <p className="cozy-form-disabled-hint">Nhập nội dung phản hồi để bật nút gửi.</p>
+          )}
+          <div className="cozy-form-actions" style={{ marginTop: 0 }}>
+            <Button type="submit" variant="primary" loading={busy} disabled={busy || threadLoading || !!threadError || !body.trim()}>Gửi phản hồi</Button>
+          </div>
+        </form>
+      </div>}
     </section>}
   </div>;
 }

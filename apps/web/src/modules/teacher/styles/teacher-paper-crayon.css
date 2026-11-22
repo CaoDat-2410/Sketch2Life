@@ -120,7 +120,7 @@ html[data-portal="teacher"] .tw-main { width: 100%; max-width: 1440px; padding: 
 html[data-portal="teacher"] .tw-page { gap: 18px; }
 html[data-portal="teacher"] .tw-title { color: var(--tw-ink) !important; font-size: clamp(25px, 2.4vw, 31px); }
 html[data-portal="teacher"] .tw-sub, html[data-portal="teacher"] .tw-meta { color: var(--tw-sub-ink) !important; }
-html[data-portal="teacher"] .tw-card {
+html[data-portal="teacher"] .tw-card:not(.cozy-form-card) {
   border: 1px solid var(--color-rule) !important;
   border-radius: 18px;
   color: var(--tw-ink) !important;
@@ -400,7 +400,7 @@ html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-create .teacher-o
   cursor: pointer;
   opacity: .78;
 }
-html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-create .teacher-occurrence-submit { min-height: 48px; width: 100%; border-radius: 13px; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-create .teacher-occurrence-submit { min-height: 44px; border-radius: 13px; }
 html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-page .teacher-occurrence-error { display: grid; gap: 8px; }
 html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-page .teacher-occurrence-error-context,
 html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-page .teacher-occurrence-error-message { margin: 0; }
