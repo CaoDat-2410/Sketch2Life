@@ -1,0 +1,46 @@
+meta {
+  name: 516 [LOCAL / TEST ONLY] Get Teacher story run transcript
+  type: http
+  seq: 516
+}
+
+get {
+  url: {{baseUrl}}/v1/story-runs/{{teacher_run_id}}/transcript
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (body && body.transcript_revision !== undefined && body.transcript_revision !== null) {
+    bru.setVar("transcript_revision", String(body.transcript_revision));
+  }
+  if (body && body.transcript_sha256 !== undefined && body.transcript_sha256 !== null) {
+    bru.setVar("transcript_sha256", body.transcript_sha256);
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(String(res.getHeader("Cache-Control"))).to.include("no-store");
+    expect(res.getBody().story_run_id).to.equal(bru.getVar("teacher_run_id"));
+  });
+}
+
+docs {
+  Role: Teacher - set bearerToken to that synthetic account's token
+  Needs: teacher_run_id; needs a voice idea (with no voice idea the state is NONE)
+  Expected: 200
+  Source: backend/tests/integration/story_teacher/test_teacher_run_inputs_postgres.py
+}

@@ -1,0 +1,38 @@
+meta {
+  name: 524 [LOCAL / TEST ONLY] Stream Teacher playback range
+  type: http
+  seq: 524
+}
+
+get {
+  url: {{baseUrl}}/v1/story-runs/{{teacher_run_id}}/playback
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  X-Playback-Token: {{teacher_playback_token}}
+  Range: bytes=0-3
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(206);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(String(res.getHeader("content-range")).startsWith("bytes 0-3/")).to.equal(true);
+    expect(String(res.getHeader("Cache-Control"))).to.include("no-store");
+  });
+}
+
+docs {
+  Role: Teacher - set bearerToken to that synthetic account's token
+  Needs: teacher_run_id, teacher_playback_token from 523
+  Expected: 206
+  Source: backend/tests/integration/story_teacher/test_teacher_run_video_postgres.py
+}

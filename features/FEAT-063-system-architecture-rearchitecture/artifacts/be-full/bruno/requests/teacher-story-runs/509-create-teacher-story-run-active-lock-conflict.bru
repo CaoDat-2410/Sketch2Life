@@ -1,0 +1,48 @@
+meta {
+  name: 509 [LOCAL / TEST ONLY] Create Teacher story run while active run exists
+  type: http
+  seq: 509
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "profile_ref": { "kind": "MANAGED_PROFILE", "id": "{{selection_child_id}}" },
+    "occurrence_id": "{{occurrence_id}}",
+    "plan": { "revision_no": {{plan_revision_no}}, "plan_hash": "{{plan_hash}}" },
+    "activity_id": "{{plan_activity_id}}",
+    "selection_id": "{{selection_id}}",
+    "selection_sha256": "{{selection_sha256}}"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("ACTIVE_RUN_EXISTS");
+  });
+}
+
+docs {
+  Role: Teacher - set bearerToken to that synthetic account's token
+  Needs: run after 508 (the selection is consumed and the Teacher lock is held)
+  Expected: 409 / ACTIVE_RUN_EXISTS
+  Source: backend/tests/integration/story_teacher/test_teacher_run_create_postgres.py, backend/tests/contract/test_teacher_story_run_create_contract.py
+}

@@ -1,0 +1,48 @@
+meta {
+  name: 526 [LOCAL / TEST ONLY] Complete Teacher story run
+  type: http
+  seq: 526
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{teacher_run_id}}/complete
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "expected_revision": {{teacher_run_revision}}
+  }
+}
+
+script:post-response {
+  bru.setVar("completed_run_id", bru.getVar("teacher_run_id"));
+  bru.setVar("completed_generation_id", bru.getVar("teacher_generation_id"));
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().story_run.run_state).to.equal("COMPLETED");
+  });
+}
+
+docs {
+  Role: Teacher - set bearerToken to that synthetic account's token
+  Needs: teacher_run_id, teacher_run_revision, teacher_generation_id; run at VIDEO_READY
+  Expected: 200
+  Source: backend/tests/integration/story_teacher/test_teacher_run_video_postgres.py
+}

@@ -1,0 +1,51 @@
+meta {
+  name: 511 [LOCAL / TEST ONLY] Create Parent story run regression
+  type: http
+  seq: 511
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "parent_profile_id": "{{parent_profile_id}}",
+    "topic": "A paper kite",
+    "adult_confirmed_idea": "A child draws a bright kite",
+    "lesson_version": null
+  }
+}
+
+script:post-response {
+  bru.setVar("parent_story_run_id", res.getBody().story_run.run_id);
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().story_run.parent_profile_id).to.equal(bru.getVar("parent_profile_id"));
+    expect(res.getBody().story_run).to.not.have.property("occurrence_id");
+  });
+}
+
+docs {
+  Role: Parent - set bearerToken to that synthetic account's token
+  Needs: parent_profile_id (same body shape as existing request 170; regression check that Parent create is unchanged)
+  Expected: 201
+  Source: backend/tests/integration/story_teacher/test_teacher_run_create_postgres.py, backend/tests/contract/test_teacher_story_run_create_contract.py
+}

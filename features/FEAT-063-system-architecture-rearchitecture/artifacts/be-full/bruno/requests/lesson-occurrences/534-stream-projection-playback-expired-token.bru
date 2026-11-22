@@ -1,0 +1,36 @@
+meta {
+  name: 534 [LOCAL / TEST ONLY] Stream projection playback with expired token
+  type: http
+  seq: 534
+}
+
+get {
+  url: {{baseUrl}}/v1/story-runs/{{teacher_run_id}}/playback
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  X-Playback-Token: {{expired_projection_token}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(401);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("TOKEN_EXPIRED");
+  });
+}
+
+docs {
+  Role: Teacher - set bearerToken to that synthetic account's token
+  Needs: teacher_run_id, expired_projection_token (MANUAL, clock-dependent: keep the token from 531 in expired_projection_token and run this request more than 300 seconds later; skip it otherwise)
+  Expected: 401 / TOKEN_EXPIRED
+  Source: backend/tests/integration/lesson_occurrences/test_projection_postgres.py, backend/tests/contract/test_projection_routes.py
+}

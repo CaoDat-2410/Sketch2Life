@@ -1,0 +1,35 @@
+meta {
+  name: 522 [LOCAL / TEST ONLY] Get Teacher video job as Parent
+  type: http
+  seq: 522
+}
+
+get {
+  url: {{baseUrl}}/v1/jobs/{{teacher_job_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_NOT_FOUND");
+  });
+}
+
+docs {
+  Role: Parent - set bearerToken to that synthetic account's token
+  Needs: teacher_job_id from 520
+  Expected: 404 / RESOURCE_NOT_FOUND
+  Source: backend/tests/integration/story_teacher/test_teacher_run_video_postgres.py
+}

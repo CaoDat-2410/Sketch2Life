@@ -1,0 +1,37 @@
+meta {
+  name: 504 [LOCAL / TEST ONLY] Get child selection
+  type: http
+  seq: 504
+}
+
+get {
+  url: {{baseUrl}}/v1/lesson-occurrences/{{occurrence_id}}/child-selections/{{selection_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().selection_id).to.equal(bru.getVar("selection_id"));
+    expect(String(res.getHeader("Cache-Control"))).to.include("no-store");
+    expect(res.getHeader("ETag")).to.equal(bru.getVar("selection_etag"));
+  });
+}
+
+docs {
+  Role: Teacher - set bearerToken to that synthetic account's token
+  Needs: occurrence_id, selection_id and selection_etag from 500 (run before 506)
+  Expected: 200
+  Source: backend/tests/integration/lesson_occurrences/test_child_selection_postgres.py, backend/tests/contract/test_child_selection_routes.py
+}

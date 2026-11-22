@@ -1,0 +1,35 @@
+meta {
+  name: 533 [LOCAL / TEST ONLY] Create projection playback token as Parent
+  type: http
+  seq: 533
+}
+
+post {
+  url: {{baseUrl}}/v1/lesson-occurrences/{{occurrence_id}}/projection-playback-token
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_NOT_FOUND");
+  });
+}
+
+docs {
+  Role: Parent - set bearerToken to that synthetic account's token
+  Needs: occurrence_id
+  Expected: 404 / RESOURCE_NOT_FOUND
+  Source: backend/tests/integration/lesson_occurrences/test_projection_postgres.py, backend/tests/contract/test_projection_routes.py
+}

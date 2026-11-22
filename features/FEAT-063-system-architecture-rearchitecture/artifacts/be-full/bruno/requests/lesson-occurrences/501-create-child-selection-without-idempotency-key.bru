@@ -1,0 +1,41 @@
+meta {
+  name: 501 [LOCAL / TEST ONLY] Create child selection without Idempotency-Key
+  type: http
+  seq: 501
+}
+
+post {
+  url: {{baseUrl}}/v1/lesson-occurrences/{{occurrence_id}}/child-selections
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+}
+
+body:json {
+  {}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("INVALID_REQUEST");
+    expect(res.getBody().field_errors[0].field).to.equal("Idempotency-Key");
+  });
+}
+
+docs {
+  Role: Teacher - set bearerToken to that synthetic account's token
+  Needs: occurrence_id
+  Expected: 400 / INVALID_REQUEST
+  Source: backend/tests/integration/lesson_occurrences/test_child_selection_postgres.py, backend/tests/contract/test_child_selection_routes.py
+}

@@ -1,0 +1,43 @@
+meta {
+  name: 531 [LOCAL / TEST ONLY] Create projection playback token
+  type: http
+  seq: 531
+}
+
+post {
+  url: {{baseUrl}}/v1/lesson-occurrences/{{occurrence_id}}/projection-playback-token
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+script:post-response {
+  bru.setVar("projection_token", res.getBody().token);
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(Object.keys(body).sort()).to.deep.equal(["contract", "expires_at", "media_type", "stream_path", "token"]);
+    expect(body.stream_path).to.equal("/v1/story-runs/" + bru.getVar("teacher_run_id") + "/playback");
+    expect(body.media_type).to.equal("video/mp4");
+    expect(res.getHeader("Cache-Control")).to.equal("no-store");
+  });
+}
+
+docs {
+  Role: Teacher - set bearerToken to that synthetic account's token
+  Needs: occurrence_id, teacher_run_id, and 529 first
+  Expected: 200
+  Source: backend/tests/integration/lesson_occurrences/test_projection_postgres.py, backend/tests/contract/test_projection_routes.py
+}

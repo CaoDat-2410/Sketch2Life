@@ -1,0 +1,37 @@
+meta {
+  name: 532 [LOCAL / TEST ONLY] Stream projection playback
+  type: http
+  seq: 532
+}
+
+get {
+  url: {{baseUrl}}/v1/story-runs/{{teacher_run_id}}/playback
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  X-Playback-Token: {{projection_token}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(String(res.getHeader("content-type")).startsWith("video/mp4")).to.equal(true);
+    expect(String(res.getHeader("Cache-Control"))).to.include("no-store");
+  });
+}
+
+docs {
+  Role: Teacher - set bearerToken to that synthetic account's token
+  Needs: teacher_run_id, projection_token from 531
+  Expected: 200
+  Source: backend/tests/integration/lesson_occurrences/test_projection_postgres.py, backend/tests/contract/test_projection_routes.py
+}

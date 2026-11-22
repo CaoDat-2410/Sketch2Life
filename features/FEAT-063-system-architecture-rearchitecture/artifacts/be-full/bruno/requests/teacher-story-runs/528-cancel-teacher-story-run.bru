@@ -1,0 +1,42 @@
+meta {
+  name: 528 [LOCAL / TEST ONLY] Cancel Teacher story run
+  type: http
+  seq: 528
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{cancel_run_id}}/cancel
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "expected_revision": {{cancel_run_revision}}
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(202);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+  });
+}
+
+docs {
+  Role: Teacher - set bearerToken to that synthetic account's token
+  Needs: cancel_run_id, cancel_run_revision (uses its own run so it does not end the run of 508-527; cancelling releases the Teacher lock)
+  Expected: 202
+  Source: backend/tests/integration/story_teacher/test_teacher_run_sweepers_postgres.py
+}
