@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, LockKeyhole, RefreshCw, UserPlus, Users } from "lucide-react";
 import { PageHeading } from "../../../shared/components/FeatureAvailability";
+import { Alert, Select } from "../../../shared/ui";
 import {
   BackendApiError,
   backendApi,
@@ -120,6 +121,8 @@ function TeacherApiClassDetailPage({ classId }: { classId: string }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
+  const [profileErrorCode, setProfileErrorCode] = useState<string | null>(null);
+  const [profileErrorRequestId, setProfileErrorRequestId] = useState<string | null>(null);
   const [consentError, setConsentError] = useState<string | null>(null);
   const [reload, setReload] = useState(0);
   // T-7c / T-7d commands: one Idempotency-Key per exact user action, kept only while its outcome is unknown.
@@ -143,6 +146,8 @@ function TeacherApiClassDetailPage({ classId }: { classId: string }) {
     setLoading(true);
     setError(null);
     setProfileError(null);
+    setProfileErrorCode(null);
+    setProfileErrorRequestId(null);
     setConsentError(null);
     setProfiles([]);
     setConsents([]);
@@ -155,8 +160,14 @@ function TeacherApiClassDetailPage({ classId }: { classId: string }) {
       backendApi.assignments(organizationId),
     ]).then(([classResult, profileResult, consentResult, identityResult]) => {
       if (!active) return;
+      const profileConsentLocked = profileResult.status === "rejected"
+        && profileResult.reason instanceof BackendApiError
+        && profileResult.reason.code === "CONSENT_NOT_EFFECTIVE";
       const scopeFailure = [profileResult, consentResult]
-        .flatMap((result) => result.status === "rejected" && result.reason instanceof BackendApiError && (result.reason.status === 404 || result.reason.status === 403) ? [result.reason] : [])
+        .flatMap((result, index) => result.status === "rejected"
+          && !(index === 0 && profileConsentLocked)
+          && result.reason instanceof BackendApiError
+          && (result.reason.status === 404 || result.reason.status === 403) ? [result.reason] : [])
         .sort((left, right) => right.status - left.status)[0];
       if (scopeFailure) { setClassItem(null); setError(rosterError(scopeFailure)); return; }
       if (classResult.status === "rejected") { setClassItem(null); setError(backendMessage(classResult.reason)); return; }
@@ -174,7 +185,11 @@ function TeacherApiClassDetailPage({ classId }: { classId: string }) {
       if (consentResult.status === "fulfilled") setConsents(consentResult.value);
       else setConsentError(rosterError(consentResult.reason));
       if (profileResult.status === "fulfilled") setProfiles(profileResult.value);
-      else setProfileError(rosterError(profileResult.reason));
+      else {
+        setProfileError(rosterError(profileResult.reason));
+        setProfileErrorCode(profileResult.reason instanceof BackendApiError ? profileResult.reason.code : null);
+        setProfileErrorRequestId(profileResult.reason instanceof BackendApiError ? profileResult.reason.requestId ?? null : null);
+      }
     }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [classId, organizationId, reload]);
@@ -244,7 +259,13 @@ function TeacherApiClassDetailPage({ classId }: { classId: string }) {
       {classItem && !error && classItem.state !== "active" && <div className="s2l-note" role="status"><LockKeyhole size={15} aria-hidden="true" />{CLASS_READ_ONLY}</div>}
       {commandError && <div className="s2l-alert" role="alert">{commandError}</div>}
       {notice && <p className="s2l-note" role="status">{notice}</p>}
-      {classItem && !error && profileError && <div className="s2l-alert" role="alert">Hồ sơ chưa thể hiển thị: {profileError}</div>}
+      {classItem && !error && profileError && (profileErrorCode === "CONSENT_NOT_EFFECTIVE"
+        ? <Alert role="status" tone="info" icon={<LockKeyhole size={16} aria-hidden="true" />} className="teacher-consent-locked">
+            <strong>Danh sách hồ sơ tạm khóa đến khi có consent hiệu lực</strong>
+            <p>Consent chưa được xác minh nên dữ liệu trẻ đang bị khóa.</p>
+            {profileErrorRequestId && <small>Mã yêu cầu: {profileErrorRequestId}</small>}
+          </Alert>
+        : <div className="s2l-alert" role="alert">Hồ sơ chưa thể hiển thị: {profileError}</div>)}
       {classItem && !error && consentError && <div className="s2l-alert" role="alert">Consent chưa thể xác minh; roster được ẩn cho đến khi tải được trạng thái consent.</div>}
       {classItem && !loading && !error && (
         <section className="s2l-data-card" aria-labelledby="teacher-roster-title">
@@ -266,10 +287,10 @@ function TeacherApiClassDetailPage({ classId }: { classId: string }) {
                       <span className="teacher-roster-move" role="group" aria-label={`Chuyển lớp cho ${profile.display_name}`}>
                         <label>
                           Lớp đích
-                          <select value={moveDraft.targetClassId} disabled={busy} onChange={(event) => setMoveDraft({ childId: profile.child_id, targetClassId: event.target.value })}>
+                          <Select aria-label="Lớp đích" value={moveDraft.targetClassId} disabled={busy} onChange={(event) => setMoveDraft({ childId: profile.child_id, targetClassId: event.target.value })}>
                             <option value="" disabled>Chọn lớp</option>
                             {moveTargets.map((item) => <option key={item.class_id} value={item.class_id}>{item.display_name}</option>)}
-                          </select>
+                          </Select>
                         </label>
                         <small>Khi chuyển lớp, enrollment trước đó được đóng và lưu lại.</small>
                         <button type="button" className="s2l-button" disabled={busy || !moveTarget} onClick={moveProfile}>{retrySignature !== null && retrySignature === moveSignature ? "Gửi lại cùng yêu cầu" : "Xác nhận chuyển lớp"}</button>

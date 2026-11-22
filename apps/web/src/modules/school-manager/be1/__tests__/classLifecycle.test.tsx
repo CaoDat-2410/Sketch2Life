@@ -111,7 +111,9 @@ describe("ClassesPage class lifecycle", () => {
     expect((await screen.findAllByText("Tạm ngưng")).length).toBeGreaterThan(0);
     expect(screen.getAllByText("Đã lưu trữ").length).toBeGreaterThan(0);
     expect(list).toHaveBeenCalledWith("all");
-    fireEvent.change(screen.getByLabelText("Trạng thái lớp"), { target: { value: "suspended" } });
+    const filter = screen.getByRole("combobox", { name: "Trạng thái lớp" });
+    fireEvent.click(filter);
+    fireEvent.click(screen.getByRole("option", { name: "Tạm ngưng" }));
     await waitFor(() => expect(list).toHaveBeenLastCalledWith("suspended"));
   });
 

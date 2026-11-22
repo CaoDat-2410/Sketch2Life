@@ -3,6 +3,7 @@ import "../styles/tokens.css";
 import "../styles/mg-manage.css";
 import "../styles/manager-rebuild.css";
 import "../styles/manager-business.css";
+import "../../../shared/styles/tailwind-utilities.css";
 import { useEffect, useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { WebAppShell, SCHOOL_MANAGER_NAVIGATION } from "../../../shared/navigation/WebAppShell";
@@ -18,6 +19,7 @@ import { FeedbackPage } from "./pages/FeedbackPage";
 import { authService } from "./services/authService";
 import { classService } from "./services/classService";
 import { InboxPage } from "../../../shared/notifications/InboxPage";
+import { AccountSettingsPage } from "../../../shared/settings/AccountSettingsPage";
 
 function AdminAccessGate({ children }: { children: ReactNode }) {
   const location = useLocation();
@@ -125,6 +127,7 @@ export function SchoolManagerBe1App() {
   else if (location.pathname === "/school/parent-groups") page = <ParentGroupsPage />;
   else if (location.pathname === "/school/review-content") page = <SchoolReviewPage />;
   else if (location.pathname === "/school/inbox") page = <InboxPage />;
+  else if (location.pathname === "/school/settings") page = <AccountSettingsPage role="School Manager" />;
   else if (/^\/school\/[^/]+$/.test(location.pathname)) page = <SchoolUnavailablePage />;
   else return <Navigate to="/school" replace />;
 

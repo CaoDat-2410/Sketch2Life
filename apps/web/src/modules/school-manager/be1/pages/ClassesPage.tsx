@@ -12,6 +12,7 @@ import {
 import { AdminBe1Error } from "../services/be1Client";
 import { PageHeading } from "../../../../shared/components/FeatureAvailability";
 import { createIdempotencyKey } from "../../../../shared/api/backendApi";
+import { Select } from "../../../../shared/ui";
 
 export function ClassesPage() {
   const [classes, setClasses] = useState<Be1Class[]>([]);
@@ -139,12 +140,12 @@ export function ClassesPage() {
           <h2>Danh sách lớp</h2>
           <label className="manager-business-filter">
             Trạng thái lớp
-            <select value={filter} disabled={loading || changingState} onChange={(event) => { const next = event.target.value as Be1ClassFilter; setFilter(next); setPendingCommand(null); void refresh(next); }}>
+            <Select aria-label="Trạng thái lớp" value={filter} disabled={loading || changingState} onChange={(event) => { const next = event.target.value as Be1ClassFilter; setFilter(next); setPendingCommand(null); void refresh(next); }}>
               <option value="all">Tất cả</option>
               <option value="active">Đang hoạt động</option>
               <option value="suspended">Tạm ngưng</option>
               <option value="archived">Đã lưu trữ</option>
-            </select>
+            </Select>
           </label>
           {loading ? <p role="status">Đang tải danh sách lớp…</p> : classes.length === 0 ? <p className="s2l-note">BE1 chưa trả lớp nào cho tài khoản này.</p> : (
             <ul className="s2l-class-list">

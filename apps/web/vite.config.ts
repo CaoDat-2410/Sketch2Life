@@ -20,6 +20,9 @@ export default defineConfig(({ mode }) => {
       proxy: {
         '/api': { target: apiTarget, changeOrigin: true },
         '/health': { target: apiTarget, changeOrigin: true },
+        // Teacher/School Manager calls under /v1 (lesson occurrences, uploads, notifications) use a relative base URL
+        // in dev; without this proxy the Vite server answers them with an empty 404.
+        '/v1': { target: apiTarget, changeOrigin: true },
       },
     },
     plugins: [

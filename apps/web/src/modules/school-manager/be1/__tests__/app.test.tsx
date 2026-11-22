@@ -7,6 +7,12 @@ import App from '../App'
 import { authService } from '../services/authService'
 import { classService } from '../services/classService'
 import { SCHOOL_MANAGER_NAVIGATION } from '../../../../shared/navigation/WebAppShell'
+import { getPreferences } from '../../../../shared/api/accountPreferencesApi'
+
+vi.mock('../../../../shared/api/accountPreferencesApi', () => ({
+  getPreferences: vi.fn(),
+  updatePreferences: vi.fn(),
+}))
 
 vi.mock('../pages/SchoolOverviewPage', () => ({ SchoolOverviewPage: () => <h1>Tổng quan</h1> }))
 
@@ -21,6 +27,7 @@ describe('School Manager BE1 organization gate', () => {
 
   beforeEach(() => {
     signedIn = false
+    vi.mocked(getPreferences).mockResolvedValue({ locale: 'vi-VN', email_notifications: true, revision: 1 })
     vi.spyOn(authService, 'observe').mockImplementation((callback) => {
       callback(signedIn ? user : null)
       return () => undefined
@@ -39,6 +46,20 @@ describe('School Manager BE1 organization gate', () => {
     expect(await screen.findByRole('heading', { name: 'Lớp học' })).toBeTruthy()
     expect(classService.currentAssignments).toHaveBeenCalledOnce()
     expect(classService.listClasses).toHaveBeenCalledOnce()
+  })
+
+  it('renders shared settings behind the school assignment gate with a live navigation link', async () => {
+    signedIn = true
+    render(<PortalSessionProvider><MemoryRouter initialEntries={['/school/settings']}><App /></MemoryRouter></PortalSessionProvider>)
+
+    expect(await screen.findByRole('heading', { name: 'Cài đặt' })).toBeTruthy()
+    expect(screen.getByText('Thông báo cá nhân')).toBeTruthy()
+    const settingsLink = screen.getByRole('link', { name: /^Cài đặt$/ })
+    expect(settingsLink.getAttribute('href')).toBe('/school/settings')
+    expect(settingsLink.getAttribute('aria-current')).toBe('page')
+    expect(settingsLink.textContent).not.toContain('Chờ API')
+    expect(SCHOOL_MANAGER_NAVIGATION.flatMap((group) => group.items).find((item) => item.href === '/school/settings')?.state).toBe('available')
+    expect(classService.currentAssignments).toHaveBeenCalledOnce()
   })
 
   it('denies a class-scoped assignment from the school-wide Manager portal', async () => {

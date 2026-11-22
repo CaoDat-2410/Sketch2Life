@@ -136,7 +136,12 @@ describe("Manager feedback", () => {
 it("lists class status and assignment status without exposing candidate identifiers", async () => {
   vi.spyOn(classService, "listClasses").mockResolvedValue([{ class_id: "c1", display_name: "Lớp Lá", state: "suspended", has_active_teacher: false }]);
   render(<TeacherAssignmentsPage />);
-  expect(await screen.findByText(/Lớp Lá · Tạm ngưng · Chưa có giáo viên/)).toBeTruthy();
+  const list = await screen.findByRole("list", { name: "Danh sách lớp và trạng thái phân công" });
+  const row = list.querySelector("li");
+  if (!row) throw new Error("Expected the class list to contain a row.");
+  expect(row.textContent).toContain("Lớp Lá");
+  expect(row.textContent).toContain("Tạm ngưng");
+  expect(row.textContent).toContain("Chưa có giáo viên phụ trách");
   expect(screen.getByText(/không thể phân công Teacher/)).toBeTruthy();
 });
 

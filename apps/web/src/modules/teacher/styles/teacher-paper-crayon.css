@@ -371,3 +371,43 @@ html[data-portal="teacher"][data-theme="dark"] .tw-page.s2l-dashboard > .s2l-das
   html[data-portal="teacher"] .tw-page.s2l-dashboard > .s2l-dashboard-summary .s2l-dashboard-summary-value { font-size: 24px; }
   html[data-portal="teacher"] .tw-page.s2l-dashboard > .s2l-dashboard-summary .s2l-dashboard-summary-label { font-size: 11px; }
 }
+
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-create .teacher-occurrence-field { display: grid; min-width: 0; gap: 6px; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-create .teacher-occurrence-field > label,
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-create .teacher-occurrence-field-heading > label { color: var(--s2l-ui-ink); font-size: 13px; font-weight: 650; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-create .teacher-occurrence-form-hint,
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-create .teacher-occurrence-field-heading > span { margin: 0; color: var(--s2l-ui-ink-soft); font-size: 12px; line-height: 18px; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-create .teacher-occurrence-field-heading { display: flex; min-width: 0; align-items: baseline; justify-content: space-between; gap: 12px; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-create .teacher-occurrence-date-control { position: relative; min-width: 0; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-create .teacher-occurrence-date-control input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 42px 0 12px;
+  border: 1px solid var(--s2l-ui-rule);
+  border-radius: 12px;
+  background: var(--s2l-ui-paper);
+  color: var(--s2l-ui-ink);
+  font: inherit;
+}
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-create .teacher-occurrence-date-control input::-webkit-calendar-picker-indicator {
+  width: 20px;
+  height: 20px;
+  margin: 0 -4px 0 8px;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  opacity: .78;
+}
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-create .teacher-occurrence-submit { min-height: 48px; width: 100%; border-radius: 13px; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-page .teacher-occurrence-error { display: grid; gap: 8px; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-page .teacher-occurrence-error-context,
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-page .teacher-occurrence-error-message { margin: 0; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-page .teacher-occurrence-error-details { min-width: 0; border-top: 1px solid var(--s2l-ui-coral-300); }
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-page .teacher-occurrence-error-details summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 650; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-page .teacher-occurrence-error-details dl { display: grid; min-width: 0; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 12px; margin: 0 0 4px; font-size: 12px; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-page .teacher-occurrence-error-details dd { min-width: 0; margin: 0; overflow-wrap: anywhere; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-page .teacher-occurrence-error-details code { white-space: normal; overflow-wrap: anywhere; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-consent-locked p { margin: 4px 0 0; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-consent-locked small { display: block; margin-top: 4px; color: var(--s2l-ui-ink-soft); font-size: 11px; line-height: 16px; }

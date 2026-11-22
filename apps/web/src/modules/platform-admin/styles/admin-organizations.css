@@ -14,7 +14,7 @@ html[data-portal="platform"] .s2l-app-shell .pa-organizations .pa-search-form {
   align-items: center; gap: 10px; width: 100%;
 }
 html[data-portal="platform"] .s2l-app-shell .pa-organizations .pa-org-state-filter { min-width: 0; }
-html[data-portal="platform"] .pa-organizations .pa-org-state-filter .pa-select-trigger {
+html[data-portal="platform"] .pa-organizations .pa-org-state-filter .s2l-select-trigger {
   width: 100%; min-height: 44px; border-color: var(--s2l-ui-primary-500); background: var(--s2l-ui-neutral-50); color: var(--s2l-ui-primary-900); font-weight: 600;
 }
 html[data-portal="platform"] .pa-organizations .pa-org-stats {

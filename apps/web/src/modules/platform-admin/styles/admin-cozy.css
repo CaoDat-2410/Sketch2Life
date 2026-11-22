@@ -2,9 +2,6 @@
 html[data-portal="platform"][data-theme="dark"] a:not([role="button"]):not([class*="button"]):not([class*="btn"]) {
   color: var(--s2l-ui-primary-ink);
 }
-html[data-portal="platform"] .pa-select-trigger { border-radius: var(--pa-radius-control); }
-html[data-portal="platform"] .pa-select-menu { border-color: var(--pa-border); border-radius: var(--pa-radius-control); background: var(--pa-surface); }
-html[data-portal="platform"] .pa-select-option.is-highlighted { background: var(--pa-primary-soft); color: var(--pa-primary-hover); }
 html[data-portal="platform"] .s2l-admin-table th {
   background: var(--pa-sidebar);
   color: var(--pa-ink-strong);

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import '../../../shared/styles/tailwind-utilities.css'
+import { Select } from '../../../shared/ui'
 import { parseTeacherSketchDeck, TeacherDeckPresentation } from '../components/TeacherDeckPresentation'
 import {
   aiWorkflowService,
@@ -206,9 +207,9 @@ export function TeacherAiLessonWorkflowPage() {
           <textarea value={objectivesText} onChange={(event) => setObjectivesText(event.target.value)} rows={3} className="block w-full rounded-lg border border-slate-300 px-3 py-2 font-normal" placeholder="Trẻ quan sát hình dáng và đặc điểm nhìn thấy của chủ thể" />
         </label>
         <label className="space-y-1 text-sm font-semibold text-slate-800">Loại hoạt động
-          <select value={activityKind} onChange={(event) => setActivityKind(event.target.value as typeof activityKind)} className="block w-full rounded-lg border border-slate-300 px-3 py-2 font-normal">
+          <Select aria-label="Loại hoạt động" value={activityKind} onChange={(event) => setActivityKind(event.target.value as typeof activityKind)} className="block w-full rounded-lg border border-slate-300 px-3 py-2 font-normal">
             <option value="outdoor">Ngoài trời</option><option value="indoor">Trong nhà</option><option value="mixed">Trong nhà và ngoài trời</option>
-          </select>
+          </Select>
         </label>
         <div className="flex items-end">
           <button disabled={busy !== ''} onClick={() => void requestSuggestion()} className="rounded-xl bg-blue-700 px-5 py-2.5 text-sm font-bold text-white disabled:opacity-50">{busy === 'suggestion' ? 'Đang tạo bản nháp…' : 'Gợi ý giáo án bằng AI'}</button>

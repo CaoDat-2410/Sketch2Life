@@ -60,11 +60,13 @@ describe("Teacher assignment card (FEAT-066 M9-B)", () => {
     const onAssigned = vi.fn();
     render(<TeacherAssignmentCard selectedClass={openClass} onAssigned={onAssigned} />);
 
+    const select = await screen.findByRole("combobox", { name: "Teacher của tổ chức" });
+    fireEvent.click(select);
     expect(await screen.findByRole("option", { name: "Cô Lan" })).toBeTruthy();
     expect(screen.getByRole("option", { name: "Teacher chưa có tên hiển thị" })).toBeTruthy();
     // Nothing is preselected: the button stays disabled until a Teacher is chosen.
     expect((screen.getByRole("button", { name: "Phân công" }) as HTMLButtonElement).disabled).toBe(true);
-    fireEvent.change(screen.getByRole("combobox"), { target: { value: "ref-1" } });
+    fireEvent.click(screen.getByRole("option", { name: "Cô Lan" }));
     fireEvent.click(screen.getByRole("button", { name: "Phân công" }));
     await waitFor(() => expect(assign).toHaveBeenCalledWith("class-1", "ref-1", 1, expect.any(String)));
     expect(await screen.findByText("Đã phân công Teacher cho lớp.")).toBeTruthy();
@@ -81,8 +83,9 @@ describe("Teacher assignment card (FEAT-066 M9-B)", () => {
       .mockRejectedValueOnce(new AdminBe1Error("x", 404, "RESOURCE_NOT_FOUND"));
     const onAssigned = vi.fn();
     render(<TeacherAssignmentCard selectedClass={openClass} onAssigned={onAssigned} />);
-    await screen.findByRole("option", { name: "Cô Lan" });
-    fireEvent.change(screen.getByRole("combobox"), { target: { value: "ref-1" } });
+    const select = await screen.findByRole("combobox", { name: "Teacher của tổ chức" });
+    fireEvent.click(select);
+    fireEvent.click(await screen.findByRole("option", { name: "Cô Lan" }));
     const button = screen.getByRole("button", { name: "Phân công" });
 
     fireEvent.click(button);

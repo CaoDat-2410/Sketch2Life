@@ -1,5 +1,7 @@
 export { Button } from "./Button";
 export type { ButtonSize, ButtonVariant } from "./Button";
+export { Alert } from "./Alert";
+export type { AlertTone } from "./Alert";
 export { Card } from "./Card";
 export type { CardTone } from "./Card";
 export { DataTable } from "./DataTable";
@@ -7,6 +9,8 @@ export type { DataTableColumn } from "./DataTable";
 export { EmptyState } from "./EmptyState";
 export { PageHeader } from "./PageHeader";
 export { Section } from "./Section";
+export { Select } from "./Select";
+export type { SelectChangeEvent, SelectProps } from "./Select";
 export { StatCard } from "./StatCard";
 export type { StatAccent, TrendDirection } from "./StatCard";
 export { StatusBadge } from "./StatusBadge";

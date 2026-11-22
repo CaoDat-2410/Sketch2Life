@@ -16,6 +16,7 @@ import {
 import { usePortalSession } from "../../../shared/auth/PortalSessionContext";
 import { Icon } from "../components/Icon";
 import { PageHeading } from "../../../shared/components/FeatureAvailability";
+import { Select } from "../../../shared/ui";
 import { abortUploadWithRevision } from "../services/uploadAbort";
 
 const MIME_BY_EXTENSION: Record<string, string> = {
@@ -392,9 +393,9 @@ export function TeacherApiImportPage() {
       <section className="tw-card" style={{ maxWidth: 860 }}>
         <h2 className="tw-h2">Tệp nguồn</h2>
         <label className="tw-label">Giáo án đích
-          <select className="tw-input" value={lessonId} disabled={uploading || Boolean(resume) || lessons.length === 0} onChange={(event) => { setLessonId(event.target.value); setSourceDocument(null); setRevision(null); }}>
+          <Select aria-label="Giáo án đích" className="tw-input" value={lessonId} disabled={uploading || Boolean(resume) || lessons.length === 0} onChange={(event) => { setLessonId(event.target.value); setSourceDocument(null); setRevision(null); }}>
             {lessons.map((item) => <option key={item.lesson_id} value={item.lesson_id}>{item.title} · {item.topic} · bản {item.current_version_no}</option>)}
-          </select>
+          </Select>
         </label>
         {lessonListError && <BackendNotice title="Không tải được giáo án tiếp theo" tone="error">{lessonListError}</BackendNotice>}
         {lessonNextCursor && <button type="button" className="tw-btn is-ghost is-sm" style={{ marginTop: 8 }} disabled={loadingMoreLessons || loading || Boolean(resume)} onClick={() => void loadMoreLessons()}>{loadingMoreLessons ? "Đang tải…" : "Tải thêm giáo án"}</button>}

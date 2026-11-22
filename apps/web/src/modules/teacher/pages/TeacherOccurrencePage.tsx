@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RefreshCw, Upload, FileText, ClipboardList, CalendarDays } from "lucide-react";
 import { PageHeading } from "../../../shared/components/FeatureAvailability";
+import { Button, Select } from "../../../shared/ui";
+import { authService } from "../../school-manager/be1/services/authService";
 import {
   BackendApiError,
   backendApi,
@@ -44,6 +46,45 @@ const DOCUMENT_STATE_LABEL: Record<SourceDocument["document_state"], string> = {
 type KeyedIdentity = { key: string; fingerprint: string };
 type UploadIdentity = { fingerprint: string; keys: OccurrenceUploadKeys; uploadId: string | null; assetRef: string | null; attachKey: string; abortKey: string };
 type Cached<T> = { etag: string; data: T };
+type RequestContext = { step: string; method: string; path: string };
+type RequestDiagnostic = RequestContext & { status: string; code: string; requestId: string };
+
+class ContextualRequestError extends Error {
+  readonly context: RequestContext;
+  readonly original: unknown;
+
+  constructor(context: RequestContext, original: unknown) {
+    super(errorText(original));
+    this.name = "ContextualRequestError";
+    this.context = context;
+    this.original = original;
+  }
+}
+
+async function withRequestContext<T>(context: RequestContext, request: () => Promise<T>): Promise<T> {
+  try { return await request(); }
+  catch (cause) { throw new ContextualRequestError(context, cause); }
+}
+
+function diagnosticFor(cause: unknown): RequestDiagnostic | null {
+  if (!(cause instanceof ContextualRequestError)) return null;
+  const original = cause.original;
+  const apiError = original instanceof BackendApiError ? original : null;
+  return {
+    ...cause.context,
+    status: apiError ? String(apiError.status) : "Không có",
+    code: apiError?.code ?? "Không có",
+    requestId: apiError?.requestId ?? "Không có",
+  };
+}
+
+function messageForFailure(cause: unknown): string {
+  return cause instanceof ContextualRequestError ? errorText(cause.original) : errorText(cause);
+}
+
+function originalCause(cause: unknown): unknown {
+  return cause instanceof ContextualRequestError ? cause.original : cause;
+}
 
 /** One key per user action: a retry of the same body reuses it, a rejected (4xx) or finished action drops it. */
 async function keyedWrite<T>(identity: { current: KeyedIdentity | null }, body: unknown, write: (key: string) => Promise<T>): Promise<T> {
@@ -84,7 +125,10 @@ function fieldIssueText(issue: FieldIssue): string {
 }
 const errorText = (cause: unknown) => cause instanceof Error ? cause.message : "Không thể hoàn tất yêu cầu. Hãy thử lại.";
 const isAbort = (cause: unknown) => cause instanceof Error && cause.name === "AbortError";
-const isStale = (cause: unknown) => cause instanceof BackendApiError && cause.code === "STALE_REVISION";
+const isStale = (cause: unknown) => {
+  const source = originalCause(cause);
+  return source instanceof BackendApiError && source.code === "STALE_REVISION";
+};
 
 export function TeacherOccurrencePage() {
   const [classes, setClasses] = useState<Be1Class[]>([]);
@@ -116,6 +160,8 @@ export function TeacherOccurrencePage() {
   const [loading, setLoading] = useState(true);
   const [busyCount, setBusyCount] = useState(0);
   const [error, setError] = useState("");
+  const [diagnostic, setDiagnostic] = useState<RequestDiagnostic | null>(null);
+  const failureStepRef = useRef<string | null>(null);
   const [fieldIssues, setFieldIssues] = useState<FieldIssue[]>([]);
   const [notice, setNotice] = useState("");
   const occurrenceCache = useRef(new Map<string, Cached<Occurrence>>());
@@ -129,6 +175,9 @@ export function TeacherOccurrencePage() {
   const uploadIdentity = useRef<UploadIdentity | null>(null);
   const occurrenceIdRef = useRef("");
   const classIdRef = useRef("");
+  const accountUidRef = useRef<string | null>(null);
+  const assignmentClassIdsRef = useRef<string[]>([]);
+  const dataEpochRef = useRef(0);
   const uploadController = useRef<AbortController | null>(null);
   const busy = busyCount > 0;
   const organizationId = configuredOrganizationId();
@@ -147,41 +196,111 @@ export function TeacherOccurrencePage() {
   ].filter(Boolean);
   const checklistBlocked = Boolean(selectedPlan?.activities.some((activity) => activity.checklist_required && !activity.confirmed));
 
+  const showFailure = useCallback((cause: unknown) => {
+    const nextDiagnostic = diagnosticFor(cause);
+    failureStepRef.current = nextDiagnostic?.step ?? null;
+    setError(messageForFailure(cause));
+    setDiagnostic(nextDiagnostic);
+  }, []);
+
+  const clearAccountScopedData = useCallback(() => {
+    dataEpochRef.current += 1;
+    classIdRef.current = "";
+    occurrenceIdRef.current = "";
+    setClasses([]); setSelectedClassId(""); setLessons([]); setSelectedLessonId("");
+    setOccurrences([]); setNextCursor(null); setOccurrence(null);
+    setDocuments([]); setSelectedDocumentId(""); setRevisions([]); setSelectedRevision(null);
+    setPlans([]); setSelectedPlan(null); setJobId(""); setJob(null);
+    setTitle(""); setScheduledDate(""); setFile(null); setUploadProgress(""); setUploadAbortable(false);
+    setEditedText(""); setObjectives(""); setDirection(""); setSafetyNotes(""); setPlanDocumentRevision(""); setCarriedActivities([]);
+    failureStepRef.current = null;
+    setError(""); setDiagnostic(null); setFieldIssues([]); setNotice("");
+    occurrenceCache.current.clear(); documentCache.current.clear(); revisionCache.current.clear(); planCache.current.clear();
+    createOccurrenceIdentity.current = null; editTextIdentity.current = null; createPlanIdentity.current = null; confirmPlanIdentity.current = null;
+    uploadController.current?.abort(); uploadController.current = null; uploadIdentity.current = null;
+  }, []);
+
   const refreshClasses = useCallback(async () => {
     if (!hasFirebaseAuthBridge()) throw new BackendApiError("Phiên đăng nhập chưa sẵn sàng.", "AUTHENTICATION_REQUIRED", 401);
     if (!organizationId) throw new BackendApiError("Chưa cấu hình organization_id.", "ORGANIZATION_REQUIRED", 400);
-    const identity = await backendApi.assignments(organizationId);
+    const encodedOrganizationId = encodeURIComponent(organizationId);
+    const identityEpoch = dataEpochRef.current;
+    const identity = await withRequestContext(
+      { step: "Tải lớp được phân công", method: "GET", path: `/api/be1/v1/organizations/${encodedOrganizationId}/me` },
+      () => backendApi.assignments(organizationId),
+    );
+    if (identityEpoch !== dataEpochRef.current) return;
     const allowed = new Set(identity.assignments
       .filter((assignment) => assignment.role === "teacher" && assignment.active !== false)
       .flatMap((assignment) => assignment.class_id ? [assignment.class_id] : []));
-    if (!allowed.size) { setClasses([]); setSelectedClassId(""); return; }
-    const [classPage, lessonPage] = await Promise.all([backendApi.classes(organizationId, "active"), backendApi.lessons(organizationId, { state: "ACTIVE" })]);
+    const nextAssignmentIds = [...allowed].sort();
+    if (JSON.stringify(nextAssignmentIds) !== JSON.stringify(assignmentClassIdsRef.current)) {
+      assignmentClassIdsRef.current = nextAssignmentIds;
+      clearAccountScopedData();
+      setLoading(true);
+    }
+    const requestEpoch = dataEpochRef.current;
+    if (!allowed.size) { setClasses([]); setLessons([]); setSelectedClassId(""); return; }
+    const [classPage, lessonPage] = await Promise.all([
+      withRequestContext(
+        { step: "Tải lớp được phân công", method: "GET", path: `/api/be1/v1/organizations/${encodedOrganizationId}/classes?state=active&limit=100` },
+        () => backendApi.classes(organizationId, "active"),
+      ),
+      withRequestContext(
+        { step: "Tải giáo án", method: "GET", path: `/api/lesson-library/v1/organizations/${encodedOrganizationId}/lessons?state=ACTIVE` },
+        () => backendApi.lessons(organizationId, { state: "ACTIVE" }),
+      ),
+    ]);
+    if (requestEpoch !== dataEpochRef.current) return;
     const assignedClasses = classPage.items.filter((item) => allowed.has(item.class_id));
     setClasses(assignedClasses);
     setLessons(lessonPage.items.filter((item) => item.review_state === "APPROVED"));
-    setSelectedClassId((current) => assignedClasses.some((item) => item.class_id === current) ? current : assignedClasses[0]?.class_id ?? "");
-  }, [organizationId]);
+    const nextSelectedClass = assignedClasses.some((item) => item.class_id === classIdRef.current) ? classIdRef.current : assignedClasses[0]?.class_id ?? "";
+    classIdRef.current = nextSelectedClass;
+    setSelectedClassId(nextSelectedClass);
+  }, [clearAccountScopedData, organizationId]);
 
   const refreshOccurrences = useCallback(async (classId: string, cursor?: string) => {
     if (!classId) { setOccurrences([]); setNextCursor(null); setOccurrence(null); return; }
-    const page = await teacherOccurrenceApi.list(classId, { cursor });
+    const query = new URLSearchParams({ limit: "25", class_id: classId });
+    if (cursor) query.set("cursor", cursor);
+    const page = await withRequestContext(
+      { step: "Tải danh sách buổi dạy", method: "GET", path: `/v1/lesson-occurrences?${query}` },
+      () => teacherOccurrenceApi.list(classId, { cursor }),
+    );
     if (classIdRef.current !== classId) return; // the Teacher switched class while this page was loading
+    if (failureStepRef.current === "Tải danh sách buổi dạy") {
+      failureStepRef.current = null;
+      setError("");
+      setDiagnostic(null);
+    }
     setNextCursor(page.next_cursor);
     setOccurrences((items) => cursor ? [...items, ...page.items.filter((item) => !items.some((known) => known.occurrence_id === item.occurrence_id))] : page.items);
     if (!cursor) setOccurrence((current) => page.items.find((item) => item.occurrence_id === current?.occurrence_id) ?? page.items[0] ?? null);
   }, []);
 
   const refreshOccurrence = useCallback(async (id: string) => {
-    const fresh = await cachedGet(occurrenceCache.current, id, (etag) => teacherOccurrenceApi.get(id, etag));
+    const fresh = await withRequestContext(
+      { step: "Tải buổi dạy", method: "GET", path: `/v1/lesson-occurrences/${encodeURIComponent(id)}` },
+      () => cachedGet(occurrenceCache.current, id, (etag) => teacherOccurrenceApi.get(id, etag)),
+    );
     setOccurrence((current) => current?.occurrence_id === id ? fresh : current);
     setOccurrences((items) => items.map((item) => item.occurrence_id === id ? fresh : item));
   }, []);
 
   const refreshDocumentsAndPlans = useCallback(async (id: string) => {
-    const [documentPage, planPage] = await Promise.all([teacherOccurrenceApi.listDocuments(id), teacherOccurrenceApi.listPlans(id)]);
+    const documentPage = await withRequestContext(
+      { step: "Tải tài liệu", method: "GET", path: `/v1/lesson-occurrences/${encodeURIComponent(id)}/documents?limit=25` },
+      () => teacherOccurrenceApi.listDocuments(id),
+    );
     if (occurrenceIdRef.current !== id) return;
     setDocuments(documentPage.items);
     setSelectedDocumentId((current) => documentPage.items.some((item) => item.source_document_id === current) ? current : documentPage.items[0]?.source_document_id ?? "");
+    const planPage = await withRequestContext(
+      { step: "Tải kế hoạch", method: "GET", path: `/v1/lesson-occurrences/${encodeURIComponent(id)}/plan-revisions?limit=25` },
+      () => teacherOccurrenceApi.listPlans(id),
+    );
+    if (occurrenceIdRef.current !== id) return;
     setPlans(planPage.items);
     return planPage.items;
   }, []);
@@ -192,17 +311,39 @@ export function TeacherOccurrencePage() {
 
   useEffect(() => {
     let current = true;
-    refreshClasses()
-      .catch((cause: unknown) => { if (current) setError(errorText(cause)); })
-      .finally(() => { if (current) setLoading(false); });
-    return () => { current = false; };
-  }, [refreshClasses]);
+    const unsubscribe = authService.observe((user) => {
+      const nextUid = user?.uid ?? null;
+      if (accountUidRef.current === nextUid) return;
+      accountUidRef.current = nextUid;
+      assignmentClassIdsRef.current = [];
+      clearAccountScopedData();
+      if (!user) { setLoading(false); return; }
+      setLoading(true);
+      refreshClasses()
+        .catch((cause: unknown) => { if (current) showFailure(cause); })
+        .finally(() => { if (current) setLoading(false); });
+    });
+    return () => { current = false; unsubscribe(); };
+  }, [clearAccountScopedData, refreshClasses, showFailure]);
+
+  useEffect(() => {
+    const refreshAssignments = () => {
+      if (document.visibilityState === "hidden" || !accountUidRef.current) return;
+      refreshClasses().catch(showFailure);
+    };
+    window.addEventListener("focus", refreshAssignments);
+    document.addEventListener("visibilitychange", refreshAssignments);
+    return () => {
+      window.removeEventListener("focus", refreshAssignments);
+      document.removeEventListener("visibilitychange", refreshAssignments);
+    };
+  }, [refreshClasses, showFailure]);
 
   useEffect(() => {
     let current = true;
-    refreshOccurrences(selectedClassId).catch((cause: unknown) => { if (current) setError(errorText(cause)); });
+    refreshOccurrences(selectedClassId).catch((cause: unknown) => { if (current) showFailure(cause); });
     return () => { current = false; };
-  }, [selectedClassId, refreshOccurrences]);
+  }, [selectedClassId, refreshOccurrences, showFailure]);
 
   useEffect(() => {
     setDocuments([]); setSelectedDocumentId(""); setRevisions([]); setSelectedRevision(null); setPlans([]); setSelectedPlan(null);
@@ -212,9 +353,9 @@ export function TeacherOccurrencePage() {
     uploadController.current?.abort(); uploadIdentity.current = null;
     if (!occurrenceId) return;
     let current = true;
-    refreshDocumentsAndPlans(occurrenceId).catch((cause: unknown) => { if (current) setError(errorText(cause)); });
+    refreshDocumentsAndPlans(occurrenceId).catch((cause: unknown) => { if (current) showFailure(cause); });
     return () => { current = false; };
-  }, [occurrenceId, refreshDocumentsAndPlans]);
+  }, [occurrenceId, refreshDocumentsAndPlans, showFailure]);
 
   // Revision history and the head text of the selected document. A 304 reuses the cached body.
   useEffect(() => {
@@ -222,17 +363,26 @@ export function TeacherOccurrencePage() {
     let current = true;
     (async () => {
       const [revisionPage, fresh] = await Promise.all([
-        teacherOccurrenceApi.listDocumentRevisions(occurrenceId, selectedDocumentId),
-        cachedGet(documentCache.current, selectedDocumentId, (etag) => teacherOccurrenceApi.getDocument(occurrenceId, selectedDocumentId, etag)),
+        withRequestContext(
+          { step: "Tải tài liệu", method: "GET", path: `/v1/lesson-occurrences/${encodeURIComponent(occurrenceId)}/documents/${encodeURIComponent(selectedDocumentId)}/revisions?limit=25` },
+          () => teacherOccurrenceApi.listDocumentRevisions(occurrenceId, selectedDocumentId),
+        ),
+        withRequestContext(
+          { step: "Tải tài liệu", method: "GET", path: `/v1/lesson-occurrences/${encodeURIComponent(occurrenceId)}/documents/${encodeURIComponent(selectedDocumentId)}` },
+          () => cachedGet(documentCache.current, selectedDocumentId, (etag) => teacherOccurrenceApi.getDocument(occurrenceId, selectedDocumentId, etag)),
+        ),
       ]);
       const headNo = Math.max(fresh.head_revision_no, headRevisionNo);
-      const text = await cachedGet(revisionCache.current, `${selectedDocumentId}:${headNo}`, (etag) => teacherOccurrenceApi.getDocumentRevision(occurrenceId, selectedDocumentId, headNo, etag));
+      const text = await withRequestContext(
+        { step: "Tải tài liệu", method: "GET", path: `/v1/lesson-occurrences/${encodeURIComponent(occurrenceId)}/documents/${encodeURIComponent(selectedDocumentId)}/revisions/${headNo}` },
+        () => cachedGet(revisionCache.current, `${selectedDocumentId}:${headNo}`, (etag) => teacherOccurrenceApi.getDocumentRevision(occurrenceId, selectedDocumentId, headNo, etag)),
+      );
       if (!current) return;
       setRevisions(revisionPage.items); setSelectedRevision(text); setEditedText(text.extracted_text);
       setDocuments((items) => items.map((item) => item.source_document_id === fresh.source_document_id && fresh.head_revision_no > item.head_revision_no ? fresh : item));
-    })().catch((cause: unknown) => { if (current) setError(errorText(cause)); });
+    })().catch((cause: unknown) => { if (current) showFailure(cause); });
     return () => { current = false; };
-  }, [occurrenceId, selectedDocumentId, headRevisionNo]);
+  }, [occurrenceId, selectedDocumentId, headRevisionNo, showFailure]);
 
   // One poller per extraction job; unmounting or switching occurrence aborts it.
   useEffect(() => {
@@ -245,9 +395,9 @@ export function TeacherOccurrencePage() {
         await refreshDocumentsAndPlans(forOccurrence);
         await refreshOccurrence(forOccurrence);
       })
-      .catch((cause: unknown) => { if (!isAbort(cause)) setError(errorText(cause)); });
+      .catch((cause: unknown) => { if (!isAbort(cause)) showFailure(cause); });
     return () => controller.abort();
-  }, [jobId, refreshDocumentsAndPlans, refreshOccurrence]);
+  }, [jobId, refreshDocumentsAndPlans, refreshOccurrence, showFailure]);
 
   /** After a STALE_REVISION answer: show the safe message, then reload the heads so the next try is made on current data. */
   const reloadHeads = async () => {
@@ -262,13 +412,14 @@ export function TeacherOccurrencePage() {
   };
 
   const runAction = async (action: () => Promise<void>) => {
-    setBusyCount((count) => count + 1); setError(""); setFieldIssues([]); setNotice("");
+    setBusyCount((count) => count + 1); setError(""); setDiagnostic(null); setFieldIssues([]); setNotice("");
     try { await action(); }
     catch (cause) {
       if (isAbort(cause)) return;
-      setError(errorText(cause));
-      if (cause instanceof OccurrenceApiError) setFieldIssues(cause.fieldErrors);
-      if (isStale(cause)) { try { await reloadHeads(); } catch (reloadCause) { setError(errorText(reloadCause)); } }
+      showFailure(cause);
+      const source = originalCause(cause);
+      if (source instanceof OccurrenceApiError) setFieldIssues(source.fieldErrors);
+      if (isStale(cause)) { try { await reloadHeads(); } catch (reloadCause) { showFailure(reloadCause); } }
     }
     finally { setBusyCount((count) => count - 1); }
   };
@@ -348,7 +499,10 @@ export function TeacherOccurrencePage() {
   const openRevision = (revisionNo: number) => runAction(async () => {
     if (!occurrence || !selectedDocument) return;
     const id = selectedDocument.source_document_id;
-    const revision = await cachedGet(revisionCache.current, `${id}:${revisionNo}`, (etag) => teacherOccurrenceApi.getDocumentRevision(occurrence.occurrence_id, id, revisionNo, etag));
+    const revision = await withRequestContext(
+      { step: "Tải tài liệu", method: "GET", path: `/v1/lesson-occurrences/${encodeURIComponent(occurrence.occurrence_id)}/documents/${encodeURIComponent(id)}/revisions/${revisionNo}` },
+      () => cachedGet(revisionCache.current, `${id}:${revisionNo}`, (etag) => teacherOccurrenceApi.getDocumentRevision(occurrence.occurrence_id, id, revisionNo, etag)),
+    );
     setSelectedRevision(revision); setEditedText(revision.extracted_text);
   });
 
@@ -387,7 +541,10 @@ export function TeacherOccurrencePage() {
 
   const openPlan = (revisionNo: number) => runAction(async () => {
     if (!occurrence) return;
-    const plan = await cachedGet(planCache.current, `${occurrence.occurrence_id}:${revisionNo}`, (etag) => teacherOccurrenceApi.getPlan(occurrence.occurrence_id, revisionNo, etag));
+    const plan = await withRequestContext(
+      { step: "Tải kế hoạch", method: "GET", path: `/v1/lesson-occurrences/${encodeURIComponent(occurrence.occurrence_id)}/plan-revisions/${revisionNo}` },
+      () => cachedGet(planCache.current, `${occurrence.occurrence_id}:${revisionNo}`, (etag) => teacherOccurrenceApi.getPlan(occurrence.occurrence_id, revisionNo, etag)),
+    );
     setSelectedPlan(plan);
   });
 
@@ -403,8 +560,10 @@ export function TeacherOccurrencePage() {
 
   const refreshAll = () => runAction(async () => {
     await refreshClasses();
-    if (selectedClassId) await refreshOccurrences(selectedClassId);
-    if (occurrenceId) { await refreshDocumentsAndPlans(occurrenceId); await refreshOccurrence(occurrenceId); }
+    const currentClassId = classIdRef.current;
+    const currentOccurrenceId = occurrenceIdRef.current;
+    if (currentClassId) await refreshOccurrences(currentClassId);
+    if (currentOccurrenceId) { await refreshDocumentsAndPlans(currentOccurrenceId); await refreshOccurrence(currentOccurrenceId); }
   });
 
   return (
@@ -415,7 +574,20 @@ export function TeacherOccurrencePage() {
         description="Tạo buổi dạy trong lớp được phân công, rà soát tài liệu và quản lý các bản kế hoạch."
         action={<button type="button" className="s2l-button" onClick={() => void refreshAll()} disabled={busy}><RefreshCw size={16} aria-hidden="true" />Làm mới</button>}
       />
-      {error && <div className="s2l-alert" role="alert">{error}</div>}
+      {error && <div className="s2l-alert teacher-occurrence-error" role="alert">
+        {diagnostic && <p className="teacher-occurrence-error-context"><strong>Bước lỗi:</strong> {diagnostic.step}</p>}
+        <p className="teacher-occurrence-error-message">{error}</p>
+        {diagnostic && <details className="teacher-occurrence-error-details">
+          <summary>Thông tin kỹ thuật</summary>
+          <dl>
+            <dt>Phương thức</dt><dd>{diagnostic.method}</dd>
+            <dt>Đường dẫn</dt><dd><code>{diagnostic.path}</code></dd>
+            <dt>Trạng thái</dt><dd>{diagnostic.status}</dd>
+            <dt>Mã lỗi</dt><dd>{diagnostic.code}</dd>
+            <dt>Mã yêu cầu</dt><dd>{diagnostic.requestId}</dd>
+          </dl>
+        </details>}
+      </div>}
       {fieldIssues.length > 0 && <ul className="s2l-alert" aria-label="Trường chưa hợp lệ">{fieldIssues.map((issue) => <li key={`${issue.field}:${issue.code}`}>{fieldIssueText(issue)}</li>)}</ul>}
       {notice && <div className="s2l-note" role="status">{notice}</div>}
       {!hasFirebaseAuthBridge() && <div className="s2l-alert" role="alert">Chưa có phiên đăng nhập Teacher.</div>}
@@ -423,23 +595,35 @@ export function TeacherOccurrencePage() {
         <div className="teacher-occurrence-layout">
           <section className="s2l-data-card teacher-occurrence-sidebar" aria-label="Danh sách buổi dạy">
             <label htmlFor="occurrence-class">Lớp được phân công</label>
-            <select id="occurrence-class" value={selectedClassId} disabled={busy} onChange={(event) => { setSelectedClassId(event.target.value); setOccurrence(null); }}>
+            <Select id="occurrence-class" value={selectedClassId} disabled={busy} onChange={(event) => { classIdRef.current = event.target.value; occurrenceIdRef.current = ""; setSelectedClassId(event.target.value); setOccurrence(null); setOccurrences([]); setNextCursor(null); }}>
               <option value="">Chọn lớp</option>{classes.map((item) => <option key={item.class_id} value={item.class_id}>{item.display_name}</option>)}
-            </select>
+            </Select>
             {classes.length === 0 && <p className="s2l-note">Tài khoản chưa có lớp được phân công.</p>}
             <h2>Buổi dạy gần đây</h2>
             {occurrences.length === 0 ? <p className="s2l-note">Chưa có buổi dạy trong lớp này.</p> : <ul className="teacher-occurrence-list">{occurrences.map((item) => <li key={item.occurrence_id}><button type="button" disabled={busy} aria-current={item.occurrence_id === occurrenceId ? "true" : undefined} onClick={() => void selectOccurrence(item)}><strong>{item.title}</strong><small>{item.scheduled_date ?? "Chưa đặt ngày"} · {OCCURRENCE_STATE_LABEL[item.state]}</small></button></li>)}</ul>}
             {nextCursor && <button type="button" className="s2l-button" disabled={busy} onClick={() => void runAction(() => refreshOccurrences(selectedClassId, nextCursor))}>Tải thêm buổi dạy</button>}
             <form onSubmit={(event) => { event.preventDefault(); void createOccurrence(); }} className="teacher-occurrence-create">
               <h2><CalendarDays size={18} aria-hidden="true" /> Tạo buổi dạy</h2>
-              <label htmlFor="occurrence-title">Tên buổi dạy</label><input id="occurrence-title" value={title} onChange={(event) => setTitle(event.target.value)} required maxLength={200} />
-              <label htmlFor="occurrence-date">Ngày dự kiến</label><input id="occurrence-date" type="date" value={scheduledDate} onChange={(event) => setScheduledDate(event.target.value)} />
-              <label htmlFor="occurrence-lesson">Ghim phiên bản giáo án đã duyệt (không bắt buộc)</label>
-              <select id="occurrence-lesson" value={selectedLessonId} onChange={(event) => setSelectedLessonId(event.target.value)}>
+              <div className="teacher-occurrence-field">
+                <label htmlFor="occurrence-title">Tên buổi dạy</label>
+                <input id="occurrence-title" value={title} onChange={(event) => setTitle(event.target.value)} required maxLength={200} placeholder="Ví dụ: Buổi vẽ lá cây" aria-describedby="occurrence-title-hint" />
+                <p id="occurrence-title-hint" className="teacher-occurrence-form-hint">Tên ngắn giúp dễ nhận biết buổi học.</p>
+              </div>
+              <div className="teacher-occurrence-field">
+                <div className="teacher-occurrence-field-heading">
+                  <label htmlFor="occurrence-date">Ngày dự kiến</label>
+                  <span>Không bắt buộc</span>
+                </div>
+                <div className="teacher-occurrence-date-control">
+                  <input id="occurrence-date" type="date" value={scheduledDate} onChange={(event) => setScheduledDate(event.target.value)} />
+                </div>
+              </div>
+              <label htmlFor="occurrence-lesson">Ghim giáo án đã duyệt</label>
+              <Select id="occurrence-lesson" value={selectedLessonId} onChange={(event) => setSelectedLessonId(event.target.value)}>
                 <option value="">Không ghim giáo án</option>{lessons.map((item) => <option key={item.lesson_id} value={item.lesson_id}>{item.title}</option>)}
-              </select>
+              </Select>
               {lessonLabel && <p className="s2l-note">Đã chọn: {lessonLabel}. Buổi dạy giữ đúng phiên bản và mã băm hiện tại của giáo án.</p>}
-              <button type="submit" className="s2l-button" disabled={busy || !selectedClassId || !title.trim()}>Tạo buổi dạy</button>
+              <Button type="submit" variant="primary" loading={busy} disabled={busy || !selectedClassId || !title.trim()} className="teacher-occurrence-submit w-full">Tạo buổi dạy</Button>
             </form>
           </section>
 
@@ -467,9 +651,9 @@ export function TeacherOccurrencePage() {
                   <p><strong>{selectedDocument.file_name}</strong> · {DOCUMENT_STATE_LABEL[selectedDocument.document_state]}</p>
                   {selectedDocument.warnings.length > 0 && <ul className="s2l-note">{selectedDocument.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul>}
                   <label htmlFor="document-revision">Lịch sử văn bản</label>
-                  <select id="document-revision" value={selectedRevision?.revision_no ?? selectedDocument.head_revision_no} onChange={(event) => void openRevision(Number(event.target.value))}>
+                  <Select id="document-revision" value={selectedRevision?.revision_no ?? selectedDocument.head_revision_no} onChange={(event) => void openRevision(Number(event.target.value))}>
                     {revisions.map((revision) => <option key={revision.revision_no} value={revision.revision_no}>Bản {revision.revision_no} · {revision.origin === "EXTRACTION" ? "trích xuất" : "chỉnh sửa"} · {revision.review_state === "NEEDS_REVIEW" ? "cần rà soát" : "đã xác nhận"}</option>)}
-                  </select>
+                  </Select>
                   <label htmlFor="document-text">Văn bản của bản {selectedRevision?.revision_no ?? selectedDocument.head_revision_no}</label>
                   <textarea id="document-text" value={editedText} onChange={(event) => setEditedText(event.target.value)} rows={10} />
                   <button type="button" className="s2l-button" onClick={() => void saveEditedText()} disabled={busy || !selectedRevision || selectedRevision.revision_no !== selectedDocument.head_revision_no || !editedText.trim()}>Lưu thành bản mới</button>
@@ -498,10 +682,10 @@ export function TeacherOccurrencePage() {
                   <label htmlFor="plan-direction">Hướng dẫn cho giáo viên</label><textarea id="plan-direction" maxLength={PLAN_LIMITS.directionChars} value={direction} onChange={(event) => setDirection(event.target.value)} rows={4} required />
                   <label htmlFor="plan-safety">Ghi chú an toàn (không bắt buộc)</label><textarea id="plan-safety" maxLength={PLAN_LIMITS.safetyNotesChars} value={safetyNotes} onChange={(event) => setSafetyNotes(event.target.value)} rows={3} />
                   <label htmlFor="plan-document-revision">Bản văn bản làm nguồn (không bắt buộc)</label>
-                  <select id="plan-document-revision" value={planDocumentRevision} onChange={(event) => setPlanDocumentRevision(event.target.value)}>
+                  <Select id="plan-document-revision" value={planDocumentRevision} onChange={(event) => setPlanDocumentRevision(event.target.value)}>
                     <option value="">Không chọn nguồn văn bản</option>
                     {selectedDocument && revisions.map((revision) => <option key={revision.revision_no} value={`${selectedDocument.source_document_id}:${revision.revision_no}`}>{selectedDocument.file_name} · bản {revision.revision_no}</option>)}
-                  </select>
+                  </Select>
                   {carriedActivities.length > 0 && <p className="s2l-note">Giữ nguyên {carriedActivities.length} hoạt động lấy từ giáo án đã ghim.</p>}
                   {planProblems.map((problem) => <p key={problem} className="s2l-alert" role="alert">{problem}</p>)}
                   <p className="s2l-note">Kế hoạch này tạo bản nháp bất biến. Hoạt động tùy chỉnh và danh mục hoạt động chưa dùng được vì checklist an toàn chưa được cấu hình.</p>

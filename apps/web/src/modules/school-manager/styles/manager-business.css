@@ -615,3 +615,122 @@ html[data-cozy="1"][data-portal="school-be1"] .manager-counter-boundary { color:
   html[data-cozy="1"][data-portal="school-be1"] .manager-review-item-copy { min-width: calc(100% - 58px); }
   html[data-cozy="1"][data-portal="school-be1"] .manager-status-tag { margin-left: 44px; }
 }
+
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  min-width: 0;
+}
+
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-roster-stats {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-assignment-list {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-assignment-list li {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--s2l-ui-rule);
+  border-radius: 12px;
+  background: var(--s2l-ui-paper);
+  transition: background-color 140ms ease, border-color 140ms ease;
+}
+
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-assignment-list li.is-selected {
+  border-color: var(--s2l-ui-primary-300);
+  background: var(--s2l-ui-row-selected);
+  box-shadow: inset 3px 0 var(--s2l-ui-primary);
+}
+
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-assignment-list li > strong {
+  min-width: 0;
+  color: var(--s2l-ui-ink);
+  overflow-wrap: anywhere;
+}
+
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-assignment-badges {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-class-picker > .s2l-empty-state,
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-class-picker > [role="alert"],
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-class-picker > [role="status"] { grid-column: 1 / -1; }
+
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-form label {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+}
+
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-form :is(button, .s2l-select-trigger) { min-height: 44px; }
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-form button { white-space: nowrap; }
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-card[aria-labelledby="teacher-assignment-title"] > div {
+  display: grid;
+  gap: 12px;
+}
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-card[aria-labelledby="teacher-assignment-title"] h2 { margin: 0; }
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-card[aria-labelledby="teacher-assignment-title"] .manager-business-subtle { margin: 0; }
+
+@media (max-width: 820px) {
+  html[data-cozy="1"][data-portal="school-be1"] .manager-business-roster-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 620px) {
+  html[data-cozy="1"][data-portal="school-be1"] .manager-business-stats,
+  html[data-cozy="1"][data-portal="school-be1"] .manager-business-roster-stats { grid-template-columns: minmax(0, 1fr); }
+  html[data-cozy="1"][data-portal="school-be1"] .manager-business-assignment-list li {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  html[data-cozy="1"][data-portal="school-be1"] .manager-business-assignment-badges { justify-content: flex-start; }
+  html[data-cozy="1"][data-portal="school-be1"] .manager-business-form {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+  }
+  html[data-cozy="1"][data-portal="school-be1"] .manager-business-form button { width: 100%; }
+  html[data-cozy="1"][data-portal="school-be1"] .manager-business-page .manager-business-table {
+    min-width: 0;
+    table-layout: fixed;
+  }
+  html[data-cozy="1"][data-portal="school-be1"] .manager-business-page .manager-business-table th,
+  html[data-cozy="1"][data-portal="school-be1"] .manager-business-page .manager-business-table td {
+    padding: 8px 4px;
+    overflow-wrap: anywhere;
+  }
+  html[data-cozy="1"][data-portal="school-be1"] .manager-business-page .manager-business-table .s2l-status-badge {
+    width: 100%;
+    justify-content: center;
+    white-space: normal;
+    text-align: center;
+  }
+  html[data-cozy="1"][data-portal="school-be1"] .manager-business-page .manager-business-table .s2l-status-badge > span:last-child {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}

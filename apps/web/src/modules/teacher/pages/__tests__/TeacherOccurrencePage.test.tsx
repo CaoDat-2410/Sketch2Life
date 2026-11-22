@@ -1,8 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { TeacherOccurrencePage } from "../TeacherOccurrencePage";
 import { BackendApiError, backendApi } from "../../../../shared/api/backendApi";
 import { NOT_FOUND_OR_NO_ACCESS, OccurrenceApiError, teacherOccurrenceApi, type JobStatus, type Occurrence, type PlanRevision, type SourceDocument } from "../../../../shared/api/teacherOccurrenceApi";
+import { authService } from "../../../school-manager/be1/services/authService";
+import type { User } from "firebase/auth";
 
 const HASH = "a".repeat(64);
 const occurrenceOf = (id: string, title: string, extra: Partial<Occurrence> = {}): Occurrence => ({
@@ -55,6 +57,10 @@ function mockBackend(options: { occurrences?: Occurrence[]; plans?: PlanRevision
 beforeEach(() => {
   window.sketch2lifeConfig = { organizationId: "org-test" };
   window.sketch2lifeAuth = { signIn: vi.fn(async () => undefined), getIdToken: vi.fn(async () => "unit-test-id-token") } as never;
+  vi.spyOn(authService, "observe").mockImplementation((callback) => {
+    callback({ uid: "teacher-test" } as User);
+    return () => undefined;
+  });
 });
 afterEach(() => {
   cleanup();
@@ -70,8 +76,25 @@ describe("TeacherOccurrencePage: list and create", () => {
     expect(await screen.findByRole("heading", { name: "Buổi vẽ con mèo" })).toBeTruthy();
     expect(screen.getByText(/Buổi tô màu/)).toBeTruthy();
     expect(list).toHaveBeenCalledWith("class-1", { cursor: undefined });
+    fireEvent.click(screen.getByRole("combobox", { name: /Ghim giáo án đã duyệt/ }));
     expect(screen.getByRole("option", { name: "Con mèo" })).toBeTruthy();
     expect(screen.queryByRole("option", { name: "Bản nháp" })).toBeNull();
+  });
+
+  it("shows concise form guidance and keeps creation disabled until a title is entered", async () => {
+    mockBackend();
+    render(<TeacherOccurrencePage />);
+    await screen.findByRole("heading", { name: "Buổi vẽ con mèo" });
+
+    const title = screen.getByLabelText("Tên buổi dạy") as HTMLInputElement;
+    const createButton = screen.getByRole("button", { name: "Tạo buổi dạy" }) as HTMLButtonElement;
+    expect(title.placeholder).toBe("Ví dụ: Buổi vẽ lá cây");
+    expect(screen.getByText("Tên ngắn giúp dễ nhận biết buổi học.")).toBeTruthy();
+    expect(screen.getByText("Không bắt buộc")).toBeTruthy();
+    expect(createButton.disabled).toBe(true);
+
+    fireEvent.change(title, { target: { value: "Buổi mới" } });
+    expect(createButton.disabled).toBe(false);
   });
 
   it("creates an occurrence with the optional date, the exact lesson pin and one key; a retry after a network failure reuses the key", async () => {
@@ -83,7 +106,8 @@ describe("TeacherOccurrencePage: list and create", () => {
     await screen.findByRole("heading", { name: "Buổi vẽ con mèo" });
     fireEvent.change(screen.getByLabelText("Tên buổi dạy"), { target: { value: "Buổi mới" } });
     fireEvent.change(screen.getByLabelText("Ngày dự kiến"), { target: { value: "2026-12-01" } });
-    fireEvent.change(screen.getByLabelText(/Ghim phiên bản giáo án/), { target: { value: "lesson-1" } });
+    fireEvent.click(screen.getByRole("combobox", { name: /Ghim giáo án đã duyệt/ }));
+    fireEvent.click(screen.getByRole("option", { name: "Con mèo" }));
     fireEvent.click(screen.getByRole("button", { name: "Tạo buổi dạy" }));
     expect((await screen.findByRole("alert")).textContent).toContain("Không kết nối được dịch vụ.");
     fireEvent.click(screen.getByRole("button", { name: "Tạo buổi dạy" }));
@@ -125,7 +149,39 @@ describe("TeacherOccurrencePage: 404 versus 403", () => {
     mockBackend();
     vi.spyOn(teacherOccurrenceApi, "list").mockRejectedValue(new BackendApiError(NOT_FOUND_OR_NO_ACCESS, "RESOURCE_NOT_FOUND", 404, "req-1"));
     render(<TeacherOccurrencePage />);
-    expect((await screen.findByRole("alert")).textContent).toBe(NOT_FOUND_OR_NO_ACCESS);
+    expect((await screen.findByRole("alert")).textContent).toContain(NOT_FOUND_OR_NO_ACCESS);
+  });
+
+  it("shows occurrence-list diagnostics for a 404 and clears that banner after a successful refresh", async () => {
+    const { list } = mockBackend();
+    list.mockRejectedValueOnce(new BackendApiError(NOT_FOUND_OR_NO_ACCESS, "RESOURCE_NOT_FOUND", 404, "req-list"));
+    render(<TeacherOccurrencePage />);
+
+    const alert = await screen.findByRole("alert");
+    expect(alert.textContent).toContain(NOT_FOUND_OR_NO_ACCESS);
+    expect(alert.textContent).toContain("Tải danh sách buổi dạy");
+    fireEvent.click(screen.getByText("Thông tin kỹ thuật"));
+    expect(alert.textContent).toContain("/v1/lesson-occurrences?limit=25&class_id=class-1");
+    expect(alert.textContent).toContain("404");
+    expect(alert.textContent).toContain("RESOURCE_NOT_FOUND");
+    expect(alert.textContent).toContain("req-list");
+
+    fireEvent.click(screen.getByRole("button", { name: "Làm mới" }));
+    await waitFor(() => expect(list).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(screen.queryByRole("alert")).toBeNull());
+  });
+
+  it("names the document step when a document request returns a 404", async () => {
+    mockBackend();
+    vi.spyOn(teacherOccurrenceApi, "listDocuments")
+      .mockRejectedValueOnce(new BackendApiError(NOT_FOUND_OR_NO_ACCESS, "RESOURCE_NOT_FOUND", 404, "req-doc"));
+    render(<TeacherOccurrencePage />);
+
+    const alert = await screen.findByRole("alert");
+    expect(alert.textContent).toContain("Tải tài liệu");
+    fireEvent.click(screen.getByText("Thông tin kỹ thuật"));
+    expect(alert.textContent).toContain("/v1/lesson-occurrences/occ-1/documents?limit=25");
+    expect(alert.textContent).toContain("req-doc");
   });
 
   it("shows a distinct permission message for a 403", async () => {
@@ -133,7 +189,7 @@ describe("TeacherOccurrencePage: 404 versus 403", () => {
     vi.spyOn(teacherOccurrenceApi, "list").mockRejectedValue(new BackendApiError("Tài khoản không được phép thực hiện thao tác này.", "ACTION_NOT_ALLOWED", 403, "req-2"));
     render(<TeacherOccurrencePage />);
     const alert = await screen.findByRole("alert");
-    expect(alert.textContent).toBe("Tài khoản không được phép thực hiện thao tác này.");
+    expect(alert.textContent).toContain("Tài khoản không được phép thực hiện thao tác này.");
     expect(alert.textContent).not.toContain("không tìm thấy");
   });
 });
@@ -314,12 +370,54 @@ describe("TeacherOccurrencePage: switching context", () => {
       : Promise.resolve({ contract: "LessonOccurrencePageV1", items: [occurrenceOf("occ-b", "Buổi lớp Chồi", { class_id: "class-2" })], next_cursor: null }));
     render(<TeacherOccurrencePage />);
     await waitFor(() => expect(list).toHaveBeenCalledWith("class-1", expect.anything()));
-    fireEvent.change(await screen.findByLabelText("Lớp được phân công"), { target: { value: "class-2" } });
+    fireEvent.click(screen.getByRole("combobox", { name: "Lớp được phân công" }));
+    fireEvent.click(await screen.findByRole("option", { name: "Lớp Chồi" }));
     expect(await screen.findByRole("heading", { name: "Buổi lớp Chồi" })).toBeTruthy();
     releaseFirst({ contract: "LessonOccurrencePageV1", items: [occurrenceOf("occ-a", "Buổi lớp Mầm")], next_cursor: "stale-cursor" });
     await new Promise((resolve) => setTimeout(resolve, 20));
     expect(screen.queryByText("Buổi lớp Mầm")).toBeNull();
     expect(screen.queryByRole("button", { name: "Tải thêm buổi dạy" })).toBeNull();
+  });
+
+  it("clears the old class and does not request it after the signed-in account changes", async () => {
+    let activeUid = "teacher-a";
+    let authListener: ((user: User | null) => void) | undefined;
+    vi.spyOn(authService, "observe").mockImplementation((callback) => {
+      authListener = callback;
+      callback({ uid: activeUid } as User);
+      return () => undefined;
+    });
+    mockBackend();
+    vi.mocked(backendApi.assignments).mockImplementation(async () => ({
+      contract: "Be1AdultAssignmentsV1",
+      subject: activeUid,
+      organization_id: "org-test",
+      assignments: [{ role: "teacher", class_id: activeUid === "teacher-a" ? "class-1" : "class-2", active: true }],
+    } as never));
+    vi.mocked(backendApi.classes).mockImplementation(async () => ({
+      items: [{
+        contract: "Be1ClassV1",
+        class_id: activeUid === "teacher-a" ? "class-1" : "class-2",
+        display_name: activeUid === "teacher-a" ? "Lớp Mầm" : "Lớp Lá",
+      }],
+    } as never));
+    const list = vi.mocked(teacherOccurrenceApi.list).mockImplementation(async (classId) => ({
+      contract: "LessonOccurrencePageV1",
+      items: [occurrenceOf(`occ-${classId}`, `Buổi ${classId}`, { class_id: classId })],
+      next_cursor: null,
+    }));
+
+    render(<TeacherOccurrencePage />);
+    await screen.findByRole("heading", { name: "Buổi class-1" });
+    const callCountBeforeSwitch = list.mock.calls.length;
+    activeUid = "teacher-b";
+    act(() => authListener?.({ uid: activeUid } as User));
+
+    await screen.findByRole("heading", { name: "Buổi class-2" });
+    const callsAfterSwitch = list.mock.calls.slice(callCountBeforeSwitch).map(([classId]) => classId);
+    expect(callsAfterSwitch).toEqual(["class-2"]);
+    expect(screen.getByRole("combobox", { name: "Lớp được phân công" }).textContent).toContain("Lớp Lá");
+    expect(screen.queryByRole("heading", { name: "Buổi class-1" })).toBeNull();
   });
 });
 

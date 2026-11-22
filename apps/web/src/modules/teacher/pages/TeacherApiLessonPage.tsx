@@ -17,6 +17,7 @@ import {
 import { usePortalSession } from "../../../shared/auth/PortalSessionContext";
 import { Icon } from "../components/Icon";
 import { PageHeading } from "../../../shared/components/FeatureAvailability";
+import { Select } from "../../../shared/ui";
 import { commandSignature, isStaleRevision, keyForCommand } from "../services/commandKeys";
 
 const blankActivity = (): LessonActivity => ({
@@ -355,7 +356,7 @@ export function TeacherApiLessonPage() {
                 <label className="tw-label" style={fieldStyle}>Chuẩn bị<textarea className="tw-input" style={inputStyle} rows={2} maxLength={2000} value={activity.preparation_text} onChange={(event) => updateActivity(index, { preparation_text: event.target.value })} /></label>
                 <label className="tw-label" style={fieldStyle}>Lưu ý quan sát<textarea className="tw-input" style={inputStyle} rows={2} maxLength={3000} value={activity.observation_notes} onChange={(event) => updateActivity(index, { observation_notes: event.target.value })} /></label>
                 <label className="tw-label" style={fieldStyle}>An toàn<textarea className="tw-input" style={inputStyle} rows={2} maxLength={3000} value={activity.safety_notes} onChange={(event) => updateActivity(index, { safety_notes: event.target.value })} /></label>
-                <label className="tw-label" style={fieldStyle}>Loại hoạt động<select className="tw-input" style={inputStyle} value={activity.activity_kind} onChange={(event) => updateActivity(index, { activity_kind: event.target.value as LessonActivity["activity_kind"] })}><option value="outdoor">Ngoài trời</option><option value="indoor">Trong lớp</option><option value="mixed">Kết hợp</option></select></label>
+                <label className="tw-label" style={fieldStyle}>Loại hoạt động<Select aria-label="Loại hoạt động" className="tw-input" style={inputStyle} value={activity.activity_kind} onChange={(event) => updateActivity(index, { activity_kind: event.target.value as LessonActivity["activity_kind"] })}><option value="outdoor">Ngoài trời</option><option value="indoor">Trong lớp</option><option value="mixed">Kết hợp</option></Select></label>
                 {content.activities.length > 1 && <button type="button" className="tw-btn is-ghost is-sm" onClick={() => updateContent({ activities: content.activities.filter((_, i) => i !== index) })}>Xóa hoạt động này</button>}
               </div>
             </fieldset>)}

@@ -66,7 +66,7 @@ export const TEACHER_NAVIGATION: PortalNavigationGroup[] = [
       { href: "/teacher/t09-history", label: "Lịch sử", icon: History, state: "waiting" },
       { href: "/teacher/t10-inbox", label: "Hộp thư", icon: Inbox, state: "available" },
       { href: "/teacher/t11-profile", label: "Hồ sơ cá nhân", icon: GraduationCap, state: "waiting" },
-      { href: "/teacher/t08-settings", label: "Cài đặt", icon: Settings2, state: "waiting" },
+      { href: "/teacher/t08-settings", label: "Cài đặt", icon: Settings2, state: "available" },
     ],
   },
 ];
@@ -101,6 +101,12 @@ export const SCHOOL_MANAGER_NAVIGATION: PortalNavigationGroup[] = [
     label: "Thông báo",
     items: [
       { href: "/school/inbox", label: "Hộp thư", icon: Inbox, state: "available" },
+    ],
+  },
+  {
+    label: "Tài khoản",
+    items: [
+      { href: "/school/settings", label: "Cài đặt", icon: Settings2, state: "available" },
     ],
   },
 ];
@@ -242,7 +248,7 @@ export function WebAppShell({
 
   const accountOptions = (
     <>
-      <NavLink to="/platform/a02-platform-operations?panel=settings" onClick={() => {
+      <NavLink to={isPlatformAdmin ? "/platform/a02-platform-operations?panel=settings" : isSchoolManager ? "/school/settings" : "/teacher/t08-settings"} onClick={() => {
         if (topAccountDetails.current) topAccountDetails.current.open = false;
       }}><Settings2 size={17} aria-hidden="true" />Cài đặt tài khoản</NavLink>
       <button type="button" onClick={() => {

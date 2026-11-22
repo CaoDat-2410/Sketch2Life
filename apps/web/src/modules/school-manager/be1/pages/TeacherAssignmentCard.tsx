@@ -3,6 +3,7 @@
 // If-Match with the class assignment revision and one Idempotency-Key per exact command.
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { assignmentOutcomeMessage, classService, type Be1Class, type Be1TeacherCandidate } from "../services/classService";
+import { Alert, EmptyState, Select } from "../../../../shared/ui";
 
 type Props = {
   selectedClass: Be1Class | undefined;
@@ -96,26 +97,26 @@ export function TeacherAssignmentCard({ selectedClass, onAssigned }: Props) {
 
   let body: ReactNode;
   if (!selectedClass) {
-    body = <p className="manager-business-state">Chọn lớp để phân công Teacher.</p>;
+    body = <Alert role="status">Chọn lớp để phân công Teacher.</Alert>;
   } else if (!classActive) {
-    body = <p className="manager-business-state">Lớp không ở trạng thái hoạt động (tạm ngưng chỉ đọc hoặc đã lưu trữ); không thể phân công Teacher.</p>;
+    body = <Alert role="status" tone="warning">Lớp không ở trạng thái hoạt động (tạm ngưng chỉ đọc hoặc đã lưu trữ); không thể phân công Teacher.</Alert>;
   } else if (selectedClass.has_active_teacher) {
-    body = <p className="manager-business-state">Lớp đã có Teacher phụ trách; đổi Teacher chưa được hỗ trợ.</p>;
+    body = <Alert role="status" tone="info">Lớp đã có Teacher phụ trách; đổi Teacher chưa được hỗ trợ.</Alert>;
   } else if (revision === undefined) {
-    body = <p className="manager-business-state">Máy chủ chưa trả phiên bản phân công của lớp; tạm thời chưa thể phân công.</p>;
+    body = <Alert role="status" tone="warning">Máy chủ chưa trả phiên bản phân công của lớp; tạm thời chưa thể phân công.</Alert>;
   } else if (!loading && !error && candidates.length === 0) {
-    body = <p className="manager-business-state">Chưa có Teacher nào của tổ chức đủ điều kiện.</p>;
+    body = <EmptyState title="Chưa có Teacher nào của tổ chức đủ điều kiện." />;
   } else {
     body = (
       <div className="manager-business-form">
         <label>
           Teacher của tổ chức
-          <select value={candidateRef} onChange={(event) => setCandidateRef(event.target.value)} disabled={busy || loading}>
+          <Select aria-label="Teacher của tổ chức" value={candidateRef} onChange={(event) => setCandidateRef(event.target.value)} disabled={busy || loading}>
             <option value="" disabled>Chọn Teacher</option>
             {candidates.map((item) => (
               <option key={item.candidate_ref} value={item.candidate_ref}>{item.display_name ?? "Teacher chưa có tên hiển thị"}</option>
             ))}
-          </select>
+          </Select>
         </label>
         {nextCursor && <button type="button" className="manager-business-button" onClick={() => void loadMore()} disabled={loading || busy}>Tải thêm</button>}
         <button type="button" className="manager-business-button" onClick={() => void assign()} disabled={busy || loading || !candidateRef}>Phân công</button>
@@ -129,9 +130,9 @@ export function TeacherAssignmentCard({ selectedClass, onAssigned }: Props) {
         <p className="manager-business-eyebrow">Phân công lần đầu</p>
         <h2 id="teacher-assignment-title">Phân công Teacher</h2>
         {body}
-        {error && <p className="manager-business-alert" role="alert">{error}</p>}
+        {error && <Alert role="alert" tone="danger">{error}</Alert>}
         {error === CANDIDATE_ERROR && <button type="button" className="manager-business-button" onClick={() => setReloadCandidates((value) => value + 1)} disabled={loading}>Tải lại danh sách</button>}
-        {notice && <p className="manager-business-subtle" role="status">{notice}</p>}
+        {notice && <Alert role="status" tone="success">{notice}</Alert>}
         <p className="manager-business-subtle">Chỉ hiện tên hiển thị; không hiện email hay mã định danh đăng nhập.</p>
       </div>
     </section>
