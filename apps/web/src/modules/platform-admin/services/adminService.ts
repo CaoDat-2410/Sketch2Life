@@ -39,6 +39,11 @@ export type Preferences = {
 export type Settings = {
   environment: string;
   real_payments_enabled: boolean;
+  momo_checkout_enabled?: boolean;
+  vnpay_checkout_enabled?: boolean;
+  momo_sandbox_enabled?: boolean;
+  vnpay_sandbox_enabled?: boolean;
+  monthly_auto_renew_enabled?: boolean;
   billing_sandbox_enabled: boolean;
   smtp_configured: boolean;
   preferences: Preferences;
@@ -187,8 +192,24 @@ export type Offer = {
   units: number;
   amount_vnd: number;
 };
+export type QuotaProduct = {
+  product_id: string;
+  offer_id: string;
+  version: number;
+  display_name: string;
+  offer_kind: "MONTHLY" | "TOP_UP";
+  cycle_months: number | null;
+  owner_kind: "ORGANIZATION" | "PARENT_ACCOUNT";
+  units: number;
+  amount_vnd: number;
+  active: boolean;
+  revision: number;
+  updated_at: string | null;
+};
 export type Quota = {
   available_units: number;
+  granted_units?: number;
+  used_units?: number;
   owner_kind: string;
   owner_ref: string;
   grants: {
@@ -196,8 +217,14 @@ export type Quota = {
     kind: string;
     units: number;
     used: number;
+    available?: number;
     expires_at: string | null;
   }[];
+  allocation?: {
+    allocated_unused_units: number;
+    available_school_units: number;
+    teachers: { teacher_ref: string; allocation_id: string; available_units: number; revision: number; active: boolean }[];
+  } | null;
 };
 export type Subscription = {
   subscription_id: string;

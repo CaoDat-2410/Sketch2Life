@@ -13,6 +13,7 @@ import {
   type Settings,
   type Offer,
   type Invoice,
+  type QuotaProduct,
   type Quota,
   type Subscription,
   readAllPages,
@@ -109,12 +110,122 @@ function SandboxGate({ children }: { children: React.ReactNode }) {
 export function BillingPage() {
   return (
     <div className="pa-page">
-      <Heading
-        title="Đối soát thanh toán"
-      />
-      <SandboxGate>
-        <BillingWorkspace />
-      </SandboxGate>
+      <Heading title="Đối soát thanh toán" />
+      <RealBillingMonitor />
+      <details className="pa-panel pa-padded">
+        <summary className="font-semibold cursor-pointer">Công cụ thanh toán thử nghiệm</summary>
+        <div className="mt-4"><SandboxGate><BillingWorkspace /></SandboxGate></div>
+      </details>
+    </div>
+  );
+}
+
+type RealInvoice = Invoice & {
+  product_id: string | null;
+  provider: string;
+  payment_mode: string;
+  created_at: string | null;
+  attempts: { provider: string; state: string; expires_at: string | null }[];
+};
+type PaymentEvent = {
+  event_id: string;
+  invoice_id: string;
+  provider: string;
+  provider_transaction_ref: string | null;
+  amount_vnd: number;
+  outcome: string;
+  created_at: string | null;
+};
+function RealBillingMonitor() {
+  const [state, setState] = useState("");
+  const [reconcileMessage, setReconcileMessage] = useState("");
+  const reconcile = useAdminCommand();
+  const q = useAdminQuery(
+    () => read<Page<RealInvoice>>("/billing/quota-invoices" + query({ state, limit: 100 })),
+    "real-quota-invoices:" + state,
+  );
+  const events = useAdminQuery(
+    () => read<Page<PaymentEvent>>("/billing/quota-payment-events?limit=100"),
+    "real-quota-payment-events",
+  );
+  const settings = useAdminQuery(() => read<Settings>("/settings"), "real-payment-settings");
+  return (
+    <div className="grid gap-4">
+      <section className="pa-panel pa-padded grid gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="m-0">Thanh toán</h2>
+            <p className="pa-muted mt-1">Chỉ ghi nhận đã trả sau khi máy chủ xác minh callback từ cổng thanh toán.</p>
+          </div>
+          <div className="pa-actions">
+            <Status value={settings.data?.real_payments_enabled ? "active" : "paused"} />
+            <Refresh onClick={() => { q.reload(); events.reload(); settings.reload(); }} />
+          </div>
+        </div>
+        <LoadBoundary {...settings}>
+          {settings.data && <div className="flex flex-wrap gap-2 text-sm">
+            <span className="pa-notice">MoMo: {settings.data.momo_checkout_enabled ? settings.data.momo_sandbox_enabled ? "Sandbox sẵn sàng" : "Production sẵn sàng" : "Chưa cấu hình / đang tắt"}</span>
+            <span className="pa-notice">VNPay: {settings.data.vnpay_checkout_enabled ? settings.data.vnpay_sandbox_enabled ? "Sandbox sẵn sàng" : "Production sẵn sàng" : "Chưa cấu hình / đang tắt"}</span>
+            <span className="pa-notice">Gia hạn tự động: {settings.data.monthly_auto_renew_enabled ? "Đã bật" : "Chưa hỗ trợ"}</span>
+          </div>}
+        </LoadBoundary>
+      </section>
+      <section className="pa-panel">
+        <div className="pa-toolbar pa-padded">
+          <div><h2 className="m-0">Hóa đơn quota</h2><p className="pa-muted mt-1">Gói tháng thanh toán thủ công và gói mua thêm của Parent, School.</p></div>
+          <Field label="Trạng thái">
+            <AdminSelect value={state} onChange={(event) => setState(event.target.value)}>
+              <option value="">Tất cả</option><option value="PENDING">Chờ thanh toán</option><option value="PAID">Đã thanh toán</option><option value="FAILED">Thất bại</option><option value="CANCELED">Đã hủy</option>
+            </AdminSelect>
+          </Field>
+        </div>
+        <Feedback error={reconcile.error} notice={reconcileMessage} />
+        <LoadBoundary {...q}>
+          <Table
+            items={q.data?.items ?? []}
+            rowKey={(row) => row.invoice_id}
+            emptyText="Chưa có hóa đơn quota"
+            emptyDetail="Hóa đơn mua quota thật sẽ xuất hiện sau khi Parent hoặc School Manager tạo checkout."
+            columns={[
+              { title: "Hóa đơn", render: (row) => <><strong>{short(row.invoice_id)}</strong><small>{row.created_at ? date(row.created_at) : "—"}</small></> },
+              { title: "Đối tượng", render: (row) => <><Status value={row.owner_kind} /><small>{short(row.owner_ref)}</small></> },
+              { title: "Quota", render: (row) => <>{row.units.toLocaleString("vi-VN")} lượt<small>{row.payment_mode === "AUTO_RENEW" ? "Gia hạn tự động" : "Thanh toán thủ công"}</small></> },
+              { title: "Thanh toán", render: (row) => <><Status value={row.state} /><small>{row.provider}</small></> },
+              { title: "Số tiền", render: (row) => money(row.amount_vnd) },
+              { title: "Đối soát", render: (row) => row.state === "PENDING"
+                ? <Button disabled={reconcile.busy} onClick={() => void reconcile.run(
+                    () => reconcile.send<{ state: string; reconciled: boolean }>(`/billing/quota-invoices/${encodeURIComponent(row.invoice_id)}/reconcile`),
+                    (result) => {
+                      setReconcileMessage(result.reconciled
+                        ? `Đã đối soát hóa đơn: ${result.state === "PAID" ? "đã thanh toán" : "thanh toán thất bại"}.`
+                        : "Cổng chưa xác nhận kết quả cuối cùng. Hóa đơn vẫn đang chờ đối soát.");
+                      q.reload(); events.reload();
+                    },
+                  )}>{reconcile.busy ? "Đang kiểm tra…" : "Kiểm tra với cổng"}</Button>
+                : "—" },
+            ]}
+          />
+        </LoadBoundary>
+      </section>
+      <section className="pa-panel">
+        <div className="pa-padded"><h2 className="m-0">Sự kiện cổng thanh toán</h2></div>
+        <LoadBoundary {...events}>
+          <Table
+            items={events.data?.items ?? []}
+            rowKey={(row) => row.event_id}
+            emptyText="Chưa nhận callback thanh toán"
+            emptyDetail="MoMo và VNPay sẽ ghi sự kiện sau khi server xác minh chữ ký callback."
+            columns={[
+              { title: "Cổng", render: (row) => <Status value={row.provider} /> },
+              { title: "Hóa đơn", render: (row) => short(row.invoice_id) },
+              { title: "Giao dịch", render: (row) => <code>{short(row.provider_transaction_ref ?? row.event_id)}</code> },
+              { title: "Kết quả", render: (row) => <Status value={row.outcome} /> },
+              { title: "Số tiền", render: (row) => money(row.amount_vnd) },
+              { title: "Thời gian", render: (row) => row.created_at ? date(row.created_at) : "—" },
+            ]}
+          />
+        </LoadBoundary>
+      </section>
     </div>
   );
 }
@@ -402,12 +513,121 @@ function BillingWorkspace() {
 export function QuotaPage({ initialScope }: { initialScope?: Scope } = {}) {
   return (
     <div className="pa-page">
-      <Heading
-        title="Hạn mức video"
-      />
-      <SandboxGate>
-        <QuotaWorkspace initialScope={initialScope} />
-      </SandboxGate>
+      <Heading title="Hạn mức video" />
+      <QuotaCatalogWorkspace initialScope={initialScope} />
+      <details className="pa-panel pa-padded">
+        <summary className="font-semibold cursor-pointer">Công cụ hạn mức thử nghiệm</summary>
+        <div className="mt-4"><SandboxGate><QuotaWorkspace initialScope={initialScope} /></SandboxGate></div>
+      </details>
+    </div>
+  );
+}
+
+function QuotaCatalogWorkspace({ initialScope }: { initialScope?: Scope }) {
+  const [scope, setScope] = useState<Scope>(initialScope ?? { owner_kind: "ORGANIZATION", owner_ref: "" });
+  const [editing, setEditing] = useState<QuotaProduct | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [ownerKind, setOwnerKind] = useState<QuotaProduct["owner_kind"]>("ORGANIZATION");
+  const [offerKind, setOfferKind] = useState<QuotaProduct["offer_kind"]>("TOP_UP");
+  const [units, setUnits] = useState(100);
+  const [amount, setAmount] = useState(100000);
+  const products = useAdminQuery(
+    () => read<Page<QuotaProduct>>("/billing/quota-products?include_inactive=true"),
+    "quota-products",
+  );
+  const summary = useAdminQuery(
+    () => scope.owner_ref ? read<Quota>("/billing/quota" + query(scope)) : Promise.resolve(null),
+    "real-quota-summary:" + JSON.stringify(scope),
+  );
+  const invoices = useAdminQuery(
+    () => scope.owner_ref
+      ? read<Page<RealInvoice>>("/billing/quota-invoices" + query({ owner_kind: scope.owner_kind, owner_ref: scope.owner_ref, limit: 25 }))
+      : Promise.resolve({ items: [], total: 0 }),
+    "real-quota-invoices-scope:" + JSON.stringify(scope),
+  );
+  const cmd = useAdminCommand();
+  const refresh = () => { products.reload(); summary.reload(); invoices.reload(); };
+  const beginCreate = () => {
+    setEditing(null); setName(""); setOwnerKind("ORGANIZATION"); setOfferKind("TOP_UP"); setUnits(100); setAmount(100000); setFormOpen(true); cmd.clear();
+  };
+  const beginEdit = (product: QuotaProduct) => {
+    setEditing(product); setName(product.display_name); setOwnerKind(product.owner_kind); setOfferKind(product.offer_kind); setUnits(product.units); setAmount(product.amount_vnd); setFormOpen(true); cmd.clear();
+  };
+  const save = () => cmd.run(() => cmd.send<QuotaProduct>(
+    editing ? "/billing/quota-products/" + editing.product_id : "/billing/quota-products",
+    { display_name: name, owner_kind: ownerKind, offer_kind: offerKind, cycle_months: offerKind === "MONTHLY" ? 1 : null, units, amount_vnd: amount },
+    editing?.revision,
+    editing ? "PUT" : "POST",
+  ), () => { setFormOpen(false); refresh(); });
+  const list = products.data?.items ?? [];
+  return (
+    <div className="grid gap-4">
+      <Feedback {...cmd} />
+      <section className="pa-panel pa-padded grid gap-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div><h2 className="m-0">Danh mục gói quota</h2><p className="pa-muted mt-1">Mỗi lần đổi giá tạo phiên bản mới; hóa đơn cũ vẫn giữ giá tại thời điểm mua.</p></div>
+          <div className="pa-actions"><Button primary onClick={beginCreate}>+ Tạo gói quota</Button><Refresh onClick={refresh} /></div>
+        </div>
+        <LoadBoundary {...products}>
+          <Table
+            items={list}
+            rowKey={(row) => row.product_id}
+            emptyText="Chưa có gói quota"
+            emptyDetail="Tạo gói tháng hoặc gói mua thêm. Gói tháng cấp quota theo tháng dương lịch; mua thêm không hết hạn."
+            columns={[
+              { title: "Gói", render: (row) => <><strong>{row.display_name}</strong><small>{row.owner_kind === "ORGANIZATION" ? "Trường học" : "Phụ huynh"} · v{row.version}</small></> },
+              { title: "Loại", render: (row) => <Status value={row.offer_kind} /> },
+              { title: "Quota", render: (row) => row.units.toLocaleString("vi-VN") + " lượt" },
+              { title: "Giá hiện tại", render: (row) => money(row.amount_vnd) },
+              { title: "Trạng thái", render: (row) => <Status value={row.active ? "active" : "disabled"} /> },
+              { title: "Quản lý", render: (row) => <div className="pa-actions"><Button onClick={() => beginEdit(row)}>Sửa giá</Button><Button disabled={cmd.busy} onClick={() => cmd.run(() => cmd.send<QuotaProduct>("/billing/quota-products/" + row.product_id + "/state", { active: !row.active }, row.revision), refresh)}>{row.active ? "Tạm ẩn" : "Kích hoạt"}</Button></div> },
+            ]}
+          />
+        </LoadBoundary>
+      </section>
+      {formOpen && <section className="pa-panel pa-padded">
+        <div className="flex items-center justify-between gap-3"><h2>{editing ? "Tạo phiên bản giá mới" : "Tạo gói quota"}</h2><Button onClick={() => setFormOpen(false)}>Đóng</Button></div>
+        <p className="pa-muted">Không sửa lịch sử đã bán. Bản cập nhật sẽ thay giá đang hiển thị cho lượt mua mới.</p>
+        <Form onSubmit={save}>
+          <div className="pa-form-grid">
+            <Field label="Tên gói"><input required minLength={2} maxLength={120} value={name} onChange={(event) => setName(event.target.value)} /></Field>
+            <Field label="Đối tượng"><AdminSelect value={ownerKind} disabled={!!editing} onChange={(event) => setOwnerKind(event.target.value as QuotaProduct["owner_kind"])}><option value="ORGANIZATION">Trường học</option><option value="PARENT_ACCOUNT">Phụ huynh</option></AdminSelect></Field>
+            <Field label="Hình thức"><AdminSelect value={offerKind} disabled={!!editing} onChange={(event) => setOfferKind(event.target.value as QuotaProduct["offer_kind"])}><option value="TOP_UP">Mua thêm · không hết hạn</option><option value="MONTHLY">Gói tháng · tháng dương lịch</option></AdminSelect></Field>
+            <Field label="Số lượt video"><input required type="number" min={1} max={100000} value={units} onChange={(event) => setUnits(event.target.valueAsNumber)} /></Field>
+            <Field label="Giá bán (VND)"><input required type="number" min={1000} max={2000000000} step={1000} value={amount} onChange={(event) => setAmount(event.target.valueAsNumber)} /></Field>
+          </div>
+          <Button primary type="submit" disabled={cmd.busy}>Lưu gói</Button>
+        </Form>
+      </section>}
+      <section className="pa-two-column">
+        <div className="pa-panel pa-padded grid gap-3">
+          <div className="flex items-start justify-between gap-3"><div><h2 className="m-0">Số dư theo phạm vi</h2><p className="pa-muted mt-1">Chỉ đọc sổ quota đã được ghi nhận.</p></div><Refresh onClick={() => { summary.reload(); invoices.reload(); }} /></div>
+          <ScopeFields value={scope} onChange={setScope} />
+          {!scope.owner_ref ? <Empty text="Chọn trường hoặc phụ huynh" detail="Số dư, lượt đã dùng và hóa đơn sẽ hiện theo đối tượng đã chọn." /> : <LoadBoundary {...summary}>
+            {summary.data && <>
+              <div className="pa-quota-summary"><div><p>Còn khả dụng</p><strong>{summary.data.available_units}<small> lượt</small></strong></div><div><p>Đã cấp</p><strong>{summary.data.granted_units}<small> lượt</small></strong></div><div><p>Đã dùng</p><strong>{summary.data.used_units}<small> lượt</small></strong></div></div>
+              <Table items={summary.data.grants} rowKey={(row) => row.grant_id} emptyText="Chưa có lượt quota" columns={[
+                { title: "Nguồn", render: (row) => <Status value={row.kind} /> },
+                { title: "Đã cấp", render: (row) => row.units },
+                { title: "Đã dùng", render: (row) => row.used },
+                { title: "Còn lại", render: (row) => row.available },
+                { title: "Hết hạn", render: (row) => row.expires_at ? date(row.expires_at) : "Không hết hạn" },
+              ]} />
+            </>}
+          </LoadBoundary>}
+        </div>
+        <div className="pa-panel pa-padded">
+          <h2>Hóa đơn gần đây</h2>
+          {!scope.owner_ref ? <p className="pa-muted">Chọn phạm vi để xem hóa đơn.</p> : <LoadBoundary {...invoices}><Table items={invoices.data?.items ?? []} rowKey={(row) => row.invoice_id} emptyText="Chưa có hóa đơn" columns={[
+            { title: "Ngày tạo", render: (row) => row.created_at ? date(row.created_at) : "—" },
+            { title: "Lượt", render: (row) => row.units },
+            { title: "Cổng", render: (row) => <Status value={row.provider} /> },
+            { title: "Trạng thái", render: (row) => <Status value={row.state} /> },
+            { title: "Tổng", render: (row) => money(row.amount_vnd) },
+          ]} /></LoadBoundary>}
+        </div>
+      </section>
     </div>
   );
 }

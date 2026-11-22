@@ -48,7 +48,7 @@ function fixtureFetch() {
     if (path.endsWith("/settings")) return response({ environment: "Preview", real_payments_enabled: false, billing_sandbox_enabled: true, smtp_configured: true, preferences: { locale: "vi-VN", email_notifications: true, revision: 1 } });
     if (path.endsWith("/billing/sandbox/invoices")) return response({ items: [{ invoice_id: "invoice-smoke-01", owner_kind: "ORGANIZATION", owner_ref: school.organization_id, offer_id: "offer-smoke-01", units: 100, amount_vnd: 50000, state: "PAID", revision: 1 }], total: 1, next_cursor: null });
     if (path.endsWith("/billing/sandbox/offers")) return response({ items: [{ offer_id: "offer-smoke-01", owner_kind: "ORGANIZATION", units: 100, amount_vnd: 50000 }], total: 1, next_cursor: null });
-    if (path.endsWith("/billing/sandbox/quota")) return response({ available_units: 42, owner_kind: "ORGANIZATION", owner_ref: school.organization_id, grants: [{ grant_id: "grant-smoke-01", kind: "included", units: 50, used: 8, expires_at: null }] });
+    if (path.endsWith("/billing/quota")) return response({ available_units: 42, granted_units: 50, used_units: 8, owner_kind: "ORGANIZATION", owner_ref: school.organization_id, grants: [{ grant_id: "grant-smoke-01", kind: "included", units: 50, used: 8, available: 42, expires_at: null }] });
     if (path.endsWith("/billing/sandbox/subscriptions")) return response({ items: [{ subscription_id: "sub-smoke-01", organization_ref: school.organization_id, capacity: 10, addon_slots: 2, revision: 1, state: "active", period_end: "2026-12-20T00:00:00Z", scheduled_addon_slots: null, suspended_class_refs: [] }], total: 1, next_cursor: null });
     if (path.endsWith("/billing/sandbox/capacity-prices")) return response({ items: [{ price_id: "price-smoke-01", cycle_months: 1, base_amount_vnd: 200000, slot_amount_vnd: 20000 }], total: 1, next_cursor: null });
     if (path.endsWith("/capacity-classes")) return response({ items: [], total: 0, next_cursor: null });
@@ -126,8 +126,8 @@ describe("Platform Admin page data and interactions", () => {
     mount("quota");
     fireEvent.click(await screen.findByRole("combobox", { name: "Trường học" }));
     fireEvent.click(screen.getByRole("option", { name: school.display_name }));
-    expect(await screen.findByText("Hạn mức còn lại")).toBeTruthy();
-    expect(screen.getByText("Hạn mức còn lại").closest("div")?.textContent).toContain("42");
+    expect(await screen.findByText("Còn khả dụng")).toBeTruthy();
+    expect(screen.getByText("Còn khả dụng").closest("div")?.textContent).toContain("42");
   });
 
   it("opens the capacity price form while showing the active subscription", async () => {

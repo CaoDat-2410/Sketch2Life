@@ -38,6 +38,7 @@ from sketch2life.interfaces.http.routers.platform_admin_accounts import (
     router as platform_admin_accounts_router,
 )
 from sketch2life.interfaces.http.routers.platform_admin import router as platform_admin_router
+from sketch2life.interfaces.http.routers.payment_callbacks import router as payment_callbacks_router
 from sketch2life.interfaces.http.routers.password_recovery import router as password_recovery_router
 from sketch2life.interfaces.http.routers.lesson_feedback import router as lesson_feedback_router
 from sketch2life.interfaces.http.routers.sessions import router as sessions_router
@@ -82,6 +83,7 @@ def mount_classroom_routers(
     application.include_router(auth_registration_router)
     application.include_router(platform_admin_accounts_router)
     application.include_router(platform_admin_router)
+    application.include_router(payment_callbacks_router)
     application.include_router(password_recovery_router)
     application.include_router(health_router)
     application.include_router(be1_runtime_router)

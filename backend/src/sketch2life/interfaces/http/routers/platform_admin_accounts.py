@@ -205,6 +205,7 @@ def _revoke_assignments(
     subject: str,
     except_school_manager_org: str | None = None,
     preserve_teacher_assignments: bool = False,
+    actor_ref: str = "system",
 ) -> None:
     rows = db.scalars(
         select(OrganizationAssignmentModel).where(
@@ -226,6 +227,25 @@ def _revoke_assignments(
             continue
         assignment.active = False
         assignment.pending_activation = False
+        if assignment.role == "teacher":
+            still_assigned = db.scalar(
+                select(OrganizationAssignmentModel.assignment_id).where(
+                    OrganizationAssignmentModel.organization_id == assignment.organization_id,
+                    OrganizationAssignmentModel.subject == subject,
+                    OrganizationAssignmentModel.role == "teacher",
+                    OrganizationAssignmentModel.active.is_(True),
+                ).limit(1)
+            )
+            if still_assigned is None:
+                from sketch2life.infrastructure.billing.quota_commerce import QuotaCommerceService
+
+                QuotaCommerceService.return_teacher_allocation(
+                    db,
+                    organization_ref=assignment.organization_id,
+                    teacher_ref=subject,
+                    actor_ref=actor_ref,
+                    event_key="teacher-exit:" + assignment.assignment_id,
+                )
 
 
 def _response(
@@ -563,7 +583,8 @@ def update_account(
     state_changed = next_state != previous_state
     if next_role != previous_role:
         if next_role == "school_manager":
-            _revoke_assignments(db, subject=identity.subject, except_school_manager_org=org_id)
+            _revoke_assignments(db, subject=identity.subject, except_school_manager_org=org_id,
+                                actor_ref=principal.subject)
             assert org_id is not None
             _ensure_school_manager_assignment(
                 db,
@@ -576,12 +597,14 @@ def update_account(
                 db,
                 subject=identity.subject,
                 preserve_teacher_assignments=previous_role == "teacher",
+                actor_ref=principal.subject,
             )
         else:
-            _revoke_assignments(db, subject=identity.subject)
+            _revoke_assignments(db, subject=identity.subject, actor_ref=principal.subject)
         identity.account_role = next_role
     elif next_role == "school_manager" and org_id is not None:
-        _revoke_assignments(db, subject=identity.subject, except_school_manager_org=org_id)
+        _revoke_assignments(db, subject=identity.subject, except_school_manager_org=org_id,
+                            actor_ref=principal.subject)
         _ensure_school_manager_assignment(
             db,
             organization_id=org_id,

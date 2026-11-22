@@ -115,6 +115,42 @@ class SandboxConsumeInput(BillingScopeInput):
     admission_ref: str = Field(min_length=1, max_length=128)
 
 
+class QuotaProductInput(AdminInput):
+    display_name: str = Field(min_length=2, max_length=120)
+    owner_kind: Literal["ORGANIZATION", "PARENT_ACCOUNT"]
+    offer_kind: Literal["MONTHLY", "TOP_UP"]
+    cycle_months: int | None = Field(None, ge=1, le=12)
+    units: int = Field(ge=1, le=100000)
+    amount_vnd: int = Field(ge=1000, le=2000000000)
+
+    @model_validator(mode="after")
+    def cycle_matches_kind(self):
+        if (self.offer_kind == "MONTHLY") != (self.cycle_months is not None):
+            raise ValueError("Monthly offers require cycle_months; top-ups must not set it")
+        if self.offer_kind == "MONTHLY" and self.cycle_months != 1:
+            raise ValueError("Only one-calendar-month quota products are supported")
+        return self
+
+
+class QuotaProductStateInput(AdminInput):
+    active: bool
+
+
+class QuotaCheckoutInput(AdminInput):
+    product_id: str = Field(min_length=1, max_length=36)
+    provider: Literal["MOMO", "VNPAY"]
+    payment_mode: Literal["MANUAL", "AUTO_RENEW"] = "MANUAL"
+
+
+class QuotaAllocationInput(AdminInput):
+    teacher_ref: str = Field(min_length=1, max_length=256)
+    units: int = Field(ge=1, le=100000)
+
+
+class QuotaReclaimInput(QuotaAllocationInput):
+    pass
+
+
 class FeedbackInput(AdminInput):
     body: str = Field(min_length=1, max_length=2000)
 

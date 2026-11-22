@@ -1,7 +1,7 @@
 # Platform Admin API and UI completion plan
 
 - Status: APPROVED
-- Plan revision: 2
+- Plan revision: 3
 - Implementation status: IN_PROGRESS
 - Date: 2026-11-20
 
@@ -40,3 +40,18 @@
 ## Open requirements
 
 Production prices, purchase/allocation authority, provider settlement policy, and any future child-media exception remain open per the SRS and are excluded until approved. Audit retention duration is configurable by an authenticated Platform Admin in this slice; the initial policy keeps entries indefinitely, so no retention period or destructive cleanup is invented by default.
+
+## Revision 3 — video quota commerce and real provider integration
+
+- **Status:** APPROVED_FOR_IMPLEMENTATION
+- **Approver:** Project owner, direct approval of the five-step implementation sequence in the current conversation (2026-11-22).
+- **Canonical product decisions:** Follow FEAT-063 SRS §31.20: Parent purchases for their own account; assigned School Manager purchases for their organization and may allocate/reclaim only unused quota for assigned Teachers; Platform Admin owns offer/price versioning; MoMo and VNPay are selected payment methods; monthly offers allow manual payment or explicitly authorized cancellable auto-renew when the merchant product supports it; top-ups are one-time; no refund after successful settlement.
+- **Scope:**
+  1. Reconcile and preserve the remaining open quota policies; do not invent unresolved expiry, renewal-failure, role-change, or chargeback behavior.
+  2. Complete server-authoritative versioned quota offers/prices, Parent/School purchase scopes, school-to-Teacher allocation/reclaim, payment attempts, immutable settlement evidence, and audit/reconciliation APIs.
+  3. Add MoMo/VNPay one-time and supported recurring adapters, starting with provider sandbox configuration and signed server-to-server callbacks. Real dispatch is disabled by default until credentials and merchant configuration are supplied and the integration has been validated.
+  4. Connect supported Platform Admin and School Manager web screens to the APIs. Do not add mobile UI. Parent API scope is included; Parent mobile UI is not part of this plan.
+  5. Leave video-generation integration for a later task; this slice establishes and exposes quota admission/ledger contracts only.
+- **Boundaries:** School-capacity billing stays separate; no hardcoded production prices; no fake payment success; no provider secret in source, reports, or chat; no commit or push.
+- **Open prerequisites:** Merchant sandbox credentials and callback URLs must be entered into ignored local environment/secrets by the owner. Provider-specific recurring authorization must only be enabled for an approved merchant product. Remaining SRS open policies remain gated from implementation until the owner resolves them.
+

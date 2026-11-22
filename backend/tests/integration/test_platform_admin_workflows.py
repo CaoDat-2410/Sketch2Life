@@ -64,7 +64,7 @@ def admin_api(monkeypatch):
     monkeypatch.setattr(
         admin_routes,
         "get_settings",
-        lambda: SimpleNamespace(env="test", billing_sandbox_enabled=True),
+        lambda: SimpleNamespace(env="test", billing_sandbox_enabled=True, redis_url=None),
     )
     app.include_router(router)
     app.include_router(accounts_router)

@@ -179,7 +179,7 @@ const labels: Record<string, string> = {
   awaiting_external_purge: "Chờ xóa ở dịch vụ ngoài",
   completed: "Hoàn tất",
   exception: "Cần xử lý thủ công",
-  canceled: "Đã dừng",
+  canceled: "Đã hủy",
   partially_completed: "Hoàn tất một phần",
   rejected: "Đã từ chối",
   cancelled: "Đã hủy",

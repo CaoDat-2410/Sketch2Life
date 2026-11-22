@@ -693,4 +693,161 @@ html[data-cozy="1"][data-portal="school-be1"] .manager-business-card[aria-labell
     white-space: normal;
     overflow-wrap: anywhere;
   }
+
+/* BE1 school quota and real billing workspace. */
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-page { gap: 15px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-tabs {
+  display: flex; width: fit-content; max-width: 100%; gap: 5px; padding: 4px;
+  border: 1px solid var(--manager-rule); border-radius: 13px; background: var(--manager-board);
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-tabs a {
+  display: inline-flex; min-height: 39px; align-items: center; gap: 8px; padding: 0 13px;
+  border-radius: 10px; color: var(--manager-muted); font-size: 12px; font-weight: 750; text-decoration: none;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-tabs a:hover { background: var(--manager-sheet); color: var(--manager-ink); }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-tabs a.is-active { background: var(--manager-sheet); color: var(--manager-blue-deep); box-shadow: 0 1px 3px rgb(25 40 61 / 9%); }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-stats {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-stats article {
+  display: grid; min-width: 0; grid-template-columns: 1fr auto; align-items: end; gap: 4px 10px;
+  padding: 15px 17px; border: 1px solid var(--manager-rule); border-radius: 15px;
+  background: var(--manager-sheet); box-shadow: 0 2px 8px rgb(28 39 52 / 3%);
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-stats article span { grid-column: 1 / -1; color: var(--manager-muted); font-size: 12px; font-weight: 700; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-stats article strong { color: var(--manager-ink); font-size: 27px; font-variant-numeric: tabular-nums; line-height: 1.1; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-stats article small { color: var(--manager-muted); font-size: 11px; text-align: right; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-section { display: grid; gap: 16px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-section .manager-business-card-heading { padding-bottom: 14px; border-bottom: 1px solid var(--manager-rule); }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-section .manager-business-card-heading h2 { font-size: 17px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-inline-link,
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-continue {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; color: var(--manager-blue-deep);
+  font-size: 12px; font-weight: 750; text-decoration: none;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-no-checkout {
+  display: inline-flex; align-items: center; padding: 5px 8px; border-radius: 999px;
+  background: var(--manager-gold-soft); color: #745410; font-size: 10px; font-weight: 750; white-space: nowrap;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-inline-link:hover,
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-continue:hover { text-decoration: underline; }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-invoice-actions { display: grid; justify-items: start; gap: 5px; min-width: 145px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-invoice-actions > small { color: var(--manager-muted); font-size: 10px; line-height: 1.35; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-reconcile {
+  display: inline-flex; min-height: 30px; align-items: center; gap: 6px; padding: 5px 8px; border: 1px solid var(--manager-rule-strong);
+  border-radius: 8px; background: var(--manager-sheet); color: var(--manager-blue-deep); cursor: pointer; font: inherit; font-size: 11px; font-weight: 750;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-reconcile:hover:not(:disabled) { background: var(--manager-blue-soft); }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-reconcile:disabled { cursor: wait; opacity: .65; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-reconcile .is-spinning { animation: manager-quota-spin .9s linear infinite; }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-hold-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-cancel {
+    display: inline-flex; min-height: 30px; align-items: center; gap: 6px; padding: 5px 8px; border: 1px solid #d9aaa5;
+    border-radius: 8px; background: #fff9f8; color: #9e423d; cursor: pointer; font: inherit; font-size: 11px; font-weight: 750;
+  }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-cancel:hover:not(:disabled) { background: #fff0ed; }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-cancel:disabled { cursor: wait; opacity: .65; }
+@keyframes manager-quota-spin { to { transform: rotate(360deg); } }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-grant-list { display: grid; gap: 8px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-grant-list article {
+  display: flex; min-width: 0; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 12px 14px; border: 1px solid var(--manager-rule); border-radius: 12px; background: var(--manager-board);
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-grant-list article > div:first-child { display: grid; gap: 4px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-grant-list strong { color: var(--manager-ink); font-size: 13px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-grant-list small { color: var(--manager-muted); font-size: 11px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-grant-metrics { display: flex; flex-wrap: wrap; gap: 15px; color: var(--manager-muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-grant-metrics strong { color: var(--manager-blue-deep); }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-empty {
+  padding: 18px; border: 1px dashed var(--manager-rule-strong); border-radius: 12px; background: var(--manager-board);
+  color: var(--manager-muted); font-size: 13px; line-height: 1.5;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-allocation-form {
+  display: grid; grid-template-columns: minmax(220px, 1fr) minmax(130px, 190px) auto; align-items: end; gap: 12px;
+  padding: 14px; border: 1px solid var(--manager-rule); border-radius: 13px; background: var(--manager-board);
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-allocation-form label {
+  display: grid; min-width: 0; gap: 6px; color: var(--manager-ink); font-size: 12px; font-weight: 750;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-allocation-form :is(select, input) {
+  width: 100%; min-height: 42px; padding: 8px 11px; border: 1px solid var(--manager-rule-strong);
+  border-radius: 10px; background: var(--manager-sheet); color: var(--manager-ink); font: inherit; font-size: 13px;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-button.is-primary {
+  border-color: var(--manager-blue-deep); background: var(--manager-blue-deep); color: #fff;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-button:disabled,
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-checkout-actions button:disabled { cursor: not-allowed; opacity: .58; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-table-wrap { width: 100%; overflow-x: auto; border: 1px solid var(--manager-rule); border-radius: 12px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-table { width: 100%; border-collapse: collapse; color: var(--manager-ink); font-size: 12px; text-align: left; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-table th { padding: 11px 13px; background: var(--manager-blue-soft); color: var(--manager-blue-deep); font-size: 11px; font-weight: 800; white-space: nowrap; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-table td { padding: 12px 13px; border-top: 1px solid var(--manager-rule); vertical-align: middle; white-space: nowrap; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-table tbody tr:hover { background: var(--manager-board); }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-table td:first-child { min-width: 160px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-table td strong { display: block; color: var(--manager-ink); font-size: 12px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-table td small { display: block; margin-top: 3px; color: var(--manager-muted); font-size: 10px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-reclaim {
+  min-height: 34px; padding: 6px 9px; border: 1px solid var(--manager-rule-strong); border-radius: 9px;
+  background: var(--manager-sheet); color: var(--manager-blue-deep); cursor: pointer; font: inherit; font-weight: 700;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-reclaim:disabled { color: var(--manager-muted); cursor: not-allowed; opacity: .55; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-policy,
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-provider-note { margin: 0; padding: 11px 13px; border-left: 3px solid var(--manager-blue-deep); background: var(--manager-blue-soft); color: var(--manager-muted); font-size: 11px; line-height: 1.5; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-products { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 13px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-product {
+  display: flex; min-width: 0; flex-direction: column; padding: 16px; border: 1px solid var(--manager-rule);
+  border-radius: 14px; background: linear-gradient(180deg, var(--manager-sheet), var(--manager-board));
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-product-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-product-top > span { padding: 5px 8px; border-radius: 999px; background: var(--manager-blue-soft); color: var(--manager-blue-deep); font-size: 10px; font-weight: 800; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-product-top > span.is-monthly { background: var(--manager-gold-soft); color: #745410; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-product-top small { color: var(--manager-muted); font-size: 10px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-product h3 { margin: 14px 0 7px; color: var(--manager-ink); font-size: 15px; line-height: 1.35; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-product-units { color: var(--manager-blue-deep); font-size: 25px; font-weight: 800; line-height: 1.2; font-variant-numeric: tabular-nums; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-product-units span { color: var(--manager-muted); font-size: 11px; font-weight: 650; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-product-price { margin-top: 13px; color: var(--manager-ink); font-size: 20px; font-variant-numeric: tabular-nums; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-product p { min-height: 39px; margin: 6px 0 15px; color: var(--manager-muted); font-size: 11px; line-height: 1.5; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-checkout-actions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: auto; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-checkout-actions button {
+  min-height: 38px; padding: 7px 10px; border: 1px solid var(--manager-blue-deep); border-radius: 10px;
+  background: var(--manager-blue-deep); color: white; cursor: pointer; font: inherit; font-size: 11px; font-weight: 750;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-checkout-actions button + button { background: var(--manager-sheet); color: var(--manager-blue-deep); }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-status { display: inline-flex; padding: 5px 8px; border-radius: 999px; background: var(--manager-gold-soft); color: #745410; font-size: 10px; font-weight: 750; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-status.is-paid { background: var(--manager-green-soft); color: var(--manager-green); }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-status.is-failed { background: var(--manager-clay-soft); color: var(--manager-clay); }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-status.is-canceled { background: #edf0f4; color: #5f6b7a; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-alert,
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-notice { display: grid; gap: 5px; padding: 13px 15px; border: 1px solid var(--manager-clay); border-radius: 12px; background: var(--manager-clay-soft); color: var(--manager-clay); font-size: 12px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-payment-hold {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 14px 16px;
+  border: 1px solid #e5c98b; border-radius: 12px; background: #fff9e9; color: #765316;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-payment-hold > svg { color: #a36e12; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-payment-hold div { display: grid; gap: 3px; min-width: 0; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-payment-hold strong { color: #60430f; font-size: 13px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-payment-hold span { font-size: 12px; line-height: 1.5; }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-hold-actions > .manager-quota-reconcile { border-color: #d9bd7f; background: #fffdf7; color: #60430f; }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-hold-actions > .manager-quota-reconcile:hover:not(:disabled) { background: #fff3d0; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-alert button { width: fit-content; padding: 0; border: 0; background: transparent; color: inherit; cursor: pointer; font: inherit; font-weight: 800; text-decoration: underline; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-notice { display: block; border-color: var(--manager-green); background: var(--manager-green-soft); color: var(--manager-green); }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-payment-message {
+  margin: 0; padding: 12px 14px; border: 1px solid var(--manager-rule-strong); border-radius: 11px; background: var(--manager-sheet); color: var(--manager-ink); font-size: 12px; line-height: 1.5;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-payment-message.is-pending { border-color: #e5c98b; background: #fff9e9; color: #765316; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-payment-message.is-success { border-color: #9bc9b6; background: var(--manager-green-soft); color: var(--manager-green); }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-payment-message.is-failure { border-color: var(--manager-clay); background: var(--manager-clay-soft); color: var(--manager-clay); }
+@media (prefers-reduced-motion: reduce) {
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-reconcile .is-spinning { animation-duration: 2.5s; }
+}
+@media (max-width: 1050px) {
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-products { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-allocation-form { grid-template-columns: 1fr; }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-products { grid-template-columns: 1fr; }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-grant-list article { align-items: flex-start; flex-direction: column; }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-payment-hold { grid-template-columns: auto minmax(0, 1fr); }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-hold-actions { grid-column: 2; justify-content: flex-start; }
 }

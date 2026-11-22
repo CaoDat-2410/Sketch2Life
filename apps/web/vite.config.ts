@@ -17,6 +17,7 @@ export default defineConfig(({ mode }) => {
   return {
     envDir: repositoryRoot,
     server: {
+      allowedHosts: ['luck-equality-can-trend.trycloudflare.com'],
       proxy: {
         '/api': { target: apiTarget, changeOrigin: true },
         '/health': { target: apiTarget, changeOrigin: true },

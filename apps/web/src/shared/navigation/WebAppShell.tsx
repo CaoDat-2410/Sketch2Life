@@ -94,8 +94,8 @@ export const SCHOOL_MANAGER_NAVIGATION: PortalNavigationGroup[] = [
     label: "Nguồn lực",
     items: [
       { href: "/school/capacity", label: "Sức chứa", icon: Gauge, state: "waiting" },
-      { href: "/school/quota", label: "Hạn mức video", icon: Activity, state: "waiting" },
-      { href: "/school/billing", label: "Thanh toán", icon: CreditCard, state: "waiting" },
+      { href: "/school/quota", label: "Hạn mức video", icon: Activity, state: "available" },
+      { href: "/school/billing", label: "Thanh toán", icon: CreditCard, state: "available" },
     ],
   },
   {

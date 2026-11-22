@@ -16,6 +16,7 @@ import { RosterConsentPage } from "./pages/RosterConsentPage";
 import { ParentGroupsPage } from "./pages/ParentGroupsPage";
 import { TeacherAssignmentsPage } from "./pages/TeacherAssignmentsPage";
 import { FeedbackPage } from "./pages/FeedbackPage";
+import { SchoolBillingPage, SchoolQuotaPage } from "./pages/QuotaBillingPages";
 import { authService } from "./services/authService";
 import { classService } from "./services/classService";
 import { InboxPage } from "../../../shared/notifications/InboxPage";
@@ -125,6 +126,8 @@ export function SchoolManagerBe1App() {
   else if (location.pathname === "/school/feedback") page = <FeedbackPage />;
   else if (location.pathname === "/school/teacher-groups") return <Navigate to="/school" replace />;
   else if (location.pathname === "/school/parent-groups") page = <ParentGroupsPage />;
+  else if (location.pathname === "/school/quota") page = <SchoolQuotaPage />;
+  else if (location.pathname === "/school/billing") page = <SchoolBillingPage />;
   else if (location.pathname === "/school/review-content") page = <SchoolReviewPage />;
   else if (location.pathname === "/school/inbox") page = <InboxPage />;
   else if (location.pathname === "/school/settings") page = <AccountSettingsPage role="School Manager" />;
