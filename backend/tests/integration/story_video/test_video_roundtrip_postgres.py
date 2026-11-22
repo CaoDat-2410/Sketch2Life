@@ -29,6 +29,7 @@ from sketch2life.infrastructure.config.settings import get_core_database_setting
 _BACKEND = Path(__file__).resolve().parents[3]
 _PARENT = "20261120_b1_0001"
 _REVISION = "20261120_vb_0002"
+_HEAD = "20261120_b2_0001"
 _REFUSED = "DDL-B1 part 2 downgrade refused"
 _NEW_STATES = (
     "VIDEO_QUEUED",
@@ -244,7 +245,8 @@ def test_the_head_is_the_new_revision_and_the_objects_exist(
 ) -> None:
     _config, engine = roundtrip
     versions = _versions(engine)
-    assert _REVISION in versions and {_PARENT}.isdisjoint(versions)
+    # FEAT-066 T-4b2: DDL-B2 (``20261120_b2_0001``) sits on top of this revision and is the head.
+    assert _HEAD in versions and {_REVISION, _PARENT}.isdisjoint(versions)
     assert _has_table(engine) and _has_table(engine, "video_generation_scenes")
     assert {
         "current_video_generation_id",
@@ -299,7 +301,7 @@ def test_the_downgrade_refuses_while_any_video_data_exists(
         with pytest.raises(Exception, match=_REFUSED):
             command.downgrade(config, _PARENT)
         # a refused downgrade changes nothing (the DDL is transactional)
-        assert _REVISION in _versions(engine) and _has_table(engine)
+        assert _HEAD in _versions(engine) and _has_table(engine)
         assert "current_video_generation_id" in _columns(engine)
     finally:
         _delete_all(engine, run_id)
@@ -351,7 +353,7 @@ def test_downgrade_by_explicit_revision_then_upgrade_keeps_rows_and_backfills_th
         waiting = _insert_run(engine, state="SCRIPT_REVIEW", updated_at=past)
         working = _insert_run(engine, state="SCRIPT_GENERATING", updated_at=past)
         command.upgrade(config, "heads")
-        assert _REVISION in _versions(engine) and _PARENT not in _versions(engine)
+        assert _HEAD in _versions(engine) and _PARENT not in _versions(engine)
         assert _has_table(engine) and _has_table(engine, "video_generation_scenes")
         for run_id in (waiting, legacy):
             assert (

@@ -13,6 +13,12 @@ Two steps, both fail closed:
   revoked grant (cancel, delete, complete, unsuitable, closeout) and a token for another run or
   generation are all the same uniform 404; only a malformed or expired token is 401.
 
+T-5a: the stream also serves a class projection token (SRS l.1662, l.1691-1693). The two kinds
+never share a guard: ``authorize`` refuses a grant that names an audience, ``authorize_projection``
+accepts nothing else. A projection grant is checked on every request against the run (the same
+``resolve_playback`` as the owner view: pinned run, current assignment, playable, same generation),
+the caller digest and the Lesson-owned confirmation (``ProjectionAuthorizationPort``).
+
 The service holds no storage and no quota logic and never logs or returns the token.
 """
 
@@ -26,12 +32,14 @@ from typing import Protocol
 from sketch2life.application.ports.identity import VerifiedPrincipal
 from sketch2life.application.ports.parent_story_runs import ParentStoryRunError
 from sketch2life.application.ports.story_video import (
+    PROJECTION_AUDIENCE_CLAIM,
     PlaybackGrant,
     PlaybackResolution,
     PlaybackStatus,
     PlaybackTarget,
     PlaybackTokenError,
     PlaybackTokenPort,
+    ProjectionAuthorizationPort,
 )
 
 _NOT_FOUND = "RESOURCE_NOT_FOUND"
@@ -103,9 +111,15 @@ class IssuedPlayback:
 
 
 class StoryPlaybackService:
-    def __init__(self, repository: PlaybackReader, tokens: PlaybackTokenPort | None) -> None:
+    def __init__(
+        self,
+        repository: PlaybackReader,
+        tokens: PlaybackTokenPort | None,
+        projection: ProjectionAuthorizationPort | None = None,
+    ) -> None:
         self._repository = repository
         self._tokens = tokens
+        self._projection = projection
 
     def issue(self, *, principal: VerifiedPrincipal, run_id: str) -> IssuedPlayback:
         resolution = self._repository.resolve_playback(
@@ -135,7 +149,8 @@ class StoryPlaybackService:
 
         if self._tokens is None:
             raise ParentStoryRunError(503, "PROVIDER_UNAVAILABLE")
-        if run_id != grant.run_id:
+        if run_id != grant.run_id or grant.audience is not None:
+            # A class projection token never takes the owner-view path (T-5a D7).
             raise ParentStoryRunError(404, _NOT_FOUND)
         resolution = self._repository.resolve_playback(
             principal=principal, run_id=run_id, generation_id=grant.generation_id
@@ -148,6 +163,45 @@ class StoryPlaybackService:
         # shared-run model (Teacher assignment, T-4a1) makes this comparison load-bearing; keep it.
         if not hmac.compare_digest(
             grant.actor_digest, self._tokens.actor_binding(target.scope_ref)
+        ):
+            raise ParentStoryRunError(404, _NOT_FOUND)
+        return target
+
+    def authorize_projection(
+        self, *, principal: VerifiedPrincipal, run_id: str, grant: PlaybackGrant
+    ) -> PlaybackTarget:
+        """A class projection token (T-5a D7): the uniform 404 for every failure.
+
+        Only a projection grant is accepted. The run, its current generation and the current
+        assignment are read as for the owner view; the caller digest must be the token's; and the
+        Lesson port must still call the confirmation the token was issued under current.
+        """
+
+        if self._tokens is None or self._projection is None:
+            raise ParentStoryRunError(503, "PROVIDER_UNAVAILABLE")
+        if (
+            run_id != grant.run_id
+            or grant.audience != PROJECTION_AUDIENCE_CLAIM
+            or grant.occurrence_id is None
+            or grant.confirmed_ms is None
+        ):
+            raise ParentStoryRunError(404, _NOT_FOUND)
+        resolution = self._repository.resolve_playback(
+            principal=principal, run_id=run_id, generation_id=grant.generation_id
+        )
+        target = resolution.target
+        if resolution.status is not PlaybackStatus.PLAYABLE or target is None:
+            raise ParentStoryRunError(404, _NOT_FOUND)
+        if not hmac.compare_digest(
+            grant.actor_digest, self._tokens.actor_binding(target.scope_ref)
+        ):
+            raise ParentStoryRunError(404, _NOT_FOUND)
+        if not self._projection.confirmation_is_current(
+            principal=principal,
+            run_id=run_id,
+            generation_id=grant.generation_id,
+            occurrence_id=grant.occurrence_id,
+            confirmed_ms=grant.confirmed_ms,
         ):
             raise ParentStoryRunError(404, _NOT_FOUND)
         return target

@@ -1392,10 +1392,14 @@ def test_a_missing_id_a_foreign_parent_and_an_organization_actor_each_cost_one_r
     missing_parent = costs(api.parent, "vjob_" + "9" * 32)
     foreign_parent = costs(api.other_parent, job_id)
     assert missing_parent == foreign_parent == (1, 0)
-    organization_actor = {costs(api.teacher, job_id), costs(api.manager, job_id)}
-    missing_for_org = costs(api.teacher, "vjob_" + "9" * 32)
-    assert organization_actor == {missing_for_org}
-    assert missing_for_org[0] == 0 and missing_for_org[1] >= 1  # one read of the other store
+    # T-4b3b: a Teacher is also asked for the video generation of a Teacher run (one read of
+    # ``video_generations``, after the ``ai_jobs`` read found nothing); a Manager is not. For each
+    # actor the cost still does not tell a missing id from a foreign one.
+    missing = "vjob_" + "9" * 32
+    teacher = {costs(api.teacher, job_id), costs(api.teacher, missing)}
+    manager = {costs(api.manager, job_id), costs(api.manager, missing)}
+    assert teacher == {(1, 1)}  # one read of each store, whatever the id
+    assert manager == {(0, 1)}  # an organization role never reaches a Story store
 
 
 # ============================================================================== constraints

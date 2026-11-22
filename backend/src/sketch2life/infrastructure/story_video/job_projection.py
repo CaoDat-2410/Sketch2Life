@@ -2,8 +2,9 @@
 
 The generation row is the durable job record (D9: no ``ai_jobs`` row exists for a Parent before the
 first real worker, plan Q2). ``SqlParentVideoJobs`` is the ``ParentJobScopePort`` that lets
-``GET /v1/jobs/{job_id}`` read it for the Parent who owns the run. It is one query by ``job_ref``
-and it proves ownership with the run's owner scope (``actor_scope_kind = PARENT_ACCOUNT AND
+``GET /v1/jobs/{job_id}`` read it for the Parent who owns the run (``SqlTeacherVideoJobs``, T-4b3b
+D14, does the same for the Teacher of a Teacher run). It is one query by ``job_ref`` and it proves
+ownership with the run's owner scope (``actor_scope_kind = PARENT_ACCOUNT AND
 actor_scope_ref = ?``), so a run that is ``COMPLETED``, ``FAILED`` or ``ABANDONED`` (the lock column
 is NULL there) stays readable. A purged run answers not found, and so does a row without a job
 reference (an intent or a refused request). Nothing but ids, hashes, states and safe codes is
@@ -16,9 +17,10 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from sqlalchemy import Engine, select
+from sqlalchemy import Engine, exists, literal, select
 
 from sketch2life.application.job_kinds import VIDEO_GENERATION_JOB_TYPE, JobActor
+from sketch2life.application.ports.story_run_actor import TEACHER_COMMAND_SCOPE_KIND
 from sketch2life.application.ports.story_run_lifecycle import PURGE_STATES
 from sketch2life.domain.ai_jobs.model import (
     UNKNOWN_PROGRESS,
@@ -38,6 +40,8 @@ from sketch2life.domain.story_video.model import (
     GenerationState,
     public_failure_code,
 )
+from sketch2life.infrastructure.persistence.be1_models import AdultIdentityModel
+from sketch2life.infrastructure.persistence.teacher_run_access import occurrence_pin_select
 from sketch2life.infrastructure.story_run_lite import tables as story_tables
 
 # The job record has no organization (a Parent job has none); the reader needs a string, so a fixed
@@ -91,6 +95,50 @@ class SqlParentVideoJobs:
                 _RUNS.c.actor_scope_kind == "PARENT_ACCOUNT",
                 _RUNS.c.actor_scope_ref == actor.story_scope_ref,
                 _RUNS.c.run_state.not_in(sorted(PURGE_STATES)),
+            )
+        )
+        with self._engine.connect() as connection:
+            row = connection.execute(statement).mappings().one_or_none()
+        return None if row is None else build_video_job(row)
+
+
+class SqlTeacherVideoJobs:
+    """The ``TeacherJobScopePort`` of the video generation of a Teacher run (T-4b3b D14).
+
+    One query by ``job_ref``. The run must be an ``ORGANIZATION`` run with an occurrence pin and
+    not purged, AND the asker must be the occurrence's CURRENT responsible Teacher, written once in
+    ``occurrence_pin_select`` (the same predicate the run access port uses): not a Manager, a guide,
+    an observer, another or a former Teacher, never ``created_by_actor_ref``. The row is read
+    whatever the state of the run, so a completed run stays readable by its Teacher. Result refs
+    stay empty and nothing but ids, hashes, states and safe codes is mapped.
+    """
+
+    def __init__(self, engine: Engine) -> None:
+        self._engine = engine
+
+    def owned_job(self, actor: JobActor, job_id: str) -> AiJob | None:
+        if actor.account_role != "teacher":
+            return None
+        pinned = exists(
+            occurrence_pin_select(
+                literal(1),
+                occurrence_ref=_RUNS.c.occurrence_ref,
+                organization_id=_RUNS.c.actor_scope_ref,
+            ).where(AdultIdentityModel.account_id == actor.account_id)
+        )
+        statement = (
+            select(_GENERATIONS, _REVISIONS.c.revision_no)
+            .join(_RUNS, _RUNS.c.run_id == _GENERATIONS.c.story_run_id)
+            .join(
+                _REVISIONS,
+                _REVISIONS.c.story_revision_id == _GENERATIONS.c.story_revision_id,
+            )
+            .where(
+                _GENERATIONS.c.job_ref == job_id,
+                _RUNS.c.actor_scope_kind == TEACHER_COMMAND_SCOPE_KIND,
+                _RUNS.c.occurrence_ref.is_not(None),
+                _RUNS.c.run_state.not_in(sorted(PURGE_STATES)),
+                pinned,
             )
         )
         with self._engine.connect() as connection:
@@ -166,4 +214,9 @@ def build_video_job(values: Mapping[Any, Any]) -> AiJob | None:
     )
 
 
-__all__ = ["PARENT_JOB_PLACEHOLDER_ORGANIZATION", "SqlParentVideoJobs", "build_video_job"]
+__all__ = [
+    "PARENT_JOB_PLACEHOLDER_ORGANIZATION",
+    "SqlParentVideoJobs",
+    "SqlTeacherVideoJobs",
+    "build_video_job",
+]

@@ -130,9 +130,45 @@ PLAN_ACTIVITIES = sa.Table(
     sa.Column("confirmed_at", sa.DateTime(timezone=True)),
 )
 
+# T-4b1 (migration ``20261120_sel_0001``): one immutable evidence row per Teacher child-selection
+# outcome. Metadata only (SRS l.354, BR-34): no name, no age, no seed and no drawn index.
+CHILD_SELECTIONS = sa.Table(
+    "occurrence_child_selections",
+    OCCURRENCE_METADATA,
+    sa.Column("seq", sa.BigInteger(), sa.Identity(always=True), nullable=False),
+    sa.Column("selection_id", sa.String(36), primary_key=True),
+    sa.Column("occurrence_id", sa.String(36), nullable=False),
+    sa.Column("plan_revision_id", sa.String(36), nullable=False),
+    sa.Column("organization_ref", sa.String(128), nullable=False),
+    sa.Column("class_ref", sa.String(128), nullable=False),
+    sa.Column("teacher_ref", sa.String(36), nullable=False),
+    sa.Column("kind", sa.String(8), nullable=False),
+    sa.Column("draw_no", sa.SmallInteger()),
+    sa.Column("policy_version", sa.String(48), nullable=False),
+    sa.Column("eligibility_basis", sa.String(16), nullable=False),
+    sa.Column("candidate_count", sa.SmallInteger(), nullable=False),
+    sa.Column("candidate_set_hash", sa.String(64), nullable=False),
+    sa.Column("selected_child_ref", sa.String(128)),
+    sa.Column("class_revision", sa.Integer(), nullable=False),
+    sa.Column("occurrence_revision", sa.Integer(), nullable=False),
+    sa.Column("state", sa.String(16), nullable=False),
+    sa.Column("revision", sa.Integer(), server_default="1", nullable=False),
+    sa.Column("issued_at", sa.DateTime(timezone=True), nullable=False),
+    sa.Column("expires_at", sa.DateTime(timezone=True)),
+    sa.Column("confirmed_at", sa.DateTime(timezone=True)),
+    sa.Column("confirmed_by", sa.String(36)),
+    sa.Column("confirmation_expires_at", sa.DateTime(timezone=True)),
+    sa.Column("consumed_at", sa.DateTime(timezone=True)),
+    sa.Column("consumed_run_ref", sa.String(128)),
+    sa.Column(
+        "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+    ),
+)
+
 DDL_A_TABLES = (OCCURRENCES, SOURCE_DOCUMENTS, DOCUMENT_REVISIONS, PLAN_REVISIONS, PLAN_ACTIVITIES)
 
 __all__ = [
+    "CHILD_SELECTIONS",
     "DDL_A_TABLES",
     "DOCUMENT_REVISIONS",
     "OCCURRENCES",

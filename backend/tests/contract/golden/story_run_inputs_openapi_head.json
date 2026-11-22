@@ -1,0 +1,1620 @@
+{
+ "operations": {
+  "get /v1/story-runs/{run_id}/transcript": {
+   "description": "Read the current transcript of the Parent StoryRun's voice idea; the text is returned only to the run owner and is never cached.",
+   "operationId": "get_parent_run_transcript_v1_story_runs__run_id__transcript_get",
+   "parameters": [
+    {
+     "in": "path",
+     "name": "run_id",
+     "required": true,
+     "schema": {
+      "format": "uuid",
+      "title": "Run Id",
+      "type": "string"
+     }
+    }
+   ],
+   "responses": {
+    "200": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentRunTranscriptV1"
+       }
+      }
+     },
+     "description": "The current transcript, or state `NONE` when the run has no voice idea"
+    },
+    "400": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The request or the idempotency key is invalid (`INVALID_REQUEST` with `field_errors` when the text is too long, `INVALID_IDEMPOTENCY_KEY`)"
+    },
+    "401": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "Authentication is required"
+    },
+    "404": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The run was not found, or the caller is not its active Parent owner"
+    },
+    "409": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The run state or the transcript revision does not allow this (`INVALID_STATE_TRANSITION`, `STALE_REVISION` with `current_version`)"
+    },
+    "422": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "Validation uses the standard error envelope"
+    },
+    "500": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "An unexpected error occurred"
+    },
+    "503": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "A required service is unavailable"
+    }
+   },
+   "security": [
+    {
+     "HTTPBearer": []
+    }
+   ],
+   "summary": "Read the current transcript of the Parent run's voice idea",
+   "tags": [
+    "Parent StoryRuns"
+   ]
+  },
+  "post /v1/story-runs/{run_id}/assets": {
+   "description": "Attach a completed artwork upload to the Parent StoryRun as its drawing; the normalized copy is made here and the visual analysis runs after the response.",
+   "operationId": "attach_parent_run_asset_v1_story_runs__run_id__assets_post",
+   "parameters": [
+    {
+     "in": "path",
+     "name": "run_id",
+     "required": true,
+     "schema": {
+      "format": "uuid",
+      "title": "Run Id",
+      "type": "string"
+     }
+    },
+    {
+     "in": "header",
+     "name": "Idempotency-Key",
+     "required": true,
+     "schema": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Idempotency-Key",
+      "type": "string"
+     }
+    }
+   ],
+   "requestBody": {
+    "content": {
+     "application/json": {
+      "examples": {
+       "syntheticRequest": {
+        "description": "Schema-shaped sample with fictional values. Replace example IDs and references with records valid in your environment; protected routes also require a real bearer token. This is not seeded test data.",
+        "summary": "Request example",
+        "value": {
+         "asset_ref": "example-value"
+        }
+       }
+      },
+      "schema": {
+       "$ref": "#/components/schemas/AttachRunAssetRequestV1"
+      }
+     }
+    },
+    "required": true
+   },
+   "responses": {
+    "202": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "anyOf": [
+         {
+          "$ref": "#/components/schemas/ParentRunAssetAcceptedV1"
+         },
+         {
+          "$ref": "#/components/schemas/ParentStoryRunLifecycleEnvelopeV1"
+         }
+        ],
+        "title": "Response Attach Parent Run Asset V1 Story Runs  Run Id  Assets Post"
+       }
+      }
+     },
+     "description": "Drawing attached and queued for analysis, or the lifecycle projection on a replay of a purged run"
+    },
+    "400": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The request or the idempotency key is invalid (`INVALID_REQUEST`, `INVALID_IDEMPOTENCY_KEY`)"
+    },
+    "401": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "Authentication is required"
+    },
+    "404": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The run or the asset was not found, or the caller is not its active Parent owner"
+    },
+    "409": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The run state or revision does not allow this drawing (`INVALID_STATE_TRANSITION`, `STALE_REVISION` with `current_version`)"
+    },
+    "413": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The image is too large (`MEDIA_TOO_LARGE`)"
+    },
+    "415": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The asset is not a drawing image (`UNSUPPORTED_MEDIA_TYPE`)"
+    },
+    "422": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The image failed validation (`IMAGE_DIMENSIONS_EXCEEDED`, `UPLOAD_INCOMPLETE`, `UPLOAD_CHECKSUM_MISMATCH`, `UPLOAD_CONTENT_MISMATCH`)"
+    },
+    "500": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "An unexpected error occurred"
+    },
+    "503": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "A required service is unavailable (`STORAGE_UNAVAILABLE`)"
+    }
+   },
+   "security": [
+    {
+     "HTTPBearer": []
+    }
+   ],
+   "summary": "Attach a completed artwork upload to the Parent StoryRun as its drawing",
+   "tags": [
+    "Parent StoryRuns"
+   ]
+  },
+  "post /v1/story-runs/{run_id}/idea": {
+   "description": "Add the adult's idea to the Parent StoryRun: text and/or a completed audio upload, or a correction of the current transcript; the transcription runs after the response.",
+   "operationId": "add_parent_run_idea_v1_story_runs__run_id__idea_post",
+   "parameters": [
+    {
+     "in": "path",
+     "name": "run_id",
+     "required": true,
+     "schema": {
+      "format": "uuid",
+      "title": "Run Id",
+      "type": "string"
+     }
+    },
+    {
+     "in": "header",
+     "name": "Idempotency-Key",
+     "required": true,
+     "schema": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Idempotency-Key",
+      "type": "string"
+     }
+    }
+   ],
+   "requestBody": {
+    "content": {
+     "application/json": {
+      "examples": {
+       "syntheticRequest": {
+        "description": "Schema-shaped sample with fictional values. Replace example IDs and references with records valid in your environment; protected routes also require a real bearer token. This is not seeded test data.",
+        "summary": "Request example",
+        "value": {
+         "expected_run_revision": 1
+        }
+       }
+      },
+      "schema": {
+       "$ref": "#/components/schemas/AddRunIdeaRequestV1"
+      }
+     }
+    },
+    "required": true
+   },
+   "responses": {
+    "202": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "anyOf": [
+         {
+          "$ref": "#/components/schemas/ParentRunIdeaAcceptedV1"
+         },
+         {
+          "$ref": "#/components/schemas/ParentStoryRunLifecycleEnvelopeV1"
+         }
+        ],
+        "title": "Response Add Parent Run Idea V1 Story Runs  Run Id  Idea Post"
+       }
+      }
+     },
+     "description": "Idea accepted (a new input revision, or a transcript correction), or the lifecycle projection on a replay of a purged run"
+    },
+    "400": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The request or the idempotency key is invalid (`INVALID_REQUEST`, `INVALID_IDEMPOTENCY_KEY`)"
+    },
+    "401": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "Authentication is required"
+    },
+    "404": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The run or the audio was not found, or the caller is not its active Parent owner"
+    },
+    "409": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The run state or a revision does not allow this command (`INVALID_STATE_TRANSITION`, `STALE_REVISION` with `current_version`)"
+    },
+    "413": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The audio is too large or too long (`AUDIO_TOO_LARGE`)"
+    },
+    "415": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The asset is not accepted audio (`UNSUPPORTED_MEDIA_TYPE`)"
+    },
+    "422": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The audio failed validation (`UPLOAD_CONTENT_MISMATCH`, `UPLOAD_INCOMPLETE`, `UPLOAD_CHECKSUM_MISMATCH`)"
+    },
+    "500": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "An unexpected error occurred"
+    },
+    "503": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "A required service is unavailable (`STORAGE_UNAVAILABLE`)"
+    }
+   },
+   "security": [
+    {
+     "HTTPBearer": []
+    }
+   ],
+   "summary": "Add the adult's idea (text and/or audio) or correct the transcript of a Parent run",
+   "tags": [
+    "Parent StoryRuns"
+   ]
+  },
+  "post /v1/story-runs/{run_id}/story-rewrites": {
+   "description": "Ask for one more revision of the Parent StoryRun's story (the first story plus at most three rewrites); the new revision is generated after the response.",
+   "operationId": "rewrite_parent_run_story_v1_story_runs__run_id__story_rewrites_post",
+   "parameters": [
+    {
+     "in": "path",
+     "name": "run_id",
+     "required": true,
+     "schema": {
+      "format": "uuid",
+      "title": "Run Id",
+      "type": "string"
+     }
+    },
+    {
+     "in": "header",
+     "name": "Idempotency-Key",
+     "required": true,
+     "schema": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Idempotency-Key",
+      "type": "string"
+     }
+    }
+   ],
+   "requestBody": {
+    "content": {
+     "application/json": {
+      "examples": {
+       "syntheticRequest": {
+        "description": "Schema-shaped sample with fictional values. Replace example IDs and references with records valid in your environment; protected routes also require a real bearer token. This is not seeded test data.",
+        "summary": "Request example",
+        "value": {
+         "expected_story_revision": 1
+        }
+       }
+      },
+      "schema": {
+       "$ref": "#/components/schemas/RewriteStoryRequestV1"
+      }
+     }
+    },
+    "required": true
+   },
+   "responses": {
+    "202": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "anyOf": [
+         {
+          "$ref": "#/components/schemas/ParentStoryRewriteAcceptedV1"
+         },
+         {
+          "$ref": "#/components/schemas/ParentStoryRunLifecycleEnvelopeV1"
+         }
+        ],
+        "title": "Response Rewrite Parent Run Story V1 Story Runs  Run Id  Story Rewrites Post"
+       }
+      }
+     },
+     "description": "Rewrite accepted (the new revision number and the run revision), or the lifecycle projection on a replay of a purged run"
+    },
+    "400": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The request or the idempotency key is invalid (`INVALID_REQUEST`, `INVALID_IDEMPOTENCY_KEY`)"
+    },
+    "401": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "Authentication is required"
+    },
+    "404": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The run was not found, or the caller is not its active Parent owner"
+    },
+    "409": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The run state does not allow a rewrite (`INVALID_STATE_TRANSITION`), the story revision or hash is stale (`STALE_REVISION` with `current_version`), or the three rewrites are used (`STORY_REWRITE_LIMIT_REACHED`)"
+    },
+    "422": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "A precondition of the story is not met (`SUBJECT_NOT_CONFIRMED`, `PROFILE_CONTEXT_NOT_CONFIRMED`, `TRANSCRIPT_NOT_CONFIRMED`)"
+    },
+    "500": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "An unexpected error occurred"
+    },
+    "503": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "A required service is unavailable"
+    }
+   },
+   "security": [
+    {
+     "HTTPBearer": []
+    }
+   ],
+   "summary": "Ask for one more revision of the Parent run's story (at most three rewrites)",
+   "tags": [
+    "Parent StoryRuns"
+   ]
+  },
+  "post /v1/story-runs/{run_id}/subject-confirmation": {
+   "description": "Persist adult confirmation of a drawing-understanding subject; an edited subject asks for a new visual understanding of the same drawing (SRS l.394, l.1666).",
+   "operationId": "confirm_parent_story_subject_v1_story_runs__run_id__subject_confirmation_post",
+   "parameters": [
+    {
+     "in": "path",
+     "name": "run_id",
+     "required": true,
+     "schema": {
+      "format": "uuid",
+      "title": "Run Id",
+      "type": "string"
+     }
+    },
+    {
+     "in": "header",
+     "name": "Idempotency-Key",
+     "required": true,
+     "schema": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Idempotency-Key",
+      "type": "string"
+     }
+    }
+   ],
+   "requestBody": {
+    "content": {
+     "application/json": {
+      "examples": {
+       "syntheticRequest": {
+        "description": "Schema-shaped sample with fictional values. Replace example IDs and references with records valid in your environment; protected routes also require a real bearer token. This is not seeded test data.",
+        "summary": "Request example",
+        "value": {
+         "confirmed_subject": "example-value",
+         "expected_understanding_revision": 1
+        }
+       }
+      },
+      "schema": {
+       "$ref": "#/components/schemas/ParentSubjectConfirmationRequestV1"
+      }
+     }
+    },
+    "required": true
+   },
+   "responses": {
+    "202": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "anyOf": [
+         {
+          "$ref": "#/components/schemas/ParentSubjectConfirmationResponseV1"
+         },
+         {
+          "$ref": "#/components/schemas/ParentStoryRunLifecycleEnvelopeV1"
+         }
+        ],
+        "title": "Response Confirm Parent Story Subject V1 Story Runs  Run Id  Subject Confirmation Post"
+       }
+      }
+     },
+     "description": "Subject confirmation accepted (`decision` `CONFIRMED`, or `RERUN_REQUESTED` when the edited subject queued a new visual understanding), or the lifecycle projection on a replay of a purged run"
+    },
+    "400": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The idempotency key is invalid"
+    },
+    "401": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "Authentication is required"
+    },
+    "404": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The requested resource was not found, or the caller is neither an active Parent nor the Teacher currently assigned to the child's class"
+    },
+    "409": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The understanding revision is stale (`STALE_REVISION` with `current_version`) or the run state does not allow it (`INVALID_STATE_TRANSITION`; also a Teacher whose class is not active)"
+    },
+    "422": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "Validation uses the standard error envelope"
+    },
+    "500": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "An unexpected error occurred"
+    },
+    "503": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "A required service is unavailable"
+    }
+   },
+   "security": [
+    {
+     "HTTPBearer": []
+    }
+   ],
+   "summary": "[PROPOSAL] Persist adult confirmation of an interpreted drawing subject",
+   "tags": [
+    "Parent StoryRuns"
+   ]
+  },
+  "post /v1/story-runs/{run_id}/transcript-confirmation": {
+   "description": "Confirm one exact transcript revision and hash; only then can the text reach the story.",
+   "operationId": "confirm_parent_run_transcript_v1_story_runs__run_id__transcript_confirmation_post",
+   "parameters": [
+    {
+     "in": "path",
+     "name": "run_id",
+     "required": true,
+     "schema": {
+      "format": "uuid",
+      "title": "Run Id",
+      "type": "string"
+     }
+    },
+    {
+     "in": "header",
+     "name": "Idempotency-Key",
+     "required": true,
+     "schema": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Idempotency-Key",
+      "type": "string"
+     }
+    }
+   ],
+   "requestBody": {
+    "content": {
+     "application/json": {
+      "examples": {
+       "syntheticRequest": {
+        "description": "Schema-shaped sample with fictional values. Replace example IDs and references with records valid in your environment; protected routes also require a real bearer token. This is not seeded test data.",
+        "summary": "Request example",
+        "value": {
+         "confirmed": false,
+         "expected_transcript_revision": 1,
+         "transcript_sha256": "example-value"
+        }
+       }
+      },
+      "schema": {
+       "$ref": "#/components/schemas/ConfirmTranscriptRequestV1"
+      }
+     }
+    },
+    "required": true
+   },
+   "responses": {
+    "200": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "anyOf": [
+         {
+          "$ref": "#/components/schemas/ParentTranscriptConfirmationV1"
+         },
+         {
+          "$ref": "#/components/schemas/ParentStoryRunLifecycleEnvelopeV1"
+         }
+        ],
+        "title": "Response Confirm Parent Run Transcript V1 Story Runs  Run Id  Transcript Confirmation Post"
+       }
+      }
+     },
+     "description": "Transcript confirmed, or the lifecycle projection on a replay of a purged run"
+    },
+    "400": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The request or the idempotency key is invalid (`INVALID_REQUEST` with `field_errors` when the text is too long, `INVALID_IDEMPOTENCY_KEY`)"
+    },
+    "401": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "Authentication is required"
+    },
+    "404": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The run was not found, or the caller is not its active Parent owner"
+    },
+    "409": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The run state or the transcript revision does not allow this (`INVALID_STATE_TRANSITION`, `STALE_REVISION` with `current_version`)"
+    },
+    "422": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "Validation uses the standard error envelope"
+    },
+    "500": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "An unexpected error occurred"
+    },
+    "503": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "A required service is unavailable"
+    }
+   },
+   "security": [
+    {
+     "HTTPBearer": []
+    }
+   ],
+   "summary": "Confirm one exact transcript revision of the Parent run's voice idea",
+   "tags": [
+    "Parent StoryRuns"
+   ]
+  }
+ },
+ "schemas": {
+  "AddRunIdeaRequestV1": {
+   "additionalProperties": false,
+   "description": "``expected_run_revision`` plus text and/or ``audio_ref``, or one transcript correction.",
+   "properties": {
+    "audio_ref": {
+     "anyOf": [
+      {
+       "pattern": "^upl_[0-9a-f-]{36}$",
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Audio Ref"
+    },
+    "expected_run_revision": {
+     "minimum": 1.0,
+     "title": "Expected Run Revision",
+     "type": "integer"
+    },
+    "text": {
+     "anyOf": [
+      {
+       "maxLength": 500,
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Text"
+    },
+    "transcript_correction": {
+     "anyOf": [
+      {
+       "$ref": "#/components/schemas/TranscriptCorrectionV1"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    }
+   },
+   "required": [
+    "expected_run_revision"
+   ],
+   "title": "AddRunIdeaRequestV1",
+   "type": "object"
+  },
+  "AttachRunAssetRequestV1": {
+   "additionalProperties": false,
+   "description": "Attach one completed upload to the run; ``expected_run_revision`` is optional (l.1664).",
+   "properties": {
+    "asset_ref": {
+     "pattern": "^upl_[0-9a-f-]{36}$",
+     "title": "Asset Ref",
+     "type": "string"
+    },
+    "expected_run_revision": {
+     "anyOf": [
+      {
+       "minimum": 1.0,
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Expected Run Revision"
+    }
+   },
+   "required": [
+    "asset_ref"
+   ],
+   "title": "AttachRunAssetRequestV1",
+   "type": "object"
+  },
+  "ConfirmTranscriptRequestV1": {
+   "additionalProperties": false,
+   "description": "Confirm one exact revision and hash (TD-04, l.1713).",
+   "properties": {
+    "confirmed": {
+     "const": true,
+     "title": "Confirmed",
+     "type": "boolean"
+    },
+    "expected_transcript_revision": {
+     "minimum": 1.0,
+     "title": "Expected Transcript Revision",
+     "type": "integer"
+    },
+    "transcript_sha256": {
+     "pattern": "^[0-9a-f]{64}$",
+     "title": "Transcript Sha256",
+     "type": "string"
+    }
+   },
+   "required": [
+    "expected_transcript_revision",
+    "transcript_sha256",
+    "confirmed"
+   ],
+   "title": "ConfirmTranscriptRequestV1",
+   "type": "object"
+  },
+  "IdeaTranscriptRefV1": {
+   "additionalProperties": false,
+   "properties": {
+    "state": {
+     "enum": [
+      "NONE",
+      "PENDING",
+      "NEEDS_CONFIRMATION",
+      "CONFIRMED",
+      "FAILED"
+     ],
+     "title": "State",
+     "type": "string"
+    },
+    "transcript_revision": {
+     "minimum": 1.0,
+     "title": "Transcript Revision",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "transcript_revision",
+    "state"
+   ],
+   "title": "IdeaTranscriptRefV1",
+   "type": "object"
+  },
+  "ParentRunAssetAcceptedV1": {
+   "additionalProperties": false,
+   "description": "202 body: the asset ref and its validation state (l.1664); no job reference (T2B-D8).",
+   "properties": {
+    "analysis_state": {
+     "enum": [
+      "QUEUED",
+      "RUNNING",
+      "SUCCEEDED",
+      "FAILED",
+      "AWAITING_RECONCILIATION"
+     ],
+     "title": "Analysis State",
+     "type": "string"
+    },
+    "asset_kind": {
+     "const": "DRAWING",
+     "title": "Asset Kind",
+     "type": "string"
+    },
+    "asset_ref": {
+     "title": "Asset Ref",
+     "type": "string"
+    },
+    "asset_state": {
+     "const": "READY",
+     "title": "Asset State",
+     "type": "string"
+    },
+    "input_revision": {
+     "minimum": 1.0,
+     "title": "Input Revision",
+     "type": "integer"
+    },
+    "request_id": {
+     "format": "uuid",
+     "title": "Request Id",
+     "type": "string"
+    },
+    "run_revision": {
+     "minimum": 1.0,
+     "title": "Run Revision",
+     "type": "integer"
+    },
+    "run_state": {
+     "title": "Run State",
+     "type": "string"
+    },
+    "story_run_id": {
+     "format": "uuid",
+     "title": "Story Run Id",
+     "type": "string"
+    }
+   },
+   "required": [
+    "request_id",
+    "story_run_id",
+    "asset_ref",
+    "asset_kind",
+    "asset_state",
+    "input_revision",
+    "run_revision",
+    "run_state",
+    "analysis_state"
+   ],
+   "title": "ParentRunAssetAcceptedV1",
+   "type": "object"
+  },
+  "ParentRunIdeaAcceptedV1": {
+   "additionalProperties": false,
+   "description": "202 body of ``/idea``; the ASR job reference is parked (Q-J), so no ``job`` field.",
+   "properties": {
+    "idea_source": {
+     "anyOf": [
+      {
+       "enum": [
+        "TEXT",
+        "VOICE",
+        "TEXT_AND_VOICE"
+       ],
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Idea Source"
+    },
+    "input_revision": {
+     "minimum": 1.0,
+     "title": "Input Revision",
+     "type": "integer"
+    },
+    "request_id": {
+     "format": "uuid",
+     "title": "Request Id",
+     "type": "string"
+    },
+    "run_revision": {
+     "minimum": 1.0,
+     "title": "Run Revision",
+     "type": "integer"
+    },
+    "run_state": {
+     "title": "Run State",
+     "type": "string"
+    },
+    "story_run_id": {
+     "format": "uuid",
+     "title": "Story Run Id",
+     "type": "string"
+    },
+    "transcript": {
+     "anyOf": [
+      {
+       "$ref": "#/components/schemas/IdeaTranscriptRefV1"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    }
+   },
+   "required": [
+    "request_id",
+    "story_run_id",
+    "input_revision",
+    "run_revision",
+    "run_state",
+    "idea_source",
+    "transcript"
+   ],
+   "title": "ParentRunIdeaAcceptedV1",
+   "type": "object"
+  },
+  "ParentRunTranscriptV1": {
+   "additionalProperties": false,
+   "description": "The adult's read of the current transcript (SRS l.780, l.1164, l.1707, BR-34).",
+   "properties": {
+    "error_code": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Error Code"
+    },
+    "language": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Language"
+    },
+    "origin": {
+     "anyOf": [
+      {
+       "enum": [
+        "ASR",
+        "ADULT_CORRECTION"
+       ],
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Origin"
+    },
+    "run_revision": {
+     "minimum": 1.0,
+     "title": "Run Revision",
+     "type": "integer"
+    },
+    "state": {
+     "enum": [
+      "NONE",
+      "PENDING",
+      "NEEDS_CONFIRMATION",
+      "CONFIRMED",
+      "FAILED"
+     ],
+     "title": "State",
+     "type": "string"
+    },
+    "story_run_id": {
+     "format": "uuid",
+     "title": "Story Run Id",
+     "type": "string"
+    },
+    "text": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Text"
+    },
+    "transcript_revision": {
+     "anyOf": [
+      {
+       "minimum": 1.0,
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Transcript Revision"
+    },
+    "transcript_sha256": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Transcript Sha256"
+    }
+   },
+   "required": [
+    "story_run_id",
+    "transcript_revision",
+    "state",
+    "origin",
+    "text",
+    "transcript_sha256",
+    "language",
+    "error_code",
+    "run_revision"
+   ],
+   "title": "ParentRunTranscriptV1",
+   "type": "object"
+  },
+  "ParentStoryErrorEnvelopeV1": {
+   "properties": {
+    "code": {
+     "title": "Code",
+     "type": "string"
+    },
+    "correlation_id": {
+     "title": "Correlation Id",
+     "type": "string"
+    },
+    "field_errors": {
+     "anyOf": [
+      {
+       "items": {
+        "$ref": "#/components/schemas/ParentStoryErrorFieldV1"
+       },
+       "type": "array"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Field Errors"
+    },
+    "message": {
+     "title": "Message",
+     "type": "string"
+    },
+    "retry_after_seconds": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Retry After Seconds"
+    },
+    "retryable": {
+     "title": "Retryable",
+     "type": "boolean"
+    }
+   },
+   "required": [
+    "code",
+    "message",
+    "correlation_id",
+    "retryable"
+   ],
+   "title": "ParentStoryErrorEnvelopeV1",
+   "type": "object"
+  },
+  "ParentStoryErrorFieldV1": {
+   "properties": {
+    "code": {
+     "title": "Code",
+     "type": "string"
+    },
+    "field": {
+     "title": "Field",
+     "type": "string"
+    },
+    "message": {
+     "title": "Message",
+     "type": "string"
+    }
+   },
+   "required": [
+    "field",
+    "code",
+    "message"
+   ],
+   "title": "ParentStoryErrorFieldV1",
+   "type": "object"
+  },
+  "ParentStoryRewriteAcceptedV1": {
+   "additionalProperties": false,
+   "description": "202 body of ``story-rewrites``; the job reference is parked (Q-J), so no ``job`` field.",
+   "properties": {
+    "request_id": {
+     "format": "uuid",
+     "title": "Request Id",
+     "type": "string"
+    },
+    "run_revision": {
+     "minimum": 1.0,
+     "title": "Run Revision",
+     "type": "integer"
+    },
+    "run_state": {
+     "const": "SCRIPT_GENERATING",
+     "title": "Run State",
+     "type": "string"
+    },
+    "story_revision_no": {
+     "maximum": 4.0,
+     "minimum": 1.0,
+     "title": "Story Revision No",
+     "type": "integer"
+    },
+    "story_run_id": {
+     "format": "uuid",
+     "title": "Story Run Id",
+     "type": "string"
+    }
+   },
+   "required": [
+    "request_id",
+    "story_run_id",
+    "story_revision_no",
+    "run_revision",
+    "run_state"
+   ],
+   "title": "ParentStoryRewriteAcceptedV1",
+   "type": "object"
+  },
+  "ParentStoryRunLifecycleEnvelopeV1": {
+   "additionalProperties": false,
+   "description": "Cancel 202, delete 202, GET of a purged run and the replays of a purged run.",
+   "properties": {
+    "lifecycle": {
+     "$ref": "#/components/schemas/ParentStoryRunLifecycleProjectionV1"
+    },
+    "request_id": {
+     "format": "uuid",
+     "title": "Request Id",
+     "type": "string"
+    }
+   },
+   "required": [
+    "request_id",
+    "lifecycle"
+   ],
+   "title": "ParentStoryRunLifecycleEnvelopeV1",
+   "type": "object"
+  },
+  "ParentStoryRunLifecycleProjectionV1": {
+   "additionalProperties": false,
+   "description": "FR-C-08 content-free projection from DELETE_PENDING on (Contract Draft 11 \u00a73.4).\n\nNo context snapshot, story, candidate, subject label, profile ref, asset ref, count,\npercentage or storage key is ever part of it (SRS lines 1053, 1520, 1809).",
+   "properties": {
+    "lifecycle_request_ref": {
+     "format": "uuid",
+     "title": "Lifecycle Request Ref",
+     "type": "string"
+    },
+    "purge_state": {
+     "enum": [
+      "PENDING",
+      "COMPLETED"
+     ],
+     "title": "Purge State",
+     "type": "string"
+    },
+    "revision": {
+     "minimum": 1.0,
+     "title": "Revision",
+     "type": "integer"
+    },
+    "run_id": {
+     "format": "uuid",
+     "title": "Run Id",
+     "type": "string"
+    },
+    "run_state": {
+     "enum": [
+      "DELETE_PENDING",
+      "DELETED"
+     ],
+     "title": "Run State",
+     "type": "string"
+    },
+    "version": {
+     "minimum": 1.0,
+     "title": "Version",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "run_id",
+    "run_state",
+    "revision",
+    "version",
+    "lifecycle_request_ref",
+    "purge_state"
+   ],
+   "title": "ParentStoryRunLifecycleProjectionV1",
+   "type": "object"
+  },
+  "ParentSubjectConfirmationRequestV1": {
+   "additionalProperties": false,
+   "properties": {
+    "confirmed_subject": {
+     "maxLength": 160,
+     "minLength": 1,
+     "title": "Confirmed Subject",
+     "type": "string"
+    },
+    "expected_understanding_revision": {
+     "minimum": 1.0,
+     "title": "Expected Understanding Revision",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "expected_understanding_revision",
+    "confirmed_subject"
+   ],
+   "title": "ParentSubjectConfirmationRequestV1",
+   "type": "object"
+  },
+  "ParentSubjectConfirmationResponseV1": {
+   "description": "202 body of the subject confirmation (SRS l.1666).\n\n``CONFIRMED``: the subject was accepted as ``understanding_revision``. ``RERUN_REQUESTED``: the\nadult edited the subject, the visual understanding runs again and the new revision is\nconfirmed in a second call (SRS l.394, l.1413); ``understanding_revision`` is then the revision\nthe adult edited. ``run_revision`` is the revision the command created. The job reference is\nparked (Q-J), so there is no ``job`` field.",
+   "properties": {
+    "decision": {
+     "enum": [
+      "CONFIRMED",
+      "RERUN_REQUESTED"
+     ],
+     "title": "Decision",
+     "type": "string"
+    },
+    "request_id": {
+     "format": "uuid",
+     "title": "Request Id",
+     "type": "string"
+    },
+    "run_revision": {
+     "minimum": 1.0,
+     "title": "Run Revision",
+     "type": "integer"
+    },
+    "story_run_id": {
+     "format": "uuid",
+     "title": "Story Run Id",
+     "type": "string"
+    },
+    "understanding_revision": {
+     "title": "Understanding Revision",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "request_id",
+    "story_run_id",
+    "understanding_revision",
+    "decision",
+    "run_revision"
+   ],
+   "title": "ParentSubjectConfirmationResponseV1",
+   "type": "object"
+  },
+  "ParentTranscriptConfirmationV1": {
+   "additionalProperties": false,
+   "properties": {
+    "request_id": {
+     "format": "uuid",
+     "title": "Request Id",
+     "type": "string"
+    },
+    "run_revision": {
+     "minimum": 1.0,
+     "title": "Run Revision",
+     "type": "integer"
+    },
+    "run_state": {
+     "title": "Run State",
+     "type": "string"
+    },
+    "state": {
+     "const": "CONFIRMED",
+     "title": "State",
+     "type": "string"
+    },
+    "story_run_id": {
+     "format": "uuid",
+     "title": "Story Run Id",
+     "type": "string"
+    },
+    "transcript_revision": {
+     "minimum": 1.0,
+     "title": "Transcript Revision",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "request_id",
+    "story_run_id",
+    "transcript_revision",
+    "state",
+    "run_revision",
+    "run_state"
+   ],
+   "title": "ParentTranscriptConfirmationV1",
+   "type": "object"
+  },
+  "RewriteStoryRequestV1": {
+   "additionalProperties": false,
+   "description": "Ask for one more story revision; ``expected_story_revision`` is the one the adult read.\n\nThe range admits 4: after the third rewrite the client holds revision 4 and its next request\nis refused with 409 ``STORY_REWRITE_LIMIT_REACHED``, not with a validation error (l.866).",
+   "properties": {
+    "expected_story_revision": {
+     "maximum": 4.0,
+     "minimum": 1.0,
+     "title": "Expected Story Revision",
+     "type": "integer"
+    },
+    "expected_story_sha256": {
+     "anyOf": [
+      {
+       "pattern": "^[0-9a-f]{64}$",
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Expected Story Sha256"
+    },
+    "hint": {
+     "anyOf": [
+      {
+       "maxLength": 400,
+       "minLength": 1,
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Hint"
+    }
+   },
+   "required": [
+    "expected_story_revision"
+   ],
+   "title": "RewriteStoryRequestV1",
+   "type": "object"
+  },
+  "TranscriptCorrectionV1": {
+   "additionalProperties": false,
+   "description": "The adult's corrected transcript text, based on one exact transcript revision.",
+   "properties": {
+    "base_revision": {
+     "minimum": 1.0,
+     "title": "Base Revision",
+     "type": "integer"
+    },
+    "text": {
+     "maxLength": 500,
+     "title": "Text",
+     "type": "string"
+    }
+   },
+   "required": [
+    "base_revision",
+    "text"
+   ],
+   "title": "TranscriptCorrectionV1",
+   "type": "object"
+  }
+ }
+}

@@ -314,7 +314,9 @@ def test_story_run_wrong_role_equals_unknown_run(app_client: TestClient) -> None
             # compared in the next test (an unassigned Teacher gets the Teacher service's 404).
             *((("GET", f"/v1/story-runs/{RUN_ID}", {}),) if role != "teacher" else ()),
             ("GET", "/v1/story-runs", {}),
-            ("GET", "/v1/story-runs/active/current", {}),
+            # T-4b2: the active run admits a Teacher (its own run through the Teacher lock; the
+            # empty answer is proved on PostgreSQL in test_t09_scope_guards_postgres.py)
+            *((("GET", "/v1/story-runs/active/current", {}),) if role != "teacher" else ()),
             # T-13a: DELETE admits the assigned Teacher as well (compared in the next test)
             *(
                 (("DELETE", f"/v1/story-runs/{RUN_ID}", {"Idempotency-Key": "t09-key-1"}),)

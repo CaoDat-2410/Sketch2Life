@@ -1,0 +1,2141 @@
+{
+ "operations": {
+  "get /v1/story-runs/{run_id}/playback": {
+   "description": "Stream the ready video of the Parent StoryRun to the verified owner who presents a valid playback token. Ownership, run state and generation are rechecked on every request. One `Range` is honoured; there is no download, export, listing or storage location.",
+   "operationId": "stream_parent_playback_v1_story_runs__run_id__playback_get",
+   "parameters": [
+    {
+     "in": "path",
+     "name": "run_id",
+     "required": true,
+     "schema": {
+      "format": "uuid",
+      "title": "Run Id",
+      "type": "string"
+     }
+    },
+    {
+     "in": "header",
+     "name": "X-Playback-Token",
+     "required": false,
+     "schema": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "X-Playback-Token"
+     }
+    },
+    {
+     "in": "header",
+     "name": "Range",
+     "required": false,
+     "schema": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Range"
+     }
+    }
+   ],
+   "responses": {
+    "200": {
+     "content": {
+      "video/mp4": {
+       "schema": {
+        "format": "binary",
+        "type": "string"
+       }
+      }
+     },
+     "description": "The whole video, streamed."
+    },
+    "206": {
+     "content": {
+      "video/mp4": {
+       "schema": {
+        "format": "binary",
+        "type": "string"
+       }
+      }
+     },
+     "description": "One byte range of the video."
+    },
+    "401": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryCancelErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "Authentication is required, or the playback token is invalid (`INVALID_TOKEN`) or expired (`TOKEN_EXPIRED`)"
+    },
+    "404": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryCancelErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The run was not found, or the caller is not its active Parent owner; also the answer to a token that no longer grants anything (the run was cancelled, deleted, completed, closed or the video was hidden)"
+    },
+    "416": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryCancelErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The requested byte range cannot be served (`RANGE_NOT_SATISFIABLE`)"
+    },
+    "422": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryCancelErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "Validation uses the standard error envelope"
+    },
+    "500": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryCancelErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "An unexpected error occurred"
+    },
+    "503": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryCancelErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "Playback or the object store is unavailable (`PROVIDER_UNAVAILABLE`, `STORAGE_UNAVAILABLE`)"
+    }
+   },
+   "security": [
+    {
+     "HTTPBearer": []
+    }
+   ],
+   "summary": "Stream the ready video of the Parent StoryRun to the playback token holder",
+   "tags": [
+    "Parent StoryRuns"
+   ]
+  },
+  "post /v1/story-runs/{run_id}/complete": {
+   "description": "Complete the Parent StoryRun at `VIDEO_READY`: the run ends as `COMPLETED`, the active-run lock is released and the content stays until the user deletes the run. This is not a video approval.",
+   "operationId": "complete_parent_story_run_v1_story_runs__run_id__complete_post",
+   "parameters": [
+    {
+     "in": "path",
+     "name": "run_id",
+     "required": true,
+     "schema": {
+      "format": "uuid",
+      "title": "Run Id",
+      "type": "string"
+     }
+    },
+    {
+     "in": "header",
+     "name": "Idempotency-Key",
+     "required": true,
+     "schema": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Idempotency-Key",
+      "type": "string"
+     }
+    }
+   ],
+   "requestBody": {
+    "content": {
+     "application/json": {
+      "examples": {
+       "syntheticRequest": {
+        "description": "Schema-shaped sample with fictional values. Replace example IDs and references with records valid in your environment; protected routes also require a real bearer token. This is not seeded test data.",
+        "summary": "Request example",
+        "value": {
+         "expected_revision": 1
+        }
+       }
+      },
+      "schema": {
+       "$ref": "#/components/schemas/ParentStoryRunCompleteRequestV1"
+      }
+     }
+    },
+    "required": true
+   },
+   "responses": {
+    "200": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "anyOf": [
+         {
+          "$ref": "#/components/schemas/ParentStoryRunEnvelopeV1"
+         },
+         {
+          "$ref": "#/components/schemas/ParentStoryRunLifecycleEnvelopeV1"
+         }
+        ],
+        "title": "Response Complete Parent Story Run V1 Story Runs  Run Id  Complete Post"
+       }
+      }
+     },
+     "description": "The run in `COMPLETED` (the lifecycle projection on a replay of a run that is already being deleted)"
+    },
+    "400": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryCancelErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The request or the idempotency key is invalid (`INVALID_REQUEST`, `INVALID_IDEMPOTENCY_KEY`)"
+    },
+    "401": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryCancelErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "Authentication is required"
+    },
+    "404": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryCancelErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The run was not found, or the caller is not its active Parent owner"
+    },
+    "409": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryCancelErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The run is not at `VIDEO_READY` (`INVALID_STATE_TRANSITION`), the run revision or the generation is stale (`STALE_REVISION` with `current_version`), or, for `video-unsuitable`, the regeneration limit was reached (`VIDEO_REGENERATION_LIMIT_REACHED`; the video stays)"
+    },
+    "422": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryCancelErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "Validation uses the standard error envelope"
+    },
+    "500": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryCancelErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "An unexpected error occurred"
+    },
+    "503": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryCancelErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "A required service is unavailable"
+    }
+   },
+   "security": [
+    {
+     "HTTPBearer": []
+    }
+   ],
+   "summary": "Complete the Parent StoryRun at VIDEO_READY and release the active lock",
+   "tags": [
+    "Parent StoryRuns"
+   ]
+  },
+  "post /v1/story-runs/{run_id}/playback-token": {
+   "description": "Issue a short-lived playback grant for the ready video of the Parent StoryRun: one video, the verified owner, a few minutes. No body and no idempotency key (a grant, not a state change). The token is sent only in the `X-Playback-Token` header of the stream route; the response carries no storage location.",
+   "operationId": "issue_parent_playback_token_v1_story_runs__run_id__playback_token_post",
+   "parameters": [
+    {
+     "in": "path",
+     "name": "run_id",
+     "required": true,
+     "schema": {
+      "format": "uuid",
+      "title": "Run Id",
+      "type": "string"
+     }
+    }
+   ],
+   "responses": {
+    "200": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentPlaybackTokenResponseV1"
+       }
+      }
+     },
+     "description": "The grant: a token, its expiry, the stream path and an opaque asset handle"
+    },
+    "401": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryCancelErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "Authentication is required, or the playback token is invalid (`INVALID_TOKEN`) or expired (`TOKEN_EXPIRED`)"
+    },
+    "404": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryCancelErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The run was not found, or the caller is not its active Parent owner; also the answer to a token that no longer grants anything (the run was cancelled, deleted, completed, closed or the video was hidden)"
+    },
+    "409": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryCancelErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The run has no video that can be played now (`INVALID_STATE_TRANSITION`)"
+    },
+    "422": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryCancelErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "Validation uses the standard error envelope"
+    },
+    "500": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryCancelErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "An unexpected error occurred"
+    },
+    "503": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryCancelErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "Playback or the object store is unavailable (`PROVIDER_UNAVAILABLE`, `STORAGE_UNAVAILABLE`)"
+    }
+   },
+   "security": [
+    {
+     "HTTPBearer": []
+    }
+   ],
+   "summary": "Issue a short-lived playback grant for the ready video of the Parent StoryRun",
+   "tags": [
+    "Parent StoryRuns"
+   ]
+  },
+  "post /v1/story-runs/{run_id}/video-generations": {
+   "description": "Ask for a video of the confirmed script of the Parent StoryRun; the request is stored as an intent first and becomes accepted only after the compute reservation and the quota admission are both confirmed.",
+   "operationId": "create_parent_video_generation_v1_story_runs__run_id__video_generations_post",
+   "parameters": [
+    {
+     "in": "path",
+     "name": "run_id",
+     "required": true,
+     "schema": {
+      "format": "uuid",
+      "title": "Run Id",
+      "type": "string"
+     }
+    },
+    {
+     "in": "header",
+     "name": "Idempotency-Key",
+     "required": true,
+     "schema": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Idempotency-Key",
+      "type": "string"
+     }
+    }
+   ],
+   "requestBody": {
+    "content": {
+     "application/json": {
+      "examples": {
+       "syntheticRequest": {
+        "description": "Schema-shaped sample with fictional values. Replace example IDs and references with records valid in your environment; protected routes also require a real bearer token. This is not seeded test data.",
+        "summary": "Request example",
+        "value": {
+         "expected_revision": 1,
+         "story_sha256": "example-value"
+        }
+       }
+      },
+      "schema": {
+       "$ref": "#/components/schemas/ParentVideoGenerationRequestV1"
+      }
+     }
+    },
+    "required": true
+   },
+   "responses": {
+    "202": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "anyOf": [
+         {
+          "$ref": "#/components/schemas/ParentVideoGenerationAcceptedV1"
+         },
+         {
+          "$ref": "#/components/schemas/ParentStoryRunLifecycleEnvelopeV1"
+         }
+        ],
+        "title": "Response Create Parent Video Generation V1 Story Runs  Run Id  Video Generations Post"
+       }
+      }
+     },
+     "description": "The intent reference and its state (`ADMISSION_PENDING` until both receipts are clear, `ACCEPTED` with a `job_id` once they are), or the lifecycle projection on a replay of a purged run"
+    },
+    "400": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryCancelErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The request or the idempotency key is invalid (`INVALID_REQUEST` with `field_errors` for the quality reason, `INVALID_IDEMPOTENCY_KEY`)"
+    },
+    "401": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryCancelErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "Authentication is required"
+    },
+    "404": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryCancelErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The run was not found, or the caller is not its active Parent owner"
+    },
+    "409": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryCancelErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The run state, the revision or the script does not allow a video request (`INVALID_STATE_TRANSITION`, `STALE_REVISION` with `current_version`), the regeneration limit was reached (`VIDEO_REGENERATION_LIMIT_REACHED`), or the quota or the subscription refused it (`VIDEO_QUOTA_EXCEEDED`, `SUBSCRIPTION_RESTRICTED`)"
+    },
+    "422": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryCancelErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The subject or the context of the run was not confirmed (`SUBJECT_NOT_CONFIRMED`, `PROFILE_CONTEXT_NOT_CONFIRMED`)"
+    },
+    "500": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryCancelErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "An unexpected error occurred"
+    },
+    "503": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryCancelErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The compute budget refused the request (`AI_COST_LIMIT_REACHED`) or the admission service is not available (`PROVIDER_UNAVAILABLE`)"
+    }
+   },
+   "security": [
+    {
+     "HTTPBearer": []
+    }
+   ],
+   "summary": "Ask for a video of the confirmed script of a Parent StoryRun",
+   "tags": [
+    "Parent StoryRuns"
+   ]
+  },
+  "post /v1/story-runs/{run_id}/video-unsuitable": {
+   "description": "Mark the current ready video of the Parent StoryRun unsuitable with a safe reason; the rejected video is no longer playable and the run returns to the script review.",
+   "operationId": "mark_parent_video_unsuitable_v1_story_runs__run_id__video_unsuitable_post",
+   "parameters": [
+    {
+     "in": "path",
+     "name": "run_id",
+     "required": true,
+     "schema": {
+      "format": "uuid",
+      "title": "Run Id",
+      "type": "string"
+     }
+    },
+    {
+     "in": "header",
+     "name": "Idempotency-Key",
+     "required": true,
+     "schema": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Idempotency-Key",
+      "type": "string"
+     }
+    }
+   ],
+   "requestBody": {
+    "content": {
+     "application/json": {
+      "examples": {
+       "syntheticRequest": {
+        "description": "Schema-shaped sample with fictional values. Replace example IDs and references with records valid in your environment; protected routes also require a real bearer token. This is not seeded test data.",
+        "summary": "Request example",
+        "value": {
+         "expected_revision": 1,
+         "generation_id": "00000000-0000-4000-8000-000000000001",
+         "reason_code": "QUALITY_LOW"
+        }
+       }
+      },
+      "schema": {
+       "$ref": "#/components/schemas/ParentVideoUnsuitableRequestV1"
+      }
+     }
+    },
+    "required": true
+   },
+   "responses": {
+    "200": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "anyOf": [
+         {
+          "$ref": "#/components/schemas/ParentStoryRunEnvelopeV1"
+         },
+         {
+          "$ref": "#/components/schemas/ParentStoryRunLifecycleEnvelopeV1"
+         }
+        ],
+        "title": "Response Mark Parent Video Unsuitable V1 Story Runs  Run Id  Video Unsuitable Post"
+       }
+      }
+     },
+     "description": "The run in `SCRIPT_REVIEW` (the lifecycle projection on a replay of a run that is already being deleted)"
+    },
+    "400": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryCancelErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The request or the idempotency key is invalid (`INVALID_REQUEST`, `INVALID_IDEMPOTENCY_KEY`)"
+    },
+    "401": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryCancelErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "Authentication is required"
+    },
+    "404": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryCancelErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The run was not found, or the caller is not its active Parent owner"
+    },
+    "409": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryCancelErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "The run is not at `VIDEO_READY` (`INVALID_STATE_TRANSITION`), the run revision or the generation is stale (`STALE_REVISION` with `current_version`), or, for `video-unsuitable`, the regeneration limit was reached (`VIDEO_REGENERATION_LIMIT_REACHED`; the video stays)"
+    },
+    "422": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryCancelErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "Validation uses the standard error envelope"
+    },
+    "500": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryCancelErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "An unexpected error occurred"
+    },
+    "503": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParentStoryCancelErrorEnvelopeV1"
+       }
+      }
+     },
+     "description": "A required service is unavailable"
+    }
+   },
+   "security": [
+    {
+     "HTTPBearer": []
+    }
+   ],
+   "summary": "Mark the current ready video unsuitable and return the run to the script review",
+   "tags": [
+    "Parent StoryRuns"
+   ]
+  }
+ },
+ "schemas": {
+  "LessonActivityInputV1": {
+   "additionalProperties": false,
+   "properties": {
+    "activity_kind": {
+     "default": "outdoor",
+     "enum": [
+      "outdoor",
+      "indoor",
+      "mixed"
+     ],
+     "title": "Activity Kind",
+     "type": "string"
+    },
+    "instructions_text": {
+     "maxLength": 5000,
+     "minLength": 1,
+     "title": "Instructions Text",
+     "type": "string"
+    },
+    "materials_text": {
+     "default": "",
+     "maxLength": 2000,
+     "title": "Materials Text",
+     "type": "string"
+    },
+    "objective": {
+     "maxLength": 1000,
+     "minLength": 1,
+     "title": "Objective",
+     "type": "string"
+    },
+    "observation_notes": {
+     "default": "",
+     "maxLength": 3000,
+     "title": "Observation Notes",
+     "type": "string"
+    },
+    "preparation_text": {
+     "default": "",
+     "maxLength": 2000,
+     "title": "Preparation Text",
+     "type": "string"
+    },
+    "safety_notes": {
+     "default": "",
+     "maxLength": 3000,
+     "title": "Safety Notes",
+     "type": "string"
+    },
+    "title": {
+     "maxLength": 160,
+     "minLength": 1,
+     "title": "Title",
+     "type": "string"
+    }
+   },
+   "required": [
+    "title",
+    "objective",
+    "instructions_text"
+   ],
+   "title": "LessonActivityInputV1",
+   "type": "object"
+  },
+  "ParentDrawingCandidateV1": {
+   "additionalProperties": false,
+   "properties": {
+    "adult_confirmation_required": {
+     "const": true,
+     "title": "Adult Confirmation Required",
+     "type": "boolean"
+    },
+    "candidate_subject": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Candidate Subject"
+    },
+    "confidence": {
+     "maximum": 1.0,
+     "minimum": 0.0,
+     "title": "Confidence",
+     "type": "number"
+    },
+    "decision": {
+     "enum": [
+      "REVIEW_REQUIRED",
+      "CONFIRMED_BY_ADULT",
+      "CORRECTED_BY_ADULT"
+     ],
+     "title": "Decision",
+     "type": "string"
+    },
+    "visible_features": {
+     "items": {
+      "type": "string"
+     },
+     "maxItems": 4,
+     "minItems": 1,
+     "title": "Visible Features",
+     "type": "array"
+    }
+   },
+   "required": [
+    "candidate_subject",
+    "visible_features",
+    "confidence",
+    "adult_confirmation_required",
+    "decision"
+   ],
+   "title": "ParentDrawingCandidateV1",
+   "type": "object"
+  },
+  "ParentLessonPinSnapshotV1": {
+   "additionalProperties": false,
+   "properties": {
+    "activities": {
+     "items": {
+      "$ref": "#/components/schemas/LessonActivityInputV1"
+     },
+     "maxItems": 24,
+     "minItems": 1,
+     "title": "Activities",
+     "type": "array"
+    },
+    "content_sha256": {
+     "pattern": "^[0-9a-f]{64}$",
+     "title": "Content Sha256",
+     "type": "string"
+    },
+    "drawing_subject": {
+     "maxLength": 160,
+     "minLength": 1,
+     "title": "Drawing Subject",
+     "type": "string"
+    },
+    "lesson_id": {
+     "maxLength": 256,
+     "minLength": 1,
+     "title": "Lesson Id",
+     "type": "string"
+    },
+    "schema_version": {
+     "const": "sketch2life.parent-lesson-pin.v1",
+     "title": "Schema Version",
+     "type": "string"
+    },
+    "script_direction": {
+     "anyOf": [
+      {
+       "maxLength": 2000,
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Script Direction"
+    },
+    "script_following_allowed": {
+     "title": "Script Following Allowed",
+     "type": "boolean"
+    },
+    "subject_learning_notes": {
+     "maxLength": 5000,
+     "minLength": 1,
+     "title": "Subject Learning Notes",
+     "type": "string"
+    },
+    "target_age_band_ref": {
+     "anyOf": [
+      {
+       "maxLength": 256,
+       "minLength": 1,
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Target Age Band Ref"
+    },
+    "target_age_band_version": {
+     "anyOf": [
+      {
+       "minimum": 1.0,
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Target Age Band Version"
+    },
+    "title": {
+     "maxLength": 160,
+     "minLength": 1,
+     "title": "Title",
+     "type": "string"
+    },
+    "topic": {
+     "maxLength": 120,
+     "minLength": 1,
+     "title": "Topic",
+     "type": "string"
+    },
+    "version_id": {
+     "maxLength": 256,
+     "minLength": 1,
+     "title": "Version Id",
+     "type": "string"
+    },
+    "version_no": {
+     "minimum": 1.0,
+     "title": "Version No",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "schema_version",
+    "lesson_id",
+    "version_id",
+    "version_no",
+    "content_sha256",
+    "title",
+    "topic",
+    "drawing_subject",
+    "subject_learning_notes",
+    "script_following_allowed",
+    "activities"
+   ],
+   "title": "ParentLessonPinSnapshotV1",
+   "type": "object"
+  },
+  "ParentPlaybackGrantV1": {
+   "additionalProperties": false,
+   "description": "A short-lived grant for one ready video (SRS l.1676, l.1691). The token is a bearer\nsecret: it is sent in the ``X-Playback-Token`` header of the stream route, never in a URL.\n``asset_ref`` is an opaque handle; no bucket, key or URL is ever part of it (l.1692).",
+   "properties": {
+    "asset_ref": {
+     "title": "Asset Ref",
+     "type": "string"
+    },
+    "expires_at": {
+     "format": "date-time",
+     "title": "Expires At",
+     "type": "string"
+    },
+    "media_type": {
+     "const": "video/mp4",
+     "title": "Media Type",
+     "type": "string"
+    },
+    "stream_path": {
+     "title": "Stream Path",
+     "type": "string"
+    },
+    "token": {
+     "title": "Token",
+     "type": "string"
+    }
+   },
+   "required": [
+    "token",
+    "expires_at",
+    "stream_path",
+    "media_type",
+    "asset_ref"
+   ],
+   "title": "ParentPlaybackGrantV1",
+   "type": "object"
+  },
+  "ParentPlaybackTokenResponseV1": {
+   "additionalProperties": false,
+   "properties": {
+    "playback": {
+     "$ref": "#/components/schemas/ParentPlaybackGrantV1"
+    },
+    "request_id": {
+     "format": "uuid",
+     "title": "Request Id",
+     "type": "string"
+    }
+   },
+   "required": [
+    "request_id",
+    "playback"
+   ],
+   "title": "ParentPlaybackTokenResponseV1",
+   "type": "object"
+  },
+  "ParentRunContextSnapshotV1": {
+   "additionalProperties": false,
+   "properties": {
+    "adult_confirmed_idea": {
+     "maxLength": 500,
+     "title": "Adult Confirmed Idea",
+     "type": "string"
+    },
+    "age_months": {
+     "maximum": 120.0,
+     "minimum": 36.0,
+     "title": "Age Months",
+     "type": "integer"
+    },
+    "interests_summary": {
+     "maxLength": 2000,
+     "title": "Interests Summary",
+     "type": "string"
+    },
+    "profile_revision_ref": {
+     "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+     "title": "Profile Revision Ref",
+     "type": "string"
+    },
+    "schema_version": {
+     "const": "sketch2life.parent-context.v1",
+     "title": "Schema Version",
+     "type": "string"
+    },
+    "topic": {
+     "maxLength": 120,
+     "title": "Topic",
+     "type": "string"
+    }
+   },
+   "required": [
+    "schema_version",
+    "profile_revision_ref",
+    "age_months",
+    "interests_summary",
+    "topic",
+    "adult_confirmed_idea"
+   ],
+   "title": "ParentRunContextSnapshotV1",
+   "type": "object"
+  },
+  "ParentStoryCancelErrorEnvelopeV1": {
+   "properties": {
+    "code": {
+     "title": "Code",
+     "type": "string"
+    },
+    "correlation_id": {
+     "title": "Correlation Id",
+     "type": "string"
+    },
+    "current_version": {
+     "anyOf": [
+      {
+       "minimum": 1.0,
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Current Version"
+    },
+    "field_errors": {
+     "anyOf": [
+      {
+       "items": {
+        "$ref": "#/components/schemas/ParentStoryErrorFieldV1"
+       },
+       "type": "array"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Field Errors"
+    },
+    "message": {
+     "title": "Message",
+     "type": "string"
+    },
+    "retry_after_seconds": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Retry After Seconds"
+    },
+    "retryable": {
+     "title": "Retryable",
+     "type": "boolean"
+    }
+   },
+   "required": [
+    "code",
+    "message",
+    "correlation_id",
+    "retryable"
+   ],
+   "title": "ParentStoryCancelErrorEnvelopeV1",
+   "type": "object"
+  },
+  "ParentStoryDisplayV1": {
+   "additionalProperties": false,
+   "properties": {
+    "duration_ms": {
+     "maximum": 90000.0,
+     "minimum": 30000.0,
+     "title": "Duration Ms",
+     "type": "integer"
+    },
+    "language": {
+     "const": "vi",
+     "title": "Language",
+     "type": "string"
+    },
+    "scenes": {
+     "items": {
+      "$ref": "#/components/schemas/ParentStorySceneDisplayV1"
+     },
+     "maxItems": 15,
+     "minItems": 5,
+     "title": "Scenes",
+     "type": "array"
+    },
+    "schema_version": {
+     "const": "sketch2life.story-revision.v1",
+     "title": "Schema Version",
+     "type": "string"
+    },
+    "story": {
+     "$ref": "#/components/schemas/ParentStorySectionsV1"
+    },
+    "title": {
+     "title": "Title",
+     "type": "string"
+    }
+   },
+   "required": [
+    "schema_version",
+    "language",
+    "title",
+    "story",
+    "duration_ms",
+    "scenes"
+   ],
+   "title": "ParentStoryDisplayV1",
+   "type": "object"
+  },
+  "ParentStoryErrorFieldV1": {
+   "properties": {
+    "code": {
+     "title": "Code",
+     "type": "string"
+    },
+    "field": {
+     "title": "Field",
+     "type": "string"
+    },
+    "message": {
+     "title": "Message",
+     "type": "string"
+    }
+   },
+   "required": [
+    "field",
+    "code",
+    "message"
+   ],
+   "title": "ParentStoryErrorFieldV1",
+   "type": "object"
+  },
+  "ParentStoryQuotaSummaryV1": {
+   "additionalProperties": false,
+   "description": "The monthly video quota summary (SRS l.1811, TD-22). Story owns no quota figure: until the\nBilling reader exists the state is the constant ``UNAVAILABLE`` and every figure is null, never\nzero. The field names follow the Billing balance read (granted, used, available, month).",
+   "properties": {
+    "available": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Available"
+    },
+    "granted": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Granted"
+    },
+    "month": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Month"
+    },
+    "state": {
+     "const": "UNAVAILABLE",
+     "default": "UNAVAILABLE",
+     "title": "State",
+     "type": "string"
+    },
+    "used": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Used"
+    }
+   },
+   "title": "ParentStoryQuotaSummaryV1",
+   "type": "object"
+  },
+  "ParentStoryRunCompleteRequestV1": {
+   "additionalProperties": false,
+   "description": "The adult finishes the run at ``VIDEO_READY`` (SRS l.1672): not a video approval.",
+   "properties": {
+    "expected_revision": {
+     "minimum": 1.0,
+     "title": "Expected Revision",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "expected_revision"
+   ],
+   "title": "ParentStoryRunCompleteRequestV1",
+   "type": "object"
+  },
+  "ParentStoryRunEnvelopeV1": {
+   "properties": {
+    "request_id": {
+     "format": "uuid",
+     "title": "Request Id",
+     "type": "string"
+    },
+    "story_run": {
+     "$ref": "#/components/schemas/ParentStoryRunResponseV1"
+    }
+   },
+   "required": [
+    "request_id",
+    "story_run"
+   ],
+   "title": "ParentStoryRunEnvelopeV1",
+   "type": "object"
+  },
+  "ParentStoryRunLifecycleEnvelopeV1": {
+   "additionalProperties": false,
+   "description": "Cancel 202, delete 202, GET of a purged run and the replays of a purged run.",
+   "properties": {
+    "lifecycle": {
+     "$ref": "#/components/schemas/ParentStoryRunLifecycleProjectionV1"
+    },
+    "request_id": {
+     "format": "uuid",
+     "title": "Request Id",
+     "type": "string"
+    }
+   },
+   "required": [
+    "request_id",
+    "lifecycle"
+   ],
+   "title": "ParentStoryRunLifecycleEnvelopeV1",
+   "type": "object"
+  },
+  "ParentStoryRunLifecycleProjectionV1": {
+   "additionalProperties": false,
+   "description": "FR-C-08 content-free projection from DELETE_PENDING on (Contract Draft 11 \u00a73.4).\n\nNo context snapshot, story, candidate, subject label, profile ref, asset ref, count,\npercentage or storage key is ever part of it (SRS lines 1053, 1520, 1809).",
+   "properties": {
+    "lifecycle_request_ref": {
+     "format": "uuid",
+     "title": "Lifecycle Request Ref",
+     "type": "string"
+    },
+    "purge_state": {
+     "enum": [
+      "PENDING",
+      "COMPLETED"
+     ],
+     "title": "Purge State",
+     "type": "string"
+    },
+    "revision": {
+     "minimum": 1.0,
+     "title": "Revision",
+     "type": "integer"
+    },
+    "run_id": {
+     "format": "uuid",
+     "title": "Run Id",
+     "type": "string"
+    },
+    "run_state": {
+     "enum": [
+      "DELETE_PENDING",
+      "DELETED"
+     ],
+     "title": "Run State",
+     "type": "string"
+    },
+    "version": {
+     "minimum": 1.0,
+     "title": "Version",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "run_id",
+    "run_state",
+    "revision",
+    "version",
+    "lifecycle_request_ref",
+    "purge_state"
+   ],
+   "title": "ParentStoryRunLifecycleProjectionV1",
+   "type": "object"
+  },
+  "ParentStoryRunResponseV1": {
+   "properties": {
+    "candidate": {
+     "anyOf": [
+      {
+       "$ref": "#/components/schemas/ParentDrawingCandidateV1"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "context_confirmed": {
+     "title": "Context Confirmed",
+     "type": "boolean"
+    },
+    "context_revision": {
+     "title": "Context Revision",
+     "type": "integer"
+    },
+    "context_snapshot": {
+     "$ref": "#/components/schemas/ParentRunContextSnapshotV1"
+    },
+    "context_snapshot_sha256": {
+     "title": "Context Snapshot Sha256",
+     "type": "string"
+    },
+    "created_at": {
+     "format": "date-time",
+     "title": "Created At",
+     "type": "string"
+    },
+    "current_input_revision": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Current Input Revision"
+    },
+    "error_code": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Error Code"
+    },
+    "job_state": {
+     "anyOf": [
+      {
+       "enum": [
+        "QUEUED",
+        "RUNNING",
+        "SUCCEEDED",
+        "FAILED",
+        "AWAITING_RECONCILIATION"
+       ],
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Job State"
+    },
+    "lesson_pin_snapshot": {
+     "anyOf": [
+      {
+       "$ref": "#/components/schemas/ParentLessonPinSnapshotV1"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "parent_profile_id": {
+     "format": "uuid",
+     "title": "Parent Profile Id",
+     "type": "string"
+    },
+    "profile_revision_ref": {
+     "format": "uuid",
+     "title": "Profile Revision Ref",
+     "type": "string"
+    },
+    "quota": {
+     "$ref": "#/components/schemas/ParentStoryQuotaSummaryV1"
+    },
+    "retryable": {
+     "title": "Retryable",
+     "type": "boolean"
+    },
+    "run_id": {
+     "format": "uuid",
+     "title": "Run Id",
+     "type": "string"
+    },
+    "run_revision": {
+     "minimum": 1.0,
+     "title": "Run Revision",
+     "type": "integer"
+    },
+    "run_state": {
+     "enum": [
+      "DRAFT",
+      "INPUT_PROCESSING",
+      "INPUT_REVIEW",
+      "SUBJECT_REVIEW",
+      "PREPARATION_REVIEW",
+      "STORY_GENERATING",
+      "SCRIPT_REVIEW",
+      "VIDEO_ADMISSION_PENDING",
+      "VIDEO_QUEUED",
+      "VIDEO_GENERATING",
+      "VIDEO_SAFETY_VALIDATING",
+      "VIDEO_READY",
+      "SAFETY_BLOCKED",
+      "COMPLETED",
+      "FAILED",
+      "ABANDONED",
+      "DELETE_PENDING",
+      "DELETED",
+      "SCRIPT_GENERATING",
+      "SCRIPT_GENERATION_UNKNOWN"
+     ],
+     "title": "Run State",
+     "type": "string"
+    },
+    "story": {
+     "anyOf": [
+      {
+       "$ref": "#/components/schemas/ParentStoryDisplayV1"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "story_revision_id": {
+     "anyOf": [
+      {
+       "format": "uuid",
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Story Revision Id"
+    },
+    "story_revision_no": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Story Revision No"
+    },
+    "story_sha256": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Story Sha256"
+    },
+    "story_status": {
+     "anyOf": [
+      {
+       "enum": [
+        "GENERATING",
+        "DRAFT",
+        "CONFIRMED",
+        "SUPERSEDED",
+        "FAILED",
+        "AWAITING_RECONCILIATION"
+       ],
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Story Status"
+    },
+    "subject_label": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Subject Label"
+    },
+    "timeline": {
+     "items": {
+      "$ref": "#/components/schemas/ParentStoryTimelineEventV1"
+     },
+     "title": "Timeline",
+     "type": "array"
+    },
+    "understanding_revision": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Understanding Revision"
+    },
+    "updated_at": {
+     "format": "date-time",
+     "title": "Updated At",
+     "type": "string"
+    },
+    "video": {
+     "anyOf": [
+      {
+       "$ref": "#/components/schemas/ParentStoryRunVideoV1"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    }
+   },
+   "required": [
+    "run_id",
+    "run_revision",
+    "run_state",
+    "parent_profile_id",
+    "profile_revision_ref",
+    "context_revision",
+    "context_confirmed",
+    "context_snapshot",
+    "context_snapshot_sha256",
+    "current_input_revision",
+    "understanding_revision",
+    "subject_label",
+    "candidate",
+    "story_revision_id",
+    "story_revision_no",
+    "story_status",
+    "story_sha256",
+    "story",
+    "job_state",
+    "retryable",
+    "error_code",
+    "created_at",
+    "updated_at"
+   ],
+   "title": "ParentStoryRunResponseV1",
+   "type": "object"
+  },
+  "ParentStoryRunVideoV1": {
+   "additionalProperties": false,
+   "description": "The video part of ``StoryRunDetailV1`` (SRS l.1811, AC-41).\n\n``video_requests_used`` and ``video_requests_remaining`` are the three-request run cap of\nFR-AI-07 (l.573), not the monthly quota. Neither a prompt, a transcript, provider text, a\nstorage key nor a foreign scope is part of it.",
+   "properties": {
+    "admission_pending": {
+     "title": "Admission Pending",
+     "type": "boolean"
+    },
+    "current_generation_id": {
+     "format": "uuid",
+     "title": "Current Generation Id",
+     "type": "string"
+    },
+    "generation_no": {
+     "anyOf": [
+      {
+       "maximum": 3.0,
+       "minimum": 1.0,
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Generation No"
+    },
+    "history": {
+     "items": {
+      "$ref": "#/components/schemas/ParentVideoHistoryItemV1"
+     },
+     "maxItems": 3,
+     "title": "History",
+     "type": "array"
+    },
+    "job": {
+     "anyOf": [
+      {
+       "$ref": "#/components/schemas/ParentVideoJobSummaryV1"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "kind": {
+     "enum": [
+      "INITIAL",
+      "QUALITY_REGEN"
+     ],
+     "title": "Kind",
+     "type": "string"
+    },
+    "playback": {
+     "$ref": "#/components/schemas/ParentVideoPlaybackV1"
+    },
+    "scenes": {
+     "items": {
+      "$ref": "#/components/schemas/ParentVideoSceneStateV1"
+     },
+     "title": "Scenes",
+     "type": "array"
+    },
+    "state": {
+     "enum": [
+      "ADMISSION_PENDING",
+      "ADMISSION_REJECTED",
+      "ACCEPTED",
+      "QUEUED",
+      "GENERATING",
+      "TECHNICAL_VALIDATING",
+      "SAFETY_VALIDATING",
+      "READY",
+      "SAFETY_BLOCKED",
+      "FAILED",
+      "REJECTED_BY_ADULT",
+      "SUPERSEDED"
+     ],
+     "title": "State",
+     "type": "string"
+    },
+    "video_requests_remaining": {
+     "maximum": 3.0,
+     "minimum": 0.0,
+     "title": "Video Requests Remaining",
+     "type": "integer"
+    },
+    "video_requests_used": {
+     "maximum": 3.0,
+     "minimum": 0.0,
+     "title": "Video Requests Used",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "current_generation_id",
+    "generation_no",
+    "kind",
+    "state",
+    "job",
+    "scenes",
+    "playback",
+    "video_requests_used",
+    "video_requests_remaining",
+    "admission_pending",
+    "history"
+   ],
+   "title": "ParentStoryRunVideoV1",
+   "type": "object"
+  },
+  "ParentStorySceneDisplayV1": {
+   "additionalProperties": false,
+   "properties": {
+    "action": {
+     "title": "Action",
+     "type": "string"
+    },
+    "duration_ms": {
+     "maximum": 20000.0,
+     "minimum": 1000.0,
+     "title": "Duration Ms",
+     "type": "integer"
+    },
+    "narration": {
+     "title": "Narration",
+     "type": "string"
+    },
+    "scene_index": {
+     "maximum": 15.0,
+     "minimum": 1.0,
+     "title": "Scene Index",
+     "type": "integer"
+    },
+    "start_ms": {
+     "maximum": 90000.0,
+     "minimum": 0.0,
+     "title": "Start Ms",
+     "type": "integer"
+    },
+    "title": {
+     "title": "Title",
+     "type": "string"
+    }
+   },
+   "required": [
+    "scene_index",
+    "title",
+    "action",
+    "narration",
+    "start_ms",
+    "duration_ms"
+   ],
+   "title": "ParentStorySceneDisplayV1",
+   "type": "object"
+  },
+  "ParentStorySectionsV1": {
+   "additionalProperties": false,
+   "properties": {
+    "ending": {
+     "title": "Ending",
+     "type": "string"
+    },
+    "middle": {
+     "title": "Middle",
+     "type": "string"
+    },
+    "opening": {
+     "title": "Opening",
+     "type": "string"
+    }
+   },
+   "required": [
+    "opening",
+    "middle",
+    "ending"
+   ],
+   "title": "ParentStorySectionsV1",
+   "type": "object"
+  },
+  "ParentStoryTimelineEventV1": {
+   "additionalProperties": false,
+   "properties": {
+    "at": {
+     "format": "date-time",
+     "title": "At",
+     "type": "string"
+    },
+    "event": {
+     "title": "Event",
+     "type": "string"
+    }
+   },
+   "required": [
+    "event",
+    "at"
+   ],
+   "title": "ParentStoryTimelineEventV1",
+   "type": "object"
+  },
+  "ParentVideoGenerationAcceptedV1": {
+   "additionalProperties": false,
+   "description": "202 body: the intent reference and its state (SRS l.1670).",
+   "properties": {
+    "request_id": {
+     "format": "uuid",
+     "title": "Request Id",
+     "type": "string"
+    },
+    "video_generation": {
+     "$ref": "#/components/schemas/ParentVideoGenerationV1"
+    }
+   },
+   "required": [
+    "request_id",
+    "video_generation"
+   ],
+   "title": "ParentVideoGenerationAcceptedV1",
+   "type": "object"
+  },
+  "ParentVideoGenerationRequestV1": {
+   "additionalProperties": false,
+   "description": "The confirmed script the adult asks a video for; the reason only on a regeneration.",
+   "properties": {
+    "expected_revision": {
+     "minimum": 1.0,
+     "title": "Expected Revision",
+     "type": "integer"
+    },
+    "quality_reason_code": {
+     "anyOf": [
+      {
+       "enum": [
+        "QUALITY_LOW",
+        "NOT_MATCHING_STORY",
+        "CONTENT_CONCERN",
+        "OTHER"
+       ],
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Quality Reason Code"
+    },
+    "story_sha256": {
+     "pattern": "^[0-9a-f]{64}$",
+     "title": "Story Sha256",
+     "type": "string"
+    }
+   },
+   "required": [
+    "expected_revision",
+    "story_sha256"
+   ],
+   "title": "ParentVideoGenerationRequestV1",
+   "type": "object"
+  },
+  "ParentVideoGenerationV1": {
+   "additionalProperties": false,
+   "properties": {
+    "generation_id": {
+     "format": "uuid",
+     "title": "Generation Id",
+     "type": "string"
+    },
+    "generation_no": {
+     "anyOf": [
+      {
+       "maximum": 3.0,
+       "minimum": 1.0,
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Generation No"
+    },
+    "job_id": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "description": "Opaque job id to poll through GET /v1/jobs/{job_id}; null until accepted.",
+     "title": "Job Id"
+    },
+    "kind": {
+     "enum": [
+      "INITIAL",
+      "QUALITY_REGEN"
+     ],
+     "title": "Kind",
+     "type": "string"
+    },
+    "run_revision": {
+     "minimum": 1.0,
+     "title": "Run Revision",
+     "type": "integer"
+    },
+    "run_state": {
+     "title": "Run State",
+     "type": "string"
+    },
+    "state": {
+     "enum": [
+      "ADMISSION_PENDING",
+      "ADMISSION_REJECTED",
+      "ACCEPTED",
+      "QUEUED",
+      "GENERATING",
+      "TECHNICAL_VALIDATING",
+      "SAFETY_VALIDATING",
+      "READY",
+      "SAFETY_BLOCKED",
+      "FAILED",
+      "REJECTED_BY_ADULT",
+      "SUPERSEDED"
+     ],
+     "title": "State",
+     "type": "string"
+    }
+   },
+   "required": [
+    "generation_id",
+    "state",
+    "generation_no",
+    "kind",
+    "job_id",
+    "run_state",
+    "run_revision"
+   ],
+   "title": "ParentVideoGenerationV1",
+   "type": "object"
+  },
+  "ParentVideoHistoryItemV1": {
+   "additionalProperties": false,
+   "properties": {
+    "generation_id": {
+     "format": "uuid",
+     "title": "Generation Id",
+     "type": "string"
+    },
+    "generation_no": {
+     "maximum": 3.0,
+     "minimum": 1.0,
+     "title": "Generation No",
+     "type": "integer"
+    },
+    "kind": {
+     "enum": [
+      "INITIAL",
+      "QUALITY_REGEN"
+     ],
+     "title": "Kind",
+     "type": "string"
+    },
+    "state": {
+     "enum": [
+      "ADMISSION_PENDING",
+      "ADMISSION_REJECTED",
+      "ACCEPTED",
+      "QUEUED",
+      "GENERATING",
+      "TECHNICAL_VALIDATING",
+      "SAFETY_VALIDATING",
+      "READY",
+      "SAFETY_BLOCKED",
+      "FAILED",
+      "REJECTED_BY_ADULT",
+      "SUPERSEDED"
+     ],
+     "title": "State",
+     "type": "string"
+    }
+   },
+   "required": [
+    "generation_id",
+    "generation_no",
+    "kind",
+    "state"
+   ],
+   "title": "ParentVideoHistoryItemV1",
+   "type": "object"
+  },
+  "ParentVideoJobSummaryV1": {
+   "additionalProperties": false,
+   "description": "The job of the current generation, with the safe failure code set only (SRS l.875).",
+   "properties": {
+    "error_code": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Error Code"
+    },
+    "job_id": {
+     "title": "Job Id",
+     "type": "string"
+    },
+    "retryable": {
+     "title": "Retryable",
+     "type": "boolean"
+    },
+    "stage": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Stage"
+    },
+    "state": {
+     "enum": [
+      "queued",
+      "running",
+      "succeeded",
+      "failed_exhausted",
+      "blocked_unsafe"
+     ],
+     "title": "State",
+     "type": "string"
+    }
+   },
+   "required": [
+    "job_id",
+    "state",
+    "stage",
+    "retryable",
+    "error_code"
+   ],
+   "title": "ParentVideoJobSummaryV1",
+   "type": "object"
+  },
+  "ParentVideoPlaybackV1": {
+   "additionalProperties": false,
+   "description": "Playback readiness and the route that issues the token; never a token itself.",
+   "properties": {
+    "asset_ref": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Asset Ref"
+    },
+    "state": {
+     "enum": [
+      "AVAILABLE",
+      "HIDDEN",
+      "UNAVAILABLE"
+     ],
+     "title": "State",
+     "type": "string"
+    },
+    "token_route": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Token Route"
+    }
+   },
+   "required": [
+    "state",
+    "asset_ref",
+    "token_route"
+   ],
+   "title": "ParentVideoPlaybackV1",
+   "type": "object"
+  },
+  "ParentVideoSceneStateV1": {
+   "additionalProperties": false,
+   "properties": {
+    "scene_index": {
+     "maximum": 15.0,
+     "minimum": 1.0,
+     "title": "Scene Index",
+     "type": "integer"
+    },
+    "state": {
+     "enum": [
+      "QUEUED",
+      "GENERATING",
+      "READY",
+      "FAILED"
+     ],
+     "title": "State",
+     "type": "string"
+    }
+   },
+   "required": [
+    "scene_index",
+    "state"
+   ],
+   "title": "ParentVideoSceneStateV1",
+   "type": "object"
+  },
+  "ParentVideoUnsuitableRequestV1": {
+   "additionalProperties": false,
+   "description": "The adult marks the current ready video as not suitable (SRS l.1671).\n\n``generation_id`` is the generation the adult saw (the run's current one); the reason is the\nclosed safe set, never free text. ``expected_revision`` is the stale guard of the Story family.",
+   "properties": {
+    "expected_revision": {
+     "minimum": 1.0,
+     "title": "Expected Revision",
+     "type": "integer"
+    },
+    "generation_id": {
+     "format": "uuid",
+     "title": "Generation Id",
+     "type": "string"
+    },
+    "reason_code": {
+     "enum": [
+      "QUALITY_LOW",
+      "NOT_MATCHING_STORY",
+      "CONTENT_CONCERN",
+      "OTHER"
+     ],
+     "title": "Reason Code",
+     "type": "string"
+    }
+   },
+   "required": [
+    "expected_revision",
+    "generation_id",
+    "reason_code"
+   ],
+   "title": "ParentVideoUnsuitableRequestV1",
+   "type": "object"
+  }
+ }
+}

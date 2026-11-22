@@ -416,10 +416,168 @@ class LessonPlanRevisionPageV1(BaseModel):
     next_cursor: str | None = None
 
 
+# ----------------------------------------------------------------------------- child selection
+ChildSelectionStateV1 = Literal[
+    "OPEN", "CONFIRMED", "CONSUMED", "EXPIRED", "STALE", "VOID", "EMPTY", "STOPPED"
+]
+
+
+class CreateChildSelectionRequestV1(BaseModel):
+    """Body of ``POST .../child-selections``: nothing. No field chooses, filters or orders the
+    candidate set and none names a child (SRS l.341, l.549)."""
+
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+
+class ConfirmChildSelectionRequestV1(BaseModel):
+    """Body of ``POST .../child-selections/{selection_id}/confirmation`` (SRS l.346, l.352).
+
+    ``expected_selection_sha256`` is the ``selection_sha256`` the Teacher read, so the Teacher
+    confirms exactly the offer that was shown; the selection revision travels in ``If-Match``.
+    """
+
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    expected_selection_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+
+
+class ChildSelectionChildV1(BaseModel):
+    """The offered child, read live from the profile row and never stored with the selection."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    profile_id: str
+    display_name: str
+    age_months: int
+
+
+class ChildSelectionPlanV1(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    revision_no: int
+    plan_hash: str
+
+
+class ChildSelectionV1(BaseModel):
+    """One answer of the selection routes (SRS l.341-352, AC-56).
+
+    ``child`` is present only while the offer is live (``OPEN`` or ``CONFIRMED``), not expired and
+    the child is still eligible; every other answer carries no child data and no reason per child
+    (l.347). ``selection_id`` and ``revision`` are null when no row is behind the answer.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    contract: Literal["ChildSelectionV1"] = "ChildSelectionV1"
+    selection_id: str | None = None
+    occurrence_id: str
+    outcome: Literal["SELECTED", "NO_ELIGIBLE_CHILD"]
+    state: ChildSelectionStateV1
+    revision: int | None = None
+    draw_no: int | None = None
+    reselect_available: bool
+    issued_at: datetime | None = None
+    expires_at: datetime | None = None
+    confirmation_expires_at: datetime | None = None
+    selection_sha256: str | None = None
+    plan: ChildSelectionPlanV1 | None = None
+    consumed_run_ref: str | None = None
+    child: ChildSelectionChildV1 | None = None
+
+
+# ----------------------------------------------------------------------------- class projection
+_CANONICAL_UUID = r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+
+
+class ProjectionConfirmationRequestV1(BaseModel):
+    """Body of ``POST .../projection-confirmation`` (SRS l.1661, l.777, FR-T-16 l.555).
+
+    The pair ``(run_id, generation_id)`` must be the current playable sample of the occurrence.
+    ``audience`` and ``use`` are the explicit acknowledgement the SRS asks for without naming
+    values (T-5a OPEN-3): the single literals ``CLASS`` and ``CLASS_PROJECTION``; any other value
+    is ``INVALID_REQUEST``. The occurrence revision travels in ``If-Match``.
+    """
+
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    run_id: str = Field(pattern=_CANONICAL_UUID)
+    generation_id: str = Field(pattern=_CANONICAL_UUID)
+    audience: Literal["CLASS"]
+    use: Literal["CLASS_PROJECTION"]
+
+
+class ProjectionAssignmentV1(BaseModel):
+    """The assignment version of SRS l.777: the class revision (a Teacher assignment bumps it)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    class_revision: int
+
+
+class ProjectionPlanV1(BaseModel):
+    """The plan the sample run is pinned to; ``is_current`` is false when a newer plan was
+    approved after the run was created (SRS l.2697: the old READY output stays pinned)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    revision_no: int
+    plan_hash: str
+    is_current: bool
+
+
+class ProjectionSampleVideoV1(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    slot_state: Literal["AVAILABLE", "CLAIMED"]
+    claimed_at: datetime | None = None
+    run_ref: str | None = None
+
+
+class ClassProjectionConfirmationV1(BaseModel):
+    """The receipt of a class projection confirmation (SRS l.777): references and times only, no
+    child name, no media key, no token and no capability for class members."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    contract: Literal["ClassProjectionConfirmationV1"] = "ClassProjectionConfirmationV1"
+    occurrence_id: str
+    run_id: str
+    generation_id: str
+    audience: Literal["CLASS"]
+    use: Literal["CLASS_PROJECTION"]
+    confirmed_at: datetime
+    confirmed_by_ref: str
+    assignment: ProjectionAssignmentV1
+    plan: ProjectionPlanV1
+    occurrence_revision: int
+    sample_video: ProjectionSampleVideoV1
+
+
+class ProjectionPlaybackTokenV1(BaseModel):
+    """A short-lived token for the Teacher who controls the class projection (SRS l.1662). The
+    token is a bearer secret sent only in the ``X-Playback-Token`` header of the stream route; it
+    names no storage location (l.1692)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    contract: Literal["ProjectionPlaybackTokenV1"] = "ProjectionPlaybackTokenV1"
+    token: str
+    expires_at: datetime
+    stream_path: str
+    media_type: Literal["video/mp4"]
+
+
 __all__ = [
     "ApprovedPlanSummaryV1",
     "AttachOccurrenceDocumentRequestV1",
+    "ChildSelectionChildV1",
+    "ChildSelectionPlanV1",
+    "ChildSelectionStateV1",
+    "ChildSelectionV1",
+    "ClassProjectionConfirmationV1",
+    "ConfirmChildSelectionRequestV1",
     "ConfirmPlanRevisionRequestV1",
+    "CreateChildSelectionRequestV1",
     "CreateLessonOccurrenceRequestV1",
     "CreatePlanRevisionRequestV1",
     "DocumentParserV1",
@@ -443,5 +601,10 @@ __all__ = [
     "PlanChecklistEntryV1",
     "PlanChecklistItemV1",
     "PlanDocumentRefV1",
+    "ProjectionAssignmentV1",
+    "ProjectionConfirmationRequestV1",
+    "ProjectionPlanV1",
+    "ProjectionPlaybackTokenV1",
+    "ProjectionSampleVideoV1",
     "SampleVideoStateV1",
 ]

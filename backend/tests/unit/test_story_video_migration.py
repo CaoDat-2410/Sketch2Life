@@ -110,7 +110,10 @@ def test_the_head_counts_stay_fifteen_and_ten() -> None:
     heads_down_only = {rev for rev in graph if rev not in down_targets}
     heads_with_depends = {rev for rev in graph if rev not in dependency_targets}
     assert (len(heads_down_only), len(heads_with_depends)) == (15, 10)
-    assert _REVISION in heads_down_only and _PARENT not in heads_down_only
+    # T-4b2: ``20261120_b2_0001`` (DDL-B2) follows this revision and is the head of the branch now.
+    assert _REVISION not in heads_down_only and _PARENT not in heads_down_only
+    assert "20261120_b2_0001" in heads_down_only
+    assert {rev for rev, (downs, _) in graph.items() if _REVISION in downs} == {"20261120_b2_0001"}
 
 
 # --------------------------------------------------------------- the two replaced CHECK sets

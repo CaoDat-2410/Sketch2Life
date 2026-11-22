@@ -404,8 +404,10 @@ def test_revision_is_the_only_child_of_cls_0002_and_ends_the_library_chain() -> 
         for down in downs:
             children.setdefault(down, set()).add(revision)
     assert children["20261120_cls_0002"] == {"20261120_nt_0001"}
-    # Nothing chains on it yet (T-8b, deferred, will be its child).
-    assert "20261120_nt_0001" not in children
+    # FEAT-066 T-4b1: 20261120_sel_0001 (the child-selection table) is its only child now; T-8b
+    # (deferred) would chain after that head.
+    assert children["20261120_nt_0001"] == {"20261120_sel_0001"}
+    assert "20261120_sel_0001" not in children
 
 
 def test_orm_matches_the_migration_columns_checks_unique_and_indexes() -> None:

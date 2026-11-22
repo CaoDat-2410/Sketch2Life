@@ -465,7 +465,15 @@ def test_the_class_teacher_reads_and_confirms_every_post_create_step(api: Api) -
     teacher_view = read.json()["story_run"]
     parent_run = seed_run(api, teacher=False)
     parent_view = call(api, "read", parent_run, "parent").json()["story_run"]
-    assert set(teacher_view) == set(parent_view)  # one response shape for both actors
+    # T-4b2 D10: the Teacher view is the Parent view with a string profile ref in place of the
+    # Parent profile UUID and the occurrence, plan and activity pins (None for this fixture row)
+    assert set(teacher_view) == (set(parent_view) - {"parent_profile_id"}) | {
+        "profile_ref",
+        "occurrence_id",
+        "plan",
+        "activity",
+    }
+    assert teacher_view["occurrence_id"] is None and teacher_view["plan"] is None
     assert teacher_view["run_id"] == context_run and teacher_view["context_confirmed"] is False
     assert read.headers["etag"] and read.headers["cache-control"] == "private, no-cache"
     assert call(api, "read", context_run, "t1").headers["etag"] == read.headers["etag"]
@@ -697,12 +705,20 @@ def test_a_withdrawn_child_keeps_the_run_readable_for_the_class_teacher(api: Api
 
 
 # ==================================================================== the typed ref and purge
-def test_a_non_uuid_child_id_is_a_409_not_a_500_and_never_retryable(api: Api) -> None:
+def test_a_non_uuid_child_id_reads_and_confirms_as_the_teacher_view(api: Api) -> None:
+    """T-4b2 D10 retired T-4a1-DEC-7: no 409 on the read, no commit-then-409 on a write."""
     run_id = seed_run(api, teacher=True, profile_ref=api.fx.synthetic_child)
     response = call(api, "read", run_id, "t1")
-    assert response.status_code == 409, response.text
-    body = response.json()
-    assert body["code"] == "INVALID_STATE_TRANSITION" and body.get("retryable") is False
+    assert response.status_code == 200, response.text
+    view = response.json()["story_run"]
+    assert view["profile_ref"] == {"kind": "MANAGED_PROFILE", "id": api.fx.synthetic_child}
+    assert "parent_profile_id" not in view
+    confirmed = call(api, "context", run_id, "t1", key="non-uuid-context")
+    assert confirmed.status_code == 200, confirmed.text
+    assert confirmed.json()["story_run"]["context_confirmed"] is True
+    assert confirmed.json()["story_run"]["profile_ref"]["id"] == api.fx.synthetic_child
+    replay = call(api, "context", run_id, "t1", key="non-uuid-context")
+    assert replay.status_code == 200 and replay.json()["story_run"]["context_confirmed"] is True
 
 
 def test_a_run_being_deleted_reaches_the_class_teacher_content_free_and_a_tombstone_does_not(
@@ -766,7 +782,7 @@ def test_a_teacher_cannot_create_list_or_reach_parent_only_steps(
             "/v1/story-runs", json={"parent_profile_id": str(uuid4())}, headers=headers
         ),
         api.client.get("/v1/story-runs", headers=headers),
-        api.client.get("/v1/story-runs/active/current", headers=headers),
+        # (the active run is the Teacher's own since T-4b2: its own assertion below)
         # cancel and DELETE are open to the class Teacher since T-13a (its own PostgreSQL module)
         api.client.get(f"/v1/story-runs/{run_id}/transcript", headers=headers),
         api.client.post(f"/v1/story-runs/{run_id}/playback-token", headers=headers),
@@ -778,6 +794,9 @@ def test_a_teacher_cannot_create_list_or_reach_parent_only_steps(
         assert wire(response) == unknown, response.request.url
     row = run_row(api, run_id)
     assert row["run_state"] == "PREPARATION_REVIEW" and row["revision"] == 3
+    # the active run of a Teacher is the one its Teacher lock holds: a fixture row holds none
+    active = api.client.get("/v1/story-runs/active/current", headers=headers)
+    assert active.status_code == 200 and active.json()["story_run"] is None
 
 
 def test_a_teacher_gets_no_upload_target_for_a_teacher_run_and_no_parent_prefix(api: Api) -> None:

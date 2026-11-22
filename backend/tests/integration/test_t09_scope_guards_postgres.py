@@ -253,6 +253,12 @@ def test_story_run_routes_wrong_role_is_404_and_parent_is_200(t09_api: T09Api) -
         "stranger",
     ):
         paths = ("/v1/story-runs", "/v1/story-runs/active/current", f"/v1/story-runs/{uuid4()}")
+        if user == "teacher_class":
+            # T-4b2: the class Teacher reads its own active run (the Teacher lock): an empty answer
+            # when it holds none; the history list and an unknown run stay the uniform 404
+            active = api.client.get("/v1/story-runs/active/current", headers=api.headers(user))
+            assert active.status_code == 200 and active.json()["story_run"] is None, active.text
+            paths = tuple(path for path in paths if path != "/v1/story-runs/active/current")
         for path in paths:
             response = api.client.get(path, headers=api.headers(user))
             assert response.status_code == 404, (user, path, response.text)

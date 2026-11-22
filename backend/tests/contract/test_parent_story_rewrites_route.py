@@ -162,7 +162,7 @@ def client(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
     monkeypatch.setattr(
         runtime_module, "get_core_database_settings", lambda: SimpleNamespace(database_url=None)
     )
-    monkeypatch.setattr(input_routes, "SqlParentStoryRunRepository", _Repository)
+    monkeypatch.setattr(input_routes, "story_run_repository", lambda db, _actor: _Repository(db))
     monkeypatch.setattr(input_routes, "ParentStoryRewriteRunner", _Runner)
     monkeypatch.setattr(story_routes, "_service", lambda _db: _SubjectService())
     monkeypatch.setattr(story_routes, "ParentInputJobRunner", _InputRunner)
@@ -387,7 +387,7 @@ def test_the_idempotency_key_is_required_and_parsed_after_the_role_check(
     assert _rewrite(client, key="x" * 129).status_code == 400
     assert _rewrite(client, key="bad key\x7f").status_code == 400
     assert _Repository.calls == []
-    _use_db(client, _Db("teacher"))
+    _use_db(client, _Db("school_manager"))
     assert _rewrite(client, key=None).status_code == 400  # header validation precedes the guard
     assert _rewrite(client).status_code == 404  # a valid key from a non-Parent is the 404
 
@@ -524,8 +524,17 @@ def test_a_stale_revision_carries_current_version_and_other_conflicts_do_not(
         _Db("platform_admin"),
         _Db("parent", state="suspended"),
         _Db("parent", issuer="another-issuer"),
+        _Db("teacher", state="suspended"),
     ],
-    ids=["no-identity", "teacher", "manager", "admin", "inactive", "other-issuer"],
+    ids=[
+        "no-identity",
+        "teacher",
+        "manager",
+        "admin",
+        "inactive",
+        "other-issuer",
+        "inactive-teacher",
+    ],
 )
 def test_a_non_parent_or_inactive_caller_gets_the_same_404_as_an_unknown_run(
     client: TestClient, db: _Db, monkeypatch: pytest.MonkeyPatch
@@ -536,16 +545,19 @@ def test_a_non_parent_or_inactive_caller_gets_the_same_404_as_an_unknown_run(
     assert unknown_run[0] == 404 and unknown_run[1]["code"] == "RESOURCE_NOT_FOUND"
     _Repository.calls = []
     _use_db(client, db)
-    # story-rewrites stays Parent-only (T-4a1-DEC-4): a Teacher is stopped by the guard.
+    # T-4b3a: story-rewrites admits a Teacher; the guard stops everyone else, so the uniform 404
+    # of a Teacher is the repository's (it answers the same 404 for an unassigned run).
     assert _wire(_rewrite(client)) == unknown_run
-    assert _Repository.calls == []  # the guard ran first
+    is_teacher_caller = db._identity is not None and (
+        db._identity.account_role == "teacher" and db._identity.state == "active"
+    )
+    assert bool(_Repository.calls) == is_teacher_caller  # every other caller stops at the guard
     _SubjectService.result = ParentStoryRunError(404, "RESOURCE_NOT_FOUND")
     # T-4a1: the subject confirmation also admits a Teacher, whose service answers the same 404
     # for an unassigned run; every other wrong caller never reaches a service.
     monkeypatch.setattr(story_routes, "_teacher_service", lambda _db, _actor: _SubjectService())
     assert _wire(_subject(client)) == unknown_run
-    is_teacher = db._identity is not None and db._identity.account_role == "teacher"
-    assert bool(_SubjectService.calls) == is_teacher
+    assert bool(_SubjectService.calls) == is_teacher_caller
 
 
 # ------------------------------------------------------------------------- subject confirmation

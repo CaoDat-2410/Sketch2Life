@@ -253,6 +253,20 @@ class FirstOwnedParentJobs:
         return None
 
 
+class TeacherJobScopePort(Protocol):
+    """Seam for the video generation of a Teacher run (T-4b3b D14). ``owned_job`` returns the job
+    only when the actor is the CURRENT responsible Teacher of the run's occurrence (the shared
+    occurrence-pin rule, no organization role, no class membership, never ``created_by_actor_ref``);
+    an implementation that owns none answers ``None``."""
+
+    def owned_job(self, actor: JobActor, job_id: str) -> AiJob | None: ...
+
+
+class NoTeacherJobs:
+    def owned_job(self, actor: JobActor, job_id: str) -> AiJob | None:
+        return None
+
+
 class JobNotVisible(Exception):
     """One outcome for missing, unregistered, out-of-scope and unreadable jobs (SRS l.865)."""
 
@@ -287,12 +301,14 @@ class JobStatusReader:
         *,
         poll_policy: JobPollPolicy = SRS_JOB_POLL_POLICY,
         parent_jobs: ParentJobScopePort | None = None,
+        teacher_jobs: TeacherJobScopePort | None = None,
     ) -> None:
         self._repository = repository
         self._registry = registry
         self._clock = clock
         self._poll_policy = poll_policy
         self._parent_jobs: ParentJobScopePort = parent_jobs or NoParentJobs()
+        self._teacher_jobs: TeacherJobScopePort = teacher_jobs or NoTeacherJobs()
 
     def read(
         self, actor: JobActor, job_id: str, if_none_match: str | None = None
@@ -304,6 +320,9 @@ class JobStatusReader:
         with self._repository.transaction() as tx:
             job = tx.get_job(job_id)
         if job is None:
+            if actor.account_role == "teacher":
+                # No ``ai_jobs`` row: a video generation of a Teacher run is the generation row.
+                return self._read_teacher_run_job(actor, job_id, if_none_match)
             raise JobNotVisible
         spec = self._registry.for_job_type(job.job_type)
         membership = actor.membership_for(job.organization_id)
@@ -330,6 +349,16 @@ class JobStatusReader:
         if job is None or spec is None:
             raise JobNotVisible
         # Ownership is the port's decision; the Parent sees the full projection of its own job.
+        return self._render(job, spec, PrincipalRole.TEACHER, if_none_match)
+
+    def _read_teacher_run_job(
+        self, actor: JobActor, job_id: str, if_none_match: str | None
+    ) -> JobStatusRead:
+        job = self._teacher_jobs.owned_job(actor, job_id)
+        spec = None if job is None else self._registry.for_job_type(job.job_type)
+        if job is None or spec is None:
+            raise JobNotVisible
+        # Ownership is the port's decision; the result refs stay withheld by the kind's rule.
         return self._render(job, spec, PrincipalRole.TEACHER, if_none_match)
 
     def _render(
@@ -361,10 +390,12 @@ __all__ = [
     "JobTargetKind",
     "LESSON_SOURCE_EXTRACTION_JOB_TYPE",
     "NoParentJobs",
+    "NoTeacherJobs",
     "ParentJobScopePort",
     "ResultEligibility",
     "ScopeRule",
     "SourceDocumentClassLookup",
+    "TeacherJobScopePort",
     "build_job_kind_registry",
     "deny_organization_actors",
     "deny_scope",

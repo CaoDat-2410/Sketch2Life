@@ -42,8 +42,8 @@ ScopeKind = Literal["PARENT_ACCOUNT", "ORGANIZATION"]
 class VideoRequestScope:
     """The owner scope of a request: an opaque kind and reference, never a name or an e-mail.
 
-    Only ``PARENT_ACCOUNT`` is exercised; ``ORGANIZATION`` is the Teacher seam (T-4a1) and no code
-    path of this task reads it.
+    ``PARENT_ACCOUNT`` for a Parent run; ``ORGANIZATION`` plus the organization id for a Teacher run
+    (BR-38 l.282, T-4b3b). The ports only forward it; they never branch on the kind.
     """
 
     kind: ScopeKind
@@ -270,6 +270,23 @@ class PlaybackGrant:
     generation_id: str
     actor_digest: str
     expires_at: int
+    # T-5a: a class projection token also names its audience, the occurrence and the confirmation
+    # it was issued under (SRS l.1662, l.1691). All three are ``None`` for an owner-view token.
+    audience: str | None = None
+    occurrence_id: str | None = None
+    confirmed_ms: int | None = None
+
+
+PROJECTION_AUDIENCE_CLAIM: Final = "projection"
+
+
+@dataclass(frozen=True, slots=True)
+class ProjectionClaims:
+    """The extra signed claims of a class projection token (T-5a): the occurrence and the
+    confirmation time (whole milliseconds, truncated) the token was issued under."""
+
+    occurrence_id: str
+    confirmed_ms: int
 
 
 class PlaybackTokenError(Exception):
@@ -282,8 +299,16 @@ class PlaybackTokenError(Exception):
 
 
 class PlaybackTokenPort(Protocol):
-    def issue(self, *, run_id: str, generation_id: str, actor_digest: str) -> tuple[str, int]:
-        """A new token and its expiry (epoch seconds)."""
+    def issue(
+        self,
+        *,
+        run_id: str,
+        generation_id: str,
+        actor_digest: str,
+        projection: ProjectionClaims | None = None,
+    ) -> tuple[str, int]:
+        """A new token and its expiry (epoch seconds); with ``projection`` a class projection
+        token (T-5a), without it the owner-view token of T-1c."""
         ...
 
     def verify(self, token: str) -> PlaybackGrant:
@@ -293,6 +318,46 @@ class PlaybackTokenPort(Protocol):
     def actor_binding(self, scope_ref: str) -> str:
         """The digest a token carries for an owner scope reference."""
         ...
+
+
+class ProjectionAuthorizationPort(Protocol):
+    """The Lesson-owned half of every projection stream request (T-5a; SRS l.1691-1693).
+
+    Story asks one question and gets one boolean: is the confirmation the token was issued under
+    still the current one? Lesson answers from the occurrence, the CURRENT assignment and the class
+    state; any doubt is ``False`` (the stream then answers the uniform 404).
+    """
+
+    def confirmation_is_current(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        run_id: str,
+        generation_id: str,
+        occurrence_id: str,
+        confirmed_ms: int,
+    ) -> bool: ...
+
+
+@dataclass(frozen=True, slots=True)
+class SampleFacts:
+    """What the class projection needs to know about one run (T-5a): read by ``sample_facts``, the
+    only Story read of Lesson code. No storage key, no name, no seed.
+
+    ``playable`` is the single T-1a/T-1c predicate (``is_playable``: run ``VIDEO_READY``, current
+    generation ``READY``, every validation ``PASSED``, an output). The plan pin is read from the
+    CURRENT input revision (T-4b2 D3: copied forward into every revision).
+    """
+
+    run_id: str
+    occurrence_ref: str | None
+    run_state: str
+    generation_id: str | None
+    ready_at: datetime | None
+    playable: bool
+    plan_revision_id: str | None
+    plan_revision_no: int | None
+    plan_hash: str | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -422,8 +487,11 @@ __all__ = [
     "PlaybackTokenError",
     "PlaybackTokenPort",
     "PlaybackTarget",
+    "PROJECTION_AUDIENCE_CLAIM",
     "ProgressEvent",
     "ProgressResult",
+    "ProjectionAuthorizationPort",
+    "ProjectionClaims",
     "QUOTA_CONTRACT_VERSION",
     "QuotaResult",
     "QuotaStatus",
@@ -431,6 +499,7 @@ __all__ = [
     "ReservationStatus",
     "RunCommandResult",
     "RunVideoRows",
+    "SampleFacts",
     "ScopeKind",
     "StoryVideoAdapters",
     "StoryVideoRepository",

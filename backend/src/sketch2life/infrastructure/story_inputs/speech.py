@@ -38,8 +38,10 @@ from sketch2life.application.ports.parent_story_inputs import (
     SpeechTranscriptionResult,
 )
 from sketch2life.application.ports.parent_story_runs import ParentStoryRunError
+from sketch2life.application.ports.story_run_actor import RunActor
 from sketch2life.infrastructure.persistence.parent_story_repository import (
     SqlParentStoryRunRepository,
+    job_side_repository,
 )
 
 _LOGGER = logging.getLogger("sketch2life.api")
@@ -70,11 +72,21 @@ class ParentSpeechJobRunner:
         self._session_factory = session_factory
         self._transcriber = transcriber
 
-    def run(self, principal: VerifiedPrincipal, run_id: str, transcript_revision_id: str) -> None:
-        """Never raises: a background task has no caller to report to; failures are recorded."""
+    def run(
+        self,
+        principal: VerifiedPrincipal,
+        run_id: str,
+        transcript_revision_id: str,
+        actor: RunActor | None = None,
+        organization_id: str | None = None,
+    ) -> None:
+        """Never raises: a background task has no caller to report to; failures are recorded.
+
+        For a Teacher run ``actor`` and the ``organization_id`` the route saw select the job-side
+        repository (T-4b3a D6); a Parent run passes neither and is the unchanged Parent path."""
         session = self._session_factory()
         try:
-            self._run(session, principal, run_id, transcript_revision_id)
+            self._run(session, principal, run_id, transcript_revision_id, actor, organization_id)
         except ParentStoryRunError as exc:
             # Stale or purged work is discarded; a store outage leaves the transcript PENDING.
             _LOGGER.info("parent_speech_job_discarded code=%s", exc.code)
@@ -89,8 +101,14 @@ class ParentSpeechJobRunner:
         principal: VerifiedPrincipal,
         run_id: str,
         transcript_revision_id: str,
+        actor: RunActor | None,
+        organization_id: str | None,
     ) -> None:
-        repository = SqlParentStoryRunRepository(session)
+        repository = (
+            SqlParentStoryRunRepository(session)
+            if actor is None
+            else job_side_repository(session, actor, organization_id)
+        )
         request = repository.read_pending_transcription(
             principal=principal, run_id=run_id, transcript_revision_id=transcript_revision_id
         )

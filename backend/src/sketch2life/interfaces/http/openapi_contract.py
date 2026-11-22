@@ -11081,17 +11081,22 @@ MOUNTED_OPERATIONS[('patch', '/v1/parent/profiles/{profile_id}')] = {
 }
 
 MOUNTED_OPERATIONS[('post', '/v1/story-runs')] = {
-    'purpose': 'Create a Parent StoryRun from one owned synthetic profile and an optional pinned lesson version.',
+    'purpose': 'Create a Parent StoryRun from one owned synthetic profile and an optional pinned lesson version. '
+               'An active Teacher sends the Teacher body instead: the confirmed child selection, the occurrence, '
+               'the approved plan revision and hash, and one activity of that plan.',
     'request_inputs': 'header `Idempotency-Key*`: string; application/json (required): '
                       'ParentStoryRunCreateRequestV1 {parent_profile_id*:uuid, topic:string, '
-                      'adult_confirmed_idea:string, lesson_version:ParentLessonVersionRefV1|null}',
+                      'adult_confirmed_idea:string, lesson_version:ParentLessonVersionRefV1|null} or '
+                      'TeacherStoryRunCreateRequestV1 {profile_ref*:{kind*,id*}, occurrence_id*:string, '
+                      'plan*:{revision_no*,plan_hash*}, activity_id*:string, selection_id*:uuid, '
+                      'selection_sha256*:string}',
     'surface': 'Parent / StoryRun integration proposal',
     'tag': 'Parent StoryRuns',
     'handler': 'parent_story_runs.py::create_parent_story_run',
     'authentication': 'HTTPBearer (bearer)',
     'verification': 'Rev60 §21.2 alignment; context confirmation remains a proposal',
     'responses': (
-        {'status': '201', 'description': 'StoryRun created, or the lifecycle projection when a replayed run is pending deletion or deleted', 'media_type': 'application/json',
+        {'status': '201', 'description': 'StoryRun created (the Teacher view for a Teacher body), or the lifecycle projection when a replayed run is pending deletion or deleted', 'media_type': 'application/json',
          'schema_name': 'ParentStoryRunEnvelopeV1'},
         {'status': '400', 'description': 'The request is invalid', 'media_type': 'application/json',
          'schema_name': 'ParentStoryErrorEnvelopeV1'},
@@ -11166,7 +11171,7 @@ MOUNTED_OPERATIONS[('get', '/v1/story-runs')] = {
     ),
 }
 MOUNTED_OPERATIONS[('get', '/v1/story-runs/active/current')] = {
-    'purpose': 'Resume the verified Parent principal’s active StoryRun, if one exists.',
+    'purpose': 'Resume the verified Parent principal’s active StoryRun, or the one active run a Teacher holds, if one exists.',
     'request_inputs': 'No path/query/header/body input declared in OpenAPI',
     'surface': 'Parent / StoryRun integration proposal',
     'tag': 'Parent StoryRuns',
@@ -11180,7 +11185,8 @@ MOUNTED_OPERATIONS[('get', '/v1/story-runs/active/current')] = {
          'schema_name': 'ParentStoryErrorEnvelopeV1'},
         {'status': '401', 'description': 'Authentication is required', 'media_type': 'application/json',
          'schema_name': 'ParentStoryErrorEnvelopeV1'},
-        {'status': '404', 'description': 'The resource was not found, or the caller is not an active Parent',
+        {'status': '404', 'description': 'The requested resource was not found, or the caller is neither an active Parent '
+                                         'nor the Teacher currently assigned to the child\'s class',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
         {'status': '409', 'description': 'The request conflicts with current state',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
@@ -11290,9 +11296,10 @@ _ASSET_ERROR_DESCRIPTIONS: Final[dict[str, str]] = {
     "400": "The request or the idempotency key is invalid (`INVALID_REQUEST`, "
     "`INVALID_IDEMPOTENCY_KEY`)",
     "401": "Authentication is required",
-    "404": "The run or the asset was not found, or the caller is not its active Parent owner",
+    "404": "The run or the asset was not found, or the caller is neither its active Parent owner "
+    "nor the Teacher currently responsible for the run",
     "409": "The run state or revision does not allow this drawing (`INVALID_STATE_TRANSITION`, "
-    "`STALE_REVISION` with `current_version`)",
+    "also a Teacher whose class is not active; `STALE_REVISION` with `current_version`)",
     "413": "The image is too large (`MEDIA_TOO_LARGE`)",
     "415": "The asset is not a drawing image (`UNSUPPORTED_MEDIA_TYPE`)",
     "422": "The image failed validation (`IMAGE_DIMENSIONS_EXCEEDED`, `UPLOAD_INCOMPLETE`, "
@@ -11382,9 +11389,10 @@ _IDEA_ERROR_DESCRIPTIONS: Final[dict[str, str]] = {
     "400": "The request or the idempotency key is invalid (`INVALID_REQUEST`, "
     "`INVALID_IDEMPOTENCY_KEY`)",
     "401": "Authentication is required",
-    "404": "The run or the audio was not found, or the caller is not its active Parent owner",
+    "404": "The run or the audio was not found, or the caller is neither its active Parent owner "
+    "nor the Teacher currently responsible for the run",
     "409": "The run state or a revision does not allow this command (`INVALID_STATE_TRANSITION`, "
-    "`STALE_REVISION` with `current_version`)",
+    "also a Teacher whose class is not active; `STALE_REVISION` with `current_version`)",
     "413": "The audio is too large or too long (`AUDIO_TOO_LARGE`)",
     "415": "The asset is not accepted audio (`UNSUPPORTED_MEDIA_TYPE`)",
     "422": "The audio failed validation (`UPLOAD_CONTENT_MISMATCH`, `UPLOAD_INCOMPLETE`, "
@@ -11396,9 +11404,11 @@ _TRANSCRIPT_ERROR_DESCRIPTIONS: Final[dict[str, str]] = {
     "400": "The request or the idempotency key is invalid (`INVALID_REQUEST` with `field_errors` "
     "when the text is too long, `INVALID_IDEMPOTENCY_KEY`)",
     "401": "Authentication is required",
-    "404": "The run was not found, or the caller is not its active Parent owner",
+    "404": "The run was not found, or the caller is neither its active Parent owner nor the "
+    "Teacher currently responsible for the run",
     "409": "The run state or the transcript revision does not allow this "
-    "(`INVALID_STATE_TRANSITION`, `STALE_REVISION` with `current_version`)",
+    "(`INVALID_STATE_TRANSITION`, also a Teacher whose class is not active; `STALE_REVISION` "
+    "with `current_version`)",
     "422": "Validation uses the standard error envelope",
     "503": "A required service is unavailable",
     "500": "An unexpected error occurred",
@@ -11607,9 +11617,10 @@ _REWRITE_ERROR_DESCRIPTIONS: Final[dict[str, str]] = {
     "400": "The request or the idempotency key is invalid (`INVALID_REQUEST`, "
     "`INVALID_IDEMPOTENCY_KEY`)",
     "401": "Authentication is required",
-    "404": "The run was not found, or the caller is not its active Parent owner",
-    "409": "The run state does not allow a rewrite (`INVALID_STATE_TRANSITION`), the story "
-    "revision or hash is stale (`STALE_REVISION` with `current_version`), or the three rewrites are "
+    "404": "The run was not found, or the caller is neither its active Parent owner nor the "
+    "Teacher currently responsible for the run",
+    "409": "The run state does not allow a rewrite (`INVALID_STATE_TRANSITION`, also a Teacher "
+    "whose class is not active), the story revision or hash is stale (`STALE_REVISION` with `current_version`), or the three rewrites are "
     "used (`STORY_REWRITE_LIMIT_REACHED`)",
     "422": "A precondition of the story is not met (`SUBJECT_NOT_CONFIRMED`, "
     "`PROFILE_CONTEXT_NOT_CONFIRMED`, `TRANSCRIPT_NOT_CONFIRMED`)",
@@ -11686,9 +11697,11 @@ _VIDEO_GENERATION_ERROR_DESCRIPTIONS: Final[dict[str, str]] = {
     "400": "The request or the idempotency key is invalid (`INVALID_REQUEST` with `field_errors` "
     "for the quality reason, `INVALID_IDEMPOTENCY_KEY`)",
     "401": "Authentication is required",
-    "404": "The run was not found, or the caller is not its active Parent owner",
+    "404": "The run was not found, or the caller is neither its active Parent owner nor the "
+    "Teacher currently responsible for the run",
     "409": "The run state, the revision or the script does not allow a video request "
-    "(`INVALID_STATE_TRANSITION`, `STALE_REVISION` with `current_version`), the regeneration "
+    "(`INVALID_STATE_TRANSITION`, also a Teacher whose class is not active; `STALE_REVISION` "
+    "with `current_version`), the regeneration "
     "limit was reached (`VIDEO_REGENERATION_LIMIT_REACHED`), or the quota or the subscription "
     "refused it (`VIDEO_QUOTA_EXCEEDED`, `SUBSCRIPTION_RESTRICTED`)",
     "422": "The subject or the context of the run was not confirmed "
@@ -11767,8 +11780,10 @@ _RUN_COMMAND_ERROR_DESCRIPTIONS: Final[dict[str, str]] = {
     "400": "The request or the idempotency key is invalid (`INVALID_REQUEST`, "
     "`INVALID_IDEMPOTENCY_KEY`)",
     "401": "Authentication is required",
-    "404": "The run was not found, or the caller is not its active Parent owner",
-    "409": "The run is not at `VIDEO_READY` (`INVALID_STATE_TRANSITION`), the run revision or the "
+    "404": "The run was not found, or the caller is neither its active Parent owner nor the "
+    "Teacher currently responsible for the run",
+    "409": "The run is not at `VIDEO_READY` (`INVALID_STATE_TRANSITION`, also a Teacher whose "
+    "class is not active), the run revision or the "
     "generation is stale (`STALE_REVISION` with `current_version`), or, for `video-unsuitable`, the "
     "regeneration limit was reached (`VIDEO_REGENERATION_LIMIT_REACHED`; the video stays)",
     "422": "Validation uses the standard error envelope",
@@ -11836,7 +11851,8 @@ MOUNTED_OPERATIONS[("post", "/v1/story-runs/{run_id}/complete")] = {
 _PLAYBACK_ERROR_DESCRIPTIONS: Final[dict[str, str]] = {
     "401": "Authentication is required, or the playback token is invalid (`INVALID_TOKEN`) or "
     "expired (`TOKEN_EXPIRED`)",
-    "404": "The run was not found, or the caller is not its active Parent owner; also the answer "
+    "404": "The run was not found, or the caller is neither its active Parent owner nor the "
+    "Teacher currently responsible for the run; also the answer "
     "to a token that no longer grants anything (the run was cancelled, deleted, completed, closed "
     "or the video was hidden)",
     "409": "The run has no video that can be played now (`INVALID_STATE_TRANSITION`)",
@@ -12404,6 +12420,197 @@ MOUNTED_OPERATIONS[("post", _PLAN_BASE + "/{revision_no}/confirm")] = {
     "verification": _PLAN_VERIFICATION,
 }
 
+# FEAT-066 goal v3 T-4b1 (SRS l.341-352, l.549-554, l.1441, l.1447-1448, l.1697, AC-56; OD-02): the
+# Teacher random-child selection and its confirmation. The routes are new proposals (the SRS lists no
+# selection route, TD-new). Only synthetic children behind the local/test gate are ever offered; no
+# body names a child; the answer never carries a seed, an index or a reason per child.
+_SELECTION_VERIFICATION: Final = (
+    "SRS l.341-352, l.549-554, l.1441, l.1447-1448, l.1697-1699, AC-56; goal v3 T-4b1 (OD-02)"
+)
+_SELECTION_BASE: Final = "/v1/lesson-occurrences/{occurrence_id}/child-selections"
+_SELECTION_ERRORS: Final[dict[str, str]] = {
+    "403": "The caller covers the class but is not its responsible Teacher, or has no exact-class "
+    "`teacher` assignment (`ACTION_NOT_ALLOWED`); the body holds no child data",
+    "404": "The occurrence or selection was not found or is outside the caller's scope "
+    "(`RESOURCE_NOT_FOUND`); a stranger, another organization, a Manager, a Parent and a revoked "
+    "assignment all get this answer",
+    "409": "The request conflicts with current state (`INVALID_STATE_TRANSITION`: archived "
+    "occurrence, suspended or archived class, expired or no longer open offer; "
+    "`SAMPLE_VIDEO_ALREADY_EXISTS`; `STALE_REVISION` with `current_version`)",
+    "422": "The occurrence has no approved plan (`LESSON_PLAN_NOT_APPROVED`)",
+}
+
+
+def _selection_responses(
+    success: tuple[str, str, str], *error_statuses: str
+) -> tuple[ResponseMetadata, ...]:
+    rows = list(_occurrence_responses(success, *(s for s in error_statuses if s not in _SELECTION_ERRORS)))
+    for error_status in error_statuses:
+        if error_status in _SELECTION_ERRORS:
+            rows.append(
+                {
+                    "status": error_status,
+                    "description": _SELECTION_ERRORS[error_status],
+                    "media_type": "application/json",
+                    "schema_name": "Be1Error",
+                }
+            )
+    return tuple(sorted(rows, key=lambda row: row["status"]))
+
+
+MOUNTED_OPERATIONS[("post", _SELECTION_BASE)] = {
+    "purpose": "Offer one randomly selected eligible child of the occurrence's class for the sample "
+    "run (the responsible Teacher at the current assignment only). The server draws with equal "
+    "probability among the active, enrolled, synthetic children of 36 to 120 months; the body names "
+    "no child and no field filters or orders the set. The same live offer is returned while it stays "
+    "valid (200); an offer that expired, a re-approved plan or a failed run re-offers the SAME "
+    "child; a child that became ineligible is replaced once per occurrence (a second stale offer, "
+    "or an empty set, answers `NO_ELIGIBLE_CHILD` with no reason per child). Needs an approved plan "
+    "(422 `LESSON_PLAN_NOT_APPROVED`) and a free sample slot (409 `SAMPLE_VIDEO_ALREADY_EXISTS`). "
+    "Nothing but the selection row is written: no run, job, claim or quota usage exists before the "
+    "confirmed create.",
+    "request_inputs": "path `occurrence_id*`: string; header `Idempotency-Key*`: string; "
+    "application/json (optional): CreateChildSelectionRequestV1 {}",
+    "handler": "lesson_occurrences.py::create_child_selection",
+    "responses": _selection_responses(
+        ("201", "A new offer or a new empty answer; `Location` is its read, `ETag` its revision", "ChildSelectionV1"),
+        "400", "401", "403", "404", "409", "422", "503",
+    ),
+    "surface": _OCCURRENCE_SURFACE,
+    "tag": _OCCURRENCE_TAG,
+    "authentication": _OCCURRENCE_AUTHENTICATION,
+    "verification": _SELECTION_VERIFICATION,
+}
+MOUNTED_OPERATIONS[("get", _SELECTION_BASE + "/{selection_id}")] = {
+    "purpose": "Read one selection. Every read revalidates (SRS l.348): the child (display name and "
+    "age) is returned only while the offer is open or confirmed, not expired and the child is still "
+    "eligible; otherwise the state is `STALE` or `EXPIRED` and no child data is returned. A read "
+    "writes nothing. `Cache-Control: private, no-store`; `If-None-Match` answers 304 only for an "
+    "answer without child data.",
+    "request_inputs": "path `occurrence_id*`: string; path `selection_id*`: string",
+    "handler": "lesson_occurrences.py::get_child_selection",
+    "responses": _selection_responses(
+        ("200", "The selection", "ChildSelectionV1"), "304", "400", "401", "403", "404", "503"
+    ),
+    "surface": _OCCURRENCE_SURFACE,
+    "tag": _OCCURRENCE_TAG,
+    "authentication": _OCCURRENCE_AUTHENTICATION,
+    "verification": _SELECTION_VERIFICATION,
+}
+MOUNTED_OPERATIONS[("post", _SELECTION_BASE + "/{selection_id}/confirmation")] = {
+    "purpose": "Confirm the offered child. Send the selection `revision` as a strong `If-Match` and "
+    "the `selection_sha256` that was read as `expected_selection_sha256`, so the Teacher confirms "
+    "exactly what was shown. The scope, the class, the plan and the child are revalidated; a child "
+    "that became ineligible turns the offer `STALE` (kept) and answers 409 `STALE_REVISION` with the "
+    "new `current_version`, after which the Teacher posts the selection command again. The offer "
+    "must be open and not expired (409 `INVALID_STATE_TRANSITION`). Confirming writes nothing but "
+    "the selection row; the occurrence, the sample slot and every run table stay unchanged.",
+    "request_inputs": "path `occurrence_id*`: string; path `selection_id*`: string; header "
+    "`Idempotency-Key*`: string; header `If-Match`: string; application/json (required): "
+    "ConfirmChildSelectionRequestV1 {expected_selection_sha256*:string}",
+    "handler": "lesson_occurrences.py::confirm_child_selection",
+    "responses": _selection_responses(
+        ("200", "The offer is confirmed (or was already confirmed with this revision)", "ChildSelectionV1"),
+        "400", "401", "403", "404", "409", "422", "503",
+    ),
+    "surface": _OCCURRENCE_SURFACE,
+    "tag": _OCCURRENCE_TAG,
+    "authentication": _OCCURRENCE_AUTHENTICATION,
+    "verification": _SELECTION_VERIFICATION,
+}
+
+# FEAT-066 goal v3 T-5a (SRS l.396, l.552-555, l.777, l.1449, l.1661-1662, l.1691-1693; OD-14): the
+# class projection of the sample video. The first confirmation by the responsible Teacher claims the
+# sample slot; the projection token is redeemed at the existing story-run stream route.
+_PROJECTION_VERIFICATION: Final = (
+    "SRS l.396, l.552-555, l.777, l.1449, l.1661-1662, l.1691-1693; OD-14; goal v3 T-5a"
+)
+_PROJECTION_ERRORS: Final[dict[str, str]] = {
+    "403": "The caller covers the class but is not its responsible Teacher, or has no exact-class "
+    "`teacher` assignment (`ACTION_NOT_ALLOWED`)",
+    "404": "The occurrence was not found or is outside the caller's scope (`RESOURCE_NOT_FOUND`); a "
+    "stranger, another organization, a Manager, a Parent, a Platform Admin and a revoked "
+    "assignment all get this answer",
+    "409": "The request conflicts with current state (`INVALID_STATE_TRANSITION`: archived "
+    "occurrence, suspended or archived class, a sample that is not playable, no current "
+    "confirmation; `SAMPLE_VIDEO_ALREADY_EXISTS`: the slot is claimed by another run; "
+    "`STALE_REVISION` with `current_version`: another occurrence revision, run, generation or plan "
+    "pin)",
+}
+
+
+def _projection_responses(
+    success: tuple[str, str, str], *error_statuses: str
+) -> tuple[ResponseMetadata, ...]:
+    rows = list(
+        _occurrence_responses(success, *(s for s in error_statuses if s not in _PROJECTION_ERRORS))
+    )
+    for error_status in error_statuses:
+        if error_status in _PROJECTION_ERRORS:
+            rows.append(
+                {
+                    "status": error_status,
+                    "description": _PROJECTION_ERRORS[error_status],
+                    "media_type": "application/json",
+                    "schema_name": "Be1Error",
+                }
+            )
+    return tuple(sorted(rows, key=lambda row: row["status"]))
+
+
+MOUNTED_OPERATIONS[("post", "/v1/lesson-occurrences/{occurrence_id}/projection-confirmation")] = {
+    "purpose": "Confirm the audience (`CLASS`) and the use (`CLASS_PROJECTION`) of the current "
+    "sample video before it is shown to the class (the responsible Teacher at the current "
+    "assignment only). Send the occurrence `revision` as a strong `If-Match` and the pair "
+    "`run_id` and `generation_id` of the current playable sample (run `VIDEO_READY`, generation "
+    "`READY`, every validation passed); any other run or generation is 409 `STALE_REVISION`. The "
+    "FIRST confirmation claims the sample slot in one compare-and-set (`CLAIMED`, "
+    "`SAMPLE_USED`, the run reference, the confirming Teacher and time): the slot never reopens, "
+    "another run on a claimed occurrence is 409 `SAMPLE_VIDEO_ALREADY_EXISTS`. A repeat by the same "
+    "Teacher of the same generation writes nothing; another Teacher or a newer generation needs a "
+    "new confirmation and ends the tokens issued before. A run pinned to a plan that was "
+    "superseded after the run was created may still be confirmed (the receipt shows "
+    "`plan.is_current`). The answer carries no child name, no media key, no token and no "
+    "capability for class members. A completed run can no longer be projected: confirm before "
+    "Complete.",
+    "request_inputs": "path `occurrence_id*`: string; header `Idempotency-Key*`: string; header "
+    "`If-Match`: string; application/json (required): ProjectionConfirmationRequestV1 "
+    "{run_id*:string, generation_id*:string, audience*:CLASS, use*:CLASS_PROJECTION}",
+    "handler": "lesson_occurrences.py::confirm_class_projection",
+    "responses": _projection_responses(
+        (
+            "200",
+            "The confirmation receipt (or its replay); `ETag` is the occurrence revision",
+            "ClassProjectionConfirmationV1",
+        ),
+        "400", "401", "403", "404", "409", "503",
+    ),
+    "surface": _OCCURRENCE_SURFACE,
+    "tag": _OCCURRENCE_TAG,
+    "authentication": _OCCURRENCE_AUTHENTICATION,
+    "verification": _PROJECTION_VERIFICATION,
+}
+MOUNTED_OPERATIONS[("post", "/v1/lesson-occurrences/{occurrence_id}/projection-playback-token")] = {
+    "purpose": "Issue a short-lived token (five minutes by default) with which the responsible "
+    "Teacher plays the confirmed sample to the class. No body and no idempotency key (a grant, "
+    "not a state change; no database write). Needs a current confirmation of the sample that "
+    "still holds the occurrence's slot (409 `INVALID_STATE_TRANSITION` otherwise) and an active "
+    "class. The token is sent only in the `X-Playback-Token` header of `GET "
+    "/v1/story-runs/{run_id}/playback`; every stream request re-checks the assignment, the "
+    "confirmation, the run and the generation, so a reassignment, a new confirmation, a cancel or "
+    "an unsuitable mark ends playback. The answer holds no storage location.",
+    "request_inputs": "path `occurrence_id*`: string",
+    "handler": "lesson_occurrences.py::issue_projection_playback_token",
+    "responses": _projection_responses(
+        ("200", "The projection token, its expiry and the stream path", "ProjectionPlaybackTokenV1"),
+        "401", "403", "404", "409", "503",
+    ),
+    "surface": _OCCURRENCE_SURFACE,
+    "tag": _OCCURRENCE_TAG,
+    "authentication": _OCCURRENCE_AUTHENTICATION,
+    "verification": _PROJECTION_VERIFICATION,
+}
+
 # FEAT-066 goal v3 T-7b (SRS l.593, l.1425, l.1651, l.1697-1699, l.1709; TD-08, TD-28): the School
 # Manager suspends or archives a class. Both are keyed commands that send the class revision as a
 # strong `If-Match`; a stale revision is 409 `STALE_REVISION`, an impossible move is 409
@@ -12644,6 +12851,11 @@ IDEMPOTENCY_MISMATCH_OPERATION_KEYS: Final[tuple[tuple[str, str], ...]] = (
     # FEAT-066 T-3d (SRS l.1697): the keyed plan revision create and confirm.
     ("post", "/v1/lesson-occurrences/{occurrence_id}/plan-revisions"),
     ("post", "/v1/lesson-occurrences/{occurrence_id}/plan-revisions/{revision_no}/confirm"),
+    # FEAT-066 T-4b1 (SRS l.1697): the keyed child selection and its confirmation.
+    ("post", "/v1/lesson-occurrences/{occurrence_id}/child-selections"),
+    ("post", "/v1/lesson-occurrences/{occurrence_id}/child-selections/{selection_id}/confirmation"),
+    # FEAT-066 T-5a (SRS l.1697): the keyed class projection confirmation.
+    ("post", "/v1/lesson-occurrences/{occurrence_id}/projection-confirmation"),
     # FEAT-066 T-8a (SRS l.1697): the two keyed mark-read commands of the notification inbox.
     ("post", "/v1/notifications/{inbox_item_id}/read"),
     ("post", "/v1/notifications/read-all"),

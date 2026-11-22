@@ -5,9 +5,12 @@ says the Teacher's right to a run follows the CURRENT assignment, never the crea
 holds the two small types the guard needs and the port that answers the Teacher question. It
 knows no table and no HTTP.
 
-Interim storage of a Teacher run (T-4a1-DEC-2, fixture only until T-4b2 adds the Teacher lock
-column and a producer): ``actor_scope_kind = 'ORGANIZATION'``, ``actor_scope_ref`` = the
-organization id, ``profile_ref`` = the Managed Profile child id. Two things stay apart:
+Storage of a Teacher run: ``actor_scope_kind = 'ORGANIZATION'``, ``actor_scope_ref`` = the
+organization id, ``profile_ref`` = the Managed Profile child id. A run created by T-4b2 also holds
+the Teacher lock and ``occurrence_ref`` (DDL-B2) and is reached through the occurrence pin; a row
+without ``occurrence_ref`` is a T-4a1/T-13a test fixture and keeps the interim child-class rule
+(T-4a1-DEC-2).
+Two things stay apart:
 
 * the **owner scope** of the run row (``ORGANIZATION`` + organization id for a Teacher): who the
   run belongs to, used to find the row; and
@@ -53,6 +56,19 @@ class RunActor:
 
 
 @dataclass(frozen=True, slots=True)
+class RunAssetOwner:
+    """Kind, ref and organization of the Core rows (upload sessions, assets) of one run.
+
+    Parent: ``PARENT_ACCOUNT`` with the typed scope hash and no organization. Teacher:
+    ``ORGANIZATION`` with the organization id as ref AND as organization (never NULL, T-4b3a D4).
+    """
+
+    kind: str
+    ref: str
+    organization_id: str | None
+
+
+@dataclass(frozen=True, slots=True)
 class TeacherRunAccess:
     """What the current assignment grants: the class of the child and its state."""
 
@@ -76,13 +92,19 @@ class TeacherRunAccessPort(Protocol):
         organization_id: str,
         child_id: str | None,
         lock: bool,
+        occurrence_ref: str | None = None,
     ) -> TeacherRunAccess | None:
         """The access of an active Teacher with an active class-scoped ``teacher`` assignment to
         the class of the Managed Profile ``(organization_id, child_id)``; ``None`` for everything
         else (org-wide, guide, observer, Manager, a former Teacher, another organization, an
         unknown child, a missing ``child_id``). With ``lock`` the assignment row is held
         ``FOR SHARE`` until the end of the transaction so a revocation cannot slip in between
-        the check and the write."""
+        the check and the write.
+
+        With ``occurrence_ref`` (a run written by T-4b2) the occurrence pin decides instead of the
+        child's class (T-4b2 D10, FR-T-14): the caller must be the CURRENT
+        ``responsible_teacher_ref`` of that occurrence in ``organization_id`` and hold an active
+        exact-class ``teacher`` assignment to its class. ``created_by_actor_ref`` never grants."""
         ...
 
 
@@ -92,6 +114,7 @@ __all__ = [
     "TEACHER_COMMAND_SCOPE_KIND",
     "RunActor",
     "RunActorKind",
+    "RunAssetOwner",
     "TeacherRunAccess",
     "TeacherRunAccessPort",
 ]

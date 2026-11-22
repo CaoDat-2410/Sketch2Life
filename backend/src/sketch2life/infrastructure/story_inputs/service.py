@@ -29,7 +29,6 @@ from sketch2life.application.ports.parent_story_runs import (
     ParentStoryLifecycleRecord,
     ParentStoryRunError,
 )
-from sketch2life.application.ports.upload_sessions import PARENT_ACCOUNT_SCOPE
 from sketch2life.infrastructure.persistence.parent_story_repository import (
     SqlParentStoryRunRepository,
     drawing_attach_fingerprint,
@@ -39,7 +38,6 @@ from sketch2life.infrastructure.story_inputs.drawing import (
     normalize_drawing,
 )
 from sketch2life.infrastructure.uploads.purposes import MAX_IMAGE_BYTES, RUN_ARTWORK, RUN_AUDIO
-from sketch2life.infrastructure.uploads.resolvers import parent_scope_ref
 from sketch2life.infrastructure.uploads.service import resolve_completed_upload
 
 _READ_CHUNK: Final = 64 * 1024
@@ -80,10 +78,19 @@ def read_verified_original(
 
 
 class ParentRunAssetService:
-    def __init__(self, db: Session, *, storage: ObjectStoragePort | None) -> None:
+    """The use case for a Parent run and, with a Teacher ``repository`` (T-4b3a), for a pinned
+    Teacher run: the repository carries the actor, so every scope below comes from it."""
+
+    def __init__(
+        self,
+        db: Session,
+        *,
+        storage: ObjectStoragePort | None,
+        repository: SqlParentStoryRunRepository | None = None,
+    ) -> None:
         self._db = db
         self._storage = storage
-        self._repository = SqlParentStoryRunRepository(db)
+        self._repository = repository or SqlParentStoryRunRepository(db)
 
     def attach_drawing(
         self,
@@ -105,14 +112,14 @@ class ParentRunAssetService:
         if early is not None:
             return early
 
-        scope_ref = parent_scope_ref(principal)
+        owner = self._repository.asset_owner(principal=principal, run_id=run_id)
         upload = resolve_completed_upload(
             self._db,
             asset_ref,
             purpose=RUN_ARTWORK,
-            owner_scope_kind=PARENT_ACCOUNT_SCOPE,
-            owner_scope_ref=scope_ref,
-            organization_id=None,
+            owner_scope_kind=owner.kind,
+            owner_scope_ref=owner.ref,
+            organization_id=owner.organization_id,
             target_ref=run_id,
         )
         if upload is None:
@@ -120,9 +127,9 @@ class ParentRunAssetService:
                 self._db,
                 asset_ref,
                 purpose=RUN_AUDIO,
-                owner_scope_kind=PARENT_ACCOUNT_SCOPE,
-                owner_scope_ref=scope_ref,
-                organization_id=None,
+                owner_scope_kind=owner.kind,
+                owner_scope_ref=owner.ref,
+                organization_id=owner.organization_id,
                 target_ref=run_id,
             )
             self._db.rollback()

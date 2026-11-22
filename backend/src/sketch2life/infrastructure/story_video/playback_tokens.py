@@ -11,6 +11,12 @@ Format: ``ptk1.<header>.<payload>.<mac>``, three strict base64url parts (no padd
 bytes. The header holds the algorithm and a key id (rotation: a previous key may still verify). The
 MAC is HMAC-SHA-256 over ``ptk1.<header>.<payload>`` and is compared in constant time. Expiry is
 only reported for an authentic token; every other failure is ``INVALID_TOKEN``.
+
+T-5a: a class projection token (SRS l.1662, l.1691-1693) is the same token with three more signed
+claims: ``u`` (the audience, the literal ``projection``), ``o`` (the occurrence) and ``c`` (the
+confirmation time it was issued under, whole milliseconds). The payload has exactly one of two key
+sets, the owner-view set ``{a, e, g, r}`` or the projection set ``{a, c, e, g, o, r, u}``; a mix of
+the two is ``INVALID_TOKEN``, so neither kind can be used as the other.
 """
 
 from __future__ import annotations
@@ -27,7 +33,12 @@ import time
 from collections.abc import Callable, Mapping
 from uuid import UUID
 
-from sketch2life.application.ports.story_video import PlaybackGrant, PlaybackTokenError
+from sketch2life.application.ports.story_video import (
+    PROJECTION_AUDIENCE_CLAIM,
+    PlaybackGrant,
+    PlaybackTokenError,
+    ProjectionClaims,
+)
 from sketch2life.infrastructure.config.settings import Settings
 
 GRANT_PREFIX = "ptk1"
@@ -35,6 +46,8 @@ MAX_GRANT_LENGTH = 512
 _ALGORITHM = "HS256"
 _PART = re.compile(r"[A-Za-z0-9_-]+")
 _ACTOR_DIGEST = re.compile(r"[0-9a-f]{32}")
+_OWNER_KEYS = frozenset({"a", "e", "g", "r"})
+_PROJECTION_KEYS = frozenset({"a", "c", "e", "g", "o", "r", "u"})
 _LOG = logging.getLogger(__name__)
 
 
@@ -97,18 +110,29 @@ class PlaybackTokenCodec:
     def _mac(self, key_id: str, signing_input: str) -> bytes:
         return hmac.new(self._keys[key_id], signing_input.encode("ascii"), hashlib.sha256).digest()
 
-    def issue(self, *, run_id: str, generation_id: str, actor_digest: str) -> tuple[str, int]:
+    def issue(
+        self,
+        *,
+        run_id: str,
+        generation_id: str,
+        actor_digest: str,
+        projection: ProjectionClaims | None = None,
+    ) -> tuple[str, int]:
         expires_at = int(self._clock()) + self._ttl
         header = _encode(
             json.dumps({"alg": _ALGORITHM, "kid": self._active}, separators=(",", ":")).encode()
         )
-        payload = _encode(
-            json.dumps(
-                {"a": actor_digest, "e": expires_at, "g": generation_id, "r": run_id},
-                sort_keys=True,
-                separators=(",", ":"),
-            ).encode()
-        )
+        claims: dict[str, object] = {
+            "a": actor_digest,
+            "e": expires_at,
+            "g": generation_id,
+            "r": run_id,
+        }
+        if projection is not None:
+            claims.update(
+                c=projection.confirmed_ms, o=projection.occurrence_id, u=PROJECTION_AUDIENCE_CLAIM
+            )
+        payload = _encode(json.dumps(claims, sort_keys=True, separators=(",", ":")).encode())
         signing_input = f"{GRANT_PREFIX}.{header}.{payload}"
         mac = _encode(self._mac(self._active, signing_input))
         return f"{signing_input}.{mac}", expires_at
@@ -135,9 +159,22 @@ class PlaybackTokenCodec:
         payload = _json(_decode(payload_part))
         run_id, generation_id = payload.get("r"), payload.get("g")
         digest, expires_at = payload.get("a"), payload.get("e")
+        # Two closed key sets (T-5a D6): the owner-view token of T-1c and the class projection
+        # token. Any other set, or a mix of the two, is invalid.
+        projected = set(payload) == _PROJECTION_KEYS
+        if set(payload) != _OWNER_KEYS and not projected:
+            raise PlaybackTokenError("INVALID_TOKEN")
+        occurrence_id = payload.get("o")
+        confirmed = payload.get("c")
+        if projected and (
+            payload.get("u") != PROJECTION_AUDIENCE_CLAIM
+            or not _is_canonical_uuid(occurrence_id)
+            or type(confirmed) is not int
+            or confirmed < 0
+        ):
+            raise PlaybackTokenError("INVALID_TOKEN")
         if (
-            set(payload) != {"a", "e", "g", "r"}
-            or not _is_canonical_uuid(run_id)
+            not _is_canonical_uuid(run_id)
             or not _is_canonical_uuid(generation_id)
             or not isinstance(digest, str)
             or not _ACTOR_DIGEST.fullmatch(digest)
@@ -147,7 +184,18 @@ class PlaybackTokenCodec:
         assert isinstance(run_id, str) and isinstance(generation_id, str)
         if self._clock() >= expires_at:
             raise PlaybackTokenError("TOKEN_EXPIRED")
-        return PlaybackGrant(run_id, generation_id, digest, expires_at)
+        if not projected:
+            return PlaybackGrant(run_id, generation_id, digest, expires_at)
+        assert isinstance(occurrence_id, str) and isinstance(confirmed, int)
+        return PlaybackGrant(
+            run_id,
+            generation_id,
+            digest,
+            expires_at,
+            audience=PROJECTION_AUDIENCE_CLAIM,
+            occurrence_id=occurrence_id,
+            confirmed_ms=confirmed,
+        )
 
 
 def _is_canonical_uuid(value: object) -> bool:

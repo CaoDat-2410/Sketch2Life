@@ -76,8 +76,9 @@ class _IdeaService:
     result: Any = None
     calls: list[dict[str, Any]] = []
 
-    def __init__(self, db: object, *, storage: object) -> None:
+    def __init__(self, db: object, *, storage: object, repository: object = None) -> None:
         self.storage = storage
+        self.repository = repository
 
     def submit(self, **kwargs: Any) -> Any:
         type(self).calls.append(kwargs)
@@ -173,7 +174,7 @@ def client(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
         runtime_module, "get_core_database_settings", lambda: SimpleNamespace(database_url=None)
     )
     monkeypatch.setattr(input_routes, "ParentRunIdeaService", _IdeaService)
-    monkeypatch.setattr(input_routes, "SqlParentStoryRunRepository", _Repository)
+    monkeypatch.setattr(input_routes, "story_run_repository", lambda db, _actor: _Repository(db))
     monkeypatch.setattr(input_routes, "ParentSpeechJobRunner", _Speech)
     application = app_module.create_app()
     application.dependency_overrides[get_verified_adult] = lambda: PRINCIPAL
@@ -354,7 +355,7 @@ def test_the_idempotency_key_is_required_and_parsed_after_the_role_check(
     assert _idea(client, key="x" * 129).status_code == 400
     assert _idea(client, key="bad key\x7f").status_code == 400
     assert _IdeaService.calls == []
-    _use_db(client, _Db("teacher"))
+    _use_db(client, _Db("school_manager"))
     assert _idea(client, key=None).status_code == 400  # header validation precedes the guard
     assert _idea(client).status_code == 404  # but a valid key from a non-Parent is the 404
 
@@ -466,13 +467,13 @@ def test_a_too_long_transcript_is_a_400_with_field_errors(client: TestClient) ->
     "db",
     [
         _Db(None),
-        _Db("teacher"),
         _Db("school_manager"),
         _Db("platform_admin"),
         _Db("parent", state="suspended"),
         _Db("parent", issuer="another-issuer"),
+        _Db("teacher", state="suspended"),
     ],
-    ids=["no-identity", "teacher", "manager", "admin", "inactive", "other-issuer"],
+    ids=["no-identity", "manager", "admin", "inactive", "other-issuer", "inactive-teacher"],
 )
 def test_a_non_parent_or_inactive_caller_gets_the_same_404_on_every_route(
     client: TestClient, db: _Db

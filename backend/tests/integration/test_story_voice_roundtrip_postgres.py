@@ -28,9 +28,10 @@ from sketch2life.infrastructure.config.settings import get_core_database_setting
 _BACKEND = Path(__file__).resolve().parents[2]
 _PARENT = "20261119_frc08_lifecycle_scope"
 _REVISION = "20261120_b1_0001"
-# FEAT-066 T-1a: DDL-B1 part 2 sits on top of this revision and is the head of the branch; the
-# explicit downgrade to ``_PARENT`` first runs its (guarded) downgrade, the upgrade restores it.
-_HEAD = "20261120_vb_0002"
+# FEAT-066 T-1a: DDL-B1 part 2 sits on top of this revision; FEAT-066 T-4b2: DDL-B2 sits on top of
+# that and is the head of the branch. The explicit downgrade to ``_PARENT`` first runs their
+# (guarded) downgrades, the upgrade restores them.
+_HEAD = "20261120_b2_0001"
 _REFUSED = "DDL-B1 downgrade refused"
 
 

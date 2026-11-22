@@ -91,6 +91,10 @@ class Settings(BaseSettings):
     session_idle_ttl_seconds: int = Field(default=1800, ge=60, le=86_400)
     # FEAT-064 dev pilot: synthetic eligibility is honored only when this is on in local/test.
     synthetic_pilot_enabled: bool = False
+    # FEAT-066 T-4b1 (OPEN-3, owner-visible): the most draws (one draw, one stale reselect) a
+    # lesson occurrence ever gets. A product deviation that goes beyond SRS l.346; 1 forbids the
+    # reselect, 2 is the shipped default, and a higher cap needs a migration (draw_no is 1 or 2).
+    teacher_sample_max_draws: int = Field(default=2, ge=1, le=2)
     # T-7c (OD-06, SRS l.832): the real child-data path is built but off. While off, a profile
     # create with a `consent_id` is refused; when on it is still refused until X-19 (no valid
     # consent state exists). It never makes a real profile writable by itself.

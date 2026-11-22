@@ -191,6 +191,13 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
         "/v1/lesson-occurrences/{occurrence_id}/plan-revisions",
         "/v1/lesson-occurrences/{occurrence_id}/plan-revisions/{revision_no}",
         "/v1/lesson-occurrences/{occurrence_id}/plan-revisions/{revision_no}/confirm",
+        # FEAT-066 T-4b1: the Teacher random-child selection (SRS l.341-352), always mounted.
+        "/v1/lesson-occurrences/{occurrence_id}/child-selections",
+        "/v1/lesson-occurrences/{occurrence_id}/child-selections/{selection_id}",
+        "/v1/lesson-occurrences/{occurrence_id}/child-selections/{selection_id}/confirmation",
+        # FEAT-066 T-5a: the class projection of the sample video (SRS l.1661-1662), always mounted.
+        "/v1/lesson-occurrences/{occurrence_id}/projection-confirmation",
+        "/v1/lesson-occurrences/{occurrence_id}/projection-playback-token",
         # FEAT-066 T-8a: the notification inbox (SRS l.1681), always mounted.
         "/v1/notifications",
         "/v1/notifications/read-all",

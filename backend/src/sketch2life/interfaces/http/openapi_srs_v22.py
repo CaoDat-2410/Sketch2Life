@@ -47,6 +47,16 @@ SRS_V22_INCLUDED_OPERATIONS: frozenset[tuple[str, str]] = frozenset(
         ("post", "/v1/lesson-occurrences"),
         ("get", "/v1/lesson-occurrences"),
         ("get", "/v1/lesson-occurrences/{occurrence_id}"),
+        # FEAT-066 T-4b1 (SRS l.341-352, l.1441, AC-56): the Teacher random-child selection.
+        ("post", "/v1/lesson-occurrences/{occurrence_id}/child-selections"),
+        ("get", "/v1/lesson-occurrences/{occurrence_id}/child-selections/{selection_id}"),
+        (
+            "post",
+            "/v1/lesson-occurrences/{occurrence_id}/child-selections/{selection_id}/confirmation",
+        ),
+        # FEAT-066 T-5a (SRS l.1661-1662, l.777): the class projection of the sample video.
+        ("post", "/v1/lesson-occurrences/{occurrence_id}/projection-confirmation"),
+        ("post", "/v1/lesson-occurrences/{occurrence_id}/projection-playback-token"),
         # FEAT-066 T-8a (SRS l.1681, l.812): the notification inbox and mark-read.
         ("get", "/v1/notifications"),
         ("post", "/v1/notifications/{inbox_item_id}/read"),

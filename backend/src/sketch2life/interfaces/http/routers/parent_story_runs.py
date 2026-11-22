@@ -32,6 +32,7 @@ from sketch2life.application.ports.parent_story_runs import (
     ParentStoryRunError,
     ParentStoryRunRecord,
     ParentStoryRunView,
+    TeacherStoryRunRecord,
 )
 from sketch2life.application.ports.story_run_actor import RunActor
 from sketch2life.application.services.parent_story_runs import (
@@ -64,6 +65,10 @@ from sketch2life.contracts.schemas.story_run_video import (
     ParentStoryRunVideoV1,
     ParentStoryTimelineEventV1,
 )
+from sketch2life.contracts.schemas.teacher_story_runs import (
+    TeacherActiveStoryRunEnvelopeV1,
+    TeacherStoryRunEnvelopeV1,
+)
 from sketch2life.infrastructure.lesson_library.service import LessonLibraryError
 from sketch2life.infrastructure.persistence.be1_models import AdultIdentityModel
 from sketch2life.infrastructure.persistence.parent_story_profile_lookup import (
@@ -78,6 +83,11 @@ from sketch2life.infrastructure.story_video.repository import SqlStoryVideoRepos
 from sketch2life.interfaces.http.api_conventions import limit_query, parse_idempotency_key
 from sketch2life.interfaces.http.be1_runtime import get_db, get_verified_adult
 from sketch2life.interfaces.http.routers.lesson_library import get_lesson_library_service
+from sketch2life.interfaces.http.routers.story_run_create_dispatch import (
+    RoleDispatchedCreateRoute,
+    teacher_active_envelope,
+    teacher_envelope,
+)
 from sketch2life.interfaces.http.story_run_actor import require_story_run_actor
 
 router = APIRouter(prefix="/v1/story-runs", tags=["Parent StoryRuns"])
@@ -229,27 +239,27 @@ def _lifecycle_envelope(record: ParentStoryLifecycleRecord) -> ParentStoryRunLif
     )
 
 
-def _envelope(view: ParentStoryRunView) -> ParentStoryRunResult:
+# T-4b2 D10: the run read and the confirmations answer a Teacher with the Teacher view (a string
+# profile ref, the occurrence, plan and activity pins); a Parent still gets the Parent result.
+StoryRunResult = ParentStoryRunResult | TeacherStoryRunEnvelopeV1
+
+
+def _envelope(view: ParentStoryRunView) -> StoryRunResult:
     if isinstance(view, ParentStoryLifecycleRecord):
         return _lifecycle_envelope(view)
+    if isinstance(view, TeacherStoryRunRecord):
+        return teacher_envelope(view)
     return ParentStoryRunEnvelopeV1(request_id=uuid4(), story_run=_response(view))
 
 
-@router.post(
-    "",
-    response_model=ParentStoryRunResult,
-    status_code=status.HTTP_201_CREATED,
-    summary="Create a Parent StoryRun with a pinned profile and context proposal",
-    responses=_PARENT_STORY_ERROR_RESPONSES,
-)
 def create_parent_story_run(
     payload: ParentStoryRunCreateRequestV1,
     request: Request,
     idempotency_key: Annotated[str, Header(alias="Idempotency-Key", min_length=1, max_length=128)],
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
-) -> ParentStoryRunResult:
-    # The declaration above publishes the header as required; parse_idempotency_key (C-D5, 1-128
+) -> StoryRunResult:
+    # The registration below publishes the header as required; parse_idempotency_key (C-D5, 1-128
     # visible ASCII) is the authority and runs after the role check, as for cancel/delete.
     del idempotency_key
     identity = _require_parent(db, principal)
@@ -321,6 +331,21 @@ def create_parent_story_run(
         lesson_pin_snapshot=lesson_pin_snapshot,
     )
     return _envelope(record)
+
+
+# T-4b2 D1: one route, two bodies. The Parent function above is registered exactly as before; the
+# route class sends a Teacher-shaped body from an active Teacher to the Teacher endpoint and answers
+# every other request with this handler, byte for byte as before.
+router.add_api_route(
+    "",
+    create_parent_story_run,
+    methods=["POST"],
+    response_model=ParentStoryRunResult,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a Parent StoryRun with a pinned profile and context proposal",
+    responses=_PARENT_STORY_ERROR_RESPONSES,
+    route_class_override=RoleDispatchedCreateRoute,
+)
 
 
 _HISTORY_RESPONSES: dict[int | str, dict[str, Any]] = {
@@ -410,21 +435,27 @@ def list_parent_story_runs(
 
 @router.get(
     "/active/current",
-    response_model=ParentActiveStoryRunEnvelopeV1,
+    response_model=ParentActiveStoryRunEnvelopeV1 | TeacherActiveStoryRunEnvelopeV1,
     summary="[PROPOSAL] Resume the authenticated Parent's active StoryRun, if one exists",
-    responses=_PARENT_STORY_ERROR_RESPONSES,
+    responses=_ACTOR_STORY_ERROR_RESPONSES,
 )
 def get_active_parent_story_run(
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
-) -> ParentActiveStoryRunEnvelopeV1:
-    identity = _require_parent(db, principal)
-    service = _service(db)
+) -> ParentActiveStoryRunEnvelopeV1 | TeacherActiveStoryRunEnvelopeV1:
+    # T-4b2: the Parent's active run, or the one active run a Teacher holds through the Teacher lock
+    # (resume after a reload); the same empty answer when there is none.
+    actor = require_story_run_actor(db, principal)
+    service = _service_for(db, actor)
     record = _invoke(
         service.get_active_run,
         principal=principal,
-        account_id=identity.account_id,
+        account_id=actor.account_id,
     )
+    if actor.is_teacher:
+        return teacher_active_envelope(
+            record if isinstance(record, TeacherStoryRunRecord) else None
+        )
     return ParentActiveStoryRunEnvelopeV1(
         request_id=uuid4(),
         story_run=_response(record) if isinstance(record, ParentStoryRunRecord) else None,
@@ -436,7 +467,7 @@ _DETAIL_READ_HEADERS = {"Cache-Control": "private, no-cache", "Vary": "Authoriza
 
 @router.get(
     "/{run_id}",
-    response_model=ParentStoryRunResult,
+    response_model=StoryRunResult,
     summary="Read the authenticated Parent's saved StoryRun and review state",
     responses={
         **_ACTOR_STORY_ERROR_RESPONSES,
@@ -461,7 +492,7 @@ def get_parent_story_run(
         run_id=str(run_id),
     )
     result = _envelope(record)
-    if isinstance(result, ParentStoryRunEnvelopeV1):
+    if isinstance(result, ParentStoryRunEnvelopeV1 | TeacherStoryRunEnvelopeV1):
         etag = detail_etag(result.story_run.model_dump(mode="json"))
         if etag_matches(request.headers.get("If-None-Match"), etag):
             return Response(status_code=304, headers={**_DETAIL_READ_HEADERS, "ETag": etag})
@@ -508,9 +539,9 @@ def cancel_parent_story_run(
         expected_revision=payload.expected_revision,
         idempotency_key=key,
     )
-    if not actor.is_teacher:
-        # No Teacher run owns a video generation before T-4b2/T-5a (hand-off H6).
-        _meet_video_saga(request, db, str(run_id))
+    # T-4b3b (T-13a hand-off H6): a Teacher run can own a video generation too, so the cancel of
+    # either actor meets the saga (the saga reads its scope from the generation, not the actor).
+    _meet_video_saga(request, db, str(run_id))
     return _lifecycle_envelope(record)
 
 
@@ -543,7 +574,7 @@ def delete_parent_story_run(
 
 @router.post(
     "/{run_id}/context-confirmation",
-    response_model=ParentStoryRunResult,
+    response_model=StoryRunResult,
     summary="[PROPOSAL] Confirm the immutable Parent context snapshot before story generation",
     responses=_ACTOR_STORY_ERROR_RESPONSES,
 )
@@ -554,7 +585,7 @@ def confirm_parent_story_context(
     idempotency_key: Annotated[str, Header(alias="Idempotency-Key", min_length=1, max_length=128)],
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
-) -> ParentStoryRunResult:
+) -> StoryRunResult:
     del idempotency_key
     actor = require_story_run_actor(db, principal)
     key = parse_idempotency_key(request)
@@ -598,12 +629,9 @@ def confirm_parent_story_subject(
     state = request.app.state
     analyzer = getattr(state, "drawing_analyzer", None)
     runtime = getattr(state, "be1_runtime", None)
-    # T-4a1-DEC-8: the VLM rerun is a Parent job; a Teacher edit is confirmed at once (DEV-1).
-    rerun = (
-        bool(getattr(state, "subject_edit_reruns_vlm", True))
-        and analyzer is not None
-        and not actor.is_teacher
-    )
+    # T-4b3a D7e: a Teacher edit of a pinned run reruns the VLM like a Parent edit (the job runs
+    # on the job-side repository); the repository keeps the DEV-1 path for a fixture row.
+    rerun = bool(getattr(state, "subject_edit_reruns_vlm", True)) and analyzer is not None
     outcome = _invoke(
         _service_for(db, actor).confirm_subject,
         principal=principal,
@@ -625,7 +653,12 @@ def confirm_parent_story_subject(
         and runtime.session_factory is not None
     ):
         runner = ParentInputJobRunner(runtime.session_factory, analyzer)
-        background_tasks.add_task(runner.run, principal, str(run_id), outcome.input_revision)
+        job_arguments: tuple[Any, ...] = (
+            (actor, outcome.organization_id) if actor.is_teacher else ()
+        )
+        background_tasks.add_task(
+            runner.run, principal, str(run_id), outcome.input_revision, *job_arguments
+        )
     return ParentSubjectConfirmationResponseV1.model_validate(
         {
             "request_id": uuid4(),
@@ -639,7 +672,7 @@ def confirm_parent_story_subject(
 
 @router.post(
     "/{run_id}/script-confirmation",
-    response_model=ParentStoryRunResult,
+    response_model=StoryRunResult,
     summary="[PROPOSAL] Persist adult confirmation of a generated story revision",
     responses=_ACTOR_STORY_ERROR_RESPONSES,
 )
@@ -650,7 +683,7 @@ def confirm_parent_story_revision(
     idempotency_key: Annotated[str, Header(alias="Idempotency-Key", min_length=1, max_length=128)],
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
-) -> ParentStoryRunResult:
+) -> StoryRunResult:
     del idempotency_key
     actor = require_story_run_actor(db, principal)
     key = parse_idempotency_key(request)

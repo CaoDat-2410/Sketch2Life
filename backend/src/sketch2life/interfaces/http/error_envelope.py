@@ -122,6 +122,13 @@ MESSAGES: Mapping[str, str] = {
     "AUDIO_TOO_LARGE": "Bản ghi âm vượt quá 2 phút hoặc 20 MB. Vui lòng ghi âm ngắn hơn.",
     # FEAT-066 T-3a: SRS §9.8 l.866, a Teacher who is not assigned to the class.
     "TEACHER_ASSIGNMENT_REQUIRED": "Giáo viên chưa được phân công phụ trách lớp học này.",
+    # FEAT-066 T-4b1: SRS §9.8 l.866 and l.871, the sample-video gates of the child selection.
+    "SAMPLE_VIDEO_ALREADY_EXISTS": (
+        "Buổi học này đã có video mẫu. Không thể chọn bé cho một video mẫu khác."
+    ),
+    "LESSON_PLAN_NOT_APPROVED": (
+        "Giáo án của buổi học chưa được duyệt. Vui lòng duyệt giáo án rồi thử lại."
+    ),
     # FEAT-066 T-3b: refusals of an attached occurrence document (SRS §9.8 l.862-873; the last
     # three are the parser's own stable codes, not named by §9.8, see T-3b-DEC-5).
     "INVALID_FILE_CONTENT": (

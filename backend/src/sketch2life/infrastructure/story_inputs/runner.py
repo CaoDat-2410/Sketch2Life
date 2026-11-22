@@ -43,8 +43,10 @@ from sketch2life.application.ports.parent_story_inputs import (
     DrawingAnalyzerPort,
 )
 from sketch2life.application.ports.parent_story_runs import ParentStoryRunError
+from sketch2life.application.ports.story_run_actor import RunActor
 from sketch2life.infrastructure.persistence.parent_story_repository import (
     SqlParentStoryRunRepository,
+    job_side_repository,
 )
 
 _LOGGER = logging.getLogger("sketch2life.api")
@@ -83,11 +85,21 @@ class ParentInputJobRunner:
         self._session_factory = session_factory
         self._analyzer = analyzer
 
-    def run(self, principal: VerifiedPrincipal, run_id: str, input_revision: int) -> None:
-        """Never raises: a background task has no caller to report to; failures are recorded."""
+    def run(
+        self,
+        principal: VerifiedPrincipal,
+        run_id: str,
+        input_revision: int,
+        actor: RunActor | None = None,
+        organization_id: str | None = None,
+    ) -> None:
+        """Never raises: a background task has no caller to report to; failures are recorded.
+
+        For a Teacher run ``actor`` and the ``organization_id`` the route saw select the job-side
+        repository (T-4b3a D6); a Parent run passes neither and is the unchanged Parent path."""
         session = self._session_factory()
         try:
-            self._run(session, principal, run_id, input_revision)
+            self._run(session, principal, run_id, input_revision, actor, organization_id)
         except ParentStoryRunError as exc:
             # Stale or purged work is discarded; a store outage leaves the run QUEUED/RUNNING.
             _LOGGER.info("parent_input_job_discarded code=%s", exc.code)
@@ -97,9 +109,19 @@ class ParentInputJobRunner:
             session.close()
 
     def _run(
-        self, session: Session, principal: VerifiedPrincipal, run_id: str, input_revision: int
+        self,
+        session: Session,
+        principal: VerifiedPrincipal,
+        run_id: str,
+        input_revision: int,
+        actor: RunActor | None,
+        organization_id: str | None,
     ) -> None:
-        repository = SqlParentStoryRunRepository(session)
+        repository = (
+            SqlParentStoryRunRepository(session)
+            if actor is None
+            else job_side_repository(session, actor, organization_id)
+        )
         if not repository.start_drawing_analysis(
             principal=principal, run_id=run_id, expected_input_revision=input_revision
         ):

@@ -19,6 +19,11 @@ from sqlalchemy.orm import Session
 from sketch2life.application.ports.identity import VerifiedPrincipal
 from sketch2life.application.ports.story_run_actor import RunActor, RunActorKind
 from sketch2life.infrastructure.persistence.be1_models import AdultIdentityModel
+from sketch2life.infrastructure.persistence.parent_story_repository import (
+    SqlParentStoryRunRepository,
+)
+from sketch2life.infrastructure.persistence.teacher_run_access import SqlTeacherRunAccess
+from sketch2life.infrastructure.story_video.repository import SqlStoryVideoRepository
 
 _ROLE_KINDS = {"parent": RunActorKind.PARENT, "teacher": RunActorKind.TEACHER}
 
@@ -36,4 +41,30 @@ def require_story_run_actor(db: Session, principal: VerifiedPrincipal) -> RunAct
     return RunActor(kind=kind, account_id=identity.account_id)
 
 
-__all__ = ["require_story_run_actor"]
+def story_run_repository(db: Session, actor: RunActor) -> SqlParentStoryRunRepository:
+    """The StoryRun repository of the step routes (T-4b3a D1).
+
+    A Parent builds it exactly as before T-4a1 (no actor, no access port), so the Parent code path
+    and its bytes do not change; a Teacher builds it with the actor and the access port that
+    re-reads the CURRENT assignment on every step.
+    """
+
+    if actor.is_teacher:
+        return SqlParentStoryRunRepository(db, actor=actor, teacher_access=SqlTeacherRunAccess(db))
+    return SqlParentStoryRunRepository(db)
+
+
+def story_video_repository(db: Session, actor: RunActor) -> SqlStoryVideoRepository:
+    """The video repository of the step routes (T-4b3b D1): the same rule as the story repository.
+
+    A Parent builds it exactly as before (``SqlStoryVideoRepository(db)``: no actor, no access
+    port); a Teacher builds it with the actor and the access port that re-reads the CURRENT
+    occurrence-pin assignment on every step.
+    """
+
+    if actor.is_teacher:
+        return SqlStoryVideoRepository(db, actor, SqlTeacherRunAccess(db))
+    return SqlStoryVideoRepository(db)
+
+
+__all__ = ["require_story_run_actor", "story_run_repository", "story_video_repository"]

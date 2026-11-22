@@ -72,6 +72,43 @@ class ParentStoryRunRecord:
 
 
 @dataclass(frozen=True, slots=True)
+class TeacherStoryRunRecord:
+    """The Teacher view of a run (T-4b2, D10): the Parent record with a string profile ref (a
+    Managed Profile id is not a UUID) and the occurrence, plan and activity pins. The snapshots are
+    kept as stored; the route types them (a fixture run of T-4a1 still holds Parent snapshots)."""
+
+    run_id: str
+    run_state: str
+    run_revision: int
+    profile_ref: str
+    profile_revision_ref: str
+    occurrence_id: str | None
+    plan: dict[str, Any] | None
+    activity: dict[str, Any] | None
+    context_revision: int
+    context_confirmed: bool
+    context_snapshot: dict[str, Any]
+    context_snapshot_sha256: str
+    current_input_revision: int | None
+    understanding_revision: int | None
+    subject_label: str | None
+    candidate: dict[str, Any] | None
+    story_revision_id: str | None
+    story_revision_no: int | None
+    story_status: str | None
+    story_sha256: str | None
+    story_content: dict[str, Any] | None
+    job_state: str | None
+    retryable: bool
+    error_code: str | None
+    created_at: datetime
+    updated_at: datetime
+    lesson_pin_snapshot: dict[str, Any] | None = None
+    video: dict[str, Any] | None = None
+    timeline: list[dict[str, Any]] = field(default_factory=list)
+
+
+@dataclass(frozen=True, slots=True)
 class ParentStoryLifecycleRecord:
     """FR-C-08 content-free projection of a run in DELETE_PENDING or DELETED (DTR §6.5).
 
@@ -109,7 +146,7 @@ class ParentStoryLifecycleRecord:
 
 
 # A live run is reported in full; from DELETE_PENDING on only the projection is reported.
-ParentStoryRunView = ParentStoryRunRecord | ParentStoryLifecycleRecord
+ParentStoryRunView = ParentStoryRunRecord | TeacherStoryRunRecord | ParentStoryLifecycleRecord
 
 
 @dataclass(frozen=True, slots=True)
@@ -148,6 +185,9 @@ class ParentStoryRevisionReservation:
     replay_body: dict[str, Any] | None = None
     # FR-C-08: set only on the replay of a purged run; the route returns the projection.
     lifecycle: ParentStoryLifecycleRecord | None = None
+    # A Teacher run only (T-4b3a D6): the organization the route saw, for the job-side runner.
+    # Never stored: the worker input and the receipt do not carry it.
+    organization_id: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -515,4 +555,5 @@ __all__ = [
     "ParentStoryRunSummary",
     "ParentStoryRunView",
     "StoryRewriteOutcome",
+    "TeacherStoryRunRecord",
 ]

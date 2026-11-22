@@ -130,7 +130,9 @@ def client(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
         runtime_module, "get_core_database_settings", lambda: SimpleNamespace(database_url=None)
     )
     monkeypatch.setattr(video_routes, "StoryVideoAdmissionService", _Service)
-    monkeypatch.setattr(video_routes, "SqlStoryVideoRepository", lambda db: SimpleNamespace(db=db))
+    monkeypatch.setattr(
+        video_routes, "story_video_repository", lambda db, _actor: SimpleNamespace(db=db)
+    )
     application = app_module.create_app()
     application.dependency_overrides[get_verified_adult] = lambda: PRINCIPAL
     application.dependency_overrides[get_db] = lambda: _Db("parent")
@@ -418,8 +420,8 @@ def test_the_body_cannot_name_an_owner_or_a_scope(client: TestClient) -> None:
 
 
 # ------------------------------------------------------------------------- roles
-@pytest.mark.parametrize("role", ["teacher", "school_manager", "platform_admin", None])
-def test_a_role_that_is_not_an_active_parent_gets_the_uniform_404(
+@pytest.mark.parametrize("role", ["school_manager", "platform_admin", None])
+def test_a_role_that_is_neither_an_active_parent_nor_teacher_gets_the_uniform_404(
     client: TestClient, role: str | None
 ) -> None:
     client.app.dependency_overrides[get_db] = lambda: _Db(role)  # type: ignore[attr-defined]
@@ -429,7 +431,12 @@ def test_a_role_that_is_not_an_active_parent_gets_the_uniform_404(
 
 
 def test_a_disabled_parent_or_another_issuer_gets_the_uniform_404(client: TestClient) -> None:
-    for db in (_Db("parent", state="disabled"), _Db("parent", issuer="other-issuer")):
+    for db in (
+        _Db("parent", state="disabled"),
+        _Db("parent", issuer="other-issuer"),
+        _Db("teacher", state="disabled"),
+        _Db("teacher", issuer="other-issuer"),
+    ):
         client.app.dependency_overrides[get_db] = lambda db=db: db  # type: ignore[attr-defined]
         response = _post(client)
         assert response.status_code == 404 and response.json()["code"] == "RESOURCE_NOT_FOUND"

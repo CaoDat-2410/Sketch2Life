@@ -85,8 +85,9 @@ class _Service:
     result: Any = None
     calls: list[dict[str, Any]] = []
 
-    def __init__(self, db: object, *, storage: object) -> None:
+    def __init__(self, db: object, *, storage: object, repository: object = None) -> None:
         self.storage = storage
+        self.repository = repository
 
     def attach_drawing(self, **kwargs: Any) -> Any:
         type(self).calls.append(kwargs)
@@ -288,7 +289,9 @@ def test_a_missing_or_invalid_key_is_a_plain_400(client: TestClient, key: str | 
 
 
 def test_the_key_is_checked_after_the_role_and_before_the_run(client: TestClient) -> None:
-    _use_db(client, _Db("teacher"))
+    # T-4b3a: a Teacher now passes the actor guard (it is covered in
+    # ``test_teacher_run_inputs_contract.py``); a Manager stands for the wrong role here.
+    _use_db(client, _Db("school_manager"))
     wrong_role_bad_key = _post(client, key=" ")
     assert wrong_role_bad_key.status_code == 404
     _use_db(client, _Db("parent"))
@@ -349,7 +352,6 @@ def test_wrong_role_unknown_run_foreign_asset_and_unknown_asset_look_the_same(
         assert _wire(other) == reference
     calls_before = len(_Service.calls)
     for role, state, issuer in (
-        ("teacher", "active", ISSUER),
         ("school_manager", "active", ISSUER),
         ("platform_admin", "active", ISSUER),
         ("parent", "suspended", ISSUER),
@@ -363,7 +365,7 @@ def test_wrong_role_unknown_run_foreign_asset_and_unknown_asset_look_the_same(
 
 
 def test_a_wrong_role_gets_404_even_for_a_run_the_service_would_accept(client: TestClient) -> None:
-    _use_db(client, _Db("teacher"))
+    _use_db(client, _Db("school_manager"))
     response = _post(client)
     assert response.status_code == 404
     assert response.json()["code"] == "RESOURCE_NOT_FOUND"

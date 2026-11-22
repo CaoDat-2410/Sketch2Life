@@ -1,8 +1,12 @@
-"""Upload target resolvers (T-2a, T-2c): the Parent run for ``RUN_ARTWORK`` and ``RUN_AUDIO``.
+"""Upload target resolvers (T-2a, T-2c, T-4b3a): the run for ``RUN_ARTWORK`` and ``RUN_AUDIO``.
 
 A resolver answers two questions for one verified principal: which owner scope a target has (or
 ``None`` for absent and out-of-scope targets alike, so the route answers the uniform 404), and
-whether the target still accepts bytes. ``OCCURRENCE_DOCUMENT`` has no default resolver: no
+whether the target still accepts bytes. The run purposes dispatch on the caller's role (T-4b3a
+D4): a Parent gets the Parent resolver (unchanged), a Teacher gets a PINNED Teacher run on the
+CURRENT assignment, with the Core scope ``(ORGANIZATION, organization_id, organization_id)`` and
+the key prefix ``parent/{run}/`` (the purge contract, T-4b2 OPEN-4); a fixture run without an
+occurrence pin is not a Teacher upload target. ``OCCURRENCE_DOCUMENT`` has no default resolver: no
 occurrence table exists at this commit, so T-3a/T-3b register a factory under that purpose in
 ``app.state.upload_target_resolver_factories``. Until then the purpose answers 404.
 """
@@ -20,15 +24,23 @@ from sqlalchemy.orm import Session
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
 from sketch2life.application.ports.parent_story_runs import ParentStoryRunError
+from sketch2life.application.ports.story_run_actor import (
+    TEACHER_COMMAND_SCOPE_KIND,
+    RunActor,
+    RunActorKind,
+)
 from sketch2life.application.ports.upload_sessions import (
+    ORGANIZATION_SCOPE,
     PARENT_ACCOUNT_SCOPE,
     UploadScope,
     UploadTargetNotAccepting,
     UploadTargetResolver,
 )
+from sketch2life.infrastructure.persistence.be1_models import AdultIdentityModel
 from sketch2life.infrastructure.persistence.parent_story_repository import (
     SqlParentStoryRunRepository,
 )
+from sketch2life.infrastructure.persistence.teacher_run_access import SqlTeacherRunAccess
 from sketch2life.infrastructure.story_run_lite import tables as story_tables
 from sketch2life.infrastructure.uploads.purposes import RUN_ARTWORK, RUN_AUDIO
 
@@ -99,8 +111,104 @@ class ParentRunAudioResolver(ParentRunArtworkResolver):
             raise UploadTargetNotAccepting(exc.code) from None
 
 
+class RunArtworkResolver:
+    """``RUN_ARTWORK``: the Parent resolver for a Parent, the Teacher resolver for a Teacher.
+
+    The role is read from the caller's identity row; a caller who is neither never reaches a run
+    (the upload service has already refused the purpose for any other role).
+    """
+
+    _parent_resolver: type[ParentRunArtworkResolver] = ParentRunArtworkResolver
+
+    def __init__(self, db: Session) -> None:
+        self._db = db
+
+    def _teacher_actor(self, principal: VerifiedPrincipal) -> RunActor | None:
+        identity = self._db.get(AdultIdentityModel, principal.subject)
+        if (
+            identity is None
+            or identity.state != "active"
+            or identity.issuer != principal.issuer
+            or identity.account_role != "teacher"
+        ):
+            return None
+        return RunActor(kind=RunActorKind.TEACHER, account_id=identity.account_id)
+
+    def resolve(self, principal: VerifiedPrincipal, target_ref: str) -> UploadScope | None:
+        actor = self._teacher_actor(principal)
+        if actor is None:
+            return self._parent_resolver(self._db).resolve(principal, target_ref)
+        try:
+            canonical = str(UUID(target_ref))
+        except ValueError:
+            return None
+        if canonical != target_ref:
+            return None
+        runs = story_tables.story_runs
+        run = self._db.execute(
+            select(runs.c.actor_scope_ref, runs.c.profile_ref, runs.c.occurrence_ref).where(
+                runs.c.run_id == canonical,
+                runs.c.actor_scope_kind == TEACHER_COMMAND_SCOPE_KIND,
+                runs.c.occurrence_ref.is_not(None),
+            )
+        ).first()
+        if run is None:
+            return None
+        organization_id = str(run[0])
+        access = SqlTeacherRunAccess(self._db).resolve(
+            principal=principal,
+            organization_id=organization_id,
+            child_id=None if run[1] is None else str(run[1]),
+            lock=False,
+            occurrence_ref=str(run[2]),
+        )
+        if access is None:
+            return None
+        # The scope ref is the organization id, never NULL: the asset trigger, the T-13a purge
+        # plan and the open-session close all match it (T-4b3a P2-2). The prefix stays
+        # ``parent/{run}/`` because it is part of the purge contract (T-4b2 OPEN-4).
+        return UploadScope(
+            owner_scope_kind=ORGANIZATION_SCOPE,
+            owner_scope_ref=organization_id,
+            organization_id=organization_id,
+            object_prefix=f"parent/{canonical}/",
+        )
+
+    def _repository(self, principal: VerifiedPrincipal) -> SqlParentStoryRunRepository:
+        actor = self._teacher_actor(principal)
+        if actor is None:
+            return SqlParentStoryRunRepository(self._db)
+        return SqlParentStoryRunRepository(
+            self._db, actor=actor, teacher_access=SqlTeacherRunAccess(self._db)
+        )
+
+    def ensure_accepting(self, principal: VerifiedPrincipal, target_ref: str) -> None:
+        """Re-read the access and the state before bytes are written; a Teacher in a suspended
+        or archived class is refused (SRS l.364, l.593, l.1425)."""
+        try:
+            self._repository(principal).ensure_accepting_artwork(
+                principal=principal, run_id=target_ref
+            )
+        except ParentStoryRunError as exc:
+            raise UploadTargetNotAccepting(exc.code) from None
+
+
+class RunAudioResolver(RunArtworkResolver):
+    """``RUN_AUDIO``: the same run scope; the run must still accept an idea (T-2c)."""
+
+    _parent_resolver = ParentRunAudioResolver
+
+    def ensure_accepting(self, principal: VerifiedPrincipal, target_ref: str) -> None:
+        try:
+            self._repository(principal).ensure_accepting_audio(
+                principal=principal, run_id=target_ref
+            )
+        except ParentStoryRunError as exc:
+            raise UploadTargetNotAccepting(exc.code) from None
+
+
 def default_resolver_factories() -> dict[str, ResolverFactory]:
-    return {RUN_ARTWORK: ParentRunArtworkResolver, RUN_AUDIO: ParentRunAudioResolver}
+    return {RUN_ARTWORK: RunArtworkResolver, RUN_AUDIO: RunAudioResolver}
 
 
 def merged_resolver_factories(registered: Mapping[str, Any] | None) -> dict[str, ResolverFactory]:
@@ -115,6 +223,8 @@ __all__ = [
     "ParentRunArtworkResolver",
     "ParentRunAudioResolver",
     "ResolverFactory",
+    "RunArtworkResolver",
+    "RunAudioResolver",
     "default_resolver_factories",
     "merged_resolver_factories",
     "parent_scope_ref",

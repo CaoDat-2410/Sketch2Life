@@ -1,7 +1,14 @@
-"""The Parent video routes: ``video-generations`` (FEAT-066 T-1a; SRS l.395, l.1670) and the two
-decisions on a ready video, ``video-unsuitable`` and ``complete`` (T-1b; SRS l.1671-1672).
+"""The video routes of a StoryRun: ``video-generations`` (FEAT-066 T-1a; SRS l.395, l.1670) and the
+two decisions on a ready video, ``video-unsuitable`` and ``complete`` (T-1b; SRS l.1671-1672).
 
-The Parent owner asks for a video of the confirmed script. The response is 202: the saga stores an
+T-4b3b: each of the five routes is open to the actor of the run, the owning Parent or the Teacher
+currently responsible for a Teacher run (SRS l.1664-1676 "Actor của run", l.553): the guard is
+``require_story_run_actor`` at the place ``_require_parent`` stood (FastAPI still validates body and
+headers first, the check order is unchanged) and the repository comes from
+``story_video_repository`` (a Parent gets exactly the repository it always had). Everyone else is
+the one uniform 404.
+
+The actor asks for a video of the confirmed script. The response is 202: the saga stores an
 intent first, then asks the compute reservation and the quota admission (both behind ports, never
 inside a transaction) and answers ``ADMISSION_PENDING`` until both are clear, ``ACCEPTED`` with a
 ``job_id`` once they are. A refused request is a stable error (409 ``VIDEO_QUOTA_EXCEEDED`` or
@@ -25,6 +32,14 @@ the run is not at ``VIDEO_READY`` with a ``READY`` generation, 503 with no signi
 stream route ``playback`` (the bearer is required AND the ``X-Playback-Token`` header must name the
 same actor; every request rechecks owner, run state and generation; the database session is
 released before the first byte). Neither route shows a bucket, key or URL (SRS l.1692).
+
+T-5a: the stream route also serves the class projection token the Teacher gets from
+``POST /v1/lesson-occurrences/{id}/projection-playback-token`` (SRS l.1662, l.1691-1693). The guard
+order is unchanged (token shape, signature and expiry with no store read, then the actor guard in
+the short database scope); only then the branch on the token's audience, never both guards: an
+owner-view token takes ``authorize`` (it refuses a projection grant), a projection token is
+accepted only for a Teacher and takes ``authorize_projection``, which also asks the Lesson
+confirmation port on every request. Every failure is the uniform 404.
 """
 
 # FastAPI dependency declarations intentionally use Depends in defaults.
@@ -51,6 +66,7 @@ from sketch2life.application.ports.object_storage import (
     ReadableObjectBody,
 )
 from sketch2life.application.ports.parent_story_runs import ParentStoryRunError
+from sketch2life.application.ports.story_run_actor import RunActor
 from sketch2life.application.ports.story_video import PLAYBACK_MEDIA_TYPE, RunCommandResult
 from sketch2life.application.services.story_run_detail import video_asset_handle
 from sketch2life.application.services.story_run_playback import (
@@ -77,10 +93,7 @@ from sketch2life.contracts.schemas.story_run_video import (
     ParentVideoGenerationV1,
     ParentVideoUnsuitableRequestV1,
 )
-from sketch2life.infrastructure.persistence.parent_story_repository import (
-    SqlParentStoryRunRepository,
-)
-from sketch2life.infrastructure.story_video.repository import SqlStoryVideoRepository
+from sketch2life.infrastructure.lesson_occurrences.projection import SqlProjectionAuthorization
 from sketch2life.interfaces.http.api_conventions import parse_idempotency_key
 from sketch2life.interfaces.http.be1_runtime import (
     Be1Runtime,
@@ -90,10 +103,14 @@ from sketch2life.interfaces.http.be1_runtime import (
 )
 from sketch2life.interfaces.http.routers.parent_story_inputs import _http_error
 from sketch2life.interfaces.http.routers.parent_story_runs import (
-    ParentStoryRunResult,
+    StoryRunResult,
     _envelope,
     _lifecycle_envelope,
-    _require_parent,
+)
+from sketch2life.interfaces.http.story_run_actor import (
+    require_story_run_actor,
+    story_run_repository,
+    story_video_repository,
 )
 
 router = APIRouter(prefix="/v1/story-runs", tags=["Parent StoryRuns"])
@@ -109,13 +126,17 @@ _VIDEO_ERROR_RESPONSES: dict[int | str, dict[str, Any]] = {
     },
     404: {
         "model": ParentStoryCancelErrorEnvelopeV1,
-        "description": "The run was not found, or the caller is not the active Parent owner.",
+        "description": (
+            "The run was not found, or the caller is neither the active Parent owner nor the "
+            "Teacher currently responsible for the run."
+        ),
     },
     409: {
         "model": ParentStoryCancelErrorEnvelopeV1,
         "description": (
-            "The run state, the revision or the script does not allow a video request, the "
-            "regeneration limit was reached, or the quota or the subscription refused it."
+            "The run state, the revision or the script does not allow a video request (also a "
+            "Teacher whose class is not active), the regeneration limit was reached, or the "
+            "quota or the subscription refused it."
         ),
     },
     422: {
@@ -154,11 +175,11 @@ def create_parent_video_generation(
     # The declaration above publishes the header as required; parse_idempotency_key (1-128 visible
     # ASCII) is the authority and runs after the role check, before the run lookup.
     del idempotency_key
-    _require_parent(db, principal)
+    actor = require_story_run_actor(db, principal)
     key = parse_idempotency_key(request)
     state = request.app.state
     service = StoryVideoAdmissionService(
-        SqlStoryVideoRepository(db),
+        story_video_repository(db, actor),
         getattr(state, "story_video_ports", None),
         call_timeout_seconds=getattr(
             state, "story_video_port_timeout_seconds", DEFAULT_PORT_TIMEOUT_SECONDS
@@ -205,8 +226,8 @@ _RUN_COMMAND_ERROR_RESPONSES: dict[int | str, dict[str, Any]] = {
     409: {
         "model": ParentStoryCancelErrorEnvelopeV1,
         "description": (
-            "The run is not at VIDEO_READY, the revision or the generation is stale, or the "
-            "regeneration limit was reached."
+            "The run is not at VIDEO_READY (also a Teacher whose class is not active), the "
+            "revision or the generation is stale, or the regeneration limit was reached."
         ),
     },
     422: {
@@ -225,16 +246,20 @@ def _run_command_response(
     response: Response,
     db: Session,
     principal: VerifiedPrincipal,
+    actor: RunActor,
     run_id: UUID,
     result: RunCommandResult,
-) -> ParentStoryRunResult:
-    """200 with the run read after the commit, or the content-free projection of a purged replay."""
+) -> StoryRunResult:
+    """200 with the run read after the commit, or the content-free projection of a purged replay.
+
+    The run is read through the repository of the actor: a Parent gets the Parent envelope, a
+    Teacher the Teacher view (a string profile ref, no name, no seed; T-4b3b D11)."""
 
     response.headers["Content-Location"] = f"/v1/story-runs/{run_id}"
     if result.projection is not None:
         return _lifecycle_envelope(result.projection)
     try:
-        view = SqlParentStoryRunRepository(db).get_run(principal=principal, run_id=str(run_id))
+        view = story_run_repository(db, actor).get_run(principal=principal, run_id=str(run_id))
     except ParentStoryRunError as exc:
         raise _http_error(exc) from None
     return _envelope(view)
@@ -242,7 +267,7 @@ def _run_command_response(
 
 @router.post(
     "/{run_id}/video-unsuitable",
-    response_model=ParentStoryRunResult,
+    response_model=StoryRunResult,
     status_code=status.HTTP_200_OK,
     summary="Mark the current ready video unsuitable and return the run to the script review",
     responses=_RUN_COMMAND_ERROR_RESPONSES,
@@ -255,12 +280,12 @@ def mark_parent_video_unsuitable(
     idempotency_key: Annotated[str, Header(alias="Idempotency-Key", min_length=1, max_length=128)],
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
-) -> ParentStoryRunResult:
+) -> StoryRunResult:
     del idempotency_key  # parse_idempotency_key is the authority (see the video-generations route)
-    _require_parent(db, principal)
+    actor = require_story_run_actor(db, principal)
     key = parse_idempotency_key(request)
     try:
-        result = StoryVideoCommandService(SqlStoryVideoRepository(db)).mark_unsuitable(
+        result = StoryVideoCommandService(story_video_repository(db, actor)).mark_unsuitable(
             principal=principal,
             run_id=str(run_id),
             expected_revision=payload.expected_revision,
@@ -270,12 +295,12 @@ def mark_parent_video_unsuitable(
         )
     except ParentStoryRunError as exc:
         raise _http_error(exc) from None
-    return _run_command_response(response, db, principal, run_id, result)
+    return _run_command_response(response, db, principal, actor, run_id, result)
 
 
 @router.post(
     "/{run_id}/complete",
-    response_model=ParentStoryRunResult,
+    response_model=StoryRunResult,
     status_code=status.HTTP_200_OK,
     summary="Complete the Parent StoryRun at VIDEO_READY and release the active lock",
     responses=_RUN_COMMAND_ERROR_RESPONSES,
@@ -288,12 +313,12 @@ def complete_parent_story_run(
     idempotency_key: Annotated[str, Header(alias="Idempotency-Key", min_length=1, max_length=128)],
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
-) -> ParentStoryRunResult:
+) -> StoryRunResult:
     del idempotency_key  # parse_idempotency_key is the authority (see the video-generations route)
-    _require_parent(db, principal)
+    actor = require_story_run_actor(db, principal)
     key = parse_idempotency_key(request)
     try:
-        result = StoryVideoCommandService(SqlStoryVideoRepository(db)).complete(
+        result = StoryVideoCommandService(story_video_repository(db, actor)).complete(
             principal=principal,
             run_id=str(run_id),
             expected_revision=payload.expected_revision,
@@ -301,7 +326,7 @@ def complete_parent_story_run(
         )
     except ParentStoryRunError as exc:
         raise _http_error(exc) from None
-    return _run_command_response(response, db, principal, run_id, result)
+    return _run_command_response(response, db, principal, actor, run_id, result)
 
 
 # ---------------------------------------------------------------------------- playback (T-1c)
@@ -350,11 +375,12 @@ def issue_parent_playback_token(
     db: Session = Depends(get_db),
 ) -> ParentPlaybackTokenResponseV1:
     """SRS l.1676: no body and no idempotency key (a grant, not a state change; no database
-    write). Ownership and the video state are read now; the stream rechecks them on every use."""
+    write). Ownership and the video state are read now; the stream rechecks them on every use.
+    A Teacher is the CURRENT responsible Teacher of a pinned run (the owner view, T-4b3b D10)."""
 
-    _require_parent(db, principal)
+    actor = require_story_run_actor(db, principal)
     service = StoryPlaybackService(
-        SqlStoryVideoRepository(db), getattr(request.app.state, "story_playback_tokens", None)
+        story_video_repository(db, actor), getattr(request.app.state, "story_playback_tokens", None)
     )
     try:
         issued = service.issue(principal=principal, run_id=str(run_id))
@@ -425,7 +451,9 @@ def stream_parent_playback(
 ) -> Response:
     """SRS l.1691-1693: the bearer is required and must be the token's actor; the token is read from
     a header only. Order: token shape, signature and expiry (401), then in one short database
-    scope the parent role, the run, the current generation and the owner binding (uniform 404),
+    scope the actor role (Parent or Teacher), the run, the current generation and the actor
+    binding (uniform 404; a class projection token also needs the Teacher and the Lesson
+    confirmation, T-5a),
     then the object (404 when absent, 503 when the store fails). The session is closed before
     the first byte, so a slow download holds no database connection."""
 
@@ -438,10 +466,17 @@ def stream_parent_playback(
     assert runtime.session_factory is not None
     try:
         with runtime.session_factory() as db:
-            _require_parent(db, principal)
-            target = StoryPlaybackService(SqlStoryVideoRepository(db), tokens).authorize(
-                principal=principal, run_id=str(run_id), grant=grant
-            )
+            actor = require_story_run_actor(db, principal)
+            if grant.audience is None:
+                target = StoryPlaybackService(story_video_repository(db, actor), tokens).authorize(
+                    principal=principal, run_id=str(run_id), grant=grant
+                )
+            elif actor.is_teacher:
+                target = StoryPlaybackService(
+                    story_video_repository(db, actor), tokens, SqlProjectionAuthorization(db)
+                ).authorize_projection(principal=principal, run_id=str(run_id), grant=grant)
+            else:  # a class projection token is for the Teacher only (SRS l.1662)
+                raise ParentStoryRunError(404, "RESOURCE_NOT_FOUND")
     except ParentStoryRunError as exc:
         raise _http_error(exc) from None
     except SQLAlchemyError:

@@ -164,6 +164,9 @@ from sketch2life.interfaces.http.router_composition import (
 )
 from sketch2life.interfaces.http.routers.auth_registration import RegistrationRateLimiter
 from sketch2life.interfaces.http.routers.storage_examples import router as storage_examples_router
+from sketch2life.interfaces.http.routers.story_run_create_dispatch import (
+    publish_teacher_story_run_create,
+)
 from sketch2life.interfaces.http.routers.story_run_lite import router as story_run_lite_router
 from sketch2life.interfaces.http.routers.story_run_lite import (
     story_error_response,
@@ -536,6 +539,13 @@ def create_app(
             }
             safe_messages = {
                 "ACTIVE_RUN_EXISTS": "Đã có một lượt kể chuyện đang hoạt động.",
+                # FEAT-066 T-4b2: the Teacher create (SRS l.553, l.866, l.870-871, l.1445-1449).
+                "TEACHER_ACTIVE_RUN_CONFLICT": (
+                    "Giáo viên này đang có một lượt kể chuyện đang hoạt động."
+                ),
+                "SAMPLE_VIDEO_ALREADY_EXISTS": "Buổi học này đã có video mẫu.",
+                "LESSON_PLAN_NOT_APPROVED": "Kế hoạch bài học chưa được duyệt.",
+                "MULTI_CHILD_NOT_SUPPORTED": "Mỗi lượt kể chuyện chỉ dành cho một trẻ.",
                 # FEAT-066 T-2d: the story rewrite route (SRS l.866, l.871, l.1668).
                 "STORY_REWRITE_LIMIT_REACHED": "Đã hết số lần viết lại câu chuyện.",
                 "SUBJECT_NOT_CONFIRMED": "Vui lòng xác nhận chủ thể của bức tranh trước.",
@@ -1257,6 +1267,8 @@ def create_app(
         )
         components = schema.setdefault("components", {})
         schemas = components.setdefault("schemas", {})
+        # T-4b2: the Teacher body of POST /v1/story-runs (a valid oneOf, no dangling $ref).
+        publish_teacher_story_run_create(schema)
         if isinstance(schemas, dict):
             for parent_request_model in (
                 CreateParentProfileRequest,

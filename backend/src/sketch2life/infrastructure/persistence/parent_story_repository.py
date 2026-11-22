@@ -41,10 +41,12 @@ from sketch2life.application.ports.parent_story_runs import (
     ParentStoryRunSummary,
     ParentStoryRunView,
     StoryRewriteOutcome,
+    TeacherStoryRunRecord,
 )
 from sketch2life.application.ports.story_run_actor import (
     TEACHER_COMMAND_SCOPE_KIND,
     RunActor,
+    RunAssetOwner,
     TeacherRunAccess,
     TeacherRunAccessPort,
 )
@@ -70,6 +72,7 @@ from sketch2life.application.ports.story_task_reaper import (
 )
 from sketch2life.application.ports.story_video import RunVideoRows
 from sketch2life.application.services.story_run_detail import compose_timeline, compose_video
+from sketch2life.domain.story_teacher import TEACHER_PIN_SCHEMA, teacher_lesson_direction
 from sketch2life.domain.story_video.model import public_failure_code
 from sketch2life.infrastructure.persistence.core_models import (
     CoreAggregateRevisionModel,
@@ -164,18 +167,22 @@ def write_story_task_audit(
     decision: str,
     run_revision: int,
     now: datetime,
+    owner_scope_kind: str = _OWNER_SCOPE_KIND,
+    organization_id: str | None = None,
 ) -> None:
     """One metadata audit row: actor, action, resource and the safe code (BR-34, l.278).
 
     Never a story, hint, transcript or error text. The write is idempotent per run revision.
+    The defaults give every Parent call the row it always wrote; a Teacher run passes kind
+    ``ORGANIZATION`` and its organization id (the scope ref equals it, T-4b3a D13, T-13a H7).
     """
 
     session.execute(
         pg_insert(_AUDIT)
         .values(
             audit_id=story_task_audit_id(run_id, action, run_revision),
-            organization_id=None,
-            owner_scope_kind=_OWNER_SCOPE_KIND,
+            organization_id=organization_id,
+            owner_scope_kind=owner_scope_kind,
             owner_scope_ref=owner_scope_ref,
             actor_ref=actor_ref,
             action=action,
@@ -188,13 +195,35 @@ def write_story_task_audit(
     )
 
 
+def story_task_audit_scope(run: Mapping[Any, Any]) -> dict[str, Any]:
+    """The audit scope arguments of one run row (T-4b3a D13): the Parent owner scope as ever, or
+    for a Teacher run ``ORGANIZATION`` with the organization id as both ``organization_id`` and
+    scope ref (the ``OWNER_SCOPE_CHECK`` accepts exactly that)."""
+
+    ref = str(run["actor_scope_ref"])
+    if run.get("actor_scope_kind") == TEACHER_COMMAND_SCOPE_KIND:
+        return {
+            "owner_scope_kind": TEACHER_COMMAND_SCOPE_KIND,
+            "owner_scope_ref": ref,
+            "organization_id": ref,
+        }
+    return {"owner_scope_ref": ref}
+
+
 class SqlParentStoryRunRepository:
     """With no ``actor`` every method is the Parent repository of before T-4a1 (T-4a1-DEC-5).
 
     With a Teacher ``actor`` only the methods that pass ``teacher_capable=True`` to
-    ``_owned_run`` (the run read and the three confirmations) can find a run, and they find it
-    only after ``teacher_access`` confirms the CURRENT assignment; every other method answers the
-    uniform 404 for a Teacher (fail closed until T-4b2 and T-13a).
+    ``_owned_run`` can find a run, and they find it only after ``teacher_access`` confirms the
+    CURRENT assignment; every other method answers the uniform 404 for a Teacher. The T-4b3a
+    input steps additionally pass ``pinned=True``: a run without an occurrence pin (a T-4a1/T-13a
+    fixture row) stays the uniform 404 there.
+
+    ``job_side=True`` (T-4b3a D6) is the repository of a background task of a Teacher run: it
+    finds a run by id, ``ORGANIZATION`` kind, an occurrence pin and the organization id the route
+    saw, with no live assignment check (FR-T-14, l.553: a valid AI job is not cancelled because an
+    assignment changed). Only the methods that pass ``job_side_ok=True`` accept it; every other
+    method under ``job_side`` is the uniform 404.
     """
 
     def __init__(
@@ -203,10 +232,14 @@ class SqlParentStoryRunRepository:
         *,
         actor: RunActor | None = None,
         teacher_access: TeacherRunAccessPort | None = None,
+        job_side: bool = False,
+        job_side_organization: str | None = None,
     ) -> None:
         self._session = session
         self._actor = actor
         self._teacher_access = teacher_access
+        self._job_side = job_side
+        self._job_side_organization = job_side_organization
 
     @property
     def _is_teacher(self) -> bool:
@@ -410,7 +443,12 @@ class SqlParentStoryRunRepository:
     def get_run(
         self, *, principal: VerifiedPrincipal, run_id: str
     ) -> ParentStoryRunView:
-        run = self._owned_run(principal, run_id, teacher_capable=True)
+        return self._read_run_view(principal, run_id, job_side_ok=False)
+
+    def _read_run_view(
+        self, principal: VerifiedPrincipal, run_id: str, *, job_side_ok: bool
+    ) -> ParentStoryRunView:
+        run = self._owned_run(principal, run_id, teacher_capable=True, job_side_ok=job_side_ok)
         if run["run_state"] in PURGE_STATES:
             # DTR Draft 6 §6.5: the projection is returned before any input or profile access.
             return _projection(run)
@@ -465,18 +503,15 @@ class SqlParentStoryRunRepository:
                     for scene in scenes
                 ],
             }
-        profile_id, profile_revision_ref = self._typed_profile_refs(run, input_row)
         # T-1c: one bounded Story-owned read (the accepted rows and the pending intent, at most
         # four, and the scenes of the current one); nothing at all while no request exists.
         video_rows = read_run_video(
             self._session, run_id, _text_or_none(run.get("current_video_generation_id"))
         )
-        return ParentStoryRunRecord(
+        shared: dict[str, Any] = dict(
             run_id=run_id,
             run_state=str(run["run_state"]),
             run_revision=int(run["revision"]),
-            parent_profile_id=profile_id,
-            profile_revision_ref=profile_revision_ref,
             context_revision=int(input_row["context_revision"]),
             context_confirmed=(
                 input_row["context_confirmed_by"] is not None
@@ -522,6 +557,23 @@ class SqlParentStoryRunRepository:
                 run_finished_at=run.get("finished_at"),
                 rows=video_rows,
             ),
+        )
+        if self._is_teacher:
+            # T-4b2 D10: the Teacher view never calls UUID() on a Managed Profile id (DEC-7 gone).
+            plan, activity = _teacher_pin_view(run, input_row)
+            return TeacherStoryRunRecord(
+                profile_ref=str(run["profile_ref"]),
+                profile_revision_ref=str(input_row["source_profile_revision_ref"]),
+                occurrence_id=_text_or_none(run.get("occurrence_ref")),
+                plan=plan,
+                activity=activity,
+                **shared,
+            )
+        profile_id, profile_revision_ref = self._typed_profile_refs(run, input_row)
+        return ParentStoryRunRecord(
+            parent_profile_id=profile_id,
+            profile_revision_ref=profile_revision_ref,
+            **shared,
         )
 
     def list_runs(
@@ -571,7 +623,8 @@ class SqlParentStoryRunRepository:
     def get_active_run(
         self, *, principal: VerifiedPrincipal, account_id: str
     ) -> ParentStoryRunView | None:
-        self._refuse_teacher()
+        if self._is_teacher:
+            return self._get_active_teacher_run(principal=principal, account_id=account_id)
         run_id = self._session.scalar(
             select(story_tables.story_runs.c.run_id).where(
                 story_tables.story_runs.c.actor_scope_kind == _OWNER_SCOPE_KIND,
@@ -585,6 +638,30 @@ class SqlParentStoryRunRepository:
             principal=principal,
             run_id=str(run_id),
         )
+
+    def _get_active_teacher_run(
+        self, *, principal: VerifiedPrincipal, account_id: str
+    ) -> ParentStoryRunView | None:
+        """The one active run the Teacher holds (T-4b2 D4/D5), for a resume after a reload.
+
+        The lock column finds the run; the run is shown only while the CURRENT occurrence-pin rule
+        still grants it, otherwise the answer is the empty one (nothing about the run leaks).
+        """
+
+        run_id = self._session.scalar(
+            select(story_tables.story_runs.c.run_id).where(
+                story_tables.story_runs.c.actor_scope_kind == TEACHER_COMMAND_SCOPE_KIND,
+                story_tables.story_runs.c.active_owner_teacher_id == account_id,
+            )
+        )
+        if run_id is None:
+            return None
+        try:
+            return self.get_run(principal=principal, run_id=str(run_id))
+        except ParentStoryRunError as error:
+            if error.status_code == 404:
+                return None
+            raise
 
     def cancel_run(
         self,
@@ -857,7 +934,9 @@ class SqlParentStoryRunRepository:
     def ensure_accepting_artwork(self, *, principal: VerifiedPrincipal, run_id: str) -> None:
         """Port design §7: re-check the state immediately before the first ``put_object``."""
 
-        run = self._owned_run(principal, run_id)
+        # T-4b3a D2: a Teacher needs a pinned run and an active class (the upload route has no
+        # replay, so the class check is part of the lookup).
+        run = self._owned_run(principal, run_id, teacher_capable=True, pinned=True, write=True)
         if run["run_state"] in PURGE_STATES:
             raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
         # T-2b: the first drawing, or the one allowed retake (see ``_artwork_slot``).
@@ -1167,7 +1246,7 @@ class SqlParentStoryRunRepository:
     def read_current_input(
         self, *, principal: VerifiedPrincipal, run_id: str
     ) -> ParentStoryInputRecord:
-        run = self._owned_run(principal, run_id)
+        run = self._owned_run(principal, run_id, job_side_ok=True)
         if run["run_state"] in PURGE_STATES:
             # DTR Draft 6 §6.5: a lifecycle error, not PARENT_STORY_CONTEXT_UNAVAILABLE.
             raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
@@ -1195,7 +1274,9 @@ class SqlParentStoryRunRepository:
         # waited for and its receipt is visible below; without the lock a replay racing its own
         # first attach could see the stale run and answer 409 instead of the stored 202. The
         # lock is released by every rollback below, before any asset byte is read.
-        run = self._owned_run(principal, run_id, lock=True)
+        run, access = self._owned_run_access(
+            principal, run_id, lock=True, teacher_capable=True, pinned=True
+        )
         try:
             replay = self._find_idempotency_receipt(
                 principal=principal,
@@ -1209,6 +1290,7 @@ class SqlParentStoryRunRepository:
                 result = self._replayed_attach(run, replay)
                 self._session.rollback()
                 return result
+            self._refuse_read_only_class(access)
             self._refuse_purged(run)
             self._check_expected_run_revision(run, expected_run_revision)
             self._artwork_slot(
@@ -1273,7 +1355,9 @@ class SqlParentStoryRunRepository:
         the upload created (T-2a); this writes the derived asset, one lineage row, the new input
         revision, the run update and the receipt, then commits.
         """
-        run = self._owned_run(principal, run_id, lock=True)
+        run, access = self._owned_run_access(
+            principal, run_id, lock=True, teacher_capable=True, pinned=True
+        )
         key_hash = _idempotency_key_hash(idempotency_key)
         self._lock_idempotency(
             principal=principal,
@@ -1294,6 +1378,7 @@ class SqlParentStoryRunRepository:
             result = self._replayed_attach(run, replay)
             self._session.commit()
             return result
+        self._refuse_read_only_class(access)
         self._refuse_purged(run)
         self._check_expected_run_revision(run, expected_run_revision)
         attached = self._attached_original_refs(run_id)
@@ -1305,7 +1390,7 @@ class SqlParentStoryRunRepository:
         derived_asset_ref = derived_asset_key(original_asset_ref)
         previous = self._current_input(run)
         new_input_revision = int(previous["input_revision"]) + 1
-        owner_scope_ref = _principal_scope_ref(principal)
+        owner_kind, owner_ref, owner_organization = self._asset_owner(principal, run)
         now = datetime.now(UTC)
         try:
             storage.put_object(
@@ -1324,9 +1409,9 @@ class SqlParentStoryRunRepository:
                 CoreAssetMetadataModel(
                     asset_ref=derived_asset_ref,
                     asset_version=1,
-                    organization_id=None,
-                    owner_scope_kind=_OWNER_SCOPE_KIND,
-                    owner_scope_ref=owner_scope_ref,
+                    organization_id=owner_organization,
+                    owner_scope_kind=owner_kind,
+                    owner_scope_ref=owner_ref,
                     content_sha256=derived_sha256,
                     media_type="image/png",
                     source_refs=[run_id],
@@ -1409,6 +1494,7 @@ class SqlParentStoryRunRepository:
                 run_revision=int(run["revision"]) + 1,
                 run_state="INPUT_PROCESSING",
                 analysis_state="QUEUED",
+                organization_id=str(run["actor_scope_ref"]) if self._is_teacher else None,
             )
             self._store_idempotency_receipt(
                 principal=principal,
@@ -1437,6 +1523,37 @@ class SqlParentStoryRunRepository:
             self._discard_unreferenced_object(storage, run_id, derived_asset_ref)
             raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE") from None
         return outcome
+
+    def _asset_owner(
+        self, principal: VerifiedPrincipal, run: Mapping[str, Any]
+    ) -> tuple[str, str, str | None]:
+        """Kind, ref and organization of the Core rows (uploads, assets) of this run (D4, D16).
+
+        Parent: its own typed scope, no organization. Teacher: ``ORGANIZATION`` with the
+        organization id as scope ref AND as organization (never NULL: the asset trigger, the
+        T-13a seed, the purge plan and the open-session close all match the ref, T-4b3a P2-2).
+        """
+
+        if self._is_teacher:
+            organization = str(run["actor_scope_ref"])
+            return TEACHER_COMMAND_SCOPE_KIND, organization, organization
+        return _OWNER_SCOPE_KIND, _principal_scope_ref(principal), None
+
+    def asset_owner(self, *, principal: VerifiedPrincipal, run_id: str) -> RunAssetOwner:
+        """The owner triple of the Core rows of the run, for the upload resolution of a service.
+
+        A Parent answers from the principal with no read (the unchanged path); a Teacher needs a
+        pinned run on the current assignment (the uniform 404 otherwise)."""
+
+        if not self._is_teacher:
+            kind, ref, organization = self._asset_owner(principal, {})
+            return RunAssetOwner(kind, ref, organization)
+        try:
+            run = self._owned_run(principal, run_id, teacher_capable=True, pinned=True)
+            kind, ref, organization = self._asset_owner(principal, run)
+        finally:
+            self._session.rollback()
+        return RunAssetOwner(kind, ref, organization)
 
     def _discard_unreferenced_object(
         self, storage: ObjectStoragePort, run_id: str, key: str
@@ -1475,7 +1592,7 @@ class SqlParentStoryRunRepository:
         self, *, principal: VerifiedPrincipal, run_id: str, expected_input_revision: int
     ) -> bool:
         """QUEUED -> RUNNING for the current input; ``False`` when the work is stale or gone."""
-        run = self._owned_run(principal, run_id, lock=True)
+        run = self._owned_run(principal, run_id, lock=True, job_side_ok=True)
         if (
             run["run_state"] != "INPUT_PROCESSING"
             or run["job_state"] != "QUEUED"
@@ -1517,7 +1634,7 @@ class SqlParentStoryRunRepository:
         work is stale (replaced drawing, other state, purged run, or a job that is no longer in
         flight because the reaper already failed it, T-2d-fix D1).
         """
-        run = self._owned_run(principal, run_id, lock=True)
+        run = self._owned_run(principal, run_id, lock=True, job_side_ok=True)
         if (
             run["run_state"] != "INPUT_PROCESSING"
             or run["job_state"] not in _VLM_IN_FLIGHT
@@ -1555,7 +1672,7 @@ class SqlParentStoryRunRepository:
         confidence: float,
         expected_input_revision: int | None = None,
     ) -> int:
-        run = self._owned_run(principal, run_id, lock=True)
+        run = self._owned_run(principal, run_id, lock=True, job_side_ok=True)
         self._refuse_purged(run)
         if run["run_state"] != "INPUT_PROCESSING":
             raise ParentStoryRunError(409, "PARENT_STORY_RUN_NOT_AWAITING_UNDERSTANDING")
@@ -1706,9 +1823,14 @@ class SqlParentStoryRunRepository:
         new_version = int(run["version"]) + 1
         new_revision = int(run["revision"]) + 1
         edited = confirmed_subject != suggested
-        # T-4a1-DEC-8: the VLM rerun runs on the Parent job runner; a Teacher edit is recorded and
-        # confirmed at once (the DEV-1 path) until T-4b2 owns a Teacher producer.
-        if edited and rerun_on_edit and not self._is_teacher:
+        # T-4b3a D7e (closes T4A1-I-05): a Teacher edit of a PINNED run reruns the VLM on the
+        # job-side runner like a Parent edit. A fixture row (no occurrence pin) has no job-side
+        # lookup, so it keeps the DEV-1 path: the edit is recorded and confirmed at once.
+        if (
+            edited
+            and rerun_on_edit
+            and (not self._is_teacher or run.get("occurrence_ref") is not None)
+        ):
             return self._request_subject_rerun(
                 principal=principal,
                 run=run,
@@ -1872,6 +1994,7 @@ class SqlParentStoryRunRepository:
             decision="RERUN_REQUESTED",
             run_revision=new_revision,
             input_revision=int(run["current_input_revision"]),
+            organization_id=str(run["actor_scope_ref"]) if self._is_teacher else None,
         )
 
     def read_subject_rerun_hint(self, *, principal: VerifiedPrincipal, run_id: str) -> str | None:
@@ -1881,7 +2004,7 @@ class SqlParentStoryRunRepository:
         receipt names the latest understanding revision of the current drawing, so no newer
         revision answered it yet and no retake replaced the drawing. Read-only.
         """
-        run = self._owned_run(principal, run_id)
+        run = self._owned_run(principal, run_id, job_side_ok=True)
         if run["run_state"] != "INPUT_PROCESSING":
             return None
         latest = self._latest_understanding(run_id)
@@ -1932,14 +2055,22 @@ class SqlParentStoryRunRepository:
             or int(run["understanding_revision"] or 0) != expected_understanding_revision
         ):
             raise ParentStoryRunError(409, "PARENT_UNDERSTANDING_REVISION_STALE")
+        decisions = story_tables.review_decisions
+        # T-4b3a D7c (OPEN-5): for a Teacher run the step actor is "Actor của run" (l.1666,
+        # l.1668), not one person: a SUBJECT decision of ANY Teacher command scope of the run
+        # counts, so an assignment change cannot strand the run. A Parent still needs its own.
+        decider = (
+            decisions.c.actor_scope_kind == TEACHER_COMMAND_SCOPE_KIND
+            if self._is_teacher
+            else decisions.c.actor_scope_ref == _principal_scope_ref(principal)
+        )
         subject_decision = self._session.scalar(
-            select(story_tables.review_decisions.c.decision_id).where(
-                story_tables.review_decisions.c.run_id == run_id,
-                story_tables.review_decisions.c.stage == "SUBJECT",
-                story_tables.review_decisions.c.decision == "CONFIRM",
-                story_tables.review_decisions.c.actor_scope_ref == _principal_scope_ref(principal),
-                story_tables.review_decisions.c.target_understanding_revision
-                == expected_understanding_revision,
+            select(decisions.c.decision_id).where(
+                decisions.c.run_id == run_id,
+                decisions.c.stage == "SUBJECT",
+                decisions.c.decision == "CONFIRM",
+                decider,
+                decisions.c.target_understanding_revision == expected_understanding_revision,
             )
         )
         if subject_decision is None:
@@ -2216,7 +2347,9 @@ class SqlParentStoryRunRepository:
         The receipt is final in the reservation transaction (status 202), so a replay never meets
         a pending receipt and completing or failing the generation touches no receipt.
         """
-        run = self._owned_run(principal, run_id, lock=True)
+        run, access = self._owned_run_access(
+            principal, run_id, lock=True, teacher_capable=True, pinned=True
+        )
         operation = "GENERATE_STORY_REVISION"
         key_hash = _idempotency_key_hash(idempotency_key)
         fingerprint = _sha256_json(
@@ -2273,6 +2406,7 @@ class SqlParentStoryRunRepository:
                 replayed=True,
             )
 
+        self._refuse_read_only_class(access)
         self._refuse_purged(run)
         if run["run_state"] != "SCRIPT_REVIEW":
             raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
@@ -2303,7 +2437,7 @@ class SqlParentStoryRunRepository:
             # up to three attempts per slot; the fourth is refused with the same code (l.866). The
             # client reads ``retryable false`` plus this code as "confirm or cancel" (l.1728).
             self._rewrite_attempts_used(
-                _principal_scope_ref(principal), run_id, int(latest_story["revision_no"]) + 1
+                run, _principal_scope_ref(principal), int(latest_story["revision_no"]) + 1
             )
             >= REWRITE_ATTEMPTS_PER_SLOT
         ):
@@ -2329,7 +2463,7 @@ class SqlParentStoryRunRepository:
         context = input_row["context_snapshot"]
         worker_input = {
             "schema_version": "sketch2life.story-rewrite-input.v1",
-            "role": "PARENT",
+            "role": "TEACHER" if self._is_teacher else "PARENT",
             "language": "vi",
             "confirmed_subject": str(run["subject_label"] or "").strip(),
             "understanding_revision": understanding_revision,
@@ -2342,7 +2476,11 @@ class SqlParentStoryRunRepository:
             "rewrite_instruction": instruction,
             "rewrite_instruction_version": instruction_version,
             "adult_rewrite_hint": hint,
-            "lesson_direction": None,
+            # T-4b3a D7b: a Teacher run carries a bounded direction taken from its own context
+            # snapshot (no name, no media); a Parent run carries none, as ever.
+            "lesson_direction": (
+                teacher_lesson_direction(context) if self._is_teacher else None
+            ),
         }
         request_hash = _sha256_json(worker_input)
         revision_no = int(latest_story["revision_no"]) + 1
@@ -2421,6 +2559,7 @@ class SqlParentStoryRunRepository:
                 worker_input=worker_input,
                 request_sha256=request_hash,
                 receipt_id=None,
+                organization_id=str(run["actor_scope_ref"]) if self._is_teacher else None,
             ),
         )
 
@@ -2428,7 +2567,7 @@ class SqlParentStoryRunRepository:
         self, *, principal: VerifiedPrincipal, run_id: str, story_revision_id: str
     ) -> bool:
         """QUEUED -> RUNNING for the reserved revision; ``False`` when the work is stale (T-2d)."""
-        run = self._owned_run(principal, run_id, lock=True)
+        run = self._owned_run(principal, run_id, lock=True, job_side_ok=True)
         reserved = self._session.scalar(
             select(story_tables.story_revisions.c.story_revision_id).where(
                 story_tables.story_revisions.c.story_revision_id == story_revision_id,
@@ -2471,7 +2610,7 @@ class SqlParentStoryRunRepository:
         model_id: str,
         model_revision: str,
     ) -> ParentStoryRunView:
-        run = self._owned_run(principal, reservation.run_id, lock=True)
+        run = self._owned_run(principal, reservation.run_id, lock=True, job_side_ok=True)
         if run["run_state"] in PURGE_STATES:
             raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
         if run["run_state"] != "SCRIPT_GENERATING":
@@ -2606,10 +2745,10 @@ class SqlParentStoryRunRepository:
         except SQLAlchemyError:
             self._session.rollback()
             raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE") from None
-        return self.get_run(
-            principal=principal,
-            run_id=reservation.run_id,
-        )
+        if self._job_side:
+            # T-4b3a: the job-side repository cannot call ``get_run`` (it is not a job-side method)
+            return self._read_run_view(principal, reservation.run_id, job_side_ok=True)
+        return self.get_run(principal=principal, run_id=reservation.run_id)
 
     def fail_story_revision(
         self,
@@ -2629,7 +2768,7 @@ class SqlParentStoryRunRepository:
         story (or of the legacy route) ends the run; an unknown outcome waits for reconciliation.
         """
 
-        run = self._owned_run(principal, reservation.run_id, lock=True)
+        run = self._owned_run(principal, reservation.run_id, lock=True, job_side_ok=True)
         if run["run_state"] in PURGE_STATES:
             raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
         if run["run_state"] != "SCRIPT_GENERATING":
@@ -2745,22 +2884,33 @@ class SqlParentStoryRunRepository:
             if receipt_update.rowcount != 1:
                 raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE")
 
-    def _rewrite_attempts_used(self, owner_scope_ref: str, run_id: str, revision_no: int) -> int:
+    def _rewrite_attempts_used(
+        self, run: Mapping[Any, Any], parent_scope_ref: str, revision_no: int
+    ) -> int:
         """Accepted rewrite requests of one slot (T-2d-fix D2): FINAL 202 receipts of this run.
 
         A receipt is stored final at reservation (T-2d) and never pruned during a run, so the count
         survives the deletion of a failed attempt's revision row. The legacy route's receipts carry
-        no ``story_revision_no`` (and no 202) and never match.
+        no ``story_revision_no`` (and no 202) and never match. A Parent run counts the receipts of
+        its owner scope; a Teacher run counts them by kind, whoever gave the command (T-4b3a D7d:
+        the slot limit follows the run, not the person, l.516, l.551, l.1413).
         """
 
+        run_id = str(run["run_id"])
         receipts = story_tables.story_command_receipts
+        if run.get("actor_scope_kind") == TEACHER_COMMAND_SCOPE_KIND:
+            owner: tuple[Any, ...] = (receipts.c.actor_scope_kind == TEACHER_COMMAND_SCOPE_KIND,)
+        else:
+            owner = (
+                receipts.c.actor_scope_kind == _OWNER_SCOPE_KIND,
+                receipts.c.actor_scope_ref == parent_scope_ref,
+            )
         return int(
             self._session.scalar(
                 select(func.count())
                 .select_from(receipts)
                 .where(
-                    receipts.c.actor_scope_kind == _OWNER_SCOPE_KIND,
-                    receipts.c.actor_scope_ref == owner_scope_ref,
+                    *owner,
                     receipts.c.operation == "GENERATE_STORY_REVISION",
                     receipts.c.idempotency_scope_kind == "STORY_RUN",
                     receipts.c.idempotency_scope_ref == run_id,
@@ -2809,7 +2959,7 @@ class SqlParentStoryRunRepository:
         )
         if deleted.rowcount != 1:
             raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
-        attempts = self._rewrite_attempts_used(str(run["actor_scope_ref"]), run_id, revision_no)
+        attempts = self._rewrite_attempts_used(run, str(run["actor_scope_ref"]), revision_no)
         updated = cast(
             CursorResult[Any],
             self._session.execute(
@@ -2836,13 +2986,13 @@ class SqlParentStoryRunRepository:
             raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
         write_story_task_audit(
             self._session,
-            owner_scope_ref=str(run["actor_scope_ref"]),
             actor_ref=actor_ref,
             action=AUDIT_REWRITE_ATTEMPT_FAILED,
             run_id=run_id,
             decision=error_code,
             run_revision=int(run["revision"]) + 1,
             now=now,
+            **story_task_audit_scope(run),
         )
 
     def settle_run_state(self, run_id: str) -> str:
@@ -2867,7 +3017,7 @@ class SqlParentStoryRunRepository:
         ``INVALID_STATE_TRANSITION`` (discarded work). Without it (the legacy synchronous route,
         whose caller waits for the answer) the earlier unconditional behaviour is kept.
         """
-        run = self._owned_run(principal, run_id, lock=True)
+        run = self._owned_run(principal, run_id, lock=True, job_side_ok=True)
         if run["run_state"] in PURGE_STATES:
             raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
         if expected_input_revision is not None and (
@@ -3032,7 +3182,7 @@ class SqlParentStoryRunRepository:
     def ensure_accepting_audio(self, *, principal: VerifiedPrincipal, run_id: str) -> None:
         """Port design §7: re-check the state immediately before the first ``put_object``."""
 
-        run = self._owned_run(principal, run_id)
+        run = self._owned_run(principal, run_id, teacher_capable=True, pinned=True, write=True)
         if run["run_state"] in PURGE_STATES or run["run_state"] not in _INPUT_STATES:
             raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
 
@@ -3172,7 +3322,9 @@ class SqlParentStoryRunRepository:
         run row is locked while these checks run and released by the rollback on every exit;
         ``submit_idea`` re-checks under the lock.
         """
-        run = self._owned_run(principal, run_id, lock=True)
+        run, access = self._owned_run_access(
+            principal, run_id, lock=True, teacher_capable=True, pinned=True
+        )
         try:
             replay = self._find_idempotency_receipt(
                 principal=principal,
@@ -3186,6 +3338,7 @@ class SqlParentStoryRunRepository:
                 result = self._replayed_idea(run, replay)
                 self._session.rollback()
                 return result
+            self._refuse_read_only_class(access)
             self._refuse_purged(run)
             self._check_expected_run_revision(run, expected_run_revision)
             self._require_input_state(run)
@@ -3245,7 +3398,9 @@ class SqlParentStoryRunRepository:
         ``SUPERSEDED`` before a new row is inserted (the partial unique indexes are checked per
         statement), then the run state is settled and the receipt is stored.
         """
-        run = self._owned_run(principal, run_id, lock=True)
+        run, access = self._owned_run_access(
+            principal, run_id, lock=True, teacher_capable=True, pinned=True
+        )
         key_hash = _idempotency_key_hash(idempotency_key)
         self._lock_idempotency(
             principal=principal,
@@ -3266,6 +3421,7 @@ class SqlParentStoryRunRepository:
             result = self._replayed_idea(run, replay)
             self._session.commit()
             return result
+        self._refuse_read_only_class(access)
         self._refuse_purged(run)
         self._check_expected_run_revision(run, expected_run_revision)
         try:
@@ -3310,6 +3466,7 @@ class SqlParentStoryRunRepository:
                 transcript_revision=None if live is None else int(live["revision_no"]),
                 transcript_state=None if live is None else str(live["state"]),
                 new_transcript_id=new_transcript_id,
+                organization_id=str(run["actor_scope_ref"]) if self._is_teacher else None,
             )
             self._store_idempotency_receipt(
                 principal=principal,
@@ -3463,7 +3620,8 @@ class SqlParentStoryRunRepository:
         return created
 
     def get_transcript(self, *, principal: VerifiedPrincipal, run_id: str) -> TranscriptView:
-        run = self._owned_run(principal, run_id)
+        # T-4b3a D2: a read, allowed in a read-only class (l.364, l.593, l.1425)
+        run = self._owned_run(principal, run_id, teacher_capable=True, pinned=True)
         if run["run_state"] in PURGE_STATES:
             # A purged run holds no transcript (BR-23, FR-C-08): a lifecycle error, no content.
             raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
@@ -3495,7 +3653,9 @@ class SqlParentStoryRunRepository:
         transcript_sha256: str,
     ) -> TranscriptConfirmOutcome | ParentStoryLifecycleRecord:
         """The adult confirms one exact transcript revision and hash (TD-04, l.1713)."""
-        run = self._owned_run(principal, run_id, lock=True)
+        run, access = self._owned_run_access(
+            principal, run_id, lock=True, teacher_capable=True, pinned=True
+        )
         key_hash = _idempotency_key_hash(idempotency_key)
         fingerprint = _sha256_json(
             {
@@ -3534,6 +3694,7 @@ class SqlParentStoryRunRepository:
                 )
             except (KeyError, TypeError, ValueError):
                 raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE") from None
+        self._refuse_read_only_class(access)
         self._refuse_purged(run)
         input_row = self._current_input(run)
         voice_ref = input_row["voice_asset_ref"]
@@ -3632,7 +3793,7 @@ class SqlParentStoryRunRepository:
     def read_pending_transcription(
         self, *, principal: VerifiedPrincipal, run_id: str, transcript_revision_id: str
     ) -> SpeechTranscriptionRequest | None:
-        run = self._owned_run(principal, run_id)
+        run = self._owned_run(principal, run_id, job_side_ok=True)
         try:
             if run["run_state"] in PURGE_STATES:
                 return None
@@ -3724,7 +3885,7 @@ class SqlParentStoryRunRepository:
         transcript_revision_id: str,
         values: dict[str, Any],
     ) -> bool:
-        run = self._owned_run(principal, run_id, lock=True)
+        run = self._owned_run(principal, run_id, lock=True, job_side_ok=True)
         if run["run_state"] in PURGE_STATES:
             self._session.rollback()
             return False
@@ -3785,17 +3946,27 @@ class SqlParentStoryRunRepository:
         lock: bool = False,
         teacher_capable: bool = False,
         write: bool = False,
+        pinned: bool = False,
+        job_side_ok: bool = False,
     ) -> Any:
         """The run row of the actor, or the uniform 404.
 
         A Teacher actor finds a run only where ``teacher_capable`` is set, and only when the
         CURRENT assignment grants the child's class (FR-T-14, l.553): the same 404 for an
         org-wide, guide or observer row, a former Teacher, another organization and an unknown
-        id. ``write`` additionally needs an active class (SRS l.364, l.593, l.1425).
+        id. ``write`` additionally needs an active class (SRS l.364, l.593, l.1425). ``pinned``
+        refuses a run without an occurrence pin for a Teacher; ``job_side_ok`` marks a method a
+        job-side repository may run.
         """
 
         return self._owned_run_access(
-            principal, run_id, lock=lock, teacher_capable=teacher_capable, write=write
+            principal,
+            run_id,
+            lock=lock,
+            teacher_capable=teacher_capable,
+            write=write,
+            pinned=pinned,
+            job_side_ok=job_side_ok,
         )[0]
 
     def _owned_run_access(
@@ -3806,6 +3977,8 @@ class SqlParentStoryRunRepository:
         lock: bool = False,
         teacher_capable: bool = False,
         write: bool = False,
+        pinned: bool = False,
+        job_side_ok: bool = False,
     ) -> tuple[Any, TeacherRunAccess | None]:
         """``_owned_run`` and, for a Teacher, what the current assignment granted.
 
@@ -3814,11 +3987,15 @@ class SqlParentStoryRunRepository:
         With ``lock`` the run row is held ``FOR UPDATE`` and the assignment row ``FOR SHARE``.
         """
 
+        if self._job_side:
+            return self._job_side_run(run_id, lock=lock, job_side_ok=job_side_ok), None
         if self._is_teacher and not teacher_capable:
             raise ParentStoryRunError(404, "RESOURCE_NOT_FOUND")
         query = select(story_tables.story_runs).where(
             story_tables.story_runs.c.run_id == run_id, *self._owner_clauses(principal)
         )
+        if pinned and self._is_teacher:
+            query = query.where(story_tables.story_runs.c.occurrence_ref.is_not(None))
         if lock:
             query = query.with_for_update()
         row = self._session.execute(query).mappings().one_or_none()
@@ -3831,6 +4008,30 @@ class SqlParentStoryRunRepository:
                 self._session.rollback()
                 raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
         return row, access
+
+    def _job_side_run(self, run_id: str, *, lock: bool, job_side_ok: bool) -> Any:
+        """The run of a background task of a Teacher run (T-4b3a D6): by id, ``ORGANIZATION``
+        kind, an occurrence pin and the organization id the route saw. No assignment is read: a
+        valid job is not cancelled because the assignment changed (FR-T-14, l.553); the writes
+        stay compare-and-set on run state, input and hashes. Anything but a job-side method, a
+        missing organization or another organization is the uniform 404."""
+
+        organization = self._job_side_organization
+        if not job_side_ok or not self._is_teacher or not organization:
+            raise ParentStoryRunError(404, "RESOURCE_NOT_FOUND")
+        runs = story_tables.story_runs
+        query = select(runs).where(
+            runs.c.run_id == run_id,
+            runs.c.actor_scope_kind == TEACHER_COMMAND_SCOPE_KIND,
+            runs.c.occurrence_ref.is_not(None),
+            runs.c.actor_scope_ref == organization,
+        )
+        if lock:
+            query = query.with_for_update()
+        row = self._session.execute(query).mappings().one_or_none()
+        if row is None:
+            raise ParentStoryRunError(404, "RESOURCE_NOT_FOUND")
+        return row
 
     def _refuse_read_only_class(self, access: TeacherRunAccess | None) -> None:
         """A Teacher write in a suspended or archived class is 409 (SRS l.364, l.593, l.1425).
@@ -3852,6 +4053,8 @@ class SqlParentStoryRunRepository:
                 organization_id=str(run["actor_scope_ref"]),
                 child_id=_text_or_none(run["profile_ref"]),
                 lock=lock,
+                # T-4b2 D10: a run with an occurrence pin follows the pin, a fixture row the child.
+                occurrence_ref=_text_or_none(run.get("occurrence_ref")),
             )
             if self._teacher_access is not None
             else None
@@ -3863,22 +4066,16 @@ class SqlParentStoryRunRepository:
     def _typed_profile_refs(
         self, run: Mapping[str, Any], input_row: Mapping[Any, Any]
     ) -> tuple[UUID, UUID]:
-        """The typed profile and revision refs of the response (``StoryRunDetailV1``).
+        """The typed profile and revision refs of the Parent response (``StoryRunDetailV1``).
 
-        A Teacher run keeps the Managed Profile child id, which is not a UUID in a real
-        organization: until T-4b2 types the ref the read answers a non-retryable 409 and never a
-        500 or a retryable 503 (T-4a1-DEC-7).
+        Only the Parent view calls it: the Teacher view keeps the Managed Profile id as a string
+        and never calls ``UUID()`` on it (T-4b2 D10 retired T-4a1-DEC-7).
         """
 
-        try:
-            return (
-                UUID(str(run["profile_ref"])),
-                UUID(str(input_row["source_profile_revision_ref"])),
-            )
-        except ValueError:
-            if not self._is_teacher:
-                raise
-            raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION") from None
+        return (
+            UUID(str(run["profile_ref"])),
+            UUID(str(input_row["source_profile_revision_ref"])),
+        )
 
     def _lock_idempotency(
         self,
@@ -4308,9 +4505,47 @@ def _text_or_none(value: object) -> str | None:
     return None if value is None else str(value)
 
 
+def _teacher_pin_view(
+    run: Mapping[str, Any], input_row: Mapping[Any, Any]
+) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
+    """The plan and activity pins of a Teacher run as the view shows them (T-4b2 D10); a fixture
+    row without an occurrence, or an input without the Teacher pin schema, has none."""
+
+    pin = input_row["lesson_pin_snapshot"]
+    if (
+        run.get("occurrence_ref") is None
+        or not isinstance(pin, dict)
+        or pin.get("schema_version") != TEACHER_PIN_SCHEMA
+    ):
+        return None, None
+    activity = pin["activity"]
+    return (
+        {"revision_no": pin["plan_revision_no"], "plan_hash": pin["plan_hash"]},
+        {
+            "plan_activity_id": activity["plan_activity_id"],
+            "kind": activity["kind"],
+            "snapshot_hash": activity.get("snapshot_hash"),
+        },
+    )
+
+
 def _principal_scope_ref(principal: VerifiedPrincipal) -> str:
     principal_claims = {"issuer": principal.issuer, "subject": principal.subject}
     return hashlib.sha256(_canonical_json(principal_claims).encode("utf-8")).hexdigest()
+
+
+def job_side_repository(
+    session: Session, actor: RunActor | None, organization_id: str | None
+) -> SqlParentStoryRunRepository:
+    """The repository of a background task: the unchanged Parent repository for a Parent (or no
+    actor), the job-side Teacher repository (T-4b3a D6) for a Teacher actor. The organization id
+    is the one the route read from the run row it had just authorized."""
+
+    if actor is not None and actor.is_teacher:
+        return SqlParentStoryRunRepository(
+            session, actor=actor, job_side=True, job_side_organization=organization_id
+        )
+    return SqlParentStoryRunRepository(session)
 
 
 __all__ = [
@@ -4319,5 +4554,7 @@ __all__ = [
     "drawing_attach_fingerprint",
     "idea_fingerprint",
     "idea_source_for",
+    "job_side_repository",
     "settle_input_state",
+    "story_task_audit_scope",
 ]

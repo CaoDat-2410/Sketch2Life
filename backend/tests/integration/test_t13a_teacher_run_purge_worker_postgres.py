@@ -403,19 +403,30 @@ def test_the_worker_state_read_covers_both_scopes_and_nothing_else(target: Targe
     assert t.story.lifecycle_state(str(uuid4())) is None
 
 
-# --------------------------------------------------------------- hand-offs to T-4b2 (H1-H3)
-@pytest.mark.skip(reason="H1 (T-4b2, DDL-B2): release active_owner_teacher_id in the same update")
+# ------------------------------------------------- hand-offs to T-4b2 / T-4b3a / T-4b3b (H1-H3)
+@pytest.mark.skip(
+    reason="H1 is closed by T-4b2 (DDL-B2): the release trigger frees the Teacher lock on every "
+    "terminal state; proved in test_teacher_run_create_postgres.py (the cancel included)"
+)
 def test_h1_the_teacher_lock_is_released_by_the_cancel() -> None:  # pragma: no cover
     ...
 
 
-@pytest.mark.skip(reason="H2 (T-4b2): the notice recorder matches the jobs of a Teacher run")
+@pytest.mark.skip(
+    reason="H2 is a verified no-op (T-4b3a): no Parent or Teacher producer of the input routes "
+    "writes an ai_jobs row (the producers are background tasks of the Story tables), so the notice "
+    "has nothing to match; proved in story_teacher/test_teacher_run_inputs_postgres.py (zero "
+    "ai_jobs rows across the whole Teacher flow); the video producer is T-4b3b"
+)
 def test_h2_the_notice_cancels_the_jobs_whose_subject_is_the_run() -> None:  # pragma: no cover
     ...
 
 
 @pytest.mark.skip(
-    reason="H3 (T-2b/T-4b2): real Teacher run assets use (ORGANIZATION, org), parent/<run>/, v1"
+    reason="H3 is closed for the inputs by T-4b3a: real Teacher run assets and upload sessions "
+    "use (ORGANIZATION, org, org), parent/<run>/, v1; proved by the agent-runnable purge-closure "
+    "test in story_teacher/test_teacher_run_inputs_postgres.py (plan review P2-2); this owner-run "
+    "module keeps its own seeded-asset purge tests; the video output asset is T-4b3b"
 )
 def test_h3_real_teacher_run_assets_follow_the_purge_key_contract() -> None:  # pragma: no cover
     ...

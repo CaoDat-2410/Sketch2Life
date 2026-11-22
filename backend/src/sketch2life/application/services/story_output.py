@@ -23,6 +23,7 @@ from sketch2life.application.ports.parent_story_runs import (
     ParentStoryRunError,
     ParentStoryRunRecord,
     ParentStoryRunRepositoryPort,
+    TeacherStoryRunRecord,
 )
 from sketch2life.contracts.schemas.ai_story import (
     StoryRevisionDraftV1,
@@ -83,7 +84,7 @@ def complete_generated_story(
     provider_call_id: str,
     model_id: str,
     model_revision: str,
-) -> ParentStoryRunRecord:
+) -> ParentStoryRunRecord | TeacherStoryRunRecord:
     """Validate the draft and store it, or record the failure and raise ``StoryOutputInvalid``.
 
     ``ParentStoryRunError`` from the repository (a purged run, a store fault) propagates to the
@@ -113,6 +114,8 @@ def complete_generated_story(
     if isinstance(record, ParentStoryLifecycleRecord):
         # complete_story_revision refuses a purged run; a projection here is never served.
         raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
+    # A Teacher run's job-side completion (T-4b3a) hands back the Teacher view; the runner ignores
+    # it and the Parent route never meets one (its repository has no actor).
     return record
 
 

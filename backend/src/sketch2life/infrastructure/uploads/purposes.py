@@ -50,6 +50,13 @@ class UploadPurposePolicy:
     unsupported_code: str
     needs_file_name: bool
     enabled: bool
+    # Further account roles that may open a session of this purpose (T-4b3a D4): the run
+    # purposes are open to a Teacher too; the resolver, not the policy, decides which run.
+    also_roles: frozenset[str] = frozenset()
+
+    @property
+    def roles(self) -> frozenset[str]:
+        return frozenset({self.account_role}) | self.also_roles
 
 
 POLICIES: Final[dict[str, UploadPurposePolicy]] = {
@@ -62,6 +69,7 @@ POLICIES: Final[dict[str, UploadPurposePolicy]] = {
         unsupported_code="UNSUPPORTED_MEDIA_TYPE",
         needs_file_name=False,
         enabled=True,
+        also_roles=frozenset({"teacher"}),
     ),
     OCCURRENCE_DOCUMENT: UploadPurposePolicy(
         purpose=OCCURRENCE_DOCUMENT,
@@ -82,6 +90,7 @@ POLICIES: Final[dict[str, UploadPurposePolicy]] = {
         unsupported_code="UNSUPPORTED_MEDIA_TYPE",
         needs_file_name=False,
         enabled=True,
+        also_roles=frozenset({"teacher"}),
     ),
 }
 # Purposes the generic routes serve. ``LESSON_SOURCE`` stays on the lesson routes (P-17) and

@@ -4,10 +4,12 @@ Five listings (one per stuck kind) and one transactional ``reap``. The listings 
 ordered, read-only prefilters that select ids and clocks only (no content column). ``reap`` is one
 transaction per run: ``SELECT ... FOR UPDATE SKIP LOCKED`` on the run row (a row a live adult
 command or a late worker holds is skipped, never waited for), a re-check of every condition under
-the lock, then compare-and-set writes on the locked revision and state. Only ``PARENT_ACCOUNT``
-runs of the Parent lane are touched: the StoryRun-lite demo lane writes the same table but never
-sets ``current_input_revision``, so that column is the lane marker. Every effect writes one
-metadata audit row (actor, action, run id, safe code; no content, BR-34 l.278).
+the lock, then compare-and-set writes on the locked revision and state. Only the story lanes are
+touched: ``PARENT_ACCOUNT`` runs and, since T-4b3a, ``ORGANIZATION`` runs that carry an occurrence
+pin (a Teacher run; a fixture row without the pin stays out). The StoryRun-lite demo lane writes
+the same table but never sets ``current_input_revision``, so that column is the lane marker. Every
+effect writes one metadata audit row (actor, action, run id, safe code; no content, BR-34
+l.278); a Teacher run's row is scoped to its organization.
 
 The clock is ``updated_at`` (every Parent run write bumps it, T-1d1 audit), so the lease is an
 inactivity lease and not the SRS job deadline; the transcript clock is its own ``created_at``.
@@ -18,11 +20,12 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, cast
 
-from sqlalchemy import and_, func, select, update
+from sqlalchemy import and_, func, or_, select, update
 from sqlalchemy.engine import CursorResult, RowMapping
 from sqlalchemy.orm import Session
 
 from sketch2life.application.ports.parent_story_runs import ParentStoryRunError
+from sketch2life.application.ports.story_run_actor import TEACHER_COMMAND_SCOPE_KIND
 from sketch2life.application.ports.story_run_lifecycle import PURGE_STATES
 from sketch2life.application.ports.story_task_reaper import (
     AUDIT_TIMED_OUT_DRAWING,
@@ -37,6 +40,7 @@ from sketch2life.application.ports.story_task_reaper import (
 from sketch2life.application.services.story_task_reaper import StoryTaskReaperService
 from sketch2life.infrastructure.persistence.parent_story_repository import (
     SqlParentStoryRunRepository,
+    story_task_audit_scope,
     write_story_task_audit,
 )
 from sketch2life.infrastructure.story_run_lite import tables as story_tables
@@ -53,13 +57,49 @@ _UNKNOWN_JOB = "AWAITING_RECONCILIATION"
 _REWRITE_OPERATION = "GENERATE_STORY_REVISION"
 
 
-def _parent_lane() -> Any:
-    """Parent-lane runs only: the demo lane never sets ``current_input_revision``."""
+def _story_lane() -> Any:
+    """The Parent lane and the Teacher lane (an ``ORGANIZATION`` run with an occurrence pin).
+
+    The demo lane never sets ``current_input_revision``; a fixture row of a Teacher test has no
+    ``occurrence_ref`` and is not a product run (T-4b3a D13).
+    """
 
     return and_(
-        _RUNS.c.actor_scope_kind == _OWNER_SCOPE_KIND,
+        or_(
+            _RUNS.c.actor_scope_kind == _OWNER_SCOPE_KIND,
+            and_(
+                _RUNS.c.actor_scope_kind == TEACHER_COMMAND_SCOPE_KIND,
+                _RUNS.c.occurrence_ref.is_not(None),
+            ),
+        ),
         _RUNS.c.current_input_revision.is_not(None),
         _RUNS.c.run_state.not_in(_PURGE_STATE_VALUES),
+    )
+
+
+def _in_story_lane(run: RowMapping) -> bool:
+    """The python twin of ``_story_lane`` for a row read under the lock."""
+
+    kind = run["actor_scope_kind"]
+    return (
+        (
+            kind == _OWNER_SCOPE_KIND
+            or (kind == TEACHER_COMMAND_SCOPE_KIND and run["occurrence_ref"] is not None)
+        )
+        and run["current_input_revision"] is not None
+        and run["run_state"] not in PURGE_STATES
+    )
+
+
+def _receipt_owner(run: RowMapping) -> tuple[Any, ...]:
+    """Which receipts belong to the run: a Parent run's own scope; a Teacher run's by kind, whoever
+    gave the command (the receipt ref is a principal digest, not the owner; T-4b3a D13)."""
+
+    if run["actor_scope_kind"] == TEACHER_COMMAND_SCOPE_KIND:
+        return (_RECEIPTS.c.actor_scope_kind == TEACHER_COMMAND_SCOPE_KIND,)
+    return (
+        _RECEIPTS.c.actor_scope_kind == _OWNER_SCOPE_KIND,
+        _RECEIPTS.c.actor_scope_ref == run["actor_scope_ref"],
     )
 
 
@@ -77,7 +117,7 @@ class SqlStoryTaskReaperStore:
                 select(_RUNS.c.run_id)
                 .join(_TRANSCRIPTS, _TRANSCRIPTS.c.run_id == _RUNS.c.run_id)
                 .where(
-                    _parent_lane(),
+                    _story_lane(),
                     _RUNS.c.run_state == "INPUT_PROCESSING",
                     _TRANSCRIPTS.c.state == "PENDING",
                     _TRANSCRIPTS.c.created_at <= cutoff,
@@ -89,7 +129,7 @@ class SqlStoryTaskReaperStore:
         else:
             run_state, jobs = _kind_state(kind)
             conditions: list[Any] = [
-                _parent_lane(),
+                _story_lane(),
                 _RUNS.c.run_state == run_state,
                 _RUNS.c.updated_at <= cutoff,
             ]
@@ -130,12 +170,7 @@ class SqlStoryTaskReaperStore:
             .mappings()
             .one_or_none()
         )
-        if (
-            run is None
-            or run["actor_scope_kind"] != _OWNER_SCOPE_KIND
-            or run["current_input_revision"] is None
-            or run["run_state"] in PURGE_STATES
-        ):
+        if run is None or not _in_story_lane(run):
             return ReapOutcome.SKIPPED  # locked by a live command, gone, purged or a demo run
         if candidate.kind in (ReapKind.DRAWING_LOST, ReapKind.DRAWING_UNKNOWN):
             return self._reap_drawing(run, candidate.kind, now, cutoff)
@@ -294,8 +329,7 @@ class SqlStoryTaskReaperStore:
             self._session.scalar(
                 select(_RECEIPTS.c.receipt_id)
                 .where(
-                    _RECEIPTS.c.actor_scope_kind == _OWNER_SCOPE_KIND,
-                    _RECEIPTS.c.actor_scope_ref == run["actor_scope_ref"],
+                    *_receipt_owner(run),
                     _RECEIPTS.c.operation == _REWRITE_OPERATION,
                     _RECEIPTS.c.idempotency_scope_kind == "STORY_RUN",
                     _RECEIPTS.c.idempotency_scope_ref == run["run_id"],
@@ -358,8 +392,7 @@ class SqlStoryTaskReaperStore:
         self._session.execute(
             update(_RECEIPTS)
             .where(
-                _RECEIPTS.c.actor_scope_kind == _OWNER_SCOPE_KIND,
-                _RECEIPTS.c.actor_scope_ref == run["actor_scope_ref"],
+                *_receipt_owner(run),
                 _RECEIPTS.c.operation == _REWRITE_OPERATION,
                 _RECEIPTS.c.idempotency_scope_kind == "STORY_RUN",
                 _RECEIPTS.c.idempotency_scope_ref == run["run_id"],
@@ -379,13 +412,13 @@ class SqlStoryTaskReaperStore:
     def _audit(self, run: RowMapping, action: str, now: datetime) -> None:
         write_story_task_audit(
             self._session,
-            owner_scope_ref=str(run["actor_scope_ref"]),
             actor_ref=REAPER_ACTOR_REF,
             action=action,
             run_id=str(run["run_id"]),
             decision=TASK_TIMEOUT_CODE,
             run_revision=int(run["revision"]) + 1,
             now=now,
+            **story_task_audit_scope(run),
         )
 
 

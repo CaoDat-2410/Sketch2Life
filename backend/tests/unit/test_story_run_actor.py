@@ -219,8 +219,15 @@ def test_the_teacher_lookup_is_the_organization_kind_then_the_port() -> None:
     sql = _sql(session.statements[0])
     assert "actor_scope_kind = 'ORGANIZATION'" in sql
     assert DIGEST not in sql  # the owner is the organization, never the Teacher's digest
+    # a fixture row has no occurrence pin: the port gets ``occurrence_ref`` None and the child rule
     assert port.calls == [
-        {"principal": PRINCIPAL, "organization_id": ORG, "child_id": CHILD, "lock": True}
+        {
+            "principal": PRINCIPAL,
+            "organization_id": ORG,
+            "child_id": CHILD,
+            "lock": True,
+            "occurrence_ref": None,
+        }
     ]
 
 
@@ -391,8 +398,21 @@ def test_the_parent_only_methods_answer_404_for_a_teacher_before_any_read() -> N
     repository = _repository(session, TEACHER, _Port(TeacherRunAccess("a", "active")))
     calls = (
         lambda: repository.list_runs(principal=PRINCIPAL, profile_id=None, limit=1, after=None),
-        lambda: repository.get_active_run(principal=PRINCIPAL, account_id="account-1"),
-        lambda: repository.ensure_accepting_audio(principal=PRINCIPAL, run_id=RUN_ID),
+        # T-4b3a: the upload-accepting checks are Teacher steps now; the legacy artwork writer is
+        # not (a Teacher drawing arrives through ``attach_uploaded_drawing``)
+        lambda: repository.attach_artwork(
+            principal=PRINCIPAL,
+            run_id=RUN_ID,
+            original_asset_ref="k",
+            original_sha256="a" * 64,
+            original_media_type="image/png",
+            original_size_bytes=1,
+            derived_asset_ref="d",
+            derived_sha256="b" * 64,
+            derived_size_bytes=1,
+            scanner_name="s",
+            scanner_version="1",
+        ),
         lambda: repository.replay_create_run(
             principal=PRINCIPAL,
             account_id="account-1",
@@ -409,20 +429,24 @@ def test_the_parent_only_methods_answer_404_for_a_teacher_before_any_read() -> N
     assert session.statements == []
 
 
-# -------------------------------------------------- the typed profile ref (T-4a1-DEC-7)
-def test_a_non_uuid_profile_ref_is_a_non_retryable_409_for_a_teacher_never_a_500() -> None:
+# ---------------------------------- the typed profile ref (T-4a1-DEC-7 retired by T-4b2 D10)
+def test_the_parent_view_still_types_the_profile_ref_and_the_teacher_view_never_calls_it() -> None:
     run = {"profile_ref": "synthetic-1f2e3d4c"}
     row = {"source_profile_revision_ref": str(uuid4())}
-    with pytest.raises(ParentStoryRunError) as caught:
-        _repository(_Session(), TEACHER)._typed_profile_refs(run, row)
-    assert (caught.value.status_code, caught.value.code) == (409, "INVALID_STATE_TRANSITION")
-    # a Parent run keeps the old behaviour (its ref is always a UUID)
+    # the Parent helper keeps its old behaviour for every actor: a non-UUID ref is an error ...
     with pytest.raises(ValueError):
         _repository(_Session())._typed_profile_refs(run, row)
-    profile_id, revision_id = _repository(_Session(), TEACHER)._typed_profile_refs(
+    profile_id, revision_id = _repository(_Session())._typed_profile_refs(
         {"profile_ref": CHILD}, row
     )
     assert str(profile_id) == CHILD and str(revision_id) == row["source_profile_revision_ref"]
+    # ... and the Teacher branch of ``get_run`` builds the string-typed Teacher record instead
+    source = _function_source("_read_run_view")
+    teacher_branch = source[source.index("if self._is_teacher:") :]
+    assert "TeacherStoryRunRecord(" in teacher_branch
+    assert teacher_branch.index("TeacherStoryRunRecord(") < teacher_branch.index(
+        "_typed_profile_refs("
+    )
 
 
 # ------------------------------------------------------------------ the access adapter's SQL
@@ -473,24 +497,58 @@ SITE_ROLES = {
     "create_run": "PARENT_ONLY",
     "list_runs": "PARENT_ONLY",
     "get_active_run": "PARENT_ONLY",
-    "_story_generation_basis": "PARENT_ONLY",
-    "reserve_story_rewrite": "PARENT_ONLY",
-    "fail_story_revision": "PARENT_ONLY",
-    "_rewrite_attempts_used": "PARENT_ONLY",
-    "confirm_transcript": "PARENT_ONLY",
+    # T-4b3a: the SUBJECT decision lookup, the attempt count and the audit writer follow the
+    # command KIND (a Teacher run counts by kind, the Parent by its own scope)
+    "_story_generation_basis": "BY_KIND",
+    "reserve_story_rewrite": "TEACHER_STEP",
+    "fail_story_revision": "JOB_SIDE",
+    "_rewrite_attempts_used": "BY_KIND",
+    "confirm_transcript": "TEACHER_STEP",
     # T-13a: the lifecycle commands run for a Teacher too; the owner scope comes from the run row
     "_accept_lifecycle_command": "LIFECYCLE_OWNER_ROW",
-    "write_story_task_audit": "PARENT_ONLY",
+    "write_story_task_audit": "BY_KIND",
     "attach_artwork": "ASSET_FAIL_CLOSED",
-    "attach_uploaded_drawing": "ASSET_FAIL_CLOSED",
+    # T-4b3a D4: the Core rows of a run take their owner triple from one helper
+    "_asset_owner": "ASSET_OWNER_TRIPLE",
 }
-TEACHER_CAPABLE = {
-    "get_run",
+# The methods that find a run for a Teacher (``teacher_capable=True``), the T-4b3a input steps among
+# them (``pinned=True``), and the methods a job-side repository may run (``job_side_ok=True``).
+TEACHER_CAPABLE_T4A1 = {
+    "_read_run_view",
     "confirm_context",
     "confirm_subject",
     "confirm_story_revision",
     "_accept_lifecycle_command",
 }
+TEACHER_STEP = {
+    "ensure_accepting_artwork",
+    "ensure_accepting_audio",
+    "prepare_drawing_attach",
+    "attach_uploaded_drawing",
+    "prepare_idea",
+    "submit_idea",
+    "get_transcript",
+    "confirm_transcript",
+    "reserve_story_rewrite",
+    "asset_owner",
+}
+TEACHER_CAPABLE = TEACHER_CAPABLE_T4A1 | TEACHER_STEP
+JOB_SIDE = {
+    "read_current_input",
+    "start_drawing_analysis",
+    "fail_drawing_analysis_recoverable",
+    "record_understanding",
+    "read_subject_rerun_hint",
+    "start_story_generation",
+    "complete_story_revision",
+    "fail_story_revision",
+    "fail_drawing_analysis",
+    "read_pending_transcription",
+    "_finish_transcript",
+}
+# JOB_SIDE methods that take the run row from their caller and look nothing up
+JOB_SIDE_NO_LOOKUP = {"recover_failed_rewrite", "settle_run_state"}
+PARENT_ONLY_LOOKUP = {"attach_artwork", "reserve_story_revision"}
 
 
 def _scope_sites() -> dict[str, set[str]]:
@@ -524,6 +582,10 @@ def test_every_owner_or_command_scope_site_has_a_declared_role() -> None:
         "PARENT_ONLY",
         "LIFECYCLE_OWNER_ROW",
         "ASSET_FAIL_CLOSED",
+        "ASSET_OWNER_TRIPLE",
+        "BY_KIND",
+        "TEACHER_STEP",
+        "JOB_SIDE",
     }
 
 
@@ -550,8 +612,10 @@ def test_the_helpers_are_the_only_readers_of_the_two_scopes_in_the_teacher_paths
         assert "_OWNER_SCOPE_KIND" not in _function_source(name), name
 
 
-def test_only_the_run_read_and_the_three_confirmations_are_teacher_capable() -> None:
-    capable: set[str] = set()
+def _lookup_sites(keyword: str) -> set[str]:
+    """The functions that pass ``keyword=True`` to ``_owned_run`` or ``_owned_run_access``."""
+
+    found: set[str] = set()
     for function in ast.walk(ast.parse(_SOURCE)):
         if not isinstance(function, ast.FunctionDef):
             continue
@@ -561,21 +625,169 @@ def test_only_the_run_read_and_the_three_confirmations_are_teacher_capable() -> 
                 and isinstance(node.func, ast.Attribute)
                 and node.func.attr in {"_owned_run", "_owned_run_access"}
                 and any(
-                    keyword.arg == "teacher_capable"
-                    and isinstance(keyword.value, ast.Constant)
-                    and keyword.value.value is True
-                    for keyword in node.keywords
+                    kw.arg == keyword
+                    and isinstance(kw.value, ast.Constant)
+                    and kw.value.value is True
+                    for kw in node.keywords
                 )
             ):
-                capable.add(function.name)
-    assert capable == TEACHER_CAPABLE
+                found.add(function.name)
+    return found
+
+
+def test_the_teacher_capable_sites_are_the_closed_list() -> None:
+    # T-4b3a (plan review P3-7c): the old list of the run read and the three confirmations is now
+    # the T-4a1 set plus the ten input steps; any other method that finds a run for a Teacher
+    # fails this test.
+    assert _lookup_sites("teacher_capable") == TEACHER_CAPABLE
     # the class state is refused exactly where a state changes, and AFTER the replay lookup
-    # (SRS l.1697; T4A1-I-06): the helper follows the replay lookup in the three confirmations
-    for name in ("confirm_context", "confirm_subject", "confirm_story_revision"):
+    # (SRS l.1697; T4A1-I-06): the helper follows the replay lookup in each writing step
+    for name in (
+        "confirm_context",
+        "confirm_subject",
+        "confirm_story_revision",
+        "prepare_drawing_attach",
+        "attach_uploaded_drawing",
+        "prepare_idea",
+        "submit_idea",
+        "confirm_transcript",
+        "reserve_story_rewrite",
+    ):
         source = _function_source(name)
         assert "write=True" not in source, name
         assert "_refuse_read_only_class(access)" in source, name
         assert source.index("_find_idempotency_receipt(") < source.index(
             "_refuse_read_only_class(access)"
         ), name
-    assert "_refuse_read_only_class" not in _function_source("get_run")
+    # the reads keep working in a read-only class; the two upload checks have no replay and ask
+    # for an active class in the lookup itself
+    assert "_refuse_read_only_class" not in _function_source("_read_run_view")
+    assert "_refuse_read_only_class" not in _function_source("get_transcript")
+    for name in ("ensure_accepting_artwork", "ensure_accepting_audio"):
+        assert "write=True" in _function_source(name), name
+
+
+def test_the_pinned_sites_are_exactly_the_t4b3a_steps() -> None:
+    assert _lookup_sites("pinned") == TEACHER_STEP
+    assert not _lookup_sites("pinned") & {
+        "_read_run_view",
+        "confirm_context",
+        "confirm_subject",
+        "confirm_story_revision",
+    }
+
+
+def test_the_job_side_sites_are_the_closed_list_and_no_other_method_accepts_it() -> None:
+    assert _lookup_sites("job_side_ok") == JOB_SIDE
+    # no method of the two other roles accepts a job-side repository
+    assert not (_lookup_sites("job_side_ok") & (TEACHER_STEP | PARENT_ONLY_LOOKUP))
+    # the two methods that take the run row from their caller look nothing up
+    for name in JOB_SIDE_NO_LOOKUP:
+        source = _function_source(name)
+        assert "_owned_run" not in source, name
+    # the job-side lookup is one function that needs an organization and the pin (D6)
+    lookup = _function_source("_job_side_run")
+    assert "not job_side_ok" in lookup and "not organization" in lookup
+    assert "occurrence_ref.is_not(None)" in lookup
+    assert "actor_scope_ref == organization" in lookup
+    # and it never reads the assignment
+    assert "_teacher_run_access" not in lookup and "teacher_access" not in lookup
+
+
+def test_a_non_job_method_under_job_side_and_a_missing_or_wrong_organization_are_404() -> None:
+    for organization in (None, ""):
+        session = _Session(run=_teacher_run(occurrence_ref="occ-1"))
+        repository = SqlParentStoryRunRepository(
+            session,  # type: ignore[arg-type]
+            actor=TEACHER,
+            job_side=True,
+            job_side_organization=organization,
+        )
+        with pytest.raises(ParentStoryRunError) as caught:
+            repository._owned_run(PRINCIPAL, RUN_ID, job_side_ok=True)
+        assert caught.value.status_code == 404
+        assert session.statements == []
+    # a method that is not marked job-side is refused before any read
+    session = _Session(run=_teacher_run(occurrence_ref="occ-1"))
+    repository = SqlParentStoryRunRepository(
+        session,  # type: ignore[arg-type]
+        actor=TEACHER,
+        job_side=True,
+        job_side_organization=ORG,
+    )
+    for call in (
+        lambda: repository._owned_run(PRINCIPAL, RUN_ID),
+        lambda: repository._owned_run(PRINCIPAL, RUN_ID, teacher_capable=True),
+        lambda: repository.get_run(principal=PRINCIPAL, run_id=RUN_ID),
+        lambda: repository.get_transcript(principal=PRINCIPAL, run_id=RUN_ID),
+        lambda: repository.confirm_transcript(
+            principal=PRINCIPAL,
+            run_id=RUN_ID,
+            idempotency_key="k",
+            expected_transcript_revision=1,
+            transcript_sha256="a" * 64,
+        ),
+    ):
+        with pytest.raises(ParentStoryRunError) as caught:
+            call()
+        assert (caught.value.status_code, caught.value.code) == (404, "RESOURCE_NOT_FOUND")
+    assert session.statements == []
+
+
+def test_the_job_side_lookup_is_by_id_kind_pin_and_organization_with_no_assignment_read() -> None:
+    session = _Session(run=_teacher_run(occurrence_ref="occ-1"))
+    repository = SqlParentStoryRunRepository(
+        session,  # type: ignore[arg-type]
+        actor=TEACHER,
+        job_side=True,
+        job_side_organization=ORG,
+    )
+    row = repository._owned_run(PRINCIPAL, RUN_ID, lock=True, job_side_ok=True)
+    assert row["run_id"] == RUN_ID
+    assert len(session.statements) == 1
+    sql = _sql(session.statements[0])
+    assert f"run_id = '{RUN_ID}'" in sql
+    assert "actor_scope_kind = 'ORGANIZATION'" in sql
+    assert f"actor_scope_ref = '{ORG}'" in sql
+    assert "occurrence_ref IS NOT NULL" in sql
+    assert "FOR UPDATE" in sql
+    assert DIGEST not in sql
+    # a run of another organization (or no run) is the uniform 404
+    empty = _Session(run=None)
+    with pytest.raises(ParentStoryRunError) as caught:
+        SqlParentStoryRunRepository(
+            empty,  # type: ignore[arg-type]
+            actor=TEACHER,
+            job_side=True,
+            job_side_organization="org-other",
+        )._owned_run(PRINCIPAL, RUN_ID, job_side_ok=True)
+    assert caught.value.status_code == 404
+    assert "actor_scope_ref = 'org-other'" in _sql(empty.statements[0])
+    # a job-side repository without a Teacher actor finds nothing either
+    no_actor = _Session(run=_teacher_run(occurrence_ref="occ-1"))
+    with pytest.raises(ParentStoryRunError):
+        SqlParentStoryRunRepository(
+            no_actor,  # type: ignore[arg-type]
+            job_side=True,
+            job_side_organization=ORG,
+        )._owned_run(PRINCIPAL, RUN_ID, job_side_ok=True)
+    assert no_actor.statements == []
+
+
+def test_the_pinned_flag_adds_the_occurrence_predicate_for_a_teacher_only() -> None:
+    teacher = _Session(run=_teacher_run(occurrence_ref="occ-1"))
+    port = _Port(TeacherRunAccess("class-a", "active"))
+    _repository(teacher, TEACHER, port)._owned_run(
+        PRINCIPAL, RUN_ID, teacher_capable=True, pinned=True
+    )
+    assert "occurrence_ref IS NOT NULL" in _sql(teacher.statements[0])
+    assert port.calls[0]["occurrence_ref"] == "occ-1"
+    unpinned = _Session(run=_teacher_run())
+    _repository(unpinned, TEACHER, _Port(TeacherRunAccess("class-a", "active")))._owned_run(
+        PRINCIPAL, RUN_ID, teacher_capable=True
+    )
+    assert "occurrence_ref IS NOT NULL" not in _sql(unpinned.statements[0])
+    # a Parent is never narrowed by the flag
+    parent = _Session(run=_teacher_run())
+    _repository(parent)._owned_run(PRINCIPAL, RUN_ID, pinned=True)
+    assert "occurrence_ref IS NOT NULL" not in _sql(parent.statements[0])

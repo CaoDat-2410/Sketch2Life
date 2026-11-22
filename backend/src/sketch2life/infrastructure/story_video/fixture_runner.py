@@ -5,6 +5,9 @@ No provider is called. The runner advances one accepted generation, one step per
 stepped by tests and never scheduled. On ``READY`` it writes a tiny synthetic MP4 stand-in through
 ``ObjectStoragePort`` and a ``PARENT_ACCOUNT`` ``core_asset_metadata`` row whose ``source_refs`` is
 the run id, so the FR-C-08 purge removes it with the run (the key sits under ``parent/{run}/``).
+The row carries the generation's own scope: ``PARENT_ACCOUNT`` for a Parent run; ``ORGANIZATION``
+with the organization id as ref AND as organization for a Teacher run (T-4b3b D16: the asset
+trigger and the T-13a purge need the organization id, never NULL).
 The storage key stays inside Story: it is written to ``output_asset_ref`` and never serialized.
 """
 
@@ -19,6 +22,7 @@ from sqlalchemy import delete
 from sqlalchemy.orm import Session, sessionmaker
 
 from sketch2life.application.ports.object_storage import ObjectStorageFailure, ObjectStoragePort
+from sketch2life.application.ports.story_run_actor import TEACHER_COMMAND_SCOPE_KIND
 from sketch2life.application.ports.story_video import (
     GenerationRecord,
     ProgressEvent,
@@ -200,13 +204,14 @@ class FixtureVideoRunner:
         return result
 
     def _write_asset(self, record: GenerationRecord, key: str, rendered: VideoRenderResult) -> None:
+        organization_id = output_asset_organization(record)
         with self._sessions() as session:
             session.add(
                 CoreAssetMetadataModel(
                     asset_ref=key,
                     asset_version=_ASSET_VERSION,
-                    organization_id=None,
-                    owner_scope_kind="PARENT_ACCOUNT",
+                    organization_id=organization_id,
+                    owner_scope_kind=record.scope_kind,
                     owner_scope_ref=record.scope_ref,
                     content_sha256=hashlib.sha256(rendered.content).hexdigest(),
                     media_type=rendered.media_type,
@@ -230,6 +235,13 @@ class FixtureVideoRunner:
             session.commit()
 
 
+def output_asset_organization(record: GenerationRecord) -> str | None:
+    """The ``organization_id`` of the output asset row: the organization of a Teacher run (also
+    its scope ref), NULL for a Parent run (T-4b3b D16)."""
+
+    return record.scope_ref if record.scope_kind == TEACHER_COMMAND_SCOPE_KIND else None
+
+
 def _move(current: GenerationState, target: GenerationState) -> ProgressEvent:
     return ProgressEvent(expected_state=str(current), target_state=str(target))
 
@@ -241,5 +253,6 @@ __all__ = [
     "VIDEO_MEDIA_TYPE",
     "FixtureVideoRenderer",
     "FixtureVideoRunner",
+    "output_asset_organization",
     "synthetic_mp4",
 ]

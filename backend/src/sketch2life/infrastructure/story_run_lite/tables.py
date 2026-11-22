@@ -256,6 +256,11 @@ story_runs = Table(
     Column("adult_wait_started_at", DateTime(timezone=True)),
     Column("last_meaningful_activity_at", DateTime(timezone=True)),
     Column("finished_at", DateTime(timezone=True)),
+    # DDL-B2 (T-4b2, owner approval by name): the Teacher lock (the Parent lock stays above), the
+    # lesson occurrence the run was created for and the creator (provenance only, SRS l.553).
+    Column("active_owner_teacher_id", String(36)),
+    Column("occurrence_ref", String(36)),
+    Column("created_by_actor_ref", String(36)),
     Column("created_at", DateTime(timezone=True), nullable=False, server_default=text("now()")),
     Column("updated_at", DateTime(timezone=True), nullable=False, server_default=text("now()")),
     UniqueConstraint(
@@ -289,6 +294,37 @@ story_runs = Table(
     CheckConstraint(
         "confidence IS NULL OR confidence BETWEEN 0 AND 1", name="ck_story_run_confidence"
     ),
+    CheckConstraint(
+        "(occurrence_ref IS NULL) = (created_by_actor_ref IS NULL)",
+        name="ck_story_run_teacher_pins",
+    ),
+    CheckConstraint(
+        "active_owner_teacher_id IS NULL OR (occurrence_ref IS NOT NULL "
+        "AND actor_scope_kind = 'ORGANIZATION' AND active_owner_parent_account_id IS NULL)",
+        name="ck_story_run_teacher_owner",
+    ),
+    CheckConstraint(
+        "active_owner_teacher_id IS NULL OR run_state NOT IN "
+        "('COMPLETED','FAILED','ABANDONED','DELETE_PENDING','DELETED')",
+        name="ck_story_run_teacher_lock_state",
+    ),
+)
+Index(
+    "uq_story_run_active_teacher",
+    story_runs.c.active_owner_teacher_id,
+    unique=True,
+    postgresql_where=story_runs.c.active_owner_teacher_id.is_not(None),
+)
+Index(
+    "uq_story_run_active_occurrence",
+    story_runs.c.occurrence_ref,
+    unique=True,
+    postgresql_where=story_runs.c.active_owner_teacher_id.is_not(None),
+)
+Index(
+    "ix_story_run_occurrence",
+    story_runs.c.occurrence_ref,
+    postgresql_where=story_runs.c.occurrence_ref.is_not(None),
 )
 Index(
     "uq_story_run_active_parent",

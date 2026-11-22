@@ -48,12 +48,14 @@ from sketch2life.application.ports.parent_story_runs import (
     ParentStoryRevisionReservation,
     ParentStoryRunError,
 )
+from sketch2life.application.ports.story_run_actor import RunActor
 from sketch2life.application.services.story_output import (
     StoryOutputInvalid,
     complete_generated_story,
 )
 from sketch2life.infrastructure.persistence.parent_story_repository import (
     SqlParentStoryRunRepository,
+    job_side_repository,
 )
 
 _LOGGER = logging.getLogger("sketch2life.api")
@@ -100,12 +102,18 @@ class ParentStoryRewriteRunner:
         self._generator = generator
 
     def run(
-        self, principal: VerifiedPrincipal, reservation: ParentStoryRevisionReservation
+        self,
+        principal: VerifiedPrincipal,
+        reservation: ParentStoryRevisionReservation,
+        actor: RunActor | None = None,
     ) -> None:
-        """Never raises: a background task has no caller to report to; failures are recorded."""
+        """Never raises: a background task has no caller to report to; failures are recorded.
+
+        For a Teacher run ``actor`` selects the job-side repository bound to the organization the
+        route put on the reservation (T-4b3a D6); a Parent run passes no actor."""
         session = self._session_factory()
         try:
-            self._run(session, principal, reservation)
+            self._run(session, principal, reservation, actor)
         except ParentStoryRunError as exc:
             # Cancelled or purged work is discarded; a store outage leaves the run QUEUED/RUNNING.
             _LOGGER.info("parent_story_rewrite_discarded code=%s", exc.code)
@@ -119,8 +127,13 @@ class ParentStoryRewriteRunner:
         session: Session,
         principal: VerifiedPrincipal,
         reservation: ParentStoryRevisionReservation,
+        actor: RunActor | None,
     ) -> None:
-        repository = SqlParentStoryRunRepository(session)
+        repository = (
+            SqlParentStoryRunRepository(session)
+            if actor is None
+            else job_side_repository(session, actor, reservation.organization_id)
+        )
         if not repository.start_story_generation(
             principal=principal,
             run_id=reservation.run_id,

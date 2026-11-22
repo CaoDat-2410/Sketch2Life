@@ -167,6 +167,8 @@ class SubjectConfirmOutcome:
     run_revision: int
     input_revision: int | None = None
     replayed: bool = False
+    # A Teacher run only (T-4b3a D6); see ``DrawingAttachOutcome``.
+    organization_id: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -193,6 +195,8 @@ class IdeaOutcome:
     # Set only on a fresh audio submission: the PENDING row the runner completes. Not stored.
     new_transcript_id: str | None = None
     replayed: bool = False
+    # A Teacher run only (T-4b3a D6); see ``DrawingAttachOutcome``.
+    organization_id: str | None = None
 
     def as_body(self) -> dict[str, object]:
         return {
@@ -243,6 +247,9 @@ class DrawingAttachOutcome:
     run_state: str
     analysis_state: str
     replayed: bool = False
+    # A Teacher run only (T-4b3a D6): the organization the route saw, for the job-side runner.
+    # Never stored in the receipt body and never in a response.
+    organization_id: str | None = None
 
     def as_body(self) -> dict[str, object]:
         return {

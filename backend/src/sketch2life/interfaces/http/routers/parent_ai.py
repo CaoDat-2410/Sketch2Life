@@ -26,6 +26,7 @@ from sketch2life.application.ports.object_storage import ObjectStorageFailure
 from sketch2life.application.ports.parent_story_runs import (
     ParentStoryLifecycleRecord,
     ParentStoryRunError,
+    ParentStoryRunRecord,
 )
 from sketch2life.application.services.parent_story_runs import (
     ParentStoryRunService,
@@ -467,6 +468,8 @@ def generate_story_revision(
         record = repository.get_run(principal=principal, run_id=str(run_id))
         if isinstance(record, ParentStoryLifecycleRecord):
             return _lifecycle_body(request_id, record)
+        if not isinstance(record, ParentStoryRunRecord):  # a Parent repository never yields one
+            raise HTTPException(status_code=404, detail={"code": "RESOURCE_NOT_FOUND"})
         return {
             "request_id": request_id,
             "modal_call_id": replay_body.get("modal_call_id"),
@@ -547,6 +550,8 @@ def generate_story_revision(
         if exc.code != "INVALID_STATE_TRANSITION":
             raise
         raise HTTPException(status_code=exc.status_code, detail={"code": exc.code}) from None
+    if not isinstance(record, ParentStoryRunRecord):  # a Parent repository never yields one
+        raise HTTPException(status_code=404, detail={"code": "RESOURCE_NOT_FOUND"})
     _LOGGER.info(
         "parent_modal_request_completed",
         request_id=request_id,

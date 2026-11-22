@@ -204,6 +204,25 @@ def is_playable(
     )
 
 
+def has_ready_output(
+    *,
+    generation_state: str | None,
+    technical: str | None,
+    consistency: str | None,
+    safety: str | None,
+    has_output: bool,
+) -> bool:
+    """The run-state-agnostic variant of ``is_playable`` (T-4b2, OD-14 window): a ``READY``
+    generation with every validation ``PASSED`` and an output. A run that was completed without
+    being projected still holds such a sample, so the occurrence must not start another one."""
+
+    return (
+        generation_state == str(GenerationState.READY)
+        and has_output
+        and {technical, consistency, safety} == {str(ValidationState.PASSED)}
+    )
+
+
 def generation_kind_for(accepted_count: int) -> GenerationKind:
     """The first accepted request is ``INITIAL``; every later one is ``QUALITY_REGEN``."""
 
@@ -240,6 +259,7 @@ __all__ = [
     "ValidationState",
     "can_transition",
     "generation_kind_for",
+    "has_ready_output",
     "is_playable",
     "public_failure_code",
     "require_transition",

@@ -206,7 +206,7 @@ def client(
     monkeypatch.setattr(
         runtime_module, "get_core_database_settings", lambda: SimpleNamespace(database_url=None)
     )
-    monkeypatch.setattr(video_routes, "SqlStoryVideoRepository", _Repo)
+    monkeypatch.setattr(video_routes, "story_video_repository", lambda db, _actor: _Repo(db))
     application = app_module.create_app()
     application.state.story_playback_tokens = PlaybackTokenCodec(
         active_key_id="k1", keys={"k1": b"synthetic-secret-0123456789abcdef-0123"}, clock=clock
@@ -382,7 +382,7 @@ def test_an_unplayable_run_is_409_a_foreign_one_404_and_neither_leaks(client: Te
     _Repo.resolution = PlaybackResolution(PlaybackStatus.NOT_FOUND)
     status, body = _wire(client.post(f"/v1/story-runs/{RUN_ID}/playback-token"))
     assert (status, body["code"]) == (404, "RESOURCE_NOT_FOUND")
-    _Session.role = "teacher"
+    _Session.role = "school_manager"
     status, other = _wire(client.post(f"/v1/story-runs/{RUN_ID}/playback-token"))
     assert (status, other) == (404, body)  # a wrong role answers the same uniform 404
     assert len(_Repo.calls) == 2  # the wrong role never reached the repository
@@ -512,11 +512,11 @@ def test_a_token_of_another_run_or_another_actor_and_a_revoked_grant_are_the_uni
     assert payload["a"] == actor_digest(OWNER_SCOPE) and payload["r"] == RUN_ID
 
 
-def test_a_non_parent_with_a_valid_token_is_404_and_the_store_is_not_touched(
+def test_a_role_that_is_neither_parent_nor_teacher_with_a_valid_token_is_404_and_no_store_read(
     client: TestClient, storage: _Storage
 ) -> None:
     token = _token(client)
-    for role in ("teacher", "school_manager", "platform_admin", "none"):
+    for role in ("school_manager", "platform_admin", "none"):
         _Session.role = role
         calls = len(_Repo.calls)
         response = _stream(client, token)

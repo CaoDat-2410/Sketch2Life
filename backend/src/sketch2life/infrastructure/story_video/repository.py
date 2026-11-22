@@ -13,6 +13,14 @@ One class, three kinds of unit of work, none of them across a port call (BR-38 l
 
 Lock order is always run, then generation. Every statement is scoped to one run; no content, key or
 provider text is logged and no storage key leaves this module through a record.
+
+T-4b3b: the same repository serves the Teacher of a Teacher run.
+``SqlStoryVideoRepository(session)`` is the Parent repository exactly as before; with an
+``actor`` (a Teacher) and the Teacher access port the run is found by the occurrence-pin rule on
+the CURRENT assignment (a run without an occurrence pin is the uniform 404), the receipts take the
+command scope (``ORGANIZATION`` plus the digest of the calling principal) and a read-only class
+(suspended or archived) refuses a new write AFTER the replay lookup. The generation itself
+replays by ``(run, key hash)``, not by actor.
 """
 
 from __future__ import annotations
@@ -36,6 +44,12 @@ from sketch2life.application.ports.parent_story_runs import (
     ParentStoryLifecycleRecord,
     ParentStoryRunError,
 )
+from sketch2life.application.ports.story_run_actor import (
+    TEACHER_COMMAND_SCOPE_KIND,
+    RunActor,
+    TeacherRunAccess,
+    TeacherRunAccessPort,
+)
 from sketch2life.application.ports.story_run_lifecycle import (
     PURGE_STATES,
     lifecycle_projection_body,
@@ -50,6 +64,7 @@ from sketch2life.application.ports.story_video import (
     ProgressEvent,
     ProgressResult,
     RunCommandResult,
+    SampleFacts,
     port_fingerprint,
 )
 from sketch2life.domain.story_video.model import (
@@ -74,6 +89,8 @@ OPERATION = "CREATE_VIDEO_GENERATION"
 UNSUITABLE_OPERATION = "MARK_VIDEO_UNSUITABLE"
 COMPLETE_OPERATION = "COMPLETE_RUN"
 _OWNER_SCOPE_KIND = "PARENT_ACCOUNT"
+# a Name, not a literal: ``ORGANIZATION`` stays a bare value of ``ScopeKind`` (T-1a scope test)
+_TEACHER_SCOPE_KIND = TEACHER_COMMAND_SCOPE_KIND
 _PURGE_STATE_VALUES = tuple(sorted(PURGE_STATES))
 _VG = story_tables.video_generations
 _VGS = story_tables.video_generation_scenes
@@ -161,8 +178,26 @@ def _live_run(run_id: str) -> Any:
 
 
 class SqlStoryVideoRepository:
-    def __init__(self, session: Session) -> None:
+    def __init__(
+        self,
+        session: Session,
+        actor: RunActor | None = None,
+        teacher_access: TeacherRunAccessPort | None = None,
+    ) -> None:
         self._session = session
+        self._actor = actor
+        self._teacher_access = teacher_access
+
+    @property
+    def _is_teacher(self) -> bool:
+        return self._actor is not None and self._actor.is_teacher
+
+    def _command_scope(self, principal: VerifiedPrincipal) -> tuple[str, str]:
+        """Kind and reference of a receipt: who gave the command (the Parent's own scope, or
+        ``ORGANIZATION`` plus the digest of the calling Teacher), never the run's owner pair."""
+
+        kind = self._actor.command_scope_kind if self._actor is not None else _OWNER_SCOPE_KIND
+        return kind, parent_scope_ref(principal)
 
     # ---------------------------------------------------------------------- unit of work
     @contextmanager
@@ -202,16 +237,17 @@ class SqlStoryVideoRepository:
         idempotency_key: str,
         adapters_available: bool,
     ) -> IntentResult:
-        scope_ref = parent_scope_ref(principal)
+        command_kind, scope_ref = self._command_scope(principal)
         key_hash = idempotency_key_hash(idempotency_key)
         fingerprint = request_fingerprint(
             run_id, expected_revision, story_sha256, quality_reason_code
         )
         result: IntentResult | None = None
         with self._unit():
-            run = self._owned_run(scope_ref, run_id)  # 404 first: a foreign actor learns nothing
+            # 404 first: a foreign actor learns nothing
+            run, access = self._owned_run(principal, run_id)
             if run["run_state"] in PURGE_STATES:
-                result = self._purged_replay(scope_ref, run, key_hash)
+                result = self._purged_replay(command_kind, scope_ref, run, key_hash)
             else:
                 existing = self._by_key(run_id, key_hash)
                 if existing is not None:
@@ -221,8 +257,11 @@ class SqlStoryVideoRepository:
                         raise ParentStoryRunError(400, "INVALID_IDEMPOTENCY_KEY")
                     result = IntentResult(_to_record(existing), True)
                 else:
+                    # a suspended or archived class is read-only: after the replay (l.1697)
+                    self._refuse_read_only_class(access)
                     result = self._insert_intent(
                         run=run,
+                        command_kind=command_kind,
                         scope_ref=scope_ref,
                         key_hash=key_hash,
                         fingerprint=fingerprint,
@@ -234,14 +273,26 @@ class SqlStoryVideoRepository:
         assert result is not None
         return result
 
-    def _owned_run(self, scope_ref: str, run_id: str) -> RowMapping:
+    def _owned_run(
+        self, principal: VerifiedPrincipal, run_id: str
+    ) -> tuple[RowMapping, TeacherRunAccess | None]:
+        """The run row under the run lock and, for a Teacher, what the current assignment granted.
+
+        Parent: the run of the caller's own scope. Teacher: a PINNED ``ORGANIZATION`` run, found
+        by the occurrence-pin rule on the CURRENT assignment (the assignment and class rows are
+        held ``FOR SHARE``, after the run row: the T-4a1 lock order); a run without an occurrence
+        pin, an unassigned Teacher and an unknown id are the same 404.
+        """
+
+        if self._is_teacher:
+            return self._teacher_run(principal, run_id)
         row = (
             self._session.execute(
                 select(_RUNS)
                 .where(
                     _RUNS.c.run_id == run_id,
                     _RUNS.c.actor_scope_kind == _OWNER_SCOPE_KIND,
-                    _RUNS.c.actor_scope_ref == scope_ref,
+                    _RUNS.c.actor_scope_ref == parent_scope_ref(principal),
                 )
                 .with_for_update()
             )
@@ -250,14 +301,53 @@ class SqlStoryVideoRepository:
         )
         if row is None:
             raise ParentStoryRunError(404, "RESOURCE_NOT_FOUND")
-        return row
+        return row, None
 
-    def _purged_replay(self, scope_ref: str, run: RowMapping, key_hash: str) -> IntentResult:
+    def _teacher_run(
+        self, principal: VerifiedPrincipal, run_id: str
+    ) -> tuple[RowMapping, TeacherRunAccess]:
+        row = (
+            self._session.execute(
+                select(_RUNS)
+                .where(
+                    _RUNS.c.run_id == run_id,
+                    _RUNS.c.actor_scope_kind == _TEACHER_SCOPE_KIND,
+                    _RUNS.c.occurrence_ref.is_not(None),
+                )
+                .with_for_update()
+            )
+            .mappings()
+            .one_or_none()
+        )
+        if row is None or self._teacher_access is None:
+            raise ParentStoryRunError(404, "RESOURCE_NOT_FOUND")
+        access = self._teacher_access.resolve(
+            principal=principal,
+            organization_id=str(row["actor_scope_ref"]),
+            child_id=None if row["profile_ref"] is None else str(row["profile_ref"]),
+            lock=True,
+            occurrence_ref=None if row["occurrence_ref"] is None else str(row["occurrence_ref"]),
+        )
+        if access is None:
+            raise ParentStoryRunError(404, "RESOURCE_NOT_FOUND")
+        return row, access
+
+    @staticmethod
+    def _refuse_read_only_class(access: TeacherRunAccess | None) -> None:
+        """A Teacher write in a suspended or archived class is 409 (SRS l.364, l.593, l.1425),
+        asked AFTER the replay lookup so an earlier success is still replayed (SRS l.1697)."""
+
+        if access is not None and not access.writable:
+            raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
+
+    def _purged_replay(
+        self, command_kind: str, scope_ref: str, run: RowMapping, key_hash: str
+    ) -> IntentResult:
         """A replay on a run in the purge states is the content-free projection (DTR §6.5)."""
 
         receipt = self._session.scalar(
             select(_RECEIPTS.c.receipt_id).where(
-                _RECEIPTS.c.actor_scope_kind == _OWNER_SCOPE_KIND,
+                _RECEIPTS.c.actor_scope_kind == command_kind,
                 _RECEIPTS.c.actor_scope_ref == scope_ref,
                 _RECEIPTS.c.operation == OPERATION,
                 _RECEIPTS.c.idempotency_scope_kind == "STORY_RUN",
@@ -292,6 +382,7 @@ class SqlStoryVideoRepository:
         self,
         *,
         run: RowMapping,
+        command_kind: str,
         scope_ref: str,
         key_hash: str,
         fingerprint: str,
@@ -383,7 +474,7 @@ class SqlStoryVideoRepository:
         self._session.execute(
             insert(_RECEIPTS).values(
                 receipt_id=str(uuid4()),
-                actor_scope_kind=_OWNER_SCOPE_KIND,
+                actor_scope_kind=command_kind,
                 actor_scope_ref=scope_ref,
                 operation=OPERATION,
                 idempotency_scope_kind="STORY_RUN",
@@ -693,11 +784,16 @@ class SqlStoryVideoRepository:
         body: dict[str, Any],
         now: datetime,
     ) -> None:
+        # The PENDING receipt carries the COMMAND scope of whoever asked: for a Parent run that is
+        # the run's own owner pair, for a Teacher run it is ``ORGANIZATION`` plus the digest of the
+        # calling Teacher, which is NOT the organization id the run row holds (T-4b3a, T-4b2 hand
+        # over F7). The receipt is therefore found by the run's command KIND, the operation, the
+        # run and the key hash; the request key is unique per run (``uq_vg_run_key``), so this is
+        # the same single row for a Parent as before.
         self._session.execute(
             update(_RECEIPTS)
             .where(
                 _RECEIPTS.c.actor_scope_kind == run["actor_scope_kind"],
-                _RECEIPTS.c.actor_scope_ref == run["actor_scope_ref"],
                 _RECEIPTS.c.operation == OPERATION,
                 _RECEIPTS.c.idempotency_scope_kind == "STORY_RUN",
                 _RECEIPTS.c.idempotency_scope_ref == str(run["run_id"]),
@@ -745,7 +841,7 @@ class SqlStoryVideoRepository:
         compute reservation was settled at ``READY``, so no port is called.
         """
 
-        scope_ref = parent_scope_ref(principal)
+        command_kind, scope_ref = self._command_scope(principal)
         key_hash = idempotency_key_hash(idempotency_key)
         fingerprint = _command_fingerprint(
             run_id=run_id,
@@ -755,11 +851,12 @@ class SqlStoryVideoRepository:
         )
         result: RunCommandResult | None = None
         with self._unit():
-            run = self._owned_run(scope_ref, run_id)
+            run, access = self._owned_run(principal, run_id)
             result = self._command_replay(
-                scope_ref, run, UNSUITABLE_OPERATION, key_hash, fingerprint
+                command_kind, scope_ref, run, UNSUITABLE_OPERATION, key_hash, fingerprint
             )
             if result is None:
+                self._refuse_read_only_class(access)  # after the replay (SRS l.1697)
                 current_revision = self._require_video_ready(run, expected_revision)
                 generation = self._current_ready_generation(run, generation_id)
                 accepted = self._accepted_count(run_id)
@@ -789,6 +886,7 @@ class SqlStoryVideoRepository:
                 )
                 self._finalize_command(
                     run,
+                    command_kind,
                     scope_ref,
                     UNSUITABLE_OPERATION,
                     key_hash,
@@ -818,14 +916,17 @@ class SqlStoryVideoRepository:
         until the user deletes the run (FR-C-08).
         """
 
-        scope_ref = parent_scope_ref(principal)
+        command_kind, scope_ref = self._command_scope(principal)
         key_hash = idempotency_key_hash(idempotency_key)
         fingerprint = _command_fingerprint(run_id=run_id, expected_revision=expected_revision)
         result: RunCommandResult | None = None
         with self._unit():
-            run = self._owned_run(scope_ref, run_id)
-            result = self._command_replay(scope_ref, run, COMPLETE_OPERATION, key_hash, fingerprint)
+            run, access = self._owned_run(principal, run_id)
+            result = self._command_replay(
+                command_kind, scope_ref, run, COMPLETE_OPERATION, key_hash, fingerprint
+            )
             if result is None:
+                self._refuse_read_only_class(access)  # after the replay (SRS l.1697)
                 current_revision = self._require_video_ready(run, expected_revision)
                 now = datetime.now(UTC)
                 self._move_run(
@@ -839,6 +940,7 @@ class SqlStoryVideoRepository:
                 )
                 self._finalize_command(
                     run,
+                    command_kind,
                     scope_ref,
                     COMPLETE_OPERATION,
                     key_hash,
@@ -852,6 +954,7 @@ class SqlStoryVideoRepository:
 
     def _command_replay(
         self,
+        command_kind: str,
         scope_ref: str,
         run: RowMapping,
         operation: str,
@@ -863,7 +966,7 @@ class SqlStoryVideoRepository:
         run_id = str(run["run_id"])
         receipt = self._session.execute(
             select(_RECEIPTS.c.request_fingerprint_sha256).where(
-                _RECEIPTS.c.actor_scope_kind == _OWNER_SCOPE_KIND,
+                _RECEIPTS.c.actor_scope_kind == command_kind,
                 _RECEIPTS.c.actor_scope_ref == scope_ref,
                 _RECEIPTS.c.operation == operation,
                 _RECEIPTS.c.idempotency_scope_kind == "STORY_RUN",
@@ -974,6 +1077,7 @@ class SqlStoryVideoRepository:
     def _finalize_command(
         self,
         run: RowMapping,
+        command_kind: str,
         scope_ref: str,
         operation: str,
         key_hash: str,
@@ -988,7 +1092,7 @@ class SqlStoryVideoRepository:
         self._session.execute(
             insert(_RECEIPTS).values(
                 receipt_id=str(uuid4()),
-                actor_scope_kind=_OWNER_SCOPE_KIND,
+                actor_scope_kind=command_kind,
                 actor_scope_ref=scope_ref,
                 operation=operation,
                 idempotency_scope_kind="STORY_RUN",
@@ -1018,36 +1122,51 @@ class SqlStoryVideoRepository:
         alone: after ``video-unsuitable`` the pointer stays on the ``REJECTED_BY_ADULT`` row.
         ``generation_id`` (the token's) must be the current one, else the answer is
         ``NOT_PLAYABLE``. The physical key stays in the returned target and goes nowhere else.
+
+        For a Teacher (T-4b3b D10) the run is a PINNED ``ORGANIZATION`` run and the CURRENT
+        occurrence-pin rule must grant the caller (read-only, no lock: a suspended or archived
+        class still plays the video, SRS l.364, l.593, l.1425); the target is bound to the digest of
+        the calling principal, so the token names one Teacher, not the organization.
         """
 
         scope_ref = parent_scope_ref(principal)
+        teacher = self._is_teacher
+        columns: list[Any] = [
+            _RUNS.c.run_state,
+            _RUNS.c.current_video_generation_id,
+            _VG.c.video_generation_id,
+            _VG.c.state.label("generation_state"),
+            _VG.c.output_asset_ref,
+            _VG.c.technical_validation_state,
+            _VG.c.consistency_validation_state,
+            _VG.c.safety_validation_state,
+        ]
+        owner: tuple[Any, ...] = (
+            _RUNS.c.actor_scope_kind == _OWNER_SCOPE_KIND,
+            _RUNS.c.actor_scope_ref == scope_ref,
+        )
+        if teacher:
+            columns += [_RUNS.c.actor_scope_ref, _RUNS.c.profile_ref, _RUNS.c.occurrence_ref]
+            owner = (
+                _RUNS.c.actor_scope_kind == _TEACHER_SCOPE_KIND,
+                _RUNS.c.occurrence_ref.is_not(None),
+            )
         try:
             row = (
                 self._session.execute(
-                    select(
-                        _RUNS.c.run_state,
-                        _RUNS.c.current_video_generation_id,
-                        _VG.c.video_generation_id,
-                        _VG.c.state.label("generation_state"),
-                        _VG.c.output_asset_ref,
-                        _VG.c.technical_validation_state,
-                        _VG.c.consistency_validation_state,
-                        _VG.c.safety_validation_state,
-                    )
+                    select(*columns)
                     .select_from(
                         _RUNS.outerjoin(
                             _VG, _VG.c.video_generation_id == _RUNS.c.current_video_generation_id
                         )
                     )
-                    .where(
-                        _RUNS.c.run_id == run_id,
-                        _RUNS.c.actor_scope_kind == _OWNER_SCOPE_KIND,
-                        _RUNS.c.actor_scope_ref == scope_ref,
-                    )
+                    .where(_RUNS.c.run_id == run_id, *owner)
                 )
                 .mappings()
                 .one_or_none()
             )
+            if row is not None and teacher and not self._teacher_may_read(principal, row):
+                row = None
         except SQLAlchemyError:
             self._session.rollback()
             raise ParentStoryRunError(503, _STORE_UNAVAILABLE) from None
@@ -1067,6 +1186,20 @@ class SqlStoryVideoRepository:
             PlaybackStatus.PLAYABLE,
             PlaybackTarget(run_id, str(current), scope_ref, str(row["output_asset_ref"])),
         )
+
+    def _teacher_may_read(self, principal: VerifiedPrincipal, run: Mapping[Any, Any]) -> bool:
+        """The occurrence-pin rule on the CURRENT assignment, without a lock (a read)."""
+
+        if self._teacher_access is None:
+            return False
+        access = self._teacher_access.resolve(
+            principal=principal,
+            organization_id=str(run["actor_scope_ref"]),
+            child_id=None if run["profile_ref"] is None else str(run["profile_ref"]),
+            lock=False,
+            occurrence_ref=None if run["occurrence_ref"] is None else str(run["occurrence_ref"]),
+        )
+        return access is not None
 
     # ---------------------------------------------------------------------- progress
     def advance(self, generation_id: str, event: ProgressEvent) -> ProgressResult:
@@ -1277,6 +1410,75 @@ class SqlStoryVideoRepository:
         return ProgressResult(True, record)
 
 
+def sample_facts(session: Session, run_id: str, *, lock: bool) -> SampleFacts | None:
+    """What the class projection (T-5a) needs about one run: the ONE Story read of Lesson code.
+
+    One statement: the run, its current generation and the plan pin of the CURRENT input revision
+    (T-4b2 D3 copies the pin forward into every revision). ``lock`` takes the run row ``FOR SHARE``
+    (a concurrent cancel, ``video-unsuitable`` or complete takes it ``FOR UPDATE`` and waits or
+    loses); it is the last lock of the confirmation, after the occurrence and the class. A run that
+    does not exist or is being deleted is ``None``. ``playable`` is the single ``is_playable``
+    predicate. Nothing is written and no storage key leaves the function.
+    """
+
+    inputs = story_tables.run_inputs
+    statement = (
+        select(
+            _RUNS.c.run_id,
+            _RUNS.c.occurrence_ref,
+            _RUNS.c.run_state,
+            _VG.c.video_generation_id,
+            _VG.c.state.label("generation_state"),
+            _VG.c.output_asset_ref,
+            _VG.c.technical_validation_state,
+            _VG.c.consistency_validation_state,
+            _VG.c.safety_validation_state,
+            _VG.c.completed_at,
+            _VG.c.updated_at,
+            inputs.c.lesson_pin_snapshot,
+        )
+        .select_from(
+            _RUNS.outerjoin(
+                _VG, _VG.c.video_generation_id == _RUNS.c.current_video_generation_id
+            ).outerjoin(
+                inputs,
+                (inputs.c.run_id == _RUNS.c.run_id)
+                & (inputs.c.input_revision == _RUNS.c.current_input_revision),
+            )
+        )
+        .where(_RUNS.c.run_id == run_id)
+    )
+    if lock:
+        statement = statement.with_for_update(read=True, of=_RUNS)
+    row = session.execute(statement).mappings().one_or_none()
+    if row is None or row["run_state"] in PURGE_STATES:
+        return None
+    pin = row["lesson_pin_snapshot"] if isinstance(row["lesson_pin_snapshot"], dict) else {}
+    pin_no = pin.get("plan_revision_no")
+    pin_id, pin_hash = pin.get("plan_revision_id"), pin.get("plan_hash")
+    generation_state = row["generation_state"]
+    return SampleFacts(
+        run_id=str(row["run_id"]),
+        occurrence_ref=None if row["occurrence_ref"] is None else str(row["occurrence_ref"]),
+        run_state=str(row["run_state"]),
+        generation_id=(
+            None if row["video_generation_id"] is None else str(row["video_generation_id"])
+        ),
+        ready_at=(row["completed_at"] if row["completed_at"] is not None else row["updated_at"]),
+        playable=is_playable(
+            run_state=str(row["run_state"]),
+            generation_state=None if generation_state is None else str(generation_state),
+            technical=row["technical_validation_state"],
+            consistency=row["consistency_validation_state"],
+            safety=row["safety_validation_state"],
+            has_output=row["output_asset_ref"] is not None,
+        ),
+        plan_revision_id=pin_id if isinstance(pin_id, str) else None,
+        plan_revision_no=pin_no if type(pin_no) is int else None,
+        plan_hash=pin_hash if isinstance(pin_hash, str) else None,
+    )
+
+
 def _field_error(field: str, code: str) -> ParentStoryRunError:
     return ParentStoryRunError(
         400, "INVALID_REQUEST", field_errors=[{"field": field, "code": code}]
@@ -1298,4 +1500,5 @@ __all__ = [
     "idempotency_key_hash",
     "port_fingerprint",
     "request_fingerprint",
+    "sample_facts",
 ]

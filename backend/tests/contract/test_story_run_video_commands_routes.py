@@ -160,8 +160,10 @@ def client(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
         runtime_module, "get_core_database_settings", lambda: SimpleNamespace(database_url=None)
     )
     monkeypatch.setattr(video_routes, "StoryVideoCommandService", _Commands)
-    monkeypatch.setattr(video_routes, "SqlStoryVideoRepository", lambda db: SimpleNamespace(db=db))
-    monkeypatch.setattr(video_routes, "SqlParentStoryRunRepository", _Reader)
+    monkeypatch.setattr(
+        video_routes, "story_video_repository", lambda db, _actor: SimpleNamespace(db=db)
+    )
+    monkeypatch.setattr(video_routes, "story_run_repository", lambda db, _actor: _Reader(db))
     application = app_module.create_app()
     application.dependency_overrides[get_verified_adult] = lambda: PRINCIPAL
     application.dependency_overrides[get_db] = lambda: _Db("parent")
@@ -490,8 +492,8 @@ def test_a_malformed_run_id_is_a_400(client: TestClient, send: Any) -> None:
 
 # ------------------------------------------------------------------------- roles and methods
 @pytest.mark.parametrize("send", [_unsuitable, _complete])
-@pytest.mark.parametrize("role", ["teacher", "school_manager", "platform_admin", None])
-def test_a_role_that_is_not_an_active_parent_gets_the_uniform_404(
+@pytest.mark.parametrize("role", ["school_manager", "platform_admin", None])
+def test_a_role_that_is_neither_an_active_parent_nor_teacher_gets_the_uniform_404(
     client: TestClient, send: Any, role: str | None
 ) -> None:
     client.app.dependency_overrides[get_db] = lambda: _Db(role)  # type: ignore[attr-defined]
@@ -504,7 +506,12 @@ def test_a_role_that_is_not_an_active_parent_gets_the_uniform_404(
 def test_a_disabled_parent_or_another_issuer_gets_the_uniform_404(
     client: TestClient, send: Any
 ) -> None:
-    for db in (_Db("parent", state="disabled"), _Db("parent", issuer="other-issuer")):
+    for db in (
+        _Db("parent", state="disabled"),
+        _Db("parent", issuer="other-issuer"),
+        _Db("teacher", state="disabled"),
+        _Db("teacher", issuer="other-issuer"),
+    ):
         client.app.dependency_overrides[get_db] = lambda db=db: db  # type: ignore[attr-defined]
         response = send(client)
         assert response.status_code == 404 and response.json()["code"] == "RESOURCE_NOT_FOUND"

@@ -282,7 +282,7 @@ class UploadSessionService:
             identity is None
             or identity.state != "active"
             or identity.issuer != principal.issuer
-            or identity.account_role != policy.account_role
+            or identity.account_role not in policy.roles
         ):
             raise _not_found()
         return policy

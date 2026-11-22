@@ -40,6 +40,7 @@ from sketch2life.application.ports.parent_story_runs import (
     ParentStoryRunError,
     StoryRewriteOutcome,
 )
+from sketch2life.application.ports.story_run_actor import RunActor
 from sketch2life.contracts.schemas.parent_story_inputs import (
     AddRunIdeaRequestV1,
     AttachRunAssetRequestV1,
@@ -56,9 +57,6 @@ from sketch2life.contracts.schemas.parent_story_runs import (
     ParentStoryErrorEnvelopeV1,
     ParentStoryRunLifecycleEnvelopeV1,
 )
-from sketch2life.infrastructure.persistence.parent_story_repository import (
-    SqlParentStoryRunRepository,
-)
 from sketch2life.infrastructure.story_inputs.idea import ParentRunIdeaService
 from sketch2life.infrastructure.story_inputs.runner import ParentInputJobRunner
 from sketch2life.infrastructure.story_inputs.service import ParentRunAssetService
@@ -73,7 +71,10 @@ from sketch2life.infrastructure.story_inputs.story_generation import (
 )
 from sketch2life.interfaces.http.api_conventions import parse_idempotency_key
 from sketch2life.interfaces.http.be1_runtime import get_db, get_verified_adult
-from sketch2life.interfaces.http.routers.parent_story_runs import _require_parent
+from sketch2life.interfaces.http.story_run_actor import (
+    require_story_run_actor,
+    story_run_repository,
+)
 
 router = APIRouter(prefix="/v1/story-runs", tags=["Parent StoryRuns"])
 
@@ -83,7 +84,8 @@ _ASSET_ERROR_RESPONSES: dict[int | str, dict[str, Any]] = {
     404: {
         "model": ParentStoryErrorEnvelopeV1,
         "description": (
-            "The run or asset was not found, or the caller is not the active Parent owner."
+            "The run or asset was not found, or the caller is neither the active Parent owner nor "
+            "the Teacher currently responsible for the run."
         ),
     },
     409: {
@@ -99,6 +101,15 @@ _ASSET_ERROR_RESPONSES: dict[int | str, dict[str, Any]] = {
     503: {"model": ParentStoryErrorEnvelopeV1, "description": "A required service is unavailable."},
     500: {"model": ParentStoryErrorEnvelopeV1, "description": "An unexpected error occurred."},
 }
+
+
+def _job_actor(actor: RunActor, organization_id: str | None = None) -> tuple[Any, ...]:
+    """The extra runner arguments of a Teacher run (T-4b3a D6); none for a Parent, so the Parent
+    background task is called exactly as before."""
+
+    if not actor.is_teacher:
+        return ()
+    return (actor, organization_id) if organization_id is not None else (actor,)
 
 
 def _http_error(exc: ParentStoryRunError) -> HTTPException:
@@ -131,10 +142,14 @@ def attach_parent_run_asset(
     # The declaration above publishes the header as required; parse_idempotency_key (1-128
     # visible ASCII) is the authority and runs after the role check, before the run lookup.
     del idempotency_key
-    _require_parent(db, principal)
+    actor = require_story_run_actor(db, principal)
     key = parse_idempotency_key(request)
     state = request.app.state
-    service = ParentRunAssetService(db, storage=getattr(state, "lesson_library_storage", None))
+    service = ParentRunAssetService(
+        db,
+        storage=getattr(state, "lesson_library_storage", None),
+        repository=story_run_repository(db, actor),
+    )
     try:
         result = service.attach_drawing(
             principal=principal,
@@ -159,7 +174,13 @@ def attach_parent_run_asset(
         and not result.replayed
     ):
         runner = ParentInputJobRunner(runtime.session_factory, analyzer)
-        background_tasks.add_task(runner.run, principal, str(run_id), result.input_revision)
+        background_tasks.add_task(
+            runner.run,
+            principal,
+            str(run_id),
+            result.input_revision,
+            *_job_actor(actor, result.organization_id),
+        )
     return _accepted(run_id, payload.asset_ref, result)
 
 
@@ -187,7 +208,8 @@ _IDEA_ERROR_RESPONSES: dict[int | str, dict[str, Any]] = {
     404: {
         "model": ParentStoryErrorEnvelopeV1,
         "description": (
-            "The run or the audio was not found, or the caller is not the active Parent owner."
+            "The run or the audio was not found, or the caller is neither the active Parent owner "
+            "nor the Teacher currently responsible for the run."
         ),
     },
     409: {
@@ -208,7 +230,10 @@ _TRANSCRIPT_ERROR_RESPONSES: dict[int | str, dict[str, Any]] = {
     401: {"model": ParentStoryErrorEnvelopeV1, "description": "Authentication is required."},
     404: {
         "model": ParentStoryErrorEnvelopeV1,
-        "description": "The run was not found, or the caller is not the active Parent owner.",
+        "description": (
+            "The run was not found, or the caller is neither the active Parent owner nor the "
+            "Teacher currently responsible for the run."
+        ),
     },
     409: {
         "model": ParentStoryErrorEnvelopeV1,
@@ -243,10 +268,14 @@ def add_parent_run_idea(
     # See attach_parent_run_asset: parse_idempotency_key is the authority and runs after the role
     # check, before the run lookup.
     del idempotency_key
-    _require_parent(db, principal)
+    actor = require_story_run_actor(db, principal)
     key = parse_idempotency_key(request)
     state = request.app.state
-    service = ParentRunIdeaService(db, storage=getattr(state, "lesson_library_storage", None))
+    service = ParentRunIdeaService(
+        db,
+        storage=getattr(state, "lesson_library_storage", None),
+        repository=story_run_repository(db, actor),
+    )
     try:
         result = service.submit(
             principal=principal, run_id=str(run_id), payload=payload, idempotency_key=key
@@ -268,7 +297,13 @@ def add_parent_run_idea(
         and not result.replayed
     ):
         speech = ParentSpeechJobRunner(runtime.session_factory, transcriber)
-        background_tasks.add_task(speech.run, principal, str(run_id), result.new_transcript_id)
+        background_tasks.add_task(
+            speech.run,
+            principal,
+            str(run_id),
+            result.new_transcript_id,
+            *_job_actor(actor, result.organization_id),
+        )
     return _idea_accepted(run_id, result)
 
 
@@ -308,9 +343,9 @@ def get_parent_run_transcript(
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
 ) -> ParentRunTranscriptV1:
-    _require_parent(db, principal)
+    actor = require_story_run_actor(db, principal)
     try:
-        view = SqlParentStoryRunRepository(db).get_transcript(
+        view = story_run_repository(db, actor).get_transcript(
             principal=principal, run_id=str(run_id)
         )
     except ParentStoryRunError as exc:
@@ -348,10 +383,10 @@ def confirm_parent_run_transcript(
     db: Session = Depends(get_db),
 ) -> ParentTranscriptConfirmationV1 | ParentStoryRunLifecycleEnvelopeV1:
     del idempotency_key
-    _require_parent(db, principal)
+    actor = require_story_run_actor(db, principal)
     key = parse_idempotency_key(request)
     try:
-        result = SqlParentStoryRunRepository(db).confirm_transcript(
+        result = story_run_repository(db, actor).confirm_transcript(
             principal=principal,
             run_id=str(run_id),
             idempotency_key=key,
@@ -388,7 +423,10 @@ _REWRITE_ERROR_RESPONSES: dict[int | str, dict[str, Any]] = {
     401: {"model": ParentStoryErrorEnvelopeV1, "description": "Authentication is required."},
     404: {
         "model": ParentStoryErrorEnvelopeV1,
-        "description": "The run was not found, or the caller is not the active Parent owner.",
+        "description": (
+            "The run was not found, or the caller is neither the active Parent owner nor the "
+            "Teacher currently responsible for the run."
+        ),
     },
     409: {
         "model": ParentStoryErrorEnvelopeV1,
@@ -438,11 +476,11 @@ def rewrite_parent_run_story(
     is composed; otherwise the run waits in ``SCRIPT_GENERATING`` and can be cancelled.
     """
     del idempotency_key
-    _require_parent(db, principal)
+    actor = require_story_run_actor(db, principal)
     key = parse_idempotency_key(request)
     state = request.app.state
     try:
-        outcome = SqlParentStoryRunRepository(db).reserve_story_rewrite(
+        outcome = story_run_repository(db, actor).reserve_story_rewrite(
             principal=principal,
             run_id=str(run_id),
             idempotency_key=key,
@@ -476,7 +514,7 @@ def rewrite_parent_run_story(
         and not outcome.replayed
     ):
         runner = ParentStoryRewriteRunner(runtime.session_factory, generator)
-        background_tasks.add_task(runner.run, principal, outcome.reservation)
+        background_tasks.add_task(runner.run, principal, outcome.reservation, *_job_actor(actor))
     return _rewrite_accepted(run_id, outcome)
 
 

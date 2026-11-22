@@ -182,6 +182,19 @@ def test_messages_are_vietnamese_table_values_never_route_text() -> None:
     assert odd["message"]
 
 
+def test_t4b1_sample_gate_codes_have_their_own_vietnamese_messages() -> None:
+    """SRS §9.8 l.866 and l.871: the two codes the child selection raises are worded."""
+    for status, code in ((409, "SAMPLE_VIDEO_ALREADY_EXISTS"), (422, "LESSON_PLAN_NOT_APPROVED")):
+        message = envelope.MESSAGES[code]
+        assert message and message != envelope.STATUS_MESSAGES[status]
+        body = envelope.build_error_body(status=status, code=code, request_id="r")
+        assert body["code"] == code and body["message"] == message
+        kept = envelope.normalize_http_error(
+            status, {"code": code}, idempotency_header_present=False
+        )
+        assert kept[:2] == (status, code)
+
+
 def test_every_scanned_code_literal_is_classified() -> None:
     """A new code fails this test until it is worded or listed as status-message-only."""
     unclassified: list[str] = []

@@ -4,8 +4,13 @@ Two listings and one transactional close. The listings are bounded, ordered, rea
 the close is one transaction per run: ``SELECT ... FOR UPDATE SKIP LOCKED`` on the run row (a row a
 live adult command holds is skipped, never waited for), a re-check of every condition under the
 lock with the pure rules of ``domain.story_run_closeout``, then a compare-and-set update on the
-locked revision and state. Only ``PARENT_ACCOUNT`` runs are read (the Teacher owner column arrives
-with DDL-B2). No content column is selected by the listings and nothing is written to the audit
+locked revision and state. The idle sweep and the deadline sweep of a generation read
+``PARENT_ACCOUNT`` runs and the runs that hold a Teacher lock (DDL-B2, T-4b2, T-4b3b): the release
+trigger of the Teacher lock fires on the ``COMPLETED``, ``ABANDONED`` or ``FAILED`` write, so a
+Teacher run left in an adult-wait state or with a generation that never settled never keeps its
+lock for ever (SRS l.394-395, l.1020). A generation in flight implies a non-terminal run, which
+holds the Teacher lock; a fixture row without the lock is left untouched. No content
+column is selected by the listings and nothing is written to the audit
 log, the outbox or a notification channel: the effect is the run row alone (lock released,
 ``finished_at`` set, content kept until the user deletes the run, FR-C-08).
 """
@@ -61,6 +66,19 @@ _OPEN_VALUES = tuple(sorted(str(state) for state in OPEN_STATES))
 _EXPECTED_RUN_STATE = {str(state): RUN_STATE_FOR_GENERATION[state] for state in IN_FLIGHT_STATES}
 
 
+def _idle_owned() -> Any:
+    """A Parent run, or a run that holds the Teacher lock (T-4b2): the runs the idle sweep closes
+    and (T-4b3b) the runs whose overdue generation the deadline sweep fails.
+
+    The lock column is the whole condition for a Teacher run: it is set in every non-terminal state
+    and the DDL-B2 trigger clears it on the closing write.
+    """
+
+    return or_(
+        _RUNS.c.actor_scope_kind == _OWNER_SCOPE_KIND, _RUNS.c.active_owner_teacher_id.is_not(None)
+    )
+
+
 def _pending_transcript(run_id_column: Any) -> Any:
     return exists().where(_TRANSCRIPTS.c.run_id == run_id_column, _TRANSCRIPTS.c.state == "PENDING")
 
@@ -102,7 +120,7 @@ class SqlStoryRunCloseoutStore:
                 _VG.c.state.in_(_IN_FLIGHT_VALUES),
                 _VG.c.accepted_at.is_not(None),
                 _VG.c.accepted_at <= now - GENERATION_DEADLINE,
-                _RUNS.c.actor_scope_kind == _OWNER_SCOPE_KIND,
+                _idle_owned(),
                 _RUNS.c.run_state.not_in(_PURGE_STATE_VALUES),
                 # A row whose run no longer matches the generation state (a live command moved it)
                 # would answer STALE forever and hold a batch slot each pass (T-1d1 P3-8).
@@ -133,7 +151,7 @@ class SqlStoryRunCloseoutStore:
         return (
             select(_RUNS.c.run_id, _RUNS.c.run_state)
             .where(
-                _RUNS.c.actor_scope_kind == _OWNER_SCOPE_KIND,
+                _idle_owned(),
                 _RUNS.c.run_state.in_(_CLOSABLE_STATES),
                 waiting,
                 # No index serves this listing and none is approved here: the clock is the GREATEST
@@ -178,8 +196,11 @@ class SqlStoryRunCloseoutStore:
             .mappings()
             .one_or_none()
         )
-        if run is None or run["actor_scope_kind"] != _OWNER_SCOPE_KIND:
-            return CloseoutOutcome.SKIPPED  # locked by a live command, gone, or not a Parent run
+        if run is None or (
+            run["actor_scope_kind"] != _OWNER_SCOPE_KIND and run["active_owner_teacher_id"] is None
+        ):
+            # locked by a live command, gone, or neither a Parent run nor a Teacher-locked run
+            return CloseoutOutcome.SKIPPED
         state = str(run["run_state"])
         job_state = None if run["job_state"] is None else str(run["job_state"])
         pending = bool(self._session.scalar(select(_pending_transcript(run_id))))
