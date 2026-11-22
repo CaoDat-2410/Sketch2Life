@@ -1,3 +1,4 @@
+﻿import { entryLinks } from "../services/teacherRunLogic";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RefreshCw, Upload, FileText, ClipboardList, CalendarDays } from "lucide-react";
 import { PageHeading } from "../../../shared/components/FeatureAvailability";
@@ -632,6 +633,8 @@ export function TeacherOccurrencePage() {
               <div className="teacher-occurrence-heading"><div><p className="teacher-occurrence-eyebrow">{selectedClass?.display_name ?? "Lớp"} · {OCCURRENCE_STATE_LABEL[occurrence.state]}</p><h2>{occurrence.title}</h2></div><span>{occurrence.scheduled_date ?? "Chưa đặt ngày"}</span></div>
               {occurrence.lesson_version_ref && <p className="s2l-note">Đã ghim giáo án {occurrence.lesson_version_ref.lesson_id} · phiên bản {occurrence.lesson_version_no}</p>}
               {occurrence.approved_plan && <p className="s2l-note">Kế hoạch đã xác nhận: bản {occurrence.approved_plan.revision_no}</p>}
+              {entryLinks(occurrence).sample && <a href={`/teacher/t06-sample-story-run?occurrence=${encodeURIComponent(occurrence.occurrence_id)}`}>Video mẫu</a>}
+              {entryLinks(occurrence).projection && <a href={`/teacher/t07-video-presentation-confirmation?occurrence=${encodeURIComponent(occurrence.occurrence_id)}`}>Chiếu cho lớp</a>}
             </section>
 
             <section className="s2l-data-card" aria-label="Tài liệu của buổi dạy">
