@@ -688,3 +688,16 @@ Status: **PARTIAL — runtime behaviour verified, catalog pending.** This is the
 ## FEAT-063 FR-C-08 SRS wording edit applied (D-219) — 2026-11-19
 
 The canonical working SRS `features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` now holds 701,810 bytes / SHA-256 `443A3CA37272D2FE96127564BAF400461F394E098724A6BD999D723A4E504021` (before: 701,157 bytes / `B9B1F42D…`, the copy adopted by D-209). The documentation-only FR-C-08 wording edit (program task B4, `features/FEAT-063-system-architecture-rearchitecture/plan/FR_C08_SRS_WORDING_EDIT_DRAFT3_20261119.md`) changed 13 lines with 14 edits: user delete is for runs in COMPLETED, FAILED or ABANDONED; FAILED and ABANDONED are never purged automatically; the retention sites name FAILED; and line 394 records SCRIPT_GENERATING and SCRIPT_GENERATION_UNKNOWN as noted extension values. The header and lines 1-39 were not changed and no line moved, so SRS line citations stay valid. Records pinned to `B9B1F42D…` stay as historical records of the earlier bytes. Contract alignment: `features/FEAT-063-system-architecture-rearchitecture/plan/FR_C08_PARENT_TEACHER_LIFECYCLE_CONTRACT_DRAFT12_20261119.md`. Authority: FEAT-063 D-219. Local commit on its own branch; not pushed or merged.
+
+## Goal v4 Phase A Parent Android wiring — 2026-11-23
+
+- Status: IN_PROGRESS under the task-specific approval appended to approvals/TASK_APPROVAL.md.
+- Scope: apps/ui-mobile plus this task's required FEAT-066 plan and evidence records; no backend or obsolete apps/mobile.
+
+## Goal v4 Phase A Parent Android wiring completion - 2026-11-23
+
+- Status: IMPLEMENTED AND VERIFIED; all six requested gates exited 0.
+- App tests: 18 files passed, 228 tests passed, and UI_COPY_AND_RECOVERY_VALID printed.
+- Evidence: evidence/notes/PHASE_A_PARENT_ANDROID_WIRING_EVIDENCE_20261123.md.
+- Limitations: no lint script or native Android test suite exists in apps/ui-mobile; optional Gradle assembly was not run.
+- Working tree: changes remain unstaged and uncommitted for owner review. No push was made.

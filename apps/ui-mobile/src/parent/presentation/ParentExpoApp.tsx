@@ -2,6 +2,7 @@ import React from 'react';
 import { ActivityIndicator, StatusBar, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { ParentApplicationModule } from '../application/ports/ParentApplicationModule';
+import { rewritesLeft } from '../application/parentPhaseB';
 import type { ParentMainTab } from './screens/ParentBottomBar';
 import type { AppStep } from './navigation/workflowTypes';
 import {
@@ -22,6 +23,8 @@ import { DrawingGuideScreen } from './screens/DrawingGuideScreen';
 import { HandoffScreen } from './screens/HandoffScreen';
 import { HomeScreen } from './screens/HomeScreen';
 import { IdeaScreen } from './screens/IdeaScreen';
+import { TranscriptReviewScreen } from './screens/TranscriptReviewScreen';
+import { VideoScreen } from './screens/VideoScreen';
 import { LessonGalleryScreen } from './screens/LessonGalleryScreen';
 import { LessonHistoryScreen } from './screens/LessonHistoryScreen';
 import { LessonPickerScreen } from './screens/LessonPickerScreen';
@@ -54,6 +57,9 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
   const parent = useParentController(application);
   const platform = useParentPlatformController(application);
   const selectedProfile = selectProfileById(parent.profiles, parent.selectedProfileId);
+  // The inbox and the run list belong to one account: they are cleared on sign-out and on another sign-in.
+  const accountSubject = parent.currentUser?.subject ?? null;
+  React.useEffect(() => { platform.resetAccountData(); }, [accountSubject]);
   const [historyReturnStep, setHistoryReturnStep] = React.useState<'home' | 'profile'>('profile');
   const [pendingCaptureSource, setPendingCaptureSource] = React.useState<'camera' | 'gallery' | null>(null);
   const [drawingGuideEntryRequested, setDrawingGuideEntryRequested] = React.useState(false);
@@ -274,12 +280,14 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
   if (parent.step === 'notifications') return mainSection('profiles', <NotificationsScreen
     capability={platform.capabilities.notifications}
     items={platform.notifications}
+    unreadCount={platform.notificationsUnreadCount}
     loading={platform.notificationsBusy}
     error={platform.notificationsError}
     hasMore={Boolean(platform.notificationsCursor)}
     onLoad={() => void platform.loadNotifications()}
     onLoadMore={() => void platform.loadNotifications(platform.notificationsCursor)}
     onMarkRead={(id) => void platform.markNotificationRead(id)}
+    onMarkAllRead={() => void platform.markAllNotificationsRead()}
     onBack={() => parent.setStep('profile')}
   />);
   if (parent.step === 'quota') return mainSection('profiles', <QuotaScreen
@@ -300,6 +308,7 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
     onLoadMore={() => void platform.loadRuns(parent.profile?.profile_id, platform.runsCursor)}
     onCancel={(id) => void platform.cancelRun(id)}
     onDelete={(id) => void platform.deleteRun(id)}
+    onWatch={(id) => void parent.watchHistoryRun(id)}
     onBack={() => parent.setStep(historyReturnStep)}
   />);
   if (parent.step === 'profile-sharing') return mainSection('profiles', <ProfileSharingScreen
@@ -346,24 +355,20 @@ function renderLearningStep(
     contextConfirmed: parent.contextConfirmed,
     photoSelected: Boolean(parent.photo),
   });
+  // A story the server already holds (resume, rewrite, video) needs no activity selection again.
   const storyReady = Boolean(
     parent.contextRun?.run_id
     && parent.contextConfirmed
     && parent.subjectConfirmed
-    && parent.selectedActivityIndex !== null
-    && parent.activitySelectionPersisted,
+    && (parent.contextRun.main_activity?.state === 'SELECTED' || parent.story),
   );
-  const storyBlockedReason = parent.selectedActivityIndex === null
-    ? 'Chọn hoạt động chính trước khi tiếp tục.'
-    : !parent.activitySelectionPersisted
-      ? 'Bạn đã chọn hoạt động, nhưng backend chưa có API lưu lựa chọn vào StoryRun. Chưa thể tạo câu chuyện.'
-      : 'Xác nhận tranh và ngữ cảnh trước khi tạo câu chuyện.';
+  const storyBlockedReason = 'Hãy hoàn tất lựa chọn hoạt động và xác nhận ngữ cảnh trước khi xem câu chuyện.';
   const canConfirmStory = canConfirmDisplayedStory({
     runId: parent.contextRun?.run_id,
     displayedRunId: parent.storyDisplayedRunId,
     storyPresent: Boolean(parent.story),
     subjectConfirmed: parent.subjectConfirmed,
-    storyConfirmed: parent.storyConfirmed,
+    storyConfirmed: parent.storyConfirmed && !parent.storyConfirmationRequired,
     storyRevisionNo: parent.storyRevisionNo,
     storySha256: parent.storySha256,
   });
@@ -422,7 +427,7 @@ function renderLearningStep(
     onRetryCreate={() => void parent.retryContextCreation()}
     onConfirm={() => void parent.confirmContext()}
     onContinue={parent.continueToCapture}
-    onBack={parent.contextRun ? undefined : () => parent.setStep('drawing-guide')}
+    onBack={parent.contextRun?.context_confirmed ? undefined : parent.contextRun ? () => parent.setStep('activity') : () => parent.setStep('drawing-guide')}
   />;
   if (step === 'capture') return <CaptureScreen
     photo={parent.photo}
@@ -434,7 +439,7 @@ function renderLearningStep(
     onCaptureIntentHandled={onCaptureIntentHandled}
     onPhoto={parent.setPhoto}
     onContinue={() => void parent.analyzeDrawingForCurrentRun()}
-    onBack={() => parent.setStep(parent.contextRun ? 'context' : 'idea')}
+    onBack={() => parent.leaveWait(parent.contextRun ? 'context' : 'idea')}
   />;
   if (step === 'understanding' && parent.candidate) return <UnderstandingScreen
     candidate={parent.candidate}
@@ -444,25 +449,59 @@ function renderLearningStep(
     error={parent.error}
     onSubject={parent.setSubject}
     onConfirm={() => void parent.confirmSubject()}
-    onBack={() => parent.setStep('capture')}
+    onBack={() => parent.leaveWait('capture')}
   />;
   if (step === 'activity') return <ActivityScreen
     stepLabel={stepLabel(7)}
     topic={parent.topic}
     subject={parent.subject}
-    suggestions={parent.activitySuggestions}
+    activities={parent.activitySuggestions}
     selectedIndex={parent.selectedActivityIndex}
     loading={parent.activityBusy}
+    saving={parent.busy === 'activity-selection'}
     attempted={parent.activityAttempted}
     error={parent.activityError || parent.error}
-    onSuggest={() => void parent.requestActivitySuggestions()}
+    onRetry={() => void parent.requestActivityList(true)}
     onSelect={parent.chooseActivity}
-    onContinue={() => parent.setStep('story')}
-    onBack={() => parent.setStep('context')}
+    onContinue={() => void parent.selectActivity()}
+    onCancel={() => void parent.cancelEmptyActivityRun()}
+    onBack={() => parent.setStep(parent.contextRun?.context_confirmed ? 'context' : 'understanding')}
+  />;
+  if (step === 'transcript') return <TranscriptReviewScreen
+    stepLabel={stepLabel(5)}
+    transcript={parent.transcript}
+    waiting={parent.transcriptWaiting}
+    text={parent.transcriptText}
+    edited={parent.transcriptEdited}
+    busy={parent.busy === 'transcript-confirm'}
+    error={parent.error}
+    onText={parent.setTranscriptText}
+    onConfirm={() => void parent.confirmTranscriptReview()}
+    onRefresh={() => void parent.refreshTranscript()}
+    onBack={() => parent.leaveWait('capture')}
+  />;
+  if (step === 'video') return <VideoScreen
+    stepLabel={stepLabel(8)}
+    panel={parent.videoPanel}
+    busy={['video-request', 'video-playback', 'video-unsuitable', 'video-complete', 'video-refresh'].includes(parent.busy) ? parent.busy : ''}
+    error={parent.error}
+    playback={parent.playback}
+    reason={parent.videoReason}
+    markingUnsuitable={parent.markingUnsuitable}
+    onReason={parent.setVideoReason}
+    onRequest={() => void parent.requestVideo()}
+    onPlay={() => void parent.playVideo()}
+    onPlaybackError={parent.onPlaybackError}
+    onStartUnsuitable={parent.startUnsuitable}
+    onCancelUnsuitable={parent.cancelUnsuitable}
+    onConfirmUnsuitable={() => void parent.markVideoUnsuitable()}
+    onComplete={() => void parent.completeRun()}
+    onBackToStory={() => parent.leaveWait('story')}
+    onOpenHistory={() => parent.leaveWait('history')}
+    onRefresh={() => void parent.refreshVideo()}
+    onBack={() => parent.leaveWait(parent.videoBackStep)}
   />;
   if (step === 'story') return <StoryScreen
-    videoCapability={platform.capabilities.video}
-    jobStage={platform.videoJobStage}
     stepLabel={stepLabel(8)}
     story={parent.story}
     storyReady={storyReady}
@@ -474,18 +513,25 @@ function renderLearningStep(
     canConfirm={canConfirmStory}
     error={parent.error}
     confirmed={parent.storyConfirmed}
+    rewriting={parent.busy === 'rewrite'}
+    rewriteNotice={parent.rewriteNotice}
+    rewriteAfterVideo={parent.rewriteAfterVideo}
+    confirmationRequired={parent.storyConfirmationRequired}
+    onlyCancel={parent.storyOnlyCancel}
+    rewritesLeft={rewritesLeft(parent.storyRevisionNo)}
+    onOpenVideo={() => void parent.openVideoStep()}
     onRewriteInstruction={parent.setRewriteInstruction}
-    onGenerate={() => void parent.requestStory()}
-    onRewrite={() => void parent.requestStory(parent.rewriteInstruction)}
-    onRetry={() => void parent.requestStory(undefined, true)}
+    onRewrite={() => void parent.rewriteStory(parent.rewriteInstruction)}
     onConfirm={() => void parent.confirmStory()}
-    onBack={() => parent.setStep('activity')}
+    onRefresh={() => void parent.refreshStory()}
+    onOpenHistory={() => parent.leaveWait('history')}
+    onBack={() => parent.leaveWait(parent.story ? 'home' : 'activity')}
   />;
   if (step === 'handoff') return <HandoffScreen
     storyTitle={parent.story?.title ?? ''}
     events={parent.events}
     videoCapability={platform.capabilities.video}
-    jobStage={platform.videoJobStage}
+    jobStage={{ state: 'idle', stage: 'idle' }}
     onResumeActiveRun={parent.resumeActiveRun}
   />;
 

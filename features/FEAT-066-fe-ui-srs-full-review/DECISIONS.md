@@ -806,3 +806,15 @@ Draft 4 fixes the round-3 findings and was not re-reviewed, by owner choice.
 **Source:** SRS section 21.4 (line 1697): state-changing commands carry an idempotency key; SRS section 9.8 (line 904): "AI dùng job/semantic request receipt"; SRS lines 800, 816 and 818: the Parent drawing-guide route and the idempotency/concurrency contract of new resources are not frozen and are reconciled in M0.
 
 **Decision:** requests `154`, `155` and `157` to `159` follow their routers and send no `Idempotency-Key`. Under line 904, AI generation is deduplicated by job or semantic request receipt, not by a client key, so the missing key is not recorded as an SRS violation for the draft-generating routes (`155`, `157` to `159`). Request `154` also attaches artwork to a StoryRun (a state change); whether the route dedupes by a semantic receipt is **not verified here** and stays an open backend check (owner of the check: BE). Request `156` already requires a key. No request-side key is invented.
+
+## D-066-88 - Goal v4 Phase A Parent Android integration order (2026-11-23)
+
+**Source:** the owner-launched Phase A task prompt and `tmp/phase-v4/PHASE_A_FINAL_ROUTE_LIST_20261123.md`, sections 1, 2.3-2.10, 3.1-3.5 and 4. The task plan hash is recorded in the Phase A entry in `approvals/TASK_APPROVAL.md`.
+
+- Parent confirms the subject, loads and selects an activity, then confirms context. Whichever of activity selection or context confirmation succeeds last starts the first story.
+- First-story start is implicit in those gates; the Parent flow does not call legacy `story-revisions` for it.
+- `story_confirmation_required` is authoritative when present. The app re-confirms the same story revision after a spent video review, and only then offers another video request.
+- Current safety blocks route through `SCRIPT_REVIEW` plus video/job fields. The `SAFETY_BLOCKED` run state remains accepted for legacy rows.
+- `post_video_activities: null` is normal. A completed run may be read and played again through a fresh playback grant.
+
+This records the implementation contract for this task only. It does not sign off FEAT-063 SRS v2.7-draft or approve a tech-stack decision.

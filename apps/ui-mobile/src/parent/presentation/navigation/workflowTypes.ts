@@ -101,7 +101,9 @@ export type AppStep =
   | 'context'
   | 'understanding'
   | 'activity'
+  | 'transcript'
   | 'story'
+  | 'video'
   | 'handoff';
 
 export type ChildGenderDraft = '' | 'boy' | 'girl' | 'prefer_not_to_say';

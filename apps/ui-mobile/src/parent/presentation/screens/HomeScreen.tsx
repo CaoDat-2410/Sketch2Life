@@ -496,6 +496,11 @@ function storyTitle(run: ParentStoryRunV1): string {
 function runProgressState(run: ParentStoryRunV1): { label: string; step: number | null } {
   if (run.job_state === 'AWAITING_RECONCILIATION') return { label: 'Đang xác minh kết quả', step: null };
   if (run.job_state === 'RUNNING' && run.run_state === 'VIDEO_ADMISSION_PENDING') return { label: 'Đang tạo video', step: 3 };
+  if (run.run_state === 'SCRIPT_REVIEW' && run.video?.state === 'SAFETY_BLOCKED'
+    && run.video.job?.error_code === 'VIDEO_SAFETY_BLOCKED') {
+    return { label: 'Video chưa qua kiểm tra', step: 2 };
+  }
+  if (run.run_state === 'SAFETY_BLOCKED') return { label: 'Video chưa qua kiểm tra', step: 2 };
 
   const states: Record<string, { label: string; step: number | null }> = {
     INPUT_PROCESSING: { label: 'Đang xử lý ảnh tranh', step: 0 },
@@ -506,6 +511,10 @@ function runProgressState(run: ParentStoryRunV1): { label: string; step: number 
     SCRIPT_GENERATION_UNKNOWN: { label: 'Đang xác minh câu chuyện', step: 2 },
     SCRIPT_REVIEW: { label: 'Chờ xem lại câu chuyện', step: 2 },
     VIDEO_ADMISSION_PENDING: { label: 'Đang chờ tạo video', step: 3 },
+    VIDEO_QUEUED: { label: 'Video đang chờ xử lý', step: 3 },
+    VIDEO_GENERATING: { label: 'Đang tạo video', step: 3 },
+    VIDEO_SAFETY_VALIDATING: { label: 'Đang kiểm tra video', step: 3 },
+    VIDEO_READY: { label: 'Video đã sẵn sàng', step: 3 },
   };
   return states[run.run_state] ?? { label: 'Buổi sáng tạo đang mở', step: null };
 }
