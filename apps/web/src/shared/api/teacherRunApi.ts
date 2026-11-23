@@ -13,7 +13,7 @@ export interface ChildSelection {
 export interface TeacherRun {
   run_id: string; occurrence_id: string | null; run_state: string; run_revision: number;
   context_revision: number; context_snapshot_sha256: string | null; context_confirmed: boolean;
-  context_snapshot: { age_months: number; objectives: string[]; teacher_direction: string; activity_title: string | null } | null;
+  context_snapshot: { age_months: number; objectives?: string[]; teacher_direction?: string; activity_title?: string | null } | null;
   understanding_revision: number | null; candidate: { candidate_subject: string | null; visible_features: string[] } | null;
   story_revision_no: number | null; story_status: string | null; story_sha256: string | null;
   story: { title: string; story: { opening: string; middle: string; ending: string }; scenes: Array<{ title: string; action?: string; narration?: string; scene_index?: number; start_ms?: number; duration_ms?: number }> } | null; job_state: string | null;
