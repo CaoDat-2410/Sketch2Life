@@ -133,7 +133,7 @@ describe("School Manager SRS-compatible business pages", () => {
     const { container } = render(<MemoryRouter><RosterConsentPage /></MemoryRouter>);
 
     expect((await screen.findByRole("alert")).textContent).toContain("Bạn không có quyền xem hồ sơ trẻ trong lớp này.");
-    expect(await screen.findByText("Đã ghi nhận")).toBeTruthy();
+    expect(screen.getAllByText("Đã ghi nhận").length).toBeGreaterThan(1);
     expect(container.querySelectorAll("tbody tr").length).toBeGreaterThan(0);
     expect(screen.queryByText(/hồ sơ đang hoạt động/)).toBeNull();
     expect(logout).not.toHaveBeenCalled();
