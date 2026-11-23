@@ -82,7 +82,7 @@ describe('School Manager BE1 organization gate', () => {
     expect(screen.queryByRole('heading', { name: 'Người dùng & vai trò' })).toBeNull()
   })
 
-  it.each(['capacity', 'quota', 'billing'])('keeps %s unavailable', async (route) => {
+  it.each(['capacity'])('keeps %s unavailable', async (route) => {
     signedIn = true
     render(<PortalSessionProvider><MemoryRouter initialEntries={[`/school/${route}`]}><App /></MemoryRouter></PortalSessionProvider>)
     expect((await screen.findAllByText('Chưa khả dụng')).length).toBeGreaterThan(0)

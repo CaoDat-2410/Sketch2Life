@@ -693,6 +693,7 @@ html[data-cozy="1"][data-portal="school-be1"] .manager-business-card[aria-labell
     white-space: normal;
     overflow-wrap: anywhere;
   }
+}
 
 /* BE1 school quota and real billing workspace. */
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-page { gap: 15px; }

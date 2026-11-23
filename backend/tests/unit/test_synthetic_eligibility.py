@@ -479,7 +479,9 @@ def test_head_counts_by_both_methods_match_the_derived_expectation() -> None:
     # as the head of the same branch (heads stay 15 and 10; 50 revisions).
     # FEAT-066 goal v4 T-1b-fix: 20261123_rv_0001 (DDL-B1c) follows 20261123_as_0001 and replaces it
     # as the head (heads stay 15 and 10; 51 revisions).
-    assert len(graph) == 51
+    # FEAT-072 quota commerce: 20261122_quota_commerce, 20261123_vnpay_order_info and
+    # 20261123_vnpay_cancel extend the Admin retention head (heads stay 15 and 10; 54 revisions).
+    assert len(graph) == 54
     down_targets = {target for down, _ in graph.values() for target in down}
     dependency_targets = down_targets | {target for _, dep in graph.values() for target in dep}
     heads_down_only = {rev for rev in graph if rev not in down_targets}
