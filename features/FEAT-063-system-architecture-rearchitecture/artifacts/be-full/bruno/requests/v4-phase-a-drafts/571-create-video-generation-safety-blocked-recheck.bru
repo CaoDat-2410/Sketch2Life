@@ -1,0 +1,46 @@
+meta {
+  name: 571 [DRAFT-V4A] [LOCAL / TEST ONLY] Request video on legacy SAFETY_BLOCKED row before re-confirm
+  type: http
+  seq: 571
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{legacy_blocked_parent_run_id}}/video-generations
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "expected_revision": {{legacy_blocked_parent_run_revision}},
+    "story_sha256": "{{legacy_blocked_parent_story_sha256}}",
+    "quality_reason_code": "QUALITY_LOW"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("INVALID_STATE_TRANSITION");
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Parent - set bearerToken to seed-parent-p1 token
+  Needs: needs-fixture - legacy_blocked_parent_run_id, legacy_blocked_parent_run_revision, legacy_blocked_parent_story_sha256 (a LEGACY row stored at run_state SAFETY_BLOCKED; video-generations refuses 409 INVALID_STATE_TRANSITION until 592 re-confirms the story)
+  Expected: 409 / INVALID_STATE_TRANSITION
+  Source: backend/src/sketch2life/infrastructure/story_video/repository.py:438-439, backend/tests/integration/story_video/test_safety_block_exit_postgres.py:264-275
+}

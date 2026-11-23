@@ -1,0 +1,40 @@
+meta {
+  name: 298 [LOCAL / TEST ONLY] Manager A10 privacy-safe consent page one
+  type: http
+  seq: 298
+}
+
+get {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/classes/{{class_id}}/consents?limit=1
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+script:post-response {
+  const body = res.getBody();
+  bru.setVar("phase_b_consent_cursor", body.next_cursor || "");
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().contract).to.equal("Be1ConsentListManagerV1");
+    expect(res.getBody().items).to.be.an("array");
+    expect(res.getBody()).to.have.property("next_cursor");
+    for (const item of res.getBody().items) {
+      expect(item).to.not.have.property("child_id");
+      expect(item).to.not.have.property("purpose_ref");
+    }
+  });
+}
+

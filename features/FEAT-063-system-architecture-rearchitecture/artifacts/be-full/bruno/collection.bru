@@ -1,0 +1,79 @@
+meta {
+  name: Sketch2Life full BE runtime API (local/test)
+}
+
+script:pre-request {
+  // The Bruno 4.3.0 CLI sandbox has no URL global and its script preprocessor rejects regex literals
+  // that contain slashes (both verified by runs), so the URL is parsed by hand with string methods.
+  const refuse = function (message) {
+    throw new Error("L5 loopback guard: " + message);
+  };
+
+  let interpolatedRequestUrl;
+  try {
+    interpolatedRequestUrl = bru.interpolate(req.getUrl());
+  } catch (error) {
+    refuse("unable to interpolate the request URL.");
+  }
+
+  if (typeof interpolatedRequestUrl !== "string") {
+    refuse("interpolated request URL is not a string.");
+  }
+
+  for (let index = 0; index < interpolatedRequestUrl.length; index += 1) {
+    const code = interpolatedRequestUrl.charCodeAt(index);
+    if (code <= 32 || code === 127 || code === 92) {
+      refuse("unable to parse the interpolated request URL.");
+    }
+  }
+
+  let rest;
+  if (interpolatedRequestUrl.slice(0, 7).toLowerCase() === "http://") {
+    rest = interpolatedRequestUrl.slice(7);
+  } else if (interpolatedRequestUrl.slice(0, 8).toLowerCase() === "https://") {
+    rest = interpolatedRequestUrl.slice(8);
+  } else {
+    refuse("unable to parse the interpolated request URL.");
+  }
+
+  let authorityEnd = rest.length;
+  for (const separator of ["/", "?", "#"]) {
+    const position = rest.indexOf(separator);
+    if (position !== -1 && position < authorityEnd) {
+      authorityEnd = position;
+    }
+  }
+  const authority = rest.slice(0, authorityEnd);
+
+  if (authority.includes("@")) {
+    refuse("user-info is not allowed.");
+  }
+
+  let hostname;
+  let portText = "";
+  if (authority.startsWith("[")) {
+    const close = authority.indexOf("]");
+    if (close === -1) {
+      refuse("unable to parse the interpolated request URL.");
+    }
+    hostname = authority.slice(0, close + 1);
+    portText = authority.slice(close + 1);
+    if (portText !== "" && portText.charAt(0) !== ":") {
+      refuse("unable to parse the interpolated request URL.");
+    }
+    portText = portText.slice(1);
+  } else {
+    const colon = authority.indexOf(":");
+    hostname = colon === -1 ? authority : authority.slice(0, colon);
+    portText = colon === -1 ? "" : authority.slice(colon + 1);
+  }
+
+  if (portText !== "" && (portText.length > 5 || Number.isNaN(Number(portText)) || !Number.isInteger(Number(portText)))) {
+    refuse("unable to parse the interpolated request URL.");
+  }
+
+  const allowedHostnames = ["127.0.0.1", "localhost", "[::1]"];
+  if (!allowedHostnames.includes(hostname.toLowerCase())) {
+    refuse("only exact loopback hostnames are allowed.");
+  }
+}

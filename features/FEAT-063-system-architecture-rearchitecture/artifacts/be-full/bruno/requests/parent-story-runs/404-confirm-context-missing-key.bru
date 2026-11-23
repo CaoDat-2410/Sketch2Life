@@ -1,0 +1,37 @@
+meta {
+  name: 404 [LOCAL / TEST ONLY] Confirm context without key
+  type: http
+  seq: 404
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{parent_story_run_id}}/context-confirmation
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "expected_context_revision": {{story_context_revision}},
+    "context_snapshot_sha256": "{{story_context_hash}}",
+    "confirmed": true
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("INVALID_REQUEST");
+  });
+}

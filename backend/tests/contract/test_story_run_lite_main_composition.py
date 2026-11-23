@@ -19,6 +19,8 @@ from sketch2life.interfaces.http.app import create_app, create_classroom_app
 @pytest.fixture
 def local_demo(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("STORYRUN_LITE_MAIN_DEMO_ENABLED", "1")
+    # FEAT-066 T0.5: the demo replaces the real Parent router and must be acknowledged.
+    monkeypatch.setenv("STORYRUN_LITE_MAIN_DEMO_REPLACES_PARENT_ROUTER", "1")
     monkeypatch.setenv("SKETCH2LIFE_ENV", "test")
     get_settings.cache_clear()
     repository = Mock()

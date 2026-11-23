@@ -557,7 +557,8 @@ class AiJobService:
                 with self._d.repository.transaction() as tx:
                     if tx.notice_seen(notice.notice_id):
                         return ()
-                    matches = tx.jobs_for_notice(notice)
+                    # A Parent lifecycle notice matches no job (DTR Draft 6 §5.2).
+                    matches = () if notice.is_parent else tx.jobs_for_notice(notice)
                     if len(matches) > limit:
                         raise _notice_too_large()
                     for job in matches:
@@ -1048,21 +1049,14 @@ class AiJobService:
             job = tx.get_job(job_id)
         if job is None or not self._readable(principal, job):
             raise _not_found()
-        expose_results = (
-            principal.role is PrincipalRole.TEACHER
-            and job.state is JobState.SUCCEEDED
-            and job.result_disposition is ResultDisposition.ACCEPTED
-            and self._check(job).eligible
+        return render_job_status(
+            job,
+            principal.role,
+            eligible=lambda: self._check(job).eligible,
+            poll_policy=self._d.poll_policy,
+            now=self._d.clock.now(),
+            if_none_match=if_none_match,
         )
-        poll_after = jobs.poll_after_ms(job, self._d.poll_policy, self._d.clock.now())
-        variant = sha256(
-            f"{principal.role}|{expose_results}|{poll_after}".encode()
-        ).hexdigest()[:8]
-        etag = f'"job:{job.job_id}:{job.job_revision}:{variant}"'
-        if if_none_match is not None and etag in _etag_candidates(if_none_match):
-            return JobStatusResult(etag, True, principal.role, None)
-        view = project_job(job, principal.role, expose_results, poll_after)
-        return JobStatusResult(etag, False, principal.role, view)
 
     # ------------------------------------------------------------------ helpers
     def _decide_completion(
@@ -1572,6 +1566,37 @@ def project_job(
     return {name: full[name] for name in allowed}
 
 
+def render_job_status(
+    job: AiJob,
+    role: PrincipalRole,
+    *,
+    eligible: Callable[[], bool],
+    poll_policy: JobPollPolicy,
+    now: datetime,
+    if_none_match: str | None,
+) -> JobStatusResult:
+    """ETag, 304 decision and role projection of one job the caller has already authorised.
+
+    Shared by ``AiJobService.get_job_status`` and the registry-aware reader of
+    ``GET /v1/jobs/{job_id}`` (FEAT-066 T0.4). Result refs are exposed only to the Teacher
+    projection of a succeeded + accepted job whose ``eligible()`` (called lazily, only when all
+    other conditions hold) is true. The caller authorises first: a 304 never precedes it.
+    """
+
+    expose_results = (
+        role is PrincipalRole.TEACHER
+        and job.state is JobState.SUCCEEDED
+        and job.result_disposition is ResultDisposition.ACCEPTED
+        and eligible()
+    )
+    poll_after = jobs.poll_after_ms(job, poll_policy, now)
+    variant = sha256(f"{role}|{expose_results}|{poll_after}".encode()).hexdigest()[:8]
+    etag = f'"job:{job.job_id}:{job.job_revision}:{variant}"'
+    if if_none_match is not None and etag in _etag_candidates(if_none_match):
+        return JobStatusResult(etag, True, role, None)
+    return JobStatusResult(etag, False, role, project_job(job, role, expose_results, poll_after))
+
+
 def _produced_by(descriptor: ArtifactDescriptor, job: AiJob, attempt_id: str) -> bool:
     return (
         descriptor.organization_id == job.organization_id
@@ -1608,6 +1633,10 @@ def notice_matches(notice: CancellationNotice, job: AiJob) -> bool:
     """Phase A notice semantics, kept by Δ10: same organization, non-terminal (cancellable),
     and the notice's session, job type or subject matches. Repositories select exactly this."""
 
+    if notice.is_parent:
+        # FR-C-08 (DTR Draft 6 §5.2): no Parent product run creates an AI job (S4); a Parent
+        # lifecycle notice is recorded COMPLETE with applied_count 0 and matches nothing.
+        return False
     if job.organization_id != notice.organization_id or job.state not in jobs.CANCELLABLE_STATES:
         return False
     if notice.session_id is not None and job.scope.session_id == notice.session_id:
@@ -1650,4 +1679,5 @@ __all__ = [
     "notice_matches",
     "project_job",
     "public_message",
+    "render_job_status",
 ]

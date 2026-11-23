@@ -352,7 +352,7 @@ def test_parent_validation_uses_safe_request_id_envelope(
     assert "must-not-echo" not in response.text
 
 
-def test_collection_role_denial_precedes_malformed_body_and_missing_key(
+def test_collection_wrong_role_precedes_malformed_body_and_missing_key(
     parent_client: tuple[TestClient, Be1Runtime],
 ) -> None:
     client, _runtime = parent_client
@@ -375,17 +375,18 @@ def test_collection_role_denial_precedes_malformed_body_and_missing_key(
             content="{" if method == "POST" else None,
             headers={"X-Request-ID": f"parent-role-first-{method.lower()}"},
         )
+        # FEAT-066 T0.9: a caller who is not an active Parent is out of scope (SRS l.864-865).
         _assert_parent_error(
             response,
-            status=403,
-            code="ACTION_NOT_ALLOWED",
+            status=404,
+            code="PROFILE_NOT_FOUND",
             request_id=f"parent-role-first-{method.lower()}",
         )
     assert role_reader.calls == 2
     assert service.writes == 0
 
 
-def test_targeted_error_precedence_is_uuid_then_scope_then_role_then_body(
+def test_targeted_error_precedence_is_uuid_then_scope_then_wrong_role_then_body(
     parent_client: tuple[TestClient, Be1Runtime],
 ) -> None:
     client, _runtime = parent_client
@@ -465,8 +466,8 @@ def test_targeted_error_precedence_is_uuid_then_scope_then_role_then_body(
         )
         _assert_parent_error(
             denied_owner,
-            status=403,
-            code="ACTION_NOT_ALLOWED",
+            status=404,
+            code="PROFILE_NOT_FOUND",
             request_id=f"parent-role-before-body-{method.lower()}",
         )
     assert role_reader.calls == 3

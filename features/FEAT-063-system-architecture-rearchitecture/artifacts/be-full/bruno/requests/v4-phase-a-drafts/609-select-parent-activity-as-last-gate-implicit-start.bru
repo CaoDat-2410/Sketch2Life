@@ -1,0 +1,56 @@
+meta {
+  name: 609 [DRAFT-V4A] [LOCAL / TEST ONLY] Select Parent main activity as last gate triggering implicit first story
+  type: http
+  seq: 609
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{parent_context_confirmed_run_id}}/activity-selection
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "expected_revision": {{parent_context_confirmed_run_revision}},
+    "activity": {
+      "lesson_id": "{{activity_lesson_id}}",
+      "version_id": "{{activity_version_id}}",
+      "content_sha256": "{{activity_content_sha256}}",
+      "activity_index": {{activity_index}}
+    }
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.story_run_id).to.equal(bru.getVar("parent_context_confirmed_run_id"));
+    expect(body.run_state).to.equal("SCRIPT_GENERATING");
+    expect(body.job_state).to.equal("QUEUED");
+    expect(body.story_revision_no).to.equal(1);
+    expect(body.main_activity).to.be.an("object");
+    expect(body.main_activity.lesson_id).to.equal(bru.getVar("activity_lesson_id"));
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Parent - set bearerToken to seed-parent-p1 token
+  Needs: needs-fixture - parent_context_confirmed_run_id and parent_context_confirmed_run_revision (Parent StoryRun in PREPARATION_REVIEW with subject and context already confirmed before activity-selection), plus activity_* vars from 540
+  Expected: 200 (activity-selection closes the third gate and implicitly starts story revision 1 in SCRIPT_GENERATING)
+  Source: backend/src/sketch2life/infrastructure/persistence/parent_story_repository.py:2530-2645, backend/tests/integration/test_parent_activity_selection_postgres.py:130-175
+}

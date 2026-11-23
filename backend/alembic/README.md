@@ -11,6 +11,8 @@ schema `ai_jobs`). Use `upgrade be1_core@head` or `upgrade ai_jobs@head` for one
 for all modules. Plain `upgrade head` is ambiguous and fails with "Multiple head revisions" without changing
 the database.
 
+Deploy with `upgrade heads`: the FR-C-08 lifecycle revision `20261119_frc08_lifecycle_scope` (branch `frc08_lifecycle`) only depends on the Story head, so a per-module `upgrade <branch>@head` skips it.
+
 The URL is required at runtime; no credential or default URL is stored in this repository. Do not print it in logs or command transcripts. The migration does not upload media or connect to Redis, Firebase, or an object store.
 
 The downgrade drops the new FEAT-046 tables and their records. Before using it against any database with data, take and verify a database backup; restore uses the database's normal PostgreSQL backup/restore procedure. No deployment or live database migration is authorized by FEAT-046.

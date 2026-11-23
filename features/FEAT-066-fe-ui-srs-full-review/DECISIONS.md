@@ -257,6 +257,89 @@ For Rev30, /login is the direct shared sign-in screen, with Teacher selected by 
 
 Implemented and inspected in the local browser at desktop and mobile sizes. Role switching stays at /login, including keyboard activation and focus retention. The evidence and current backend limitation are recorded in EV-036.
 
+## D-066-62 — Use canonical Rev60 for the Teacher-first plan
+
+For the Rev31 planning request, follow docs/context/SRS_AUTHORITY.md and the FEAT-063 v2.7-draft Rev60 working SRS. Preserve FEAT-066 revisions 28–30 and their Rev68 task record as history; do not rewrite or merge their requirement baselines. This is an authority and planning disposition, not a new product-policy decision. Keep Q-01, Q-13, Q193 and OI-17 open. The Teacher API/UI crosswalk and implementation dependencies are recorded in PLAN_REV31_TEACHER_API_UI_REBUILD_20261116.md and FEAT-066-EV-037. No implementation approval is granted by this decision record.
+## D-066-63 — Use the configured API for the Platform Admin health probe
+
+For FEAT-066 Rev32, the Admin overview health card uses the existing typed GET /health against the runtime-configured API base, after the authenticated Platform Admin route is entered. The UI identifies the result only as an API health probe, keeps connection/error/retry states explicit, and does not infer queue, billing, database, provider or full-platform health. Existing auth/account API wiring stays unchanged. This frontend disposition does not settle Q-13 or authorize Content Admin operations; lesson moderation remains blocked until its queue/detail and permission contracts are available.
+## D-066-64 — Use a loopback FE proxy for the local API handoff
+
+The backend health route does not emit CORS headers for the Vite origin. Preserve the existing FE server on port 5173 and run a second temporary Vite server on loopback port 5174 with same-origin `/health` and `/api` proxies to the container API. Keep this runtime workaround under ignored `tmp/`; do not add a backend CORS or FE source change as part of the handoff. Authenticated account reads remain unverified without a valid configured identity.
+## D-066-65 — Keep the Admin test identity in Firebase dev only
+
+For the owner's Admin FE test, use one local QA identity in the verified `sketch2life-dev` project and the local Docker PostgreSQL database. Create it through the supported Platform Admin bootstrap, keep its email unverified on reserved `example.com`, and set a generated password without email delivery. Never store the password or bearer token in repository files/logs. This identity does not grant Content Admin or child-media access and is not a product seed account.
+## D-066-66 — Proxy the active FE port for API testing
+
+After the owner reported the backend-data error on the active port, make the same-origin proxy available at port 5173 as well as 5174. Configure only the local Vite process and ignored `tmp/` config; do not add API CORS or alter tracked FE/backend code as part of this runtime fix. Keep both dev servers available.
+
+## D-066-67 — Keep Platform Accounts inside existing API and role boundaries
+
+For FEAT-066 Rev36, preserve Firebase/backend authentication and the existing account GET/POST/PATCH contracts. Represent loading, failure and successful data as distinct UI states so an API error cannot look like an empty result. Show only the four product roles; Content Admin is a scoped permission, not a role, and no child-media access is inferred. Set page size to the supplied SRS default 25 while preserving offset pagination until the backend provides the required opaque cursor contract. Capability grants and visible audit-event browsing remain unavailable because their contracts are not exposed by the current typed API. Follow the owner attachment Rev69 for this task; leave repo SRS authority Rev60 unchanged.
+
+
+## D-066-68 — Keep Platform Admin sidebar styling portal-scoped
+
+For Rev37, preserve the shared WebAppShell behavior and navigation contract. Apply presentation changes only to sidebar descendants under html[data-portal="platform"] in the existing Platform Admin stylesheet, using shared crayon tokens for paper, ink, focus and status states. Keep active route, waiting labels, auth/session actions, focus handling, responsive drawer, scrollable nav, and footer mechanics intact. This visual decision does not alter SRS requirements or authorization policy.
+
+## D-066-69 — Adapt Platform Accounts to available content width
+
+For Rev38, use a fixed-column table through 1120px, with a reserved stacked action column so role/state/revision content cannot push actions over a neighboring cell. At 900px and below, render the existing labelled account cards; this accounts for the persistent 238px navigation rail at tablet widths and the reduced CSS viewport under browser zoom. Show the action heading when the desktop table is visible. Preserve all account data/API/authorization behavior. Report that the populated action row was not browser-captured if no Firebase session is available; never fabricate rows or transfer session tokens for visual evidence.
+## D-066-70 — Prepare School Manager after Admin API closeout (Rev39 planning)
+
+For Rev39 planning, treat account GET/POST/PATCH and the shared health probe as the currently integrated Admin APIs. Keep platform moderation unavailable until the backend provides a queue/list, an exact immutable-version read and authorization for the SRS Content Admin permission. Prepare the next UI review around School Manager's existing tenant-scoped public-grant review and class list/create flows. Do not expose class-assignment pickers without a scoped Teacher candidate read; do not invent quota, billing or organization feedback behavior while APIs/owner decisions are absent. This records task sequencing for FEAT-066 and grants no implementation approval.
+
+## D-066-71 — Reuse shared authentication for School Manager (Rev40 planning)
+
+Do not create or assume a Manager-specific BE login route. Reuse Firebase SDK sign-in, shared `GET /api/auth/v1/me` for account-role resolution, and organization-scoped BE1 assignment checks for school access. Treat product role `school_manager` and organization assignment role `school_admin` as separate contract values; do not grant organization access from account role alone. This records the integration plan and does not authorize source changes.
+
+## D-066-72 — Reuse shared role resolution for Manager login (Rev41)
+
+The shared sign-in pipeline is the Manager auth integration: Firebase SDK sign-in, authenticated `GET /api/auth/v1/me` role check, then organization-scoped BE1 assignment check before portal session/navigation. Do not add a Manager-specific login route or duplicate account-role API call. Keep the protected Manager shell's organization-wide assignment check as defense in depth. Test the accepted and denied paths without real credentials; record live authenticated verification separately from mocked coverage.
+
+Rev41 implementation found that `apps/web/.env.example` documents `VITE_BE1_BASE_URL` and `VITE_BE1_ORGANIZATION_ID`, but the shared API runtime did not read them. Preserve explicit injected config first, then generic `VITE_SKETCH2LIFE_*` values, then the documented BE1 fallbacks. Cover the resolver with a pure configuration test and keep the mocked login flow separately focused on endpoint order, bearer forwarding and role/assignment gating.
+
+## D-066-73 — Isolate Manager QA account provisioning (Rev42)
+
+Use only the nonproduction `sketch2life-dev` project. Create one reserved-domain QA identity and one dedicated organization after a matching Firebase Web config is available; establish the first organization-wide `school_admin` assignment through the supported first-school-admin bootstrap flow. Never alter the existing Platform Admin, send email, use child data, or store the generated password/ID token in repo evidence. If the config is absent, stop before creating a Firebase identity.
+
+## D-066-74 — Gate Manager business API work on live login (Rev43)
+
+Begin Plan Rev43 only after Rev42 verifies a live Firebase sign-in plus `/api/auth/v1/me` role and BE1 organization assignment. Connect only organization read, minimal roster read, consent-status read and Parent-group list/create; preserve the six existing calls and server-side tenant authorization. Keep synthetic Teacher-only profile creation, ambiguous Manager consent writes, Parent invitation without candidate discovery, membership revoke without membership read, class assignment without Teacher discovery, and class creation without backend capacity enforcement unavailable. Do not create live class, child, consent, Parent-group or membership rows for tests.
+
+## D-066-75 — Flush bootstrap parent rows before assignment (Rev44)
+
+The first-school-admin bootstrap must flush the organization and adult identity rows in the same transaction before inserting their organization assignment. This makes foreign-key ordering explicit while retaining transaction atomicity; a later assignment failure still rolls back all three records.
+
+## D-066-76 — Align School Manager navigation with SRS scope and route contracts (Rev46)
+
+Group the School Manager navigation by organization operations, learning-content review/feedback, school resources and notifications. Keep only verified FE/backend routes active; link unsupported SRS responsibilities to explanations that name missing contracts. Roster and consent remain minimal and read-only. Keep the Manager identity control static until a real profile/settings route exists. Preserve school-preview styles while also matching the live school-be1 portal key.
+
+## D-066-77 — Organize shared web files by responsibility (Rev47 proposal)
+
+Propose moving the shared root files into api, auth, components, navigation and styles, while preserving assets. Rewrite only import paths required by the moves; do not change runtime behavior or unrelated dirty content. Because the move changes shared paths across 27 source files, implementation requires explicit approval of the Rev47 plan. This decision is a proposal, not approval.
+
+
+## D-066-78 — Complete approved shared-folder organization (Rev47)
+
+Apply the owner-approved Rev47 folder boundaries under apps/web/src/shared: api, auth, components, navigation and styles; preserve assets. Keep the move path-only and preserve unrelated dirty content. Record the completed import map and build result in EV-053; no application test suite, commit or push.
+
+## Rev48 — Preserve six Manager route guards pending contract decisions — 2026-11-17
+
+Keep profile creation, consent writes/revocation, Parent invitations, membership removal, and Teacher assignment unavailable in the Manager UI until their actor, discovery, membership revision, or candidate-read contracts are approved. Keep class creation disabled until BE1 enforces capacity under SRS FR-T-03. Do not treat omissions from the public OpenAPI projection as proof that mounted Lesson Library routes are absent; the full app-composition contract confirms all 17 Manager method/path pairs.
+
+## Rev49 — Keep QA credentials only in ignored tmp — 2026-11-17
+
+At the owner's direct request, keep the current Admin and Manager QA email/password pair only in tmp/qa-test-accounts.local.md, which the repository ignores. Do not copy the values to evidence, source, .env, commit, or push. Preserve the two existing QA identities and the Manager organization assignment.
+
+## Rev50 — Keep class creation fail-closed; separate API error from empty data
+
+Do not enable Manager class creation before BE1 enforces the SRS capacity rule. Future page work should render the empty state only after a successful empty response and keep it hidden on API failure. This review records the issue; it does not implement a UI change.
+
+## Rev51 — Commit pending handoff without rewriting prior history
+
+Include all current non-ignored worktree changes in one fast-forward commit. Keep the already-pushed Rev48 record commit intact. Exclude .env, ignored tmp credentials, provider keys/tokens and external references. This supersedes earlier no-commit/push boundaries only for the currently pending worktree content.
+
 ## D-066-62 — Close Manager API MGR-1 policy boundaries (2026-11-17)
 
 At the owner's direct instruction on 2026-11-17, close these three MGR-1 policy choices:
@@ -431,7 +514,300 @@ The other parts of D-066-63 are unchanged:
 
 **Scope:** this decision authorizes no Git operation, file move or mobile edit. Each step needs its own owner instruction.
 
-## D-066-71 - Goal v4 Phase A Parent Android integration order (2026-11-23)
+## D-066-71 — CONV-1 owner answers and package approval (2026-11-18)
+
+**Source:** `plan/PLAN_CONV1_BE_IMPLEMENTATION_APPROVAL_PACKAGE_DRAFT5_20261118.md`, 47,483 bytes, SHA-256 `3FCF47412F69D8A16EFFFC7978C5E2BD107EA429EF3F42D354BCE00FF7451278`.
+
+**Review history:**
+
+| Round | Draft | Verdict (P1/P2/P3) |
+|---|---|---|
+| 1 | Draft 1 | NOT READY 1/8/7 |
+| 2 | Draft 2 | NOT READY 1/1/13 |
+| 3 | Draft 3 | NOT READY 0/2/8 (both D-171 stop conditions met; owner chose to continue) |
+| 4 | Draft 4 | **READY WITH NOTES 0/0/5** |
+
+Draft 5 fixes the five round-4 P3 notes and was not re-reviewed, by owner choice.
+
+**Owner answers, given in chat on 2026-11-18:**
+- **CV-B:** CONV-1 is implemented on a new branch `feature/feat066-conv1` from `08439b22`. The branch is **local only and never pushed** ("nhánh này là nhánh chỉ ở máy ko đẩy lên github cho tôi").
+- **CV-1:** `/api/parent/v1/ai` stays out of CONV-1 and moves to C-P, because the mobile parser reads only `payload.detail`. This answer was asked again after review finding F5 showed that the first premise was wrong; the owner chose the option "Leave it for C-P". It is a **scoped deferral** of D-066-68 C-D1 "every route" for that family until C-P.
+- **CV-2:** only the generic codes are mapped to the §9.8 codes. Upload and file codes, which also change status, go to their own slices (option "A: generic codes only").
+- **CV-3:** messages come from one Vietnamese table, and route-supplied text is ignored ("còn lại có hết").
+- **CV-4:** a missing `If-Match` gives 400 `INVALID_REQUEST` with a field error ("còn lại có hết").
+- **CV-5:** an inactive or wrong-role account gets 404 `RESOURCE_NOT_FOUND` (option "404 RESOURCE_NOT_FOUND"). An identity-issuer mismatch also gives 404; this is the coordinator's reading of CV-5, which the owner accepted with the package.
+
+**Approval:** the owner approved Draft 5 without re-review (option "Approve Draft 5"). The Task Approval entry for CONV-1 records the scope.
+
+**Scope:** implementation starts only on a separate owner word. Billing is frozen and is not affected.
+
+## D-066-72 — SEED-1 (S1 core-data seed) owner answers and package approval (2026-11-18)
+
+**Source:** `plan/PLAN_SEED1_S1_IMPLEMENTATION_APPROVAL_PACKAGE_DRAFT4_20261118.md`, 23,121 bytes, SHA-256 `141488271D7FB37FDDAD1B0BA7005CF96ABAAA00EC627E80E2AA848638410BFA`. It builds on the seed design Draft 6 (`plan/PLAN_L1_SEED_DATA_DESIGN_DRAFT6_20261118.md`, 28,192 bytes, `CABC4BCA…`).
+
+**Review history** (Sonnet 5.5 at high effort, set explicitly):
+
+| Round | Draft | Verdict (P1/P2/P3) |
+|---|---|---|
+| 1 | Draft 1 | NOT READY 0/4/6 |
+| 2 | Draft 2 | NOT READY 0/2/6 (repeat-class condition met; the owner chose "Draft 3 + round 3, keep SQL") |
+| 3 | Draft 3 | **READY WITH NOTES 0/0/7** |
+
+Draft 4 fixes the seven round-3 P3 notes and was not re-reviewed.
+
+**Owner answers** (chat, 2026-11-18: "SD-1 đến SD-5 theo đề xuất"):
+- **SD-1:** S1 only. S2 to S4 come later as SEED-2 to SEED-4; Billing is frozen by the owner.
+- **SD-2:** the code lives in `backend/tools/seed/`.
+- **SD-3:** a separate database whose name contains `seed`, on a loopback port other than 5432 or 5433, prepared by the owner. The guard enforces it.
+- **SD-4:** a local branch `feature/feat066-seed1`, cut from the tip of the BE queue when the slot opens, after FR-C-08. It is local only.
+- **SD-5:** adult sign-in is deferred until before the FE slices. The FE-screen acceptance is deferred with it, and the seeded issuer is coupled to whatever sign-in is chosen.
+
+**Design departures recorded with this approval:**
+- `lesson.library_source_documents` and `lesson.library_document_revisions` are not seeded;
+- `parent.command_receipts` and `story.command_receipts` are not seeded;
+- seeded StoryRuns are static and display-only.
+
+**Approval:** the owner instructed "làm SEED-1 tiếp đi check lại nếu ổn thì duyệt" on 2026-11-18. The coordinator re-checked Draft 4: all seven P3 fixes are present, and the design and review pins match. The package is therefore approved. Implementation starts only in its BE queue slot and on a separate owner word.
+
+## D-066-73 — PAY-0 (payment interface skeleton) owner answers and package approval (2026-11-18)
+
+**Source:** `plan/PLAN_PAY0_PAYMENT_INTERFACE_SKELETON_DRAFT6_20261118.md`, 68,734 bytes, SHA-256 `AE4DB60B67F935FB7F874B3498626B5DE1D38448891561906DC78B476388078E`.
+
+**Review history** (Sonnet 5.5 at high effort, set explicitly; records in `evidence/notes/`):
+
+| Round | Draft | Verdict (P1/P2/P3) |
+|---|---|---|
+| 1 | Draft 1 | NOT READY 2/12/5 |
+| 2 | Draft 2 | NOT READY 1/6/7 (repeat-class condition met; owner chose Draft 3 and round 3) |
+| 3 | Draft 3 | NOT READY 0/5/9 (repeat-class condition met; owner chose Draft 4 and round 4) |
+| 4 | Draft 4 | NOT READY 0/3/9 (repeat-class condition met; owner chose Draft 5 and round 5) |
+| 5 | Draft 5 | NOT READY 0/1/7 (last allowed round; owner chose Draft 6 without review) |
+
+Draft 6 fixes the round-5 P2 (RC-01, double activation when two ended attempts are both paid) and the seven P3 notes, and was not re-reviewed.
+
+**Owner answers**, given one question at a time in chat on 2026-11-18, each with the SRS or document sentence it rests on; every answer is the package recommendation:
+- **PD-1:** D-066-65 is amended: the owner's lane builds the PAY-0 skeleton (ports, DTOs, the three payment tables, the callback intake with its safety rules, a fake provider and the provider contract-test kit). The payment teammate still builds the MoMo and VNPAY adapters and the real payment flows on top. Billing core stays frozen.
+- **PD-2a:** PAY-0 creates `billing.invoices`, `billing.payment_attempts` and `billing.provider_event_receipts` now, with subscription references as soft refs until B-1 adds the foreign keys.
+- **PD-2b:** no receipt row for an unverified callback (`INVALID`, `MALFORMED`); a safe security event only. The data register note at line 392 is to be amended accordingly.
+- **PD-2c:** the NEW `payment_attempts` columns of package §4 (idempotency scope, request fingerprint, checkout claim, reconcile request and tries, review flag and reason) are added to the register.
+- **PD-2d:** the NEW observed-value columns of `provider_event_receipts` (package §4) are added to the register.
+- **PD-2e:** one open checkout per organization and operation (Interpretation I-6, a NEW product rule), enforced by a partial unique index; a further checkout gets 409 `CHECKOUT_IN_PROGRESS`.
+- **PD-3a:** the quote stays payment-side, as D-066-65 says.
+- **PD-3b:** a NEW read-only Billing port `BillingQuoteInputsPortV1`; PAY-0 uses only a fake implementation until B-1.
+- **PD-4:** routes as package §7: checkout `POST /api/billing/v1/organizations/{organization_id}/subscription/checkout` (C-D9 interim mapping of SRS 1677); callback on the SRS path `/v1/payments/{provider}/callback`, outside CONV-1, answering in the provider format; NEW status route `GET /api/billing/v1/payment-attempts/{payment_attempt_id}`.
+- **PD-5:** option A: the payment intake and Billing core share one database session for the fulfilment call (SRS 1012, 1028, 1869), with the lock order and the Draft 7 edits of package §6 and §6.1.
+- **PD-6:** the checkout actor ("Admin billing", SRS 1677) stays open as in Draft 7 §7.5; PAY-0 uses a permission hook defaulting to School Manager for the fake flow only.
+- **PD-7:** the package §9 setting defaults are placeholders, to be set with the payment teammate from the provider documents before PAY-1.
+- **PD-8:** PAY-0 joins the one-at-a-time BE queue after FR-C-08 and SEED-1, as PAY-0a, PAY-0b and PAY-0c.
+- **PD-9a:** the owner's lane builds the periodic job runner, as a small separate slice after PAY-0c, shared with the Billing sweep.
+- **PD-9b:** the settings validator refuses `payments_enabled` outside `local` and `test` until `payments_periodic_runner_configured` is true.
+
+**Recording rule:** at the owner's request, this row records the decisions only, not the owner's chat wording.
+
+**Approval:** the owner approved Draft 6 on 2026-11-18. The Task Approval entry for PAY-0 records the scope. Each of PAY-0a, PAY-0b and PAY-0c still needs its own Task Approval and an owner word to start, in its BE queue slot. Nothing is implemented by this decision.
+
+## D-066-74 — Billing payers, Billing ownership and the V1 payment provider (2026-11-18)
+
+**Owner instruction** (chat, 2026-11-18), recorded as decisions only:
+- **Billing is no longer frozen.** The owner's lane builds Billing core (Billing contract Draft 7, slices B-1 to B-5), as D-066-65 already allocated ("contract, ports and Billing except payment"). The earlier hold on Billing work is lifted.
+- **Payment stays with the payment teammate** (D-066-65 as amended by D-066-73 for the PAY-0 skeleton only).
+- **V1 payment provider: MoMo.** VNPAY is not in the current scope. This narrows SRS FR-B-02 and BR-28, which name both MoMo and VNPAY as V1 adapters; the PAY-0 provider contract stays provider-neutral, so VNPAY can be added later without a contract change.
+- **Who pays:**
+  - **School Manager pays for the school:** the organization subscription and capacity (SRS 1677 "Admin billing" = the School Manager of the organization) and the school video-quota package or top-up. Teachers then work inside what the school bought: classes through capacity and assignment, and video through the school quota of their occurrence.
+  - **Parent pays for the Parent account:** the Parent account video-quota top-up.
+
+**Reading against the SRS** (the owner asked for SRS-based decisions rather than further questions):
+- SRS 168, BR-38 and FR-B-10 keep two quota scopes (school organization and Parent account) and **no Teacher-account pool**; Teacher video counts against the school quota of the occurrence. "School Manager pays, then Teachers get it" is therefore read as Teachers drawing from the school quota and the school capacity, not as per-Teacher quota pools. A per-Teacher allocation would contradict BR-38 and is not adopted.
+- SRS 1621 (permission table, "Mua đơn vị quota video") leaves the purchase actor OPEN under Q193 for both the Parent ("Quyền mua package/top-up OPEN theo Q193") and the School Manager ("Quyền mua/cấp/phân bổ quota school OPEN theo Q193"). This decision closes the actor part of Q193: Parent for the Parent account, School Manager for the school. The offer itself (packages, prices, enablement) remains a commercial setting; SRS 168 gives review values only.
+
+**Effects on earlier records** (append-only; earlier rows are not edited):
+- D-066-73 **PD-6** is settled: the checkout actor for the organization is the School Manager. The PAY-0 permission hook defaults to it for real use, not only for the fake flow.
+- The PAY-0 out-of-scope item "Parent top-up purchase route (SRS 1679, Q193 gate)" is no longer gated by the actor question; it stays out of PAY-0 and is planned with Billing B-3 and the payment teammate.
+- C-M4 (W-CAP, class creation with capacity admission) is no longer blocked by a freeze; it now waits for Billing B-1 and B-2 to be built.
+- The BE queue order (one slice at a time) is unchanged until the owner orders the Billing slices: FR-C-08, SEED-1, PAY-0a to 0c, then C-M1 and Billing B-1 in an order to be set.
+
+**Scope:** this decision authorizes no code. Each Billing slice still needs its own reviewed contract revision where Draft 7 must change, a Task Approval and an owner word to start.
+
+## D-066-75 — C-M (School Manager per-role slice) settled answers and package approval (2026-11-18)
+
+**Source:** `plan/PLAN_CM_SCHOOL_MANAGER_SLICE_PACKAGE_DRAFT4_20261118.md`, 28,716 bytes, SHA-256 `401E893503D5DC96071B88AE264DB3F029F076F10AF0824CA6366DACC092CF8A`.
+
+**Review history** (Sonnet 5.5 at high effort, set explicitly; records in `evidence/notes/`):
+
+| Round | Draft | Verdict (P1/P2/P3) |
+|---|---|---|
+| 1 | Draft 1 | NOT READY 1/6/8 |
+| 2 | Draft 2 | NOT READY 0/5/6 (repeat-class condition met; owner chose Draft 3 and round 3) |
+| 3 | Draft 3 | NOT READY 0/2/7 (repeat-class condition met) |
+
+Draft 4 fixes the round-3 findings and was not re-reviewed, by owner choice.
+
+**Settled answers** (package §6). The owner asked on 2026-11-18 that package questions be settled from the SRS rather than asked one by one; each answer below is the package's SRS-grounded recommendation:
+- **CM-1:** C-M may change A07, A09, A10, B01, B02, the session roster and pilot profiles (O-L3SCOPE for these rows only).
+- **CM-2:** the School Manager gets 403 on the session roster and the synthetic pilot-profiles route (SRS 2586, D-066-69).
+- **CM-3:** A09 for the School Manager returns a count only (`Be1ClassRosterSummaryV1`, NEW).
+- **CM-4:** A10 for the School Manager returns `Be1ConsentListManagerV1` (NEW) without `child_id` and `purpose_ref`.
+- **CM-5:** the School Manager summary does not run the A09 consent gate.
+- **CM-6:** the FE maps the BE consent states `pending` and `revoked`; no BE rename.
+- **CM-7:** A07 and A10 are paged now (SRS 1640, C-D8); A09 paging is deferred to the consent slice (MGR-5).
+- **CM-8:** the BE-before-FE window of package §4 is accepted (local development only).
+- **CM-9:** C-M1 BE runs on a new local-only branch `feature/feat066-cm1`, cut from the BE queue tip when its slot opens, never pushed; pins are refreshed then.
+- **CM-10:** queue: FR-C-08, SEED-1, PAY-0a to 0c, then C-M1 BE, then Billing B-1.
+- **CM-11:** full A09 fields and A10 Teacher items only for a `teacher` assignment row of that class; org-wide `teacher`, `guide` and `observer` rows get 403 (SRS 2586). This is a stated behaviour change.
+- **CM-12:** UC-12 (G09) is planned after C-M3.
+
+**Recorded debt:** package §8 lists School-Manager-reachable routes that still return child media or free text (canvas checkpoints, artifacts, gallery, observations and portfolio, session read `configuration`, `teacher_note`, group `display_name`, pilot assistance pending list, and the unchecked `child_id` and `purpose_ref` on consent writes). They are not changed by C-M1.
+
+**Recording rule:** decisions only, not the owner's chat wording.
+
+**Approval:** the owner approved Draft 4 on 2026-11-18. The Task Approval entry for C-M records the scope. C-M1 BE, C-M1 FE and the later sub-slices each still need their own Task Approval with exact paths and an owner word to start. Nothing is implemented by this decision.
+
+## D-066-76 — Billing contract Draft 9 becomes the contract of record (2026-11-18)
+
+**Contract of record:** `plan/PLAN_L2_BILLING_CONTRACT_DRAFT9_20261118.md`, 63,668 bytes, SHA-256 `3280BBC9486780E108D5A0C3A3921D7E8EF13E5F48A9BF2B748645739ADC7876`. It replaces Draft 7 (D-066-66) as the Billing contract of record.
+
+**What changed:** Draft 8 (58,033 bytes, `BFD95D4D…`) applied the decisions made after Draft 7: D-066-67, D-066-68 and D-066-71 (conventions built), D-066-73 (PAY-0 skeleton and its Draft 7 edit list), D-066-74 (Billing ownership, payers, MoMo) and D-066-75 (queue). The capacity design, the version stamp, the downgrade use case and the residuals accepted in D-066-66 are unchanged.
+
+**Review:** Draft 8 had one owner-granted round (Sonnet 5.5 high): NOT READY 0 P1 / 3 P2 / 10 P3, with no broken decision and no double-charge or over-activation path (`evidence/notes/L2_BILLING_CONTRACT_DRAFT8_COLD_REVIEW_20261118.md`, 3,777 bytes, `5F3F80F5…`). Draft 9 fixes all thirteen findings as text edits and was not re-reviewed, by owner choice.
+
+**Contract points recorded with this approval:**
+- The payment tables are created by PAY-0a; Billing B-1 extends the same `billing` Alembic branch and adds the subscription foreign keys.
+- `PaymentFulfilmentPortV1` runs in the payment intake's session (one transaction inside the `billing` module), returns `FulfilmentResultV1`, and is idempotent per invoice through NEW uniques on `subscription_events` (`invoice_id`, event type) and `video_quota_grants` (`source_invoice_id`).
+- NEW read-only `BillingQuoteInputsPortV1` (provider period, price per slot, paid slots), faked until B-4.
+- The downgrade audit events use `core_audit_entries` as D-066-66 states.
+- Billing routes use the interim `/api/billing/v1/...` paths (C-D9); the School Manager is the billing admin, resolved at call time; Teachers read the school quota of their assignment's organization.
+- Interpretations marked in the contract: the owner approves the staging and production price version; `billing_admin_ref` stays null; MoMo recurring through PAY-2 is conditional on SRS OI-09.
+
+**Queue:** FR-C-08, SEED-1, PAY-0a to 0c, C-M1 BE, then Billing B-1; the periodic runner slice (D-066-73 PD-9a) after PAY-0c; the owner sets the position of the runner and the order of B-2 to B-5.
+
+**Recording rule:** decisions only, not the owner's chat wording.
+
+**Scope:** this decision fixes the contract. Each Billing slice (B-1 to B-5) still needs its own Task Approval with exact paths and an owner word to start. Nothing is implemented by this decision.
+
+## D-066-77 — SEED-1 moves ahead of FR-C-08 in the BE queue (2026-11-19)
+
+**Owner instruction** (chat, 2026-11-19), recorded as a decision only: SEED-1 runs before FR-C-08.
+
+**Reason recorded by the coordinator:** FR-C-08 wave 1 passed its review round 4 (READY WITH NOTES, 0 P1 / 0 P2 / 8 P3), but it still has seven blockers before an implementation approval can be requested (named module owners, SRS wording, a schema delta, a core reference-closure contract, a response-schema decision, the base-commit confirmation, and review round 5). SEED-1 is approved (D-066-72), touches none of the FR-C-08 files, and unblocks the Bruno baseline (BRU-0).
+
+**BE queue from now:** SEED-1 → FR-C-08 (when its blockers are cleared) → PAY-0a → PAY-0b → PAY-0c → C-M1 BE → Billing B-1; the periodic runner slice (D-066-73 PD-9a) and Billing B-2 to B-5 are ordered by the owner later; C-T1 BE stays paused with C-T.
+
+**Effect on D-066-72:** SD-4 said the SEED-1 branch is cut from the BE queue tip "after FR-C-08"; it is now cut from the current queue tip, the CONV-1 line `feature/feat066-conv1`, when SEED-1 starts. Everything else in D-066-72 is unchanged.
+
+**Scope:** this decision changes the order only. SEED-1 coding still starts on a separate owner word, under its Task Approval entry.
+
+## D-066-78 — SEED-1 guard live check amended for a Docker-hosted seed database (2026-11-19)
+
+**Finding:** the first owner run against the seed database (a PostgreSQL 17 container published on `127.0.0.1:5435`) stopped at the guard, before any write: `the server port does not match the guarded port`. Through Docker port mapping the server reports its own side of the connection: `inet_server_port()` is the in-container port 5432 and `inet_server_addr()` is the container interface, not a loopback address. The live check of package §3.1 (Draft 4) therefore cannot pass for any container-hosted seed database. No row was written.
+
+**Owner decision:** amend the live check of package §3.1.
+- **Kept, server side:** `current_database()` equals the guarded database name, and `current_user` owns that database.
+- **Removed, server side:** the `inet_server_port()` comparison and the loopback `inet_server_addr()` check.
+- **Unchanged, client side, before any connection:** the only input is `S2L_SEED_DATABASE_URL`; the database name contains `seed` and neither `be1_acceptance` nor `m2_s1a`; the host is an explicit loopback address; the port is explicit and neither 5432 nor 5433; no query string; no libpq connection variable; the other URL variables are unset or equal; `settings.env` is `local` or `test`; the engine is built from the explicit URL and its database name, host and port are compared with the guarded values; no URL is ever printed.
+
+**Scope:** `backend/tools/seed/guard.py` and `backend/tests/unit/test_seed_guard.py` only, inside the existing SEED-1 allowlist. The rest of the approved package (Draft 4, `141488271D7F…`) is unchanged.
+
+## D-066-80 — Seed design Draft 11 accepted as the system-wide seed plan (2026-11-19)
+
+- **Decision:** the owner accepted `plan/PLAN_L1_SEED_DATA_DESIGN_DRAFT11_20261119.md` (73,863 bytes, SHA-256
+  `6E4EFDE08E2763B6A0B0CCAE6CC4DC5301457961B22EB46BBF520D401C727CE8`) as the FEAT-066 lane L1 seed plan for the
+  whole SRS data model. It supersedes Draft 6 as the seed design; the SEED-1 implementation of stage S1
+  (commit `4e2f6d96`) stays valid, with the later changes that Draft 11 §2 rule 12 and §11.8 name.
+- **Review basis:** five rounds on Sonnet 5.5 high under D-171. Draft 7 R1 NOT READY (1 P1 / 11 P2 / 8 P3);
+  Draft 8 R2 NOT READY (0 / 3 / 10); Draft 9 R3 NOT READY (0 / 1 / 10); Draft 10 targeted check NOT READY
+  (0 / 1 / 3); Draft 11 targeted check R5 READY WITH NOTES (0 / 0 / 3). The review records are local and ignored
+  under `tmp/seed-d7-review/`, `tmp/seed-d8-review/`, `tmp/seed-d9-review/` and `tmp/seed-d11-check/`; the R5
+  check is 9,785 bytes, `3B53A02E0409715B…`.
+- **Open notes carried forward:** the three R5 P3 notes are carried into the first stage Task Approval that
+  needs them, not fixed in the plan:
+  - name the two sources of the final Lesson object key (part keys from `core_upload_parts.storage_object_ref`;
+    final keys derived from `core_upload_sessions`);
+  - define the first object-store write as "the seed database records no seeded object", and add it to the
+    re-seed procedure;
+  - extend the allowed key set when the occurrence source upload, the video asset and the library visuals
+    are built.
+- **What this does not authorize:** no script, database, storage, Docker or provider command, and no stage
+  implementation. Each stage (S5, S7 item 2a and later) needs its own Task Approval and owner launch.
+- **Numbering:** first decision under the D-066-80 rule of the decision-ID reconciliation note (BE lineage).
+
+## Decision-ID reconciliation note — two numbering lineages (2026-11-19)
+
+- **Why:** this file was merged from two branches that numbered FEAT-066 decisions independently. Both
+  histories are kept verbatim above, because earlier records pin their bytes; no entry was renumbered or
+  edited.
+- **Web lineage:** branch `codex/fe-ui-web-remediation`, decisions D-066-62 to D-066-78 (Revisions 31 to 51,
+  2026-11-16 to 2026-11-17), followed by the Rev48 to Rev51 entries. They appear first in the merged part.
+- **BE lineage:** `dev` and the local BE branches `feature/feat066-*`, decisions D-066-62 to D-066-79 as of
+  2026-11-19. `dev` holds D-066-62 to D-066-70 (they follow the web entries above); D-066-71 to D-066-79 exist
+  only on local BE branches so far and will arrive when those branches merge.
+- **How to cite from now on:** a decision ID in the range D-066-62 to D-066-79 must carry its lineage, for
+  example "D-066-62 (web)" or "D-066-62 (BE)". An ID without a lineage in that range is ambiguous.
+- **Next number:** every new FEAT-066 decision, in either lineage, takes the next number from D-066-80
+  upward, so the two lineages do not collide again.
+- **Authority:** this note records a merge resolution approved by the owner; it decides nothing else.
+
+## D-066-81 — BRU-0a (Bruno scaffolding and A02 baseline) approved; guard level (2026-11-19)
+
+**Source:** the BRU-0a entry in `approvals/TASK_APPROVAL.md`, built on `plan/PLAN_L5_BRUNO_COVERAGE_DRAFT3_20261118.md` (18,584 bytes, SHA-256 `3F5AFCC727F3C43451903582FF0DBA05BC0F181290AA6D510B0B6C54973786A9`).
+
+**Review:** round 3 of the L5 plan Draft 3 and of the draft entry (Sonnet 5.5, high): NOT READY, 0 P1 / 3 P2 / 9 P3. Report `evidence/notes/L5_DRAFT3_REVIEW_R3_20261119.md`, 34,247 bytes, SHA-256 `7766C981A0140439B571A9877FB9C309E6D32EB537FED1ECC5D32E3523E6D5CF`. The three P2 items concerned the draft entry and are closed in the approved entry; the entry was not re-reviewed.
+
+**Owner decisions** (chat, 2026-11-19):
+- **Scope:** BRU-0a is L5-0 part 1 plus A02 only. BRU-0b (A17, A20, A22, A26, A27) and A08 are not approved.
+- **Guard level:** the loopback guard stays a collection-level `collection.bru`.
+- **Plan:** Draft 3 is accepted for the 0a scope; a Draft 4 is needed before BRU-0b and later steps (L5R3-04, 05, 11, 12).
+
+**Not decided:** O-BRU-AUTH, O-L3SCOPE, the S-1 rotation status.
+
+**Scope of this decision:** it approves the entry only. The launch needs a separate owner word. No commit or push is authorized.
+
+## D-066-82 — BRU-0a review round 4 and addendum 1 (2026-11-19)
+
+**Review:** round 4 of the BRU-0a entry Draft 2 (Sonnet 5.5, high): NOT READY, 0 P1 / 2 P2 / 6 P3. Report `evidence/notes/BRU0A_ENTRY_D2_REVIEW_R4_20261119.md`, 29,156 bytes, SHA-256 `65569D1021575EAF6E62E87E1326E2CF640FC790E99E42907DE0F8BDFE0AEAF3`.
+
+**Owner decision** (chat, 2026-11-19): the guard route (b): the guard is written as an unverified candidate and proven by the owner-run positive run and negative control (no stop for missing Bruno 4.3.0 material).
+
+**Record:** addendum 1 in `approvals/TASK_APPROVAL.md` closes R4-01 to R4-07 and corrects the status of L5R3-01 and L5R3-03 to Partly. Addendum 1 was not re-reviewed. D-066-78 stays as recorded.
+
+**Scope:** it changes the BRU-0a entry text only. The launch needs a separate owner word. No commit or push is authorized.
+
+## D-066-83 — Bruno loopback guard parses the URL by hand for the 4.3.0 CLI (2026-11-19)
+
+**Source:** the B2 run recorded in `evidence/notes/BRU_0A_IMPLEMENTATION_EVIDENCE_20261119.md` (guard candidate, goal run and re-run).
+
+**Finding:** the Bruno 4.3.0 CLI script sandbox has no `URL` global, and its script preprocessor rejects a regex literal that contains slashes. The URL-parser guard of D-066-81 (drafted as D-066-78) could not run.
+
+**Decision:** `collection.bru` keeps the collection-level guard but parses `bru.interpolate(req.getUrl())` with string methods. It rejects control characters, spaces, backslashes, non-http(s) schemes, any `@` in the authority, malformed ports and every hostname except `127.0.0.1`, `localhost` and `[::1]`. It stays fail-closed (any parse failure throws). The guard is verified for the CLI by the positive run and three negative controls; redirects and later URL changes are still not covered; the Bruno desktop is NOT VERIFIED.
+
+**Scope:** `collection.bru` only (2,638 bytes, SHA-256 `AD0A6A9A42A5038090725FF3E7615CCB9AA3BC070B951035E6D2774C0E9B69EE`). It does not change D-066-81 or D-066-82.
+
+## D-066-84 — Bruno requests for the first Teacher assignment; stale requests kept (2026-11-19)
+
+**Source:** SRS section 21.2 line 1650 and section 21.4 lines 1697 and 1699; C6 M9-B evidence `evidence/notes/M9B_FIRST_ASSIGNMENT_BE_EVIDENCE_20261119.md`; C5 evidence `evidence/notes/C5_CA_BE_IMPLEMENTATION_EVIDENCE_20261119.md`.
+
+**Decision:** the collection gains request `145` (`GET /api/be1/v1/organizations/{organization_id}/teacher-candidates`) and request `146` (`POST /api/be1/v1/classes/{class_id}/assignments`, headers `If-Match` and `Idempotency-Key`, body `{candidate_ref}`). Requests `004` and `005` stay in place and labelled stale (the routes they call are gone); `146` is their replacement. `ROLE_GUIDE.md` now says that `142` pages with a cursor and that `143` and `144` send an `Idempotency-Key` and no `If-Match` (no SRS rule names an expected revision for account role or state, C5 CA-4). No environment file was edited. Routes that still have no request are listed in `evidence/notes/B2_BRUNO_FULL_COLLECTION_RUN_20261119.md` and are left for a later Bruno task.
+
+## D-066-85 — Full-collection run classification without tokens (2026-11-19)
+
+**Decision:** the full collection was run against the local API with the placeholder bearer value only. No token was created or faked and no Firebase request was made. Requests are classified PASS, FAIL (real defect), BLOCKED-AUTH, BLOCKED-ENV or STALE by HTTP status and error code; Bruno's own pass/fail counter is not used because only A02 and requests 137 to 140 carry checks (five of those fail on the 503, which is BLOCKED-AUTH) and the other requests have none. Result: 4 PASS, 0 FAIL, 95 BLOCKED-AUTH (503 `IDENTITY_PROVIDER_UNAVAILABLE` or 401), 46 BLOCKED-ENV, 2 STALE. Authenticated runs wait for SD-5 and owner-approved test tokens (O-BRU-AUTH, still open).
+
+**Numbering note:** D-066-78 and D-066-79 were used in the first BRU-0a drafts. D-066-78 already exists in both lineages (web: shared-folder organization; BE: SEED-1 guard live check), so the BRU-0a approval and review decisions are numbered D-066-81 and D-066-82 here. Cite D-066-62 to D-066-79 with their lineage, "(web)" or "(BE)".
+
+## D-066-86 — Bruno follow-up: requests for every route, run classification (2026-11-20)
+
+**Source:** `evidence/notes/BRUNO_POST_B2_FOLLOWUP_RUN_20261119.md`; SRS (v2.7-draft, 701,810 bytes, starts `443A3CA3`) section 9.8 and section 21 for the routes.
+
+**Decision:** the collection holds 160 request files (159 regular plus the L5 A02 request) and every non-framework route of the running app has a request; the stale and dev-only requests stay labelled. `environments/local.bru` defines `platform_account_id` (used by request `144`). The local run of 153 requests (placeholder bearer, loopback API, guard active, requests `153` to `159` excluded) classifies as 4 PASS, 0 FAIL, 101 BLOCKED-AUTH, 46 BLOCKED-ENV, 2 STALE; the classification rules of D-066-85 are unchanged. Requests `153` to `159` (registration and the six AI routes) are written but are never run against a configured environment; they parse in Bruno CLI 4.3.0 and are stopped by the loopback guard when the base URL is not loopback.
+
+**Not decided:** authenticated runs, O-BRU-AUTH, SD-5 timing, registration or AI-provider requests in any run.
+
+## D-066-87 — AI routes take no client idempotency key; backend check kept open (2026-11-20)
+
+**Source:** SRS section 21.4 (line 1697): state-changing commands carry an idempotency key; SRS section 9.8 (line 904): "AI dùng job/semantic request receipt"; SRS lines 800, 816 and 818: the Parent drawing-guide route and the idempotency/concurrency contract of new resources are not frozen and are reconciled in M0.
+
+**Decision:** requests `154`, `155` and `157` to `159` follow their routers and send no `Idempotency-Key`. Under line 904, AI generation is deduplicated by job or semantic request receipt, not by a client key, so the missing key is not recorded as an SRS violation for the draft-generating routes (`155`, `157` to `159`). Request `154` also attaches artwork to a StoryRun (a state change); whether the route dedupes by a semantic receipt is **not verified here** and stays an open backend check (owner of the check: BE). Request `156` already requires a key. No request-side key is invented.
+
+## D-066-88 - Goal v4 Phase A Parent Android integration order (2026-11-23)
 
 **Source:** the owner-launched Phase A task prompt and `tmp/phase-v4/PHASE_A_FINAL_ROUTE_LIST_20261123.md`, sections 1, 2.3-2.10, 3.1-3.5 and 4. The task plan hash is recorded in the Phase A entry in `approvals/TASK_APPROVAL.md`.
 

@@ -37,16 +37,37 @@ class CreateClassRequest(Be1Request):
 
 
 class CreateAssignmentRequest(Be1Request):
-    subject: Annotated[str, StringConstraints(min_length=1, max_length=256)]
+    """FEAT-066 M9-B (O-3b): the opaque candidate ref from the candidate list, never a subject."""
+
+    candidate_ref: Annotated[str, StringConstraints(min_length=1, max_length=36)]
 
 
 class CreateProfileRequest(Be1Request):
-    class_id: Identifier
+    """T-7c (SRS l.543, l.1651): the class is the path only; the server decides the data origin.
+
+    Every profile written today is `SYNTHETIC_DEV`, so the `Synthetic ` name rule holds for every
+    create whatever the flags (T-7c-DEC-3). `consent_id` is the reference a real-data create
+    would carry; it is refused while real data is off and, when on, the create is still refused
+    until X-19 defines a valid consent state (T-7c-DEC-5).
+    """
+
     display_name: Annotated[
         str,
         StringConstraints(min_length=11, max_length=200, pattern=r"^Synthetic .+$"),
     ]
     age_months: int = Field(ge=36, le=120)
+    consent_id: Identifier | None = None
+
+
+class MoveProfileRequest(Be1Request):
+    """T-7d (SRS l.544, l.1651, l.1699): move a child to another class of the same Teacher.
+
+    The source class is the path; the source revision is the strong ``If-Match``; the target is
+    named here with the revision the client last read (both checked, source first).
+    """
+
+    target_class_id: Identifier
+    target_class_revision: int = Field(ge=1)
 
 
 class RecordConsentRequest(Be1Request):
@@ -447,9 +468,16 @@ class CanvasRestoreRequest(Be1Request):
 
 
 class Be1Error(BaseModel):
+    """CONV-1 error envelope (SRS §9.8 fields plus `request_id`; published as `ApiError`)."""
+
     code: str
     message: str
+    correlation_id: str
+    retryable: bool
+    retry_after_seconds: int | None = None
+    field_errors: list[dict[str, str]] | None = None
     request_id: str
+    current_version: int | None = None
 
 
 __all__ = [

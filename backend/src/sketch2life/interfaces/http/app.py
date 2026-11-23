@@ -5,10 +5,8 @@ import os
 import re
 from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
 from contextlib import asynccontextmanager
-from ipaddress import ip_address
 from pathlib import Path
 from typing import Any, Literal
-from urllib.parse import urlsplit
 from uuid import uuid4
 
 from fastapi import FastAPI, Request
@@ -44,7 +42,6 @@ from sketch2life.application.services.whiteboard_video_job import (
 )
 from sketch2life.application.services.whiteboard_video_pipeline import WhiteboardVideoPipeline
 from sketch2life.contracts.schemas.asr import AsrProfileId
-from sketch2life.contracts.schemas.be1_runtime import Be1Error
 from sketch2life.contracts.schemas.mobile_workflow import (
     MobileWorkflowResultV1,
     WorkflowFailureV1,
@@ -94,7 +91,10 @@ from sketch2life.infrastructure.catalog.pixi_show_assets import (
 )
 from sketch2life.infrastructure.catalog.workflow_metadata import FileWorkflowCatalogMetadata
 from sketch2life.infrastructure.config.settings import Settings, get_settings
-from sketch2life.infrastructure.documents.clamav_scanner import ClamAvScanner
+from sketch2life.infrastructure.documents.factory import (
+    build_document_scanner,
+    build_upload_media_validator,
+)
 from sketch2life.infrastructure.documents.lesson_parser import DeterministicLessonDocumentParser
 from sketch2life.infrastructure.identity.firebase_admin_account_provisioner import (
     FirebaseAdminAccountProvisioner,
@@ -117,14 +117,26 @@ from sketch2life.infrastructure.storage.in_memory_auto_rig_grants import (
 )
 from sketch2life.infrastructure.storage.s3_compatible import Boto3S3CompatibleObjectStorage
 from sketch2life.infrastructure.story_run_lite.composition import runtime_lifespan
+from sketch2life.infrastructure.story_video.composition import build_story_video_adapters
+from sketch2life.infrastructure.story_video.playback_tokens import build_playback_codec
 from sketch2life.infrastructure.vision_analysis.pilot_composition import (
     build_default_pilot_vision,
 )
+from sketch2life.interfaces.http.api_conventions import field_errors_from_validation
 from sketch2life.interfaces.http.be1_runtime import build_be1_runtime
 from sketch2life.interfaces.http.demo_composition import (
     build_demo_stores,
     build_ephemeral_session_service,
 )
+from sketch2life.interfaces.http.error_envelope import (
+    build_error_body,
+    is_conv1_path,
+    normalize_http_error,
+)
+from sketch2life.interfaces.http.error_envelope import (
+    retry_after_seconds as envelope_retry_after,
+)
+from sketch2life.interfaces.http.metrics import HttpMetricsMiddleware, MetricsRegistry
 from sketch2life.interfaces.http.middleware.bounded_image_upload import (
     BoundedImageUploadMiddleware,
 )
@@ -142,23 +154,40 @@ from sketch2life.interfaces.http.openapi_contract_amendments import (
     published_responses,
 )
 from sketch2life.interfaces.http.openapi_srs_v22 import project_srs_v22_openapi
+from sketch2life.interfaces.http.probe_access import is_local_host_header as _local_host_header
+from sketch2life.interfaces.http.probe_access import is_loopback_address as _loopback
 from sketch2life.interfaces.http.router_composition import (
     mount_all_routers,
     mount_classroom_routers,
     mount_demo_routers,
+    story_demo_replaced_routers,
 )
 from sketch2life.interfaces.http.routers.auth_registration import RegistrationRateLimiter
 from sketch2life.interfaces.http.routers.storage_examples import router as storage_examples_router
+from sketch2life.interfaces.http.routers.story_run_create_dispatch import (
+    publish_teacher_story_run_create,
+)
 from sketch2life.interfaces.http.routers.story_run_lite import router as story_run_lite_router
 from sketch2life.interfaces.http.routers.story_run_lite import (
     story_error_response,
     story_unexpected_error_response,
     story_validation_error_response,
 )
+from sketch2life.interfaces.http.story_demo_guard import (
+    StoryDemoReplacement,
+    read_replacement_acknowledgement,
+    replacement_error_message,
+    replacement_summary,
+    shadowed_routes,
+)
 from sketch2life.interfaces.http.story_run_lite_contract import add_story_run_lite_contract
 
 _LOGGER = logging.getLogger("sketch2life.api")
 _SAFE_ID = re.compile(r"^[A-Za-z0-9._:-]{1,120}$")
+_STORY_DEMO_REPLACEMENT_SENTENCE = (
+    "\n\nWith this demo on, the StoryRun-lite routes replace the real Parent story-run "
+    "routes on the same paths; the real Parent router is not mounted."
+)
 
 
 def _story_run_lite_path(path: str) -> bool:
@@ -176,32 +205,48 @@ def _legacy_parent_story_revision_path(path: str) -> bool:
     return bool(run_id) and "/" not in run_id
 
 
-def _parent_story_cancel_path(path: str) -> bool:
-    return re.fullmatch(r"/v1/story-runs/[0-9a-fA-F-]{36}/cancel", path) is not None
+def _story_field_errors(value: object) -> list[dict[str, str]] | None:
+    """Pass a route's ``[{field, code}]`` detail through the Parent story envelope (T-2b D10).
+
+    Only plain, bounded items are accepted; anything else is dropped, so a handler cannot put
+    free text or internals on the wire. The message is the fixed field message of the family.
+    An ``Idempotency-Key`` item is never shown: on these routes a bad key is a plain 400
+    ``INVALID_REQUEST`` without ``field_errors`` (T0.1, C-D5).
+    """
+    if not isinstance(value, list) or not value:
+        return None
+    items: list[dict[str, str]] = []
+    for item in value[:20]:
+        if not (
+            isinstance(item, dict)
+            and isinstance(item.get("field"), str)
+            and isinstance(item.get("code"), str)
+            and re.fullmatch(r"[A-Za-z0-9_.-]{1,120}", item["field"])
+            and re.fullmatch(r"[A-Z][A-Z0-9_]{0,63}", item["code"])
+        ):
+            return None
+        if item["field"] == "Idempotency-Key":
+            continue
+        items.append(
+            {
+                "field": item["field"],
+                "code": item["code"],
+                "message": "Giá trị trường không hợp lệ.",
+            }
+        )
+    return items or None
 
 
 def _parent_drawing_understandings_path(path: str) -> bool:
     return path == "/api/parent/v1/ai/drawing-understandings"
 
 
-def _loopback(address: object) -> bool:
-    try:
-        return ip_address(str(address)).is_loopback
-    except ValueError:
-        return False
+def _parent_activities_path(path: str) -> bool:
+    """T-2e-a: ``GET /v1/activities`` answers in the Parent story envelope (SRS l.1635)."""
+
+    return path == "/v1/activities"
 
 
-def _local_host_header(value: str) -> bool:
-    try:
-        parsed = urlsplit("http://" + value)
-        return bool(
-            parsed.hostname in {"127.0.0.1", "::1", "localhost"}
-            and parsed.username is None and parsed.password is None
-            and not parsed.path and not parsed.query and not parsed.fragment
-            and (parsed.port is None or 1 <= parsed.port <= 65535)
-        )
-    except ValueError:
-        return False
 _SAFE_CONTEXT_PROFILE_FIELDS = frozenset(
     {
         "contract_name",
@@ -293,7 +338,19 @@ def _apply_catalog_metadata(
                 response["status"]: response for response in effective_responses
             }
             runtime_responses = operation.setdefault("responses", {})
-            if path.startswith(("/api/be1/v1/", "/v1/parent/profiles")):
+            if path.startswith(
+                (
+                    "/api/be1/v1/",
+                    "/v1/parent/profiles",
+                    "/api/lesson-library/v1/",
+                    # T-2a: validation answers 400 in the CONV-1 envelope, never FastAPI's 422.
+                    "/v1/upload-sessions",
+                    # T-3a: the same for the Teacher lesson occurrences.
+                    "/v1/lesson-occurrences",
+                    # T-8a: and for the notification inbox.
+                    "/v1/notifications",
+                )
+            ):
                 for status in tuple(runtime_responses):
                     if status not in declared_responses:
                         del runtime_responses[status]
@@ -314,7 +371,14 @@ def _apply_catalog_metadata(
                     response["description"] = declared["description"]
                 if (
                     status == "422"
-                    and path.startswith("/v1/parent/profiles")
+                    and path.startswith(
+                        (
+                            "/v1/parent/profiles",
+                            "/api/lesson-library/v1/",
+                            "/v1/upload-sessions",
+                            "/v1/lesson-occurrences",
+                        )
+                    )
                     and declared["media_type"]
                 ):
                     response["content"] = {
@@ -369,6 +433,22 @@ def create_app(
         _composition_profile != "combined" or storage_example_settings.env not in {"local", "test"}
     ):
         raise ValueError("StoryRun-lite main demo requires the combined local/test app")
+    story_replacement = StoryDemoReplacement()
+    if story_demo_enabled:
+        # TD-18 (FEAT-066 T0.5): the demo router replaces real routes on the same paths, so a
+        # stale flag must not do that silently. Validated before any router is mounted.
+        story_ack = read_replacement_acknowledgement(os.environ)
+        story_replacement = shadowed_routes(
+            [route for router in story_demo_replaced_routers() for route in router.routes],
+            story_run_lite_router.routes,
+        )
+        if story_replacement.replaces_real_routes and not story_ack:
+            raise ValueError(replacement_error_message(story_replacement))
+
+    def conv1_path(path: str) -> bool:
+        # T-2a: `/v1/upload-sessions*` joins the CONV-1 envelope only while the generic router is
+        # mounted; with the StoryRun-lite demo on, the demo bodies stay byte-identical.
+        return is_conv1_path(path, include_upload_sessions=not story_demo_enabled)
 
     @asynccontextmanager
     async def main_lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -396,6 +476,8 @@ def create_app(
             "\n\nStoryRun-lite routes are an unauthenticated, loopback-only synthetic demo; "
             "they do not establish a real Parent identity."
         )
+        if story_replacement.replaces_real_routes:
+            application.description += _STORY_DEMO_REPLACEMENT_SENTENCE
 
     if story_demo_enabled:
         @application.middleware("http")
@@ -419,34 +501,22 @@ def create_app(
 
     @application.middleware("http")
     async def be1_request_context(request: Request, call_next):
-        if not request.url.path.startswith(
-            (
-                "/api/be1/v1",
-                "/api/lesson-library/v1",
-                "/api/parent/v1/ai/story-runs/",
-                "/api/parent/v1/ai/drawing-understandings",
-                "/v1/parent/profiles",
-                "/v1/story-runs",
-            )
-        ) and not _legacy_parent_story_revision_path(request.url.path) and not (
-            _parent_drawing_understandings_path(request.url.path)
-        ):
-            return await call_next(request)
+        # CONV-1 (§3.2 item 4): every response carries X-Request-ID; a header that the route
+        # already set is never overwritten.
         supplied_id = request.headers.get("X-Request-ID", "")
         request_id = supplied_id if _SAFE_ID.fullmatch(supplied_id) else str(uuid4())
         if request.url.path.startswith("/v1/parent/profiles"):
             request.state.parent_request_id = request_id
         elif request.url.path.startswith("/v1/story-runs") or (
             _legacy_parent_story_revision_path(request.url.path)
-        ) or _parent_drawing_understandings_path(request.url.path):
+        ) or _parent_drawing_understandings_path(request.url.path) or _parent_activities_path(
+            request.url.path
+        ):
             request.state.story_request_id = request_id
         else:
             request.state.be1_request_id = request_id
         response = await call_next(request)
-        if not (
-            request.url.path.startswith(("/v1/parent/profiles", "/v1/story-runs"))
-            and response.headers.get("X-Request-ID")
-        ):
+        if not response.headers.get("X-Request-ID"):
             response.headers["X-Request-ID"] = request_id
         return response
 
@@ -458,6 +528,7 @@ def create_app(
             request.url.path.startswith("/v1/story-runs")
             or _legacy_parent_story_revision_path(request.url.path)
             or _parent_drawing_understandings_path(request.url.path)
+            or _parent_activities_path(request.url.path)
         ):
             detail: dict[str, Any] = exc.detail if isinstance(exc.detail, dict) else {}
             status_codes = {
@@ -477,18 +548,48 @@ def create_app(
             }
             safe_messages = {
                 "ACTIVE_RUN_EXISTS": "Đã có một lượt kể chuyện đang hoạt động.",
+                # FEAT-066 T-4b2: the Teacher create (SRS l.553, l.866, l.870-871, l.1445-1449).
+                "TEACHER_ACTIVE_RUN_CONFLICT": (
+                    "Giáo viên này đang có một lượt kể chuyện đang hoạt động."
+                ),
+                "SAMPLE_VIDEO_ALREADY_EXISTS": "Buổi học này đã có video mẫu.",
+                "LESSON_PLAN_NOT_APPROVED": "Kế hoạch bài học chưa được duyệt.",
+                "MULTI_CHILD_NOT_SUPPORTED": "Mỗi lượt kể chuyện chỉ dành cho một trẻ.",
+                # FEAT-066 T-2d: the story rewrite route (SRS l.866, l.871, l.1668).
+                "STORY_REWRITE_LIMIT_REACHED": "Đã hết số lần viết lại câu chuyện.",
+                "SUBJECT_NOT_CONFIRMED": "Vui lòng xác nhận chủ thể của bức tranh trước.",
+                # FEAT-066 T-2c: the idea and transcript routes (SRS l.982, l.1665, l.1713).
+                "AUDIO_TOO_LARGE": "Bản ghi âm quá dài hoặc quá lớn.",
+                "TRANSCRIPT_NOT_CONFIRMED": "Vui lòng xác nhận nội dung bản ghi âm trước.",
+                # FEAT-066 T-1a: the video request route (SRS l.395, l.866, l.873, l.1670); its
+                # SUBJECT_NOT_CONFIRMED text is the T-2d one above.
+                "AI_COST_LIMIT_REACHED": "Hệ thống tạm thời chưa nhận thêm yêu cầu tạo video.",
+                "SUBSCRIPTION_RESTRICTED": "Gói dịch vụ hiện tại chưa cho phép tạo video.",
+                "VIDEO_QUOTA_EXCEEDED": "Đã hết lượt tạo video của kỳ này.",
+                "VIDEO_REGENERATION_LIMIT_REACHED": "Đã hết số lần tạo lại video của lượt này.",
+                # FEAT-066 T-1c: the playback routes (SRS l.1676, l.1691-1693).
+                "INVALID_TOKEN": "Mã xem video không hợp lệ.",
+                "TOKEN_EXPIRED": "Mã xem video đã hết hạn. Vui lòng yêu cầu mã mới.",
+                "RANGE_NOT_SATISFIABLE": "Phạm vi video được yêu cầu không hợp lệ.",
                 "ACTION_NOT_ALLOWED": "Tài khoản không được phép thực hiện thao tác này.",
                 "AUTH_REQUIRED": "Vui lòng xác thực lại tài khoản.",
                 "INVALID_IDEMPOTENCY_KEY": "Khóa yêu cầu trùng với nội dung khác.",
                 "INVALID_REQUEST": "Yêu cầu không hợp lệ.",
                 "INVALID_STATE_TRANSITION": "Lượt kể chuyện chưa ở trạng thái phù hợp.",
+                # FEAT-066 T-2b: the drawing asset route (SRS l.983, l.1664).
+                "IMAGE_DIMENSIONS_EXCEEDED": "Ảnh quá lớn để xử lý. Vui lòng chọn ảnh nhỏ hơn.",
+                "MEDIA_TOO_LARGE": "Tệp quá lớn.",
                 "PROFILE_CONTEXT_NOT_CONFIRMED": "Vui lòng xác nhận thông tin lượt kể chuyện.",
                 "PROVIDER_BAD_RESPONSE": "Không thể hoàn tất yêu cầu hiện tại.",
                 "PROVIDER_UNAVAILABLE": "Dịch vụ tạm thời chưa sẵn sàng.",
                 "RATE_LIMITED": "Bạn đã gửi quá nhiều yêu cầu. Vui lòng thử lại sau.",
                 "RESOURCE_NOT_FOUND": "Không tìm thấy tài nguyên được yêu cầu.",
                 "STALE_REVISION": "Thông tin đã thay đổi. Vui lòng tải lại và xác nhận lại.",
+                "STORAGE_UNAVAILABLE": "Kho lưu trữ tạm thời chưa sẵn sàng.",
                 "UNSUPPORTED_MEDIA_TYPE": "Định dạng nội dung không được hỗ trợ.",
+                "UPLOAD_CHECKSUM_MISMATCH": "Nội dung tệp không khớp với bản đã tải lên.",
+                "UPLOAD_CONTENT_MISMATCH": "Nội dung tệp không đúng định dạng đã khai báo.",
+                "UPLOAD_INCOMPLETE": "Tệp tải lên chưa hoàn tất.",
             }
             raw_code = detail.get("code", status_codes.get(exc.status_code, "REQUEST_FAILED"))
             code = (
@@ -510,10 +611,10 @@ def create_app(
                     "correlation_id": request_id,
                     "retryable": exc.status_code in {429, 502, 503, 504},
                     "retry_after_seconds": retry_after_seconds,
-                    "field_errors": None,
+                    "field_errors": _story_field_errors(detail.get("field_errors")),
                     **(
                         {"current_version": detail["current_version"]}
-                        if _parent_story_cancel_path(request.url.path)
+                        if request.url.path.startswith("/v1/story-runs")
                         and exc.status_code == 409
                         and code == "STALE_REVISION"
                         and type(detail.get("current_version")) is int
@@ -580,69 +681,25 @@ def create_app(
                 ),
                 headers={**(exc.headers or {}), "X-Request-ID": request_id},
             )
-        if request.url.path.startswith("/api/lesson-library/v1"):
-            detail = exc.detail if isinstance(exc.detail, dict) else {}
-            status_codes = {
-                401: "UNAUTHENTICATED", 403: "FORBIDDEN", 404: "RESOURCE_NOT_FOUND",
-                409: "INVALID_TRANSITION", 413: "REQUEST_TOO_LARGE",
-                415: "UNSUPPORTED_MEDIA_TYPE", 422: "INVALID_REQUEST",
-                428: "PRECONDITION_REQUIRED", 503: "DEPENDENCY_UNAVAILABLE",
-            }
-            code = detail.get("code", status_codes.get(exc.status_code, "REQUEST_FAILED"))
-            message = detail.get("message", "The Lesson Library request could not be completed")
-            request_id = getattr(request.state, "be1_request_id", str(uuid4()))
-            return JSONResponse(
-                status_code=exc.status_code,
-                content={
-                    "code": code if isinstance(code, str) else "REQUEST_FAILED",
-                    "message": (
-                        message
-                        if isinstance(message, str)
-                        else "The request could not be completed"
-                    ),
-                    "request_id": request_id,
-                },
-                headers={**(exc.headers or {}), "X-Request-ID": request_id},
-            )
-        if not request.url.path.startswith("/api/be1/v1"):
+        if not conv1_path(request.url.path):
             return await http_exception_handler(request, exc)
-        detail = exc.detail if isinstance(exc.detail, dict) else {}
-        status_codes = {
-            401: "AUTHENTICATION_REQUIRED",
-            403: "FORBIDDEN",
-            404: "NOT_FOUND",
-            409: "CONFLICT",
-            422: "REQUEST_VALIDATION_FAILED",
-            503: "SERVICE_UNAVAILABLE",
-        }
-        safe_messages = {
-            "AUTHENTICATION_REQUIRED": "A verified bearer token is required",
-            "INVALID_IDENTITY_TOKEN": "The bearer token could not be verified",
-            "IDENTITY_PROVIDER_UNAVAILABLE": "Identity verification is temporarily unavailable",
-            "DEVICE_AUTHENTICATION_REQUIRED": "A valid device grant and device key are required",
-            "INVALID_DEVICE_CREDENTIAL": "The device credential could not be verified",
-            "FORBIDDEN": "The caller is not authorized for this resource",
-            "NOT_FOUND": "The requested BE1 resource was not found",
-            "CONFLICT": "The request conflicts with current BE1 state",
-            "REQUEST_VALIDATION_FAILED": "The request does not match the BE1 API contract",
-            "SERVICE_UNAVAILABLE": "A required BE1 service is temporarily unavailable",
-            "INTERNAL_SERVER_ERROR": "The server could not complete the request",
-            "HTTP_ERROR": "The request could not be completed",
-        }
-        code = detail.get("code", status_codes.get(exc.status_code, "HTTP_ERROR"))
-        if not isinstance(code, str):
-            code = "HTTP_ERROR"
-        fallback_message = safe_messages.get(code, safe_messages["HTTP_ERROR"])
-        message = detail.get("message", fallback_message)
-        error = Be1Error(
-            code=code,
-            message=message if isinstance(message, str) else fallback_message,
-            request_id=getattr(request.state, "be1_request_id", str(uuid4())),
+        request_id = getattr(request.state, "be1_request_id", str(uuid4()))
+        status, code, field_errors, current_version = normalize_http_error(
+            exc.status_code,
+            exc.detail,
+            idempotency_header_present=bool(request.headers.getlist("Idempotency-Key")),
         )
         return JSONResponse(
-            status_code=exc.status_code,
-            content=error.model_dump(mode="json"),
-            headers=exc.headers,
+            status_code=status,
+            content=build_error_body(
+                status=status,
+                code=code,
+                request_id=request_id,
+                field_errors=field_errors,
+                current_version=current_version,
+                retry_after=envelope_retry_after(exc.headers),
+            ),
+            headers={**(exc.headers or {}), "X-Request-ID": request_id},
         )
 
     @application.exception_handler(RequestValidationError)
@@ -655,8 +712,14 @@ def create_app(
             request.url.path.startswith("/v1/story-runs")
             or _legacy_parent_story_revision_path(request.url.path)
             or _parent_drawing_understandings_path(request.url.path)
+            or _parent_activities_path(request.url.path)
         ):
             request_id = getattr(request.state, "story_request_id", str(uuid4()))
+            # T0.1 (C-D5): on the Parent StoryRun routes a bad Idempotency-Key header is a plain
+            # 400 INVALID_REQUEST without a field_errors item (same shape as parse_idempotency_key
+            # in the cancel/delete handlers). INVALID_IDEMPOTENCY_KEY stays for payload reuse and
+            # for the /api/parent/v1/ai routes (T-2d).
+            key_is_request_error = request.url.path.startswith("/v1/story-runs")
             safe_fields = []
             invalid_idempotency_key = False
             for issue in exc.errors():
@@ -666,6 +729,8 @@ def create_app(
                     and location[0] == "header"
                     and location[1] == "Idempotency-Key"
                 ):
+                    if key_is_request_error:
+                        continue
                     invalid_idempotency_key = True
                 field_parts = [
                     str(part)
@@ -720,22 +785,18 @@ def create_app(
                 ),
                 headers={"X-Request-ID": request_id},
             )
-        if request.url.path.startswith("/api/be1/v1"):
-            error = Be1Error(
-                code="REQUEST_VALIDATION_FAILED",
-                message="The request does not match the BE1 API contract",
-                request_id=getattr(request.state, "be1_request_id", str(uuid4())),
-            )
-            return JSONResponse(status_code=422, content=error.model_dump(mode="json"))
-        if request.url.path.startswith("/api/lesson-library/v1"):
+        if conv1_path(request.url.path):
             request_id = getattr(request.state, "be1_request_id", str(uuid4()))
             return JSONResponse(
-                status_code=422,
-                content={
-                    "code": "INVALID_REQUEST",
-                    "message": "The request does not match the Lesson Library API contract",
-                    "request_id": request_id,
-                },
+                status_code=400,
+                content=build_error_body(
+                    status=400,
+                    code="INVALID_REQUEST",
+                    request_id=request_id,
+                    field_errors=field_errors_from_validation(
+                        request.scope.get("route"), exc.errors()
+                    ),
+                ),
                 headers={"X-Request-ID": request_id},
             )
         is_context_options_route = request.url.path.endswith(
@@ -823,6 +884,7 @@ def create_app(
             request.url.path.startswith("/v1/story-runs")
             or _legacy_parent_story_revision_path(request.url.path)
             or _parent_drawing_understandings_path(request.url.path)
+            or _parent_activities_path(request.url.path)
         ):
             request_id = getattr(request.state, "story_request_id", str(uuid4()))
             _LOGGER.error(
@@ -839,22 +901,6 @@ def create_app(
                     "retryable": False,
                     "retry_after_seconds": None,
                     "field_errors": None,
-                },
-                headers={"X-Request-ID": request_id},
-            )
-        if request.url.path.startswith("/api/lesson-library/v1"):
-            request_id = getattr(request.state, "be1_request_id", str(uuid4()))
-            _LOGGER.error(
-                "lesson_library_unhandled_exception request_id=%s exception_type=%s",
-                request_id,
-                type(exc).__name__,
-            )
-            return JSONResponse(
-                status_code=500,
-                content={
-                    "code": "INTERNAL_SERVER_ERROR",
-                    "message": "The server could not complete the request",
-                    "request_id": request_id,
                 },
                 headers={"X-Request-ID": request_id},
             )
@@ -876,23 +922,24 @@ def create_app(
                 },
                 headers={"X-Request-ID": request_id},
             )
-        if not request.url.path.startswith("/api/be1/v1"):
-            del exc
-            return PlainTextResponse("Internal Server Error", status_code=500)
         request_id = getattr(request.state, "be1_request_id", str(uuid4()))
+        if not conv1_path(request.url.path):
+            del exc
+            return PlainTextResponse(
+                "Internal Server Error",
+                status_code=500,
+                headers={"X-Request-ID": request_id},
+            )
         _LOGGER.error(
-            "be1_unhandled_exception request_id=%s exception_type=%s",
+            "conv1_unhandled_exception request_id=%s exception_type=%s",
             request_id,
             type(exc).__name__,
         )
-        error = Be1Error(
-            code="INTERNAL_SERVER_ERROR",
-            message="The server could not complete the request",
-            request_id=request_id,
-        )
         return JSONResponse(
             status_code=500,
-            content=error.model_dump(mode="json"),
+            content=build_error_body(
+                status=500, code="INTERNAL_SERVER_ERROR", request_id=request_id
+            ),
             headers={"X-Request-ID": request_id},
         )
 
@@ -902,6 +949,10 @@ def create_app(
             storage_example_settings.storage_example_max_upload_bytes + 64 * 1024
         ),
     )
+    # T0.3: keep this the last add_middleware call so it stays the outermost user middleware.
+    metrics_registry = MetricsRegistry()
+    application.state.metrics_registry = metrics_registry
+    application.add_middleware(HttpMetricsMiddleware, registry=metrics_registry)
     scene_localizer = None
     pixi_show_planner_required = False
     if _composition_profile != "classroom" and session_service is None:
@@ -1121,10 +1172,51 @@ def create_app(
     application.state.lesson_library_storage = None
     application.state.lesson_document_parser = None
     application.state.lesson_document_scanner = None
+    application.state.upload_media_validator = None
+    # FEAT-066 T-2b: no drawing analyzer is composed by default (OD-13 owns the real worker); a run
+    # with a drawing then waits in INPUT_PROCESSING/QUEUED. Tests and local runs put a fixture here.
+    application.state.drawing_analyzer = None
+    # FEAT-066 T-2c: no speech transcriber is composed by default (OD-13 owns the real worker); a
+    # voice idea then waits with a PENDING transcript. Tests and local runs put a fixture here.
+    application.state.speech_transcriber = None
+    # FEAT-066 T-2d: no story generator is composed by default (OD-13 owns the real worker); an
+    # accepted rewrite then waits in SCRIPT_GENERATING/QUEUED. Tests and local runs put a fixture
+    # here. A subject edit reruns the VLM only while a drawing analyzer is composed too (SRS
+    # l.394, l.1413); this switch turns the rerun off (recorded deviation DEV-1: the edit is
+    # recorded and confirmed at once).
+    application.state.story_generator = None
+    application.state.subject_edit_reruns_vlm = True
+    # FEAT-066 T-1a (OD-03): the video admission ports. None unless the flag story_video_adapters is
+    # "local_test" (refused outside local/test by Settings); with none the route answers 503
+    # PROVIDER_UNAVAILABLE after its authorization and state checks.
+    application.state.story_video_ports = build_story_video_adapters(storage_example_settings)
+    application.state.story_video_port_timeout_seconds = (
+        storage_example_settings.story_video_port_timeout_seconds
+    )
+    # FEAT-066 T-1c: the playback token codec. None without a signing secret in staging/production:
+    # the token and stream routes then answer 503 PROVIDER_UNAVAILABLE and the API still starts (a
+    # warning names the setting, never its value). local/test get a per-process key.
+    application.state.story_playback_tokens = build_playback_codec(storage_example_settings)
+    application.state.story_playback_max_object_bytes = (
+        storage_example_settings.story_playback_max_object_bytes
+    )
     if _composition_profile == "combined":
-        mount_all_routers(application, include_parent_story_runs=not story_demo_enabled)
+        mount_all_routers(
+            application,
+            include_parent_story_runs=not story_demo_enabled,
+            include_upload_sessions=not story_demo_enabled,
+        )
         if story_demo_enabled:
             application.include_router(story_run_lite_router)
+            if story_replacement.replaces_real_routes:
+                application.state.story_demo_replaces_real_routes = story_replacement.collides
+                application.state.story_demo_unmounted_real_routes = story_replacement.unmounted
+                _LOGGER.warning(
+                    "storyrun_lite_main_demo_replaces_real_routes %s "
+                    "parent_router_mounted=false env=%s",
+                    replacement_summary(story_replacement),
+                    storage_example_settings.env,
+                )
     elif _composition_profile == "classroom":
         mount_classroom_routers(application)
     else:
@@ -1159,9 +1251,11 @@ def create_app(
             secret_key=secret_key.get_secret_value() if secret_key else None,
         )
         application.state.lesson_document_parser = DeterministicLessonDocumentParser()
-        application.state.lesson_document_scanner = ClamAvScanner(
-            host=storage_example_settings.clamav_host,
-            port=storage_example_settings.clamav_port,
+        application.state.lesson_document_scanner = build_document_scanner(
+            storage_example_settings
+        )
+        application.state.upload_media_validator = build_upload_media_validator(
+            storage_example_settings
         )
     renderer_dist = Path(__file__).resolve().parents[5] / "packages" / "art-renderer" / "dist-demo"
     if renderer_dist.is_dir():
@@ -1184,6 +1278,8 @@ def create_app(
         )
         components = schema.setdefault("components", {})
         schemas = components.setdefault("schemas", {})
+        # T-4b2: the Teacher body of POST /v1/story-runs (a valid oneOf, no dangling $ref).
+        publish_teacher_story_run_create(schema)
         if isinstance(schemas, dict):
             for parent_request_model in (
                 CreateParentProfileRequest,
@@ -1362,6 +1458,8 @@ def create_app(
             schema["info"]["description"] += (
                 "\n\nStoryRun-lite is an unauthenticated loopback-only synthetic demo."
             )
+            if story_replacement.replaces_real_routes:
+                schema["info"]["description"] += _STORY_DEMO_REPLACEMENT_SENTENCE
         application.openapi_schema = schema
         return schema
 

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Collection, Sequence
 from datetime import UTC, datetime, timedelta
 from typing import Any, cast
 
@@ -30,29 +30,45 @@ class PostgresOutbox:
         self._sessions = sessions
 
     def claim_ready(
-        self, *, worker_id: str, limit: int = 50, lease_seconds: int = 30
+        self,
+        *,
+        worker_id: str,
+        limit: int = 50,
+        lease_seconds: int = 30,
+        event_types: Collection[str] | None = None,
     ) -> Sequence[OutboxEnvelope]:
+        """Lease ready rows; ``event_types`` (FR-C-08) limits the claim to those types.
+
+        Note (FR-C-08 review R1 P3-9): with ``event_types=None`` every event type is claimed,
+        including the Story lifecycle events. The BE1 lifecycle consumer always passes its
+        filter; a future generic consumer must exclude ``LIFECYCLE_EVENT_TYPES``, or it would
+        deliver those events without running the purge.
+        """
         if not 1 <= limit <= 500 or not 1 <= lease_seconds <= 3600:
             raise ValueError("outbox claim limits are outside the allowed bounds")
+        type_filter = None if event_types is None else sorted(set(event_types))
+        if type_filter is not None and not type_filter:
+            raise ValueError("outbox claim event-type filter must not be empty")
         now = datetime.now(UTC)
         lease_until = now + timedelta(seconds=lease_seconds)
         with self._sessions.begin() as session:
+            query = select(CoreOutboxEventModel).where(
+                or_(
+                    and_(
+                        CoreOutboxEventModel.status == "pending",
+                        CoreOutboxEventModel.available_at <= now,
+                    ),
+                    and_(
+                        CoreOutboxEventModel.status == "leased",
+                        CoreOutboxEventModel.lease_until <= now,
+                    ),
+                )
+            )
+            if type_filter is not None:
+                query = query.where(CoreOutboxEventModel.event_type.in_(type_filter))
             rows = list(
                 session.scalars(
-                    select(CoreOutboxEventModel)
-                    .where(
-                        or_(
-                            and_(
-                                CoreOutboxEventModel.status == "pending",
-                                CoreOutboxEventModel.available_at <= now,
-                            ),
-                            and_(
-                                CoreOutboxEventModel.status == "leased",
-                                CoreOutboxEventModel.lease_until <= now,
-                            ),
-                        )
-                    )
-                    .order_by(CoreOutboxEventModel.created_at, CoreOutboxEventModel.event_id)
+                    query.order_by(CoreOutboxEventModel.created_at, CoreOutboxEventModel.event_id)
                     .limit(limit)
                     .with_for_update(skip_locked=True)
                 )
@@ -87,7 +103,34 @@ class PostgresOutbox:
                 available_at=row.available_at,
                 lease_until=row.lease_until,
                 delivered_at=row.delivered_at,
+                owner_scope_kind=row.owner_scope_kind,
+                owner_scope_ref=row.owner_scope_ref,
             )
+
+    def renew_lease(self, *, event_id: str, worker_id: str, lease_seconds: int) -> bool:
+        """Extend a lease this worker still holds (FR-C-08, DTR Draft 6 §6.3).
+
+        ``False`` means the lease was lost (expired and re-claimed, or delivered); the caller
+        must stop working on the event.
+        """
+        if not 1 <= lease_seconds <= 3600:
+            raise ValueError("outbox lease is outside the allowed bounds")
+        now = datetime.now(UTC)
+        with self._sessions.begin() as session:
+            result = cast(
+                CursorResult[Any],
+                session.execute(
+                    update(CoreOutboxEventModel)
+                    .where(
+                        CoreOutboxEventModel.event_id == event_id,
+                        CoreOutboxEventModel.status == "leased",
+                        CoreOutboxEventModel.lease_owner == worker_id,
+                        CoreOutboxEventModel.lease_until > now,
+                    )
+                    .values(lease_until=now + timedelta(seconds=lease_seconds))
+                ),
+            )
+            return result.rowcount == 1
 
     def defer(
         self,
@@ -178,6 +221,9 @@ class PostgresOutbox:
             organization_id=row.organization_id,
             aggregate_id=row.aggregate_id,
             aggregate_revision=row.aggregate_revision,
+            owner_scope_kind=row.owner_scope_kind,
+            owner_scope_ref=row.owner_scope_ref,
+            attempt_count=row.attempt_count,
         )
 
 

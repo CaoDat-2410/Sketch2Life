@@ -591,3 +591,67 @@ Parent/Android/mobile, backend/API/authorization changes, new SRS policy decisio
   - AC8: keep FEAT-066 evidence/context/decision/status current; build, architecture, security, harness and diff checks are recorded; do not run application tests under the existing task boundary.
   - AC9: amend the already-approved single local commit once the final staged set is reviewed. Keep the local app running. No push, PR, merge, or deployment.
 - **Out of scope:** backend/API/auth contract, role discovery, new permissions or roles, Parent/mobile, real credentials/data, dependencies, production services, and automated application tests.
+
+## Revision 31 — Teacher API/UI rebuild plan — 2026-11-16
+
+Plan-only status: PLANNED — AWAITING IMPLEMENTATION APPROVAL. The complete SRS Rev60 screen/API crosswalk, ordered work breakdown, acceptance criteria, effort ranges, design/accessibility rules, dependencies and open decisions are in plan/PLAN_REV31_TEACHER_API_UI_REBUILD_20261116.md (SHA-256 2EB6235B8F8DFB5EB6EC4098FA2892687102DD4D922360E16751F6D21DA0E5E7). Static source evidence is FEAT-066-EV-037. No application source or approval register was changed.
+## Revision 32 — Platform Admin available API integration — 2026-11-16
+
+Approved scope: connect the already-supported Admin health probe to the configured API base and preserve the existing authenticated account endpoints. Full plan and acceptance criteria: plan/PLAN_REV32_PLATFORM_ADMIN_AVAILABLE_API_INTEGRATION_20261116.md (SHA-256 56A6985B7D486E79F1B8C9AB39B4C56275BC401C7ECF4730014D01BC167A1A92). Moderation remains blocked on queue/detail and Content Admin authorization.
+## Revision 33 — Local Docker API and FE handoff check — 2026-11-17
+
+Approved read-only runtime verification plan: PLAN_REV33_DOCKER_API_FE_SMOKE_20261117.md (SHA-256 0AB2F79A26EDCBA27871C559016A8A6A56466DA82867519E2FB147995C8380F0). Do not mutate account data or use credentials; leave the FE/API available for owner testing.
+## Revision 34 — Platform Admin test account — 2026-11-17
+
+Approved one local QA identity in `sketch2life-dev`, with the minimal local schema and FE Firebase setup required for sign-in. Plan: PLAN_REV34_PLATFORM_ADMIN_TEST_ACCOUNT_20261117.md (SHA-256 3EBDE69AFFA105F09DFB04901DA5539EE555361EBCBC3F8D035831A5291A9EBE). Password and tokens must not be stored in repository evidence.
+## Revision 35 — Active FE port API proxy — 2026-11-17
+
+Approved temporary Vite runtime correction for the active worktree port 5173. Plan: PLAN_REV35_ACTIVE_FE_PORT_API_PROXY_20261117.md (SHA-256 479A937FDDDD09AD6CC681B5D951C7D434B9ACAD29B3ECBB4918EC3225B9E200). Keep the proxy config ignored under 	mp/.
+
+## Revision 36 — Platform Accounts crayon UX rebuild — 2026-11-17
+
+Approved and implemented the Platform Admin Accounts layout/UX against the owner-supplied v2.7-draft SRS dated 2026-11-13 with amendments through Rev69 (SHA-256 B9B1F42D0BB118C19C81607D3913B7E4F1D8B6F673F0C3FBB6402888FEB675F5). Plan SHA-256 6AE92FAEB7ED005B463E05176A58539A6927323E9C61ED3350F9CA243446E0D9; approval is recorded. Only the accounts page and scoped stylesheet changed. Evidence EV-042 records the SRS gaps and four responsive captures. Build and focused lint pass; no app tests, commit or push.
+
+
+## Revision 37 — Platform Admin sidebar crayon redesign — 2026-11-17
+
+Status: COMPLETE. Plan: PLAN_REV37_PLATFORM_ADMIN_SIDEBAR_CRAYON_REDESIGN_20261117.md (SHA-256 A3F276D0EB8D163F35B107A9CC154D448437A4F5F6BFAF65EE49F82DB399940C); direct owner approval recorded in approvals/TASK_APPROVAL.md before source edits. Only portal-scoped sidebar CSS changed. Visual evidence and checks: evidence/notes/EV-044_PLATFORM_ADMIN_SIDEBAR_CRAYON_REV37_20261117.md and evidence/screenshots/rev37-platform-sidebar/. No routes, APIs, auth, permissions, other role sidebars, app tests, commit, or push.
+
+## Revision 38 — Platform Accounts zoom-width layout correction — 2026-11-17
+
+Implementation recorded; populated-row visual confirmation is limited by the isolated QA browser lacking a Firebase session. Plan: PLAN_REV38_PLATFORM_ACCOUNTS_ZOOM_WIDTH_20261117.md (SHA-256 DD3BC84855986B15C8FAA4356A4231B93E4096D4F6A0FC3C4316FD73C79ABC79); direct owner report and screenshot recorded in approvals/TASK_APPROVAL.md before app edits. The table uses fixed columns/action stack through 1120px and labelled cards through 900px. Eight viewport measurements showed no horizontal overflow in the no-auth page state. Evidence: evidence/notes/EV-046_PLATFORM_ACCOUNTS_ZOOM_WIDTH_REV38_20261117.md and evidence/screenshots/rev38-accounts-zoom/. Build, focused lint and diff check passed; no fixtures, app tests, mutation, commit or push.
+## Revision 39 — School Manager API/UI crosswalk — 2026-11-17
+
+Status: DRAFT; planning only, awaiting owner approval before implementation. Plan: PLAN_REV39_SCHOOL_MANAGER_API_UI_CROSSWALK_20261117.md (SHA-256 589D260604CE8DECBC54F8A88AE0F6749D3446CBA0155738B3FF3C3528E9C05F). Static origin/dev and web wiring crosswalk; no source or approval changes. See evidence/notes/EV-047_SCHOOL_MANAGER_API_UI_CROSSWALK_REV39_20261117.md. No runtime API calls, tests, build, commit or push.
+
+## Revision 40 — School Manager API integration plan — 2026-11-17
+
+Status: DRAFT; implementation awaits owner approval. Plan: PLAN_REV40_SCHOOL_MANAGER_API_INTEGRATION_20261117.md (SHA-256 84E8779D7F169BEE9E5ECA8D02EABB571D23F66E11B167F782A04D04F261F070). The plan counts 17 Manager business route operations (6 wired, 10 target, 1 assignment command blocked) plus shared GET /api/auth/v1/me; Firebase SDK sign-in is not a BE endpoint. See evidence/notes/EV-048_SCHOOL_MANAGER_API_INTEGRATION_PLAN_REV40_20261117.md. No source, approval, test, build, runtime call, commit or push.
+
+## Revision 41 — School Manager login/auth API verification — 2026-11-17
+
+Status: VERIFIED WITH LIVE AUTH LIMITATION. Plan: PLAN_REV41_MANAGER_LOGIN_AUTH_API_20261117.md (SHA-256 E06D84FCEE12A168765876C892B3D9DD170D64FB81F804D0E551CD5F9EBE672B); direct owner approval recorded in approvals/TASK_APPROVAL.md before implementation. Existing Firebase + GET `/api/auth/v1/me` + BE1 assignment flow is wired. Fixed the confirmed runtime config mismatch by adding documented `VITE_BE1_*` fallbacks after injected/generic settings. Two focused files passed 8 tests; production build passed; full Oxlint exited 0 with warnings and no errors. Live health 200 and unauthenticated auth/assignment routes 401; successful authenticated login was not tested without a Manager credential. Evidence: evidence/notes/EV-049_MANAGER_LOGIN_API_VERIFICATION_20261117.md. No backend contract/data/account mutation, commit or push.
+
+## Revision 42 — Manager QA account and live login — 2026-11-17
+
+Status: APPROVED_FOR_EXECUTION; waiting for matching local Firebase Web config before account creation. Plan: PLAN_REV42_MANAGER_QA_ACCOUNT_AND_LIVE_LOGIN_20261117.md (SHA-256 96AE1FC25F8BAE840371D9CB41D5F52652F74C1F59C0F6D2A6AD22F5848C9D6D). Read-only preflight confirms `sketch2life-dev`, Firebase Admin configured, one Platform Admin, and no Manager/organization/assignment. No mutation or credential generation yet. Evidence: evidence/notes/EV-050_MANAGER_QA_ACCOUNT_READINESS_20261117.md.
+
+## Revision 43 — Conditional Manager business API integration — 2026-11-17
+
+Status: APPROVED_CONDITIONALLY; begin only after Rev42 live Manager login and authenticated role/assignment reads pass. Plan: PLAN_REV43_MANAGER_BUSINESS_API_INTEGRATION_20261117.md (SHA-256 239A1E64E5C3269A7536497DB5DDAA2A582EC7844E25468837A9F1B3286AA597). Static route audit narrows implementation to five connectable operations and keeps five Rev40 operations unavailable due to actor/guard/read-contract gaps; the existing class-create route also lacks SRS capacity enforcement. No implementation started.
+
+- FEAT-066 Plan Rev44: Manager QA bootstrap ordering repair; approval SHA-256 31E7CD3445AE6290387F118F9B761DF14397D7C0BB6BD03C366624A2604E38D9; status APPROVED_FOR_IMPLEMENTATION.
+
+## Revision 46 — School Manager navigation and theme restoration — IMPLEMENTED; visual review pending
+
+- Plan: `PLAN_REV46_SCHOOL_MANAGER_NAVIGATION_CRAYON_REDESIGN_20261117.md`; SHA-256 `FA3EB6DFBB3E5E32BF61B75FD17E8230DF0D67C712079CAB1EB3F9222A34A255`.
+- Approval recorded before product-source edits in `approvals/TASK_APPROVAL.md`.
+- Scope: align Manager CSS with the live `school-be1` portal key; redesign Manager nav contents/states and scope indicator only. Use the canonical unsigned Rev60 SRS baseline and cross-check the owner-supplied Rev69 copy for the applicable role scope.
+
+## Revision 47 — shared folder cleanup — IMPLEMENTED
+
+- Status: IMPLEMENTED; production build passed.
+- Plan: plan/PLAN_REV47_SHARED_FOLDER_CLEANUP_20261117.md.
+- Plan SHA-256: 82AB4F0E97144E8070E228B0ACDA59CB33102CCFF13C5F7927A0746FFF590E22.
+- Moved 17 shared files into api/auth/components/navigation/styles; preserved assets; updated 50 references in 27 source files.
+- No old references remain; existing Manager nav preserved. No app tests, commit, or push. See evidence/notes/EV-053_SHARED_FOLDER_ORGANIZATION_REV47_20261117.md.

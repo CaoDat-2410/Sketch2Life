@@ -15,3 +15,7 @@ Keep the old Teacher/Admin portal directories removed after carrying applicable 
 ## D4 — Keep both backend route contract views
 
 The test conflict represents two independent route assertions: the PR's unprojected OpenAPI route set and the `dev` compatibility app's full mounted-route view with its updated expected route catalog. Retain both views and assert that they agree before comparing the route set to the baseline-adjusted expected catalog.
+
+## D5 — Apply the owner's new merge instruction without bypassing GitHub gates
+
+The owner explicitly superseded the initial no-merge boundary and authorized merging PR #27 into `dev` despite the current CI errors. Attempt only GitHub's normal merge operation against the current head; do not bypass required checks or branch protection. If GitHub rejects it, leave the PR open and record the blocker.

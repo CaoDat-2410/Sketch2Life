@@ -1,0 +1,46 @@
+meta {
+  name: 569 [DRAFT-V4A] [LOCAL / TEST ONLY] Request video without re-confirming spent review
+  type: http
+  seq: 569
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{parent_story_run_id}}/video-generations
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "expected_revision": {{parent_story_run_revision}},
+    "story_sha256": "{{story_sha256}}",
+    "quality_reason_code": "QUALITY_LOW"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("INVALID_STATE_TRANSITION");
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Parent - set bearerToken to seed-parent-p1 token (also applies to Teacher)
+  Needs: parent_story_run_id back at SCRIPT_REVIEW after a spent video (video-unsuitable, deadline failure, or safety block) BEFORE re-confirming script via 588
+  Expected: 409 / INVALID_STATE_TRANSITION
+  Source: backend/src/sketch2life/infrastructure/story_video/repository.py:555-625, backend/tests/integration/story_video/test_story_reconfirm_postgres.py:85-110
+}

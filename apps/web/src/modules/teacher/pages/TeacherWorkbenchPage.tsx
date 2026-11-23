@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ArrowRight, BookOpen, CalendarDays, RefreshCw, Users } from "lucide-react";
 import { Link } from "react-router-dom";
-import { FeatureAvailability, PageHeading } from "../../../shared/FeatureAvailability";
+import { FeatureAvailability, PageHeading } from "../../../shared/components/FeatureAvailability";
 import {
   BackendApiError,
   backendApi,
@@ -10,7 +10,7 @@ import {
   hasFirebaseAuthBridge,
   type Be1Class,
   type LessonSummary,
-} from "../../../shared/backendApi";
+} from "../../../shared/api/backendApi";
 
 type WorkbenchSnapshot = { classes: Be1Class[]; lessons: LessonSummary[] };
 
@@ -45,7 +45,7 @@ export function TeacherWorkbenchPage() {
         }
         const assignedClassIds = new Set(teacherAssignments.flatMap((assignment) => assignment.class_id ? [assignment.class_id] : []));
         const [classPage, lessonPage] = await Promise.all([
-          backendApi.classes(organizationId),
+          backendApi.classes(organizationId, "all"),
           backendApi.lessons(organizationId),
         ]);
         if (!active) return;
@@ -69,7 +69,7 @@ export function TeacherWorkbenchPage() {
       <section className="s2l-dashboard-grid" aria-label="Tóm tắt công việc">
         <article className="s2l-data-card s2l-dashboard-card">
           <div className="s2l-dashboard-card-title"><span className="s2l-summary-icon"><Users size={19} aria-hidden="true" /></span><div><h2>Lớp được phân công</h2><p>Phạm vi theo assignment Teacher</p></div></div>
-          {snapshot && snapshot.classes.length > 0 ? <ul className="s2l-record-list">{snapshot.classes.slice(0, 4).map((item) => <li key={item.class_id}><Link to={"/teacher/t05-classes-and-children/" + encodeURIComponent(item.class_id)}><span><strong>{item.display_name}</strong><small>{item.state}</small></span><ArrowRight size={16} aria-hidden="true" /></Link></li>)}</ul> : <p className="s2l-empty-copy">{snapshot ? "API chưa trả lớp trong assignment này." : error ? "Lớp chưa thể hiển thị khi dữ liệu chưa tải được." : "Đang chờ phiên đã xác minh."}</p>}
+          {snapshot && snapshot.classes.length > 0 ? <ul className="s2l-record-list">{snapshot.classes.slice(0, 4).map((item) => <li key={item.class_id}><Link to={"/teacher/t05-classes-and-children/" + encodeURIComponent(item.class_id)}><span><strong>{item.display_name}</strong><small>{item.state === "suspended" ? "Tạm ngưng · chỉ đọc" : item.state === "active" ? "Đang hoạt động" : item.state}</small></span><ArrowRight size={16} aria-hidden="true" /></Link></li>)}</ul> : <p className="s2l-empty-copy">{snapshot ? "API chưa trả lớp trong assignment này." : error ? "Lớp chưa thể hiển thị khi dữ liệu chưa tải được." : "Đang chờ phiên đã xác minh."}</p>}
           <Link className="s2l-card-link" to="/teacher/t05-classes-and-children">Mở danh sách lớp <ArrowRight size={15} aria-hidden="true" /></Link>
         </article>
 

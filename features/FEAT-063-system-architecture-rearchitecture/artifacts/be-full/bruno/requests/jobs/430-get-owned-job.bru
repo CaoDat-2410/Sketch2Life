@@ -1,0 +1,32 @@
+meta {
+  name: 430 [LOCAL / TEST ONLY] Read a job in the caller's scope
+  type: http
+  seq: 430
+}
+
+get {
+  url: {{baseUrl}}/v1/jobs/{{owned_job_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+script:post-response {
+  bru.setVar("owned_job_etag", res.getHeader("ETag"));
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().job_id).to.equal(bru.getVar("owned_job_id"));
+  });
+}

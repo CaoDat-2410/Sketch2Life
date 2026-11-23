@@ -1,0 +1,37 @@
+meta {
+  name: 225 [LOCAL / TEST ONLY] Upload one part before abort
+  type: http
+  seq: 225
+}
+
+put {
+  url: {{baseUrl}}/v1/upload-sessions/{{abort_upload_id}}/parts/1
+  body: file
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/octet-stream
+  X-Part-SHA256: d3c936ebdd73f46e6422d5946044c99d524554082272019ab738800318b04892
+}
+
+body:file {
+  file: @file(./requests/upload-sessions/lesson-artwork-1px.png)
+}
+
+script:post-response {
+  bru.setVar("abort_etag_current", res.getHeader("ETag"));
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+  });
+}

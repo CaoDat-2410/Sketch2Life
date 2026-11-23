@@ -1,0 +1,57 @@
+meta {
+  name: 611 [DRAFT-V4A] [LOCAL / TEST ONLY] Get Teacher StoryRun after subject confirmation implicit start
+  type: http
+  seq: 611
+}
+
+get {
+  url: {{baseUrl}}/v1/story-runs/{{teacher_run_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+script:post-response {
+  const story = res.getBody().story_run;
+  if (story) {
+    bru.setVar("teacher_run_revision", String(story.run_revision));
+    if (story.story_revision_no !== null && story.story_revision_no !== undefined) {
+      bru.setVar("teacher_story_revision_no", String(story.story_revision_no));
+    }
+    if (story.story_sha256) {
+      bru.setVar("teacher_story_sha256", story.story_sha256);
+    }
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const story = res.getBody().story_run;
+    expect(story.run_id).to.equal(bru.getVar("teacher_run_id"));
+    expect(story.context_confirmed).to.equal(true);
+    expect(["SCRIPT_GENERATING", "SCRIPT_REVIEW"]).to.include(story.run_state);
+    expect(story.story_revision_no).to.equal(1);
+    expect(story.plan).to.be.an("object");
+    expect(story.activity).to.be.an("object");
+    expect(story.main_activity).to.equal(undefined);
+    expect(story.post_video_activities).to.equal(undefined);
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Teacher - set bearerToken to seed-tch-a1 token
+  Needs: teacher_run_id right after 556 (verifies that subject-confirmation as the last gate implicitly started story revision 1)
+  Expected: 200
+  Source: backend/src/sketch2life/interfaces/http/routers/parent_story_runs.py:618-664, backend/tests/integration/story_teacher/test_teacher_first_story_postgres.py:52-95
+}

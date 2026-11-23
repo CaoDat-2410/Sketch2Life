@@ -1,0 +1,29 @@
+meta {
+  name: 361 [LOCAL / TEST ONLY] Teacher assigned only to another class gets 404 on R3
+  type: http
+  seq: 361
+}
+
+get {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/classes/{{class_id}}/profiles/seed-ch-a-1-1/portfolio
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_NOT_FOUND");
+  });
+}
+

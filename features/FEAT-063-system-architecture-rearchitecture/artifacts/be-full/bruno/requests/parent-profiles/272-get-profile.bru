@@ -1,0 +1,29 @@
+meta {
+  name: 272 [LOCAL / TEST ONLY] Read created Parent profile
+  type: http
+  seq: 272
+}
+
+get {
+  url: {{baseUrl}}/v1/parent/profiles/{{phase_b_parent_profile_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().profile_id).to.equal(bru.getVar("phase_b_parent_profile_id"));
+  });
+}
+

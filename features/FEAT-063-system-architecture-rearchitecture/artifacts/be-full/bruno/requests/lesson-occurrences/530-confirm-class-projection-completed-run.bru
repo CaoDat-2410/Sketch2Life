@@ -1,0 +1,58 @@
+meta {
+  name: 530 [LOCAL / TEST ONLY] Confirm class projection for completed run (claims slot while AVAILABLE)
+  type: http
+  seq: 530
+}
+
+post {
+  url: {{baseUrl}}/v1/lesson-occurrences/{{occurrence_id}}/projection-confirmation
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+  If-Match: {{occurrence_etag}}
+}
+
+body:json {
+  {
+    "run_id": "{{completed_run_id}}",
+    "generation_id": "{{completed_generation_id}}",
+    "audience": "CLASS",
+    "use": "CLASS_PROJECTION"
+  }
+}
+
+script:post-response {
+  bru.setVar("occurrence_etag", res.getHeader("ETag"));
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.contract).to.equal("ClassProjectionConfirmationV1");
+    expect(body.audience).to.equal("CLASS");
+    expect(body.use).to.equal("CLASS_PROJECTION");
+    expect(body.sample_video.slot_state).to.equal("CLAIMED");
+    expect(body.sample_video.run_ref).to.equal(bru.getVar("completed_run_id"));
+    expect(String(res.getHeader("Cache-Control"))).to.include("no-store");
+    expect(JSON.stringify(body)).to.not.include("display_name");
+  });
+}
+
+docs {
+  Role: Teacher - set bearerToken to that synthetic account's token
+  Needs: occurrence_id with sample_slot_state AVAILABLE (when 529 was not run before 526), occurrence_etag (refreshed by a GET of the occurrence right before 530), completed_run_id and completed_generation_id from 526 (confirming a COMPLETED Teacher run is 200 and claims the sample slot while AVAILABLE; confirm before Complete ends at Complete)
+  Expected: 200
+  Source: backend/src/sketch2life/infrastructure/lesson_occurrences/projection.py:253-281, backend/tests/integration/lesson_occurrences/test_projection_after_complete_postgres.py:46-66
+}

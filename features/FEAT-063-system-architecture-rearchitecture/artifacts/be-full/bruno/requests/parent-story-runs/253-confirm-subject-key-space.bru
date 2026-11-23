@@ -1,0 +1,37 @@
+meta {
+  name: 253 [LOCAL / TEST ONLY] Confirm subject with a space in the key
+  type: http
+  seq: 253
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{parent_story_run_id}}/subject-confirmation
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: invalid key
+}
+
+body:json {
+  {
+    "expected_understanding_revision": {{story_understanding_revision}},
+    "confirmed_subject": "paper kite"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("INVALID_REQUEST");
+  });
+}

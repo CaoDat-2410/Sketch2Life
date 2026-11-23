@@ -1,0 +1,34 @@
+meta {
+  name: 299 [LOCAL / TEST ONLY] Manager A10 continue consent cursor page
+  type: http
+  seq: 299
+}
+
+get {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/classes/{{class_id}}/consents?limit=1&cursor={{phase_b_consent_cursor}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().contract).to.equal("Be1ConsentListManagerV1");
+    expect(res.getBody().items).to.be.an("array");
+    for (const item of res.getBody().items) {
+      expect(item).to.not.have.property("child_id");
+      expect(item).to.not.have.property("purpose_ref");
+    }
+  });
+}
+

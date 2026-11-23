@@ -1,0 +1,29 @@
+meta {
+  name: 240 [LOCAL / TEST ONLY] Read occurrence with strong ETag
+  type: http
+  seq: 240
+}
+
+get {
+  url: {{baseUrl}}/v1/lesson-occurrences/{{occurrence_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().contract).to.equal("LessonOccurrenceV1");
+    expect(res.getHeader("ETag")).to.equal(bru.getVar("occurrence_etag"));
+  });
+}

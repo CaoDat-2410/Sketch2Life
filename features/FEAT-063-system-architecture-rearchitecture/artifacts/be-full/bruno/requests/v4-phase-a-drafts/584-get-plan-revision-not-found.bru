@@ -1,0 +1,36 @@
+meta {
+  name: 584 [DRAFT-V4A] [LOCAL / TEST ONLY] Get missing occurrence plan revision
+  type: http
+  seq: 584
+}
+
+get {
+  url: {{baseUrl}}/v1/lesson-occurrences/{{occurrence_id}}/plan-revisions/999999
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_NOT_FOUND");
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Teacher - set bearerToken to seed-tch-a1 token
+  Needs: occurrence_id
+  Expected: 404 / RESOURCE_NOT_FOUND
+  Source: backend/src/sketch2life/infrastructure/lesson_occurrences/plans.py:180-200, backend/tests/contract/test_lesson_plan_routes.py:660-680
+}

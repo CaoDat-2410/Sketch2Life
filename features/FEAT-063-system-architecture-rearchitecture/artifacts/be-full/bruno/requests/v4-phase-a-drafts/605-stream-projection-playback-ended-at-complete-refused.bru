@@ -1,0 +1,37 @@
+meta {
+  name: 605 [DRAFT-V4A] [LOCAL / TEST ONLY] Refuse streaming with pre-Complete projection token after Complete
+  type: http
+  seq: 605
+}
+
+get {
+  url: {{baseUrl}}/v1/story-runs/{{pre_complete_projected_run_id}}/playback
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  X-Playback-Token: {{pre_complete_projection_token}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_NOT_FOUND");
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Teacher - set bearerToken to seed-tch-a1 token
+  Needs: needs-fixture - pre_complete_projected_run_id and pre_complete_projection_token (projection playback token issued before the sample run was completed)
+  Expected: 404 / RESOURCE_NOT_FOUND (SqlProjectionAuthorization rejects a pre-Complete projection grant once completed_at >= confirmed_at)
+  Source: backend/src/sketch2life/infrastructure/lesson_occurrences/projection.py:420-497, backend/tests/integration/lesson_occurrences/test_projection_after_complete_postgres.py:90-101
+}

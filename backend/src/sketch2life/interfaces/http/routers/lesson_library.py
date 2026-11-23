@@ -48,9 +48,18 @@ from sketch2life.contracts.schemas.lesson_library import (
 from sketch2life.infrastructure.persistence.be1_models import AdultIdentityModel
 from sketch2life.interfaces.http.be1_runtime import get_db, get_verified_adult
 from sketch2life.interfaces.http.routers.be1_common import require_assignment
-from sketch2life.infrastructure.lesson_library.service import LessonLibraryError, LessonLibraryService
+from sketch2life.infrastructure.lesson_library.service import (
+    LessonLibraryError,
+    LessonLibraryService,
+    LessonLibraryStaleRevision,
+)
+from sketch2life.interfaces.http.api_conventions import raise_stale_revision
 
 router = APIRouter(prefix="/api/lesson-library/v1", tags=["Lesson Library v1"])
+# FEAT-066 C4: the required Idempotency-Key header of the keyed commands (SRS §21.4).
+IdempotencyKeyHeader = Annotated[
+    str, Header(alias="Idempotency-Key", min_length=1, max_length=128)
+]
 _ETAG = re.compile(r'^"([1-9][0-9]*)"$')
 _CONTENT_RANGE = re.compile(r"^bytes (\d+)-(\d+)/(\d+)$")
 
@@ -73,6 +82,11 @@ def get_lesson_library_service(
 def _call(function):
     try:
         return function()
+    except LessonLibraryStaleRevision as exc:
+        # C-D7 (FEAT-066 C4): stale 409 carries the current version and strong ETag.
+        raise_stale_revision(
+            current_version=exc.current_revision, etag=str(exc.current_revision)
+        )
     except LessonLibraryError as exc:
         raise HTTPException(
             status_code=exc.status_code,
@@ -83,14 +97,20 @@ def _call(function):
 def _strong_revision(if_match: str | None) -> int:
     if if_match is None:
         raise HTTPException(
-            status_code=428,
-            detail={"code": "PRECONDITION_REQUIRED", "message": "If-Match is required"},
+            status_code=400,
+            detail={
+                "code": "INVALID_REQUEST",
+                "field_errors": [{"field": "If-Match", "code": "REQUIRED"}],
+            },
         )
     match = _ETAG.fullmatch(if_match.strip())
     if match is None:
         raise HTTPException(
-            status_code=422,
-            detail={"code": "INVALID_REQUEST", "message": "If-Match must contain a strong numeric ETag"},
+            status_code=400,
+            detail={
+                "code": "INVALID_REQUEST",
+                "field_errors": [{"field": "If-Match", "code": "INVALID_FORMAT"}],
+            },
         )
     return int(match.group(1))
 
@@ -131,6 +151,12 @@ def _parent_actor(db: Session, principal: VerifiedPrincipal) -> None:
 
 
 def _platform_admin(db: Session, principal: VerifiedPrincipal) -> None:
+    from sketch2life.infrastructure.platform_admin.service import PlatformAdminService
+    from sketch2life.domain.platform_admin import AdminError
+    try:
+        PlatformAdminService(db, principal).identity(content=True)
+    except AdminError as exc:
+        raise HTTPException(exc.status, detail={"code": exc.code}) from None
     identity = db.get(AdultIdentityModel, principal.subject)
     if (
         identity is None
@@ -184,7 +210,7 @@ def list_lessons(
     organization_id: str,
     state: Literal["ACTIVE", "ARCHIVED"] | None = None,
     visibility: Literal["PRIVATE", "SCHOOL", "PUBLIC"] | None = None,
-    limit: int = Query(default=50, ge=1, le=100),
+    limit: int = Query(default=25, ge=1, le=100),
     cursor: str | None = None,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
@@ -222,15 +248,18 @@ def update_lesson(
     lesson_id: str,
     payload: UpdateLessonRequestV1,
     response: Response,
+    idempotency_key: IdempotencyKeyHeader,
     if_match: Annotated[str | None, Header(alias="If-Match")] = None,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
     service: LessonLibraryService = Depends(get_lesson_library_service),
 ) -> dict[str, object]:
     _teacher(db, principal, organization_id)
+    expected_revision = _strong_revision(if_match)
     result = _call(lambda: service.update_lesson(
         organization_id=organization_id, lesson_id=lesson_id, actor=principal.subject,
-        expected_revision=_strong_revision(if_match), content=payload.content,
+        expected_revision=expected_revision, content=payload.content,
+        idempotency_key=idempotency_key,
     ))
     _etag(response, result["revision"])
     return result
@@ -241,15 +270,18 @@ def archive_lesson(
     organization_id: str,
     lesson_id: str,
     response: Response,
+    idempotency_key: IdempotencyKeyHeader,
     if_match: Annotated[str | None, Header(alias="If-Match")] = None,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
     service: LessonLibraryService = Depends(get_lesson_library_service),
 ) -> dict[str, object]:
     manager = _staff(db, principal, organization_id)
+    expected_revision = _strong_revision(if_match)
     result = _call(lambda: service.archive_lesson(
         organization_id=organization_id, lesson_id=lesson_id, actor=principal.subject,
-        manager=manager, expected_revision=_strong_revision(if_match),
+        manager=manager, expected_revision=expected_revision,
+        idempotency_key=idempotency_key,
     ))
     _etag(response, result["revision"])
     return result
@@ -264,40 +296,57 @@ def create_upload_session(
     organization_id: str,
     lesson_id: str,
     payload: CreateLessonUploadSessionRequestV1,
+    response: Response,
+    idempotency_key: IdempotencyKeyHeader,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
     service: LessonLibraryService = Depends(get_lesson_library_service),
-    idempotency_key: Annotated[str, Header(alias="Idempotency-Key", min_length=1, max_length=128)] = ...,
 ) -> dict[str, object]:
     _teacher(db, principal, organization_id)
-    return _call(lambda: service.create_upload_session(
+    result = _call(lambda: service.create_upload_session(
         organization_id=organization_id, lesson_id=lesson_id, actor=principal.subject,
         file_name=payload.file_name, media_type=payload.media_type,
         byte_length=payload.byte_length, sha256=payload.sha256,
         idempotency_key=idempotency_key,
     ))
+    _etag(response, result["revision"])
+    return result
 
 
 @router.get("/upload-sessions/{upload_session_id}", response_model=UploadSessionV1)
 def get_upload_session(
     upload_session_id: str,
+    response: Response,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     service: LessonLibraryService = Depends(get_lesson_library_service),
 ) -> dict[str, object]:
-    return _call(lambda: service.get_upload_session_status(
+    result = _call(lambda: service.get_upload_session_status(
         upload_session_id=upload_session_id, actor=principal.subject
     ))
+    _etag(response, result["revision"])
+    return result
 
 
-@router.delete("/upload-sessions/{upload_session_id}", response_model=UploadSessionV1)
+@router.delete(
+    "/upload-sessions/{upload_session_id}",
+    response_model=UploadSessionV1,
+    status_code=status.HTTP_202_ACCEPTED,
+)
 def abort_upload_session(
     upload_session_id: str,
+    response: Response,
+    idempotency_key: IdempotencyKeyHeader,
+    if_match: Annotated[str | None, Header(alias="If-Match")] = None,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     service: LessonLibraryService = Depends(get_lesson_library_service),
 ) -> dict[str, object]:
-    return _call(lambda: service.abort_upload_session(
-        upload_session_id=upload_session_id, actor=principal.subject
+    expected_revision = _strong_revision(if_match)
+    result = _call(lambda: service.abort_upload_session(
+        upload_session_id=upload_session_id, actor=principal.subject,
+        expected_revision=expected_revision, idempotency_key=idempotency_key,
     ))
+    _etag(response, result["revision"])
+    return result
 
 
 @router.put("/upload-sessions/{upload_session_id}/parts/{part_number}", response_model=UploadPartReceiptV1)
@@ -329,6 +378,7 @@ async def upload_part(
 @router.post(
     "/upload-sessions/{upload_session_id}/complete",
     response_model=LessonSourceDocumentStatusV1,
+    status_code=status.HTTP_202_ACCEPTED,
 )
 def complete_upload(
     upload_session_id: str,
@@ -393,6 +443,7 @@ def create_lesson_version(
     lesson_id: str,
     payload: CreateLessonVersionRequestV1,
     response: Response,
+    idempotency_key: IdempotencyKeyHeader,
     if_match: Annotated[str | None, Header(alias="If-Match")] = None,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
@@ -405,6 +456,7 @@ def create_lesson_version(
         expected_revision=current_revision,
         source_revision_id=payload.source_document_revision_id,
         content=payload.content,
+        idempotency_key=idempotency_key,
     ))
     _etag(response, current_revision + 1)
     return result
@@ -488,16 +540,19 @@ def revoke_access_grant(
     lesson_id: str,
     access_grant_id: str,
     response: Response,
+    idempotency_key: IdempotencyKeyHeader,
     if_match: Annotated[str | None, Header(alias="If-Match")] = None,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
     service: LessonLibraryService = Depends(get_lesson_library_service),
 ) -> dict[str, object]:
     manager = _staff(db, principal, organization_id)
+    expected_revision = _strong_revision(if_match)
     result = _call(lambda: service.revoke_access_grant(
         organization_id=organization_id, lesson_id=lesson_id,
         grant_id=access_grant_id, actor=principal.subject,
-        manager=manager, expected_revision=_strong_revision(if_match),
+        manager=manager, expected_revision=expected_revision,
+        idempotency_key=idempotency_key,
     ))
     _etag(response, result["revision"])
     return result
@@ -563,7 +618,7 @@ def invite_parent_to_group(
 
 @router.get("/me/parent-group-invitations", response_model=ParentGroupInvitationPageV1)
 def list_parent_group_invitations(
-    limit: int = Query(default=50, ge=1, le=100),
+    limit: int = Query(default=25, ge=1, le=100),
     cursor: str | None = None,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
@@ -613,7 +668,9 @@ def revoke_parent_group_membership(
         _manager(db, principal, organization_id)
         manager = True
     except HTTPException as exc:
-        if exc.status_code != 403:
+        # CONV-1: a caller who is not this organization's manager falls through to the Parent
+        # self-revoke path; after CONV-1 that caller gets 404 (out of scope) or 403 (role).
+        if exc.status_code not in {403, 404}:
             raise
     result = _call(lambda: service.revoke_parent_group_membership(
         organization_id=organization_id, group_id=parent_group_id,
@@ -626,7 +683,7 @@ def revoke_parent_group_membership(
 
 @router.get("/me/lesson-invitations", response_model=LessonInvitationPageV1)
 def list_lesson_invitations(
-    limit: int = Query(default=50, ge=1, le=100),
+    limit: int = Query(default=25, ge=1, le=100),
     cursor: str | None = None,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
@@ -678,7 +735,7 @@ def decline_lesson_invitation(
 @router.get("/me/lessons", response_model=ParentLessonPageV1)
 def list_parent_lessons(
     source: Literal["ALL", "PUBLIC", "SHARED"] = "ALL",
-    limit: int = Query(default=50, ge=1, le=100),
+    limit: int = Query(default=25, ge=1, le=100),
     cursor: str | None = None,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),

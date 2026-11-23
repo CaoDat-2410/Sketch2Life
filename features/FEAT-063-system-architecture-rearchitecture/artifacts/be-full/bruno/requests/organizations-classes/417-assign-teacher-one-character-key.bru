@@ -1,0 +1,37 @@
+meta {
+  name: 417 [LOCAL / TEST ONLY] Assign first Teacher with one-character key
+  type: http
+  seq: 417
+}
+
+post {
+  url: {{baseUrl}}/api/be1/v1/classes/{{created_class_id}}/assignments
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  If-Match: {{created_class_etag}}
+  Idempotency-Key: k
+}
+
+body:json {
+  {
+    "candidate_ref": "{{candidate_ref}}"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().assignment_revision).to.be.a("number");
+  });
+}

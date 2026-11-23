@@ -75,6 +75,28 @@ describe('Parent run lifecycle client (FR-C-08)', () => {
     expect(calls).toHaveLength(0);
   });
 
+  it('applies the server key rule to the four story commands before fetch', async () => {
+    const calls = [
+      (api: ParentApi, key: string) => api.createStoryRunV1({ parent_profile_id: 'p', topic: 't', adult_confirmed_idea: 'i' }, key),
+      (api: ParentApi, key: string) => api.confirmStoryRunContextV1('synthetic-run', {} as never, key),
+      (api: ParentApi, key: string) => api.confirmStoryRunSubjectV1('synthetic-run', 1, 'subject', key),
+      (api: ParentApi, key: string) => api.confirmStoryRunScriptV1('synthetic-run', 1, 'a'.repeat(64), key),
+    ];
+    for (const call of calls) {
+      const rejecting = createApi([]);
+      for (const bad of ['', 'k'.repeat(129), 'key with space', 'khoa-khong-ascii-é']) {
+        expect(() => call(rejecting.api, bad)).toThrow(ParentApiError);
+      }
+      expect(rejecting.calls).toHaveLength(0);
+      for (const good of ['k', 'k'.repeat(128), '!~']) {
+        const accepting = createApi([{ status: 200, body: { request_id: 'r', story_run: { run_id: 'synthetic-run' } } }]);
+        await call(accepting.api, good).catch(() => undefined);
+        expect(accepting.calls).toHaveLength(1);
+        expect(header(accepting.calls[0], 'Idempotency-Key')).toBe(good);
+      }
+    }
+  });
+
   it('reads a purged run as the lifecycle projection and a live run as the full run', async () => {
     const { api } = createApi([
       { status: 200, body: { request_id: 'r3', lifecycle: { ...lifecycle, run_state: 'DELETED', purge_state: 'COMPLETED' } } },

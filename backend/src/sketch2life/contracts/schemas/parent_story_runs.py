@@ -9,6 +9,11 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field
 
 from sketch2life.contracts.schemas.lesson_library import LessonActivityInputV1
+from sketch2life.contracts.schemas.story_run_video import (
+    ParentStoryQuotaSummaryV1,
+    ParentStoryRunVideoV1,
+    ParentStoryTimelineEventV1,
+)
 
 
 class ParentLessonVersionRefV1(BaseModel):
@@ -107,14 +112,89 @@ class ParentStoryDisplayV1(BaseModel):
     scenes: list[ParentStorySceneDisplayV1] = Field(min_length=5, max_length=15)
 
 
+ParentStoryRunStateV1 = Literal[
+    # The 18 StoryRun states of SRS line 394 (D-215 item 4) ...
+    "DRAFT", "INPUT_PROCESSING", "INPUT_REVIEW", "SUBJECT_REVIEW", "PREPARATION_REVIEW",
+    "STORY_GENERATING", "SCRIPT_REVIEW", "VIDEO_ADMISSION_PENDING", "VIDEO_QUEUED",
+    "VIDEO_GENERATING", "VIDEO_SAFETY_VALIDATING", "VIDEO_READY", "SAFETY_BLOCKED",
+    "COMPLETED", "FAILED", "ABANDONED", "DELETE_PENDING", "DELETED",
+    # ... plus the two documented extensions of the frozen M2 contract (D-216 item 4).
+    "SCRIPT_GENERATING", "SCRIPT_GENERATION_UNKNOWN",
+]
+
+
+# --- T-2e-a (DDL-B3, SRS l.514, l.527, l.532, l.1412, l.1667): the Parent's main activity ---------
+class ParentActivityRefV1(BaseModel):
+    """The exact lesson activity a Parent chose: version, content hash and index (never a URL)."""
+
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    lesson_id: str = Field(min_length=1, max_length=36)
+    version_id: str = Field(min_length=1, max_length=36)
+    content_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    activity_index: int = Field(ge=0, le=23)
+
+
+class ParentActivityV1(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    activity_ref: ParentActivityRefV1
+    title: str
+    objective: str
+    materials_text: str
+    preparation_text: str
+    instructions_text: str
+    observation_notes: str
+    safety_notes: str
+    activity_kind: Literal["outdoor", "indoor", "mixed"]
+    source: Literal["PINNED_LESSON", "PUBLIC", "SHARED"]
+    lesson_title: str
+    lesson_topic: str
+
+
+class ParentPostVideoActivityV1(ParentActivityV1):
+    is_main: bool
+
+
+class ParentMainActivityV1(BaseModel):
+    """``NOT_SELECTED`` until the adult chose; then the stored snapshot (no catalog read)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    state: Literal["NOT_SELECTED", "SELECTED"]
+    selected: ParentActivityV1 | None = None
+    selected_at: datetime | None = None
+
+
+class ParentActivityListBasisV1(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    age_band: Literal["36-71", "72-107", "108-120"]
+    pinned_lesson: bool
+    no_candidate: bool
+
+
+class ParentActivityListV1(BaseModel):
+    """At most 12 age-fit activities in a deterministic order; not a paged collection."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    request_id: UUID
+    items: list[ParentActivityV1] = Field(max_length=12)
+    basis: ParentActivityListBasisV1
+
+
+class ParentActivitySelectionRequestV1(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    expected_revision: int = Field(ge=1)
+    activity: ParentActivityRefV1
+
+
 class ParentStoryRunResponseV1(BaseModel):
     run_id: UUID
     run_revision: int = Field(ge=1)
-    run_state: Literal[
-        "INPUT_PROCESSING", "SUBJECT_REVIEW", "PREPARATION_REVIEW", "SCRIPT_GENERATING",
-        "SCRIPT_GENERATION_UNKNOWN", "SCRIPT_REVIEW", "VIDEO_ADMISSION_PENDING",
-        "DELETE_PENDING", "FAILED", "COMPLETED",
-    ]
+    run_state: ParentStoryRunStateV1
     parent_profile_id: UUID
     profile_revision_ref: UUID
     context_revision: int
@@ -138,6 +218,17 @@ class ParentStoryRunResponseV1(BaseModel):
     error_code: str | None
     created_at: datetime
     updated_at: datetime
+    # FEAT-066 T-1c (StoryRunDetailV1, SRS l.1811): additive fields only (l.1635).
+    video: ParentStoryRunVideoV1 | None = None
+    quota: ParentStoryQuotaSummaryV1 = Field(default_factory=ParentStoryQuotaSummaryV1)
+    timeline: list[ParentStoryTimelineEventV1] = Field(default_factory=list)
+    # FEAT-066 T-2e-a (SRS l.514, l.532, l.1414): additive. The name is not ``activity``: the
+    # Teacher response already has that field.
+    main_activity: ParentMainActivityV1 | None = None
+    post_video_activities: list[ParentPostVideoActivityV1] | None = None
+    # FEAT-066 V4-A T-1b-fix (SRS l.406, l.1728; additive, l.1635): true when the adult has to
+    # confirm the current story (again) before a video can be requested.
+    story_confirmation_required: bool = False
 
 
 class ParentStoryRunEnvelopeV1(BaseModel):
@@ -145,10 +236,35 @@ class ParentStoryRunEnvelopeV1(BaseModel):
     story_run: ParentStoryRunResponseV1
 
 
-class ParentStoryRunCancelEnvelopeV1(BaseModel):
+class ParentStoryRunLifecycleProjectionV1(BaseModel):
+    """FR-C-08 content-free projection from DELETE_PENDING on (Contract Draft 11 §3.4).
+
+    No context snapshot, story, candidate, subject label, profile ref, asset ref, count,
+    percentage or storage key is ever part of it (SRS lines 1053, 1520, 1809).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    run_id: UUID
+    run_state: Literal["DELETE_PENDING", "DELETED"]
+    revision: int = Field(ge=1)
+    version: int = Field(ge=1)
+    lifecycle_request_ref: UUID
+    purge_state: Literal["PENDING", "COMPLETED"]
+
+
+class ParentStoryRunLifecycleEnvelopeV1(BaseModel):
+    """Cancel 202, delete 202, GET of a purged run and the replays of a purged run."""
+
+    model_config = ConfigDict(extra="forbid")
+
     request_id: UUID
-    story_run: ParentStoryRunResponseV1
-    purge_state: Literal["PENDING"]
+    lifecycle: ParentStoryRunLifecycleProjectionV1
+
+
+# D-218 A-3: the frozen cancel envelope that embedded the full run is replaced by the lifecycle
+# envelope. The name is kept as an alias for the cancel route's declared response.
+ParentStoryRunCancelEnvelopeV1 = ParentStoryRunLifecycleEnvelopeV1
 
 
 class ParentStoryErrorFieldV1(BaseModel):
@@ -168,6 +284,30 @@ class ParentStoryErrorEnvelopeV1(BaseModel):
 
 class ParentStoryCancelErrorEnvelopeV1(ParentStoryErrorEnvelopeV1):
     current_version: int | None = Field(default=None, ge=1)
+
+
+class ParentStoryRunSummaryV1(BaseModel):
+    """FEAT-081 C3b history item: summary only (no story, context, topic, media or provider)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    run_id: UUID
+    parent_profile_id: UUID | None
+    run_state: str
+    revision: int = Field(ge=1)
+    deleting: bool
+    can_cancel: bool
+    can_delete: bool
+    created_at: datetime
+    updated_at: datetime
+
+
+class ParentStoryRunHistoryPageV1(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    request_id: UUID
+    items: list[ParentStoryRunSummaryV1]
+    next_cursor: str | None
 
 
 class ParentActiveStoryRunEnvelopeV1(BaseModel):
@@ -191,10 +331,20 @@ class ParentContextConfirmationRequestV1(BaseModel):
 
 
 class ParentSubjectConfirmationResponseV1(BaseModel):
+    """202 body of the subject confirmation (SRS l.1666).
+
+    ``CONFIRMED``: the subject was accepted as ``understanding_revision``. ``RERUN_REQUESTED``: the
+    adult edited the subject, the visual understanding runs again and the new revision is
+    confirmed in a second call (SRS l.394, l.1413); ``understanding_revision`` is then the revision
+    the adult edited. ``run_revision`` is the revision the command created. The job reference is
+    parked (Q-J), so there is no ``job`` field.
+    """
+
     request_id: UUID
     story_run_id: UUID
     understanding_revision: int
-    decision: Literal["CONFIRMED"]
+    decision: Literal["CONFIRMED", "RERUN_REQUESTED"]
+    run_revision: int = Field(ge=1)
 
 
 class ParentStoryRevisionRequestV1(BaseModel):
@@ -212,7 +362,14 @@ class ParentStoryRevisionConfirmationRequestV1(BaseModel):
 
 
 __all__ = [
+    "ParentActivityListBasisV1",
+    "ParentActivityListV1",
+    "ParentActivityRefV1",
+    "ParentActivitySelectionRequestV1",
+    "ParentActivityV1",
     "ParentDrawingCandidateV1",
+    "ParentMainActivityV1",
+    "ParentPostVideoActivityV1",
     "ParentContextConfirmationRequestV1",
     "ParentLessonVersionRefV1",
     "ParentRunContextSnapshotV1",
@@ -229,7 +386,10 @@ __all__ = [
     "ParentStoryRunCancelEnvelopeV1",
     "ParentStoryCancelErrorEnvelopeV1",
     "ParentStoryRunEnvelopeV1",
+    "ParentStoryRunLifecycleEnvelopeV1",
+    "ParentStoryRunLifecycleProjectionV1",
     "ParentStoryRunResponseV1",
+    "ParentStoryRunStateV1",
     "ParentSubjectConfirmationRequestV1",
     "ParentSubjectConfirmationResponseV1",
 ]

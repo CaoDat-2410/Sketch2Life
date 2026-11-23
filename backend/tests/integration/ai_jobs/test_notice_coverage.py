@@ -69,9 +69,26 @@ def _cancelled(rig: b5.B5Rig, job_ids: list[str]) -> int:
         ).scalar_one())
 
 
+# FR-C-08 (DTR Draft 6 §5.2) adds owner_scope_kind, owner_scope_ref and story_run_ref; they
+# exist only after the frc08_lifecycle revision, while this suite pins ``ai_jobs@head``. The
+# organization rows are read through the B2 columns, which an organization notice still writes.
+_B2_NOTICE_COLUMNS = (
+    "notice_id",
+    "organization_id",
+    "reason_code",
+    "session_id",
+    "job_type",
+    "subject_ref",
+    "status",
+    "applied_count",
+    "recorded_at",
+)
+
+
 def _notice_rows(rig: b5.B5Rig) -> list[Any]:
+    columns = [t.cancellation_notice.c[name] for name in _B2_NOTICE_COLUMNS]
     with rig.engine.connect() as connection:
-        return list(connection.execute(select(t.cancellation_notice)).all())
+        return list(connection.execute(select(*columns)).all())
 
 
 def _notice_audits(rig: b5.B5Rig) -> list[Any]:
@@ -220,3 +237,28 @@ def test_owner_bump_with_withheld_notice_blocks_a_stale_create(db: URL) -> None:
         assert connection.execute(select(func.count()).select_from(t.job)).scalar_one() == 1
     assert rig.service.apply_cancellation_notice(_notice("notice_withheld_b5")) == tuple(existing)
     assert rig.base.job(existing[0]).state is JobState.CANCELLED
+
+
+def test_an_organization_notice_keeps_the_b2_columns_and_a_parent_notice_selects_no_job(
+    db: URL,
+) -> None:
+    """FR-C-08 (DTR Draft 6 §5.2, §10): organization notices behave as before; a Parent
+    notice (typed scope, no organization) matches no job, even with a matching session."""
+    rig = b5.build_b5_rig(db)
+    matches = _jobs(rig, 2)
+    assert sorted(rig.service.apply_cancellation_notice(_notice())) == sorted(matches)
+    (row,) = _notice_rows(rig)
+    assert (row.organization_id, row.applied_count, row.status) == (ORG, 2, "COMPLETE")
+    others = _jobs(rig, 1, "parent")
+    parent = CancellationNotice(
+        "lifecycle:parent-notice",
+        None,
+        "PARENT_STORY_RUN_DELETED",
+        session_id=SESSION,
+        owner_scope_kind="PARENT_ACCOUNT",
+        owner_scope_ref="a" * 64,
+        story_run_ref="22222222-2222-4222-8222-222222222222",
+    )
+    with rig.base.repository.transaction() as tx:
+        assert tx.jobs_for_notice(parent) == ()
+    assert rig.base.job(others[0]).state is JobState.QUEUED

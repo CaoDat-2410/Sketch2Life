@@ -91,7 +91,14 @@ def acceptance_client(monkeypatch: pytest.MonkeyPatch, tmp_path) -> Iterator[Acc
                 state="active",
             )
         )
-        db.add(AdultIdentityModel(subject=subject, issuer="synthetic-test-issuer", state="active"))
+        db.add(
+            AdultIdentityModel(
+                subject=subject,
+                issuer="synthetic-test-issuer",
+                state="active",
+                account_role="school_manager",
+            )
+        )
         db.flush()
         db.add(
             OrganizationAssignmentModel(
@@ -145,7 +152,9 @@ def test_real_http_writes_audits_outbox_and_enforces_assignment_scope(
     assert organization.headers["X-Request-ID"]
 
     created_class = client.post(
-        _url(accepted, "/classes"), json={"display_name": "Synthetic Class"}
+        _url(accepted, "/classes"),
+        json={"display_name": "Synthetic Class"},
+        headers={"Idempotency-Key": f"class-{uuid4().hex}"},
     )
     assert created_class.status_code == 201, created_class.text
     class_id = created_class.json()["class_id"]
@@ -227,7 +236,10 @@ def test_real_http_writes_audits_outbox_and_enforces_assignment_scope(
     with accepted.app.state.be1_runtime.session_factory.begin() as db:
         db.add(
             AdultIdentityModel(
-                subject=outsider_subject, issuer="synthetic-test-issuer", state="active"
+                subject=outsider_subject,
+                issuer="synthetic-test-issuer",
+                state="active",
+                account_role="teacher",
             )
         )
         db.flush()
@@ -252,16 +264,19 @@ def test_real_http_writes_audits_outbox_and_enforces_assignment_scope(
 
     accepted.app.dependency_overrides[get_verified_adult] = observer_principal
     forbidden = client.post(
-        _url(accepted, "/classes"), json={"display_name": "Forged role attempt"}
+        _url(accepted, "/classes"),
+        json={"display_name": "Forged role attempt"},
+        headers={"Idempotency-Key": f"class-{uuid4().hex}"},
     )
     assert forbidden.status_code == 403
     assert forbidden.json()["request_id"] == forbidden.headers["X-Request-ID"]
     forged_role = client.post(
         _url(accepted, "/classes"),
         json={"display_name": "Forged role attempt", "role": "school_admin"},
+        headers={"Idempotency-Key": f"class-{uuid4().hex}"},
     )
-    assert forged_role.status_code == 422
-    assert forged_role.json()["code"] == "REQUEST_VALIDATION_FAILED"
+    assert forged_role.status_code == 400
+    assert forged_role.json()["code"] == "INVALID_REQUEST"
 
     with accepted.app.state.be1_runtime.session_factory() as db:
         audit_count = db.scalar(
@@ -289,17 +304,28 @@ def test_real_http_writes_audits_outbox_and_enforces_assignment_scope(
     assert openapi_response.json()["info"]["title"] == "Sketch2Life FE API"
     openapi = accepted.app.state.runtime_openapi_schema
     be1_paths = [path for path in openapi["paths"] if path.startswith("/api/be1/v1/")]
-    assert len(be1_paths) == 55
+    # FEAT-066 T-7b: the class suspend and archive commands add two paths and two operations.
+    # FEAT-066 T-7d: the enrollment move adds one path and one operation.
+    assert len(be1_paths) == 58
     be1_operations = sum(
         1
         for path in be1_paths
         for method in openapi["paths"][path]
         if method in {"get", "post", "put", "patch", "delete"}
     )
-    assert be1_operations == 60
+    assert be1_operations == 63
     assert "HTTPBearer" in openapi["components"]["securitySchemes"]
     error_schema = openapi["components"]["schemas"]["Be1Error"]
-    assert set(error_schema["properties"]) == {"code", "message", "request_id"}
+    assert set(error_schema["properties"]) == {
+        "code",
+        "message",
+        "correlation_id",
+        "retryable",
+        "retry_after_seconds",
+        "field_errors",
+        "request_id",
+        "current_version",
+    }
     upload_response = openapi["paths"][
         "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/artifacts"
     ]["post"]["responses"]
@@ -338,7 +364,11 @@ def test_room_code_start_revocation_stage_and_early_outcome_are_durable(
     monkeypatch.setattr(be1_sessions, "consent_is_effective", lambda *args, **kwargs: True)
     accepted = acceptance_client
     client = accepted.client
-    class_response = client.post(_url(accepted, "/classes"), json={"display_name": "Join Test"})
+    class_response = client.post(
+        _url(accepted, "/classes"),
+        json={"display_name": "Join Test"},
+        headers={"Idempotency-Key": f"class-{uuid4().hex}"},
+    )
     assert class_response.status_code == 201, class_response.text
     class_id = class_response.json()["class_id"]
     created = client.post(
@@ -623,7 +653,7 @@ def test_room_code_start_revocation_stage_and_early_outcome_are_durable(
         headers={"Idempotency-Key": "early-end-reason-required"},
         json={"expected_stage_revision": 6, "outcome": "ended_early"},
     )
-    assert missing_reason.status_code == 422
+    assert missing_reason.status_code == 400
     premature_completion = client.post(
         _url(accepted, f"/sessions/{session_id}/completion"),
         headers={"Idempotency-Key": "completed-stage-required"},
@@ -707,28 +737,78 @@ def test_pending_consent_stays_pending_and_blocks_profile_admission_and_canvas(
     accepted = acceptance_client
     client = accepted.client
     class_response = client.post(
-        _url(accepted, "/classes"), json={"display_name": "Consent Gate Class"}
+        _url(accepted, "/classes"),
+        json={"display_name": "Consent Gate Class"},
+        headers={"Idempotency-Key": f"class-{uuid4().hex}"},
     )
     assert class_response.status_code == 201, class_response.text
     class_id = class_response.json()["class_id"]
 
+    # FEAT-066 M9-B: only an eligible same-organization Teacher, by its opaque candidate ref.
+    teacher_subject = f"synthetic-teacher-{uuid4()}"
+    with accepted.app.state.be1_runtime.session_factory.begin() as db:
+        db.add(
+            AdultIdentityModel(
+                subject=teacher_subject,
+                issuer="synthetic-test-issuer",
+                state="active",
+                account_role="teacher",
+            )
+        )
+        db.flush()
+        db.add(
+            OrganizationAssignmentModel(
+                assignment_id=str(uuid4()),
+                organization_id=accepted.organization_id,
+                subject=teacher_subject,
+                class_id=None,
+                role="teacher",
+                active=True,
+            )
+        )
+    with accepted.app.state.be1_runtime.session_factory() as db:
+        candidate_ref = db.scalar(
+            select(AdultIdentityModel.account_id).where(
+                AdultIdentityModel.subject == teacher_subject
+            )
+        )
     assignment = client.post(
         f"/api/be1/v1/classes/{class_id}/assignments",
-        json={"subject": accepted.subject},
+        json={"candidate_ref": candidate_ref},
+        headers={"Idempotency-Key": f"assign-{uuid4()}", "If-Match": '"1"'},
     )
-    assert assignment.status_code == 201, assignment.text
+    assert assignment.status_code == 200, assignment.text
     assert assignment.json()["role"] == "teacher"
     assert assignment.json()["class_id"] == class_id
+    assert assignment.json()["assignment_revision"] == 2
 
+    # T-7a repair of the base failure: profile create needs a Teacher row of this class (the
+    # School Manager gets 403), so this step and the roster read run as the class-scoped
+    # Teacher created above. The Manager override comes back for the later steps.
+    manager_override = accepted.app.dependency_overrides[get_verified_adult]
+    teacher_principal = VerifiedPrincipal(
+        subject=teacher_subject,
+        issuer="synthetic-test-issuer",
+        roles=frozenset(),
+        token_id="synthetic-test-teacher-token",
+    )
+
+    async def verified_class_teacher() -> VerifiedPrincipal:
+        return teacher_principal
+
+    accepted.app.dependency_overrides[get_verified_adult] = verified_class_teacher
     profile_response = client.post(
         _url(accepted, f"/classes/{class_id}/profiles"),
         json={
-            "class_id": class_id,
             "display_name": "Synthetic Child",
             "age_months": 36,
         },
+        # T-7c: a keyed command with the expected class revision (2 after the assignment).
+        headers={"Idempotency-Key": f"profile-{uuid4()}", "If-Match": '"2"'},
     )
     assert profile_response.status_code == 201, profile_response.text
+    assert profile_response.json()["class_revision"] == 2
+    assert profile_response.headers["ETag"] == '"2"'
     synthetic_child_id = profile_response.json()["child_id"]
     assert synthetic_child_id.startswith("synthetic-")
     assert len(synthetic_child_id.removeprefix("synthetic-")) == 24
@@ -738,6 +818,40 @@ def test_pending_consent_stays_pending_and_blocks_profile_admission_and_canvas(
     profile_list = client.get(_url(accepted, f"/classes/{class_id}/profiles"))
     assert profile_list.status_code == 409
     assert profile_list.json()["code"] == "CONSENT_NOT_EFFECTIVE"
+
+    # T-7a (SRS l.2586, D-066-75 CM-3, CM-5): the School Manager reads a count only, with no
+    # consent gate, no child field and no new audit row.
+    accepted.app.dependency_overrides[get_verified_adult] = manager_override
+    with accepted.app.state.be1_runtime.session_factory() as db:
+        profile_list_audits = db.scalar(
+            select(func.count())
+            .select_from(CoreAuditEntryModel)
+            .where(
+                CoreAuditEntryModel.organization_id == accepted.organization_id,
+                CoreAuditEntryModel.action == "profile.list",
+            )
+        )
+    assert profile_list_audits == 1
+    manager_roster = client.get(_url(accepted, f"/classes/{class_id}/profiles"))
+    assert manager_roster.status_code == 200, manager_roster.text
+    assert manager_roster.json() == {
+        "contract": "Be1ClassRosterSummaryV1",
+        "class_id": class_id,
+        "active_profile_count": 1,
+    }
+    assert "Synthetic Child" not in manager_roster.text
+    with accepted.app.state.be1_runtime.session_factory() as db:
+        assert (
+            db.scalar(
+                select(func.count())
+                .select_from(CoreAuditEntryModel)
+                .where(
+                    CoreAuditEntryModel.organization_id == accepted.organization_id,
+                    CoreAuditEntryModel.action == "profile.list",
+                )
+            )
+            == profile_list_audits
+        )
 
     child_id = f"synthetic-pending-child-{uuid4()}"
     consent_response = client.post(
@@ -851,7 +965,9 @@ def test_retention_worker_purges_local_bytes_once_but_keeps_external_purge_pendi
     accepted = acceptance_client
     client = accepted.client
     class_response = client.post(
-        _url(accepted, "/classes"), json={"display_name": "Retention Acceptance Class"}
+        _url(accepted, "/classes"),
+        json={"display_name": "Retention Acceptance Class"},
+        headers={"Idempotency-Key": f"class-{uuid4().hex}"},
     )
     assert class_response.status_code == 201, class_response.text
     class_id = class_response.json()["class_id"]

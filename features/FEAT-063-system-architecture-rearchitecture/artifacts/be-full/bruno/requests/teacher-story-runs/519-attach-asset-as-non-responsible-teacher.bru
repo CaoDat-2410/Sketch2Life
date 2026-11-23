@@ -1,0 +1,43 @@
+meta {
+  name: 519 [LOCAL / TEST ONLY] Attach asset as non-responsible Teacher
+  type: http
+  seq: 519
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{teacher_run_id}}/assets
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "asset_ref": "{{teacher_asset_ref}}"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_NOT_FOUND");
+  });
+}
+
+docs {
+  Role: Teacher (other: a Teacher who is not responsible for the run) - set bearerToken to that synthetic account's token
+  Needs: teacher_run_id, teacher_asset_ref
+  Expected: 404 / RESOURCE_NOT_FOUND (uniform 404)
+  Source: backend/tests/integration/story_teacher/test_teacher_run_inputs_postgres.py
+}

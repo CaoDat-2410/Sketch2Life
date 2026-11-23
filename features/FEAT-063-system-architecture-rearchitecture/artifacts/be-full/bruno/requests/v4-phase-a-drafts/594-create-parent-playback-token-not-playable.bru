@@ -1,0 +1,36 @@
+meta {
+  name: 594 [DRAFT-V4A] [LOCAL / TEST ONLY] Create Parent playback token when not playable
+  type: http
+  seq: 594
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{parent_story_run_id}}/playback-token
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("INVALID_STATE_TRANSITION");
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Parent - set bearerToken to seed-parent-p1 token
+  Needs: parent_story_run_id that is NOT at VIDEO_READY or COMPLETED with a safety-passed READY video (e.g. SCRIPT_REVIEW or after video-unsuitable)
+  Expected: 409 / INVALID_STATE_TRANSITION
+  Source: backend/src/sketch2life/application/services/story_run_playback.py:85-135, backend/tests/integration/story_video/test_playback_and_detail_postgres.py:290-335
+}

@@ -1,0 +1,29 @@
+meta {
+  name: 428 [LOCAL / TEST ONLY] Prometheus metrics with operator credential
+  type: http
+  seq: 428
+}
+
+get {
+  url: {{baseUrl}}/metrics
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{opsProbeToken}}
+}
+
+headers {
+  Accept: text/plain
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody()).to.include("sketch2life_build_info");
+    expect(res.getBody()).to.include("sketch2life_http_requests_total");
+  });
+}

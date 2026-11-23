@@ -27,6 +27,9 @@ def test_frozen_ddl_matches_metadata_exactly_except_whitespace() -> None:
     generated = ";".join(str(CreateTable(t).compile(dialect=dialect())).strip()
                          for t in METADATA.sorted_tables) + ";"
     normalize = lambda s: re.sub(r"\s+", "", s)  # noqa: E731
+    # FEAT-072: review.permission_revision is added after this frozen DDL
+    # by the 20261119_admin_publication revision.
+    generated = generated.replace("permission_revision INTEGER,", "")
     assert normalize(migration().DDL) == normalize(generated)
 
 

@@ -1,0 +1,34 @@
+meta {
+  name: 218 [LOCAL / TEST ONLY] Reject part with wrong checksum
+  type: http
+  seq: 218
+}
+
+put {
+  url: {{baseUrl}}/v1/upload-sessions/{{generic_upload_id}}/parts/1
+  body: file
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/octet-stream
+  X-Part-SHA256: 0000000000000000000000000000000000000000000000000000000000000000
+}
+
+body:file {
+  file: @file(./requests/upload-sessions/lesson-artwork-1px.png)
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(422);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("UPLOAD_CHECKSUM_MISMATCH");
+  });
+}

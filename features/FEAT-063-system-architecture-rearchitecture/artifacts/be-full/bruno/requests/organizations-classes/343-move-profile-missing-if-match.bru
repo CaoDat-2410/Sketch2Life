@@ -1,0 +1,38 @@
+meta {
+  name: 343 [LOCAL / TEST ONLY] Profile move requires source If-Match
+  type: http
+  seq: 343
+}
+
+post {
+  url: {{baseUrl}}/api/be1/v1/classes/{{created_class_id}}/profiles/{{phase_b_child_id}}/move
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "target_class_id": "{{phase_b_move_target_class_id}}",
+    "target_class_revision": {{phase_b_move_target_revision}}
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("INVALID_REQUEST");
+  });
+}
+

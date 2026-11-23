@@ -1,0 +1,31 @@
+meta {
+  name: 001 [L5] Health
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/health
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+script:post-response {
+  test("A02 returns status 200", function () {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("A02 returns the exact health JSON body", function () {
+    expect(res.getBody()).to.eql({ status: "ok", service: "sketch2life-api" });
+  });
+
+  test("CONV-1 returns a non-empty X-Request-ID response header", function () {
+    const requestId = res.getHeader("x-request-id");
+    expect(requestId).to.be.a("string");
+    expect(requestId.length).to.be.greaterThan(0);
+  });
+}

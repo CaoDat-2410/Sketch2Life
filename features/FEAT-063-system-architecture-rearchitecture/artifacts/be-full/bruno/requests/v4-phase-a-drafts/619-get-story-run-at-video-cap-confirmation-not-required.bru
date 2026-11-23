@@ -1,0 +1,42 @@
+meta {
+  name: 619 [DRAFT-V4A] [LOCAL / TEST ONLY] Get StoryRun at video regeneration cap with story_confirmation_required false
+  type: http
+  seq: 619
+}
+
+get {
+  url: {{baseUrl}}/v1/story-runs/{{limit_exhausted_run_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const story = res.getBody().story_run;
+    expect(story.run_id).to.equal(bru.getVar("limit_exhausted_run_id"));
+    expect(story.run_state).to.equal("SCRIPT_REVIEW");
+    expect(story.story_confirmation_required).to.equal(false);
+    expect(story.video).to.be.an("object");
+    expect(story.video.video_requests_used).to.equal(3);
+    expect(story.video.video_requests_remaining).to.equal(0);
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Parent or Teacher - set bearerToken to the run owner's token
+  Needs: needs-fixture - limit_exhausted_run_id (StoryRun back at SCRIPT_REVIEW after 3 accepted video requests are spent, including via safety block)
+  Expected: 200 (story_confirmation_required is false when _accepted_video_count >= MAX_ACCEPTED_REQUESTS)
+  Source: backend/src/sketch2life/infrastructure/persistence/parent_story_repository.py:3463-3483, backend/tests/integration/story_video/test_safety_block_exit_postgres.py:210-255
+}

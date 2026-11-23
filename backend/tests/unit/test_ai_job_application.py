@@ -411,6 +411,46 @@ def test_cancellation_notices_are_scoped_and_idempotent(h: FixtureHarness) -> No
     assert h.service.apply_cancellation_notice(consent) == (b,)
 
 
+def test_a_parent_lifecycle_notice_matches_no_job_and_is_recorded_complete(
+    h: FixtureHarness,
+) -> None:
+    """FR-C-08 (DTR Draft 6 §5.2): a Parent notice has a typed scope, no organization."""
+    queued = h.service.create_job(h.create(key="k1")).job_id
+    notice = CancellationNotice(
+        "lifecycle:req-1",
+        None,
+        "PARENT_STORY_RUN_DELETED",
+        session_id="session_fx_001",  # even a matching session selects nothing
+        owner_scope_kind="PARENT_ACCOUNT",
+        owner_scope_ref="a" * 64,
+        story_run_ref="22222222-2222-4222-8222-222222222222",
+    )
+    assert h.service.apply_cancellation_notice(notice) == ()
+    recorded = h.store.snapshot().notices["lifecycle:req-1"]
+    assert recorded.applied_count == 0 and recorded.organization_id is None
+    assert recorded.owner_scope_kind == "PARENT_ACCOUNT"
+    assert recorded.story_run_ref == "22222222-2222-4222-8222-222222222222"
+    assert h.service.apply_cancellation_notice(notice) == ()  # idempotent by notice id
+    assert job(h, queued).state is JobState.QUEUED
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    (
+        {"organization_id": ORG, "owner_scope_kind": "PARENT_ACCOUNT", "owner_scope_ref": "a",
+         "story_run_ref": "r"},
+        {"organization_id": None, "owner_scope_kind": "PARENT_ACCOUNT", "owner_scope_ref": "a"},
+        {"organization_id": None, "owner_scope_kind": "PARENT_ACCOUNT", "story_run_ref": "r"},
+        {"organization_id": None},
+        {"organization_id": ORG, "owner_scope_ref": "other"},
+        {"organization_id": ORG, "owner_scope_kind": "GLOBAL"},
+    ),
+)
+def test_a_notice_without_a_coherent_owner_scope_is_refused(kwargs: dict[str, object]) -> None:
+    with pytest.raises(ValueError):
+        CancellationNotice(notice_id="n", reason_code="X", **kwargs)  # type: ignore[arg-type]
+
+
 # --------------------------------------------------------------- A-15 / A-16 / A-17
 def test_unsafe_output_is_blocked_and_quarantined(h: FixtureHarness) -> None:
     job_id = h.service.create_job(h.create()).job_id

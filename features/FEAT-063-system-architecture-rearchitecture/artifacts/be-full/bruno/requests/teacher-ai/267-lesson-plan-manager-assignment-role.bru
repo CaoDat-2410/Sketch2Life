@@ -1,0 +1,43 @@
+meta {
+  name: 267 [LOCAL / TEST ONLY] School Manager assignment role is refused on Teacher AI
+  type: http
+  seq: 267
+}
+
+post {
+  url: {{baseUrl}}/api/teacher/v1/organizations/{{organization_id}}/ai/lesson-plan-suggestions
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "topic": "Butterflies",
+    "target_age_months": 60,
+    "objectives": ["Notice butterfly wings"],
+    "drawing_subject": "A butterfly on a flower",
+    "activity_count": 1,
+    "activity_kind": "indoor",
+    "script_following_allowed": false,
+    "script_direction": null
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(403);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("ACTION_NOT_ALLOWED");
+  });
+}
+

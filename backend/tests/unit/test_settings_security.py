@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Any
 
 import pytest
 from pydantic import ValidationError
@@ -83,3 +84,63 @@ def test_pixi_sprite_dev_preview_cannot_be_enabled_outside_local_test(env: str) 
     )
 
     assert settings.pixi_sprite_cycle_dev_preview_allowed is False
+
+
+# --- T-2z: the local test scanner adapter is refused outside local/test --------------------
+
+_SCANNER_REFUSAL = "local test scanner adapter is available only in local/test"
+
+
+def test_scanner_adapter_defaults_to_clamav() -> None:
+    settings = Settings(_env_file=None)  # type: ignore[call-arg]
+
+    assert settings.scanner_adapter == "clamav"
+    assert settings.local_scanner_allowlist_file is None
+
+
+@pytest.mark.parametrize("env", ["local", "test"])
+def test_local_test_scanner_adapter_is_accepted_in_local_and_test(env: Any) -> None:
+    settings = Settings(_env_file=None, env=env, scanner_adapter="local_test_allowlist")  # type: ignore[call-arg]
+
+    assert settings.scanner_adapter == "local_test_allowlist"
+
+
+def test_staging_refuses_the_local_scanner_before_any_other_policy_reason() -> None:
+    # No Firebase configuration either: the scanner reason must be the one reported.
+    with pytest.raises(ValidationError, match=_SCANNER_REFUSAL):
+        Settings(_env_file=None, env="staging", scanner_adapter="local_test_allowlist")  # type: ignore[call-arg]
+
+
+def test_production_refuses_the_local_scanner_even_with_valid_firebase_and_runpod() -> None:
+    with pytest.raises(ValidationError, match=_SCANNER_REFUSAL):
+        Settings(
+            _env_file=None,  # type: ignore[call-arg]
+            env="production",
+            auth_provider="firebase",
+            firebase_project_id="fixture-project",
+            ai_provider="runpod",
+            runpod_endpoint_id="fixture-endpoint",
+            runpod_api_key_file=Path("/runtime/secrets/runpod-key"),
+            scanner_adapter="local_test_allowlist",
+        )
+
+
+@pytest.mark.parametrize("env", ["staging", "production"])
+def test_the_allowlist_file_path_alone_does_not_trip_the_refusal(env: Any) -> None:
+    settings = Settings(
+        _env_file=None,  # type: ignore[call-arg]
+        env=env,
+        auth_provider="firebase",
+        firebase_project_id="fixture-project",
+        ai_provider="runpod" if env == "production" else "disabled",
+        runpod_endpoint_id="fixture-endpoint" if env == "production" else "",
+        runpod_api_key_file=Path("/runtime/secrets/runpod-key") if env == "production" else None,
+        local_scanner_allowlist_file=Path("allow.json"),
+    )
+
+    assert settings.scanner_adapter == "clamav"
+
+
+def test_an_unknown_scanner_adapter_value_is_rejected() -> None:
+    with pytest.raises(ValidationError):
+        Settings(_env_file=None, scanner_adapter="anything-else")  # type: ignore[call-arg,arg-type]

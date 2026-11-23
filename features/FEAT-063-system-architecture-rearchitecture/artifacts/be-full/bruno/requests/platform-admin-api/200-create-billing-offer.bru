@@ -1,0 +1,37 @@
+meta {
+  name: 200 [PLATFORM ADMIN - STATE CHANGE - SYNTHETIC ONLY] Create Billing Offer
+  type: http
+  seq: 200
+}
+
+post {
+  url: {{baseUrl}}/api/platform-admin/v1/billing/sandbox/offers
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+  Idempotency-Key: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+body:json {
+  {
+    "owner_kind": "ORGANIZATION",
+    "units": 10,
+    "amount_vnd": 10000
+  }
+}
+
+docs {
+  Expected success status: 201
+  Main error cases: 401 AUTH_REQUIRED; 403 ACTION_NOT_ALLOWED; 403 BILLING_SANDBOX_DISABLED; 400 INVALID_REQUEST.
+  If-Match required: no.
+  Idempotency-Key required: yes.
+}

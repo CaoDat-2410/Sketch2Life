@@ -1,0 +1,37 @@
+meta {
+  name: 188 [PLATFORM ADMIN - STATE CHANGE - SYNTHETIC ONLY] Set Content Admin Permission
+  type: http
+  seq: 188
+}
+
+put {
+  url: {{baseUrl}}/api/platform-admin/v1/accounts/{{platform_account_id}}/permissions/content-admin
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+  Idempotency-Key: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+body:json {
+  {
+    "active": true,
+    "expected_revision": 0,
+    "reason": "Synthetic permission test"
+  }
+}
+
+docs {
+  Expected success status: 200
+  Main error cases: 401 AUTH_REQUIRED; 403 ACTION_NOT_ALLOWED; 400 INVALID_REQUEST; 403 SELF_PERMISSION_CHANGE_DENIED; 404 RESOURCE_NOT_FOUND; 422 ACTIVE_PLATFORM_ADMIN_REQUIRED.
+  If-Match required: no.
+  Idempotency-Key required: yes.
+}

@@ -1,0 +1,60 @@
+meta {
+  name: 572 [DRAFT-V4A] [LOCAL / TEST ONLY] Complete Teacher StoryRun keeping playback available
+  type: http
+  seq: 572
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{teacher_run_id}}/complete
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "expected_revision": {{teacher_run_revision}}
+  }
+}
+
+script:post-response {
+  const story = res.getBody().story_run;
+  if (story) {
+    bru.setVar("teacher_run_revision", String(story.run_revision));
+    bru.setVar("completed_run_id", story.run_id);
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const story = res.getBody().story_run;
+    expect(story.run_id).to.equal(bru.getVar("teacher_run_id"));
+    expect(story.run_state).to.equal("COMPLETED");
+    expect(story.plan).to.be.an("object");
+    expect(story.activity).to.be.an("object");
+    if (story.video) {
+      expect(story.video.playback.state).to.equal("AVAILABLE");
+    }
+    expect(String(res.getHeader("Content-Location"))).to.equal("/v1/story-runs/" + bru.getVar("teacher_run_id"));
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Teacher - set bearerToken to seed-tch-a1 token
+  Needs: teacher_run_id at VIDEO_READY, current teacher_run_revision (Complete on an unprojected sample is allowed and does not end playback)
+  Expected: 200
+  Source: backend/src/sketch2life/interfaces/http/routers/story_run_video.py:305-333, backend/src/sketch2life/infrastructure/story_video/repository.py:956-1004, backend/tests/integration/lesson_occurrences/test_projection_after_complete_postgres.py:51-53
+}

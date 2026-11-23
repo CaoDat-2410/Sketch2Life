@@ -1,0 +1,38 @@
+meta {
+  name: 339 [LOCAL / TEST ONLY] Read active target class revision
+  type: http
+  seq: 339
+}
+
+get {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/classes?state=active&limit=100
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+script:post-response {
+  const row = res.getBody().items.find(item => item.class_id === bru.getVar("phase_b_move_target_class_id"));
+  if (row) {
+    bru.setVar("phase_b_move_target_revision", String(row.class_revision));
+  bru.setVar("phase_b_move_target_initial_revision", String(row.class_revision));
+    bru.setVar("phase_b_move_target_revision_etag", '"' + String(row.class_revision) + '"');
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().items.some(item => item.class_id === bru.getVar("phase_b_move_target_class_id"))).to.equal(true);
+  });
+}
+

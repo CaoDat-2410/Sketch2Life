@@ -10,7 +10,6 @@ import json
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 from structlog import get_logger
 
@@ -28,11 +27,8 @@ from sketch2life.infrastructure.ai.modal_function_client import (
     ModalJsonFunctionClient,
 )
 from sketch2life.infrastructure.config.settings import get_settings
-from sketch2life.infrastructure.persistence.be1_models import (
-    AdultIdentityModel,
-    OrganizationAssignmentModel,
-)
 from sketch2life.interfaces.http.be1_runtime import get_db, get_verified_adult
+from sketch2life.interfaces.http.routers.be1_common import require_assignment
 
 router = APIRouter(
     prefix="/api/teacher/v1/organizations/{organization_id}/ai",
@@ -63,31 +59,6 @@ def _bounded_text_segments(value: str, *, maximum: int = 240) -> list[str]:
     if not 1 <= len(segments) <= 8:
         raise HTTPException(status_code=422, detail={"code": "TEACHER_PLAN_FIELD_LIMIT_EXCEEDED"})
     return segments
-
-
-def _require_teacher(
-    db: Session, principal: VerifiedPrincipal, organization_id: str
-) -> None:
-    identity = db.get(AdultIdentityModel, principal.subject)
-    assignment = db.scalar(
-        select(OrganizationAssignmentModel.assignment_id).where(
-            OrganizationAssignmentModel.subject == principal.subject,
-            OrganizationAssignmentModel.organization_id == organization_id,
-            OrganizationAssignmentModel.role == "teacher",
-            OrganizationAssignmentModel.active.is_(True),
-        )
-    )
-    if (
-        identity is None
-        or identity.state != "active"
-        or identity.account_role != "teacher"
-        or identity.issuer != principal.issuer
-        or assignment is None
-    ):
-        raise HTTPException(
-            status_code=403,
-            detail={"code": "TEACHER_ORGANIZATION_ACCESS_REQUIRED"},
-        )
 
 
 def _require_modal_dev() -> None:
@@ -129,7 +100,7 @@ def suggest_lesson_plan(
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
 ) -> dict[str, object]:
-    _require_teacher(db, principal, organization_id)
+    require_assignment(db, principal, organization_id, roles={"teacher"})
     _require_modal_dev()
     request_id = str(uuid4())
     worker_input = {
@@ -182,7 +153,7 @@ def generate_sketch_deck(
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
 ) -> dict[str, object]:
-    _require_teacher(db, principal, organization_id)
+    require_assignment(db, principal, organization_id, roles={"teacher"})
     _require_modal_dev()
     request_id = str(uuid4())
     plan_without_hash: dict[str, object] = {
@@ -260,7 +231,7 @@ def generate_lesson_visual(
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
 ) -> dict[str, object]:
-    _require_teacher(db, principal, organization_id)
+    require_assignment(db, principal, organization_id, roles={"teacher"})
     _require_modal_dev()
     request_id = str(uuid4())
     visual_without_hash: dict[str, object] = {

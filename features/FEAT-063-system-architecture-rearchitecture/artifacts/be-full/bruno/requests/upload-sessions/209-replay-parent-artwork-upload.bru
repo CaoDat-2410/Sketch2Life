@@ -1,0 +1,41 @@
+meta {
+  name: 209 [LOCAL / TEST ONLY] Replay upload create receipt
+  type: http
+  seq: 209
+}
+
+post {
+  url: {{baseUrl}}/v1/upload-sessions
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{upload_create_key}}
+}
+
+body:json {
+  {
+    "purpose": "RUN_ARTWORK",
+    "target_ref": "{{parent_story_run_id}}",
+    "media_type": "image/png",
+    "expected_size_bytes": 69,
+    "expected_sha256": "d3c936ebdd73f46e6422d5946044c99d524554082272019ab738800318b04892",
+    "file_name": "lesson-artwork-1px.png"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().upload_id).to.equal(bru.getVar("generic_upload_id"));
+  });
+}

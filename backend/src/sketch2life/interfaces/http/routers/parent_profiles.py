@@ -40,8 +40,10 @@ from sketch2life.interfaces.http.parent_runtime import (
 PARENT_ERROR_RESPONSES: dict[int | str, dict[str, Any]] = {
     400: {"model": ParentErrorResponse, "description": "The request is invalid"},
     401: {"model": ParentErrorResponse, "description": "Authentication is required or invalid"},
-    403: {"model": ParentErrorResponse, "description": "The action is not allowed"},
-    404: {"model": ParentErrorResponse, "description": "The profile was not found"},
+    404: {
+        "model": ParentErrorResponse,
+        "description": "The profile was not found, or the caller is not an active Parent",
+    },
     409: {"model": ParentErrorResponse, "description": "The request conflicts with profile state"},
     503: {"model": ParentErrorResponse, "description": "A required service is unavailable"},
 }
@@ -84,9 +86,11 @@ def _require_active_parent(
             },
         ) from None
     if not active_parent:
+        # CONV-1 (SRS l.864-865, C-D4, OD-18b): a caller who is not an active Parent is out of
+        # scope for every profile route, so it gets the family's own not-found body.
         raise HTTPException(
-            status_code=403,
-            detail={"code": "ACTION_NOT_ALLOWED", "message": "The action is not allowed"},
+            status_code=404,
+            detail={"code": "PROFILE_NOT_FOUND", "message": "Profile was not found"},
         )
 
 

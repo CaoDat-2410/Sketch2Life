@@ -92,8 +92,27 @@ _EXPECTED_VERSION_ROWS = frozenset(
         "20261019_pa_0001",
         "20261019_vf_0001",
         "20261109_m2_parent_profiles",
-        "20261110_ar_0001",
-        "20261112_parent_story_context",
+        # FEAT-066 C5: the BE1 command-receipt revision follows ar_0001 and replaces its row.
+        # FEAT-066 T-2a: the DDL-F upload-scope revision follows ar_0002 and replaces its row.
+        # FEAT-066 T-3a: the DDL-A occurrence revision follows uf_0001 and replaces its row.
+        # FEAT-066 T-7b: the DDL-H class-revision revision follows oc_0001 and replaces its row.
+        # FEAT-066 T-7d: the DDL-H enrollment-index revision follows cls_0001 and replaces its row.
+        # FEAT-066 T-8a: the DDL-C part 1 notification-inbox revision follows cls_0002 and
+        # replaces its row.
+        # FEAT-066 T-4b1: the DDL-A child-selection revision follows nt_0001 and replaces its row.
+        "20261120_sel_0001",
+        # FR-C-08: the lifecycle revision depends on the Story head and replaces its row.
+        # FEAT-066 T-2c: the DDL-B1 voice-idea revision follows the lifecycle revision and
+        # replaces its row (this gate test runs only on the fixed gate databases).
+        # FEAT-066 T-1a: the DDL-B1 video-generation revision follows the voice-idea revision and
+        # replaces its row.
+        # FEAT-066 T-4b2: the DDL-B2 Teacher-lock revision follows the video-generation revision
+        # and replaces its row.
+        # FEAT-066 goal v4 T-2e-a: the DDL-B3 activity-selection revision follows the Teacher-lock
+        # revision and replaces its row.
+        # FEAT-066 goal v4 T-1b-fix: the DDL-B1c review-epoch revision follows the DDL-B3 revision
+        # and replaces its row.
+        "20261123_rv_0001",
     }
 )
 _MUST_START_EMPTY = (
@@ -346,6 +365,18 @@ def _all_table_counts(engine: Engine) -> dict[str, int]:
 
 def _assert_no_side_effects(engine: Engine) -> None:
     for table in _SIDE_EFFECT_TABLES:
+        if table == "core_outbox_events":
+            # FR-C-08 (DTR Draft 6 §6.1): cancel writes one lifecycle event by design; any
+            # other Core outbox row is still a side effect.
+            assert (
+                _scalar(
+                    engine,
+                    "SELECT count(*) FROM core_outbox_events WHERE event_type NOT IN "
+                    "('StoryRunCancellationRequestedV1', 'StoryRunDeletedV1')",
+                )
+                == 0
+            ), "core_outbox_events must hold no event other than lifecycle events"
+            continue
         assert _count(engine, table) == 0, f"{table} must stay empty"
 
 
@@ -741,10 +772,10 @@ def test_08_03_cancel_marks_delete_pending_and_releases_the_owner(gate: _Gate, a
     run_id = _created_run_id(api, account)
     response = _cancel(api, account, run_id, f"cancel-{uuid4().hex}", 1)
     assert response.status_code == 202, response.text
-    body = response.json()
+    body = response.json()["lifecycle"]  # FR-C-08 lifecycle envelope (D-218 A-3)
     assert body["purge_state"] == "PENDING"
-    assert body["story_run"]["run_state"] == "DELETE_PENDING"
-    assert body["story_run"]["run_revision"] == 2
+    assert body["run_state"] == "DELETE_PENDING"
+    assert body["revision"] == 2
     assert _run_value(gate.engine, run_id, "run_state") == "DELETE_PENDING"
     assert _run_value(gate.engine, run_id, "active_owner_parent_account_id") is None
     receipt = _scalar(
@@ -794,9 +825,9 @@ def test_08_06_run_revision_tracks_committed_state_changes(gate: _Gate, api: _Ap
     assert _create(api, account, create_key).json()["story_run"]["run_revision"] == 1
     assert _run_value(gate.engine, run_id, "revision") == 1
     cancel_key = f"cancel-{uuid4().hex}"
-    assert _cancel(api, account, run_id, cancel_key, 1).json()["story_run"]["run_revision"] == 2
+    assert _cancel(api, account, run_id, cancel_key, 1).json()["lifecycle"]["revision"] == 2
     assert _cancel(api, account, run_id, cancel_key, 1).status_code == 202
-    assert _get(api, account, run_id).json()["story_run"]["run_revision"] == 2
+    assert _get(api, account, run_id).json()["lifecycle"]["revision"] == 2
     assert _run_value(gate.engine, run_id, "revision") == 2
 
 
@@ -1022,8 +1053,8 @@ def test_08_03p_cancel_from_preparation_review_keeps_inputs_and_assets(
     }
     response = _cancel(api, account, run_id, f"cancel-{uuid4().hex}", revision)
     assert response.status_code == 202, response.text
-    assert response.json()["purge_state"] == "PENDING"
-    assert response.json()["story_run"]["run_state"] == "DELETE_PENDING"
+    assert response.json()["lifecycle"]["purge_state"] == "PENDING"
+    assert response.json()["lifecycle"]["run_state"] == "DELETE_PENDING"
     assert _run_value(gate.engine, run_id, "active_owner_parent_account_id") is None
     assert (
         _scalar(
@@ -1036,7 +1067,7 @@ def test_08_03p_cancel_from_preparation_review_keeps_inputs_and_assets(
         == "PENDING"
     )
     assert _retention_rows(gate.engine, run_id, original_ref, derived_ref) == before
-    assert _get(api, account, run_id).json()["story_run"]["run_state"] == "DELETE_PENDING"
+    assert _get(api, account, run_id).json()["lifecycle"]["run_state"] == "DELETE_PENDING"
     _assert_no_side_effects(gate.engine)
 
 
@@ -1230,8 +1261,8 @@ def test_restart_keeps_committed_state(gate: _Gate, api: _Api) -> None:
 
     seen = _get(api, account, run_id)
     assert seen.status_code == 200, seen.text
-    assert seen.json()["story_run"]["run_state"] == "DELETE_PENDING"
-    assert seen.json()["story_run"]["run_revision"] == 2
+    assert seen.json()["lifecycle"]["run_state"] == "DELETE_PENDING"
+    assert seen.json()["lifecycle"]["revision"] == 2
     assert _active(api, account).json()["story_run"] is None
     replay = _cancel(api, account, run_id, cancel_key, 1)
     assert replay.status_code == 202, replay.text

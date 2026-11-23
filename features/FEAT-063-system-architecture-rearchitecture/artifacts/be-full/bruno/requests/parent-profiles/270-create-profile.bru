@@ -1,0 +1,46 @@
+meta {
+  name: 270 [LOCAL / TEST ONLY] Create Parent profile
+  type: http
+  seq: 270
+}
+
+post {
+  url: {{baseUrl}}/v1/parent/profiles
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "display_name": "Phase B synthetic profile",
+    "age_months": 60,
+    "interests_summary": "Butterflies and drawing"
+  }
+}
+
+script:post-response {
+  const body = res.getBody();
+  bru.setVar("phase_b_parent_profile_id", body.profile_id);
+  bru.setVar("phase_b_parent_profile_revision", String(body.revision_no));
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().profile_id).to.be.a("string");
+    expect(res.getBody().revision_no).to.equal(1);
+  });
+}
+

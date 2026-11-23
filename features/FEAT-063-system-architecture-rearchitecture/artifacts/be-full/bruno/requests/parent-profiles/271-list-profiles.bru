@@ -1,0 +1,30 @@
+meta {
+  name: 271 [LOCAL / TEST ONLY] List Parent profiles
+  type: http
+  seq: 271
+}
+
+get {
+  url: {{baseUrl}}/v1/parent/profiles?limit=25
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().items).to.be.an("array");
+    expect(res.getBody()).to.have.property("next_cursor");
+  });
+}
+

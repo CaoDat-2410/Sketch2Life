@@ -1,0 +1,37 @@
+meta {
+  name: 237 [LOCAL / TEST ONLY] School Manager cannot create Teacher occurrence
+  type: http
+  seq: 237
+}
+
+post {
+  url: {{baseUrl}}/v1/lesson-occurrences
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: wrong-role-occurrence
+}
+
+body:json {
+  {
+    "class_id": "seed-org-a-class-1",
+    "title": "Manager must not create this occurrence"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_NOT_FOUND");
+  });
+}

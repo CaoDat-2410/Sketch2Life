@@ -1,0 +1,29 @@
+meta {
+  name: 276 [LOCAL / TEST ONLY] Teacher gets profile-family not-found on list
+  type: http
+  seq: 276
+}
+
+get {
+  url: {{baseUrl}}/v1/parent/profiles
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("PROFILE_NOT_FOUND");
+  });
+}
+

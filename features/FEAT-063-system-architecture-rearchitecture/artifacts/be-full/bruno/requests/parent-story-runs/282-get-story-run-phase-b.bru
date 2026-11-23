@@ -1,0 +1,35 @@
+meta {
+  name: 282 [LOCAL / TEST ONLY] Read StoryRun and capture current revision
+  type: http
+  seq: 282
+}
+
+get {
+  url: {{baseUrl}}/v1/story-runs/{{parent_story_run_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+script:post-response {
+  const story = res.getBody().story_run;
+  bru.setVar("phase_b_story_run_revision", String(story.run_revision));
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().story_run.run_id).to.equal(bru.getVar("parent_story_run_id"));
+    expect(res.getBody().story_run.run_revision).to.be.a("number");
+  });
+}
+

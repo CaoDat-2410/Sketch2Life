@@ -1,0 +1,39 @@
+meta {
+  name: 350 [LOCAL / TEST ONLY] Profile move refuses a suspended target
+  type: http
+  seq: 350
+}
+
+post {
+  url: {{baseUrl}}/api/be1/v1/classes/{{move_guard_source_class_id}}/profiles/{{move_guard_child_id}}/move
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+  If-Match: {{move_guard_source_revision_etag}}
+}
+
+body:json {
+  {
+    "target_class_id": "{{move_suspended_target_class_id}}",
+    "target_class_revision": {{move_suspended_target_revision}}
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("INVALID_STATE_TRANSITION");
+  });
+}
+

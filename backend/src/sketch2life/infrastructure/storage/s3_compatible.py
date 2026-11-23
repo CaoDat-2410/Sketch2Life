@@ -103,5 +103,36 @@ class Boto3S3CompatibleObjectStorage(ObjectStoragePort):
         except (BotoCoreError, ClientError) as exc:
             raise ObjectStorageFailure("Object storage could not delete the object") from exc
 
+    def list_keys(self, prefix: str) -> tuple[str, ...]:
+        """ListObjectsV2 over ``prefix``, every page; fail closed on any error (port §5.3)."""
+        if not prefix:
+            raise ObjectStorageFailure("Object storage listing needs a non-empty prefix")
+        keys: list[str] = []
+        token: str | None = None
+        try:
+            while True:
+                request: dict[str, object] = {"Bucket": self._bucket, "Prefix": prefix}
+                if token is not None:
+                    request["ContinuationToken"] = token
+                response = self._client.list_objects_v2(**request)
+                for item in response.get("Contents", []) or []:
+                    key = item.get("Key")
+                    if not isinstance(key, str) or not key.startswith(prefix):
+                        raise ObjectStorageFailure("Object storage returned an unexpected key")
+                    keys.append(key)
+                if not response.get("IsTruncated"):
+                    break
+                next_token = response.get("NextContinuationToken")
+                if not isinstance(next_token, str) or not next_token:
+                    raise ObjectStorageFailure("Object storage listing could not continue")
+                token = next_token
+        except (BotoCoreError, ClientError) as exc:
+            raise ObjectStorageFailure("Object storage could not list the prefix") from exc
+        except ObjectStorageFailure:
+            raise
+        except Exception as exc:  # any other adapter error is never read as an empty listing
+            raise ObjectStorageFailure("Object storage could not list the prefix") from exc
+        return tuple(sorted(keys))
+
 
 __all__ = ["Boto3S3CompatibleObjectStorage", "build_s3_client"]

@@ -1,0 +1,68 @@
+meta {
+  name: 559 [DRAFT-V4A] [LOCAL / TEST ONLY] Get Parent StoryRun with v4 Phase A fields
+  type: http
+  seq: 559
+}
+
+get {
+  url: {{baseUrl}}/v1/story-runs/{{parent_story_run_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+script:post-response {
+  const story = res.getBody().story_run;
+  if (story) {
+    bru.setVar("parent_story_run_revision", String(story.run_revision));
+    bru.setVar("story_context_revision", String(story.context_revision));
+    bru.setVar("story_context_hash", story.context_snapshot_sha256);
+    if (story.understanding_revision !== null) bru.setVar("story_understanding_revision", String(story.understanding_revision));
+    if (story.story_revision_no !== null) bru.setVar("story_revision_no", String(story.story_revision_no));
+    if (story.story_sha256 !== null) bru.setVar("story_sha256", story.story_sha256);
+    if (story.video && story.video.current_generation_id) {
+      bru.setVar("parent_generation_id", story.video.current_generation_id);
+    }
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("ETag")).to.be.a("string");
+    expect(res.getHeader("Cache-Control")).to.equal("private, no-cache");
+    const story = res.getBody().story_run;
+    expect(story.run_id).to.equal(bru.getVar("parent_story_run_id"));
+    expect(typeof story.story_confirmation_required).to.equal("boolean");
+    expect(story.main_activity).to.be.an("object");
+    expect(["NOT_SELECTED", "SELECTED"]).to.include(story.main_activity.state);
+    expect(story.post_video_activities === null || Array.isArray(story.post_video_activities)).to.equal(true);
+    if (story.run_state === "VIDEO_READY" || story.run_state === "COMPLETED") {
+      if (Array.isArray(story.post_video_activities) && story.post_video_activities.length > 0) {
+        expect(typeof story.post_video_activities[0].is_main).to.equal("boolean");
+      }
+    } else {
+      expect(story.post_video_activities).to.equal(null);
+    }
+    if (story.main_activity.state === "SELECTED") {
+      expect(story.main_activity.selected).to.be.an("object");
+    }
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Parent - set bearerToken to seed-parent-p1 token
+  Needs: parent_story_run_id from 400 (verifies additive Parent fields main_activity, post_video_activities, and story_confirmation_required)
+  Expected: 200
+  Source: backend/src/sketch2life/contracts/schemas/parent_story_runs.py:227-231, backend/src/sketch2life/interfaces/http/routers/parent_story_runs.py:233-246,515-550, backend/tests/contract/test_parent_activities_contract.py:293-295,406-413
+}

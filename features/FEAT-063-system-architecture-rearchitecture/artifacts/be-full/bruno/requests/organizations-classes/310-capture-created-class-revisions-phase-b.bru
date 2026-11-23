@@ -1,0 +1,44 @@
+meta {
+  name: 310 [LOCAL / TEST ONLY] Read active class revisions for create and lifecycle flows
+  type: http
+  seq: 310
+}
+
+get {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/classes?state=active&limit=100
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+script:post-response {
+  const items = res.getBody().items;
+  for (const [idVar, revVar, etagVar] of [
+    ["created_class_id", "phase_b_created_class_revision", "phase_b_created_class_revision_etag"],
+    ["phase_b_lifecycle_class_id", "phase_b_lifecycle_class_revision", "phase_b_lifecycle_class_revision_etag"]
+  ]) {
+    const row = items.find(item => item.class_id === bru.getVar(idVar));
+    if (row) {
+      bru.setVar(revVar, String(row.class_revision));
+      bru.setVar(etagVar, '"' + String(row.class_revision) + '"');
+    }
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().items).to.be.an("array");
+    expect(res.getBody().items.every(item => typeof item.class_revision === "number")).to.equal(true);
+  });
+}
+

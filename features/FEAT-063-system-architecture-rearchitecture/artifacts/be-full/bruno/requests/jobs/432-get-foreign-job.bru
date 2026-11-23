@@ -1,0 +1,28 @@
+meta {
+  name: 432 [LOCAL / TEST ONLY] Foreign job is hidden
+  type: http
+  seq: 432
+}
+
+get {
+  url: {{baseUrl}}/v1/jobs/{{foreign_job_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_NOT_FOUND");
+  });
+}

@@ -1,0 +1,50 @@
+meta {
+  name: 612 [DRAFT-V4A] [LOCAL / TEST ONLY] Confirm Teacher context with unmet gate stays at PREPARATION_REVIEW
+  type: http
+  seq: 612
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{teacher_unmet_gate_run_id}}/context-confirmation
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "expected_context_revision": {{teacher_unmet_gate_context_revision}},
+    "context_snapshot_sha256": "{{teacher_unmet_gate_context_hash}}",
+    "confirmed": true
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const story = res.getBody().story_run;
+    expect(story.run_id).to.equal(bru.getVar("teacher_unmet_gate_run_id"));
+    expect(story.context_confirmed).to.equal(true);
+    expect(story.run_state).to.equal("PREPARATION_REVIEW");
+    expect(story.story_revision_no).to.equal(null);
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Teacher - set bearerToken to seed-tch-a1 token
+  Needs: needs-fixture - teacher_unmet_gate_run_id, teacher_unmet_gate_context_revision, teacher_unmet_gate_context_hash (Teacher StoryRun in PREPARATION_REVIEW with an unmet implicit-first-story gate such as missing confirmed subject or superseded plan)
+  Expected: 200 (context_confirmed=true, but run_state remains PREPARATION_REVIEW with story_revision_no=null)
+  Source: backend/src/sketch2life/infrastructure/persistence/parent_story_repository.py:1340-1390, backend/tests/integration/story_teacher/test_teacher_first_story_postgres.py:142-185
+}

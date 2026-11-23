@@ -1,0 +1,37 @@
+meta {
+  name: 258 [LOCAL / TEST ONLY] Complete upload with a space in the key
+  type: http
+  seq: 258
+}
+
+post {
+  url: {{baseUrl}}/v1/upload-sessions/{{generic_upload_id}}/complete
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: invalid key
+}
+
+body:json {
+  {
+    "expected_size_bytes": 69,
+    "expected_sha256": "d3c936ebdd73f46e6422d5946044c99d524554082272019ab738800318b04892"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("INVALID_REQUEST");
+  });
+}

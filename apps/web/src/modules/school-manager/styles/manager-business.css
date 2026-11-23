@@ -1,0 +1,376 @@
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-page { display: grid; gap: 17px; min-width: 0; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-card {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--manager-rule);
+  border-radius: var(--manager-radius);
+  background: var(--manager-sheet);
+  box-shadow: 0 3px 12px rgb(50 43 33 / 3%);
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-card-heading {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-card-heading h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 0;
+  color: var(--manager-ink);
+  font-size: 18px;
+  line-height: 1.3;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-eyebrow {
+  margin: 0;
+  color: var(--manager-blue-deep);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-chip {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  border: 1px solid var(--manager-rule);
+  border-radius: 999px;
+  background: var(--manager-green-soft);
+  color: var(--manager-green);
+  font-size: 11px;
+  font-weight: 750;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-chip.is-pending {
+  background: var(--manager-gold-soft);
+  color: #6f571f;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-summary { display: flex; min-height: 190px; flex-direction: column; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-summary h2 { margin: 17px 0 7px; color: var(--manager-ink); font-size: 19px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-summary p { margin: 0 0 16px; color: var(--manager-muted); line-height: 1.55; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-summary a {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 7px;
+  margin-top: auto;
+  color: var(--manager-blue-deep);
+  font-size: 13px;
+  font-weight: 750;
+  text-decoration: none;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-summary a:hover { text-decoration: underline; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-icon,
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-avatar {
+  display: inline-flex;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--manager-rule);
+  border-radius: 12px;
+  background: var(--manager-blue-soft);
+  color: var(--manager-blue-deep);
+  font-weight: 750;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-organization {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 1fr);
+  gap: 14px;
+  margin: 16px 0 0;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-organization > div { min-width: 0; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-organization dt { margin-bottom: 5px; color: var(--manager-soft-muted); font-size: 11px; font-weight: 700; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-organization dd { margin: 0; overflow-wrap: anywhere; color: var(--manager-ink); font-weight: 700; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-code,
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-table code { color: var(--manager-muted); font-family: var(--font-code, ui-monospace, monospace); font-size: 11px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-state,
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-subtle { margin: 12px 0 0; color: var(--manager-muted); font-size: 13px; line-height: 1.5; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-alert,
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-success {
+  margin: 0;
+  padding: 11px 13px;
+  border: 1px solid #e6b9ae;
+  border-radius: 12px;
+  background: var(--manager-clay-soft);
+  color: var(--manager-danger);
+  line-height: 1.45;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-success { border-color: #c6d6bd; background: var(--manager-green-soft); color: var(--manager-green); }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-limitation { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; background: #fffdf7; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-limitation h2 { margin: 5px 0; color: var(--manager-ink); font-size: 16px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-limitation p:not(.manager-business-eyebrow) { max-width: 760px; margin: 0; color: var(--manager-muted); font-size: 13px; line-height: 1.55; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-class-picker { display: grid; grid-template-columns: minmax(145px, .5fr) minmax(220px, 1fr); align-items: center; gap: 10px 18px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-class-picker label,
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-form label { color: var(--manager-ink); font-size: 13px; font-weight: 700; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-class-picker select,
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-form input {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 9px 12px;
+  border: 1px solid var(--manager-rule-strong);
+  border-radius: 11px;
+  background: #fffefa;
+  color: var(--manager-ink);
+  font: inherit;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-class-picker select:focus-visible,
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-form input:focus-visible,
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-button:focus-visible { outline: 3px solid var(--manager-focus); outline-offset: 2px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-class-picker .manager-business-subtle { grid-column: 2; margin: 0; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-profile-list,
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-group-list { display: grid; gap: 8px; margin: 15px 0 0; padding: 0; list-style: none; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-profile-list li,
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-group-list li { display: flex; min-width: 0; align-items: center; gap: 10px; padding: 10px; border: 1px solid var(--manager-rule); border-radius: 12px; background: #fffdf8; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-profile-list li > span:last-child,
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-group-copy { display: grid; min-width: 0; gap: 3px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-profile-list strong,
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-group-copy strong { overflow-wrap: anywhere; color: var(--manager-ink); font-size: 13px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-profile-list small,
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-group-copy small { color: var(--manager-muted); font-size: 11px; line-height: 1.4; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-avatar { border-radius: 50%; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-table-wrap { max-width: 100%; margin-top: 14px; overflow-x: auto; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-table { width: 100%; min-width: 520px; border-collapse: collapse; text-align: left; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-table th,
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-table td { padding: 10px 8px; border-bottom: 1px solid var(--manager-rule); font-size: 12px; vertical-align: top; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-table th { color: var(--manager-soft-muted); font-size: 10px; letter-spacing: .04em; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-form { display: grid; gap: 8px; margin-top: 14px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-row { display: flex; min-width: 0; gap: 9px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-row input { flex: 1 1 auto; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-button { display: inline-flex; min-height: 42px; align-items: center; justify-content: center; gap: 7px; padding: 8px 12px; border: 1px solid var(--manager-rule-strong); border-radius: 11px; background: #fffefa; color: var(--manager-blue-deep); cursor: pointer; font: inherit; font-size: 12px; font-weight: 750; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-button.is-primary { border-color: var(--manager-blue-deep); background: var(--manager-blue-deep); color: #fff; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-button:disabled { opacity: .56; cursor: not-allowed; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-pagination { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; padding-top: 13px; border-top: 1px solid var(--manager-rule); color: var(--manager-muted); font-size: 12px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-pagination > div { display: flex; flex-wrap: wrap; gap: 8px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-class { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, .85fr); gap: 12px 24px; align-items: center; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-class h2 { margin: 0; color: var(--manager-ink); font-size: 18px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-class p { margin: 7px 0 0; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-class form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: end; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-class label { grid-column: 1 / -1; color: var(--manager-ink); font-size: 13px; font-weight: 700; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-class input { min-width: 0; min-height: 42px; padding: 8px 11px; border: 1px solid var(--manager-rule-strong); border-radius: 10px; background: #fffefa; color: var(--manager-ink); font: inherit; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-class > .manager-business-subtle { grid-column: 1 / -1; margin-top: 0; }
+@media (max-width: 820px) {
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-grid { grid-template-columns: minmax(0, 1fr); }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-class-picker { grid-template-columns: minmax(0, 1fr); }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-class-picker .manager-business-subtle { grid-column: 1; }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-organization { grid-template-columns: minmax(0, 1fr); }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-class { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 560px) {
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-card { padding: 14px; }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-row { align-items: stretch; flex-direction: column; }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-row button { width: 100%; }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-limitation { flex-direction: column; }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-pagination { align-items: flex-start; flex-direction: column; }
+}
+
+/* REV46_MANAGER_NAVIGATION — align the live BE1 shell with the Manager paper system. */
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) {
+  --manager-focus: #285f97;
+}
+
+:is(html[data-portal="school-preview"][data-theme="dark"], html[data-portal="school-be1"][data-theme="dark"]) {
+  --manager-paper: #25241f;
+  --manager-board: #302e28;
+  --manager-sheet: #302e28;
+  --manager-ink: #fff9f0;
+  --manager-muted: #d0c7b7;
+  --manager-soft-muted: #b8af9f;
+  --manager-rule: #514b3f;
+  --manager-rule-strong: #706551;
+  --manager-blue: #93bfe9;
+  --manager-blue-deep: #c3ddf7;
+  --manager-blue-soft: #37424c;
+  --manager-gold: #efcf7c;
+  --manager-gold-soft: #51452b;
+  --manager-green: #a7d2a5;
+  --manager-green-soft: #304232;
+  --manager-clay: #e7a18b;
+  --manager-clay-soft: #4b302a;
+  --manager-danger: #f0b0a0;
+}
+
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager {
+  --s2l-canvas: var(--manager-paper);
+  --s2l-paper: var(--manager-sheet);
+  --s2l-ink: var(--manager-ink);
+  --s2l-muted: var(--manager-muted);
+  --s2l-line: var(--manager-rule);
+  --s2l-teal: var(--manager-blue);
+  --s2l-teal-dark: var(--manager-blue-deep);
+  --s2l-teal-soft: var(--manager-blue-soft);
+  --s2l-coral: var(--manager-clay);
+  --s2l-amber: var(--manager-gold);
+  min-height: 100dvh;
+  background: var(--manager-paper);
+  color: var(--manager-ink);
+}
+
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-sidebar {
+  width: 272px;
+  padding: 20px 13px 14px;
+  border-right-color: var(--manager-rule);
+  background: var(--manager-sheet);
+  box-shadow: 5px 0 24px rgb(50 43 33 / 4%);
+}
+
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-brand-lockup {
+  min-height: 50px;
+  gap: 11px;
+  padding: 0 8px 13px;
+  border-bottom: 1px solid var(--manager-rule);
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-brand-lockup .s2l-wordmark {
+  width: 42px; height: 42px; flex-basis: 42px;
+  border: 1px solid var(--manager-rule); border-radius: 14px; background: var(--manager-board);
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-brand-lockup .s2l-brandmark {
+  width: 42px; height: 42px; border-radius: 13px;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-brand-lockup strong { color: var(--manager-ink); }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-brand-lockup > div span,
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-sidebar-caption { color: var(--manager-muted); }
+
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-sidebar-caption {
+  margin: 13px 4px 17px; padding: 10px 11px;
+  border: 1px solid var(--manager-rule); border-radius: 13px;
+  background: var(--manager-paper); font-size: 11px; line-height: 1.45;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-nav {
+  min-height: 0; padding: 0 2px 12px;
+  scrollbar-color: var(--manager-rule-strong) transparent;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-nav-group {
+  gap: 4px; margin: 0; padding: 11px 0 13px;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-nav-group + .s2l-nav-group { border-top: 1px solid var(--manager-rule); }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-nav-group h2 {
+  margin: 0 9px 6px; color: var(--manager-soft-muted);
+  font-size: 9px; letter-spacing: .1em;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-nav-link {
+  min-height: 46px; gap: 9px; padding: 5px 9px;
+  border-radius: 13px; color: var(--manager-muted);
+  font-size: 12px; font-weight: 650; line-height: 1.3;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-nav-link > svg {
+  width: 19px; height: 19px; color: var(--manager-blue-deep);
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-nav-link > span:not(.s2l-nav-state) {
+  min-width: 0; flex: 1 1 auto;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-nav-link:hover {
+  transform: translateX(2px); border-color: var(--manager-rule);
+  background: var(--manager-board); color: var(--manager-ink);
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-nav-link.is-active {
+  border-color: var(--manager-rule-strong); background: var(--manager-blue-soft);
+  box-shadow: inset 3px 0 0 var(--manager-blue);
+  color: var(--manager-blue-deep); font-weight: 750;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-nav-link.is-active > svg { color: var(--manager-blue-deep); }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-nav-state {
+  flex: 0 0 auto; margin-left: auto; padding: 4px 6px;
+  border: 1px solid var(--manager-rule); border-radius: 999px;
+  background: var(--manager-gold-soft); color: var(--manager-muted);
+  font-size: 9px; font-weight: 750;
+}
+
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-sidebar-bottom {
+  gap: 8px; padding: 11px 2px 0; border-top-color: var(--manager-rule);
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-session-status {
+  gap: 9px; padding: 10px; border: 1px solid var(--manager-rule);
+  border-radius: 13px; background: var(--manager-board);
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-session-status > span {
+  background: var(--manager-green); box-shadow: 0 0 0 4px var(--manager-green-soft);
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-session-status strong { color: var(--manager-ink); font-size: 11px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-session-status div span { color: var(--manager-muted); font-size: 10px; }
+
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-password-button,
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-logout-button {
+  min-height: 44px; padding: 0 10px; border: 1px solid var(--manager-rule);
+  border-radius: 12px; background: var(--manager-sheet); color: var(--manager-ink);
+  font-size: 12px; font-weight: 700;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-password-button:hover {
+  border-color: var(--manager-blue); background: var(--manager-blue-soft); color: var(--manager-blue-deep);
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-logout-button:hover {
+  border-color: var(--manager-clay); background: var(--manager-clay-soft); color: var(--manager-clay);
+}
+
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-topbar {
+  border-bottom-color: var(--manager-rule);
+  background: color-mix(in srgb, var(--manager-sheet) 94%, transparent);
+  color: var(--manager-ink);
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-topbar-title > div > span { color: var(--manager-muted); }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-topbar-title > div > strong { color: var(--manager-ink); }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-mode-chip { color: var(--manager-blue-deep); }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-mode-chip > span { background: var(--manager-green); }
+
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-account-indicator {
+  display: flex; min-width: 0; min-height: 44px; align-items: center; gap: 9px;
+  padding: 4px 10px 4px 5px; border: 1px solid var(--manager-rule);
+  border-radius: 999px; background: var(--manager-sheet);
+  color: var(--manager-blue-deep); font-size: 12px; font-weight: 700;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-account-indicator .s2l-account-avatar {
+  border-color: var(--manager-rule); background: var(--manager-blue-soft); color: var(--manager-blue-deep);
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-account-indicator > svg { flex: 0 0 auto; color: var(--manager-green); }
+
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager :is(.s2l-nav-link, .s2l-password-button, .s2l-logout-button, .s2l-menu-button, .s2l-close-menu):focus-visible {
+  outline: 3px solid var(--manager-focus); outline-offset: 2px;
+}
+
+@media (max-width: 1050px) {
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-sidebar { width: 252px; }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-workspace { margin-left: 252px; }
+}
+@media (max-width: 820px) {
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-sidebar {
+    width: min(320px, calc(100vw - 52px)); transform: translateX(-105%); box-shadow: none;
+    transition: transform 200ms ease, box-shadow 200ms ease;
+  }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager.is-menu-open .s2l-sidebar {
+    transform: translateX(0); box-shadow: 16px 0 34px rgb(39 43 35 / 18%);
+  }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-workspace { margin-left: 0; }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager :is(.s2l-menu-button, .s2l-close-menu) {
+    width: 44px; min-height: 44px; border-color: var(--manager-rule);
+    border-radius: 12px; background: var(--manager-sheet); color: var(--manager-ink);
+  }
+}
+@media (max-width: 620px) {
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-account-indicator {
+    width: 40px; justify-content: center; padding: 3px;
+  }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-account-indicator > span:not(.s2l-account-avatar),
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-account-indicator > svg { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-nav-link { transition: none; }
+}
+/* Goal v3 Phase B (T-7a/T-7b): roster count and class state controls. */
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-roster-count { margin: 4px 0 0; color: var(--manager-ink); font-size: 15px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-roster-count strong { font-size: 28px; margin-right: 6px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-filter { display: grid; gap: 4px; margin: 0 0 10px; color: var(--manager-ink); font-size: 13px; font-weight: 700; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-filter select { min-height: 38px; padding: 6px 10px; border: 1px solid var(--manager-rule-strong); border-radius: 10px; background: #fffefa; color: var(--manager-ink); font: inherit; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-lifecycle > div { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-lifecycle [role="group"] > p { flex-basis: 100%; margin: 0; }

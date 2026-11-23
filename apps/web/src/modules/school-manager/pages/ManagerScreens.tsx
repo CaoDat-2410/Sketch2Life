@@ -9,7 +9,7 @@ import {
   hasFirebaseAuthBridge,
   type AccessGrant,
   type TeacherLessonDetail,
-} from "../../../shared/backendApi";
+} from "../../../shared/api/backendApi";
 
 type Toast = (text: string, kind?: "ok" | "info" | "warn" | "err") => void;
 

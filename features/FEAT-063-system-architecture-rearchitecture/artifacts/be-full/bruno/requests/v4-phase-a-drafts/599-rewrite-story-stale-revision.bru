@@ -1,0 +1,48 @@
+meta {
+  name: 599 [DRAFT-V4A] [LOCAL / TEST ONLY] Rewrite story with stale revision
+  type: http
+  seq: 599
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{parent_story_run_id}}/story-rewrites
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "expected_story_revision": 4,
+    "expected_story_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "hint": "Shorter story"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.code).to.equal("STALE_REVISION");
+    expect(body.current_version).to.equal(Number(bru.getVar("story_revision_no")));
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Parent - set bearerToken to seed-parent-p1 token (also applies to Teacher)
+  Needs: parent_story_run_id in SCRIPT_REVIEW with a rewritable DRAFT/FAILED or spent-video story revision below rewrite limit, story_revision_no
+  Expected: 409 / STALE_REVISION (replacing raw PARENT_STORY_REVISION_STALE, with current_version)
+  Source: backend/src/sketch2life/infrastructure/persistence/parent_story_repository.py:2804-2812, backend/tests/contract/test_parent_story_rewrites_route.py:506-515
+}

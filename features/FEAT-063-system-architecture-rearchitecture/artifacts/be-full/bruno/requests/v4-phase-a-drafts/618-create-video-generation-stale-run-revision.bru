@@ -1,0 +1,48 @@
+meta {
+  name: 618 [DRAFT-V4A] [LOCAL / TEST ONLY] Request video generation with stale StoryRun revision
+  type: http
+  seq: 618
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{parent_story_run_id}}/video-generations
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "expected_revision": 1,
+    "story_sha256": "{{story_sha256}}",
+    "quality_reason_code": null
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.code).to.equal("STALE_REVISION");
+    expect(body.current_version).to.equal(Number(bru.getVar("parent_story_run_revision")));
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Parent - set bearerToken to seed-parent-p1 token (also applies to Teacher)
+  Needs: parent_story_run_id in SCRIPT_REVIEW with a confirmed story and run_revision > 1, parent_story_run_revision, story_sha256
+  Expected: 409 / STALE_REVISION (with current_version)
+  Source: backend/src/sketch2life/infrastructure/story_video/repository.py:555-610
+}

@@ -1,0 +1,35 @@
+meta {
+  name: 512 [LOCAL / TEST ONLY] Get Teacher story run as Parent
+  type: http
+  seq: 512
+}
+
+get {
+  url: {{baseUrl}}/v1/story-runs/{{teacher_run_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_NOT_FOUND");
+  });
+}
+
+docs {
+  Role: Parent - set bearerToken to that synthetic account's token
+  Needs: teacher_run_id from 508 (a Parent cannot read a Teacher run)
+  Expected: 404 / RESOURCE_NOT_FOUND
+  Source: backend/tests/integration/story_teacher/test_teacher_run_create_postgres.py, backend/tests/contract/test_teacher_story_run_create_contract.py
+}

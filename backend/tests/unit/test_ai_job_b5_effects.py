@@ -427,6 +427,17 @@ def _notice(notice_id: str = "notice_b5") -> CancellationNotice:
     return CancellationNotice(notice_id, ORG, "SESSION_ENDED", session_id=SESSION)
 
 
+def test_organization_notice_construction_keeps_its_defaults() -> None:
+    """FR-C-08 parity: an organization notice keeps a NULL scope ref and no run ref."""
+    notice = _notice()
+    assert (notice.owner_scope_kind, notice.owner_scope_ref, notice.story_run_ref) == (
+        "ORGANIZATION",
+        None,
+        None,
+    )
+    assert not notice.is_parent
+
+
 def _matching_jobs(h: FixtureHarness, count: int) -> list[str]:
     return [
         h.service.create_job(h.create(key=f"idem_n{index}", ref=request_ref(f"req_n{index}")))

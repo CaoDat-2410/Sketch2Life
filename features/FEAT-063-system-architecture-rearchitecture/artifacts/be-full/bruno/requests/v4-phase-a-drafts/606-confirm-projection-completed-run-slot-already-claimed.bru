@@ -1,0 +1,49 @@
+meta {
+  name: 606 [DRAFT-V4A] [LOCAL / TEST ONLY] Refuse projection confirmation for another completed run when slot CLAIMED
+  type: http
+  seq: 606
+}
+
+post {
+  url: {{baseUrl}}/v1/lesson-occurrences/{{occurrence_id}}/projection-confirmation
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  If-Match: {{occurrence_etag}}
+}
+
+body:json {
+  {
+    "story_run_id": "{{second_completed_teacher_run_id}}",
+    "video_generation_id": "{{second_completed_teacher_generation_id}}",
+    "checklist": [
+      "CONTENT_APPROPRIATE_FOR_CLASS",
+      "CLASSROOM_PROJECTION_INTENT_CONFIRMED"
+    ]
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("SAMPLE_VIDEO_ALREADY_EXISTS");
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Teacher - set bearerToken to seed-tch-a1 token
+  Needs: needs-fixture - occurrence_id whose sample slot is already CLAIMED by another run, fresh occurrence_etag, second_completed_teacher_run_id, second_completed_teacher_generation_id
+  Expected: 409 / SAMPLE_VIDEO_ALREADY_EXISTS
+  Source: backend/src/sketch2life/infrastructure/lesson_occurrences/projection.py:249-270, backend/tests/integration/lesson_occurrences/test_projection_after_complete_postgres.py:137-162
+}

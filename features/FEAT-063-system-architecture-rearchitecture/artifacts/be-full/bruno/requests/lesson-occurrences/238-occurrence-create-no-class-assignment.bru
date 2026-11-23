@@ -1,0 +1,37 @@
+meta {
+  name: 238 [LOCAL / TEST ONLY] Teacher without class assignment is refused
+  type: http
+  seq: 238
+}
+
+post {
+  url: {{baseUrl}}/v1/lesson-occurrences
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: missing-class-assignment
+}
+
+body:json {
+  {
+    "class_id": "seed-org-a-class-1",
+    "title": "Unassigned Teacher request"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("TEACHER_ASSIGNMENT_REQUIRED");
+  });
+}

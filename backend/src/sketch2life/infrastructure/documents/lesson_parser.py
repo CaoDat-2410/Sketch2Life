@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-import io
 import re
 import zipfile
-from collections.abc import Iterable
 from typing import BinaryIO
 
 from sketch2life.application.ports.lesson_documents import (
@@ -53,7 +51,7 @@ class DeterministicLessonDocumentParser:
         except Exception:
             raise LessonDocumentRejected("INVALID_SOURCE_DOCUMENT") from None
 
-        text = "\n".join(part for part in text_parts if part)
+        text = sanitize_extracted_text("\n".join(part for part in text_parts if part))
         if len(text.encode("utf-8")) > MAX_EXTRACTED_TEXT_BYTES:
             raise LessonDocumentRejected("DOCUMENT_TEXT_LIMIT_EXCEEDED")
         fields, warnings = _extract_allowlisted_fields(text)
@@ -67,7 +65,24 @@ class DeterministicLessonDocumentParser:
             page_coverage=tuple(coverage),
             extracted_fields=fields,
             warnings=tuple(warnings),
+            extracted_text=text,
         )
+
+
+# C0 controls other than tab, line feed and carriage return, DEL and the C1 range. PostgreSQL TEXT
+# cannot hold NUL, and none of these characters is document text (FEAT-066 T-3b, review F-02).
+_CONTROL_CHARACTERS = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]")
+
+
+def sanitize_extracted_text(text: str) -> str:
+    """Replace lone surrogates with U+FFFD and drop control characters.
+
+    A lone surrogate (broken font or encoding in a PDF or Office part) makes ``str.encode`` raise
+    and PostgreSQL refuses NUL, so both would end as a 500 after the job row was written. The
+    stored text and its hash are the normalised string.
+    """
+    text = text.encode("utf-16", "surrogatepass").decode("utf-16", "replace")
+    return _CONTROL_CHARACTERS.sub("", text)
 
 
 def _validate_office_archive(file_obj: BinaryIO, extension: str) -> None:
