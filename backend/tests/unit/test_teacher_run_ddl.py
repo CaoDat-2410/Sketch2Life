@@ -79,7 +79,9 @@ def test_the_revision_is_the_only_child_of_the_story_head() -> None:
     assert {rev for rev, downs in graph.items() if "20261123_as_0001" in downs} == {
         "20261123_rv_0001"
     }
-    assert not {rev for rev, downs in graph.items() if "20261123_rv_0001" in downs}
+    assert {rev for rev, downs in graph.items() if "20261123_rv_0001" in downs} == {
+        "20261113_svg_catalog_review"
+    }
     assert graph["20261120_b2_0001"] == (_PARENT,)
 
 

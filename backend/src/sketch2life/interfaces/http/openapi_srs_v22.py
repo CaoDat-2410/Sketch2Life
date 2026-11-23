@@ -5,6 +5,7 @@ from __future__ import annotations
 from copy import deepcopy
 from typing import Any
 from sketch2life.interfaces.http.admin_contract import ADMIN_OPERATIONS
+from sketch2life.interfaces.http.openapi_contract import FEAT083_OPERATIONS
 
 SRS_V22_INCLUDED_OPERATIONS: frozenset[tuple[str, str]] = frozenset(
     {
@@ -322,9 +323,16 @@ def project_srs_v22_openapi(runtime_spec: dict[str, Any]) -> dict[str, Any]:
         retained: dict[str, Any] = {}
         for method, operation in path_item.items():
             key = (method.lower(), path)
-            if key not in SRS_V22_INCLUDED_OPERATIONS and key not in ADMIN_OPERATIONS:
+            if (
+                key not in SRS_V22_INCLUDED_OPERATIONS
+                and key not in ADMIN_OPERATIONS
+                and key not in FEAT083_OPERATIONS
+            ):
                 continue
-            operation["tags"] = ["Admin" if key in ADMIN_OPERATIONS else SRS_V22_OPERATION_TAGS[key]]
+            operation["tags"] = [
+                "Admin" if key in ADMIN_OPERATIONS
+                else SRS_V22_OPERATION_TAGS.get(key, "Parent StoryRuns")
+            ]
             retained[method] = operation
         if retained:
             published[path] = retained

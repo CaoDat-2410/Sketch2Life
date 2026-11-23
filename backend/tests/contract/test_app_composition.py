@@ -149,6 +149,9 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
     # Preserve the full pre-integration route surface while allowing only the
     # reviewed classroom, Parent profile, and Lesson Library contracts.
     assert expected.items() <= actual.items()
+    from sketch2life.interfaces.http.openapi_contract import FEAT083_OPERATIONS
+
+    added_paths = {path for _, path in FEAT083_OPERATIONS}
     assert set(actual) - set(expected) == {
         # FEAT-066 T0.3: the public liveness probe (the operator probes are not in the schema).
         "/health/live",
@@ -175,7 +178,7 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
         "/v1/parent/profiles/{profile_id}",
     } | set(lesson_library_methods) | {path for _, path in ADMIN_OPERATIONS} | {
         path for _, path in QUOTA_OPERATIONS
-    } | {
+    } | added_paths | {
         "/api/auth/v1/registrations",
         "/api/auth/v1/me",
         # FEAT-066 T0.4: live job poll route (runtime-only).

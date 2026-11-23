@@ -118,7 +118,8 @@ def test_the_head_counts_stay_fifteen_and_ten() -> None:
     assert _REVISION not in heads_down_only and _PARENT not in heads_down_only
     assert "20261120_b2_0001" not in heads_down_only
     assert "20261123_as_0001" not in heads_down_only
-    assert "20261123_rv_0001" in heads_down_only
+    assert "20261113_svg_catalog_review" in heads_down_only
+    assert "20261123_rv_0001" not in heads_down_only
     assert {rev for rev, (downs, _) in graph.items() if _REVISION in downs} == {"20261120_b2_0001"}
 
 

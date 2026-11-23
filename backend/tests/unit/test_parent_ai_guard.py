@@ -135,13 +135,18 @@ def test_every_ai_route_answers_the_404_before_the_provider_gate(
 ) -> None:
     """The provider is not enabled here (``ai_provider`` is not ``modal_dev``).
 
-    A wrong-role caller gets the 404 and never the 503 that would reveal the provider setting;
-    an active Parent does get the 503 (so the 404 above is the guard, not a missing route).
+    Wrong-role callers get the same resource-not-found response. Active Parents reach
+    the catalog for sketch guides and the disabled-provider gate for other routes.
     """
     calls = _calls(client)
     _use_db(client, _Db("parent"))
     for name, call in calls.items():
-        assert call().status_code == 503, name
+        response = call()
+        if name == "sketch-guides":
+            assert response.status_code == 404
+            assert response.json()["detail"]["code"] == "CURATED_SVG_GUIDE_NOT_FOUND"
+        else:
+            assert response.status_code == 503, name
     _use_db(client, db)
     bodies = {name: call() for name, call in calls.items()}
     for name, response in bodies.items():

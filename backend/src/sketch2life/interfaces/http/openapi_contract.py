@@ -12894,6 +12894,471 @@ MOUNTED_OPERATIONS[("post", "/v1/notifications/read-all")] = {
     "verification": _NOTIFICATION_VERIFICATION,
 }
 
+# FEAT-083: approved SVG and topic contracts.
+FEAT083_OPERATIONS: dict[tuple[str, str], OperationMetadata] = {
+    ("get", "/api/svg-catalog/v1/parent/guides"): {
+        "purpose": "List Parent Guides",
+        "request_inputs": "query `topic_key`: string; query `limit`: string",
+        "surface": "SVG catalog and Parent topic guides",
+        "tag": "Parent StoryRuns",
+        "handler": "svg_catalog.py::list_parent_guides",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": "FEAT-083 approved implementation",
+        "responses": (
+            {
+                "status": "200",
+                "description": "Successful Response",
+                "media_type": "application/json",
+                "schema_name": "SvgGuideCatalogPageV1",
+            },
+            {
+                "status": "422",
+                "description": "Validation Error",
+                "media_type": "application/json",
+                "schema_name": "HTTPValidationError",
+            },
+        ),
+    },
+    ("get", "/api/svg-catalog/v1/organizations/{organization_id}/assets"): {
+        "purpose": "List Teacher Assets",
+        "request_inputs": "path `organization_id*`: string; query `limit`: string",
+        "surface": "SVG catalog and Parent topic guides",
+        "tag": "Parent StoryRuns",
+        "handler": "svg_catalog.py::list_teacher_assets",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": "FEAT-083 approved implementation",
+        "responses": (
+            {
+                "status": "200",
+                "description": "Successful Response",
+                "media_type": "application/json",
+                "schema_name": "SvgCatalogPageV1",
+            },
+            {
+                "status": "422",
+                "description": "Validation Error",
+                "media_type": "application/json",
+                "schema_name": "HTTPValidationError",
+            },
+        ),
+    },
+    ("post", "/api/svg-catalog/v1/organizations/{organization_id}/assets"): {
+        "purpose": "Create Organization Asset",
+        "request_inputs": "path "
+        "`organization_id*`: "
+        "string; "
+        "application/json "
+        "(required): "
+        "SvgCatalogAssetCreateRequestV1",
+        "surface": "SVG catalog and Parent topic guides",
+        "tag": "Parent StoryRuns",
+        "handler": "svg_catalog.py::create_organization_asset",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": "FEAT-083 approved implementation",
+        "responses": (
+            {
+                "status": "201",
+                "description": "Successful Response",
+                "media_type": "application/json",
+                "schema_name": "SvgCatalogAssetResponseV1",
+            },
+            {
+                "status": "422",
+                "description": "Validation Error",
+                "media_type": "application/json",
+                "schema_name": "HTTPValidationError",
+            },
+        ),
+    },
+    ("post", "/api/svg-catalog/v1/platform/assets"): {
+        "purpose": "Create Platform Asset",
+        "request_inputs": "application/json (required): SvgCatalogAssetCreateRequestV1",
+        "surface": "SVG catalog and Parent topic guides",
+        "tag": "Parent StoryRuns",
+        "handler": "svg_catalog.py::create_platform_asset",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": "FEAT-083 approved implementation",
+        "responses": (
+            {
+                "status": "201",
+                "description": "Successful Response",
+                "media_type": "application/json",
+                "schema_name": "SvgCatalogAssetResponseV1",
+            },
+            {
+                "status": "422",
+                "description": "Validation Error",
+                "media_type": "application/json",
+                "schema_name": "HTTPValidationError",
+            },
+        ),
+    },
+    (
+        "post",
+        "/api/svg-catalog/v1/organizations/{organization_id}/assets/{catalog_entry_id}/guide-revisions",
+    ): {
+        "purpose": "Create Organization Guide Revision",
+        "request_inputs": "path "
+        "`organization_id*`: "
+        "string; "
+        "path "
+        "`catalog_entry_id*`: "
+        "string; "
+        "application/json "
+        "(required): "
+        "CreateSvgGuideRevisionRequestV1",
+        "surface": "SVG catalog and Parent topic guides",
+        "tag": "Parent StoryRuns",
+        "handler": "svg_catalog.py::create_organization_guide_revision",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": "FEAT-083 approved implementation",
+        "responses": (
+            {
+                "status": "201",
+                "description": "Successful Response",
+                "media_type": "application/json",
+                "schema_name": "SvgGuideRevisionReceiptV1",
+            },
+            {
+                "status": "422",
+                "description": "Validation Error",
+                "media_type": "application/json",
+                "schema_name": "HTTPValidationError",
+            },
+        ),
+    },
+    (
+        "get",
+        "/api/svg-catalog/v1/organizations/{organization_id}/assets/{catalog_entry_id}/guide-revisions",
+    ): {
+        "purpose": "List Organization Guide Revisions",
+        "request_inputs": "path "
+        "`organization_id*`: "
+        "string; "
+        "path "
+        "`catalog_entry_id*`: "
+        "string; "
+        "query "
+        "`limit`: "
+        "string",
+        "surface": "SVG catalog and Parent topic guides",
+        "tag": "Parent StoryRuns",
+        "handler": "svg_catalog.py::list_organization_guide_revisions",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": "FEAT-083 approved implementation",
+        "responses": (
+            {
+                "status": "200",
+                "description": "Successful Response",
+                "media_type": "application/json",
+                "schema_name": "SvgGuideRevisionPageV1",
+            },
+            {
+                "status": "422",
+                "description": "Validation Error",
+                "media_type": "application/json",
+                "schema_name": "HTTPValidationError",
+            },
+        ),
+    },
+    ("post", "/api/svg-catalog/v1/platform/assets/{catalog_entry_id}/guide-revisions"): {
+        "purpose": "Create Platform Guide Revision",
+        "request_inputs": "path "
+        "`catalog_entry_id*`: "
+        "string; "
+        "application/json "
+        "(required): "
+        "CreateSvgGuideRevisionRequestV1",
+        "surface": "SVG catalog and Parent topic guides",
+        "tag": "Parent StoryRuns",
+        "handler": "svg_catalog.py::create_platform_guide_revision",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": "FEAT-083 approved implementation",
+        "responses": (
+            {
+                "status": "201",
+                "description": "Successful Response",
+                "media_type": "application/json",
+                "schema_name": "SvgGuideRevisionReceiptV1",
+            },
+            {
+                "status": "422",
+                "description": "Validation Error",
+                "media_type": "application/json",
+                "schema_name": "HTTPValidationError",
+            },
+        ),
+    },
+    (
+        "post",
+        "/api/svg-catalog/v1/organizations/{organization_id}/assets/{catalog_entry_id}/source-reviews",
+    ): {
+        "purpose": "Review Organization Source",
+        "request_inputs": "path "
+        "`organization_id*`: "
+        "string; "
+        "path "
+        "`catalog_entry_id*`: "
+        "string; "
+        "application/json "
+        "(required): "
+        "SvgSourceReviewRequestV1",
+        "surface": "SVG catalog and Parent topic guides",
+        "tag": "Parent StoryRuns",
+        "handler": "svg_catalog.py::review_organization_source",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": "FEAT-083 approved implementation",
+        "responses": (
+            {
+                "status": "200",
+                "description": "Successful Response",
+                "media_type": "application/json",
+                "schema_name": "SvgReviewReceiptV1",
+            },
+            {
+                "status": "422",
+                "description": "Validation Error",
+                "media_type": "application/json",
+                "schema_name": "HTTPValidationError",
+            },
+        ),
+    },
+    ("post", "/api/svg-catalog/v1/platform/assets/{catalog_entry_id}/source-reviews"): {
+        "purpose": "Review Platform Source",
+        "request_inputs": "path "
+        "`catalog_entry_id*`: "
+        "string; "
+        "application/json "
+        "(required): "
+        "SvgSourceReviewRequestV1",
+        "surface": "SVG catalog and Parent topic guides",
+        "tag": "Parent StoryRuns",
+        "handler": "svg_catalog.py::review_platform_source",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": "FEAT-083 approved implementation",
+        "responses": (
+            {
+                "status": "200",
+                "description": "Successful Response",
+                "media_type": "application/json",
+                "schema_name": "SvgReviewReceiptV1",
+            },
+            {
+                "status": "422",
+                "description": "Validation Error",
+                "media_type": "application/json",
+                "schema_name": "HTTPValidationError",
+            },
+        ),
+    },
+    (
+        "post",
+        "/api/svg-catalog/v1/organizations/{organization_id}/assets/{catalog_entry_id}/guide-revisions/{guide_revision_id}/educator-reviews",
+    ): {
+        "purpose": "Review Organization Guide",
+        "request_inputs": "path "
+        "`organization_id*`: "
+        "string; "
+        "path "
+        "`catalog_entry_id*`: "
+        "string; "
+        "path "
+        "`guide_revision_id*`: "
+        "string; "
+        "application/json "
+        "(required): "
+        "SvgGuideReviewRequestV1",
+        "surface": "SVG catalog and Parent topic guides",
+        "tag": "Parent StoryRuns",
+        "handler": "svg_catalog.py::review_organization_guide",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": "FEAT-083 approved implementation",
+        "responses": (
+            {
+                "status": "200",
+                "description": "Successful Response",
+                "media_type": "application/json",
+                "schema_name": "SvgReviewReceiptV1",
+            },
+            {
+                "status": "422",
+                "description": "Validation Error",
+                "media_type": "application/json",
+                "schema_name": "HTTPValidationError",
+            },
+        ),
+    },
+    (
+        "post",
+        "/api/svg-catalog/v1/platform/assets/{catalog_entry_id}/guide-revisions/{guide_revision_id}/educator-reviews",
+    ): {
+        "purpose": "Review Platform Guide",
+        "request_inputs": "path "
+        "`catalog_entry_id*`: "
+        "string; "
+        "path "
+        "`guide_revision_id*`: "
+        "string; "
+        "application/json "
+        "(required): "
+        "SvgGuideReviewRequestV1",
+        "surface": "SVG catalog and Parent topic guides",
+        "tag": "Parent StoryRuns",
+        "handler": "svg_catalog.py::review_platform_guide",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": "FEAT-083 approved implementation",
+        "responses": (
+            {
+                "status": "200",
+                "description": "Successful Response",
+                "media_type": "application/json",
+                "schema_name": "SvgReviewReceiptV1",
+            },
+            {
+                "status": "422",
+                "description": "Validation Error",
+                "media_type": "application/json",
+                "schema_name": "HTTPValidationError",
+            },
+        ),
+    },
+    ("post", "/api/svg-catalog/v1/platform/assets/{catalog_entry_id}/curation"): {
+        "purpose": "Curate Platform Asset",
+        "request_inputs": "path "
+        "`catalog_entry_id*`: "
+        "string; "
+        "application/json "
+        "(required): "
+        "SvgCurationRequestV1",
+        "surface": "SVG catalog and Parent topic guides",
+        "tag": "Parent StoryRuns",
+        "handler": "svg_catalog.py::curate_platform_asset",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": "FEAT-083 approved implementation",
+        "responses": (
+            {
+                "status": "200",
+                "description": "Successful Response",
+                "media_type": "application/json",
+                "schema_name": "SvgReviewReceiptV1",
+            },
+            {
+                "status": "422",
+                "description": "Validation Error",
+                "media_type": "application/json",
+                "schema_name": "HTTPValidationError",
+            },
+        ),
+    },
+    ("get", "/api/parent/v1/topics/suggestions"): {
+        "purpose": "Return three stable topic cards for a Parent drawing draft",
+        "request_inputs": "query `draft_id*`: string; query `exclude_set_ids`: string",
+        "surface": "SVG catalog and Parent topic guides",
+        "tag": "Parent StoryRuns",
+        "handler": "parent_topic_suggestions.py::get_topic_suggestions",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": "FEAT-083 approved implementation",
+        "responses": (
+            {
+                "status": "200",
+                "description": "Successful Response",
+                "media_type": "application/json",
+                "schema_name": "ParentTopicSuggestionSetV1",
+            },
+            {
+                "status": "422",
+                "description": "Validation Error",
+                "media_type": "application/json",
+                "schema_name": "HTTPValidationError",
+            },
+        ),
+    },
+    ("get", "/api/parent/v1/topics/{topic_id}/drawing-subject-suggestions"): {
+        "purpose": "Return three drawable subjects from the selected topic catalog",
+        "request_inputs": "path "
+        "`topic_id*`: "
+        "string; "
+        "query "
+        "`draft_id*`: "
+        "string; "
+        "query "
+        "`topic*`: "
+        "string; "
+        "query "
+        "`exclude_set_ids`: "
+        "string; "
+        "query "
+        "`exclude_subjects`: "
+        "string",
+        "surface": "SVG catalog and Parent topic guides",
+        "tag": "Parent StoryRuns",
+        "handler": "parent_topic_suggestions.py::get_drawing_subject_suggestions",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": "FEAT-083 approved implementation",
+        "responses": (
+            {
+                "status": "200",
+                "description": "Successful Response",
+                "media_type": "application/json",
+                "schema_name": "ParentDrawingSubjectSuggestionSetV1",
+            },
+            {
+                "status": "422",
+                "description": "Validation Error",
+                "media_type": "application/json",
+                "schema_name": "HTTPValidationError",
+            },
+        ),
+    },
+    ("post", "/api/parent/v1/topics/custom-subject-validation"): {
+        "purpose": "Check whether an adult-entered drawing subject fits the selected topic",
+        "request_inputs": "application/json (required): ParentCustomSubjectValidationRequestV1",
+        "surface": "SVG catalog and Parent topic guides",
+        "tag": "Parent StoryRuns",
+        "handler": "parent_topic_suggestions.py::validate_custom_subject",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": "FEAT-083 approved implementation",
+        "responses": (
+            {
+                "status": "200",
+                "description": "Successful Response",
+                "media_type": "application/json",
+                "schema_name": "ParentCustomSubjectValidationV1",
+            },
+            {
+                "status": "422",
+                "description": "Validation Error",
+                "media_type": "application/json",
+                "schema_name": "HTTPValidationError",
+            },
+        ),
+    },
+    ("post", "/api/parent/v1/ai/sketch-guides"): {
+        "purpose": "Create an optional private SVG guide from a curated source",
+        "request_inputs": "application/json (required): SvgTopicStrokeGuideRequestV1",
+        "surface": "SVG catalog and Parent topic guides",
+        "tag": "Parent StoryRuns",
+        "handler": "parent_ai.py::generate_sketch_guide",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": "FEAT-083 approved implementation",
+        "responses": (
+            {
+                "status": "200",
+                "description": "Successful Response",
+                "media_type": "application/json",
+                "schema_name": "SvgTopicStrokeGuideSourceDraftResponseV1",
+            },
+            {
+                "status": "422",
+                "description": "Validation Error",
+                "media_type": "application/json",
+                "schema_name": "HTTPValidationError",
+            },
+        ),
+    },
+}
+MOUNTED_OPERATIONS.update(FEAT083_OPERATIONS)
+
 IDEMPOTENCY_MISMATCH_OPERATION_KEYS: Final[tuple[tuple[str, str], ...]] = (
     ("post", "/api/lesson-library/v1/me/lesson-invitations/{access_grant_id}/accept"),
     ("post", "/api/lesson-library/v1/me/lesson-invitations/{access_grant_id}/decline"),

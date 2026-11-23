@@ -5,6 +5,9 @@ from fastapi import APIRouter, FastAPI
 from sketch2life.infrastructure.lesson_occurrences.upload_target import (
     OccurrenceUploadTargetResolver,
 )
+from sketch2life.infrastructure.svg.arcadia_gallus_guide import build_arcadia_gallus_guide
+from sketch2life.infrastructure.svg.openclipart_guide import build_openclipart_guide
+from sketch2life.infrastructure.svg.openmoji_guide import build_openmoji_guide
 from sketch2life.infrastructure.uploads.purposes import OCCURRENCE_DOCUMENT
 from sketch2life.interfaces.http.routers.auth_registration import (
     router as auth_registration_router,
@@ -16,6 +19,7 @@ from sketch2life.interfaces.http.routers.child_preferences import (
 from sketch2life.interfaces.http.routers.health import router as health_router
 from sketch2life.interfaces.http.routers.images import router as images_router
 from sketch2life.interfaces.http.routers.jobs import router as jobs_router
+from sketch2life.interfaces.http.routers.lesson_feedback import router as lesson_feedback_router
 from sketch2life.interfaces.http.routers.lesson_library import router as lesson_library_router
 from sketch2life.interfaces.http.routers.lesson_occurrences import (
     router as lesson_occurrences_router,
@@ -33,7 +37,12 @@ from sketch2life.interfaces.http.routers.parent_story_inputs import (
     router as parent_story_inputs_router,
 )
 from sketch2life.interfaces.http.routers.parent_story_runs import router as parent_story_runs_router
+from sketch2life.interfaces.http.routers.parent_topic_suggestions import (
+    router as parent_topic_suggestions_router,
+)
+from sketch2life.interfaces.http.routers.password_recovery import router as password_recovery_router
 from sketch2life.interfaces.http.routers.pilot_assistance import router as pilot_assistance_router
+from sketch2life.interfaces.http.routers.platform_admin import router as platform_admin_router
 from sketch2life.interfaces.http.routers.platform_admin_accounts import (
     router as platform_admin_accounts_router,
 )
@@ -48,6 +57,7 @@ from sketch2life.interfaces.http.routers.supervised_flow import renderer_source_
 from sketch2life.interfaces.http.routers.supervised_flow import (
     router as supervised_flow_router,
 )
+from sketch2life.interfaces.http.routers.svg_catalog import router as svg_catalog_router
 from sketch2life.interfaces.http.routers.teacher_ai import router as teacher_ai_router
 from sketch2life.interfaces.http.routers.upload_sessions import router as upload_sessions_router
 from sketch2life.interfaces.http.routers.whiteboard_storyboard import (
@@ -76,9 +86,7 @@ def story_demo_replaced_routers() -> tuple[APIRouter, ...]:
     )
 
 
-def mount_classroom_routers(
-    application: FastAPI, *, include_pilot_assistance: bool = True
-) -> None:
+def mount_classroom_routers(application: FastAPI, *, include_pilot_assistance: bool = True) -> None:
     """Mount durable identity, classroom health, and BE1 runtime route groups."""
     application.include_router(auth_registration_router)
     application.include_router(platform_admin_accounts_router)
@@ -113,6 +121,11 @@ def mount_all_routers(
     include_upload_sessions: bool = True,
 ) -> None:
     """Preserve the original compatibility app's router registration order."""
+    application.state.parent_svg_guide_builders = (
+        build_openclipart_guide,
+        build_openmoji_guide,
+        build_arcadia_gallus_guide,
+    )
     settings = application.state.be1_runtime.settings
     include_pilot_assistance = settings.env == "test" or (
         settings.env == "local" and settings.synthetic_pilot_enabled is True
@@ -125,6 +138,8 @@ def mount_all_routers(
     application.include_router(lesson_library_router)
     application.include_router(lesson_feedback_router)
     application.include_router(parent_ai_router)
+    application.include_router(parent_topic_suggestions_router)
+    application.include_router(svg_catalog_router)
     if include_parent_story_runs:
         application.include_router(parent_story_runs_router)
         application.include_router(parent_story_inputs_router)

@@ -9,14 +9,17 @@ from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
+
 from sketch2life.infrastructure.config.settings import (
     CoreDatabaseSettings,
     Settings,
     get_core_database_settings,
     get_settings,
 )
+from sketch2life.interfaces.http.admin_contract import ADMIN_OPERATIONS
 from sketch2life.interfaces.http.app import create_app
 from sketch2life.interfaces.http.openapi_contract import (
+    FEAT083_OPERATIONS,
     IDEMPOTENCY_MISMATCH_OPERATION_KEYS,
     MOUNTED_OPERATION_COUNT,
     MOUNTED_OPERATIONS,
@@ -65,7 +68,7 @@ EXPECTED_IDEMPOTENCY_MISMATCH_OPERATION_KEYS = {
     ),
     ("patch", "/api/lesson-library/v1/platform/lessons/{lesson_id}/moderation"),
     ("post", "/api/lesson-library/v1/upload-sessions/{upload_session_id}/complete"),
-    # FEAT-066 C4 (SRS §21.4): lesson PATCH and archive, version create, grant revoke, abort.
+    # FEAT-066 C4 (SRS Â§21.4): lesson PATCH and archive, version create, grant revoke, abort.
     ("patch", "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}"),
     ("delete", "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}"),
     (
@@ -167,11 +170,10 @@ PR22_UNCATALOGUED_OPERATIONS = {
     ("get", "/api/platform-admin/v1/accounts"),
     ("post", "/api/platform-admin/v1/accounts"),
     ("patch", "/api/platform-admin/v1/accounts/{account_id}"),
-    ("post", "/api/parent/v1/ai/sketch-guides"),
     ("post", "/api/parent/v1/ai/drawing-understandings"),
     ("post", "/api/parent/v1/ai/story-runs/{run_id}/story-revisions"),
     ("post", "/v1/story-runs/{run_id}/cancel"),
-    # FR-C-08 (Contract Draft 11 §3.7): the Parent delete route stays uncatalogued.
+    # FR-C-08 (Contract Draft 11 Â§3.7): the Parent delete route stays uncatalogued.
     ("delete", "/v1/story-runs/{run_id}"),
     (
         "post",
@@ -249,7 +251,9 @@ def test_swagger_ui_and_openapi_json_are_published(monkeypatch: pytest.MonkeyPat
             for method in path_item
             if method.lower() in HTTP_METHODS
         }
-        assert published_operations == set(SRS_V22_INCLUDED_OPERATIONS) | ADMIN_OPERATIONS
+        assert published_operations == (
+            set(SRS_V22_INCLUDED_OPERATIONS) | ADMIN_OPERATIONS | set(FEAT083_OPERATIONS)
+        )
     finally:
         if runtime is not None and runtime.engine is not None:
             runtime.engine.dispose()
@@ -316,7 +320,7 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
 
     assert spec["openapi"] == "3.1.0"
     assert spec["tags"] == public_tags(TAG_DESCRIPTIONS)
-    assert len(operations) == 197 + len(ADMIN_OPERATIONS - PR22_UNCATALOGUED_OPERATIONS) + len(QUOTA_OPERATIONS)
+    assert len(operations) == 212 + len(ADMIN_OPERATIONS - PR22_UNCATALOGUED_OPERATIONS) + len(QUOTA_OPERATIONS)
     catalog_operations = set(MOUNTED_OPERATIONS)
     catalog_paths = {path for _method, path in catalog_operations}
     # FEAT-066 T-2a: five generic upload-session operations (four paths) join the catalog.
@@ -337,13 +341,13 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
     # FEAT-066 T-4b1: the child selection, its read and its confirmation, three new paths.
     # FEAT-066 T-5a: the class projection confirmation and its token, two new paths.
     # FEAT-066 goal v4 T-2e-a: the activity list and the activity selection, two new paths.
-    assert len(catalog_paths) == 154
+    assert len(catalog_paths) == 168
     assert MOUNTED_OPERATION_COUNT == 135
     assert (
         len(catalog_operations)
         == MOUNTED_OPERATION_COUNT
-        + 5 + 3 + 5 + 1 + 4 + 2 + 1 + 1 + 3 + 1 + 1 + 2 + 2 + 3 + 3 + 2 + 2
-        == 176
+        + 5 + 3 + 5 + 1 + 4 + 2 + 1 + 1 + 3 + 1 + 1 + 2 + 2 + 3 + 3 + 2 + 2 + 16
+        == 192
     )
     assert set(operations) - catalog_operations == (
         PILOT_ONLY_OPERATIONS | PR22_UNCATALOGUED_OPERATIONS | ADMIN_OPERATIONS | QUOTA_OPERATIONS
@@ -358,7 +362,7 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
     ]
     assert "x-contract-surface" not in profile_lookup
     assert len(PILOT_ONLY_OPERATIONS) == 5
-    assert len(PR22_UNCATALOGUED_OPERATIONS) == 16
+    assert len(PR22_UNCATALOGUED_OPERATIONS) == 15
 
     assert (
         "post",
@@ -559,7 +563,7 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
             assert "404" in operation["responses"], (method, path)
             assert "403" not in operation["responses"], (method, path)
 
-    # FR-C-08 (Contract Draft 11 §3.3-§3.4): GET and the four replaying operations declare the
+    # FR-C-08 (Contract Draft 11 Â§3.3-Â§3.4): GET and the four replaying operations declare the
     # union of their current envelope and the content-free lifecycle envelope.
     for (method, path), status, current in (
         (("get", "/v1/story-runs/{run_id}"), "200", "ParentStoryRunEnvelopeV1"),
@@ -719,7 +723,7 @@ def test_runtime_openapi_operation_ids_are_non_empty_and_unique(
         for method, operation in path_item.items()
         if method.lower() in HTTP_METHODS
     ]
-    assert len(operation_ids) == 197 + len(ADMIN_OPERATIONS - PR22_UNCATALOGUED_OPERATIONS) + len(QUOTA_OPERATIONS)
+    assert len(operation_ids) == 212 + len(ADMIN_OPERATIONS - PR22_UNCATALOGUED_OPERATIONS) + len(QUOTA_OPERATIONS)
     assert all(isinstance(value, str) and value for value in operation_ids)
     assert len(set(operation_ids)) == len(operation_ids)
 

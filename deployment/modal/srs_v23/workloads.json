@@ -168,6 +168,28 @@
       "human_gate": "automatic fail-closed gate; no playback token unless coverage and policy pass",
       "quota_owner": "AI Policy compute ledger under accepted video request",
       "implementation_status": "unimplemented and not called; playback remains fail-closed; disabled"
+    },
+    {
+      "id": "parent.topic-subjects.suggest",
+      "execution_group": "l4",
+      "candidate": "Qwen/Qwen3.5-9B@c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "candidate_status": "FEAT-081 Rev20 implementation added with strict JSON parsing, exact-three output and duplicate/privacy gates; live inference has not yet been run. Current dev text candidate: Qwen3.8-27B-FP8; Android UI verification pending.",
+      "enabled": false,
+      "inputs": "Generic adult-entered topic and previously shown generic subject labels only; no child/profile/age/photo/audio/identifier fields",
+      "human_gate": "Parent chooses one of exactly three draft subject cards; generated candidates do not assert the subject of the later drawing",
+      "quota_owner": "Separate Parent topic suggestion compute cap; never video quota",
+      "implementation_status": "Development-only topic worker; disabled by default pending scoped verification."
+    },
+    {
+      "id": "parent.topic-subjects.validate",
+      "execution_group": "l4",
+      "candidate": "Qwen/Qwen3.5-9B@c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "candidate_status": "FEAT-081 Rev20 source implementation; no live inference has been run. Current dev text candidate: Qwen3.8-27B-FP8; Android UI verification pending.",
+      "enabled": false,
+      "inputs": "Generic adult-entered topic and generic intended drawing subject only; no child/profile/age/photo/audio/identifier fields",
+      "human_gate": "The adult remains responsible for the choice; OUT_OF_TOPIC and NEEDS_CLARIFICATION block continuation.",
+      "quota_owner": "Separate Parent topic-validation compute cap; never video quota",
+      "implementation_status": "Development-only topic worker; disabled by default pending scoped verification."
     }
   ]
 }
