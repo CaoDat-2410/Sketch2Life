@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => {
   return {
     envDir: repositoryRoot,
     server: {
-      allowedHosts: ['luck-equality-can-trend.trycloudflare.com'],
+      allowedHosts: (env.SKETCH2LIFE_WEB_ALLOWED_HOSTS || '').split(',').map((host) => host.trim()).filter(Boolean),
       proxy: {
         '/api': { target: apiTarget, changeOrigin: true },
         '/health': { target: apiTarget, changeOrigin: true },

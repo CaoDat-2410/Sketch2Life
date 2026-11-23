@@ -71,6 +71,8 @@ SRS_V22_INCLUDED_OPERATIONS: frozenset[tuple[str, str]] = frozenset(
         ("get", "/api/be1/v1/billing/video-quota"),
         ("get", "/api/be1/v1/billing/video-quota/invoices"),
         ("post", "/api/be1/v1/billing/video-quota/checkout"),
+        ("post", "/api/be1/v1/billing/video-quota/invoices/{invoice_id}/reconcile"),
+        ("post", "/api/be1/v1/billing/video-quota/invoices/{invoice_id}/cancel"),
         ("get", "/api/be1/v1/organizations/{organization_id}/video-quota"),
         ("get", "/api/be1/v1/organizations/{organization_id}/video-quota/products"),
         ("get", "/api/be1/v1/organizations/{organization_id}/video-quota/payment-settings"),
@@ -296,7 +298,7 @@ SRS_V22_TAGS: list[dict[str, str]] = [
     },
     {
         "name": "Video Quota & Billing",
-        "description": "Scoped Parent/School quota summaries, checkout, invoices, and Teacher allocations. Real checkout availability is controlled by server configuration.",
+        "description": "Scoped quota, checkout, invoices, and Teacher allocations.",
     },
 ]
 
@@ -304,10 +306,10 @@ SRS_V22_OPENAPI_DESCRIPTION = "\n\n".join(
     (
         "Implemented FE APIs cover Parent profiles, a proposed Parent StoryRun slice, "
         "organization/class management, consent, Teacher lesson preparation, and scoped video quota commerce.",
-        "Authentication and role/resource access are checked per operation.",
-        "Parent activity catalog, Teacher occurrence, Sketch Deck, sample video, jobs/playback, "
-        "quota/payment, and notification push endpoints are unavailable.",
-        "Proposed Parent confirmations and draft SRS status remain subject to approval.",
+        "Authentication and access are checked.",
+        "Activity catalog, Teacher occurrence, Sketch Deck, sample video, jobs/playback, "
+        "and notifications are unavailable; provider callbacks are excluded.",
+        "Parent confirmations and the draft SRS remain subject to approval.",
     )
 )
 

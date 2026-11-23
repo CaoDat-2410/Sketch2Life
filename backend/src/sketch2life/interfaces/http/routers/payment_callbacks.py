@@ -2,11 +2,11 @@
 
 # FastAPI dependency declarations intentionally use Depends in defaults.
 # ruff: noqa: B008
-
 import base64
 import hashlib
 import json
 import logging
+from typing import Any, cast
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse, Response
@@ -31,12 +31,12 @@ router = APIRouter(prefix="/api/payment-callbacks/v1", tags=["Payment callbacks"
 logger = logging.getLogger(__name__)
 
 
-def _digest(payload: dict) -> str:
+def _digest(payload: dict[str, Any]) -> str:
     safe = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(safe.encode()).hexdigest()
 
 
-def _invoice_for_attempt(db: Session, provider: str, order_ref: str):
+def _invoice_for_attempt(db: Session, provider: str, order_ref: str) -> Any:
     attempt = db.scalar(
         select(BillingPaymentAttemptModel).where(
             BillingPaymentAttemptModel.provider == provider,
@@ -51,13 +51,16 @@ def _invoice_for_attempt(db: Session, provider: str, order_ref: str):
     return attempt, invoice
 
 
-@router.post("/momo/ipn", status_code=204)
-async def momo_ipn(request: Request, db: Session = Depends(get_db)):
-    settings = get_settings()
+async def _momo_payload(request: Request) -> Any:
     try:
-        payload = await request.json()
+        return await request.json()
     except (ValueError, UnicodeDecodeError):
         raise HTTPException(400, "Invalid JSON") from None
+
+
+@router.post("/momo/ipn", status_code=204)
+def momo_ipn(payload: Any = Depends(_momo_payload), db: Session = Depends(get_db)) -> Response:
+    settings = get_settings()
     if not isinstance(payload, dict) or not verify_momo_ipn(settings, payload):
         raise HTTPException(401, "Invalid payment signature")
     if payload.get("partnerCode") != settings.momo_partner_code:
@@ -69,8 +72,8 @@ async def momo_ipn(request: Request, db: Session = Depends(get_db)):
     try:
         extra = json.loads(base64.b64decode(payload.get("extraData", ""), validate=True))
         attempt, invoice = _invoice_for_attempt(db, "MOMO", order_ref)
-        amount = int(payload.get("amount"))
-        result_code = int(payload.get("resultCode"))
+        amount = int(cast(Any, payload.get("amount")))
+        result_code = int(cast(Any, payload.get("resultCode")))
     except (ValueError, TypeError, json.JSONDecodeError):
         raise HTTPException(422, "Invalid payment fields") from None
     except AdminError as exc:
@@ -102,7 +105,7 @@ async def momo_ipn(request: Request, db: Session = Depends(get_db)):
 
 
 @router.get("/vnpay/ipn")
-def vnpay_ipn(request: Request, db: Session = Depends(get_db)):
+def vnpay_ipn(request: Request, db: Session = Depends(get_db)) -> Any:
     try:
         return _process_vnpay_ipn(request, db)
     except Exception as exc:

@@ -6,9 +6,9 @@ import base64
 import hashlib
 import hmac
 import json
-import socket
 from datetime import UTC, datetime, timedelta
 from ipaddress import ip_address
+from typing import Any
 from urllib.error import URLError
 from urllib.parse import parse_qsl, quote_plus, urlencode, urlsplit, urlunsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
@@ -17,7 +17,7 @@ from zoneinfo import ZoneInfo
 
 
 class ProviderError(Exception):
-    def __init__(self, code: str, status: int = 503):
+    def __init__(self, code: str, status: int = 503) -> None:
         super().__init__(code)
         self.code = code
         self.status = status
@@ -42,11 +42,16 @@ def _is_https_or_local(url: str, env: str) -> bool:
     parsed = urlsplit(url)
     if parsed.scheme == "https" and parsed.netloc:
         return True
-    return env in {"local", "test"} and parsed.scheme == "http" and parsed.hostname in {
-        "localhost",
-        "127.0.0.1",
-        "::1",
-    }
+    return (
+        env in {"local", "test"}
+        and parsed.scheme == "http"
+        and parsed.hostname
+        in {
+            "localhost",
+            "127.0.0.1",
+            "::1",
+        }
+    )
 
 
 def _require_callback_url(url: str, env: str) -> str:
@@ -59,10 +64,12 @@ def _append_invoice(url: str, invoice_id: str) -> str:
     parsed = urlsplit(url)
     query = dict(parse_qsl(parsed.query, keep_blank_values=True))
     query["invoice"] = invoice_id
-    return urlunsplit((parsed.scheme, parsed.netloc, parsed.path, urlencode(query), parsed.fragment))
+    return urlunsplit(
+        (parsed.scheme, parsed.netloc, parsed.path, urlencode(query), parsed.fragment)
+    )
 
 
-def _post_json(url: str, payload: dict, timeout: int) -> dict:
+def _post_json(url: str, payload: dict[str, Any], timeout: int) -> dict[str, Any]:
     request = Request(
         url,
         data=json.dumps(payload, separators=(",", ":")).encode("utf-8"),
@@ -70,22 +77,25 @@ def _post_json(url: str, payload: dict, timeout: int) -> dict:
         method="POST",
     )
     try:
+
         class RejectRedirects(HTTPRedirectHandler):
-            def redirect_request(self, req, fp, code, msg, headers, newurl):
+            def redirect_request(
+                self, req: Any, fp: Any, code: Any, msg: Any, headers: Any, newurl: Any
+            ) -> Any:
                 return None
 
         with build_opener(RejectRedirects).open(request, timeout=timeout) as response:
             if not 200 <= response.status < 300:
                 raise ProviderError("PAYMENT_PROVIDER_UNAVAILABLE", 503)
             result = json.loads(response.read(256_000).decode("utf-8"))
-    except (URLError, TimeoutError, socket.timeout, OSError, ValueError):
+    except (URLError, TimeoutError, OSError, ValueError):
         raise ProviderError("PAYMENT_PROVIDER_UNAVAILABLE", 503) from None
     if not isinstance(result, dict):
         raise ProviderError("PAYMENT_PROVIDER_INVALID_RESPONSE", 503)
     return result
 
 
-def _momo_request_signature(payload: dict, access_key: str, secret_key: str) -> str:
+def _momo_request_signature(payload: dict[str, Any], access_key: str, secret_key: str) -> str:
     # MoMo v2 signs the documented checkout fields in this exact order.
     names = (
         "amount",
@@ -98,13 +108,16 @@ def _momo_request_signature(payload: dict, access_key: str, secret_key: str) -> 
         "requestId",
         "requestType",
     )
-    message = "accessKey=" + access_key + "&" + "&".join(
-        f"{name}={payload.get(name, '')}" for name in names
+    message = (
+        "accessKey="
+        + access_key
+        + "&"
+        + "&".join(f"{name}={payload.get(name, '')}" for name in names)
     )
     return hmac.new(secret_key.encode(), message.encode(), hashlib.sha256).hexdigest()
 
 
-def _momo_ipn_signature(payload: dict, access_key: str, secret_key: str) -> str:
+def _momo_ipn_signature(payload: dict[str, Any], access_key: str, secret_key: str) -> str:
     names = (
         "amount",
         "extraData",
@@ -119,8 +132,11 @@ def _momo_ipn_signature(payload: dict, access_key: str, secret_key: str) -> str:
         "resultCode",
         "transId",
     )
-    message = "accessKey=" + access_key + "&" + "&".join(
-        f"{name}={payload.get(name, '')}" for name in names
+    message = (
+        "accessKey="
+        + access_key
+        + "&"
+        + "&".join(f"{name}={payload.get(name, '')}" for name in names)
     )
     return hmac.new(secret_key.encode(), message.encode(), hashlib.sha256).hexdigest()
 
@@ -137,15 +153,20 @@ def _safe_momo_checkout_url(url: str) -> str:
 
 def _safe_momo_endpoint(url: str) -> str:
     parsed = urlsplit(url)
-    if parsed.scheme != "https" or parsed.hostname not in {
-        "test-payment.momo.vn",
-        "payment.momo.vn",
-    } or parsed.path != "/v2/gateway/api/create":
+    if (
+        parsed.scheme != "https"
+        or parsed.hostname
+        not in {
+            "test-payment.momo.vn",
+            "payment.momo.vn",
+        }
+        or parsed.path != "/v2/gateway/api/create"
+    ):
         raise ProviderError("MOMO_ENDPOINT_INVALID", 503)
     return url
 
 
-def _momo_create_response_valid(response: dict, payload: dict) -> bool:
+def _momo_create_response_valid(response: dict[str, Any], payload: dict[str, Any]) -> bool:
     # MoMo's v2 /create response does not include a response signature. The
     # signed IPN/query payloads are verified separately; for this HTTPS response
     # bind the returned order to the exact request before accepting its pay URL.
@@ -162,8 +183,8 @@ def _momo_create_response_valid(response: dict, payload: dict) -> bool:
 
 
 def create_momo_checkout(
-    settings, *, invoice_id: str, amount_vnd: int, order_ref: str, request_id: str
-) -> dict:
+    settings: Any, *, invoice_id: str, amount_vnd: int, order_ref: str, request_id: str
+) -> dict[str, Any]:
     if not settings.momo_payment_configured:
         raise ProviderError("MOMO_NOT_CONFIGURED", 503)
     if not 1_000 <= amount_vnd <= 50_000_000:
@@ -206,31 +227,40 @@ def create_momo_checkout(
     }
 
 
-def verify_momo_ipn(settings, payload: dict) -> bool:
+def verify_momo_ipn(settings: Any, payload: dict[str, Any]) -> bool:
     if not settings.momo_payment_configured:
         return False
     received = payload.get("signature")
-    if not isinstance(received, str):
+    if not isinstance(received, str) or not received.isascii():
         return False
-    expected = _momo_ipn_signature(
-        payload,
-        settings.momo_access_key.get_secret_value(),
-        settings.momo_secret_key.get_secret_value(),
-    )
+    try:
+        expected = _momo_ipn_signature(
+            payload,
+            settings.momo_access_key.get_secret_value(),
+            settings.momo_secret_key.get_secret_value(),
+        )
+    except UnicodeEncodeError:
+        # A lone surrogate in a signed field cannot be a genuine provider payload.
+        return False
     return hmac.compare_digest(received.lower(), expected.lower())
 
 
 def _safe_momo_query_endpoint(url: str) -> str:
     parsed = urlsplit(url)
-    if parsed.scheme != "https" or parsed.hostname not in {
-        "test-payment.momo.vn",
-        "payment.momo.vn",
-    } or parsed.path != "/v2/gateway/api/create":
+    if (
+        parsed.scheme != "https"
+        or parsed.hostname
+        not in {
+            "test-payment.momo.vn",
+            "payment.momo.vn",
+        }
+        or parsed.path != "/v2/gateway/api/create"
+    ):
         raise ProviderError("MOMO_ENDPOINT_INVALID", 503)
     return urlunsplit((parsed.scheme, parsed.netloc, "/v2/gateway/api/query", "", ""))
 
 
-def query_momo_transaction(settings, *, order_ref: str, amount_vnd: int) -> dict:
+def query_momo_transaction(settings: Any, *, order_ref: str, amount_vnd: int) -> dict[str, Any]:
     """Read a MoMo order status; only a confirmed transaction is eligible to settle."""
     if not settings.momo_payment_configured:
         raise ProviderError("MOMO_NOT_CONFIGURED", 503)
@@ -326,8 +356,8 @@ def _vnpay_query_digest(values: list[str], secret: str) -> str:
     return hmac.new(secret.encode(), message.encode(), hashlib.sha512).hexdigest()
 
 
-def _vnpay_url(settings, params: dict[str, str]) -> str:
-    base = settings.vnpay_payment_url
+def _vnpay_url(settings: Any, params: dict[str, str]) -> str:
+    base: str = settings.vnpay_payment_url
     parsed = urlsplit(base)
     if parsed.scheme != "https" or parsed.hostname not in {
         "sandbox.vnpayment.vn",
@@ -337,14 +367,12 @@ def _vnpay_url(settings, params: dict[str, str]) -> str:
     # PAY API v2.1.0 explicitly omits vnp_SecureHashType; that field belongs
     # to the older 2.0.0/2.0.1 parameter set.
     signed = {**params}
-    signed["vnp_SecureHash"] = _vnpay_digest(
-        signed, settings.vnpay_hash_secret.get_secret_value()
-    )
+    signed["vnp_SecureHash"] = _vnpay_digest(signed, settings.vnpay_hash_secret.get_secret_value())
     return base + "?" + urlencode(sorted(signed.items()), quote_via=quote_plus, safe="")
 
 
 def create_vnpay_checkout(
-    settings,
+    settings: Any,
     *,
     invoice_id: str,
     amount_vnd: int,
@@ -352,7 +380,7 @@ def create_vnpay_checkout(
     order_info: str,
     client_ip: str,
     transaction_date: str,
-) -> dict:
+) -> dict[str, Any]:
     if not settings.vnpay_payment_configured:
         raise ProviderError("VNPAY_NOT_CONFIGURED", 503)
     try:
@@ -385,7 +413,7 @@ def create_vnpay_checkout(
     }
 
 
-def verify_vnpay_callback(settings, payload: dict[str, str]) -> bool:
+def verify_vnpay_callback(settings: Any, payload: dict[str, str]) -> bool:
     if not settings.vnpay_payment_configured:
         return False
     received = payload.get("vnp_SecureHash")
@@ -419,7 +447,7 @@ _VNPAY_QUERY_RESPONSE_FIELDS = (
 )
 
 
-def _vnpay_query_response_valid(settings, response: dict) -> bool:
+def _vnpay_query_response_valid(settings: Any, response: dict[str, Any]) -> bool:
     received = response.get("vnp_SecureHash")
     if not isinstance(received, str) or not received:
         return False
@@ -431,22 +459,27 @@ def _vnpay_query_response_valid(settings, response: dict) -> bool:
 
 
 def query_vnpay_transaction(
-    settings,
+    settings: Any,
     *,
     order_ref: str,
     amount_vnd: int,
     transaction_date: str,
     order_info: str,
-) -> dict:
+) -> dict[str, Any]:
     """Use VNPAY QueryDR and verify its response checksum before applying status."""
     if not settings.vnpay_payment_configured:
         raise ProviderError("VNPAY_NOT_CONFIGURED", 503)
     endpoint = settings.vnpay_query_url
     parsed = urlsplit(endpoint)
-    if parsed.scheme != "https" or parsed.hostname not in {
-        "sandbox.vnpayment.vn",
-        "merchant.vnpay.vn",
-    } or parsed.path != "/merchant_webapi/api/transaction":
+    if (
+        parsed.scheme != "https"
+        or parsed.hostname
+        not in {
+            "sandbox.vnpayment.vn",
+            "merchant.vnpay.vn",
+        }
+        or parsed.path != "/merchant_webapi/api/transaction"
+    ):
         raise ProviderError("VNPAY_QUERY_ENDPOINT_INVALID", 503)
     try:
         server_ip = str(ip_address(settings.vnpay_server_ip))
@@ -493,7 +526,10 @@ def query_vnpay_transaction(
         transaction_ref = str(response.get("vnp_TransactionNo", ""))
     except (TypeError, ValueError):
         raise ProviderError("VNPAY_QUERY_INVALID_RESPONSE", 502) from None
-    if response.get("vnp_TmnCode") != settings.vnpay_tmn_code or response.get("vnp_TxnRef") != order_ref:
+    if (
+        response.get("vnp_TmnCode") != settings.vnpay_tmn_code
+        or response.get("vnp_TxnRef") != order_ref
+    ):
         raise ProviderError("VNPAY_QUERY_RESPONSE_MISMATCH", 502)
     # 91 means VNPay has no transaction for this order; 94 means the query
     # itself was duplicated. Only the cancellation flow may use 91, and only

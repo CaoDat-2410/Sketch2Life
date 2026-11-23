@@ -4,11 +4,14 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
+from typing import Any, cast
 from uuid import uuid4
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import case, func, or_, select, text
+from sqlalchemy.orm import Session
 
 from sketch2life.domain.billing_capacity import quota_month
 from sketch2life.domain.platform_admin import AdminError, require_revision
@@ -27,6 +30,7 @@ from sketch2life.infrastructure.persistence.be1_models import (
 )
 from sketch2life.infrastructure.persistence.billing_models import (
     BillingInvoiceModel,
+    BillingOfferModel,
     BillingPaymentAttemptModel,
     BillingPaymentEventModel,
     BillingProductAuditEventModel,
@@ -34,14 +38,19 @@ from sketch2life.infrastructure.persistence.billing_models import (
     BillingQuotaAllocationModel,
     BillingQuotaProductModel,
     BillingReceiptModel,
-    BillingOfferModel,
     VideoQuotaGrantModel,
     VideoQuotaUsageModel,
 )
 
 
 class QuotaCommerceService:
-    def __init__(self, db, actor: str, settings, clock=lambda: datetime.now(UTC)):
+    def __init__(
+        self,
+        db: Session,
+        actor: str,
+        settings: Any,
+        clock: Callable[[], datetime] = lambda: datetime.now(UTC),
+    ) -> None:
         self.db = db
         self.actor = actor
         self.settings = settings
@@ -53,7 +62,13 @@ class QuotaCommerceService:
             {"scope": "billing:" + key},
         )
 
-    def _command(self, operation: str, key: str, payload: dict, execute):
+    def _command(
+        self,
+        operation: str,
+        key: str,
+        payload: dict[str, Any],
+        execute: Callable[[], dict[str, Any]],
+    ) -> dict[str, Any]:
         self.lock(json.dumps((self.actor, operation, key)))
         pk = (self.actor, operation, key)
         fingerprint = hashlib.sha256(
@@ -78,7 +93,7 @@ class QuotaCommerceService:
         return result
 
     @staticmethod
-    def _offer_view(offer: BillingOfferModel) -> dict:
+    def _offer_view(offer: BillingOfferModel) -> dict[str, Any]:
         return {
             "offer_id": offer.offer_id,
             "product_id": offer.product_id,
@@ -92,7 +107,7 @@ class QuotaCommerceService:
             "created_at": offer.created_at.isoformat() if offer.created_at else None,
         }
 
-    def product_view(self, product: BillingQuotaProductModel) -> dict:
+    def product_view(self, product: BillingQuotaProductModel) -> dict[str, Any]:
         offer = self.db.get(BillingOfferModel, product.current_offer_id)
         if offer is None:
             raise AdminError("QUOTA_PRODUCT_OFFER_UNAVAILABLE", 409)
@@ -103,7 +118,9 @@ class QuotaCommerceService:
             "updated_at": product.updated_at.isoformat() if product.updated_at else None,
         }
 
-    def products(self, owner_kind: str | None = None, include_inactive: bool = False) -> dict:
+    def products(
+        self, owner_kind: str | None = None, include_inactive: bool = False
+    ) -> dict[str, Any]:
         query = select(BillingQuotaProductModel)
         if owner_kind:
             query = query.where(BillingQuotaProductModel.owner_kind == owner_kind)
@@ -120,8 +137,10 @@ class QuotaCommerceService:
         )
         return {"items": [self.product_view(item) for item in products], "total": len(products)}
 
-    def save_product(self, payload: dict, key: str, expected: int | None = None) -> dict:
-        def execute():
+    def save_product(
+        self, payload: dict[str, Any], key: str, expected: int | None = None
+    ) -> dict[str, Any]:
+        def execute() -> Any:
             product_id = payload.get("product_id")
             if product_id is None:
                 product_id = str(uuid4())
@@ -139,10 +158,10 @@ class QuotaCommerceService:
                 )
                 self.db.add(product)
             else:
-                product = self.db.get(BillingQuotaProductModel, product_id)
+                product = self.db.get(BillingQuotaProductModel, product_id)  # type: ignore[assignment]
                 if product is None:
                     raise AdminError("QUOTA_PRODUCT_NOT_FOUND", 404)
-                require_revision(product.revision, expected)
+                require_revision(product.revision, cast(int, expected))
                 if (
                     product.owner_kind != payload["owner_kind"]
                     or product.offer_kind != payload["offer_kind"]
@@ -178,7 +197,11 @@ class QuotaCommerceService:
                     offer_id=offer_id,
                     actor_ref=self.actor,
                     action=action,
-                    snapshot={**self._offer_view(offer), "active": product.active, "revision": version},
+                    snapshot={
+                        **self._offer_view(offer),
+                        "active": product.active,
+                        "revision": version,
+                    },
                 )
             )
             self.db.flush()
@@ -186,10 +209,12 @@ class QuotaCommerceService:
 
         return self._command("quota-product.save", key, payload, execute)
 
-    def set_product_active(self, product_id: str, active: bool, expected: int, key: str) -> dict:
+    def set_product_active(
+        self, product_id: str, active: bool, expected: int, key: str
+    ) -> dict[str, Any]:
         payload = {"product_id": product_id, "active": active, "expected_revision": expected}
 
-        def execute():
+        def execute() -> Any:
             product = self.db.get(BillingQuotaProductModel, product_id)
             if product is None:
                 raise AdminError("QUOTA_PRODUCT_NOT_FOUND", 404)
@@ -207,7 +232,11 @@ class QuotaCommerceService:
                     offer_id=offer.offer_id,
                     actor_ref=self.actor,
                     action="ACTIVATED" if active else "DEACTIVATED",
-                    snapshot={**self._offer_view(offer), "active": active, "revision": product.revision},
+                    snapshot={
+                        **self._offer_view(offer),
+                        "active": active,
+                        "revision": product.revision,
+                    },
                 )
             )
             return self.product_view(product)
@@ -217,14 +246,22 @@ class QuotaCommerceService:
     def _payment_enabled(self, provider: str) -> bool:
         if not self.settings.billing_real_payments_enabled:
             return False
-        return (
+        return bool(
             self.settings.momo_payment_configured
             if provider == "MOMO"
             else self.settings.vnpay_payment_configured
         )
 
-    def checkout(self, product_id: str, owner_kind: str, owner_ref: str, provider: str,
-                 payment_mode: str, key: str, client_ip: str = "127.0.0.1") -> dict:
+    def checkout(
+        self,
+        product_id: str,
+        owner_kind: str,
+        owner_ref: str,
+        provider: str,
+        payment_mode: str,
+        key: str,
+        client_ip: str = "127.0.0.1",
+    ) -> dict[str, Any]:
         if not self._payment_enabled(provider):
             raise AdminError("PAYMENT_PROVIDER_NOT_AVAILABLE", 503)
         if payment_mode != "MANUAL":
@@ -249,7 +286,7 @@ class QuotaCommerceService:
                 raise AdminError("IDEMPOTENCY_CONFLICT", 409)
             return existing.response_json
 
-        def execute():
+        def execute() -> Any:
             self.lock("quota-scope:" + owner_kind + ":" + owner_ref)
             product = self.db.get(BillingQuotaProductModel, product_id)
             if product is None or not product.active or product.owner_kind != owner_kind:
@@ -260,15 +297,18 @@ class QuotaCommerceService:
             if provider == "MOMO" and not 1_000 <= offer.amount_vnd <= 50_000_000:
                 raise AdminError("MOMO_AMOUNT_OUT_OF_RANGE", 422)
             open_attempt = self.db.scalar(
-                select(BillingPaymentAttemptModel).join(
+                select(BillingPaymentAttemptModel)
+                .join(
                     BillingInvoiceModel,
                     BillingPaymentAttemptModel.invoice_id == BillingInvoiceModel.invoice_id,
-                ).where(
+                )
+                .where(
                     BillingInvoiceModel.owner_kind == owner_kind,
                     BillingInvoiceModel.owner_ref == owner_ref,
                     BillingInvoiceModel.state == "PENDING",
                     BillingPaymentAttemptModel.state.in_(("REQUESTING", "OPEN", "UNKNOWN")),
-                ).limit(1)
+                )
+                .limit(1)
             )
             if open_attempt:
                 raise AdminError("PAYMENT_ATTEMPT_ALREADY_OPEN", 409)
@@ -336,7 +376,7 @@ class QuotaCommerceService:
                         invoice_id=invoice_id,
                         amount_vnd=offer.amount_vnd,
                         order_ref=order_ref,
-                        request_id=request_ref,
+                        request_id=cast(str, request_ref),
                     )
                 else:
                     checkout = create_vnpay_checkout(
@@ -344,9 +384,9 @@ class QuotaCommerceService:
                         invoice_id=invoice_id,
                         amount_vnd=offer.amount_vnd,
                         order_ref=order_ref,
-                        order_info=order_info,
+                        order_info=cast(str, order_info),
                         client_ip=client_ip,
-                        transaction_date=transaction_date,
+                        transaction_date=cast(str, transaction_date),
                     )
             except ProviderError as exc:
                 uncertain = exc.code in {
@@ -357,19 +397,19 @@ class QuotaCommerceService:
                 # A provider callback can race the checkout response. Re-read under
                 # row locks so a verified settlement is never downgraded to UNKNOWN
                 # or FAILED by a late HTTP error.
-                attempt = self.db.scalar(
+                attempt = self.db.scalar(  # type: ignore[assignment]
                     select(BillingPaymentAttemptModel)
                     .where(BillingPaymentAttemptModel.attempt_id == attempt.attempt_id)
                     .execution_options(populate_existing=True)
                     .with_for_update()
                 )
-                invoice = self.db.scalar(
+                invoice = self.db.scalar(  # type: ignore[assignment]
                     select(BillingInvoiceModel)
                     .where(BillingInvoiceModel.invoice_id == invoice_id)
                     .execution_options(populate_existing=True)
                     .with_for_update()
                 )
-                receipt = self.db.get(BillingReceiptModel, pk)
+                receipt = self.db.get(BillingReceiptModel, pk)  # type: ignore[assignment]
                 if attempt is None or invoice is None or receipt is None:
                     raise AdminError("PAYMENT_ATTEMPT_NOT_FOUND", 409) from None
                 if invoice.state == "PENDING" and attempt.state == "REQUESTING":
@@ -402,19 +442,19 @@ class QuotaCommerceService:
                 raise AdminError(exc.code, exc.status) from None
             # A signed provider callback may arrive before its checkout HTTP
             # response. Lock and refresh both records before writing OPEN.
-            attempt = self.db.scalar(
+            attempt = self.db.scalar(  # type: ignore[assignment]
                 select(BillingPaymentAttemptModel)
                 .where(BillingPaymentAttemptModel.attempt_id == attempt.attempt_id)
                 .execution_options(populate_existing=True)
                 .with_for_update()
             )
-            invoice = self.db.scalar(
+            invoice = self.db.scalar(  # type: ignore[assignment]
                 select(BillingInvoiceModel)
                 .where(BillingInvoiceModel.invoice_id == invoice_id)
                 .execution_options(populate_existing=True)
                 .with_for_update()
             )
-            receipt = self.db.get(BillingReceiptModel, pk)
+            receipt = self.db.get(BillingReceiptModel, pk)  # type: ignore[assignment]
             if attempt is None or invoice is None or receipt is None:
                 raise AdminError("PAYMENT_ATTEMPT_NOT_FOUND", 409)
             attempt.checkout_url = checkout["checkout_url"]
@@ -423,17 +463,19 @@ class QuotaCommerceService:
                 attempt.state = "OPEN"
                 attempt.revision += 1
                 attempt.updated_at = self.clock()
-            response.update({
-                "state": invoice.state,
-                "attempt_state": attempt.state,
-                "checkout_url": attempt.checkout_url if invoice.state == "PENDING" else None,
-                "expires_at": attempt.expires_at.isoformat() if attempt.expires_at else None,
-            })
+            response.update(
+                {
+                    "state": invoice.state,
+                    "attempt_state": attempt.state,
+                    "checkout_url": attempt.checkout_url if invoice.state == "PENDING" else None,
+                    "expires_at": attempt.expires_at.isoformat() if attempt.expires_at else None,
+                }
+            )
             receipt.response_json = response
             self.db.commit()
             return response
 
-        return execute()
+        return cast(dict[str, Any], execute())
 
     def invoice(self, invoice_id: str) -> BillingInvoiceModel:
         row = self.db.get(BillingInvoiceModel, invoice_id)
@@ -441,7 +483,7 @@ class QuotaCommerceService:
             raise AdminError("INVOICE_NOT_FOUND", 404)
         return row
 
-    def reconcile_invoice(self, invoice_id: str) -> dict:
+    def reconcile_invoice(self, invoice_id: str) -> dict[str, Any]:
         invoice = self.db.get(BillingInvoiceModel, invoice_id)
         if invoice is None:
             raise AdminError("INVOICE_NOT_FOUND", 404)
@@ -470,10 +512,7 @@ class QuotaCommerceService:
                     order_ref=attempt.provider_order_ref,
                     amount_vnd=invoice.amount_vnd,
                     transaction_date=attempt.provider_transaction_date,
-                    order_info=(
-                        attempt.provider_order_info
-                        or f"Quota video {invoice.invoice_id}"
-                    ),
+                    order_info=(attempt.provider_order_info or f"Quota video {invoice.invoice_id}"),
                 )
             else:
                 raise AdminError("PAYMENT_PROVIDER_NOT_SUPPORTED", 409)
@@ -515,7 +554,7 @@ class QuotaCommerceService:
             "duplicate": settled["duplicate"],
         }
 
-    def cancel_expired_vnpay_invoice(self, invoice_id: str) -> dict:
+    def cancel_expired_vnpay_invoice(self, invoice_id: str) -> dict[str, Any]:
         """Close an expired VNPay order only after a signed QueryDR says it is absent."""
         self.lock("cancel-expired-vnpay:" + invoice_id)
         invoice = self.db.scalar(
@@ -622,7 +661,9 @@ class QuotaCommerceService:
             "duplicate": False,
         }
 
-    def invoice_view(self, invoice: BillingInvoiceModel, include_owner: bool = True) -> dict:
+    def invoice_view(
+        self, invoice: BillingInvoiceModel, include_owner: bool = True
+    ) -> dict[str, Any]:
         attempts = list(
             self.db.scalars(
                 select(BillingPaymentAttemptModel)
@@ -656,8 +697,13 @@ class QuotaCommerceService:
             result["owner_ref"] = invoice.owner_ref
         return result
 
-    def invoices(self, owner_kind: str | None = None, owner_ref: str | None = None,
-                  state: str | None = None, limit: int = 100) -> dict:
+    def invoices(
+        self,
+        owner_kind: str | None = None,
+        owner_ref: str | None = None,
+        state: str | None = None,
+        limit: int = 100,
+    ) -> dict[str, Any]:
         query = select(BillingInvoiceModel)
         if owner_kind:
             query = query.where(BillingInvoiceModel.owner_kind == owner_kind)
@@ -666,21 +712,28 @@ class QuotaCommerceService:
         if state:
             query = query.where(BillingInvoiceModel.state == state)
         total = self.db.scalar(select(func.count()).select_from(query.subquery())) or 0
-        rows = list(self.db.scalars(query.order_by(BillingInvoiceModel.created_at.desc()).limit(limit)))
+        rows = list(
+            self.db.scalars(query.order_by(BillingInvoiceModel.created_at.desc()).limit(limit))
+        )
         return {"items": [self.invoice_view(row) for row in rows], "total": total}
 
-    def payment_events(self, limit: int = 100) -> dict:
-        rows = list(self.db.scalars(
-            select(BillingPaymentEventModel)
-            .where(BillingPaymentEventModel.provider.in_(("MOMO", "VNPAY")))
-            .order_by(BillingPaymentEventModel.created_at.desc())
-            .limit(limit)
-        ))
-        total = self.db.scalar(
-            select(func.count()).select_from(BillingPaymentEventModel).where(
-                BillingPaymentEventModel.provider.in_(("MOMO", "VNPAY"))
+    def payment_events(self, limit: int = 100) -> dict[str, Any]:
+        rows = list(
+            self.db.scalars(
+                select(BillingPaymentEventModel)
+                .where(BillingPaymentEventModel.provider.in_(("MOMO", "VNPAY")))
+                .order_by(BillingPaymentEventModel.created_at.desc())
+                .limit(limit)
             )
-        ) or 0
+        )
+        total = (
+            self.db.scalar(
+                select(func.count())
+                .select_from(BillingPaymentEventModel)
+                .where(BillingPaymentEventModel.provider.in_(("MOMO", "VNPAY")))
+            )
+            or 0
+        )
         return {
             "items": [
                 {
@@ -697,13 +750,15 @@ class QuotaCommerceService:
             "total": total,
         }
 
-    def product_events(self, product_id: str, limit: int = 100) -> dict:
-        rows = list(self.db.scalars(
-            select(BillingProductAuditEventModel)
-            .where(BillingProductAuditEventModel.product_id == product_id)
-            .order_by(BillingProductAuditEventModel.created_at.desc())
-            .limit(limit)
-        ))
+    def product_events(self, product_id: str, limit: int = 100) -> dict[str, Any]:
+        rows = list(
+            self.db.scalars(
+                select(BillingProductAuditEventModel)
+                .where(BillingProductAuditEventModel.product_id == product_id)
+                .order_by(BillingProductAuditEventModel.created_at.desc())
+                .limit(limit)
+            )
+        )
         return {
             "items": [
                 {
@@ -720,7 +775,7 @@ class QuotaCommerceService:
             "total": len(rows),
         }
 
-    def user_invoice(self, invoice_id: str, owner_kind: str, owner_ref: str) -> dict:
+    def user_invoice(self, invoice_id: str, owner_kind: str, owner_ref: str) -> dict[str, Any]:
         row = self.db.scalar(
             select(BillingInvoiceModel).where(
                 BillingInvoiceModel.invoice_id == invoice_id,
@@ -732,8 +787,16 @@ class QuotaCommerceService:
             raise AdminError("INVOICE_NOT_FOUND", 404)
         return self.invoice_view(row, include_owner=False)
 
-    def settle_verified(self, *, provider: str, order_ref: str, transaction_ref: str | None,
-                        amount_vnd: int, paid: bool, payload_digest: str) -> dict:
+    def settle_verified(
+        self,
+        *,
+        provider: str,
+        order_ref: str,
+        transaction_ref: str | None,
+        amount_vnd: int,
+        paid: bool,
+        payload_digest: str,
+    ) -> dict[str, Any]:
         if paid and not transaction_ref:
             raise AdminError("PAYMENT_TRANSACTION_REF_REQUIRED", 409)
         event_id = (
@@ -795,7 +858,7 @@ class QuotaCommerceService:
             if offer is None:
                 raise AdminError("QUOTA_PRODUCT_OFFER_UNAVAILABLE", 409)
             if offer.offer_kind == "MONTHLY":
-                period, expiry = quota_month(self.clock())
+                period, expiry = quota_month(self.clock())  # type: ignore[no-untyped-call]
                 kind = "MONTHLY"
             else:
                 period, expiry, kind = None, None, "TOP_UP"
@@ -815,12 +878,12 @@ class QuotaCommerceService:
         return {"state": invoice.state, "duplicate": False}
 
     @staticmethod
-    def _usage_count(db, grant_id: str) -> int:
+    def _usage_count(db: Any, grant_id: str) -> int:
         return int(
             db.scalar(
-                select(func.count()).select_from(VideoQuotaUsageModel).where(
-                    VideoQuotaUsageModel.grant_id == grant_id
-                )
+                select(func.count())
+                .select_from(VideoQuotaUsageModel)
+                .where(VideoQuotaUsageModel.grant_id == grant_id)
             )
             or 0
         )
@@ -832,7 +895,10 @@ class QuotaCommerceService:
                 .where(
                     VideoQuotaGrantModel.owner_kind == owner_kind,
                     VideoQuotaGrantModel.owner_ref == owner_ref,
-                    or_(VideoQuotaGrantModel.expires_at.is_(None), VideoQuotaGrantModel.expires_at > self.clock()),
+                    or_(
+                        VideoQuotaGrantModel.expires_at.is_(None),
+                        VideoQuotaGrantModel.expires_at > self.clock(),
+                    ),
                 )
                 .order_by(
                     case(
@@ -848,14 +914,23 @@ class QuotaCommerceService:
 
     def _allocation_net(self, allocation_id: str) -> int:
         rows = self.db.execute(
-            select(BillingQuotaAllocationEventModel.event_kind, func.sum(BillingQuotaAllocationEventModel.units))
+            select(
+                BillingQuotaAllocationEventModel.event_kind,
+                func.sum(BillingQuotaAllocationEventModel.units),
+            )
             .where(BillingQuotaAllocationEventModel.allocation_id == allocation_id)
             .group_by(BillingQuotaAllocationEventModel.event_kind)
         ).all()
         values = {kind: int(total or 0) for kind, total in rows}
-        return max(0, values.get("ALLOCATED", 0) - values.get("RECLAIMED", 0) - values.get("RETURNED", 0) - values.get("CONSUMED", 0))
+        return max(
+            0,
+            values.get("ALLOCATED", 0)
+            - values.get("RECLAIMED", 0)
+            - values.get("RETURNED", 0)
+            - values.get("CONSUMED", 0),
+        )
 
-    def quota_summary(self, owner_kind: str, owner_ref: str) -> dict:
+    def quota_summary(self, owner_kind: str, owner_ref: str) -> dict[str, Any]:
         grants = self.available_grants(owner_kind, owner_ref)
         grant_views = []
         total_remaining = 0
@@ -863,23 +938,27 @@ class QuotaCommerceService:
             used = self._usage_count(self.db, grant.grant_id)
             remaining = max(0, grant.units - used)
             total_remaining += remaining
-            grant_views.append({
-                "grant_id": grant.grant_id,
-                "kind": grant.kind,
-                "units": grant.units,
-                "used": used,
-                "available": remaining,
-                "period": grant.period,
-                "expires_at": grant.expires_at.isoformat() if grant.expires_at else None,
-            })
+            grant_views.append(
+                {
+                    "grant_id": grant.grant_id,
+                    "kind": grant.kind,
+                    "units": grant.units,
+                    "used": used,
+                    "available": remaining,
+                    "period": grant.period,
+                    "expires_at": grant.expires_at.isoformat() if grant.expires_at else None,
+                }
+            )
         allocation_summary = None
         if owner_kind == "ORGANIZATION":
-            rows = list(self.db.scalars(
-                select(BillingQuotaAllocationModel).where(
-                    BillingQuotaAllocationModel.organization_ref == owner_ref,
-                    BillingQuotaAllocationModel.active.is_(True),
+            rows = list(
+                self.db.scalars(
+                    select(BillingQuotaAllocationModel).where(
+                        BillingQuotaAllocationModel.organization_ref == owner_ref,
+                        BillingQuotaAllocationModel.active.is_(True),
+                    )
                 )
-            ))
+            )
             reserved = sum(self._allocation_net(row.allocation_id) for row in rows)
             allocation_summary = {
                 "allocated_unused_units": reserved,
@@ -897,37 +976,61 @@ class QuotaCommerceService:
             }
         return {
             "owner_kind": owner_kind,
-            "available_units": max(0, total_remaining - (allocation_summary or {}).get("allocated_unused_units", 0)),
+            "available_units": max(
+                0,
+                total_remaining
+                - cast(int, (allocation_summary or {}).get("allocated_unused_units", 0)),
+            ),
             "granted_units": sum(g.units for g in grants),
             "used_units": sum(self._usage_count(self.db, g.grant_id) for g in grants),
             "grants": grant_views,
             "allocation": allocation_summary,
         }
 
-    def allocate(self, organization_ref: str, teacher_ref: str, units: int,
-                 key: str, expected: int | None = None) -> dict:
-        payload = {"organization_ref": organization_ref, "teacher_ref": teacher_ref, "units": units,
-                   "expected_revision": expected}
+    def allocate(
+        self,
+        organization_ref: str,
+        teacher_ref: str,
+        units: int,
+        key: str,
+        expected: int | None = None,
+    ) -> dict[str, Any]:
+        payload = {
+            "organization_ref": organization_ref,
+            "teacher_ref": teacher_ref,
+            "units": units,
+            "expected_revision": expected,
+        }
 
-        def execute():
+        def execute() -> Any:
             self.lock("quota-scope:ORGANIZATION:" + organization_ref)
-            teacher = self.db.scalar(select(AdultIdentityModel).where(
-                AdultIdentityModel.subject == teacher_ref,
-                AdultIdentityModel.account_role == "teacher",
-                AdultIdentityModel.state == "active",
-            ))
-            assigned = self.db.scalar(select(OrganizationAssignmentModel).where(
-                OrganizationAssignmentModel.organization_id == organization_ref,
-                OrganizationAssignmentModel.subject == teacher_ref,
-                OrganizationAssignmentModel.role == "teacher",
-                OrganizationAssignmentModel.active.is_(True),
-            ).limit(1))
+            teacher = self.db.scalar(
+                select(AdultIdentityModel).where(
+                    AdultIdentityModel.subject == teacher_ref,
+                    AdultIdentityModel.account_role == "teacher",
+                    AdultIdentityModel.state == "active",
+                )
+            )
+            assigned = self.db.scalar(
+                select(OrganizationAssignmentModel)
+                .where(
+                    OrganizationAssignmentModel.organization_id == organization_ref,
+                    OrganizationAssignmentModel.subject == teacher_ref,
+                    OrganizationAssignmentModel.role == "teacher",
+                    OrganizationAssignmentModel.active.is_(True),
+                )
+                .limit(1)
+            )
             if teacher is None or assigned is None:
                 raise AdminError("TEACHER_ASSIGNMENT_UNAVAILABLE", 409)
-            allocation = self.db.scalar(select(BillingQuotaAllocationModel).where(
-                BillingQuotaAllocationModel.organization_ref == organization_ref,
-                BillingQuotaAllocationModel.teacher_ref == teacher_ref,
-            ).with_for_update())
+            allocation = self.db.scalar(
+                select(BillingQuotaAllocationModel)
+                .where(
+                    BillingQuotaAllocationModel.organization_ref == organization_ref,
+                    BillingQuotaAllocationModel.teacher_ref == teacher_ref,
+                )
+                .with_for_update()
+            )
             if allocation is None:
                 allocation = BillingQuotaAllocationModel(
                     allocation_id=str(uuid4()),
@@ -947,16 +1050,18 @@ class QuotaCommerceService:
             allocation.active = True
             allocation.revision += 1
             allocation.updated_at = self.clock()
-            self.db.add(BillingQuotaAllocationEventModel(
-                event_id=str(uuid4()),
-                allocation_id=allocation.allocation_id,
-                organization_ref=organization_ref,
-                teacher_ref=teacher_ref,
-                event_kind="ALLOCATED",
-                units=units,
-                actor_ref=self.actor,
-                operation_key=key,
-            ))
+            self.db.add(
+                BillingQuotaAllocationEventModel(
+                    event_id=str(uuid4()),
+                    allocation_id=allocation.allocation_id,
+                    organization_ref=organization_ref,
+                    teacher_ref=teacher_ref,
+                    event_kind="ALLOCATED",
+                    units=units,
+                    actor_ref=self.actor,
+                    operation_key=key,
+                )
+            )
             return {
                 "allocation_id": allocation.allocation_id,
                 "teacher_ref": teacher_ref,
@@ -966,16 +1071,21 @@ class QuotaCommerceService:
 
         return self._command("quota.allocate", key, payload, execute)
 
-    def reclaim(self, organization_ref: str, teacher_ref: str, units: int,
-                expected: int, key: str) -> dict:
+    def reclaim(
+        self, organization_ref: str, teacher_ref: str, units: int, expected: int, key: str
+    ) -> dict[str, Any]:
         payload = {"organization_ref": organization_ref, "teacher_ref": teacher_ref, "units": units}
 
-        def execute():
+        def execute() -> Any:
             self.lock("quota-scope:ORGANIZATION:" + organization_ref)
-            allocation = self.db.scalar(select(BillingQuotaAllocationModel).where(
-                BillingQuotaAllocationModel.organization_ref == organization_ref,
-                BillingQuotaAllocationModel.teacher_ref == teacher_ref,
-            ).with_for_update())
+            allocation = self.db.scalar(
+                select(BillingQuotaAllocationModel)
+                .where(
+                    BillingQuotaAllocationModel.organization_ref == organization_ref,
+                    BillingQuotaAllocationModel.teacher_ref == teacher_ref,
+                )
+                .with_for_update()
+            )
             if allocation is None or not allocation.active:
                 raise AdminError("QUOTA_ALLOCATION_NOT_FOUND", 404)
             require_revision(allocation.revision, expected)
@@ -984,25 +1094,31 @@ class QuotaCommerceService:
                 raise AdminError("QUOTA_ALLOCATION_IN_USE", 409)
             allocation.revision += 1
             allocation.updated_at = self.clock()
-            self.db.add(BillingQuotaAllocationEventModel(
-                event_id=str(uuid4()),
-                allocation_id=allocation.allocation_id,
-                organization_ref=organization_ref,
-                teacher_ref=teacher_ref,
-                event_kind="RECLAIMED",
-                units=units,
-                actor_ref=self.actor,
-                operation_key=key,
-            ))
+            self.db.add(
+                BillingQuotaAllocationEventModel(
+                    event_id=str(uuid4()),
+                    allocation_id=allocation.allocation_id,
+                    organization_ref=organization_ref,
+                    teacher_ref=teacher_ref,
+                    event_kind="RECLAIMED",
+                    units=units,
+                    actor_ref=self.actor,
+                    operation_key=key,
+                )
+            )
             remaining = available - units
             if remaining == 0:
                 allocation.active = False
-            return {"allocation_id": allocation.allocation_id, "teacher_ref": teacher_ref,
-                    "available_units": remaining, "revision": allocation.revision}
+            return {
+                "allocation_id": allocation.allocation_id,
+                "teacher_ref": teacher_ref,
+                "available_units": remaining,
+                "revision": allocation.revision,
+            }
 
         return self._command("quota.reclaim", key, payload, execute)
 
-    def allocations(self, organization_ref: str, include_inactive: bool = False) -> dict:
+    def allocations(self, organization_ref: str, include_inactive: bool = False) -> dict[str, Any]:
         query = select(BillingQuotaAllocationModel).where(
             BillingQuotaAllocationModel.organization_ref == organization_ref
         )
@@ -1024,20 +1140,27 @@ class QuotaCommerceService:
             "total": len(rows),
         }
 
-    def consume_teacher_quota(self, organization_ref: str, teacher_ref: str,
-                              admission_ref: str) -> dict:
+    def consume_teacher_quota(
+        self, organization_ref: str, teacher_ref: str, admission_ref: str
+    ) -> dict[str, Any]:
         """Consume one school-owned unit from a Teacher's active allocation."""
         self.lock("quota-scope:ORGANIZATION:" + organization_ref)
-        existing = self.db.scalar(select(VideoQuotaUsageModel).where(
-            VideoQuotaUsageModel.owner_kind == "ORGANIZATION",
-            VideoQuotaUsageModel.owner_ref == organization_ref,
-            VideoQuotaUsageModel.admission_ref == admission_ref,
-        ))
-        allocation = self.db.scalar(select(BillingQuotaAllocationModel).where(
-            BillingQuotaAllocationModel.organization_ref == organization_ref,
-            BillingQuotaAllocationModel.teacher_ref == teacher_ref,
-            BillingQuotaAllocationModel.active.is_(True),
-        ).with_for_update())
+        existing = self.db.scalar(
+            select(VideoQuotaUsageModel).where(
+                VideoQuotaUsageModel.owner_kind == "ORGANIZATION",
+                VideoQuotaUsageModel.owner_ref == organization_ref,
+                VideoQuotaUsageModel.admission_ref == admission_ref,
+            )
+        )
+        allocation = self.db.scalar(
+            select(BillingQuotaAllocationModel)
+            .where(
+                BillingQuotaAllocationModel.organization_ref == organization_ref,
+                BillingQuotaAllocationModel.teacher_ref == teacher_ref,
+                BillingQuotaAllocationModel.active.is_(True),
+            )
+            .with_for_update()
+        )
         if allocation is None:
             raise AdminError("QUOTA_ALLOCATION_NOT_FOUND", 409)
         if existing is not None:
@@ -1047,28 +1170,47 @@ class QuotaCommerceService:
         available = self._allocation_net(allocation.allocation_id)
         if available < 1:
             raise AdminError("TEACHER_QUOTA_INSUFFICIENT", 409)
-        grant = next((item for item in self.available_grants("ORGANIZATION", organization_ref)
-                      if self._usage_count(self.db, item.grant_id) < item.units), None)
+        grant = next(
+            (
+                item
+                for item in self.available_grants("ORGANIZATION", organization_ref)
+                if self._usage_count(self.db, item.grant_id) < item.units
+            ),
+            None,
+        )
         if grant is None:
             raise AdminError("SCHOOL_QUOTA_INSUFFICIENT", 409)
         use_key = "teacher-use:" + hashlib.sha256(admission_ref.encode()).hexdigest()
-        if self.db.scalar(select(BillingQuotaAllocationEventModel).where(
-            BillingQuotaAllocationEventModel.allocation_id == allocation.allocation_id,
-            BillingQuotaAllocationEventModel.operation_key == use_key,
-        )):
+        if self.db.scalar(
+            select(BillingQuotaAllocationEventModel).where(
+                BillingQuotaAllocationEventModel.allocation_id == allocation.allocation_id,
+                BillingQuotaAllocationEventModel.operation_key == use_key,
+            )
+        ):
             raise AdminError("QUOTA_ADMISSION_CONFLICT", 409)
-        self.db.add(VideoQuotaUsageModel(
-            usage_id=str(uuid4()), grant_id=grant.grant_id,
-            owner_kind="ORGANIZATION", owner_ref=organization_ref,
-            admission_ref=admission_ref, allocation_id=allocation.allocation_id,
-            teacher_ref=teacher_ref,
-        ))
-        self.db.add(BillingQuotaAllocationEventModel(
-            event_id=str(uuid4()), allocation_id=allocation.allocation_id,
-            organization_ref=organization_ref, teacher_ref=teacher_ref,
-            event_kind="CONSUMED", units=1, actor_ref=self.actor,
-            operation_key=use_key,
-        ))
+        self.db.add(
+            VideoQuotaUsageModel(
+                usage_id=str(uuid4()),
+                grant_id=grant.grant_id,
+                owner_kind="ORGANIZATION",
+                owner_ref=organization_ref,
+                admission_ref=admission_ref,
+                allocation_id=allocation.allocation_id,
+                teacher_ref=teacher_ref,
+            )
+        )
+        self.db.add(
+            BillingQuotaAllocationEventModel(
+                event_id=str(uuid4()),
+                allocation_id=allocation.allocation_id,
+                organization_ref=organization_ref,
+                teacher_ref=teacher_ref,
+                event_kind="CONSUMED",
+                units=1,
+                actor_ref=self.actor,
+                operation_key=use_key,
+            )
+        )
         allocation.revision += 1
         allocation.updated_at = self.clock()
         self.db.commit()
@@ -1081,36 +1223,43 @@ class QuotaCommerceService:
         }
 
     @classmethod
-    def return_teacher_allocation(cls, db, *, organization_ref: str, teacher_ref: str,
-                                  actor_ref: str, event_key: str) -> int:
-        allocation = db.scalar(select(BillingQuotaAllocationModel).where(
-            BillingQuotaAllocationModel.organization_ref == organization_ref,
-            BillingQuotaAllocationModel.teacher_ref == teacher_ref,
-            BillingQuotaAllocationModel.active.is_(True),
-        ).with_for_update())
+    def return_teacher_allocation(
+        cls, db: Any, *, organization_ref: str, teacher_ref: str, actor_ref: str, event_key: str
+    ) -> int:
+        allocation = db.scalar(
+            select(BillingQuotaAllocationModel)
+            .where(
+                BillingQuotaAllocationModel.organization_ref == organization_ref,
+                BillingQuotaAllocationModel.teacher_ref == teacher_ref,
+                BillingQuotaAllocationModel.active.is_(True),
+            )
+            .with_for_update()
+        )
         if allocation is None:
             return 0
         service = object.__new__(cls)
         service.db = db
         available = service._allocation_net(allocation.allocation_id)
         if available:
-            db.add(BillingQuotaAllocationEventModel(
-                event_id=str(uuid4()),
-                allocation_id=allocation.allocation_id,
-                organization_ref=organization_ref,
-                teacher_ref=teacher_ref,
-                event_kind="RETURNED",
-                units=available,
-                actor_ref=actor_ref,
-                operation_key=event_key,
-            ))
+            db.add(
+                BillingQuotaAllocationEventModel(
+                    event_id=str(uuid4()),
+                    allocation_id=allocation.allocation_id,
+                    organization_ref=organization_ref,
+                    teacher_ref=teacher_ref,
+                    event_kind="RETURNED",
+                    units=available,
+                    actor_ref=actor_ref,
+                    operation_key=event_key,
+                )
+            )
         allocation.active = False
         allocation.revision += 1
         allocation.updated_at = datetime.now(UTC)
         return available
 
 
-def scope_for_be1(db, principal) -> tuple[str, str]:
+def scope_for_be1(db: Any, principal: Any) -> tuple[str, str]:
     identity = db.get(AdultIdentityModel, principal.subject)
     if identity is None or identity.state != "active":
         raise AdminError("ACCOUNT_SCOPE_UNAVAILABLE", 403)
@@ -1118,19 +1267,25 @@ def scope_for_be1(db, principal) -> tuple[str, str]:
         return "PARENT_ACCOUNT", identity.account_id
     if identity.account_role != "school_manager":
         raise AdminError("BILLING_PURCHASE_NOT_ALLOWED", 403)
-    assignments = list(db.scalars(select(OrganizationAssignmentModel).where(
-        OrganizationAssignmentModel.subject == principal.subject,
-        OrganizationAssignmentModel.role == "school_admin",
-        OrganizationAssignmentModel.class_id.is_(None),
-        OrganizationAssignmentModel.active.is_(True),
-    )))
+    assignments = list(
+        db.scalars(
+            select(OrganizationAssignmentModel).where(
+                OrganizationAssignmentModel.subject == principal.subject,
+                OrganizationAssignmentModel.role == "school_admin",
+                OrganizationAssignmentModel.class_id.is_(None),
+                OrganizationAssignmentModel.active.is_(True),
+            )
+        )
+    )
     active_orgs = {
         row.organization_id
         for row in assignments
-        if db.scalar(select(OrganizationModel.organization_id).where(
-            OrganizationModel.organization_id == row.organization_id,
-            OrganizationModel.state == "active",
-        ))
+        if db.scalar(
+            select(OrganizationModel.organization_id).where(
+                OrganizationModel.organization_id == row.organization_id,
+                OrganizationModel.state == "active",
+            )
+        )
     }
     if len(active_orgs) != 1:
         raise AdminError("BILLING_SCOPE_SELECTION_REQUIRED", 409)

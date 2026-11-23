@@ -228,6 +228,7 @@ def _revoke_assignments(
         assignment.active = False
         assignment.pending_activation = False
         if assignment.role == "teacher":
+            db.flush()
             still_assigned = db.scalar(
                 select(OrganizationAssignmentModel.assignment_id).where(
                     OrganizationAssignmentModel.organization_id == assignment.organization_id,

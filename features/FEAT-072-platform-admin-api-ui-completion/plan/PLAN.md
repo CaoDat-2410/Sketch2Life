@@ -55,3 +55,9 @@ Production prices, purchase/allocation authority, provider settlement policy, an
 - **Boundaries:** School-capacity billing stays separate; no hardcoded production prices; no fake payment success; no provider secret in source, reports, or chat; no commit or push.
 - **Open prerequisites:** Merchant sandbox credentials and callback URLs must be entered into ignored local environment/secrets by the owner. Provider-specific recurring authorization must only be enabled for an approved merchant product. Remaining SRS open policies remain gated from implementation until the owner resolves them.
 
+
+## Billing review corrections - 2026-11-23
+
+Within approved Rev3 scope, correct Teacher allocation return, catalog mounted operations, exercise settlement/allocation/callbacks and migration guards with local fixtures, mirror School payment recovery for Parent scope, and address specified type, lint, callback and development-host defects. Preserve provider policy and defer quota consumption.
+
+Acceptance: runtime autoflush-disabled PostgreSQL regression verifies return event and balance; catalog matches mounted routes; payment and migration tests cover requested cases; Parent recovery enforces its own scope and School behavior; checks and baseline comparison are recorded. No live payment, SRS change, migration edit, commit or push.

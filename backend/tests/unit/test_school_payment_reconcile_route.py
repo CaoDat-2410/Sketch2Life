@@ -93,3 +93,42 @@ def test_school_manager_cannot_cancel_another_schools_payment(monkeypatch):
 
     assert error.value.detail["code"] == "INVOICE_NOT_FOUND"
     commerce.cancel_expired_vnpay_invoice.assert_not_called()
+
+
+@pytest.mark.parametrize("action,method", [
+    ("reconcile_personal_invoice", "reconcile_invoice"),
+    ("cancel_personal_invoice", "cancel_expired_vnpay_invoice"),
+])
+def test_parent_recovery_checks_scope_and_reuses_school_service(monkeypatch, action, method):
+    commerce = Mock()
+    commerce.invoice.return_value = SimpleNamespace(owner_kind="PARENT_ACCOUNT", owner_ref="account")
+    getattr(commerce, method).return_value = {"state": "PENDING"}
+    monkeypatch.setattr(be1_billing, "scope_for_be1", lambda db, principal: ("PARENT_ACCOUNT", "account"))
+    monkeypatch.setattr(be1_billing, "_commerce", lambda db, principal: commerce)
+    route = getattr(be1_billing, action)
+    assert route("invoice", principal=_principal(), db=object()) == {"state": "PENDING"}
+    getattr(commerce, method).assert_called_once_with("invoice")
+    commerce.invoice.return_value.owner_ref = "another"
+    with pytest.raises(HTTPException) as error:
+        route("invoice", principal=_principal(), db=object())
+    assert error.value.status_code == 404
+    assert error.value.detail["code"] == "INVOICE_NOT_FOUND"
+    assert getattr(commerce, method).call_count == 1
+
+
+@pytest.mark.parametrize("action,method", [
+    ("reconcile_personal_invoice", "reconcile_invoice"),
+    ("cancel_personal_invoice", "cancel_expired_vnpay_invoice"),
+])
+def test_parent_recovery_preserves_service_errors(monkeypatch, action, method):
+    from sketch2life.domain.platform_admin import AdminError
+
+    commerce = Mock()
+    commerce.invoice.return_value = SimpleNamespace(owner_kind="PARENT_ACCOUNT", owner_ref="account")
+    getattr(commerce, method).side_effect = AdminError("PAYMENT_CANCEL_PROVIDER_NOT_SUPPORTED", 409)
+    monkeypatch.setattr(be1_billing, "scope_for_be1", lambda db, principal: ("PARENT_ACCOUNT", "account"))
+    monkeypatch.setattr(be1_billing, "_commerce", lambda db, principal: commerce)
+    with pytest.raises(HTTPException) as error:
+        getattr(be1_billing, action)("invoice", principal=_principal(), db=object())
+    assert error.value.status_code == 409
+    assert error.value.detail["code"] == "PAYMENT_CANCEL_PROVIDER_NOT_SUPPORTED"

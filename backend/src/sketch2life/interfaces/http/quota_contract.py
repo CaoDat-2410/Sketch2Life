@@ -1,0 +1,25 @@
+"""Quota commerce and provider callback operations mounted after Rev37."""
+
+QUOTA_OPERATIONS = frozenset({
+    ("get", "/api/be1/v1/billing/video-quota/payment-settings"),
+    ("get", "/api/be1/v1/billing/video-quota/products"),
+    ("get", "/api/be1/v1/billing/video-quota"),
+    ("get", "/api/be1/v1/billing/video-quota/invoices"),
+    ("post", "/api/be1/v1/billing/video-quota/checkout"),
+    ("post", "/api/be1/v1/billing/video-quota/invoices/{invoice_id}/reconcile"),
+    ("post", "/api/be1/v1/billing/video-quota/invoices/{invoice_id}/cancel"),
+    ("get", "/api/be1/v1/organizations/{organization_id}/video-quota"),
+    ("get", "/api/be1/v1/organizations/{organization_id}/video-quota/products"),
+    ("get", "/api/be1/v1/organizations/{organization_id}/video-quota/payment-settings"),
+    ("get", "/api/be1/v1/organizations/{organization_id}/video-quota/teachers"),
+    ("get", "/api/be1/v1/organizations/{organization_id}/video-quota/invoices"),
+    ("post", "/api/be1/v1/organizations/{organization_id}/video-quota/invoices/{invoice_id}/reconcile"),
+    ("post", "/api/be1/v1/organizations/{organization_id}/video-quota/invoices/{invoice_id}/cancel"),
+    ("post", "/api/be1/v1/organizations/{organization_id}/video-quota/checkout"),
+    ("get", "/api/be1/v1/organizations/{organization_id}/video-quota/allocations"),
+    ("post", "/api/be1/v1/organizations/{organization_id}/video-quota/allocations"),
+    ("post", "/api/be1/v1/organizations/{organization_id}/video-quota/allocations/reclaim"),
+    ("get", "/api/be1/v1/organizations/{organization_id}/video-quota/me"),
+    ("post", "/api/payment-callbacks/v1/momo/ipn"),
+    ("get", "/api/payment-callbacks/v1/vnpay/ipn"),
+})
