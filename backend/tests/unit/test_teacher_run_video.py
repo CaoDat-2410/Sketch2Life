@@ -310,14 +310,22 @@ def test_a_teacher_playback_without_the_current_assignment_or_a_pinned_run_is_no
         assert resolution.status is PlaybackStatus.NOT_FOUND and resolution.target is None
 
 
-def test_a_teacher_playback_still_needs_a_playable_run_and_the_token_generation() -> None:
+def test_a_teacher_playback_needs_a_playable_run_and_the_token_generation() -> None:
     access = _Access(TeacherRunAccess("class-a", "active"))
     completed = SqlStoryVideoRepository(
         _Session(_playback_row(run_state="COMPLETED")),  # type: ignore[arg-type]
         TEACHER,
         access,
     ).resolve_playback(principal=PRINCIPAL, run_id=RUN_ID, generation_id=None)
-    assert completed.status is PlaybackStatus.NOT_PLAYABLE  # a COMPLETED run gets no token
+    # V4-A T-1c-fix (owner decision C1(a)): Complete no longer ends the Teacher's own playback;
+    # a class projection given before Complete ends in the Lesson check instead
+    assert completed.status is PlaybackStatus.PLAYABLE
+    rejected = SqlStoryVideoRepository(
+        _Session(_playback_row(run_state="SCRIPT_REVIEW", generation_state="REJECTED_BY_ADULT")),  # type: ignore[arg-type]
+        TEACHER,
+        access,
+    ).resolve_playback(principal=PRINCIPAL, run_id=RUN_ID, generation_id=None)
+    assert rejected.status is PlaybackStatus.NOT_PLAYABLE
     other_generation = SqlStoryVideoRepository(
         _Session(_playback_row()),  # type: ignore[arg-type]
         TEACHER,
@@ -340,6 +348,66 @@ def test_the_parent_playback_statement_is_the_one_it_always_was() -> None:
     sql = _sql(session.statements[0])
     assert "actor_scope_kind = 'PARENT_ACCOUNT'" in sql and f"actor_scope_ref = '{DIGEST}'" in sql
     assert "occurrence_ref" not in sql and "profile_ref" not in sql
+
+
+# ------------------------------------------------------- the profile revocation (T-1c-fix D5)
+PROFILE_ID = "44444444-4444-4444-8444-444444444444"
+
+
+def _parent_playback(*rows: Any, run_state: str = "COMPLETED") -> tuple[_Session, Any]:
+    first = {**_playback_row(run_state=run_state), "run_state": run_state}
+    session = _Session(first, *rows)
+    resolution = SqlStoryVideoRepository(session).resolve_playback(  # type: ignore[arg-type]
+        principal=PRINCIPAL, run_id=RUN_ID, generation_id=None
+    )
+    return session, resolution
+
+
+@pytest.mark.parametrize("run_state", ["COMPLETED", "VIDEO_READY"])
+@pytest.mark.parametrize(
+    "profile",
+    [{"state": "DELETE_PENDING", "deleted_at": None}, {"state": "ACTIVE", "deleted_at": object()}],
+)
+def test_a_parent_run_of_a_deleted_profile_is_the_uniform_not_found(
+    run_state: str, profile: dict[str, Any]
+) -> None:
+    session, resolution = _parent_playback(
+        {"profile_ref": PROFILE_ID}, profile, run_state=run_state
+    )
+    assert resolution.status is PlaybackStatus.NOT_FOUND and resolution.target is None
+    first, second, third = (_sql(statement) for statement in session.statements)
+    assert "profile_ref" not in first and "occurrence_ref" not in first  # the owner row is as ever
+    assert "runs.profile_ref" in second and "child_profiles" in third
+    assert PROFILE_ID in third and "FOR UPDATE" not in third
+
+
+@pytest.mark.parametrize(
+    "answers",
+    [
+        (None,),  # the run row vanished between the two reads
+        ({"profile_ref": None},),  # a run without a profile reference
+        ({"profile_ref": "not-a-uuid"},),  # an unparsable reference
+        ({"profile_ref": PROFILE_ID}, None),  # a reference with no profile row
+        ({"profile_ref": PROFILE_ID}, {"state": "ACTIVE", "deleted_at": None}),
+    ],
+)
+def test_a_parent_run_with_no_deleted_profile_stays_playable_after_complete(
+    answers: tuple[Any, ...],
+) -> None:
+    session, resolution = _parent_playback(*answers)
+    assert resolution.status is PlaybackStatus.PLAYABLE and resolution.target is not None
+    assert len(session.statements) in {2, 3}
+
+
+def test_the_teacher_branch_runs_no_profile_statement() -> None:
+    session = _Session(_playback_row(run_state="COMPLETED"))
+    repository = SqlStoryVideoRepository(
+        session,  # type: ignore[arg-type]
+        TEACHER,
+        _Access(TeacherRunAccess("class-a", "active")),
+    )
+    repository.resolve_playback(principal=PRINCIPAL, run_id=RUN_ID, generation_id=None)
+    assert len(session.statements) == 1
 
 
 # ------------------------------------------------------------------ the overdue sweep (D12)

@@ -108,6 +108,7 @@ TEACHER_VIEW_KEYS = {
     "video",
     "quota",
     "timeline",
+    "story_confirmation_required",
 }
 
 
@@ -324,6 +325,9 @@ def _approve_plan(d: Api, occurrence_id: str, head: int, who: str) -> tuple[str,
                 )
             ).scalar_one()
         )
+    # V4-A OPEN-B: the create and the confirm responses carry the id the run create accepts
+    assert [a["plan_activity_id"] for a in plan["activities"]] == [activity]
+    assert [a["plan_activity_id"] for a in confirmed.json()["activities"]] == [activity]
     return pointer, str(plan["content_hash"]), int(plan["revision_no"]), activity
 
 
@@ -927,6 +931,30 @@ def test_an_activity_of_another_plan_is_400(api: Api) -> None:
     assert run_rows(d, occ.occurrence_id) == []
 
 
+def test_the_activity_id_read_from_the_plan_response_creates_the_run(api: Api) -> None:
+    """V4-A OPEN-B end to end: the web reads the approved plan revision, picks one activity and
+    sends its ``plan_activity_id`` as ``activity_id``; an id that is not one of that revision's
+    activities is the existing 400 and creates nothing."""
+    d = api
+    occ, offer, body = flow(d)
+    read = d.client.get(
+        f"/v1/lesson-occurrences/{occ.occurrence_id}/plan-revisions/{occ.revision_no}",
+        headers=headers(d.subjects["t1"]),
+    )
+    assert read.status_code == 200, read.text
+    (activity,) = read.json()["activities"]
+    activity_id = activity["plan_activity_id"]
+    assert activity_id == occ.activity_id and activity["kind"] == "CUSTOM"
+    assert activity["snapshot_hash"] is None  # a CUSTOM activity has an id and no snapshot hash
+    wrong = post_create(d, "t1", body_for(occ, offer, activity_id=str(uuid4())))
+    assert wrong.status_code == 400 and wrong.json()["code"] == "INVALID_REQUEST"
+    assert run_rows(d, occ.occurrence_id) == []
+    created = post_create(d, "t1", body_for(occ, offer, activity_id=activity_id))
+    assert created.status_code == 201, created.text
+    pin = created.json()["story_run"]["lesson_pin_snapshot"]
+    assert pin["activity"]["plan_activity_id"] == activity_id
+
+
 def test_a_multi_child_body_is_422_and_nothing_is_read(api: Api) -> None:
     d = api
     occ, offer, body = flow(d)
@@ -1107,7 +1135,10 @@ def test_an_unprojected_ready_sample_holds_the_slot_even_when_the_run_is_complet
     "generation",
     [
         {"generation_state": "FAILED", "run_state": "SCRIPT_REVIEW", "output": False},
+        # the run state ``SAFETY_BLOCKED`` is a row written before the V4-A exit; a real block now
+        # leaves the run at ``SCRIPT_REVIEW`` (owner decision C11)
         {"generation_state": "SAFETY_BLOCKED", "run_state": "SAFETY_BLOCKED", "output": False},
+        {"generation_state": "SAFETY_BLOCKED", "run_state": "SCRIPT_REVIEW", "output": False},
     ],
 )
 def test_a_failed_or_blocked_generation_does_not_hold_the_slot(

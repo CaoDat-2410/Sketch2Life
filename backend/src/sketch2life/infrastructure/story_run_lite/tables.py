@@ -14,6 +14,7 @@ from sqlalchemy import (
     Integer,
     MetaData,
     Numeric,
+    SmallInteger,
     String,
     Table,
     Text,
@@ -590,7 +591,7 @@ story_command_receipts = Table(
         "operation IN ('CREATE_RUN','ATTACH_ASSET','CONFIRM_SUBJECT','CONFIRM_CONTEXT',"
         "'CANCEL_RUN','GENERATE_STORY_REVISION','CONFIRM_STORY_REVISION','DELETE_RUN',"
         "'SUBMIT_IDEA','CONFIRM_TRANSCRIPT','CREATE_VIDEO_GENERATION',"
-        "'MARK_VIDEO_UNSUITABLE','COMPLETE_RUN')",
+        "'MARK_VIDEO_UNSUITABLE','COMPLETE_RUN','SELECT_ACTIVITY')",
         name="ck_story_receipt_operation",
     ),
     CheckConstraint(
@@ -747,6 +748,9 @@ story_revision_reviews = Table(
     Column("actor_scope_ref", String(128), nullable=False),
     Column("decision", String(24), nullable=False),
     Column("target_story_sha256", String(64), nullable=False),
+    # DDL-B1c (V4-A T-1b-fix, migration 20261123_rv_0001): a re-confirmation of a spent review is
+    # a new row of the same revision with the next epoch (1..3); rows are never updated.
+    Column("review_epoch", SmallInteger, nullable=False, server_default=text("1")),
     Column("created_at", DateTime(timezone=True), nullable=False, server_default=text("now()")),
     ForeignKeyConstraint(
         ["run_id", "story_revision_id"],
@@ -754,12 +758,13 @@ story_revision_reviews = Table(
         ondelete="CASCADE",
         name="fk_story_revision_review_owner",
     ),
-    UniqueConstraint("story_revision_id", name="uq_story_revision_review_once"),
+    UniqueConstraint("story_revision_id", "review_epoch", name="uq_story_revision_review_epoch"),
     # DDL-B1 part 2 (T-1a): the target of the composite FK of story.video_generations.
     UniqueConstraint(
         "run_id", "story_revision_id", "review_id", name="uq_story_review_run_revision"
     ),
     CheckConstraint("decision = 'CONFIRM'", name="ck_story_revision_review_decision"),
+    CheckConstraint("review_epoch BETWEEN 1 AND 3", name="ck_story_revision_review_epoch"),
     CheckConstraint("length(target_story_sha256) = 64", name="ck_story_revision_review_hash"),
 )
 
@@ -954,10 +959,66 @@ video_generation_scenes = Table(
 )
 
 
+# DDL-B3 (T-2e-a, SRS l.386, l.514, l.1412, l.1667): the Parent's main-activity selection of a run.
+# Append-only (a BEFORE UPDATE trigger); a re-selection is a new row. The snapshot is lesson content
+# copied into Story, so the FR-C-08 purge deletes the rows explicitly (``story_lifecycle_store``).
+activity_selections = Table(
+    "activity_selections",
+    STORY_METADATA,
+    Column("selection_id", String(36), primary_key=True),
+    Column(
+        "run_id", String(36), ForeignKey("story.runs.run_id", ondelete="CASCADE"), nullable=False
+    ),
+    Column("selection_no", Integer, nullable=False),
+    Column("target_understanding_revision", Integer, nullable=False),
+    Column("source_kind", String(24), nullable=False),
+    Column("lesson_id", String(36)),
+    Column("version_id", String(36)),
+    Column("content_sha256", String(64)),
+    Column("activity_index", Integer),
+    Column("activity_snapshot", JSONB, nullable=False),
+    Column("activity_snapshot_sha256", String(64), nullable=False),
+    Column(
+        "command_receipt_id",
+        String(36),
+        ForeignKey("story.command_receipts.receipt_id", ondelete="RESTRICT"),
+        nullable=False,
+    ),
+    Column("actor_scope_kind", String(32), nullable=False),
+    Column("actor_scope_ref", String(128), nullable=False),
+    Column("created_at", DateTime(timezone=True), nullable=False, server_default=text("now()")),
+    UniqueConstraint("run_id", "selection_no", name="uq_as_run_selection_no"),
+    UniqueConstraint("command_receipt_id", name="uq_as_command_receipt"),
+    CheckConstraint("selection_no >= 1", name="ck_as_selection_no"),
+    CheckConstraint("target_understanding_revision >= 1", name="ck_as_target_revision"),
+    CheckConstraint("source_kind IN ('LESSON_ACTIVITY','AI_DRAFT')", name="ck_as_source_kind"),
+    CheckConstraint(
+        "(source_kind = 'LESSON_ACTIVITY' AND lesson_id IS NOT NULL AND version_id IS NOT NULL "
+        "AND content_sha256 IS NOT NULL AND length(content_sha256) = 64 "
+        "AND activity_index IS NOT NULL AND activity_index >= 0) OR "
+        "(source_kind = 'AI_DRAFT' AND lesson_id IS NULL AND version_id IS NULL "
+        "AND content_sha256 IS NULL AND activity_index IS NULL)",
+        name="ck_as_shape",
+    ),
+    CheckConstraint("octet_length(activity_snapshot::text) <= 32768", name="ck_as_snapshot_bound"),
+    CheckConstraint("length(activity_snapshot_sha256) = 64", name="ck_as_snapshot_hash"),
+    CheckConstraint(
+        "actor_scope_kind IN ('PARENT_ACCOUNT','ORGANIZATION')", name="ck_as_actor_kind"
+    ),
+)
+Index(
+    "ix_as_run_target",
+    activity_selections.c.run_id,
+    activity_selections.c.target_understanding_revision,
+    activity_selections.c.selection_no,
+)
+
+
 __all__ = [
     "CORE_METADATA",
     "STORY_METADATA",
     "STORY_SCHEMA",
+    "activity_selections",
     "asset_lineage",
     "review_decisions",
     "run_inputs",

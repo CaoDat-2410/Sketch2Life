@@ -70,6 +70,7 @@ def plan_json(number: int = 3, state: str = "DRAFT") -> dict[str, Any]:
         "lesson_version_no": None,
         "activities": [
             {
+                "plan_activity_id": "11111111-1111-4111-8111-111111111111",
                 "order": 1,
                 "kind": "LESSON",
                 "lesson_activity_id": "act-1",
@@ -768,3 +769,68 @@ def test_a_nul_in_the_document_id_is_a_400_before_the_service(
     )
     assert path.status_code == 400 and path.json()["code"] == "INVALID_REQUEST"
     assert service.calls == []
+
+
+# ----------------------------------------------------------------------------- plan_activity_id
+ACTIVITY_ID = "11111111-1111-4111-8111-111111111111"
+
+
+def test_the_create_get_and_confirm_responses_carry_the_plan_activity_id(
+    served: tuple[TestClient, FakeService],
+) -> None:
+    """V4-A OPEN-B D11: three operations, one field, the value a Teacher run create accepts."""
+
+    client, _ = served
+    created = client.post(URL, json=good(), headers=headers())
+    got = client.get(URL + "/3")
+    confirmed = client.post(CONFIRM_URL, json=confirm_body(), headers=headers("key-2"))
+    for response in (created, got, confirmed):
+        assert response.status_code in {200, 201}, response.text
+        activities = response.json()["activities"]
+        assert [item["plan_activity_id"] for item in activities] == [ACTIVITY_ID]
+
+
+def test_the_list_response_is_unchanged_and_carries_no_activities(
+    served: tuple[TestClient, FakeService],
+) -> None:
+    client, _ = served
+    response = client.get(URL)
+    assert response.status_code == 200
+    item = response.json()["items"][0]
+    assert set(item) == {
+        "revision_no",
+        "state",
+        "content_hash",
+        "activity_count",
+        "created_at",
+        "approved_at",
+    }
+    assert "plan_activity_id" not in response.text
+
+
+def test_a_stored_body_from_before_the_field_still_validates_with_a_null_id(
+    served: tuple[TestClient, FakeService],
+) -> None:
+    """D10/D11b: the schema property is optional, so an old replay body that could not be
+    backfilled still answers instead of failing response validation."""
+
+    client, service = served
+    old = plan_json()
+    del old["activities"][0]["plan_activity_id"]
+    service.create_revision = lambda **kwargs: PlanResult(old, 201, replayed=True)  # type: ignore[method-assign]
+    response = client.post(URL, json=good(), headers=headers())
+    assert response.status_code == 201, response.text
+    assert response.json()["activities"][0]["plan_activity_id"] is None
+
+
+def test_the_published_component_has_an_optional_36_character_plan_activity_id() -> None:
+    application = create_app()
+    application.openapi()
+    schema = application.state.runtime_openapi_schema["components"]["schemas"]["PlanActivityV1"]
+    prop = schema["properties"]["plan_activity_id"]
+    assert {"type": "string", "maxLength": 36, "minLength": 1} in prop["anyOf"]
+    assert "plan_activity_id" not in schema["required"]
+    summary = application.state.runtime_openapi_schema["components"]["schemas"][
+        "LessonPlanRevisionSummaryV1"
+    ]
+    assert "plan_activity_id" not in summary["properties"]

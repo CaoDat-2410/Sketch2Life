@@ -174,34 +174,21 @@ def test_a_lost_voice_transcription_fails_the_transcript_and_settles_the_run(env
 # ------------------------------------------------------------------------------ stories
 def test_a_lost_first_story_ends_the_teacher_run_and_frees_the_lock(env: Env) -> None:
     e = env
+    # no generator is composed: the first story the confirmations start is reserved and never run
+    # (V4-A OPEN-A D1), exactly the first story whose background task was lost
+    e.d.app.state.story_generator = None
     run_id = to_subject_review(e)
     assert confirm_context(e, "t1", run_id).status_code == 200
     assert confirm_subject(e, "t1", run_id).status_code == 202
-    # a first story whose background task was lost: GENERATING, run SCRIPT_GENERATING/QUEUED
+    assert states(e, run_id) == ("SCRIPT_GENERATING", "QUEUED")
+    assert story_rows(e, run_id)[0]["status"] == "GENERATING"
     with e.sessions().begin() as db:
-        run = db.execute(select(RUNS).where(RUNS.c.run_id == run_id)).mappings().one()
         db.execute(
-            story_tables.story_revisions.insert().values(
-                story_revision_id=str(uuid4()),
-                run_id=run_id,
-                revision_no=1,
-                status="GENERATING",
-                source_asset_sha256="a" * 64,
-                understanding_revision=int(run["understanding_revision"]),
-                context_revision=1,
-                schema_version="sketch2life.story-revision.v1",
-                prompt_version="synthetic-prompt",
-                model_id="synthetic-model",
-                model_revision="1",
-                request_sha256="e" * 64,
-                created_at=T0,
-            )
+            story_tables.story_revisions.update()
+            .where(story_tables.story_revisions.c.run_id == run_id)
+            .values(created_at=T0)
         )
-        db.execute(
-            update(RUNS)
-            .where(RUNS.c.run_id == run_id)
-            .values(run_state="SCRIPT_GENERATING", job_state="QUEUED", updated_at=T0)
-        )
+    age(e, run_id)
     assert teacher_lock(e, run_id) == e.d.accounts["t1"]
     report = reap(e, T0 + LEASE)
     assert (report.story_failed, report.errors) == (1, 0)

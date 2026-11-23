@@ -42,7 +42,9 @@ CONTEXT_MAX_BYTES: Final = 32_768
 PIN_MAX_BYTES: Final = 1_048_576
 
 # The run states in which the Teacher lock is released (SRS l.394, l.495, l.1020); SAFETY_BLOCKED is
-# an adult-wait state and keeps the lock. DDL-B2 holds the same list in its CHECK and its trigger.
+# an adult-wait state and keeps the lock (a blocked video now returns the run to SCRIPT_REVIEW,
+# which keeps it too; V4-A SAFETY_BLOCKED exit). DDL-B2 holds the same list in its CHECK and its
+# trigger.
 LOCK_FREE_STATES: Final = frozenset(
     {"COMPLETED", "FAILED", "ABANDONED", "DELETE_PENDING", "DELETED"}
 )
@@ -149,6 +151,43 @@ def build_pin_snapshot(
     return snapshot
 
 
+PIN_ACTIVITY_KINDS: Final = frozenset({"CATALOG", "LESSON", "CUSTOM"})
+
+
+def teacher_pin_ready(pin: object, occurrence_ref: object) -> bool:
+    """Whether the pin stored at create is complete enough to start the first story (OPEN-A D2).
+
+    The pin names the occurrence, the approved plan revision and hash, and one plan activity. A
+    catalog or lesson activity carries the hash of its snapshot; a ``CUSTOM`` activity has none
+    (``ck_planact_shape``) and is accepted on its id and the plan hash. Pure: no storage, no clock.
+    """
+
+    if not isinstance(pin, Mapping) or pin.get("schema_version") != TEACHER_PIN_SCHEMA:
+        return False
+    if not isinstance(occurrence_ref, str) or pin.get("occurrence_id") != occurrence_ref:
+        return False
+    for key in ("plan_revision_id", "plan_hash"):
+        value = pin.get(key)
+        if not isinstance(value, str) or not value:
+            return False
+    number = pin.get("plan_revision_no")
+    if type(number) is not int or number < 1:
+        return False
+    activity = pin.get("activity")
+    if not isinstance(activity, Mapping):
+        return False
+    activity_id = activity.get("plan_activity_id")
+    if not isinstance(activity_id, str) or not activity_id:
+        return False
+    kind = activity.get("kind")
+    if kind not in PIN_ACTIVITY_KINDS:
+        return False
+    if kind != "CUSTOM":
+        snapshot_hash = activity.get("snapshot_hash")
+        return isinstance(snapshot_hash, str) and bool(snapshot_hash)
+    return True
+
+
 # The direction a Teacher run hands to the story worker (T-4b3a D7b): smaller than the stored
 # context on purpose, a pure function of that snapshot, no name, no media, no seed.
 LESSON_DIRECTION_OBJECTIVES_MAX: Final = 6
@@ -206,6 +245,7 @@ __all__ = [
     "LESSON_DIRECTION_TITLE_CHARS",
     "LOCK_FREE_STATES",
     "MULTI_CHILD_KEYS",
+    "PIN_ACTIVITY_KINDS",
     "PIN_MAX_BYTES",
     "TEACHER_BODY_KEYS",
     "TEACHER_CONTEXT_SCHEMA",
@@ -220,4 +260,5 @@ __all__ = [
     "parse_json_object",
     "sha256_json",
     "teacher_lesson_direction",
+    "teacher_pin_ready",
 ]

@@ -108,7 +108,11 @@ _EXPECTED_VERSION_ROWS = frozenset(
         # replaces its row.
         # FEAT-066 T-4b2: the DDL-B2 Teacher-lock revision follows the video-generation revision
         # and replaces its row.
-        "20261120_b2_0001",
+        # FEAT-066 goal v4 T-2e-a: the DDL-B3 activity-selection revision follows the Teacher-lock
+        # revision and replaces its row.
+        # FEAT-066 goal v4 T-1b-fix: the DDL-B1c review-epoch revision follows the DDL-B3 revision
+        # and replaces its row.
+        "20261123_rv_0001",
     }
 )
 _MUST_START_EMPTY = (

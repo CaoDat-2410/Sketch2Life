@@ -497,6 +497,9 @@ SITE_ROLES = {
     "create_run": "PARENT_ONLY",
     "list_runs": "PARENT_ONLY",
     "get_active_run": "PARENT_ONLY",
+    # FEAT-066 goal v4 T-2e-a: the activity list and selection are Parent-only (the lookup passes no
+    # ``teacher_capable``, so a Teacher gets the uniform 404 before this helper runs)
+    "_activity_context": "PARENT_ONLY",
     # T-4b3a: the SUBJECT decision lookup, the attempt count and the audit writer follow the
     # command KIND (a Teacher run counts by kind, the Parent by its own scope)
     "_story_generation_basis": "BY_KIND",

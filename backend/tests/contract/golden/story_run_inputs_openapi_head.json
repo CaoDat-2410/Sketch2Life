@@ -645,7 +645,7 @@
        }
       }
      },
-     "description": "Subject confirmation accepted (`decision` `CONFIRMED`, or `RERUN_REQUESTED` when the edited subject queued a new visual understanding), or the lifecycle projection on a replay of a purged run"
+     "description": "Subject confirmation accepted (`decision` `CONFIRMED`, or `RERUN_REQUESTED` when the edited subject queued a new visual understanding; `run_revision` is the revision of this command, so read the run (`Content-Location`) before the next command that carries an expected run revision), or the lifecycle projection on a replay of a purged run"
     },
     "400": {
      "content": {

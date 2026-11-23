@@ -486,7 +486,7 @@
        }
       }
      },
-     "description": "The run state, the revision or the script does not allow a video request (`INVALID_STATE_TRANSITION`, `STALE_REVISION` with `current_version`), the regeneration limit was reached (`VIDEO_REGENERATION_LIMIT_REACHED`), or the quota or the subscription refused it (`VIDEO_QUOTA_EXCEEDED`, `SUBSCRIPTION_RESTRICTED`)"
+     "description": "The run state, the revision or the script does not allow a video request (`INVALID_STATE_TRANSITION`, `STALE_REVISION` with `current_version` the run revision), a Teacher run is pinned to a plan that is no longer the approved plan (`STALE_REVISION` whose `current_version` is the approved plan revision number, not a run revision: create a new run), the regeneration limit was reached (`VIDEO_REGENERATION_LIMIT_REACHED`), or the quota or the subscription refused it (`VIDEO_QUOTA_EXCEEDED`, `SUBSCRIPTION_RESTRICTED`)"
     },
     "422": {
      "content": {
@@ -1400,10 +1400,34 @@
       }
      ]
     },
+    "main_activity": {
+     "anyOf": [
+      {
+       "$ref": "#/components/schemas/ParentMainActivityV1"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
     "parent_profile_id": {
      "format": "uuid",
      "title": "Parent Profile Id",
      "type": "string"
+    },
+    "post_video_activities": {
+     "anyOf": [
+      {
+       "items": {
+        "$ref": "#/components/schemas/ParentPostVideoActivityV1"
+       },
+       "type": "array"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Post Video Activities"
     },
     "profile_revision_ref": {
      "format": "uuid",
@@ -1462,6 +1486,11 @@
        "type": "null"
       }
      ]
+    },
+    "story_confirmation_required": {
+     "default": false,
+     "title": "Story Confirmation Required",
+     "type": "boolean"
     },
     "story_revision_id": {
      "anyOf": [

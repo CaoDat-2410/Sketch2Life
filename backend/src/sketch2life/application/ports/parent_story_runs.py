@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Protocol
@@ -69,6 +70,14 @@ class ParentStoryRunRecord:
     # request was accepted or is waiting; ``timeline`` is derived from existing timestamps.
     video: dict[str, Any] | None = None
     timeline: list[dict[str, Any]] = field(default_factory=list)
+    # T-2e-a (DDL-B3, SRS l.514, l.532, l.1414): the adult's main activity of the run, read from the
+    # stored snapshot only, and the activities to try after the video. ``None`` while the run never
+    # had an activity selection step; a Teacher record carries neither.
+    main_activity: dict[str, Any] | None = None
+    post_video_activities: list[dict[str, Any]] | None = None
+    # V4-A T-1b-fix (DDL-B1c, SRS l.406, l.1728): the adult has to confirm the current story before
+    # a video can be requested (a draft, or a confirmed story whose latest review is spent).
+    story_confirmation_required: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -106,6 +115,7 @@ class TeacherStoryRunRecord:
     lesson_pin_snapshot: dict[str, Any] | None = None
     video: dict[str, Any] | None = None
     timeline: list[dict[str, Any]] = field(default_factory=list)
+    story_confirmation_required: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -143,6 +153,35 @@ class ParentStoryLifecycleRecord:
             lifecycle_request_ref=str(body["lifecycle_request_ref"]),
             purge_state=str(body["purge_state"]),
         )
+
+
+@dataclass(frozen=True, slots=True)
+class ParentActivityContext:
+    """What the activity list is computed from (T-2e-a D5): the stored run context only."""
+
+    run_id: str
+    run_revision: int
+    understanding_revision: int
+    context_snapshot: dict[str, Any]
+    subject_label: str
+    visible_features: list[str]
+    lesson_pin_snapshot: dict[str, Any] | None
+
+
+@dataclass(frozen=True, slots=True)
+class ParentActivityPin:
+    """One resolved main activity (T-2e-a D7): the exact lesson version, hash and index, and the
+    activity text as the adult saw it; the repository adds ``selected_at`` and the hash."""
+
+    lesson_id: str
+    version_id: str
+    content_sha256: str
+    activity_index: int
+    snapshot: dict[str, Any]
+
+
+ActivityResolver = Callable[[ParentActivityContext], ParentActivityPin]
+StoryStartedCallback = Callable[["ParentStoryRevisionReservation"], None]
 
 
 # A live run is reported in full; from DELETE_PENDING on only the projection is reported.
@@ -298,7 +337,36 @@ class ParentStoryRunRepositoryPort(Protocol):
         expected_context_revision: int,
         expected_context_snapshot_sha256: str,
         idempotency_key: str,
-    ) -> ParentStoryRunView: ...
+        on_story_started: StoryStartedCallback | None = None,
+        generator_supports_role: bool = True,
+    ) -> ParentStoryRunView:
+        """T-2e-a: the confirmation may start the first story; the reservation of that start is
+        handed to ``on_story_started`` after the commit (never on a replay).
+        ``generator_supports_role`` is the route's answer to "may a composed generator take this
+        actor's role" (V4-A OPEN-A D4); ``False`` keeps the run in ``PREPARATION_REVIEW``."""
+        ...
+
+    def read_activity_context(
+        self, *, principal: VerifiedPrincipal, run_id: str
+    ) -> ParentActivityContext:
+        """T-2e-a D5: the stored context of a Parent run that may choose its main activity (409
+        wrong state, 422 subject not confirmed, uniform 404 otherwise)."""
+        ...
+
+    def select_activity(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        run_id: str,
+        expected_revision: int,
+        activity_ref: Mapping[str, Any],
+        idempotency_key: str,
+        resolve: ActivityResolver,
+        on_story_started: StoryStartedCallback | None = None,
+    ) -> ParentStoryRunView:
+        """T-2e-a D7: record the main activity (replay first, then the state and the revision,
+        then ``resolve`` under the run lock); may start the first story."""
+        ...
 
     def attach_artwork(
         self,
@@ -340,6 +408,8 @@ class ParentStoryRunRepositoryPort(Protocol):
         confirmed_subject: str,
         idempotency_key: str,
         rerun_on_edit: bool = False,
+        on_story_started: StoryStartedCallback | None = None,
+        generator_supports_role: bool = True,
     ) -> SubjectConfirmOutcome | ParentStoryLifecycleRecord: ...
 
     def read_subject_rerun_hint(self, *, principal: VerifiedPrincipal, run_id: str) -> str | None:
@@ -358,6 +428,7 @@ class ParentStoryRunRepositoryPort(Protocol):
         model_id: str,
         model_revision: str,
         prompt_version: str,
+        require_activity_selection: bool = False,
     ) -> ParentStoryRevisionReservation: ...
 
     def reserve_story_rewrite(
@@ -546,6 +617,9 @@ class ParentStoryRunRepositoryPort(Protocol):
 
 
 __all__ = [
+    "ActivityResolver",
+    "ParentActivityContext",
+    "ParentActivityPin",
     "ParentStoryInputRecord",
     "ParentStoryLifecycleRecord",
     "ParentStoryRevisionReservation",
@@ -555,5 +629,6 @@ __all__ = [
     "ParentStoryRunSummary",
     "ParentStoryRunView",
     "StoryRewriteOutcome",
+    "StoryStartedCallback",
     "TeacherStoryRunRecord",
 ]

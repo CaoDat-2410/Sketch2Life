@@ -26,6 +26,9 @@ CONFIRMABLE_STATES: Final = frozenset({"APPROVED", "SAMPLE_AVAILABLE", "SAMPLE_U
 SLOT_AVAILABLE: Final = "AVAILABLE"
 SLOT_CLAIMED: Final = "CLAIMED"
 STATE_SAMPLE_USED: Final = "SAMPLE_USED"
+# The Story run state of a finished run, as the Lesson side reads it from ``SampleFacts`` (the
+# literal, so this package imports no Story module; V4-A T-1c-fix).
+RUN_STATE_COMPLETED: Final = "COMPLETED"
 # A plan that was approved at some time (a run stays pinned to it, SRS l.2697).
 PIN_PLAN_STATES: Final = frozenset({"APPROVED", "SUPERSEDED"})
 AUDIT_CONFIRM_DECISION: Final = f"{PROJECTION_AUDIENCE}/{PROJECTION_USE}"
@@ -64,6 +67,20 @@ def confirmation_covers(confirmed_at: datetime | None, ready_at: datetime | None
     return _aware(confirmed_at) >= _aware(ready_at)
 
 
+def confirmation_survives_completion(
+    *, run_completed: bool, confirmed_at: datetime | None, completed_at: datetime | None
+) -> bool:
+    """V4-A T-1c-fix, owner decision C1(a): Complete ends a confirmation given BEFORE it and keeps
+    one given at or after it (the departure DEV-5 from SRS l.1672 and l.1676 for a sample that was
+    not yet claimed). A run that is not completed is not affected. A completed run with no
+    completion time, or a confirmation with no time, cannot be shown to follow it: ``False``.
+    """
+
+    if not run_completed:
+        return True
+    return confirmation_covers(confirmed_at, completed_at)
+
+
 class ClaimDecision(StrEnum):
     FIRST_CLAIM = "FIRST_CLAIM"
     SAME_RUN = "SAME_RUN"
@@ -83,6 +100,22 @@ def decide_claim(*, slot_state: str, successful_run_ref: str | None, run_id: str
     if slot_state == SLOT_CLAIMED and successful_run_ref == run_id:
         return ClaimDecision.SAME_RUN
     return ClaimDecision.REFUSED
+
+
+def completed_run_may_confirm(
+    decision: ClaimDecision, *, confirmed_at: datetime | None, completed_at: datetime | None
+) -> bool:
+    """A completed run is confirmed as the FIRST claim (the slot is ``AVAILABLE``, OD-14), or as a
+    repeat or refresh (same run) only while the stored confirmation was given at or after Complete.
+    A stored confirmation that predates Complete ended at Complete and is never revived (owner
+    decision C1(a)); a repeat after a post-Complete claim behaves as on a ``VIDEO_READY`` run.
+    """
+
+    if decision is ClaimDecision.FIRST_CLAIM:
+        return True
+    return decision is ClaimDecision.SAME_RUN and confirmation_survives_completion(
+        run_completed=True, confirmed_at=confirmed_at, completed_at=completed_at
+    )
 
 
 class WriteKind(StrEnum):
@@ -214,13 +247,16 @@ __all__ = [
     "PIN_PLAN_STATES",
     "PROJECTION_AUDIENCE",
     "PROJECTION_USE",
+    "RUN_STATE_COMPLETED",
     "SLOT_AVAILABLE",
     "SLOT_CLAIMED",
     "STATE_SAMPLE_USED",
     "ClaimDecision",
     "ReceiptFacts",
     "WriteKind",
+    "completed_run_may_confirm",
     "confirmation_covers",
+    "confirmation_survives_completion",
     "confirmed_ms",
     "decide_claim",
     "decide_write",

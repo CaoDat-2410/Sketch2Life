@@ -362,8 +362,17 @@ class ConfirmPlanRevisionRequestV1(BaseModel):
 
 
 class PlanActivityV1(BaseModel):
+    """One activity of ONE plan revision.
+
+    ``plan_activity_id`` (V4-A OPEN-B) is the id of that activity row, the value a Teacher run
+    create accepts as ``activity_id``. It is meaningful with ``(revision_no, content_hash)`` only:
+    a new revision has new ids. Optional so a stored replay body written before the field existed
+    still validates (the replay path fills it from the immutable rows).
+    """
+
     model_config = ConfigDict(extra="forbid")
 
+    plan_activity_id: str | None = Field(default=None, min_length=1, max_length=36)
     order: int
     kind: Literal["LESSON", "CUSTOM", "CATALOG"]
     lesson_activity_id: str | None = None

@@ -23,6 +23,12 @@ from sketch2life.interfaces.http.routers.lesson_occurrences import (
 from sketch2life.interfaces.http.routers.notifications import router as notifications_router
 from sketch2life.interfaces.http.routers.parent_ai import router as parent_ai_router
 from sketch2life.interfaces.http.routers.parent_profiles import router as parent_profiles_router
+from sketch2life.interfaces.http.routers.parent_story_activities import (
+    activities_router as parent_activities_router,
+)
+from sketch2life.interfaces.http.routers.parent_story_activities import (
+    router as parent_story_activities_router,
+)
 from sketch2life.interfaces.http.routers.parent_story_inputs import (
     router as parent_story_inputs_router,
 )
@@ -63,6 +69,7 @@ def story_demo_replaced_routers() -> tuple[APIRouter, ...]:
     return (
         parent_story_runs_router,
         parent_story_inputs_router,
+        parent_story_activities_router,
         story_run_video_router,
         upload_sessions_router,
     )
@@ -119,6 +126,10 @@ def mount_all_routers(
     if include_parent_story_runs:
         application.include_router(parent_story_runs_router)
         application.include_router(parent_story_inputs_router)
+        # FEAT-066 goal v4 T-2e-a: the main-activity routes (selection under /v1/story-runs, so it
+        # mounts and unmounts with the Parent router; the list has no demo twin).
+        application.include_router(parent_story_activities_router)
+        application.include_router(parent_activities_router)
         application.include_router(story_run_video_router)
     # FEAT-066 T-2a: the demo router answers the same literal paths with another contract, so
     # the generic upload sessions are mounted only while the demo is off (T-2a-DEC-1).

@@ -31,7 +31,9 @@ _REVISION = "20261120_b1_0001"
 # FEAT-066 T-1a: DDL-B1 part 2 sits on top of this revision; FEAT-066 T-4b2: DDL-B2 sits on top of
 # that and is the head of the branch. The explicit downgrade to ``_PARENT`` first runs their
 # (guarded) downgrades, the upgrade restores them.
-_HEAD = "20261120_b2_0001"
+# FEAT-066 goal v4 T-2e-a: DDL-B3 follows DDL-B2; V4-A T-1b-fix: DDL-B1c follows DDL-B3 and is the
+# head of the branch now.
+_HEAD = "20261123_rv_0001"
 _REFUSED = "DDL-B1 downgrade refused"
 
 

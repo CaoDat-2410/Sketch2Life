@@ -59,6 +59,9 @@ DECISIONS: dict[tuple[str, str], str] = {
     # is the Parent's or the one run a Teacher holds through the Teacher lock
     ("POST", "/v1/story-runs"): TEACHER_DISPATCHED,
     ("GET", "/v1/story-runs"): PARENT_ONLY,
+    # FEAT-066 goal v4 T-2e-a: the Parent chooses the main activity (a Teacher run has none: the
+    # Teacher's activity comes from the approved lesson plan, SRS l.1448)
+    ("POST", "/v1/story-runs/{run_id}/activity-selection"): PARENT_ONLY,
     ("GET", "/v1/story-runs/active/current"): TEACHER_GUARDED,
     # cancel and delete: the Parent owner or the current class Teacher (T-13a, FR-C-08)
     ("POST", "/v1/story-runs/{run_id}/cancel"): TEACHER_GUARDED,
@@ -170,8 +173,8 @@ def test_no_route_is_handed_over_any_more() -> None:
 
 
 def test_the_route_table_is_the_expected_size(mounted_routes: list[APIRoute]) -> None:
-    # No route was added or removed by T-4a1, T-4b2 or T-4b3b (plan section 3): 19 operations.
-    assert len(_operations(mounted_routes)) == len(DECISIONS) == 19
+    # T-4a1, T-4b2 and T-4b3b left 19 operations; goal v4 T-2e-a adds the activity selection: 20.
+    assert len(_operations(mounted_routes)) == len(DECISIONS) == 20
 
 
 def test_the_parent_resolver_stays_parent_scoped_and_each_job_port_has_its_own_owner() -> None:

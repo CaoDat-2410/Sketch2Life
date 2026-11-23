@@ -1194,7 +1194,7 @@ def test_the_fixture_runner_walks_a_request_to_ready_with_an_asset_and_a_new_wai
     assert fixture.step(gid).reason == "SETTLED"  # a settled request never moves again
 
 
-def test_a_blocked_video_waits_for_the_adult_and_a_failed_one_frees_the_lock(
+def test_a_blocked_video_returns_to_the_script_review_and_a_failed_one_frees_the_lock(
     api: VideoApi,
 ) -> None:
     blocked_run, blocked = accepted(api)
@@ -1208,7 +1208,10 @@ def test_a_blocked_video_waits_for_the_adult_and_a_failed_one_frees_the_lock(
     assert row["safety_validation_state"] == "FAILED" and row["safety_finding_codes"] == ["F-1"]
     assert row["output_asset_ref"] is None
     state = run_row(blocked_run.run_id)
-    assert state["run_state"] == "SAFETY_BLOCKED" and state["adult_wait_started_at"] is not None
+    # V4-A SAFETY_BLOCKED exit (owner decision C11, SRS l.420): back at the script review with a new
+    # adult wait; the run keeps its owner lock and the generation stays blocked for audit
+    assert state["run_state"] == "SCRIPT_REVIEW" and state["job_state"] == "FAILED"
+    assert state["adult_wait_started_at"] is not None and state["error_code"] == "SAFETY_BLOCKED"
     assert state["active_owner_parent_account_id"] is not None
 
     failed_run, failing = accepted(api, new_script_run(api, owner=api.other_parent))

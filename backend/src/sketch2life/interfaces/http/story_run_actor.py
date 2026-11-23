@@ -18,6 +18,7 @@ from sqlalchemy.orm import Session
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
 from sketch2life.application.ports.story_run_actor import RunActor, RunActorKind
+from sketch2life.infrastructure.lesson_occurrences.approved_plan_reader import SqlApprovedPlanReader
 from sketch2life.infrastructure.persistence.be1_models import AdultIdentityModel
 from sketch2life.infrastructure.persistence.parent_story_repository import (
     SqlParentStoryRunRepository,
@@ -63,7 +64,10 @@ def story_video_repository(db: Session, actor: RunActor) -> SqlStoryVideoReposit
     """
 
     if actor.is_teacher:
-        return SqlStoryVideoRepository(db, actor, SqlTeacherRunAccess(db))
+        # V4-A OPEN-A D8(1): the Teacher repository fences a plan that was re-approved.
+        return SqlStoryVideoRepository(
+            db, actor, SqlTeacherRunAccess(db), plan_read=SqlApprovedPlanReader(db)
+        )
     return SqlStoryVideoRepository(db)
 
 

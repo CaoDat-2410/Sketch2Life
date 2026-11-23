@@ -7,6 +7,7 @@ import itertools
 import pytest
 
 from sketch2life.application.ports.story_run_lifecycle import PUBLIC_RUN_STATES
+from sketch2life.domain.lesson_occurrences import projection as lesson_rules
 from sketch2life.domain.story_video import model
 from sketch2life.domain.story_video.model import (
     ADMISSION_REFUSALS,
@@ -15,6 +16,8 @@ from sketch2life.domain.story_video.model import (
     InvalidGenerationTransition,
     can_transition,
     generation_kind_for,
+    has_ready_output,
+    is_playable,
     require_transition,
 )
 
@@ -105,6 +108,19 @@ def test_every_mapped_run_state_is_a_public_run_state() -> None:
     assert S.SUPERSEDED not in model.RUN_STATE_FOR_GENERATION
 
 
+def test_a_blocked_output_returns_the_adult_to_the_script_review() -> None:
+    """V4-A SAFETY_BLOCKED exit (owner decision C11, SRS l.420, l.2197)."""
+
+    assert model.RUN_STATE_FOR_GENERATION[S.SAFETY_BLOCKED] == "SCRIPT_REVIEW"
+    assert model.RUN_JOB_STATE_FOR_GENERATION[S.SAFETY_BLOCKED] == "FAILED"
+    # the run state stays a valid value for rows written before the exit (no migration, D6)
+    assert "SAFETY_BLOCKED" in model.VIDEO_RUN_STATES
+    assert "SAFETY_BLOCKED" in PUBLIC_RUN_STATES
+    assert {"SCRIPT_REVIEW", "SAFETY_BLOCKED"} == model.REVIEWABLE_RUN_STATES
+    # terminal: the mapping is never read as an expected state
+    assert model.TRANSITIONS[S.SAFETY_BLOCKED] == frozenset()
+
+
 def test_job_state_maps_follow_the_public_job_vocabulary() -> None:
     assert set(model.PUBLIC_JOB_STATE.values()) <= {
         "queued",
@@ -146,3 +162,68 @@ def test_the_admission_refusals_have_stable_statuses() -> None:
         "CONTENT_CONCERN",
         "OTHER",
     )
+
+
+# ---------------------------------------------------------- the playback predicate (T-1c-fix)
+_PASSED = {"technical": "PASSED", "consistency": "PASSED", "safety": "PASSED", "has_output": True}
+_ALL_RUN_STATES = (
+    "INPUT_PROCESSING",
+    "PREPARATION_REVIEW",
+    "SCRIPT_GENERATING",
+    "SCRIPT_REVIEW",
+    "VIDEO_ADMISSION_PENDING",
+    "VIDEO_QUEUED",
+    "VIDEO_GENERATING",
+    "VIDEO_SAFETY_VALIDATING",
+    "VIDEO_READY",
+    "COMPLETED",
+    "SAFETY_BLOCKED",
+    "FAILED",
+    "ABANDONED",
+    "DELETE_PENDING",
+    "DELETED",
+)
+
+
+@pytest.mark.parametrize("run_state", _ALL_RUN_STATES)
+def test_is_playable_is_strict_by_default_and_replays_a_completed_run_with_the_flag(
+    run_state: str,
+) -> None:
+    common = {"generation_state": "READY", **_PASSED}
+    assert is_playable(run_state=run_state, **common) is (run_state == "VIDEO_READY")
+    assert is_playable(run_state=run_state, allow_completed=False, **common) is (
+        run_state == "VIDEO_READY"
+    )
+    assert is_playable(run_state=run_state, allow_completed=True, **common) is (
+        run_state in {"VIDEO_READY", "COMPLETED"}
+    )
+
+
+@pytest.mark.parametrize(
+    "change",
+    [
+        {"generation_state": "REJECTED_BY_ADULT"},
+        {"generation_state": "SUPERSEDED"},
+        {"generation_state": "FAILED"},
+        {"generation_state": None},
+        {"has_output": False},
+        {"safety": "FAILED"},
+        {"technical": "PENDING"},
+        {"consistency": None},
+    ],
+)
+def test_the_flag_never_relaxes_the_generation_or_the_validations(
+    change: dict[str, object],
+) -> None:
+    arguments = {"generation_state": "READY", **_PASSED, **change}
+    for run_state in ("VIDEO_READY", "COMPLETED"):
+        assert not is_playable(run_state=run_state, allow_completed=True, **arguments)  # type: ignore[arg-type]
+
+
+def test_the_replayable_states_and_the_run_state_agnostic_variant() -> None:
+    assert {"VIDEO_READY", "COMPLETED"} == model.REPLAYABLE_RUN_STATES
+    assert model.COMPLETED_RUN_STATE == "COMPLETED"
+    # the Lesson side holds the literal (it imports no Story module): the two must not drift
+    assert lesson_rules.RUN_STATE_COMPLETED == model.COMPLETED_RUN_STATE
+    assert has_ready_output(generation_state="READY", **_PASSED)
+    assert not has_ready_output(generation_state="REJECTED_BY_ADULT", **_PASSED)

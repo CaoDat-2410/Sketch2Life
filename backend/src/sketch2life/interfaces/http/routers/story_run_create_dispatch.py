@@ -129,6 +129,7 @@ def teacher_story_run_response(record: TeacherStoryRunRecord) -> TeacherStoryRun
             ParentStoryRunVideoV1.model_validate(record.video) if record.video is not None else None
         ),
         timeline=[ParentStoryTimelineEventV1.model_validate(event) for event in record.timeline],
+        story_confirmation_required=record.story_confirmation_required,
     )
 
 

@@ -28,6 +28,9 @@ from sketch2life.infrastructure.config.settings import get_core_database_setting
 _BACKEND = Path(__file__).resolve().parents[3]
 _REVISION = "20261120_b2_0001"
 _PARENT = "20261120_vb_0002"
+# FEAT-066 goal v4 T-2e-a: DDL-B3 follows this revision; V4-A T-1b-fix: DDL-B1c follows that and is
+# the head of the branch now; the downgrade to ``_PARENT`` runs their (guarded) downgrades first.
+_HEAD = "20261123_rv_0001"
 _REFUSED = "T-4b2 downgrade refused"
 _COLUMNS = {"active_owner_teacher_id", "occurrence_ref", "created_by_actor_ref"}
 _CHECKS = {
@@ -150,7 +153,7 @@ def test_the_head_is_the_new_revision_and_the_objects_exist(
 ) -> None:
     _config, engine = roundtrip
     versions = _versions(engine)
-    assert _REVISION in versions and _PARENT not in versions
+    assert _HEAD in versions and {_REVISION, _PARENT}.isdisjoint(versions)
     assert _columns(engine) >= _COLUMNS
     assert _constraints(engine) >= _CHECKS
     assert _indexes(engine) >= _INDEXES
@@ -178,7 +181,7 @@ def test_the_explicit_downgrade_removes_every_object_and_the_upgrade_restores_th
             parent_run
         }
         command.upgrade(config, "heads")
-        assert _REVISION in _versions(engine) and _PARENT not in _versions(engine)
+        assert _HEAD in _versions(engine) and _PARENT not in _versions(engine)
         assert _columns(engine) >= _COLUMNS and _constraints(engine) >= _CHECKS
         assert _indexes(engine) >= _INDEXES
         assert "trg_story_run_release_teacher_lock" in _triggers(engine)
@@ -210,7 +213,7 @@ def test_the_downgrade_refuses_while_a_teacher_run_row_exists_and_changes_nothin
         with pytest.raises(Exception, match=_REFUSED):
             command.downgrade(config, _PARENT)
         # a refused downgrade changes nothing (the DDL is transactional)
-        assert _REVISION in _versions(engine) and _PARENT not in _versions(engine)
+        assert _HEAD in _versions(engine) and _PARENT not in _versions(engine)
         assert _columns(engine) >= _COLUMNS and _constraints(engine) >= _CHECKS
         assert "trg_story_run_release_teacher_lock" in _triggers(engine)
         assert _names(engine, f"select run_id from story.runs where run_id = '{run_id}'") == {

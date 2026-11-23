@@ -2,8 +2,9 @@
 
 TD-07 recommended an opaque random token stored hashed, which needs a table outside DDL-B1. This is
 the recorded deviation: a stateless MAC token whose every use is rechecked by the stream route
-against the current run, generation and owner (so cancel, delete, complete, ``video-unsuitable``,
-closeout and a foreign account end playback at the next request, l.576, l.1691). The token is short
+against the current run, generation and owner (so cancel, delete, ``video-unsuitable``, a deleted
+child profile and a foreign account end playback at the next request, l.576, l.1691; V4-A T-1c-fix:
+Complete and the idle closeout no longer do, owner decisions O-3 and C1(a)). The token is short
 lived, names one generation of one run and one actor digest, and is only ever sent in a request
 header: never in a URL, a log line, a stored row or an error body (l.1693).
 

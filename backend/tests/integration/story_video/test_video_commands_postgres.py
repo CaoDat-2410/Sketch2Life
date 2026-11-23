@@ -1063,10 +1063,11 @@ def test_a_confirmed_script_without_a_rejected_video_is_still_refused_by_rewrite
     assert code_of(rewrite_route(api, ready)) == "INVALID_STATE_TRANSITION"
 
 
-def test_the_revision_four_corner_stays_refused_with_the_rewrite_limit(api: VideoApi) -> None:
-    """OPEN for the owner (option A needs a migration): an adult who used all three rewrites
-    before the second video cannot rewrite after marking that video unsuitable. Pinned, not
-    decided here."""
+def test_the_revision_four_corner_has_a_way_back_through_the_confirmation(api: VideoApi) -> None:
+    """V4-A T-1b-fix (SRS l.406, l.1728): an adult who used all three rewrites before the second
+    video and then marks that video unsuitable cannot rewrite (409 ``STORY_REWRITE_LIMIT_REACHED``),
+    but keeps the current story and confirms it again (a new review epoch), then asks for the
+    third video."""
 
     run, first = video_ready(api)
     make_rewritable(api, run)
@@ -1086,6 +1087,14 @@ def test_the_revision_four_corner_stays_refused_with_the_rewrite_limit(api: Vide
     assert refused.status_code == 409 and code_of(refused) == "STORY_REWRITE_LIMIT_REACHED"
     assert snapshot(run.run_id) == before and len(story_rows(run.run_id)) == 4
     assert story_rows(run.run_id)[-1]["status"] == "CONFIRMED"
+    # the way back: the same story, confirmed again (a fresh key), then the third request
+    again = confirm_route(api, run)
+    assert again.status_code == 200, again.text
+    assert again.json()["story_run"]["story_confirmation_required"] is False
+    assert story_rows(run.run_id)[-1]["status"] == "CONFIRMED" and len(story_rows(run.run_id)) == 4
+    third = video_request(api, run, reason="QUALITY_LOW")
+    assert third.status_code == 202, third.text
+    assert third.json()["video_generation"]["generation_no"] == 3
     assert cancel(api, run).status_code == 202
 
 
@@ -1244,7 +1253,7 @@ def test_a_blocked_video_can_be_neither_completed_nor_rejected(api: VideoApi) ->
         content=b"x", media_type="video/mp4", safety_passed=False, safety_finding_codes=("F-1",)
     )
     runner(api, renderer).run_to_end(gid)
-    assert run_row(run.run_id)["run_state"] == "SAFETY_BLOCKED"
+    assert run_row(run.run_id)["run_state"] == "SCRIPT_REVIEW"  # V4-A: back at the script review
     for response in (complete(api, run), unsuitable(api, run, gid)):
         assert response.status_code == 409 and code_of(response) == "INVALID_STATE_TRANSITION"
 

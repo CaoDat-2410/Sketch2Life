@@ -84,6 +84,7 @@ def plan_row(**overrides: Any) -> Any:
 
 def activity_row(**overrides: Any) -> Any:
     values: dict[str, Any] = {
+        "plan_activity_id": "11111111-1111-4111-8111-111111111111",
         "activity_order": 1,
         "activity_kind": "LESSON",
         "catalog_activity_ref": "act-1",
@@ -101,6 +102,7 @@ def activity_row(**overrides: Any) -> Any:
 def test_a_lesson_activity_shows_the_copied_title_and_instructions() -> None:
     body = plan_body(plan_row(), [activity_row()], None)
     assert body["activities"][0] == {
+        "plan_activity_id": "11111111-1111-4111-8111-111111111111",
         "order": 1,
         "kind": "LESSON",
         "lesson_activity_id": "act-1",
@@ -330,3 +332,34 @@ def test_the_service_never_hands_a_database_error_to_the_client_as_a_500() -> No
     other = _db_failure(DBAPIError("stmt", {}, Exception("PLAN_ILLEGAL_TRANSITION")))
     assert (other.status_code, other.code) == (503, "PROVIDER_UNAVAILABLE")
     assert PlanRevisionService  # the service is importable without a framework fixture
+
+
+def test_every_activity_of_a_revision_carries_the_id_of_its_own_row() -> None:
+    """V4-A OPEN-B D10: the id is the row's ``plan_activity_id`` (the value the Teacher run create
+    accepts as ``activity_id``), unique within the revision, for every kind of activity."""
+
+    custom = activity_row(
+        plan_activity_id="22222222-2222-4222-8222-222222222222",
+        activity_order=2,
+        activity_kind="CUSTOM",
+        catalog_activity_ref=None,
+        custom_title="Tự soạn",
+        custom_description="Mô tả",
+        activity_snapshot=None,
+        activity_snapshot_hash=None,
+    )
+    catalog = activity_row(
+        plan_activity_id="33333333-3333-4333-8333-333333333333",
+        activity_order=3,
+        activity_kind="CATALOG",
+    )
+    body = plan_body(plan_row(), [activity_row(), custom, catalog], None)
+    ids = [item["plan_activity_id"] for item in body["activities"]]
+    assert ids == [
+        "11111111-1111-4111-8111-111111111111",
+        "22222222-2222-4222-8222-222222222222",
+        "33333333-3333-4333-8333-333333333333",
+    ]
+    assert len(set(ids)) == 3 and all(len(value) == 36 for value in ids)
+    # a CUSTOM activity has no snapshot hash and still has an id
+    assert body["activities"][1]["snapshot_hash"] is None

@@ -123,6 +123,7 @@ def activity_view(row: RowMapping) -> dict[str, Any]:
     else:
         title, description = snapshot.get("title"), snapshot.get("instructions_text")
     return {
+        "plan_activity_id": str(row["plan_activity_id"]),
         "order": int(row["activity_order"]),
         "kind": kind,
         "lesson_activity_id": row["catalog_activity_ref"] if kind == "LESSON" else None,
@@ -267,11 +268,42 @@ class PlanRevisionService:
     ) -> Be1CommandReceiptModel | None:
         return self.db.get(Be1CommandReceiptModel, (principal.subject, scope, key))
 
-    @staticmethod
-    def _replay(receipt: Be1CommandReceiptModel, fingerprint: str) -> dict[str, Any]:
+    def _replay(self, receipt: Be1CommandReceiptModel, fingerprint: str) -> dict[str, Any]:
         if receipt.request_fingerprint != fingerprint:
             raise DocumentError(400, "INVALID_IDEMPOTENCY_KEY")
-        return dict(receipt.response_json)
+        return self._with_activity_ids(dict(receipt.response_json))
+
+    def _with_activity_ids(self, body: dict[str, Any]) -> dict[str, Any]:
+        """Fill ``plan_activity_id`` into a stored replay body written before the field existed
+        (V4-A OPEN-B D11b). The activity rows of a revision are immutable, so the id of an activity
+        is found by its order; a plan row that is gone leaves the body as stored."""
+
+        activities = body.get("activities")
+        if not isinstance(activities, list) or all(
+            isinstance(item, dict) and item.get("plan_activity_id") for item in activities
+        ):
+            return body
+        occurrence_id, number = body.get("occurrence_id"), body.get("revision_no")
+        if not isinstance(occurrence_id, str) or type(number) is not int:
+            return body
+        plan = self._plan_row(occurrence_id, number)
+        if plan is None:
+            return body
+        ids = {
+            int(row["activity_order"]): str(row["plan_activity_id"])
+            for row in self._activity_rows(str(plan["plan_revision_id"]))
+        }
+        filled: list[Any] = []
+        for item in activities:
+            if isinstance(item, dict) and not item.get("plan_activity_id"):
+                order = item.get("order")
+                filled.append(
+                    {**item, "plan_activity_id": ids.get(order) if isinstance(order, int) else None}
+                )
+            else:
+                filled.append(item)
+        body["activities"] = filled
+        return body
 
     def _authorize_write(
         self, principal: VerifiedPrincipal, occurrence_id: str

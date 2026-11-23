@@ -69,6 +69,7 @@ from sketch2life.application.ports.story_video import QuotaStatus, VideoRequestS
 from sketch2life.infrastructure.lesson_occurrences.tables import CHILD_SELECTIONS, OCCURRENCES
 from sketch2life.infrastructure.persistence.be1_models import (
     ClassroomModel,
+    ManagedProfileModel,
     OrganizationAssignmentModel,
 )
 from sketch2life.infrastructure.uploads.resolvers import parent_scope_ref
@@ -464,7 +465,7 @@ def test_a_revoked_assignment_ends_the_stream_at_the_next_request(v: VEnv) -> No
     assert playback_token(e, "t1", run_id).status_code == 404
 
 
-def test_a_completed_or_rejected_run_gets_no_token_and_the_old_token_stops_working(
+def test_a_rejected_run_gets_no_token_and_a_completed_run_keeps_playing(
     v: VEnv,
 ) -> None:
     e = v.e
@@ -474,12 +475,45 @@ def test_a_completed_or_rejected_run_gets_no_token_and_the_old_token_stops_worki
     assert stream(e, "t1", run_id, token).status_code == 404  # a rejected video is hidden
     refused = playback_token(e, "t1", run_id)
     assert refused.status_code == 409 and refused.json()["code"] == "INVALID_STATE_TRANSITION"
-    # a second run to the end: Complete ends playback too
+    # a second run to the end: Complete ends the run, not the viewing (V4-A T-1c-fix, owner C1(a));
+    # a class projection confirmed before Complete ends in the Lesson check (test_projection_*)
     second_id, _d, _g = _second_ready(v)
     second_token = playback_token(e, "t1", second_id).json()["playback"]["token"]
     assert complete(e, "t1", second_id).status_code == 200
-    assert stream(e, "t1", second_id, second_token).status_code == 404
-    assert playback_token(e, "t1", second_id).status_code == 409
+    assert stream(e, "t1", second_id, second_token).status_code == 200
+    again = playback_token(e, "t1", second_id)
+    assert again.status_code == 200
+    assert stream(e, "t1", second_id, again.json()["playback"]["token"]).status_code == 200
+
+
+def test_a_withdrawn_managed_profile_does_not_end_a_teacher_playback_t4a1_dec_3(v: VEnv) -> None:
+    """The Teacher access is the occurrence pin; the managed profile state is not a condition
+    (T-4a1-DEC-3: a withdrawn child's run stays reachable for the class Teacher). V4-A T-1c-fix
+    pins the consequence: neither a ``VIDEO_READY`` nor a ``COMPLETED`` Teacher run is revoked by
+    a non-active profile (the Parent branch is, test_replay_after_complete_postgres.py)."""
+
+    e = v.e
+    run_id, _digest, _generation_id = to_ready(v)
+    profile_ref = str(run_row(e, run_id)["profile_ref"])
+    token = playback_token(e, "t1", run_id).json()["playback"]["token"]
+
+    def set_state(state: str) -> None:
+        with e.sessions().begin() as db:
+            db.execute(
+                update(ManagedProfileModel)
+                .where(ManagedProfileModel.child_id == profile_ref)
+                .values(state=state)
+            )
+
+    set_state("deleted")
+    try:
+        assert stream(e, "t1", run_id, token).status_code == 200
+        assert complete(e, "t1", run_id).status_code == 200
+        again = playback_token(e, "t1", run_id)
+        assert again.status_code == 200
+        assert stream(e, "t1", run_id, again.json()["playback"]["token"]).status_code == 200
+    finally:
+        set_state("active")
 
 
 def _second_ready(v: VEnv) -> tuple[str, str, str]:

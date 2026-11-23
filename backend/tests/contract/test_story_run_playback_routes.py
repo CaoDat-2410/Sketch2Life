@@ -492,7 +492,7 @@ def test_a_token_of_another_run_or_another_actor_and_a_revoked_grant_are_the_uni
     assert other_run.status_code == 404 and len(_Repo.calls) == calls  # no store read
     _Repo.resolution = PlaybackResolution(
         PlaybackStatus.NOT_PLAYABLE
-    )  # unsuitable, complete, closeout
+    )  # unsuitable, a rejected or failed generation (Complete and closeout no longer revoke)
     revoked = _stream(client, token)
     _Repo.resolution = PlaybackResolution(PlaybackStatus.NOT_FOUND)  # cancel, delete, foreign
     foreign = _stream(client, token)

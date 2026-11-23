@@ -467,7 +467,9 @@ def test_the_class_teacher_reads_and_confirms_every_post_create_step(api: Api) -
     parent_view = call(api, "read", parent_run, "parent").json()["story_run"]
     # T-4b2 D10: the Teacher view is the Parent view with a string profile ref in place of the
     # Parent profile UUID and the occurrence, plan and activity pins (None for this fixture row)
-    assert set(teacher_view) == (set(parent_view) - {"parent_profile_id"}) | {
+    # FEAT-066 goal v4 T-2e-a: ``main_activity`` and ``post_video_activities`` are Parent-only.
+    parent_only = {"parent_profile_id", "main_activity", "post_video_activities"}
+    assert set(teacher_view) == (set(parent_view) - parent_only) | {
         "profile_ref",
         "occurrence_id",
         "plan",

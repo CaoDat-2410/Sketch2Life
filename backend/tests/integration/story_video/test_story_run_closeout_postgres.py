@@ -797,7 +797,13 @@ def test_when_the_cap_is_spent_the_deadline_ends_the_run_failed_and_frees_the_lo
     new_run_with_lock(db, held)
 
 
-def test_a_safety_blocked_run_closes_abandoned_168_hours_after_the_block(db: Db) -> None:
+def test_a_blocked_run_returns_to_the_review_and_closes_abandoned_168_hours_after_the_block(
+    db: Db,
+) -> None:
+    """V4-A SAFETY_BLOCKED exit (owner decision C11): a real block leaves the run at the script
+    review with job ``FAILED``; the +168 h close is the same as for any wait. Rows seeded at the
+    legacy run state ``SAFETY_BLOCKED`` stay covered by the parametrised cases above."""
+
     video = new_video(db)
     generation_id, _due = accept_and_age(db, video)
     path = ["QUEUED", "GENERATING", "TECHNICAL_VALIDATING", "SAFETY_VALIDATING"]
@@ -818,13 +824,13 @@ def test_a_safety_blocked_run_closes_abandoned_168_hours_after_the_block(db: Db)
         )
         assert blocked.applied
     before = run_row(db, video.run.run_id)
-    assert before["run_state"] == "SAFETY_BLOCKED" and before["job_state"] == "FAILED"
+    assert before["run_state"] == "SCRIPT_REVIEW" and before["job_state"] == "FAILED"
     started = before["adult_wait_started_at"]
     assert started is not None and before["active_owner_parent_account_id"] is not None
     generation_before = generation_row(db, generation_id)
     since = max(before["updated_at"], started)
     sweep(db, since + HOURS_168 - timedelta(seconds=1), adapters=video.adapters, batch=200)
-    assert run_row(db, video.run.run_id)["run_state"] == "SAFETY_BLOCKED"
+    assert run_row(db, video.run.run_id)["run_state"] == "SCRIPT_REVIEW"
     sweep(db, since + HOURS_168, adapters=video.adapters, batch=200)
     after = run_row(db, video.run.run_id)
     assert after["run_state"] == "ABANDONED" and after["active_owner_parent_account_id"] is None

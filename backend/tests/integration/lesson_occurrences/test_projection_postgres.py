@@ -400,24 +400,6 @@ def test_a_sample_that_is_not_playable_or_not_the_current_one_is_refused_and_not
     assert not audit_rows(e, occurrence_id)
 
 
-def test_a_completed_run_can_no_longer_be_projected_and_the_slot_stays_available_open_2(
-    v: VEnv,
-) -> None:
-    """OPEN-2: a sample completed before projection is never claimed (the token needs VIDEO_READY,
-    SRS l.1676); the slot stays AVAILABLE and the run still holds the sample (T-4b2 D6)."""
-
-    e = v.e
-    occurrence_id, run_id, generation_id = ready_sample(v)
-    before = occurrence_row(e.d, occurrence_id)
-    assert complete(e, "t1", run_id).status_code == 200
-    assert_untouched(before, e, occurrence_id)  # Complete never touches the slot (FR-T-13)
-    response = confirm(e, "t1", occurrence_id, run_id, generation_id)
-    assert response.status_code == 409 and response.json()["code"] == "INVALID_STATE_TRANSITION"
-    assert projection_token(e, "t1", occurrence_id).status_code == 409
-    assert_untouched(before, e, occurrence_id)
-    assert not audit_rows(e, occurrence_id)
-
-
 def test_the_run_of_another_occurrence_is_a_stale_pair_and_writes_nothing(v: VEnv) -> None:
     e = v.e
     first_occurrence, first_run, first_generation = ready_sample(v)
@@ -642,7 +624,8 @@ def test_cancel_unsuitable_and_complete_end_playback_and_never_reopen_the_slot(v
         assert after["successful_sample_run_ref"] == run_id
         assert after["sample_claimed_at"] == claimed["sample_claimed_at"]
         confirmed = confirm(e, "t1", occurrence_id, run_id, generation_id)
-        assert confirmed.status_code == 409, ending  # not playable any more
+        # not playable any more; a completed sample that was claimed is not confirmed again
+        assert confirmed.status_code == 409, ending
 
 
 def test_a_run_pinned_to_a_superseded_plan_is_confirmed_claimed_and_projected_open_1(

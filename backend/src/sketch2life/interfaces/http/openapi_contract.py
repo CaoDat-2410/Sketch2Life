@@ -11240,7 +11240,9 @@ MOUNTED_OPERATIONS[('post', '/v1/story-runs/{run_id}/subject-confirmation')] = {
     'responses': (
         {'status': '202', 'description': 'Subject confirmation accepted (`decision` `CONFIRMED`, or '
                                          '`RERUN_REQUESTED` when the edited subject queued a new visual '
-                                         'understanding), or the lifecycle projection on a replay of a purged run',
+                                         'understanding; `run_revision` is the revision of this command, so read the run '
+                                         '(`Content-Location`) before the next command that carries an expected run '
+                                         'revision), or the lifecycle projection on a replay of a purged run',
          'media_type': 'application/json', 'schema_name': 'ParentSubjectConfirmationResponseV1'},
         {'status': '400', 'description': 'The idempotency key is invalid',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
@@ -11280,7 +11282,10 @@ MOUNTED_OPERATIONS[('post', '/v1/story-runs/{run_id}/script-confirmation')] = {
         {'status': '404', 'description': 'The requested resource was not found, or the caller is neither an active Parent '
                                          'nor the Teacher currently assigned to the child\'s class',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
-        {'status': '409', 'description': 'The run or story revision is stale, or the Teacher\'s class is not active',
+        {'status': '409', 'description': 'The story revision or hash is stale (`STALE_REVISION` with `current_version`), '
+                                         'the run state does not allow it or the current story needs no confirmation '
+                                         '(`INVALID_STATE_TRANSITION`), the video request cap is spent '
+                                         '(`VIDEO_REGENERATION_LIMIT_REACHED`), or the Teacher\'s class is not active',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
         {'status': '422', 'description': 'Validation uses the standard error envelope',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
@@ -11691,6 +11696,83 @@ MOUNTED_OPERATIONS[("post", "/v1/story-runs/{run_id}/story-rewrites")] = {
     ),
 }
 
+# FEAT-066 goal v4 T-2e-a (SRS l.514, l.527, l.1412, l.1667): the Parent main activity. The list is
+# a bounded recommendation (at most 12, no cursor; recorded departure from the collection rule); the
+# selection is mounted with the Parent StoryRun router only (the demo owns /v1/story-runs*).
+_ACTIVITY_ERROR_DESCRIPTIONS: Final[dict[str, str]] = {
+    "400": "The request or the idempotency key is invalid (`INVALID_REQUEST`, "
+    "`INVALID_IDEMPOTENCY_KEY`)",
+    "401": "Authentication is required",
+    "404": "The run or the activity was not found, or the caller is not an active Parent owner",
+    "409": "The run state does not allow choosing an activity (`INVALID_STATE_TRANSITION`), or the "
+    "run revision is stale (`STALE_REVISION` with `current_version`)",
+    "422": "The subject of the drawing is not confirmed yet (`SUBJECT_NOT_CONFIRMED`)",
+    "503": "A required service is unavailable",
+    "500": "An unexpected error occurred",
+}
+
+
+def _activity_responses(
+    success: ResponseMetadata, statuses: tuple[str, ...]
+) -> tuple[ResponseMetadata, ...]:
+    return (
+        success,
+        *(
+            ResponseMetadata(
+                status=status,
+                description=_ACTIVITY_ERROR_DESCRIPTIONS[status],
+                media_type="application/json",
+                schema_name="ParentStoryErrorEnvelopeV1",
+            )
+            for status in statuses
+        ),
+    )
+
+
+MOUNTED_OPERATIONS[("get", "/v1/activities")] = {
+    "purpose": "List the age-fit lesson activities (at most 12, deterministic order) a Parent may "
+    "choose as the main activity of a StoryRun; no AI call.",
+    "request_inputs": "query `story_run_id*`: uuid",
+    "surface": "Parent / StoryRun main activity (SRS l.514, l.527)",
+    "tag": "Parent StoryRuns",
+    "handler": "parent_story_activities.py::list_parent_activities",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": "SRS l.514, l.527, l.803 (contract open), l.1412; goal v4 T-2e-a "
+    "(candidate route)",
+    "responses": _activity_responses(
+        {
+            "status": "200",
+            "description": "The activities and the basis they were chosen on (`no_candidate` when "
+            "none fits)",
+            "media_type": "application/json",
+            "schema_name": "ParentActivityListV1",
+        },
+        ("400", "401", "404", "409", "422", "503", "500"),
+    ),
+}
+MOUNTED_OPERATIONS[("post", "/v1/story-runs/{run_id}/activity-selection")] = {
+    "purpose": "Choose the main activity of the Parent StoryRun from the current list; when the "
+    "other gates are met the first story starts in the same transaction.",
+    "request_inputs": "path `run_id*`: uuid; header `Idempotency-Key*`: string; "
+    "application/json (required): ParentActivitySelectionRequestV1 "
+    "{expected_revision*:integer, activity*:ParentActivityRefV1}",
+    "surface": "Parent / StoryRun main activity (SRS l.1667)",
+    "tag": "Parent StoryRuns",
+    "handler": "parent_story_activities.py::select_parent_story_activity",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": "SRS l.386, l.514, l.1412, l.1667; goal v4 T-2e-a (candidate route)",
+    "responses": _activity_responses(
+        {
+            "status": "200",
+            "description": "The StoryRun after the selection (`main_activity`), or the lifecycle "
+            "projection on a replay of a purged run",
+            "media_type": "application/json",
+            "schema_name": "ParentStoryRunEnvelopeV1",
+        },
+        ("400", "401", "404", "409", "422", "503", "500"),
+    ),
+}
+
 # FEAT-066 goal v3 T-1a (SRS l.395, l.1670): the Parent video request. Mounted with the Parent
 # StoryRun router only; the saga answers 202 and the job is polled through GET /v1/jobs/{job_id}.
 _VIDEO_GENERATION_ERROR_DESCRIPTIONS: Final[dict[str, str]] = {
@@ -11701,7 +11783,9 @@ _VIDEO_GENERATION_ERROR_DESCRIPTIONS: Final[dict[str, str]] = {
     "Teacher currently responsible for the run",
     "409": "The run state, the revision or the script does not allow a video request "
     "(`INVALID_STATE_TRANSITION`, also a Teacher whose class is not active; `STALE_REVISION` "
-    "with `current_version`), the regeneration "
+    "with `current_version` the run revision), a Teacher run is pinned to a plan that is no longer "
+    "the approved plan (`STALE_REVISION` whose `current_version` is the approved plan revision "
+    "number, not a run revision: create a new run), the regeneration "
     "limit was reached (`VIDEO_REGENERATION_LIMIT_REACHED`), or the quota or the subscription "
     "refused it (`VIDEO_QUOTA_EXCEEDED`, `SUBSCRIPTION_RESTRICTED`)",
     "422": "The subject or the context of the run was not confirmed "
@@ -11853,8 +11937,9 @@ _PLAYBACK_ERROR_DESCRIPTIONS: Final[dict[str, str]] = {
     "expired (`TOKEN_EXPIRED`)",
     "404": "The run was not found, or the caller is neither its active Parent owner nor the "
     "Teacher currently responsible for the run; also the answer "
-    "to a token that no longer grants anything (the run was cancelled, deleted, completed, closed "
-    "or the video was hidden)",
+    "to a token that no longer grants anything (the run was cancelled or deleted, the video was "
+    "hidden, the child profile was deleted, or a class projection confirmed before Complete ended "
+    "with Complete)",
     "409": "The run has no video that can be played now (`INVALID_STATE_TRANSITION`)",
     "416": "The requested byte range cannot be served (`RANGE_NOT_SATISFIABLE`)",
     "422": "Validation uses the standard error envelope",
@@ -12562,17 +12647,20 @@ MOUNTED_OPERATIONS[("post", "/v1/lesson-occurrences/{occurrence_id}/projection-c
     "purpose": "Confirm the audience (`CLASS`) and the use (`CLASS_PROJECTION`) of the current "
     "sample video before it is shown to the class (the responsible Teacher at the current "
     "assignment only). Send the occurrence `revision` as a strong `If-Match` and the pair "
-    "`run_id` and `generation_id` of the current playable sample (run `VIDEO_READY`, generation "
-    "`READY`, every validation passed); any other run or generation is 409 `STALE_REVISION`. The "
+    "`run_id` and `generation_id` of the current playable sample (run `VIDEO_READY` or "
+    "`COMPLETED`, generation `READY`, every validation passed); any other run or generation is "
+    "409 `STALE_REVISION`. The "
     "FIRST confirmation claims the sample slot in one compare-and-set (`CLAIMED`, "
     "`SAMPLE_USED`, the run reference, the confirming Teacher and time): the slot never reopens, "
     "another run on a claimed occurrence is 409 `SAMPLE_VIDEO_ALREADY_EXISTS`. A repeat by the same "
-    "Teacher of the same generation writes nothing; another Teacher or a newer generation needs a "
+    "Teacher of the same generation writes nothing (a completed run: only when the stored "
+    "confirmation was given after Complete); another Teacher or a newer generation needs a "
     "new confirmation and ends the tokens issued before. A run pinned to a plan that was "
     "superseded after the run was created may still be confirmed (the receipt shows "
     "`plan.is_current`). The answer carries no child name, no media key, no token and no "
-    "capability for class members. A completed run can no longer be projected: confirm before "
-    "Complete.",
+    "capability for class members. A completed run can still be confirmed while the slot is "
+    "`AVAILABLE` (it then claims the slot); a confirmation given before Complete ends with "
+    "Complete and is not revived by a new confirmation.",
     "request_inputs": "path `occurrence_id*`: string; header `Idempotency-Key*`: string; header "
     "`If-Match`: string; application/json (required): ProjectionConfirmationRequestV1 "
     "{run_id*:string, generation_id*:string, audience*:CLASS, use*:CLASS_PROJECTION}",

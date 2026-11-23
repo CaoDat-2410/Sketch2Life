@@ -21,6 +21,13 @@ the CURRENT assignment (a run without an occurrence pin is the uniform 404), the
 command scope (``ORGANIZATION`` plus the digest of the calling principal) and a read-only class
 (suspended or archived) refuses a new write AFTER the replay lookup. The generation itself
 replays by ``(run, key hash)``, not by actor.
+
+V4-A OPEN-A D8 (SRS l.386, l.2690-2699): with an optional ``plan_read`` port the repository fences a
+Teacher run whose pinned plan is no longer the approved plan, with read-only checks and no write to
+Lesson: ``begin_intent`` answers 409 ``STALE_REVISION`` (``current_version`` is the approved plan
+revision number) and ``advance`` turns a worker-start step of a not-yet-started generation into
+``FAILED`` (``PLAN_SUPERSEDED``) before anything is dispatched. A generation that is already running
+finishes with its old pin (deviation DEV-4: its cancellation is not built).
 """
 
 from __future__ import annotations
@@ -32,13 +39,14 @@ from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
 from datetime import UTC, datetime
 from typing import Any
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from sqlalchemy import func, insert, null, select, update
 from sqlalchemy.engine import RowMapping
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from sketch2life.application.ports.approved_plan_read import ApprovedPlanReadPort
 from sketch2life.application.ports.identity import VerifiedPrincipal
 from sketch2life.application.ports.parent_story_runs import (
     ParentStoryLifecycleRecord,
@@ -69,6 +77,7 @@ from sketch2life.application.ports.story_video import (
 )
 from sketch2life.domain.story_video.model import (
     ADMISSION_REFUSALS,
+    COMPLETED_RUN_STATE,
     IN_FLIGHT_STATES,
     MAX_ACCEPTED_REQUESTS,
     OPEN_STATES,
@@ -82,6 +91,7 @@ from sketch2life.domain.story_video.model import (
     is_playable,
     require_transition,
 )
+from sketch2life.infrastructure.persistence.parent_models import ParentChildProfileModel
 from sketch2life.infrastructure.story_run_lite import tables as story_tables
 from sketch2life.infrastructure.uploads.resolvers import parent_scope_ref
 
@@ -97,8 +107,11 @@ _VGS = story_tables.video_generation_scenes
 _RUNS = story_tables.story_runs
 _RECEIPTS = story_tables.story_command_receipts
 _STORE_UNAVAILABLE = "PARENT_STORY_RUN_STORE_UNAVAILABLE"
-# The first story plus three rewrites (FR-P-07): the same bound ``reserve_story_rewrite`` applies.
-_MAX_STORY_REVISIONS = 4
+# The stored safe code of a generation fenced by a plan re-approval; the client sees
+# ``VIDEO_TECHNICAL_FAILURE`` (``public_failure_code``).
+PLAN_SUPERSEDED = "PLAN_SUPERSEDED"
+_WORKER_START_STATES = frozenset({GenerationState.ACCEPTED, GenerationState.QUEUED})
+_WORKER_START_TARGETS = frozenset({GenerationState.QUEUED, GenerationState.GENERATING})
 _CONFLICT_CONSTRAINTS = frozenset(
     {"uq_vg_one_open", "uq_vg_review_consumed", "uq_vg_number", "uq_vg_one_ready"}
 )
@@ -183,14 +196,44 @@ class SqlStoryVideoRepository:
         session: Session,
         actor: RunActor | None = None,
         teacher_access: TeacherRunAccessPort | None = None,
+        plan_read: ApprovedPlanReadPort | None = None,
     ) -> None:
         self._session = session
         self._actor = actor
         self._teacher_access = teacher_access
+        self._plan_read = plan_read
 
     @property
     def _is_teacher(self) -> bool:
         return self._actor is not None and self._actor.is_teacher
+
+    def _superseded_plan_no(self, run: Mapping[Any, Any]) -> int | None:
+        """The approved plan revision number when this Teacher run is pinned to another plan
+        (V4-A OPEN-A D8), else ``None``. No port, a Parent run, a run without an occurrence pin, a
+        pin without a plan revision id and an occurrence without an approved plan are all "not
+        superseded" (no fence)."""
+
+        reader = self._plan_read
+        if (
+            reader is None
+            or run["actor_scope_kind"] != _TEACHER_SCOPE_KIND
+            or run["occurrence_ref"] is None
+        ):
+            return None
+        inputs = story_tables.run_inputs
+        pin = self._session.scalar(
+            select(inputs.c.lesson_pin_snapshot).where(
+                inputs.c.run_id == run["run_id"],
+                inputs.c.input_revision == run["current_input_revision"],
+            )
+        )
+        pinned = pin.get("plan_revision_id") if isinstance(pin, dict) else None
+        if not isinstance(pinned, str) or not pinned:
+            return None
+        approved = reader.approved_plan(str(run["occurrence_ref"]))
+        if approved is None or approved.plan_revision_id == pinned:
+            return None
+        return approved.revision_no
 
     def _command_scope(self, principal: VerifiedPrincipal) -> tuple[str, str]:
         """Kind and reference of a receipt: who gave the command (the Parent's own scope, or
@@ -413,12 +456,17 @@ class SqlStoryVideoRepository:
             raise ParentStoryRunError(409, "STALE_REVISION", current_version=current_revision)
         if revision["status"] != "CONFIRMED":
             raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
+        # V4-A T-1b-fix D4: a confirmation may be repeated after a spent request, so the request
+        # consumes the review with the highest epoch of the latest revision.
         review_id = self._session.scalar(
-            select(story_tables.story_revision_reviews.c.review_id).where(
+            select(story_tables.story_revision_reviews.c.review_id)
+            .where(
                 story_tables.story_revision_reviews.c.run_id == run_id,
                 story_tables.story_revision_reviews.c.story_revision_id
                 == revision["story_revision_id"],
             )
+            .order_by(story_tables.story_revision_reviews.c.review_epoch.desc())
+            .limit(1)
         )
         if review_id is None:
             raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
@@ -430,6 +478,11 @@ class SqlStoryVideoRepository:
         if consumed:
             raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
         self._require_confirmed_inputs(run, revision)
+        superseded_by = self._superseded_plan_no(run)
+        if superseded_by is not None:
+            # D8(1): the run was pinned to a plan that has since been replaced; the number is the
+            # approved plan revision, not a run revision.
+            raise ParentStoryRunError(409, "STALE_REVISION", current_version=superseded_by)
         accepted = int(
             self._session.scalar(
                 select(func.count())
@@ -1038,20 +1091,6 @@ class SqlStoryVideoRepository:
             or 0
         )
 
-    def _rewrite_door_open(self, run_id: str) -> bool:
-        """``True`` while the run can still get a new story revision (first story + 3 rewrites,
-        FR-P-07 l.516, l.866): the only way out of a spent script review."""
-
-        revisions = int(
-            self._session.scalar(
-                select(func.count())
-                .select_from(story_tables.story_revisions)
-                .where(story_tables.story_revisions.c.run_id == run_id)
-            )
-            or 0
-        )
-        return revisions < _MAX_STORY_REVISIONS
-
     def _move_run(
         self, run: RowMapping, current_revision: int, now: datetime, **values: Any
     ) -> None:
@@ -1115,8 +1154,9 @@ class SqlStoryVideoRepository:
     def resolve_playback(
         self, *, principal: VerifiedPrincipal, run_id: str, generation_id: str | None
     ) -> PlaybackResolution:
-        """Owner-scoped, read-only: is the run at ``VIDEO_READY`` with its current generation
-        ``READY``, every validation ``PASSED`` and an output (SRS l.1676, T-1b hand-over)?
+        """Owner-scoped, read-only: is the run at ``VIDEO_READY`` or ``COMPLETED`` (V4-A T-1c-fix)
+        with its current generation ``READY``, every validation ``PASSED`` and an output (SRS
+        l.1676, T-1b hand-over)?
 
         Run state and generation state are read together in one statement, never the pointer
         alone: after ``video-unsuitable`` the pointer stays on the ``REJECTED_BY_ADULT`` row.
@@ -1127,6 +1167,12 @@ class SqlStoryVideoRepository:
         occurrence-pin rule must grant the caller (read-only, no lock: a suspended or archived
         class still plays the video, SRS l.364, l.593, l.1425); the target is bound to the digest of
         the calling principal, so the token names one Teacher, not the organization.
+
+        V4-A T-1c-fix: Complete and the idle closeout no longer end playback (owner decisions O-3
+        and C1(a)), so every caller passes ``allow_completed``; what still ends it for a Parent is
+        a cancel, a delete, a rejected or failed generation and the deletion of the child profile
+        (``_parent_profile_revoked``). A Teacher projection confirmed before Complete ends at
+        Complete in the Lesson check, not here.
         """
 
         scope_ref = parent_scope_ref(principal)
@@ -1172,6 +1218,8 @@ class SqlStoryVideoRepository:
             raise ParentStoryRunError(503, _STORE_UNAVAILABLE) from None
         if row is None or row["run_state"] in PURGE_STATES:
             return PlaybackResolution(PlaybackStatus.NOT_FOUND)
+        if not teacher and self._parent_profile_revoked(run_id):
+            return PlaybackResolution(PlaybackStatus.NOT_FOUND)
         current = row["video_generation_id"]
         if not is_playable(
             run_state=str(row["run_state"]),
@@ -1180,11 +1228,51 @@ class SqlStoryVideoRepository:
             consistency=row["consistency_validation_state"],
             safety=row["safety_validation_state"],
             has_output=row["output_asset_ref"] is not None,
+            allow_completed=True,
         ) or (generation_id is not None and str(current) != generation_id):
             return PlaybackResolution(PlaybackStatus.NOT_PLAYABLE)
         return PlaybackResolution(
             PlaybackStatus.PLAYABLE,
             PlaybackTarget(run_id, str(current), scope_ref, str(row["output_asset_ref"])),
+        )
+
+    def _parent_profile_revoked(self, run_id: str) -> bool:
+        """V4-A T-1c-fix D5 (SRS l.502, l.1736): deleting a child profile ends playback of its runs
+        at once, now that Complete no longer does. Two primary-key reads after the owner row was
+        found: the run's profile reference, then the profile state. A profile row that is not
+        ``ACTIVE`` (or has ``deleted_at``) revokes; no reference, an unparsable one and no profile
+        row do not (the check revokes only what profile deletion flipped). Fail-open on a missing
+        row: nothing hard-deletes ``parent.child_profiles`` today and ``story_runs.profile_ref``
+        has no foreign key, so a future profile purge that removes the row but not the runs must
+        also end the runs (note for that task)."""
+
+        try:
+            reference = (
+                self._session.execute(select(_RUNS.c.profile_ref).where(_RUNS.c.run_id == run_id))
+                .mappings()
+                .one_or_none()
+            )
+            raw = None if reference is None else reference["profile_ref"]
+            if not isinstance(raw, str):
+                return False
+            try:
+                profile_id = UUID(raw)
+            except ValueError:
+                return False
+            profile = (
+                self._session.execute(
+                    select(ParentChildProfileModel.state, ParentChildProfileModel.deleted_at).where(
+                        ParentChildProfileModel.parent_profile_id == profile_id
+                    )
+                )
+                .mappings()
+                .one_or_none()
+            )
+        except SQLAlchemyError:
+            self._session.rollback()
+            raise ParentStoryRunError(503, _STORE_UNAVAILABLE) from None
+        return profile is not None and (
+            profile["state"] != "ACTIVE" or profile["deleted_at"] is not None
         )
 
     def _teacher_may_read(self, principal: VerifiedPrincipal, run: Mapping[Any, Any]) -> bool:
@@ -1239,6 +1327,19 @@ class SqlStoryVideoRepository:
             ):
                 stale = _to_record(self._record_row(generation_id))
                 return ProgressResult(False, stale, "STALE")
+            if (
+                expected in _WORKER_START_STATES
+                and target in _WORKER_START_TARGETS
+                and self._superseded_plan_no(run) is not None
+            ):
+                # D8(2): before anything is dispatched, a generation of a superseded plan ends
+                # FAILED (the accepted quota receipt is kept, no refund).
+                target = GenerationState.FAILED
+                event = ProgressEvent(
+                    expected_state=str(expected),
+                    target_state=str(target),
+                    safe_failure_code=PLAN_SUPERSEDED,
+                )
             now = datetime.now(UTC)
             self._apply(run, gen, expected, target, event, now)
             record = _to_record(self._record_row(generation_id))
@@ -1288,13 +1389,20 @@ class SqlStoryVideoRepository:
             )
             run_values["adult_wait_started_at"] = now
         elif target is GenerationState.SAFETY_BLOCKED:
+            # V4-A SAFETY_BLOCKED exit (owner decision C11, SRS l.420, l.2197): the run goes back
+            # to the script review (``RUN_STATE_FOR_GENERATION``) with a new adult wait and keeps
+            # its owner lock. The blocked request still counts toward the cap, at the cap too (the
+            # SRS text, D3); the branch does not read ``return_to_script_review`` (only the
+            # deadline sets it). A block event without a code stores the default one, so the
+            # public reason is ``VIDEO_SAFETY_BLOCKED`` and never a technical failure.
+            block_code = event.safe_failure_code or "SAFETY_BLOCKED"
             values.update(
                 safety_validation_state=str(ValidationState.FAILED),
                 safety_finding_codes=list(event.safety_finding_codes),
                 completed_at=now,
-                safe_failure_code=event.safe_failure_code,
+                safe_failure_code=block_code,
             )
-            run_values.update(adult_wait_started_at=now, error_code=event.safe_failure_code)
+            run_values.update(adult_wait_started_at=now, error_code=block_code)
         elif target is GenerationState.FAILED:
             values.update(completed_at=now, safe_failure_code=event.safe_failure_code)
             if expected is GenerationState.TECHNICAL_VALIDATING:
@@ -1303,13 +1411,13 @@ class SqlStoryVideoRepository:
             if (
                 event.return_to_script_review
                 and self._accepted_count(run_id) < MAX_ACCEPTED_REQUESTS
-                and self._rewrite_door_open(run_id)
             ):
                 # The failed request still counts toward the cap (BR-11, l.2120); the run waits
                 # for the adult at the script review with a new clock and keeps its owner lock.
-                # The way forward is a rewrite (T-1d1-fix DEV-3: ``reserve_story_rewrite`` accepts
-                # a confirmed script whose request ended ``FAILED``, like a rejected one); with no
-                # rewrite left the run could only wait, so it ends ``FAILED`` and frees the lock.
+                # The way forward is to keep the current story and confirm it again (V4-A
+                # T-1b-fix: a new review epoch, so it never needs a free rewrite slot) or a
+                # rewrite within the limit; with the cap spent the run ends ``FAILED`` and frees
+                # the lock.
                 new_run_state = RUN_STATE_FOR_GENERATION[GenerationState.ADMISSION_REJECTED]
                 run_values.update(
                     adult_wait_started_at=now,
@@ -1418,7 +1526,10 @@ def sample_facts(session: Session, run_id: str, *, lock: bool) -> SampleFacts | 
     (a concurrent cancel, ``video-unsuitable`` or complete takes it ``FOR UPDATE`` and waits or
     loses); it is the last lock of the confirmation, after the occurrence and the class. A run that
     does not exist or is being deleted is ``None``. ``playable`` is the single ``is_playable``
-    predicate. Nothing is written and no storage key leaves the function.
+    predicate with ``allow_completed`` (V4-A T-1c-fix, owner decision C1(a)): a ``COMPLETED`` run
+    that still holds its READY output is playable, and ``completed_at`` (the run's ``finished_at``)
+    is what the Lesson check compares with the confirmation time, so a confirmation given before
+    Complete ends at Complete. Nothing is written and no storage key leaves the function.
     """
 
     inputs = story_tables.run_inputs
@@ -1427,6 +1538,7 @@ def sample_facts(session: Session, run_id: str, *, lock: bool) -> SampleFacts | 
             _RUNS.c.run_id,
             _RUNS.c.occurrence_ref,
             _RUNS.c.run_state,
+            _RUNS.c.finished_at.label("run_finished_at"),
             _VG.c.video_generation_id,
             _VG.c.state.label("generation_state"),
             _VG.c.output_asset_ref,
@@ -1465,6 +1577,9 @@ def sample_facts(session: Session, run_id: str, *, lock: bool) -> SampleFacts | 
             None if row["video_generation_id"] is None else str(row["video_generation_id"])
         ),
         ready_at=(row["completed_at"] if row["completed_at"] is not None else row["updated_at"]),
+        completed_at=(
+            row["run_finished_at"] if row["run_state"] == COMPLETED_RUN_STATE else None
+        ),
         playable=is_playable(
             run_state=str(row["run_state"]),
             generation_state=None if generation_state is None else str(generation_state),
@@ -1472,6 +1587,7 @@ def sample_facts(session: Session, run_id: str, *, lock: bool) -> SampleFacts | 
             consistency=row["consistency_validation_state"],
             safety=row["safety_validation_state"],
             has_output=row["output_asset_ref"] is not None,
+            allow_completed=True,
         ),
         plan_revision_id=pin_id if isinstance(pin_id, str) else None,
         plan_revision_no=pin_no if type(pin_no) is int else None,

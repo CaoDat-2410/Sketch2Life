@@ -105,6 +105,54 @@ def test_a_confirmation_covers_a_generation_only_when_given_after_it_was_ready()
     )
 
 
+def test_complete_ends_a_confirmation_given_before_it_and_keeps_one_given_after_it() -> None:
+    """V4-A T-1c-fix (owner decision C1(a), departure DEV-5)."""
+
+    finished = T0
+    survives = rules.confirmation_survives_completion
+    # a run that is not completed is not affected, whatever the times
+    assert survives(run_completed=False, confirmed_at=None, completed_at=None)
+    assert survives(run_completed=False, confirmed_at=finished, completed_at=finished)
+    # a completed run: the confirmation must be at or after the completion
+    assert survives(run_completed=True, confirmed_at=finished, completed_at=finished)
+    assert survives(
+        run_completed=True, confirmed_at=finished + timedelta(microseconds=1), completed_at=finished
+    )
+    assert not survives(
+        run_completed=True, confirmed_at=finished - timedelta(microseconds=1), completed_at=finished
+    )
+    # no time on either side cannot be shown to follow the completion: fail closed
+    assert not survives(run_completed=True, confirmed_at=None, completed_at=finished)
+    assert not survives(run_completed=True, confirmed_at=finished, completed_at=None)
+
+
+@pytest.mark.parametrize(
+    ("decision", "confirmed_at", "allowed"),
+    [
+        (rules.ClaimDecision.FIRST_CLAIM, None, True),
+        (rules.ClaimDecision.FIRST_CLAIM, T0 - timedelta(seconds=5), True),
+        # a repeat or refresh of the same run: only when the stored confirmation follows Complete
+        (rules.ClaimDecision.SAME_RUN, T0, True),
+        (rules.ClaimDecision.SAME_RUN, T0 + timedelta(seconds=5), True),
+        (rules.ClaimDecision.SAME_RUN, T0 - timedelta(microseconds=1), False),
+        (rules.ClaimDecision.SAME_RUN, None, False),
+        (rules.ClaimDecision.REFUSED, T0 + timedelta(seconds=5), False),
+    ],
+)
+def test_a_completed_run_is_confirmed_as_a_first_claim_or_after_a_post_complete_claim(
+    decision: rules.ClaimDecision, confirmed_at: datetime | None, allowed: bool
+) -> None:
+    assert (
+        rules.completed_run_may_confirm(decision, confirmed_at=confirmed_at, completed_at=T0)
+        is allowed
+    )
+    # no completion time: only the first claim can be shown to follow nothing
+    assert not rules.completed_run_may_confirm(
+        rules.ClaimDecision.SAME_RUN, confirmed_at=T0, completed_at=None
+    )
+    assert rules.RUN_STATE_COMPLETED == "COMPLETED"
+
+
 # ----------------------------------------------------------------------------- the claim
 @pytest.mark.parametrize(
     ("slot", "pointer", "run", "expected"),

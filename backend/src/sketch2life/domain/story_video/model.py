@@ -74,7 +74,9 @@ TRANSITIONS: Final[dict[GenerationState, frozenset[GenerationState]]] = {
 }
 
 # The run state that goes with a generation state (SRS l.394). ``SUPERSEDED`` has no run state of
-# its own: a newer generation decides it (T-1b).
+# its own: a newer generation decides it (T-1b). V4-A SAFETY_BLOCKED exit (owner decision C11): a
+# blocked output returns the adult to the script review, like a refused admission, so the run state
+# ``SAFETY_BLOCKED`` is no longer written; it stays valid for rows written before (SRS l.420).
 RUN_STATE_FOR_GENERATION: Final[dict[GenerationState, str]] = {
     S.ADMISSION_PENDING: "VIDEO_ADMISSION_PENDING",
     S.ADMISSION_REJECTED: "SCRIPT_REVIEW",
@@ -84,10 +86,13 @@ RUN_STATE_FOR_GENERATION: Final[dict[GenerationState, str]] = {
     S.TECHNICAL_VALIDATING: "VIDEO_SAFETY_VALIDATING",
     S.SAFETY_VALIDATING: "VIDEO_SAFETY_VALIDATING",
     S.READY: "VIDEO_READY",
-    S.SAFETY_BLOCKED: "SAFETY_BLOCKED",
+    S.SAFETY_BLOCKED: "SCRIPT_REVIEW",
     S.FAILED: "FAILED",
     S.REJECTED_BY_ADULT: "SCRIPT_REVIEW",
 }
+# The run states in which the adult may confirm the story again or rewrite it. ``SAFETY_BLOCKED`` is
+# legacy-only: rows written before the exit stay accepted (D6); no new write produces it.
+REVIEWABLE_RUN_STATES: Final = frozenset({"SCRIPT_REVIEW", "SAFETY_BLOCKED"})
 # The run states the six new values of ``ck_story_run_state`` add; every video state of a run.
 VIDEO_RUN_STATES: Final = frozenset(
     {
@@ -137,6 +142,10 @@ UNSUITABLE_REASON_CODES: Final = QUALITY_REASON_CODES
 # The only run state in which a ready video can be marked unsuitable or the run completed
 # (SRS l.1671-1672: the run waits for the adult with the video in front of them).
 VIDEO_READY_RUN_STATE: Final = "VIDEO_READY"
+# V4-A T-1c-fix: a closed run keeps its ready video until the user deletes the run (owner decisions
+# O-3 and C1(a)); the Complete command and the idle closeout end the run, not the playback.
+COMPLETED_RUN_STATE: Final = "COMPLETED"
+REPLAYABLE_RUN_STATES: Final = frozenset({VIDEO_READY_RUN_STATE, COMPLETED_RUN_STATE})
 
 # T-1c (SRS l.875, l.1811): the closed set of failure codes a client may read about a video. Every
 # other stored ``safe_failure_code`` is shown as ``VIDEO_TECHNICAL_FAILURE``; no provider text, no
@@ -191,13 +200,20 @@ def is_playable(
     consistency: str | None,
     safety: str | None,
     has_output: bool,
+    allow_completed: bool = False,
 ) -> bool:
     """Playback needs the run at ``VIDEO_READY`` and the current generation ``READY`` with every
     validation ``PASSED`` and an output (SRS l.1676; the T-1b hand-over: both states together,
-    never the generation pointer alone)."""
+    never the generation pointer alone).
 
+    V4-A T-1c-fix: with ``allow_completed`` a ``COMPLETED`` run also plays (owner decisions O-3 and
+    C1(a): Complete and the idle closeout end the run, not the playback). The caller passes the
+    flag; the predicate knows no role. The default stays strict.
+    """
+
+    allowed = REPLAYABLE_RUN_STATES if allow_completed else frozenset({VIDEO_READY_RUN_STATE})
     return (
-        run_state == VIDEO_READY_RUN_STATE
+        run_state in allowed
         and generation_state == str(GenerationState.READY)
         and has_output
         and {technical, consistency, safety} == {str(ValidationState.PASSED)}
@@ -232,6 +248,7 @@ def generation_kind_for(accepted_count: int) -> GenerationKind:
 __all__ = [
     "ADMISSION_REFUSALS",
     "AI_COST_LIMIT_REACHED",
+    "COMPLETED_RUN_STATE",
     "IN_FLIGHT_STATES",
     "MAX_ACCEPTED_REQUESTS",
     "OPEN_STATES",
@@ -239,6 +256,8 @@ __all__ = [
     "PUBLIC_FAILURE_CODES",
     "PUBLIC_JOB_STATE",
     "QUALITY_REASON_CODES",
+    "REPLAYABLE_RUN_STATES",
+    "REVIEWABLE_RUN_STATES",
     "RUN_CANCELLED",
     "RUN_JOB_STATE_FOR_GENERATION",
     "RUN_STATE_FOR_GENERATION",

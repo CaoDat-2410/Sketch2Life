@@ -33,6 +33,8 @@ from sketch2life.application.ports.parent_story_inputs import (
 )
 from sketch2life.application.ports.parent_story_profile_lookup import ParentStoryProfileReference
 from sketch2life.application.ports.parent_story_runs import (
+    ActivityResolver,
+    ParentActivityContext,
     ParentStoryInputRecord,
     ParentStoryLifecycleRecord,
     ParentStoryRevisionReservation,
@@ -41,6 +43,7 @@ from sketch2life.application.ports.parent_story_runs import (
     ParentStoryRunSummary,
     ParentStoryRunView,
     StoryRewriteOutcome,
+    StoryStartedCallback,
     TeacherStoryRunRecord,
 )
 from sketch2life.application.ports.story_run_actor import (
@@ -71,14 +74,29 @@ from sketch2life.application.ports.story_task_reaper import (
     REWRITE_ATTEMPTS_PER_SLOT,
 )
 from sketch2life.application.ports.story_video import RunVideoRows
+from sketch2life.application.services.story_review_rules import (
+    MAX_REVIEW_EPOCH,
+    next_review_epoch,
+    review_is_spent,
+    revision_has_spent_video,
+    story_confirmation_required,
+)
 from sketch2life.application.services.story_run_detail import compose_timeline, compose_video
 from sketch2life.domain.story_teacher import TEACHER_PIN_SCHEMA, teacher_lesson_direction
-from sketch2life.domain.story_video.model import public_failure_code
+from sketch2life.domain.story_video.model import (
+    MAX_ACCEPTED_REQUESTS,
+    REVIEWABLE_RUN_STATES,
+    public_failure_code,
+)
 from sketch2life.infrastructure.persistence.core_models import (
     CoreAggregateRevisionModel,
     CoreAssetMetadataModel,
     CoreAuditEntryModel,
     CoreOutboxEventModel,
+)
+from sketch2life.infrastructure.persistence.story_first_start import (
+    FirstStoryStarter,
+    latest_selection_row,
 )
 from sketch2life.infrastructure.story_run_lite import tables as story_tables
 from sketch2life.infrastructure.story_video.detail_read import read_run_video
@@ -120,6 +138,21 @@ _INPUT_STATES = frozenset({"INPUT_PROCESSING", "INPUT_REVIEW", "SUBJECT_REVIEW"}
 # T-2d: ``job_state`` values of a drawing analysis that has not reported yet.
 _VLM_IN_FLIGHT = frozenset({"QUEUED", "RUNNING", "AWAITING_RECONCILIATION"})
 _SUBJECT_DECISIONS = frozenset({"CONFIRMED", "RERUN_REQUESTED"})
+# T-2e-a (SRS l.514, l.871): the states in which the subject is not confirmed yet (422) and the one
+# state in which the adult chooses the main activity.
+_ACTIVITY_PRE_SUBJECT_STATES = frozenset({"INPUT_PROCESSING", "INPUT_REVIEW", "SUBJECT_REVIEW"})
+_SELECT_ACTIVITY_OPERATION = "SELECT_ACTIVITY"
+_POST_VIDEO_STATES = frozenset({"VIDEO_READY", "COMPLETED"})
+_ACTIVITY_ITEM_FIELDS = (
+    "title",
+    "objective",
+    "materials_text",
+    "preparation_text",
+    "instructions_text",
+    "observation_notes",
+    "safety_notes",
+    "activity_kind",
+)
 _SUBMIT_IDEA_OPERATION = "SUBMIT_IDEA"
 _CONFIRM_TRANSCRIPT_OPERATION = "CONFIRM_TRANSCRIPT"
 
@@ -545,12 +578,13 @@ class SqlParentStoryRunRepository:
             story_status=str(latest_story["status"]) if latest_story is not None else None,
             story_sha256=latest_story["story_sha256"] if latest_story is not None else None,
             story_content=story_content,
+            story_confirmation_required=self._story_confirmation_required(run, latest_story),
             job_state=run["job_state"],
             retryable=bool(run["retryable"]),
             error_code=_public_run_error_code(run["error_code"], video_rows),
             created_at=run["created_at"],
             updated_at=run["updated_at"],
-            video=compose_video(run_id, str(run["run_state"]), video_rows),
+            video=compose_video(run_id, str(run["run_state"]), video_rows, allow_completed=True),
             timeline=compose_timeline(
                 run_state=str(run["run_state"]),
                 run_created_at=run["created_at"],
@@ -570,11 +604,61 @@ class SqlParentStoryRunRepository:
                 **shared,
             )
         profile_id, profile_revision_ref = self._typed_profile_refs(run, input_row)
+        main_activity, post_video_activities = self._activity_view(run, input_row)
         return ParentStoryRunRecord(
             parent_profile_id=profile_id,
             profile_revision_ref=profile_revision_ref,
+            main_activity=main_activity,
+            post_video_activities=post_video_activities,
             **shared,
         )
+
+    def _activity_view(
+        self, run: Mapping[str, Any], input_row: Mapping[Any, Any]
+    ) -> tuple[dict[str, Any], list[dict[str, Any]] | None]:
+        """``main_activity`` and ``post_video_activities`` of a Parent run (T-2e-a D11).
+
+        Both come from stored data only (the selection snapshot and the run's lesson pin): no
+        catalog or lesson access read here. The route withholds the pinned list when the pinned
+        lesson is no longer viewable.
+        """
+
+        selection = latest_selection_row(
+            self._session, str(run["run_id"]), int(run["understanding_revision"] or 0)
+        )
+        selected: dict[str, Any] | None = None
+        main: dict[str, Any] = {"state": "NOT_SELECTED", "selected": None, "selected_at": None}
+        if selection is not None:
+            snapshot = dict(selection["activity_snapshot"])
+            selected_at = snapshot.pop("selected_at", None)
+            snapshot.pop("schema", None)
+            selected = snapshot
+            main = {"state": "SELECTED", "selected": selected, "selected_at": selected_at}
+        if run["run_state"] not in _POST_VIDEO_STATES:
+            return main, None
+        pin = input_row["lesson_pin_snapshot"]
+        if pin is None:
+            return main, ([{**selected, "is_main": True}] if selected is not None else None)
+        main_ref = selected["activity_ref"] if selected is not None else None
+        items: list[dict[str, Any]] = []
+        for index, raw in enumerate(pin.get("activities") or []):
+            reference = {
+                "lesson_id": str(pin["lesson_id"]),
+                "version_id": str(pin["version_id"]),
+                "content_sha256": str(pin["content_sha256"]),
+                "activity_index": index,
+            }
+            items.append(
+                {
+                    "activity_ref": reference,
+                    **{name: raw.get(name, "") for name in _ACTIVITY_ITEM_FIELDS},
+                    "source": "PINNED_LESSON",
+                    "lesson_title": str(pin["title"]),
+                    "lesson_topic": str(pin["topic"]),
+                    "is_main": main_ref == reference,
+                }
+            )
+        return main, items
 
     def list_runs(
         self,
@@ -1015,6 +1099,37 @@ class SqlParentStoryRunRepository:
             self._session.rollback()
             raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
 
+    def _first_story_starter(self) -> FirstStoryStarter:
+        """The implicit first-story start (T-2e-a D2; a Teacher run since V4-A OPEN-A D1). Only
+        the job-side repository of a background task never starts one."""
+
+        return FirstStoryStarter(
+            self._session,
+            enabled=not self._job_side,
+            probe=self._first_story_probe,
+            live_run=_live_run,
+            sha256_json=_sha256_json,
+            teacher=self._is_teacher,
+        )
+
+    def _first_story_probe(
+        self, principal: VerifiedPrincipal, run: Mapping[str, Any], understanding_revision: int
+    ) -> tuple[RowMapping, RowMapping, str, list[str]] | None:
+        """``_story_generation_basis`` as a yes or no: an unmet gate (status below 500) is "not
+        ready"; a store failure (5xx) propagates and rolls the command back (T-2e-a D3)."""
+
+        try:
+            return self._story_generation_basis(
+                principal=principal,
+                run=run,
+                expected_understanding_revision=understanding_revision,
+                subject_error=(422, "SUBJECT_NOT_CONFIRMED"),
+            )
+        except ParentStoryRunError as exc:
+            if exc.status_code >= 500:
+                raise
+            return None
+
     def confirm_context(
         self,
         *,
@@ -1023,6 +1138,8 @@ class SqlParentStoryRunRepository:
         expected_context_revision: int,
         expected_context_snapshot_sha256: str,
         idempotency_key: str,
+        on_story_started: StoryStartedCallback | None = None,
+        generator_supports_role: bool = True,
     ) -> ParentStoryRunView:
         operation = "CONFIRM_CONTEXT"
         scope_kind = "STORY_RUN"
@@ -1095,6 +1212,12 @@ class SqlParentStoryRunRepository:
                     updated_at=now,
                 )
             )
+        # T-2e-a D2: the confirmation may be the last gate of the implicit first-story start. The
+        # start runs in this transaction after the stamp and before the receipt; a failure in it
+        # rolls the whole command back (it raises its own 503).
+        reservation = self._first_story_starter().start_if_ready(
+            run_id, principal, now, generator_supports_role=generator_supports_role
+        )
         try:
             self._store_idempotency_receipt(
                 principal=principal,
@@ -1116,7 +1239,214 @@ class SqlParentStoryRunRepository:
         except SQLAlchemyError:
             self._session.rollback()
             raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE") from None
-        return self.get_run(principal=principal, run_id=run_id)
+        record = self.get_run(principal=principal, run_id=run_id)
+        if reservation is not None and on_story_started is not None:
+            on_story_started(reservation)
+        return record
+
+    def _require_activity_state(self, run: Mapping[str, Any]) -> None:
+        """T-2e-a D5/D7: the main activity is chosen in ``PREPARATION_REVIEW``; before the subject
+        is confirmed the answer is 422 ``SUBJECT_NOT_CONFIRMED`` (SRS l.871), in any other state
+        409."""
+
+        state = str(run["run_state"])
+        if state == "PREPARATION_REVIEW":
+            return
+        if state in _ACTIVITY_PRE_SUBJECT_STATES:
+            raise ParentStoryRunError(422, "SUBJECT_NOT_CONFIRMED")
+        raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
+
+    def _activity_context(
+        self, principal: VerifiedPrincipal, run: Mapping[str, Any]
+    ) -> ParentActivityContext:
+        """The stored context the activity list is computed from (no catalog read here)."""
+
+        run_id = str(run["run_id"])
+        understanding_revision = int(run["understanding_revision"] or 0)
+        understanding = self._latest_understanding(run_id)
+        if understanding is None or int(understanding["revision_no"]) != understanding_revision:
+            raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
+        decisions = story_tables.review_decisions
+        subject_decision = self._session.scalar(
+            select(decisions.c.decision_id).where(
+                decisions.c.run_id == run_id,
+                decisions.c.stage == "SUBJECT",
+                decisions.c.decision == "CONFIRM",
+                decisions.c.actor_scope_ref == _principal_scope_ref(principal),
+                decisions.c.target_understanding_revision == understanding_revision,
+            )
+        )
+        if subject_decision is None:
+            raise ParentStoryRunError(422, "SUBJECT_NOT_CONFIRMED")
+        input_row = self._current_input(run)
+        snapshot = understanding["result_snapshot"]
+        candidate = snapshot.get("result") if isinstance(snapshot, dict) else None
+        raw_features = candidate.get("visible_features") if isinstance(candidate, dict) else None
+        if not isinstance(raw_features, list):
+            raw_features = []
+        visible_features = [
+            str(value).strip()[:160] for value in raw_features[:4] if str(value).strip()
+        ]
+        if not visible_features:
+            raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
+        pin = input_row["lesson_pin_snapshot"]
+        return ParentActivityContext(
+            run_id=run_id,
+            run_revision=int(run["revision"]),
+            understanding_revision=understanding_revision,
+            context_snapshot=dict(input_row["context_snapshot"]),
+            subject_label=str(run["subject_label"] or "").strip(),
+            visible_features=visible_features,
+            lesson_pin_snapshot=dict(pin) if pin is not None else None,
+        )
+
+    def read_activity_context(
+        self, *, principal: VerifiedPrincipal, run_id: str
+    ) -> ParentActivityContext:
+        run = self._owned_run(principal, run_id)
+        if run["run_state"] in PURGE_STATES:
+            raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
+        self._require_activity_state(run)
+        return self._activity_context(principal, run)
+
+    def select_activity(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        run_id: str,
+        expected_revision: int,
+        activity_ref: Mapping[str, Any],
+        idempotency_key: str,
+        resolve: ActivityResolver,
+        on_story_started: StoryStartedCallback | None = None,
+    ) -> ParentStoryRunView:
+        """Record the adult's main activity (T-2e-a D7, SRS l.514, l.1667).
+
+        Order under the run lock: the idempotency replay (never calls ``resolve``), a purged run,
+        the state, the run revision, then ``resolve`` (the application service recomputes the list
+        and checks membership), then the receipt, the selection row, the run bump and the implicit
+        first-story start, in one commit. A Teacher gets the uniform 404.
+        """
+        run = self._owned_run(principal, run_id, lock=True)
+        key_hash = _idempotency_key_hash(idempotency_key)
+        reference = {
+            "lesson_id": str(activity_ref["lesson_id"]),
+            "version_id": str(activity_ref["version_id"]),
+            "content_sha256": str(activity_ref["content_sha256"]),
+            "activity_index": int(activity_ref["activity_index"]),
+        }
+        fingerprint = _sha256_json(
+            {"expected_revision": expected_revision, "activity_ref": reference}
+        )
+        self._lock_idempotency(
+            principal=principal,
+            operation=_SELECT_ACTIVITY_OPERATION,
+            scope_kind="STORY_RUN",
+            scope_ref=run_id,
+            key_hash=key_hash,
+        )
+        replay = self._find_idempotency_receipt(
+            principal=principal,
+            operation=_SELECT_ACTIVITY_OPERATION,
+            scope_kind="STORY_RUN",
+            scope_ref=run_id,
+            key_hash=key_hash,
+            fingerprint=fingerprint,
+        )
+        if replay is not None:
+            self._session.commit()
+            if run["run_state"] in PURGE_STATES:
+                # DTR Draft 6 §6.5: the replay of a purged run returns only the projection.
+                return _projection(run)
+            return self.get_run(principal=principal, run_id=run_id)
+        self._refuse_purged(run)
+        self._require_activity_state(run)
+        if int(run["revision"]) != expected_revision:
+            raise ParentStoryRunError(409, "STALE_REVISION", current_version=int(run["revision"]))
+        try:
+            pin = resolve(self._activity_context(principal, run))
+        except SQLAlchemyError:
+            self._session.rollback()
+            raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE") from None
+        except BaseException:
+            self._session.rollback()
+            raise
+        now = datetime.now(UTC)
+        understanding_revision = int(run["understanding_revision"] or 0)
+        new_version = int(run["version"]) + 1
+        new_revision = int(run["revision"]) + 1
+        snapshot = {**pin.snapshot, "selected_at": now.isoformat()}
+        selections = story_tables.activity_selections
+        try:
+            selection_no = (
+                int(
+                    self._session.scalar(
+                        select(func.coalesce(func.max(selections.c.selection_no), 0)).where(
+                            selections.c.run_id == run_id
+                        )
+                    )
+                    or 0
+                )
+                + 1
+            )
+            command_kind, command_ref = self._command_scope(principal)
+            receipt_id = self._store_idempotency_receipt(
+                principal=principal,
+                operation=_SELECT_ACTIVITY_OPERATION,
+                scope_kind="STORY_RUN",
+                scope_ref=run_id,
+                key_hash=key_hash,
+                fingerprint=fingerprint,
+                run_id=run_id,
+                resource_version=new_version,
+                response_body={
+                    "selection_no": selection_no,
+                    "activity_ref": reference,
+                    "understanding_revision": understanding_revision,
+                },
+                now=now,
+                response_status=200,
+            )
+            self._session.execute(
+                insert(selections).values(
+                    selection_id=str(uuid4()),
+                    run_id=run_id,
+                    selection_no=selection_no,
+                    target_understanding_revision=understanding_revision,
+                    source_kind="LESSON_ACTIVITY",
+                    lesson_id=pin.lesson_id,
+                    version_id=pin.version_id,
+                    content_sha256=pin.content_sha256,
+                    activity_index=pin.activity_index,
+                    activity_snapshot=snapshot,
+                    activity_snapshot_sha256=_sha256_json(snapshot),
+                    command_receipt_id=receipt_id,
+                    actor_scope_kind=command_kind,
+                    actor_scope_ref=command_ref,
+                    created_at=now,
+                )
+            )
+            self._session.execute(
+                update(story_tables.story_runs)
+                .where(_live_run(run_id))
+                .values(version=new_version, revision=new_revision, updated_at=now)
+            )
+        except SQLAlchemyError:
+            # The idempotency lock and the run lock make a key or number collision unreachable, and
+            # an activity that cannot fit the snapshot bound is never listed (the service), so a
+            # database refusal here is a store failure, not a state conflict.
+            self._session.rollback()
+            raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE") from None
+        reservation = self._first_story_starter().start_if_ready(run_id, principal, now)
+        try:
+            self._session.commit()
+        except SQLAlchemyError:
+            self._session.rollback()
+            raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE") from None
+        record = self.get_run(principal=principal, run_id=run_id)
+        if reservation is not None and on_story_started is not None:
+            on_story_started(reservation)
+        return record
 
     def attach_artwork(
         self,
@@ -1744,6 +2074,8 @@ class SqlParentStoryRunRepository:
         confirmed_subject: str,
         idempotency_key: str,
         rerun_on_edit: bool = False,
+        on_story_started: StoryStartedCallback | None = None,
+        generator_supports_role: bool = True,
     ) -> SubjectConfirmOutcome | ParentStoryLifecycleRecord:
         """Confirm the subject of the latest understanding (SRS l.1666, FR-P-04 l.513, l.394).
 
@@ -1753,6 +2085,12 @@ class SqlParentStoryRunRepository:
         ``INPUT_PROCESSING`` with ``job_state QUEUED`` and no review decision is written; the
         runner records revision N+1 and the adult confirms it. Without ``rerun_on_edit`` (DEV-1,
         no composed analyzer) the edit is recorded as revision N+1 and confirmed at once.
+
+        V4-A OPEN-A D1: for a Teacher run the confirmation may be the last gate of the implicit
+        first-story start. The start runs after the run UPDATE and before the commit; its
+        reservation is handed to ``on_story_started`` after the commit. The receipt body (and so
+        the 202 and every replay) carries the command's own ``run_revision``, written before the
+        start's extra bump. A Parent never starts here (it has no selection yet).
         """
         run, access = self._owned_run_access(
             principal, run_id, lock=True, teacher_capable=True
@@ -1917,6 +2255,13 @@ class SqlParentStoryRunRepository:
                     updated_at=now,
                 )
             )
+            reservation = (
+                self._first_story_starter().start_if_ready(
+                    run_id, principal, now, generator_supports_role=generator_supports_role
+                )
+                if self._is_teacher
+                else None
+            )
             self._session.commit()
         except IntegrityError:
             self._session.rollback()
@@ -1924,6 +2269,8 @@ class SqlParentStoryRunRepository:
         except SQLAlchemyError:
             self._session.rollback()
             raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE") from None
+        if reservation is not None and on_story_started is not None:
+            on_story_started(reservation)
         return SubjectConfirmOutcome(
             understanding_revision=target_revision,
             decision="CONFIRMED",
@@ -2110,6 +2457,7 @@ class SqlParentStoryRunRepository:
         model_id: str,
         model_revision: str,
         prompt_version: str,
+        require_activity_selection: bool = False,
     ) -> ParentStoryRevisionReservation:
         run = self._owned_run(principal, run_id, lock=True)
         operation = "GENERATE_STORY_REVISION"
@@ -2191,6 +2539,17 @@ class SqlParentStoryRunRepository:
         self._refuse_purged(run)
         if run["run_state"] not in {"PREPARATION_REVIEW", "SCRIPT_REVIEW"}:
             raise ParentStoryRunError(409, "PARENT_STORY_RUN_NOT_READY_FOR_SCRIPT")
+        if (
+            require_activity_selection
+            and run["run_state"] == "PREPARATION_REVIEW"
+            and latest_selection_row(
+                self._session, run_id, int(run["understanding_revision"] or 0)
+            )
+            is None
+        ):
+            # T-2e-a D9: the legacy first-story route needs the adult's main activity first (only
+            # the route asks; repository callers without the flag are unchanged).
+            raise ParentStoryRunError(409, "PARENT_ACTIVITY_SELECTION_REQUIRED")
         _, input_row, idea_text, visible_features = self._story_generation_basis(
             principal=principal,
             run=run,
@@ -2300,28 +2659,26 @@ class SqlParentStoryRunRepository:
         )
 
     def _has_spent_video(self, run_id: str, story_revision_id: str) -> bool:
-        """``True`` when a video generation that gave no playable video sits on this revision.
+        """``True`` when a video generation that gave no playable video sits on any review of this
+        revision (the rewrite door, V4-A T-1b-fix D7).
 
-        T-1b: ``REJECTED_BY_ADULT`` (marked unsuitable). T-1d1-fix DEV-3: ``FAILED`` as well. The
-        run is in ``SCRIPT_REVIEW`` when this is asked, so a ``FAILED`` generation here can only be
-        one the generation deadline closed with the run returned to the script review (BR-11
-        l.255, l.2120): its review is consumed, so the way back is a rewrite and a confirmation,
-        exactly as after a rejected video.
+        T-1b: ``REJECTED_BY_ADULT`` (marked unsuitable). T-1d1-fix DEV-3: ``FAILED`` as well (the
+        generation deadline closed it and the run returned to the script review, BR-11 l.255,
+        l.2120). T-1b-fix: ``SAFETY_BLOCKED`` as well, and the question is per revision, not per
+        review: an adult who confirmed the story again (a fresh, unspent review) can still
+        rewrite. The run is in ``SCRIPT_REVIEW`` when this is asked, so no video is in flight.
         """
 
         table = story_tables.video_generations
-        return (
-            self._session.scalar(
-                select(table.c.video_generation_id)
-                .where(
-                    table.c.story_run_id == run_id,
-                    table.c.story_revision_id == story_revision_id,
-                    table.c.state.in_(("REJECTED_BY_ADULT", "FAILED")),
-                )
-                .limit(1)
+        by_review: dict[str, list[str]] = {}
+        for review_id, state in self._session.execute(
+            select(table.c.story_review_id, table.c.state).where(
+                table.c.story_run_id == run_id,
+                table.c.story_revision_id == story_revision_id,
             )
-            is not None
-        )
+        ):
+            by_review.setdefault(str(review_id), []).append(str(state))
+        return revision_has_spent_video(by_review.values())
 
     def reserve_story_rewrite(
         self,
@@ -2408,7 +2765,7 @@ class SqlParentStoryRunRepository:
 
         self._refuse_read_only_class(access)
         self._refuse_purged(run)
-        if run["run_state"] != "SCRIPT_REVIEW":
+        if run["run_state"] not in REVIEWABLE_RUN_STATES:
             raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
         revisions = (
             self._session.execute(
@@ -3060,6 +3417,110 @@ class SqlParentStoryRunRepository:
             self._session.rollback()
             raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE") from None
 
+    def _accepted_video_count(self, run_id: str) -> int:
+        """Accepted video requests of the run (a request that got a generation number)."""
+
+        table = story_tables.video_generations
+        return int(
+            self._session.scalar(
+                select(func.count())
+                .select_from(table)
+                .where(table.c.story_run_id == run_id, table.c.generation_no.is_not(None))
+            )
+            or 0
+        )
+
+    def _latest_review(self, run_id: str, story_revision_id: str) -> RowMapping | None:
+        """The review of the revision with the highest epoch (V4-A T-1b-fix D4)."""
+
+        reviews = story_tables.story_revision_reviews
+        return (
+            self._session.execute(
+                select(reviews.c.review_id, reviews.c.review_epoch)
+                .where(reviews.c.run_id == run_id, reviews.c.story_revision_id == story_revision_id)
+                .order_by(reviews.c.review_epoch.desc())
+                .limit(1)
+            )
+            .mappings()
+            .one_or_none()
+        )
+
+    def _review_states(self, review_id: str) -> list[str]:
+        table = story_tables.video_generations
+        return [
+            str(state)
+            for state in self._session.scalars(
+                select(table.c.state).where(table.c.story_review_id == review_id)
+            )
+        ]
+
+    def _story_confirmation_required(
+        self, run: RowMapping, latest_story: RowMapping | None
+    ) -> bool:
+        """``story_confirmation_required`` of the run envelope (V4-A T-1b-fix D8): reads the
+        LATEST review of the latest revision only, never the current generation."""
+
+        if latest_story is None or str(run["run_state"]) not in REVIEWABLE_RUN_STATES:
+            return False
+        if self._accepted_video_count(str(run["run_id"])) >= MAX_ACCEPTED_REQUESTS:
+            # V4-A SAFETY_BLOCKED exit D3b: with the request cap spent a confirmation can lead to
+            # no video (the confirm and the request both answer VIDEO_REGENERATION_LIMIT_REACHED),
+            # so the client is not asked for one; the way on is to stop the run.
+            return False
+        spent = False
+        if latest_story["status"] == "CONFIRMED":
+            review = self._latest_review(
+                str(run["run_id"]), str(latest_story["story_revision_id"])
+            )
+            spent = review is not None and review_is_spent(
+                self._review_states(str(review["review_id"]))
+            )
+        return story_confirmation_required(
+            run_state=str(run["run_state"]),
+            story_status=str(latest_story["status"]),
+            latest_review_spent=spent,
+            reviewable_run_states=REVIEWABLE_RUN_STATES,
+        )
+
+    def _confirmable_revision(
+        self, run: RowMapping, expected_revision: int, expected_story_sha256: str
+    ) -> tuple[RowMapping, int]:
+        """The refusal matrix of ``script-confirmation`` (V4-A T-1b-fix D12): the latest story
+        revision and the review epoch the confirmation writes (1 for a ``DRAFT``, the next epoch
+        for a ``CONFIRMED`` revision whose latest review is spent)."""
+
+        run_id = str(run["run_id"])
+        if run["run_state"] not in REVIEWABLE_RUN_STATES:
+            raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
+        latest = (
+            self._session.execute(
+                select(story_tables.story_revisions)
+                .where(story_tables.story_revisions.c.run_id == run_id)
+                .order_by(story_tables.story_revisions.c.revision_no.desc())
+                .limit(1)
+            )
+            .mappings()
+            .one_or_none()
+        )
+        if latest is None:
+            raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
+        current = int(latest["revision_no"])
+        if current != expected_revision or not hmac.compare_digest(
+            str(latest["story_sha256"] or ""), expected_story_sha256
+        ):
+            raise ParentStoryRunError(409, "STALE_REVISION", current_version=current)
+        if latest["status"] == "DRAFT":
+            return latest, 1
+        if latest["status"] != "CONFIRMED":
+            raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
+        review = self._latest_review(run_id, str(latest["story_revision_id"]))
+        if review is None or not review_is_spent(self._review_states(str(review["review_id"]))):
+            raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
+        epoch = next_review_epoch(int(review["review_epoch"]))
+        if self._accepted_video_count(run_id) >= MAX_ACCEPTED_REQUESTS or epoch > MAX_REVIEW_EPOCH:
+            raise ParentStoryRunError(409, "VIDEO_REGENERATION_LIMIT_REACHED")
+        return latest, epoch
+
     def confirm_story_revision(
         self,
         *,
@@ -3100,19 +3561,9 @@ class SqlParentStoryRunRepository:
             return self.get_run(principal=principal, run_id=run_id)
         self._refuse_read_only_class(access)
         self._refuse_purged(run)
-        story_revision = self._session.execute(
-            select(story_tables.story_revisions).where(
-                story_tables.story_revisions.c.run_id == run_id,
-                story_tables.story_revisions.c.revision_no == expected_revision,
-            )
-        ).mappings().one_or_none()
-        if (
-            story_revision is None
-            or story_revision["status"] != "DRAFT"
-            or story_revision["story_sha256"] != expected_story_sha256
-            or run["run_state"] != "SCRIPT_REVIEW"
-        ):
-            raise ParentStoryRunError(409, "PARENT_STORY_REVISION_STALE")
+        story_revision, review_epoch = self._confirmable_revision(
+            run, expected_revision, expected_story_sha256
+        )
         now = datetime.now(UTC)
         new_version = int(run["version"]) + 1
         command_kind, command_ref = self._command_scope(principal)
@@ -3140,17 +3591,20 @@ class SqlParentStoryRunRepository:
                     actor_scope_ref=command_ref,
                     decision="CONFIRM",
                     target_story_sha256=expected_story_sha256,
+                    review_epoch=review_epoch,
                     created_at=now,
                 )
             )
-            self._session.execute(
-                update(story_tables.story_revisions)
-                .where(
-                    story_tables.story_revisions.c.story_revision_id
-                    == story_revision["story_revision_id"]
+            if story_revision["status"] != "CONFIRMED":
+                # A re-confirmation (epoch 2 or 3) leaves the confirmed revision untouched (BR-14).
+                self._session.execute(
+                    update(story_tables.story_revisions)
+                    .where(
+                        story_tables.story_revisions.c.story_revision_id
+                        == story_revision["story_revision_id"]
+                    )
+                    .values(status="CONFIRMED")
                 )
-                .values(status="CONFIRMED")
-            )
             self._session.execute(
                 update(story_tables.story_runs)
                 .where(_live_run(run_id))
@@ -3169,7 +3623,7 @@ class SqlParentStoryRunRepository:
             self._session.commit()
         except IntegrityError:
             self._session.rollback()
-            raise ParentStoryRunError(409, "PARENT_STORY_CONFIRMATION_CONFLICT") from None
+            raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION") from None
         except SQLAlchemyError:
             self._session.rollback()
             raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE") from None

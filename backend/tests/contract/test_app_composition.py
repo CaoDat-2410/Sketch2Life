@@ -98,6 +98,9 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
             # FEAT-066 T-1c: the playback grant and the header-borne stream (SRS l.1676, l.1691).
             "/v1/story-runs/{run_id}/playback-token": ["POST"],
             "/v1/story-runs/{run_id}/playback": ["GET"],
+            # FEAT-066 goal v4 T-2e-a: the Parent main activity (the list and the selection).
+            "/v1/activities": ["GET"],
+            "/v1/story-runs/{run_id}/activity-selection": ["POST"],
         }
     )
     application = create_app()

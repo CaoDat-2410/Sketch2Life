@@ -428,6 +428,7 @@ def _row(**changes: Any) -> dict[str, Any]:
         "consistency_validation_state": "PASSED",
         "safety_validation_state": "PASSED",
         "completed_at": datetime(2026, 11, 22, 10, 0, tzinfo=UTC),
+        "run_finished_at": None,
         "updated_at": datetime(2026, 11, 22, 11, 0, tzinfo=UTC),
         "lesson_pin_snapshot": {
             "plan_revision_id": "plan-1",
@@ -474,7 +475,6 @@ def test_sample_facts_uses_updated_at_when_a_row_has_no_completion_time() -> Non
 @pytest.mark.parametrize(
     "changes",
     [
-        {"run_state": "COMPLETED"},
         {"run_state": "SCRIPT_REVIEW"},
         {"generation_state": "REJECTED_BY_ADULT"},
         {"output_asset_ref": None},
@@ -486,6 +486,22 @@ def test_sample_facts_uses_updated_at_when_a_row_has_no_completion_time() -> Non
 def test_sample_facts_playable_is_the_single_is_playable_predicate(changes: dict[str, Any]) -> None:
     facts = facts_of(_Session(_row(**changes)))
     assert facts is not None and facts.playable is False
+
+
+def test_sample_facts_of_a_completed_run_is_playable_and_carries_the_completion_time() -> None:
+    """V4-A T-1c-fix (owner decision C1(a)): the discriminator the Lesson check compares with the
+    confirmation time is the run's ``finished_at``, and only while the run is ``COMPLETED``."""
+
+    finished = datetime(2026, 11, 22, 12, 0, tzinfo=UTC)
+    completed = facts_of(_Session(_row(run_state="COMPLETED", run_finished_at=finished)))
+    assert completed is not None and completed.playable is True
+    assert completed.completed_at == finished and completed.run_state == "COMPLETED"
+    ready = facts_of(_Session(_row(run_finished_at=finished)))
+    assert ready is not None and ready.playable is True and ready.completed_at is None
+    no_time = facts_of(_Session(_row(run_state="COMPLETED")))
+    assert no_time is not None and no_time.playable is True and no_time.completed_at is None
+    ended = facts_of(_Session(_row(run_state="COMPLETED", generation_state="REJECTED_BY_ADULT")))
+    assert ended is not None and ended.playable is False
 
 
 @pytest.mark.parametrize("state", ["DELETE_PENDING", "DELETED"])
@@ -516,6 +532,7 @@ def test_sample_facts_carries_no_storage_key_no_name_and_no_seed() -> None:
         "run_state",
         "generation_id",
         "ready_at",
+        "completed_at",
         "playable",
         "plan_revision_id",
         "plan_revision_no",

@@ -185,6 +185,7 @@ class TeacherStoryRunResponseV1(BaseModel):
     video: ParentStoryRunVideoV1 | None = None
     quota: ParentStoryQuotaSummaryV1 = Field(default_factory=ParentStoryQuotaSummaryV1)
     timeline: list[ParentStoryTimelineEventV1] = Field(default_factory=list)
+    story_confirmation_required: bool = False
 
 
 class TeacherStoryRunEnvelopeV1(BaseModel):

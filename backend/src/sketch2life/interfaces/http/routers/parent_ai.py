@@ -455,6 +455,9 @@ def generate_story_revision(
             model_id=STORY_MODEL_ID,
             model_revision=STORY_MODEL_REVISION,
             prompt_version=_STORY_PROMPT_VERSION,
+            # T-2e-a D9: the dev-only first-story route needs the adult's main activity first; the
+            # refusal is 409 ``PARENT_ACTIVITY_SELECTION_REQUIRED`` (passed through as the code).
+            require_activity_selection=True,
         )
     except (ParentStoryRunError, ParentStoryRunServiceError) as exc:
         raise HTTPException(status_code=exc.status_code, detail={"code": exc.code}) from None

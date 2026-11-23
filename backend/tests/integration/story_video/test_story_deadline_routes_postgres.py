@@ -101,6 +101,12 @@ def detail_video(api: VideoApi, run: ScriptRun) -> dict[str, Any]:
     return dict(response.json()["story_run"]["video"])
 
 
+def detail_story_confirmation_required(api: VideoApi, run: ScriptRun) -> bool:
+    response = api.client.get(f"/v1/story-runs/{run.run_id}", headers=headers(run.owner))
+    assert response.status_code == 200, response.text
+    return bool(response.json()["story_run"]["story_confirmation_required"])
+
+
 def lock_of(run_id: str) -> Any:
     return run_row(run_id)["active_owner_parent_account_id"]
 
@@ -197,11 +203,12 @@ def test_when_the_cap_was_already_two_the_third_deadline_ends_the_run_at_once(
     owner_can_hold_a_lock_again(api, run.owner)
 
 
-def test_with_all_three_rewrites_spent_the_deadline_ends_the_run_instead_of_a_dead_end(
+def test_with_all_three_rewrites_spent_the_deadline_returns_the_run_to_the_review(
     api: VideoApi,
 ) -> None:
-    """The revision-four corner (T-1b OPEN Q4): no rewrite is left, so a run returned to the
-    script review could only wait for the idle close. It ends ``FAILED`` and frees the lock."""
+    """The revision-four corner (T-1b OPEN Q4), after V4-A T-1b-fix D6: no rewrite is left, but the
+    adult can keep the current story and confirm it again (a new review epoch), so the run returns
+    to the script review while a request is left (here two of three used) and keeps its lock."""
 
     run, first = video_ready(api)
     make_rewritable(api, run)
@@ -222,9 +229,16 @@ def test_with_all_three_rewrites_spent_the_deadline_ends_the_run_instead_of_a_de
     second = accepted(api, run, reason="QUALITY_LOW")
     assert sweep(api, second).deadline_failed >= 1
     row = run_row(run.run_id)
-    assert row["run_state"] == "FAILED" and lock_of(run.run_id) is None
+    assert row["run_state"] == "SCRIPT_REVIEW" and lock_of(run.run_id) is not None
     assert generations(run.run_id)[-1]["state"] == "FAILED"
-    owner_can_hold_a_lock_again(api, run.owner)
+    # the rewrite is refused (no revision left); the way forward is to confirm the story again
+    refused = rewrite_route(api, run)
+    assert refused.status_code == 409 and code_of(refused) == "STORY_REWRITE_LIMIT_REACHED"
+    assert detail_story_confirmation_required(api, run) is True
+    assert confirm_route(api, run).status_code == 200
+    third = video_request(api, run, reason="QUALITY_LOW")
+    assert third.status_code == 202, third.text
+    assert third.json()["video_generation"]["generation_no"] == 3
 
 
 def test_a_returned_run_does_not_hold_the_owner_lock_forever(api: VideoApi) -> None:

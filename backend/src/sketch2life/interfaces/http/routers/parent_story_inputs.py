@@ -37,6 +37,7 @@ from sketch2life.application.ports.parent_story_inputs import (
 )
 from sketch2life.application.ports.parent_story_runs import (
     ParentStoryLifecycleRecord,
+    ParentStoryRevisionReservation,
     ParentStoryRunError,
     StoryRewriteOutcome,
 )
@@ -103,13 +104,57 @@ _ASSET_ERROR_RESPONSES: dict[int | str, dict[str, Any]] = {
 }
 
 
-def _job_actor(actor: RunActor, organization_id: str | None = None) -> tuple[Any, ...]:
+def job_actor(actor: RunActor, organization_id: str | None = None) -> tuple[Any, ...]:
     """The extra runner arguments of a Teacher run (T-4b3a D6); none for a Parent, so the Parent
     background task is called exactly as before."""
 
     if not actor.is_teacher:
         return ()
     return (actor, organization_id) if organization_id is not None else (actor,)
+
+
+def generator_supports_role(request: Request, actor: RunActor) -> bool:
+    """May the composed story generator take this actor's role (V4-A OPEN-A D4)?
+
+    Only a Teacher run is checked (a Parent keeps today's behaviour: always ``True``). ``True`` when
+    no generator is composed (the run waits in ``SCRIPT_GENERATING`` like a Parent run) or when the
+    generator has no ``supports_role`` attribute (every existing generator). Otherwise the answer
+    of ``supports_role("TEACHER")``; an error in it counts as ``False``, so a Teacher story is
+    never started into a generator that may reject its role.
+    """
+
+    if not actor.is_teacher:
+        return True
+    generator = getattr(request.app.state, "story_generator", None)
+    check = getattr(generator, "supports_role", None) if generator is not None else None
+    if not callable(check):
+        return True
+    try:
+        return bool(check("TEACHER"))
+    except Exception:  # noqa: BLE001 - a broken capability check must not start the story
+        return False
+
+
+def schedule_first_story(
+    request: Request,
+    background_tasks: BackgroundTasks,
+    principal: VerifiedPrincipal,
+    actor: RunActor | None,
+    reservations: list[ParentStoryRevisionReservation],
+) -> None:
+    """Run the first story that a confirmation or a selection started (T-2e-a D3), after the
+    response, when a story generator is composed. A replay collects no reservation. With none
+    composed the run waits in ``SCRIPT_GENERATING`` and the adult can cancel it."""
+
+    state = request.app.state
+    generator = getattr(state, "story_generator", None)
+    runtime = getattr(state, "be1_runtime", None)
+    if generator is None or runtime is None or runtime.session_factory is None:
+        return
+    for reservation in reservations:
+        runner = ParentStoryRewriteRunner(runtime.session_factory, generator)
+        extra = job_actor(actor) if actor is not None else ()
+        background_tasks.add_task(runner.run, principal, reservation, *extra)
 
 
 def _http_error(exc: ParentStoryRunError) -> HTTPException:
@@ -179,7 +224,7 @@ def attach_parent_run_asset(
             principal,
             str(run_id),
             result.input_revision,
-            *_job_actor(actor, result.organization_id),
+            *job_actor(actor, result.organization_id),
         )
     return _accepted(run_id, payload.asset_ref, result)
 
@@ -302,7 +347,7 @@ def add_parent_run_idea(
             principal,
             str(run_id),
             result.new_transcript_id,
-            *_job_actor(actor, result.organization_id),
+            *job_actor(actor, result.organization_id),
         )
     return _idea_accepted(run_id, result)
 
@@ -514,7 +559,7 @@ def rewrite_parent_run_story(
         and not outcome.replayed
     ):
         runner = ParentStoryRewriteRunner(runtime.session_factory, generator)
-        background_tasks.add_task(runner.run, principal, outcome.reservation, *_job_actor(actor))
+        background_tasks.add_task(runner.run, principal, outcome.reservation, *job_actor(actor))
     return _rewrite_accepted(run_id, outcome)
 
 

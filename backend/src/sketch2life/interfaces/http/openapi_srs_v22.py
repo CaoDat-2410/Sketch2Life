@@ -29,6 +29,9 @@ SRS_V22_INCLUDED_OPERATIONS: frozenset[tuple[str, str]] = frozenset(
         ("post", "/v1/story-runs/{run_id}/transcript-confirmation"),
         # FEAT-066 T-2d (SRS l.1668, FR-P-07): one more story revision, at most three rewrites.
         ("post", "/v1/story-runs/{run_id}/story-rewrites"),
+        # FEAT-066 goal v4 T-2e-a (SRS l.514, l.1412, l.1667): the Parent main activity.
+        ("get", "/v1/activities"),
+        ("post", "/v1/story-runs/{run_id}/activity-selection"),
         # FEAT-066 T-1a (SRS l.1670): the Parent video request.
         ("post", "/v1/story-runs/{run_id}/video-generations"),
         # FEAT-066 T-1b (SRS l.1671-1672): the adult's decisions on a ready video.
@@ -157,6 +160,13 @@ SRS_V22_OPERATION_TAGS.update(
         key: "Parent StoryRuns"
         for key in SRS_V22_INCLUDED_OPERATIONS
         if key[1].startswith("/v1/story-runs")
+    }
+)
+SRS_V22_OPERATION_TAGS.update(
+    {
+        key: "Parent StoryRuns"
+        for key in SRS_V22_INCLUDED_OPERATIONS
+        if key[1].startswith("/v1/activities")
     }
 )
 SRS_V22_OPERATION_TAGS.update(

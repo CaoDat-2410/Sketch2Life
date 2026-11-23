@@ -14,6 +14,7 @@ shipped registry is empty.
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 from collections.abc import Iterator
 from concurrent.futures import ThreadPoolExecutor
@@ -1936,3 +1937,124 @@ def test_a_nul_in_a_path_id_is_a_400_on_every_occurrence_route(api: Api) -> None
         assert response.status_code == 400, (method, url, response.status_code, response.text)
         assert response.json()["code"] == "INVALID_REQUEST", url
         assert response.json()["retryable"] is False
+
+
+# ----------------------------------------------------------------------------- plan_activity_id
+def test_every_activity_carries_the_id_of_its_row_in_create_get_and_confirm(api: Api) -> None:
+    """V4-A OPEN-B D10-D11: the id is the row's ``plan_activity_id``, for every kind, in the three
+    operations that carry activities, and a new revision has new ids (D12)."""
+    d = api
+    d.registry = TEST_REGISTRY
+    lesson = make_lesson(d)
+    occurrence_id = make_occurrence(d, lesson=lesson)
+    created = create(
+        d,
+        occurrence_id,
+        0,
+        activities=[{"kind": "LESSON", "lesson_activity_id": lesson.activity_ids[0]}, custom()],
+    )
+    assert created.status_code == 201, created.text
+    plan = plans(d, occurrence_id)[0]
+    row_ids = [str(r["plan_activity_id"]) for r in activity_rows(d, str(plan["plan_revision_id"]))]
+    assert [a["plan_activity_id"] for a in created.json()["activities"]] == row_ids
+    assert len(set(row_ids)) == 2 and all(len(value) == 36 for value in row_ids)
+    # a CUSTOM activity has no snapshot hash and still has an id
+    assert created.json()["activities"][1]["snapshot_hash"] is None
+    got = d.client.get(plan_url(occurrence_id, 1), headers=headers(d.subjects["g1"]))
+    assert [a["plan_activity_id"] for a in got.json()["activities"]] == row_ids
+    confirmed = confirm(d, occurrence_id, 1, created.json()["content_hash"], checklist=[entry(2)])
+    assert confirmed.status_code == 200, confirmed.text
+    assert [a["plan_activity_id"] for a in confirmed.json()["activities"]] == row_ids
+    # the list route carries no activities at all
+    listing = d.client.get(plan_url(occurrence_id), headers=headers(d.subjects["g1"]))
+    assert "plan_activity_id" not in listing.text
+    # a new revision of the same content has its own rows and its own ids; the hash is unchanged
+    again = create(
+        d,
+        occurrence_id,
+        1,
+        activities=[{"kind": "LESSON", "lesson_activity_id": lesson.activity_ids[0]}, custom()],
+    )
+    assert again.status_code == 201, again.text
+    new_ids = [a["plan_activity_id"] for a in again.json()["activities"]]
+    assert not set(new_ids) & set(row_ids)
+    assert again.json()["content_hash"] == created.json()["content_hash"]
+
+
+def test_a_replay_of_a_create_and_of_a_confirm_returns_the_same_ids(api: Api) -> None:
+    d = api
+    occurrence_id = make_occurrence(d)
+    first = create(d, occurrence_id, 0, key="k-id-create")
+    replay = create(d, occurrence_id, 0, key="k-id-create")
+    assert replay.json() == first.json()
+    confirmed = confirm(d, occurrence_id, 1, first.json()["content_hash"], key="k-id-confirm")
+    again = confirm(d, occurrence_id, 1, first.json()["content_hash"], key="k-id-confirm")
+    assert again.json() == confirmed.json() and again.status_code == 200
+
+
+def test_a_replay_of_a_receipt_written_before_the_field_is_backfilled(api: Api) -> None:
+    """D11b: the stored body of an old receipt has no ``plan_activity_id``; the replay fills it from
+    the immutable activity rows of the revision, by activity order."""
+    d = api
+    d.registry = TEST_REGISTRY
+    occurrence_id = make_occurrence(d)
+    created = create(d, occurrence_id, 0, key="k-old-create", activities=[custom(), custom("Hai")])
+    assert created.status_code == 201, created.text
+    confirmed = confirm(
+        d,
+        occurrence_id,
+        1,
+        created.json()["content_hash"],
+        key="k-old-confirm",
+        checklist=[entry(1), entry(2)],
+    )
+    assert confirmed.status_code == 200, confirmed.text
+    row_ids = [
+        str(r["plan_activity_id"])
+        for r in activity_rows(d, str(plans(d, occurrence_id)[0]["plan_revision_id"]))
+    ]
+    # age every stored body to the pre-change shape: strip the id from each activity
+    with d.sessions().begin() as db:
+        for scope_like in (
+            f"POST /v1/lesson-occurrences/{occurrence_id}/plan-revisions",
+            f"POST /v1/lesson-occurrences/{occurrence_id}/plan-revisions/%/confirm",
+        ):
+            stored = db.execute(
+                text(
+                    "SELECT operation_scope, idempotency_key, response_json"
+                    " FROM be1_command_receipts WHERE operation_scope LIKE :scope"
+                ),
+                {"scope": scope_like},
+            ).mappings().all()
+            for item in stored:
+                body = dict(item["response_json"])
+                body["activities"] = [
+                    {k: v for k, v in a.items() if k != "plan_activity_id"}
+                    for a in body["activities"]
+                ]
+                db.execute(
+                    text(
+                        "UPDATE be1_command_receipts SET response_json = CAST(:body AS jsonb)"
+                        " WHERE operation_scope = :scope AND idempotency_key = :key"
+                    ),
+                    {
+                        "body": json.dumps(body),
+                        "scope": item["operation_scope"],
+                        "key": item["idempotency_key"],
+                    },
+                )
+    replayed_create = create(
+        d, occurrence_id, 0, key="k-old-create", activities=[custom(), custom("Hai")]
+    )
+    assert replayed_create.status_code == 201, replayed_create.text
+    assert [a["plan_activity_id"] for a in replayed_create.json()["activities"]] == row_ids
+    replayed_confirm = confirm(
+        d,
+        occurrence_id,
+        1,
+        created.json()["content_hash"],
+        key="k-old-confirm",
+        checklist=[entry(1), entry(2)],
+    )
+    assert replayed_confirm.status_code == 200, replayed_confirm.text
+    assert [a["plan_activity_id"] for a in replayed_confirm.json()["activities"]] == row_ids

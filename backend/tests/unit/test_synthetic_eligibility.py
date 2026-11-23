@@ -475,7 +475,11 @@ def test_head_counts_by_both_methods_match_the_derived_expectation() -> None:
     # 20261120_nt_0001 and replaces it as the head of the lesson_library branch.
     # FEAT-066 T-4b2: 20261120_b2_0001 (DDL-B2, the Teacher lock, the occurrence pin) follows
     # 20261120_vb_0002 and replaces it as the head of the frc08_lifecycle branch.
-    assert len(graph) == 49
+    # FEAT-066 goal v4 T-2e-a: 20261123_as_0001 (DDL-B3) follows 20261120_b2_0001 and replaces it
+    # as the head of the same branch (heads stay 15 and 10; 50 revisions).
+    # FEAT-066 goal v4 T-1b-fix: 20261123_rv_0001 (DDL-B1c) follows 20261123_as_0001 and replaces it
+    # as the head (heads stay 15 and 10; 51 revisions).
+    assert len(graph) == 51
     down_targets = {target for down, _ in graph.values() for target in down}
     dependency_targets = down_targets | {target for _, dep in graph.values() for target in dep}
     heads_down_only = {rev for rev in graph if rev not in down_targets}

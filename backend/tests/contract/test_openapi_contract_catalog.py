@@ -315,7 +315,7 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
 
     assert spec["openapi"] == "3.1.0"
     assert spec["tags"] == public_tags(TAG_DESCRIPTIONS)
-    assert len(operations) == 195 + len(ADMIN_OPERATIONS - PR22_UNCATALOGUED_OPERATIONS)
+    assert len(operations) == 197 + len(ADMIN_OPERATIONS - PR22_UNCATALOGUED_OPERATIONS)
     catalog_operations = set(MOUNTED_OPERATIONS)
     catalog_paths = {path for _method, path in catalog_operations}
     # FEAT-066 T-2a: five generic upload-session operations (four paths) join the catalog.
@@ -335,12 +335,14 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
     # FEAT-066 T-8a: the notification inbox page and the two mark-read commands, three new paths.
     # FEAT-066 T-4b1: the child selection, its read and its confirmation, three new paths.
     # FEAT-066 T-5a: the class projection confirmation and its token, two new paths.
-    assert len(catalog_paths) == 152
+    # FEAT-066 goal v4 T-2e-a: the activity list and the activity selection, two new paths.
+    assert len(catalog_paths) == 154
     assert MOUNTED_OPERATION_COUNT == 135
     assert (
         len(catalog_operations)
-        == MOUNTED_OPERATION_COUNT + 5 + 3 + 5 + 1 + 4 + 2 + 1 + 1 + 3 + 1 + 1 + 2 + 2 + 3 + 3 + 2
-        == 174
+        == MOUNTED_OPERATION_COUNT
+        + 5 + 3 + 5 + 1 + 4 + 2 + 1 + 1 + 3 + 1 + 1 + 2 + 2 + 3 + 3 + 2 + 2
+        == 176
     )
     assert set(operations) - catalog_operations == (
         PILOT_ONLY_OPERATIONS | PR22_UNCATALOGUED_OPERATIONS | ADMIN_OPERATIONS
@@ -716,7 +718,7 @@ def test_runtime_openapi_operation_ids_are_non_empty_and_unique(
         for method, operation in path_item.items()
         if method.lower() in HTTP_METHODS
     ]
-    assert len(operation_ids) == 195 + len(ADMIN_OPERATIONS - PR22_UNCATALOGUED_OPERATIONS)
+    assert len(operation_ids) == 197 + len(ADMIN_OPERATIONS - PR22_UNCATALOGUED_OPERATIONS)
     assert all(isinstance(value, str) and value for value in operation_ids)
     assert len(set(operation_ids)) == len(operation_ids)
 

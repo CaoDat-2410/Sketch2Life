@@ -536,3 +536,15 @@ def test_the_playback_token_of_a_teacher_binds_the_digest_of_the_caller(
     for word in ("bucket", "object_key", "presigned", "parent/", "output.mp4", "digest"):
         assert word not in text
     assert grant["stream_path"] == f"/v1/story-runs/{UUID(RUN_ID)}/playback"
+
+
+def test_the_video_request_409_text_names_the_plan_fence_and_its_current_version() -> None:
+    """V4-A OPEN-A D8(1): on this route ``STALE_REVISION.current_version`` is a run revision for a
+    stale request and the approved plan revision number for a superseded plan; the text says so."""
+
+    operation = MOUNTED_OPERATIONS[("post", "/v1/story-runs/{run_id}/video-generations")]
+    (conflict,) = [r for r in operation["responses"] if r["status"] == "409"]
+    text = conflict["description"]
+    assert "no longer the approved plan" in text
+    assert "approved plan revision number, not a run revision" in text
+    assert "create a new run" in text

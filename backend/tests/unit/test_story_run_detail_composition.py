@@ -135,11 +135,14 @@ def test_a_ready_video_in_a_ready_run_is_available_with_a_handle_and_the_token_r
     assert ParentStoryRunVideoV1.model_validate(video).playback.state == "AVAILABLE"
 
 
+@pytest.mark.parametrize("allow_completed", [False, True])
 @pytest.mark.parametrize(
     ("run_state", "state", "validations", "has_output", "expected"),
     [
         ("VIDEO_READY", "READY", "PASSED", True, "AVAILABLE"),
-        ("COMPLETED", "READY", "PASSED", True, "UNAVAILABLE"),  # Q5: l.1676 "active until complete"
+        # T-1c-fix (owner decisions O-3, C1(a)): the caller that serves the token route for a
+        # completed run passes the flag; without it the strict T-1c reading (Q5) stays
+        ("COMPLETED", "READY", "PASSED", True, "COMPLETED_ROW"),
         ("SCRIPT_REVIEW", "REJECTED_BY_ADULT", "PASSED", True, "HIDDEN"),
         ("VIDEO_READY", "READY", "PENDING", True, "UNAVAILABLE"),
         ("VIDEO_READY", "READY", "FAILED", True, "UNAVAILABLE"),
@@ -147,16 +150,25 @@ def test_a_ready_video_in_a_ready_run_is_available_with_a_handle_and_the_token_r
         ("VIDEO_GENERATING", "GENERATING", "PENDING", False, "UNAVAILABLE"),
         ("SAFETY_BLOCKED", "SAFETY_BLOCKED", "FAILED", False, "UNAVAILABLE"),
         ("FAILED", "FAILED", "PENDING", False, "UNAVAILABLE"),
+        ("COMPLETED", "FAILED", "PENDING", False, "UNAVAILABLE"),
+        ("COMPLETED", "REJECTED_BY_ADULT", "PASSED", True, "HIDDEN"),
         ("VIDEO_READY", "SUPERSEDED", "PASSED", True, "UNAVAILABLE"),
         ("VIDEO_ADMISSION_PENDING", "ADMISSION_PENDING", "PENDING", False, "UNAVAILABLE"),
     ],
 )
 def test_the_playback_state_needs_the_run_state_and_the_generation_state_together(
-    run_state: str, state: str, validations: str, has_output: bool, expected: str
+    run_state: str,
+    state: str,
+    validations: str,
+    has_output: bool,
+    expected: str,
+    allow_completed: bool,
 ) -> None:
+    if expected == "COMPLETED_ROW":
+        expected = "AVAILABLE" if allow_completed else "UNAVAILABLE"
     number = None if state == "ADMISSION_PENDING" else 1
     current = generation(state, number=number, validations=validations, has_output=has_output)
-    video = compose_video(RUN, run_state, rows(current))
+    video = compose_video(RUN, run_state, rows(current), allow_completed=allow_completed)
     assert video is not None
     assert video["playback"]["state"] == expected
     assert (video["playback"]["asset_ref"] is not None) == (expected == "AVAILABLE")
@@ -168,7 +180,16 @@ def test_the_playback_state_needs_the_run_state_and_the_generation_state_togethe
         consistency=validations,
         safety=validations,
         has_output=has_output,
+        allow_completed=allow_completed,
     ) == (expected == "AVAILABLE")
+
+
+def test_the_default_call_of_compose_video_stays_strict_for_a_completed_run() -> None:
+    video = compose_video(RUN, "COMPLETED", rows(generation()))
+    assert video is not None and video["playback"]["state"] == "UNAVAILABLE"
+    again = compose_video(RUN, "COMPLETED", rows(generation()), allow_completed=True)
+    assert again is not None and again["playback"]["state"] == "AVAILABLE"
+    assert again["playback"]["token_route"] == f"/v1/story-runs/{RUN}/playback-token"
 
 
 def test_counts_history_and_the_pending_intent_follow_the_accepted_rows() -> None:

@@ -18,6 +18,15 @@ responsible Teacher is 403):
 The occurrence row stores the confirming Teacher and the confirmation time but no generation, so a
 confirmation covers a generation only when it was given after that generation became ready
 (``confirmation_covers``): a regenerated sample needs its own confirmation.
+
+V4-A T-1c-fix (owner decision C1(a); departure DEV-5 from SRS l.1672 and l.1676 for a sample that
+was not yet claimed): a ``COMPLETED`` run that still holds its READY output can be confirmed while
+the slot is ``AVAILABLE`` (it then claims the slot), a confirmation given before Complete ends at
+Complete (it is older than the run's ``finished_at``) and is not revived by a new confirmation; a
+repeat or a reassignment after a post-Complete claim behaves as on a ``VIDEO_READY`` run. The Lesson
+clock is compared with the Story ``finished_at`` (the idle closeout stamps the start of its sweep,
+so a confirmation inside that window counts as after it: benign, a grant for the confirming
+Teacher on an idle run).
 """
 
 from __future__ import annotations
@@ -241,6 +250,15 @@ class ProjectionService:
             raise _refused()
         if facts.generation_id != payload.generation_id:
             raise _stale(revision)
+        if facts.run_state == rules.RUN_STATE_COMPLETED and not rules.completed_run_may_confirm(
+            decision,
+            confirmed_at=occurrence["class_projection_confirmed_at"],
+            completed_at=facts.completed_at,
+        ):
+            # V4-A T-1c-fix (owner decision C1(a)): a confirmation given before Complete ended at
+            # Complete and is not revived; a repeat after a post-Complete claim is as on a
+            # VIDEO_READY run.
+            raise _refused()
         plan = self._pinned_plan(occurrence_id, facts)
         if plan is None:
             raise _stale(revision)
@@ -446,8 +464,10 @@ def _current_grant(db: Session, occurrence: RowMapping, account: str) -> tuple[s
     """``(run_id, generation_id)`` of the sample the stored confirmation covers, else ``None``.
 
     The occurrence must not be archived, its class active, the slot claimed by a run, the
-    confirmation given by ``account`` and the run the occurrence's own, ``VIDEO_READY`` and
-    playable, with a confirmation given after its current generation became ready."""
+    confirmation given by ``account`` and the run the occurrence's own, ``VIDEO_READY`` or
+    ``COMPLETED`` and playable, with a confirmation given after its current generation became
+    ready and, for a completed run, at or after the completion (V4-A T-1c-fix, owner decision
+    C1(a): a confirmation given before Complete ends at Complete)."""
 
     run_id = occurrence["successful_sample_run_ref"]
     confirmed_at = occurrence["class_projection_confirmed_at"]
@@ -467,6 +487,11 @@ def _current_grant(db: Session, occurrence: RowMapping, account: str) -> tuple[s
         or not facts.playable
         or facts.generation_id is None
         or not rules.confirmation_covers(confirmed_at, facts.ready_at)
+        or not rules.confirmation_survives_completion(
+            run_completed=facts.run_state == rules.RUN_STATE_COMPLETED,
+            confirmed_at=confirmed_at,
+            completed_at=facts.completed_at,
+        )
     ):
         return None
     return str(run_id), facts.generation_id

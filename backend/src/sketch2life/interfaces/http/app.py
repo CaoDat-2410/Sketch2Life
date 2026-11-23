@@ -241,6 +241,12 @@ def _parent_drawing_understandings_path(path: str) -> bool:
     return path == "/api/parent/v1/ai/drawing-understandings"
 
 
+def _parent_activities_path(path: str) -> bool:
+    """T-2e-a: ``GET /v1/activities`` answers in the Parent story envelope (SRS l.1635)."""
+
+    return path == "/v1/activities"
+
+
 _SAFE_CONTEXT_PROFILE_FIELDS = frozenset(
     {
         "contract_name",
@@ -503,7 +509,9 @@ def create_app(
             request.state.parent_request_id = request_id
         elif request.url.path.startswith("/v1/story-runs") or (
             _legacy_parent_story_revision_path(request.url.path)
-        ) or _parent_drawing_understandings_path(request.url.path):
+        ) or _parent_drawing_understandings_path(request.url.path) or _parent_activities_path(
+            request.url.path
+        ):
             request.state.story_request_id = request_id
         else:
             request.state.be1_request_id = request_id
@@ -520,6 +528,7 @@ def create_app(
             request.url.path.startswith("/v1/story-runs")
             or _legacy_parent_story_revision_path(request.url.path)
             or _parent_drawing_understandings_path(request.url.path)
+            or _parent_activities_path(request.url.path)
         ):
             detail: dict[str, Any] = exc.detail if isinstance(exc.detail, dict) else {}
             status_codes = {
@@ -703,6 +712,7 @@ def create_app(
             request.url.path.startswith("/v1/story-runs")
             or _legacy_parent_story_revision_path(request.url.path)
             or _parent_drawing_understandings_path(request.url.path)
+            or _parent_activities_path(request.url.path)
         ):
             request_id = getattr(request.state, "story_request_id", str(uuid4()))
             # T0.1 (C-D5): on the Parent StoryRun routes a bad Idempotency-Key header is a plain
@@ -874,6 +884,7 @@ def create_app(
             request.url.path.startswith("/v1/story-runs")
             or _legacy_parent_story_revision_path(request.url.path)
             or _parent_drawing_understandings_path(request.url.path)
+            or _parent_activities_path(request.url.path)
         ):
             request_id = getattr(request.state, "story_request_id", str(uuid4()))
             _LOGGER.error(

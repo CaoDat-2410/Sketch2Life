@@ -1,11 +1,13 @@
 """FEAT-066 T-1c: playback grant, header-borne stream and ``StoryRunDetailV1`` on PostgreSQL.
 
 SRS l.575-576 (playback authorization is short and rechecked at each playback), l.1676
-(``playback-token``: the current artifact at ``VIDEO_READY``, a short token for one asset, active
-until complete, closeout or cancel), l.1691-1693 (one ready video, actor and run, rechecked against
-the current ownership; no bucket, key or URL; the token never in a URL or a log), l.1811 and AC-41
-(one aggregated run detail, no prompt, transcript or foreign-scope leak, ETag). Runs only against a
-disposable database whose name contains ``be1_acceptance`` and ``frc08_v3_t1c``. The admission
+(``playback-token``: the current artifact at ``VIDEO_READY``, a short token for one asset; V4-A
+T-1c-fix: Complete and the idle closeout end the run, not the playback, owner decisions O-3 and
+C1(a); see ``test_replay_after_complete_postgres.py``), l.1691-1693 (one ready video, actor and
+run, rechecked against the current ownership; no bucket, key or URL; the token never in a URL or
+a log), l.1811 and AC-41 (one aggregated run detail, no prompt, transcript or foreign-scope leak,
+ETag). Runs only against a disposable database whose name contains ``be1_acceptance`` and
+``frc08_v3_t1c``. The admission
 ports are the local/test pair, object storage is in memory and no provider is called. Runs are
 built by the T-1b helpers (direct inserts for the confirmed script, the real ``video-generations``
 route and the fixture runner for the video).
@@ -331,12 +333,13 @@ def test_a_rejected_generation_gets_no_token_even_though_the_pointer_still_names
     assert gone.json()["code"] == "RESOURCE_NOT_FOUND"
 
 
-def test_a_completed_run_gets_no_token_and_the_old_token_stops_working(api: Api) -> None:
+def test_a_completed_run_still_gets_a_token_and_the_old_token_keeps_working(api: Api) -> None:
     run, _generation_id, token = ready_with_token(api)
     assert stream(api, run, token).status_code == 200
     assert t1b.complete(api, run).status_code == 200
-    assert issue(api, run).status_code == 409  # Q5: l.1676 "active until complete"
-    assert stream(api, run, token).status_code == 404
+    # T-1c-fix (owner O-3) reverses T-1c Q5: Complete ends the run, not the viewing
+    assert issue(api, run).status_code == 200
+    assert stream(api, run, token).status_code == 200
 
 
 def test_a_cancelled_run_ends_playback_for_the_token_and_for_a_new_grant(api: Api) -> None:
@@ -356,7 +359,7 @@ def test_a_blocked_generation_gets_no_token(api: Api) -> None:
         content=b"x", media_type="video/mp4", safety_passed=False
     )
     t1b.runner(api, renderer).run_to_end(blocked_id)
-    assert t1b.run_row(blocked_run.run_id)["run_state"] == "SAFETY_BLOCKED"
+    assert t1b.run_row(blocked_run.run_id)["run_state"] == "SCRIPT_REVIEW"  # V4-A exit (C11)
     assert issue(api, blocked_run).status_code == 409
 
 
@@ -748,16 +751,16 @@ def test_the_counts_follow_one_two_and_three_accepted_requests(api: Api) -> None
     assert events.count("VIDEO_REQUESTED") == 3 and events.count("VIDEO_REJECTED_BY_ADULT") == 2
 
 
-def test_a_completed_run_shows_playback_unavailable_and_a_deleting_run_the_lifecycle_envelope(
+def test_a_completed_run_shows_playback_available_and_a_deleting_run_the_lifecycle_envelope(
     api: Api,
 ) -> None:
-    run, _generation_id = t1b.video_ready(api)
+    run, generation_id = t1b.video_ready(api)
     assert t1b.complete(api, run).status_code == 200
     story_run = detail(api, run).json()["story_run"]
     assert story_run["run_state"] == "COMPLETED"
     assert story_run["video"]["state"] == "READY"
-    assert story_run["video"]["playback"]["state"] == "UNAVAILABLE"
-    assert story_run["video"]["playback"]["asset_ref"] is None
+    assert story_run["video"]["playback"]["state"] == "AVAILABLE"
+    assert story_run["video"]["playback"]["asset_ref"] == f"vid_{generation_id}"
     assert story_run["timeline"][-1]["event"] == "RUN_COMPLETED"
     deleting_run, _ = t1b.video_ready(api, t1b.new_script_run(api))
     assert t1b.cancel(api, deleting_run).status_code == 202

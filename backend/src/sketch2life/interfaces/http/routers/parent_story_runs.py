@@ -9,6 +9,7 @@ import binascii
 import json
 import logging
 from collections.abc import Callable
+from dataclasses import replace
 from datetime import datetime
 from typing import Annotated, Any
 from uuid import UUID, uuid4
@@ -29,6 +30,7 @@ from sqlalchemy.orm import Session
 from sketch2life.application.ports.identity import VerifiedPrincipal
 from sketch2life.application.ports.parent_story_runs import (
     ParentStoryLifecycleRecord,
+    ParentStoryRevisionReservation,
     ParentStoryRunError,
     ParentStoryRunRecord,
     ParentStoryRunView,
@@ -48,6 +50,8 @@ from sketch2life.contracts.schemas.parent_story_runs import (
     ParentActiveStoryRunEnvelopeV1,
     ParentContextConfirmationRequestV1,
     ParentLessonPinSnapshotV1,
+    ParentMainActivityV1,
+    ParentPostVideoActivityV1,
     ParentStoryCancelErrorEnvelopeV1,
     ParentStoryErrorEnvelopeV1,
     ParentStoryRevisionConfirmationRequestV1,
@@ -83,6 +87,10 @@ from sketch2life.infrastructure.story_video.repository import SqlStoryVideoRepos
 from sketch2life.interfaces.http.api_conventions import limit_query, parse_idempotency_key
 from sketch2life.interfaces.http.be1_runtime import get_db, get_verified_adult
 from sketch2life.interfaces.http.routers.lesson_library import get_lesson_library_service
+from sketch2life.interfaces.http.routers.parent_story_inputs import (
+    generator_supports_role,
+    schedule_first_story,
+)
 from sketch2life.interfaces.http.routers.story_run_create_dispatch import (
     RoleDispatchedCreateRoute,
     teacher_active_envelope,
@@ -222,10 +230,47 @@ def story_run_response(record: ParentStoryRunRecord) -> ParentStoryRunResponseV1
             ParentStoryRunVideoV1.model_validate(record.video) if record.video is not None else None
         ),
         timeline=[ParentStoryTimelineEventV1.model_validate(event) for event in record.timeline],
+        story_confirmation_required=record.story_confirmation_required,
+        main_activity=(
+            ParentMainActivityV1.model_validate(record.main_activity)
+            if record.main_activity is not None
+            else None
+        ),
+        post_video_activities=(
+            [
+                ParentPostVideoActivityV1.model_validate(item)
+                for item in record.post_video_activities
+            ]
+            if record.post_video_activities is not None
+            else None
+        ),
     )
 
 
 _response = story_run_response
+
+
+def _guard_post_video_activities[ViewT: ParentStoryRunView | None](
+    request: Request, db: Session, principal: VerifiedPrincipal, view: ViewT
+) -> ViewT:
+    """T-2e-a D11: the activities to try after the video of a run with a lesson pin are listed from
+    the stored pin only while the Parent can still view that lesson (one check by lesson id). When
+    access is gone, or lesson storage is not composed, the list is withheld and the read goes on."""
+
+    if (
+        not isinstance(view, ParentStoryRunRecord)
+        or not view.post_video_activities
+        or view.lesson_pin_snapshot is None
+    ):
+        return view
+    try:
+        get_lesson_library_service(request, db).get_parent_lesson(
+            parent_principal_ref=principal.subject,
+            lesson_id=str(view.lesson_pin_snapshot["lesson_id"]),
+        )
+    except (HTTPException, LessonLibraryError):
+        return replace(view, post_video_activities=None)
+    return view
 
 
 # FR-C-08 (Contract Draft 11 §3.3-§3.4): from DELETE_PENDING on, a Parent response for the run
@@ -440,6 +485,7 @@ def list_parent_story_runs(
     responses=_ACTOR_STORY_ERROR_RESPONSES,
 )
 def get_active_parent_story_run(
+    request: Request,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
 ) -> ParentActiveStoryRunEnvelopeV1 | TeacherActiveStoryRunEnvelopeV1:
@@ -452,6 +498,7 @@ def get_active_parent_story_run(
         principal=principal,
         account_id=actor.account_id,
     )
+    record = _guard_post_video_activities(request, db, principal, record)
     if actor.is_teacher:
         return teacher_active_envelope(
             record if isinstance(record, TeacherStoryRunRecord) else None
@@ -491,6 +538,7 @@ def get_parent_story_run(
         principal=principal,
         run_id=str(run_id),
     )
+    record = _guard_post_video_activities(request, db, principal, record)
     result = _envelope(record)
     if isinstance(result, ParentStoryRunEnvelopeV1 | TeacherStoryRunEnvelopeV1):
         etag = detail_etag(result.story_run.model_dump(mode="json"))
@@ -582,6 +630,7 @@ def confirm_parent_story_context(
     run_id: UUID,
     payload: ParentContextConfirmationRequestV1,
     request: Request,
+    background_tasks: BackgroundTasks,
     idempotency_key: Annotated[str, Header(alias="Idempotency-Key", min_length=1, max_length=128)],
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
@@ -589,6 +638,10 @@ def confirm_parent_story_context(
     del idempotency_key
     actor = require_story_run_actor(db, principal)
     key = parse_idempotency_key(request)
+    # T-2e-a D3: the confirmation may start the first story (when the adult chose the activity
+    # first); the reservation arrives after the commit and the story is generated after the
+    # response.
+    started: list[ParentStoryRevisionReservation] = []
     record = _invoke(
         _service_for(db, actor).confirm_context,
         principal=principal,
@@ -596,7 +649,10 @@ def confirm_parent_story_context(
         expected_context_revision=payload.expected_context_revision,
         expected_context_snapshot_sha256=payload.context_snapshot_sha256,
         idempotency_key=key,
+        on_story_started=started.append,
+        generator_supports_role=generator_supports_role(request, actor),
     )
+    schedule_first_story(request, background_tasks, principal, actor, started)
     return _envelope(record)
 
 
@@ -632,6 +688,8 @@ def confirm_parent_story_subject(
     # T-4b3a D7e: a Teacher edit of a pinned run reruns the VLM like a Parent edit (the job runs
     # on the job-side repository); the repository keeps the DEV-1 path for a fixture row.
     rerun = bool(getattr(state, "subject_edit_reruns_vlm", True)) and analyzer is not None
+    # V4-A OPEN-A D1: a Teacher confirmation may be the last gate of the first-story start.
+    started: list[ParentStoryRevisionReservation] = []
     outcome = _invoke(
         _service_for(db, actor).confirm_subject,
         principal=principal,
@@ -640,10 +698,13 @@ def confirm_parent_story_subject(
         confirmed_subject=payload.confirmed_subject,
         idempotency_key=key,
         rerun_on_edit=rerun,
+        on_story_started=started.append,
+        generator_supports_role=generator_supports_role(request, actor),
     )
     response.headers["Content-Location"] = f"/v1/story-runs/{run_id}"
     if isinstance(outcome, ParentStoryLifecycleRecord):
         return _lifecycle_envelope(outcome)
+    schedule_first_story(request, background_tasks, principal, actor, started)
     if (
         outcome.decision == "RERUN_REQUESTED"
         and not outcome.replayed

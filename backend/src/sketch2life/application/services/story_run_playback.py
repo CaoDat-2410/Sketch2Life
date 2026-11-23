@@ -3,15 +3,19 @@
 Two steps, both fail closed:
 
 * ``issue``: the owner asks for a short-lived grant. The run must be the caller's, at
-  ``VIDEO_READY``, with its current generation ``READY``, every validation ``PASSED`` and an output
-  (run state and generation state together, never the generation pointer alone: after
+  ``VIDEO_READY`` or ``COMPLETED`` (V4-A T-1c-fix: Complete and the idle closeout end the run, not
+  the playback; owner decisions O-3 and C1(a)), with its current generation ``READY``, every
+  validation ``PASSED`` and an output (run state and generation state together, never the
+  generation pointer alone: after
   ``video-unsuitable`` the pointer stays on the rejected row). A foreign or missing run, or a run
   being deleted, is 404; an own run that cannot be played is 409 ``INVALID_STATE_TRANSITION``; with
   no signing secret composed the answer is 503 ``PROVIDER_UNAVAILABLE`` after those checks.
 * ``check_token`` then ``authorize``: every stream request verifies the token and rechecks the
   current owner, run state, generation identity and visibility. A wrong owner, a stolen token, a
-  revoked grant (cancel, delete, complete, unsuitable, closeout) and a token for another run or
-  generation are all the same uniform 404; only a malformed or expired token is 401.
+  revoked grant (cancel, delete, unsuitable, a deleted child profile) and a token for another run
+  or generation are all the same uniform 404; only a malformed or expired token is 401. A grant
+  survives Complete and the idle closeout (a class projection grant given before Complete ends at
+  Complete in the Lesson check, T-1c-fix D8).
 
 T-5a: the stream also serves a class projection token (SRS l.1662, l.1691-1693). The two kinds
 never share a guard: ``authorize`` refuses a grant that names an audience, ``authorize_projection``

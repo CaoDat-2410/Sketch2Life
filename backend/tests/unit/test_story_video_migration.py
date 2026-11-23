@@ -27,6 +27,8 @@ _REVISION = "20261120_vb_0002"
 _PARENT = "20261120_b1_0001"
 _LIFECYCLE = "20261119_frc08_lifecycle_scope"
 _B1_MIGRATION = _VERSIONS / "20261120_b1_0001_story_voice_transcript.py"
+# FEAT-066 goal v4 T-2e-a: DDL-B3 (one more receipt operation) is the last to widen that CHECK.
+_RECEIPT_FINAL_MIGRATION = _VERSIONS / "20261123_as_0001_story_activity_selections.py"
 
 
 def _load(path: Path = _MIGRATION) -> ModuleType:
@@ -110,9 +112,13 @@ def test_the_head_counts_stay_fifteen_and_ten() -> None:
     heads_down_only = {rev for rev in graph if rev not in down_targets}
     heads_with_depends = {rev for rev in graph if rev not in dependency_targets}
     assert (len(heads_down_only), len(heads_with_depends)) == (15, 10)
-    # T-4b2: ``20261120_b2_0001`` (DDL-B2) follows this revision and is the head of the branch now.
+    # T-4b2: ``20261120_b2_0001`` (DDL-B2) follows this revision; T-2e-a: ``20261123_as_0001``
+    # (DDL-B3) follows that one; V4-A T-1b-fix: ``20261123_rv_0001`` (DDL-B1c) follows it and is the
+    # head of the branch now.
     assert _REVISION not in heads_down_only and _PARENT not in heads_down_only
-    assert "20261120_b2_0001" in heads_down_only
+    assert "20261120_b2_0001" not in heads_down_only
+    assert "20261123_as_0001" not in heads_down_only
+    assert "20261123_rv_0001" in heads_down_only
     assert {rev for rev, (downs, _) in graph.items() if _REVISION in downs} == {"20261120_b2_0001"}
 
 
@@ -153,9 +159,12 @@ def test_the_orm_run_state_and_receipt_checks_equal_the_final_sets() -> None:
     runs = _orm_checks(tables.story_runs)
     receipts = _orm_checks(tables.story_command_receipts)
     assert runs["ck_story_run_state"] == _normal(f"run_state IN ({module.RUN_STATES_AFTER})")
+    # T-2e-a: the ORM receipt set is the one of DDL-B3, which starts from this revision's set.
+    receipt_final = _load(_RECEIPT_FINAL_MIGRATION)
     assert receipts["ck_story_receipt_operation"] == _normal(
-        f"operation IN ({module.RECEIPT_OPERATIONS_AFTER})"
+        f"operation IN ({receipt_final.RECEIPT_OPERATIONS_AFTER})"
     )
+    assert receipt_final.RECEIPT_OPERATIONS_BEFORE == module.RECEIPT_OPERATIONS_AFTER
 
 
 # ------------------------------------------------------------------------ the new tables

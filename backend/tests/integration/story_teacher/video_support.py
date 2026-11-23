@@ -2,15 +2,15 @@
 
 Not a test module. It builds on ``inputs_support`` (the T-4b2 and T-4b3a fixtures: a synthetic
 organization, classes, Teachers, one confirmed child per run, in-memory object storage, the
-deterministic analyzer, transcriber and story generator, ``seed_first_story``) and adds the video
+deterministic analyzer, transcriber and story generator) and adds the video
 side: the local/test admission adapter pair behind a scope recorder (so a test can see the scope
 the ports were given), a confirmed script, the video request and the two decisions, the playback
 token and the stream, and the fixture video runner.
 
-No HTTP route starts the FIRST Teacher story (plan review P2-1, OPEN-A): ``to_confirmed_script``
-inserts it by SQL (``seed_first_story``) and confirms it through the real ``script-confirmation``
-route. The adapters are the accept-all local pair of T-1a (no quota, billing or capacity logic);
-nothing calls a provider.
+The FIRST Teacher story starts by itself at the last of the subject and context confirmations
+(V4-A OPEN-A D1): ``to_confirmed_script`` confirms the generated first story through the real
+``script-confirmation`` route. The adapters are the accept-all local pair of T-1a (no quota,
+billing or capacity logic); nothing calls a provider.
 """
 
 from __future__ import annotations
@@ -143,7 +143,7 @@ def confirm_script(
 
 
 def to_confirmed_script(e: Env, who: str = "t1") -> tuple[str, str]:
-    """A Teacher run at ``SCRIPT_REVIEW`` with its (seeded) first story confirmed."""
+    """A Teacher run at ``SCRIPT_REVIEW`` with its (generated) first story confirmed."""
 
     run_id = to_script_review(e, who)
     digest = str(story_rows(e, run_id)[-1]["story_sha256"])

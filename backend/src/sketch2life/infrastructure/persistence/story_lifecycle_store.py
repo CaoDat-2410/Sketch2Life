@@ -452,6 +452,13 @@ class SqlStoryLifecycleStore:
                 t.review_decisions.c.decision_id,
                 t.review_decisions.c.run_id == run_id,
             ),
+            # T-2e-a (DDL-B3): the adult's main-activity selection copies lesson text into Story,
+            # so the purge deletes it explicitly (the run row stays a tombstone, no CASCADE).
+            (
+                "activity_selections",
+                t.activity_selections.c.selection_id,
+                t.activity_selections.c.run_id == run_id,
+            ),
             (
                 "story_revisions",
                 t.story_revisions.c.story_revision_id,
@@ -499,6 +506,9 @@ class SqlStoryLifecycleStore:
             delete(t.story_revision_reviews).where(t.story_revision_reviews.c.run_id == run_id)
         )
         session.execute(delete(t.review_decisions).where(t.review_decisions.c.run_id == run_id))
+        session.execute(
+            delete(t.activity_selections).where(t.activity_selections.c.run_id == run_id)
+        )
         session.execute(
             delete(t.story_scenes).where(t.story_scenes.c.story_revision_id.in_(revisions))
         )

@@ -27,7 +27,9 @@ ACTIVE_JOB_STATES: Final = frozenset({"QUEUED", "RUNNING", "RETRY_WAIT", "AWAITI
 COMPLETING_WAIT_STATES: Final = frozenset({"VIDEO_READY"})
 # The other states in which the run only needs an adult command (SRS l.394). ``DRAFT`` is in the
 # SRS catalogue; no code writes it yet, so it is listed for the day it is. ``SAFETY_BLOCKED`` is
-# an adult-wait state of l.394 and closes ``ABANDONED`` at +168 h from the block (T-1d1-fix-DEC-3).
+# an adult-wait state of l.394 and closes ``ABANDONED`` at +168 h; since the V4-A SAFETY_BLOCKED
+# exit (owner decision C11) a blocked video returns the run to ``SCRIPT_REVIEW`` instead, so the
+# value stays here only for rows written before that (it reverses T-1d1-fix DEC-3).
 ABANDONING_WAIT_STATES: Final = frozenset(
     {
         "DRAFT",

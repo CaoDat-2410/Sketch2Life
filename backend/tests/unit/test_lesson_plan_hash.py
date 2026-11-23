@@ -371,3 +371,54 @@ def test_the_cursor_round_trips_and_every_defect_is_a_cursor_error() -> None:
         with pytest.raises(LessonOccurrenceRuleError) as error:
             rules.decode_plan_cursor(bad)
         assert (error.value.field, error.value.code) == ("cursor", "INVALID_FORMAT")
+
+
+def test_the_response_field_plan_activity_id_is_not_a_hash_or_etag_input() -> None:
+    """V4-A OPEN-B D13: ids are excluded from the content hash and the ETag names content and
+    state only, so exposing the id changes no stored hash, approved plan or If-None-Match."""
+
+    from sketch2life.infrastructure.lesson_occurrences.plans import plan_body
+
+    assert "plan_activity_id" not in inspect.signature(plan_content_hash).parameters
+    assert "plan_activity_id" not in custom()  # the hashed entry has no id
+    plan = {
+        "occurrence_id": "o-1",
+        "revision_no": 1,
+        "state": "DRAFT",
+        "content_hash": "a" * 64,
+        "objectives": ["x"],
+        "teacher_direction": "d",
+        "safety_notes": None,
+        "source_lesson_id": None,
+        "source_lesson_version_id": None,
+        "source_lesson_version_no": None,
+        "source_lesson_version_hash": None,
+        "created_at": "2026-11-20T00:00:00+00:00",
+        "approved_at": None,
+    }
+
+    def row(activity_id: str) -> dict[str, Any]:
+        return {
+            "plan_activity_id": activity_id,
+            "activity_order": 1,
+            "activity_kind": "CUSTOM",
+            "catalog_activity_ref": None,
+            "custom_title": "T",
+            "custom_description": "D",
+            "activity_snapshot": None,
+            "activity_snapshot_hash": None,
+            "safety_checklist_version": None,
+            "confirmed_at": None,
+        }
+
+    first = plan_body(plan, [row("id-1")], None)  # type: ignore[arg-type]
+    second = plan_body(plan, [row("id-2")], None)  # type: ignore[arg-type]
+    # only the id differs; the hash carried by the body and the ETag derived from it do not
+    first_activity, second_activity = first["activities"][0], second["activities"][0]
+    assert {k for k in first_activity if first_activity[k] != second_activity[k]} == {
+        "plan_activity_id"
+    }
+    assert first["content_hash"] == second["content_hash"]
+    assert rules.plan_etag_value(first["content_hash"], first["state"]) == rules.plan_etag_value(
+        second["content_hash"], second["state"]
+    )

@@ -7,8 +7,9 @@ l.593, l.1425 (a suspended or archived class is read-only), BR-34 (no child name
 Runs only against a disposable database whose name contains ``be1_acceptance`` and ``frc08``.
 
 The Teacher run is created through the real T-4b2 route; uploads, drawing, idea, transcript,
-context, subject and rewrites go through the real routes. The first story is inserted by SQL
-(``seed_first_story``, plan review P2-1). Object storage is in memory; the analyzer, the
+context, subject and rewrites go through the real routes. The first story starts by itself at the
+last confirmation (V4-A OPEN-A D1); ``seed_first_story`` is kept for the one test that needs a story
+over a run that never met the gates. Object storage is in memory; the analyzer, the
 transcriber and the story generator are deterministic doubles; no provider, no network.
 """
 
@@ -246,10 +247,14 @@ def test_context_and_subject_then_the_edit_reruns_the_vlm_for_a_teacher(env: Env
     (decision,) = decision_rows(e, run_id)
     assert decision["actor_scope_kind"] == "ORGANIZATION" and decision["stage"] == "SUBJECT"
     assert decision["target_understanding_revision"] == 2
-    assert states(e, run_id)[0] == "PREPARATION_REVIEW"
+    # the context was confirmed first, so this subject confirmation is the last gate: the first
+    # story started by itself (V4-A OPEN-A D1) and the composed generator answered
+    assert states(e, run_id) == ("SCRIPT_REVIEW", "SUCCEEDED")
+    assert [r["revision_no"] for r in story_rows(e, run_id)] == [1]
+    assert e.generator.inputs[0]["understanding_revision"] == 2
 
 
-def test_the_first_story_is_seeded_and_three_rewrites_then_the_limit(env: Env) -> None:
+def test_the_first_story_starts_by_itself_and_three_rewrites_then_the_limit(env: Env) -> None:
     e = env
     run_id = to_script_review(e)
     for number in (2, 3, 4):
@@ -262,13 +267,14 @@ def test_the_first_story_is_seeded_and_three_rewrites_then_the_limit(env: Env) -
         assert states(e, run_id) == ("SCRIPT_REVIEW", "SUCCEEDED")
         assert story_rows(e, run_id)[-1]["status"] == "DRAFT"
     assert [r["revision_no"] for r in story_rows(e, run_id)] == [1, 2, 3, 4]
-    assert len(e.generator.inputs) == 3
+    assert len(e.generator.inputs) == 4  # the first story and the three rewrites
     refused = rewrite(e, "t1", run_id, revision=4)
     assert refused.status_code == 409 and refused.json()["code"] == "STORY_REWRITE_LIMIT_REACHED"
-    assert len(e.generator.inputs) == 3
+    assert len(e.generator.inputs) == 4
     # the worker input of a Teacher run: role, bounded direction, no child name
     first = e.generator.inputs[0]
-    assert first["role"] == "TEACHER"
+    assert first["schema_version"] == "sketch2life.story-generation-input.v2"
+    assert first["role"] == "TEACHER" and first["activity"] is None
     direction = first["lesson_direction"]
     assert set(direction) == {"teacher_direction", "objectives", "activity_title"}
     assert direction["teacher_direction"] == "Câu chuyện về chú mèo đi tìm bạn"
@@ -276,7 +282,9 @@ def test_the_first_story_is_seeded_and_three_rewrites_then_the_limit(env: Env) -
     assert direction["objectives"] == ["Nhận biết hình tròn", "Kể chuyện chú mèo"]
     assert first["confirmed_subject"] == SUBJECT and first["child_age_months"] == 60
     assert_no_child_name(e, str(e.generator.inputs) + all_story_text(e, run_id))
-    # the receipts of the rewrites carry the organization command scope
+    # the rewrite input is the rewrite schema, the first story the generation schema
+    assert e.generator.inputs[1]["schema_version"] == "sketch2life.story-rewrite-input.v1"
+    # the receipts of the rewrites carry the organization command scope (the first story has none)
     rewrites = [r for r in receipt_rows(e, run_id) if r["operation"] == "GENERATE_STORY_REVISION"]
     assert len(rewrites) == 3
     assert {r["actor_scope_kind"] for r in rewrites} == {"ORGANIZATION"}
@@ -544,8 +552,7 @@ def test_a_read_only_class_refuses_writes_after_the_replay_and_allows_reads(
     first_idea = idea(e, "t1", run_id, revision=idea_revision, text="before", key="ro-idea")
     assert first_idea.status_code == 202
     assert confirm_context(e, "t1", run_id).status_code == 200
-    assert confirm_subject(e, "t1", run_id).status_code == 202
-    seed_first_story(e, run_id)
+    assert confirm_subject(e, "t1", run_id).status_code == 202  # starts the first story
     first = rewrite(e, "t1", run_id, revision=1, key="ro-key")
     assert first.status_code == 202
     with e.sessions().begin() as db:
@@ -764,7 +771,7 @@ def test_the_key_is_required_after_the_role_check_and_bad_bodies_are_400(env: En
         headers=who_headers(e, "t1", uuid4().hex),
     )
     assert invalid.status_code == 400
-    assert len(story_rows(e, run_id)) == 1 and len(e.generator.inputs) == 0
+    assert len(story_rows(e, run_id)) == 1 and len(e.generator.inputs) == 1  # the first story only
 
 
 # ====================================================================== uploads and the policy
@@ -928,8 +935,7 @@ def test_no_job_outbox_quota_billing_or_capacity_row_across_the_whole_flow(
     assert read_transcript(e, "t1", run_id).status_code == 200
     assert confirm_transcript(e, "t1", run_id, 1, text_sha(SPEECH)).status_code == 200
     assert confirm_context(e, "t1", run_id).status_code == 200
-    assert confirm_subject(e, "t1", run_id).status_code == 202
-    seed_first_story(e, run_id)
+    assert confirm_subject(e, "t1", run_id).status_code == 202  # starts the first story
     assert rewrite(e, "t1", run_id, revision=1, hint="HINT-SENTENCE shorter").status_code == 202
     # nothing the Teacher or the child said reaches a log record (l.942, BR-34)
     logged = " ".join(record.getMessage() for record in caplog.records)

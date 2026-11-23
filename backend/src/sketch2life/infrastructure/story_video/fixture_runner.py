@@ -34,6 +34,7 @@ from sketch2life.application.ports.story_video import (
 )
 from sketch2life.application.services.story_run_video import StoryVideoProgressService
 from sketch2life.domain.story_video.model import GenerationState
+from sketch2life.infrastructure.lesson_occurrences.approved_plan_reader import SqlApprovedPlanReader
 from sketch2life.infrastructure.persistence.core_models import CoreAssetMetadataModel
 from sketch2life.infrastructure.story_video.repository import SqlStoryVideoRepository
 
@@ -87,7 +88,8 @@ class FixtureVideoRunner:
         """One state step of one generation; a settled or unknown generation is a no-op."""
 
         with self._sessions() as session:
-            repository = SqlStoryVideoRepository(session)
+            # V4-A OPEN-A D8(2): the worker-start steps fence a plan that was re-approved.
+            repository = SqlStoryVideoRepository(session, plan_read=SqlApprovedPlanReader(session))
             record = repository.get_generation(generation_id)
             if record is None:
                 return ProgressResult(False, None, "NOT_FOUND")

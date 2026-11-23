@@ -17,6 +17,9 @@ from sketch2life.infrastructure.config.settings import (
 )
 from sketch2life.interfaces.http.app import create_app, create_classroom_app
 from sketch2life.interfaces.http.router_composition import story_demo_replaced_routers
+from sketch2life.interfaces.http.routers.parent_story_activities import (
+    router as parent_story_activities_router,
+)
 from sketch2life.interfaces.http.routers.parent_story_inputs import (
     router as parent_story_inputs_router,
 )
@@ -52,6 +55,7 @@ EXPECTED_COLLISIONS = {
 EXPECTED_UNMOUNTED_COUNT = (
     len(parent_story_runs_router.routes)
     + len(parent_story_inputs_router.routes)
+    + len(parent_story_activities_router.routes)  # goal v4 T-2e-a: the activity selection
     + len(story_run_video_router.routes)  # FEAT-066 T-1a
     + len(upload_sessions_router.routes)
 )  # derived, not hard-coded

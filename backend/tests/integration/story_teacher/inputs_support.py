@@ -5,11 +5,12 @@ organization, classes, Teachers, one confirmed child and a Teacher run) and adds
 steps need: in-memory object storage, a scanner that knows the synthetic uploads, the deterministic
 drawing analyzer, speech transcriber and story generator, and ``seed_first_story``.
 
-**First story (plan review P2-1, OPEN-A).** No HTTP route starts the FIRST Teacher story: the only
-first-story route is the legacy Parent ``story-revisions`` route and ``reserve_story_revision`` is a
-Parent-predicate method. The tests therefore insert the first story revision and its scenes by SQL,
-mirroring the rows ``complete_story_revision`` writes, and set the run to ``SCRIPT_REVIEW``; every
-later step (the rewrites) is exercised through the real routes.
+**First story (V4-A OPEN-A D1).** The Teacher first story starts by itself when the last of the
+subject and context confirmations is given (``FirstStoryStarter``), and the composed
+``RecordingGenerator`` answers after the response, so ``to_script_review`` needs no seeding. The
+SQL helper ``seed_first_story`` stays for the tests that need a story over a run that never met the
+gates (it mirrors the rows ``complete_story_revision`` writes); every later step (the rewrites) is
+exercised through the real routes.
 """
 
 from __future__ import annotations
@@ -504,13 +505,14 @@ def seed_first_story(e: Env, run_id: str) -> str:
 
 
 def to_script_review(e: Env, who: str = "t1") -> str:
-    """Drawing, understanding, context and subject confirmed, then the seeded first story."""
+    """Drawing, understanding, context and subject confirmed: the last confirmation starts the
+    first story by itself (V4-A OPEN-A D1) and the composed generator answers after the response."""
     run_id = to_subject_review(e, who)
     assert confirm_context(e, who, run_id).status_code == 200
+    assert states(e, run_id)[0] == "SUBJECT_REVIEW"
     assert confirm_subject(e, who, run_id).status_code == 202
-    assert states(e, run_id)[0] == "PREPARATION_REVIEW"
-    seed_first_story(e, run_id)
     assert states(e, run_id) == ("SCRIPT_REVIEW", "SUCCEEDED")
+    assert [row["revision_no"] for row in story_rows(e, run_id)] == [1]
     return run_id
 
 

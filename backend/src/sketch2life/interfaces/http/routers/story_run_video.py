@@ -28,7 +28,8 @@ for ``video-unsuitable`` the current generation (409 ``STALE_REVISION``) and the
 (409 ``VIDEO_REGENERATION_LIMIT_REACHED``). No port is called and no storage reference is shown.
 
 T-1c: ``playback-token`` (a grant, no database write: 404 for a foreign or deleted run, 409 when
-the run is not at ``VIDEO_READY`` with a ``READY`` generation, 503 with no signing secret) and the
+the run is not at ``VIDEO_READY`` or ``COMPLETED`` (V4-A T-1c-fix) with a ``READY`` generation, 503
+with no signing secret) and the
 stream route ``playback`` (the bearer is required AND the ``X-Playback-Token`` header must name the
 same actor; every request rechecks owner, run state and generation; the database session is
 released before the first byte). Neither route shows a bucket, key or URL (SRS l.1692).
@@ -105,6 +106,7 @@ from sketch2life.interfaces.http.routers.parent_story_inputs import _http_error
 from sketch2life.interfaces.http.routers.parent_story_runs import (
     StoryRunResult,
     _envelope,
+    _guard_post_video_activities,
     _lifecycle_envelope,
 )
 from sketch2life.interfaces.http.story_run_actor import (
@@ -243,6 +245,7 @@ _RUN_COMMAND_ERROR_RESPONSES: dict[int | str, dict[str, Any]] = {
 
 
 def _run_command_response(
+    request: Request,
     response: Response,
     db: Session,
     principal: VerifiedPrincipal,
@@ -262,7 +265,9 @@ def _run_command_response(
         view = story_run_repository(db, actor).get_run(principal=principal, run_id=str(run_id))
     except ParentStoryRunError as exc:
         raise _http_error(exc) from None
-    return _envelope(view)
+    # T-2e-a D11: ``complete`` answers a COMPLETED run, so the pinned post-video list is checked
+    # against the Parent's current access here as on the run reads.
+    return _envelope(_guard_post_video_activities(request, db, principal, view))
 
 
 @router.post(
@@ -295,7 +300,7 @@ def mark_parent_video_unsuitable(
         )
     except ParentStoryRunError as exc:
         raise _http_error(exc) from None
-    return _run_command_response(response, db, principal, actor, run_id, result)
+    return _run_command_response(request, response, db, principal, actor, run_id, result)
 
 
 @router.post(
@@ -326,7 +331,7 @@ def complete_parent_story_run(
         )
     except ParentStoryRunError as exc:
         raise _http_error(exc) from None
-    return _run_command_response(response, db, principal, actor, run_id, result)
+    return _run_command_response(request, response, db, principal, actor, run_id, result)
 
 
 # ---------------------------------------------------------------------------- playback (T-1c)

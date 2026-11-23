@@ -29,7 +29,9 @@ from sketch2life.infrastructure.config.settings import get_core_database_setting
 _BACKEND = Path(__file__).resolve().parents[3]
 _PARENT = "20261120_b1_0001"
 _REVISION = "20261120_vb_0002"
-_HEAD = "20261120_b2_0001"
+# FEAT-066 goal v4 T-2e-a: DDL-B3 follows DDL-B2; V4-A T-1b-fix: DDL-B1c follows DDL-B3 and is the
+# head of the branch now.
+_HEAD = "20261123_rv_0001"
 _REFUSED = "DDL-B1 part 2 downgrade refused"
 _NEW_STATES = (
     "VIDEO_QUEUED",

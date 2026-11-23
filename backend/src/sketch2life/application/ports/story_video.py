@@ -344,9 +344,12 @@ class SampleFacts:
     """What the class projection needs to know about one run (T-5a): read by ``sample_facts``, the
     only Story read of Lesson code. No storage key, no name, no seed.
 
-    ``playable`` is the single T-1a/T-1c predicate (``is_playable``: run ``VIDEO_READY``, current
-    generation ``READY``, every validation ``PASSED``, an output). The plan pin is read from the
-    CURRENT input revision (T-4b2 D3: copied forward into every revision).
+    ``playable`` is the single T-1a/T-1c predicate (``is_playable`` with ``allow_completed``: run
+    ``VIDEO_READY`` or ``COMPLETED``, current generation ``READY``, every validation ``PASSED``, an
+    output). ``completed_at`` is the run's ``finished_at`` while the run is ``COMPLETED``, else
+    ``None`` (V4-A T-1c-fix, owner decision C1(a)): the Lesson check ends a confirmation given
+    before it and keeps one given after it. The plan pin is read from the CURRENT input revision
+    (T-4b2 D3: copied forward into every revision).
     """
 
     run_id: str
@@ -354,6 +357,7 @@ class SampleFacts:
     run_state: str
     generation_id: str | None
     ready_at: datetime | None
+    completed_at: datetime | None
     playable: bool
     plan_revision_id: str | None
     plan_revision_no: int | None

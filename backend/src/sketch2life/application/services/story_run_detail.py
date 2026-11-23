@@ -9,7 +9,9 @@ scope or the physical storage key: those never reach a ``DetailGeneration``.
   (l.573). They are not the monthly quota, which is a separate marker (TD-22: a quota that cannot be
   read is "UNAVAILABLE", never zero).
 * The ``playback`` block is a readiness descriptor and the route name; a token exists only after
-  the explicit ``POST .../playback-token``. A ``COMPLETED`` run shows ``UNAVAILABLE`` (T-1c Q5).
+  the explicit ``POST .../playback-token``. V4-A T-1c-fix: a ``COMPLETED`` run keeps its ready
+  video, so the caller that passes ``allow_completed`` shows ``AVAILABLE`` (owner decisions O-3,
+  C1(a); it reverses T-1c Q5).
 * ``timeline`` is derived from timestamps that already exist (no history store, no read-model
   table: l.845).
 """
@@ -38,8 +40,17 @@ def video_asset_handle(generation_id: str) -> str:
     return f"vid_{generation_id}"
 
 
-def compose_video(run_id: str, run_state: str, rows: RunVideoRows | None) -> dict[str, Any] | None:
-    """The ``video`` block, or ``None`` until a request was accepted or is waiting."""
+def compose_video(
+    run_id: str,
+    run_state: str,
+    rows: RunVideoRows | None,
+    *,
+    allow_completed: bool = False,
+) -> dict[str, Any] | None:
+    """The ``video`` block, or ``None`` until a request was accepted or is waiting.
+
+    ``allow_completed`` is the same flag as ``is_playable``: the caller that serves the token route
+    for a completed run passes it, so the detail and the route always agree."""
 
     if rows is None:
         return None
@@ -59,7 +70,7 @@ def compose_video(run_id: str, run_state: str, rows: RunVideoRows | None) -> dic
         "scenes": [
             {"scene_index": scene.scene_index, "state": scene.state} for scene in rows.scenes
         ],
-        "playback": _playback(run_id, run_state, current),
+        "playback": _playback(run_id, run_state, current, allow_completed),
         "video_requests_used": used,
         "video_requests_remaining": max(0, MAX_ACCEPTED_REQUESTS - used),
         "admission_pending": any(
@@ -91,7 +102,9 @@ def _job(row: DetailGeneration) -> dict[str, Any] | None:
     }
 
 
-def _playback(run_id: str, run_state: str, current: DetailGeneration) -> dict[str, Any]:
+def _playback(
+    run_id: str, run_state: str, current: DetailGeneration, allow_completed: bool
+) -> dict[str, Any]:
     if is_playable(
         run_state=run_state,
         generation_state=current.state,
@@ -99,6 +112,7 @@ def _playback(run_id: str, run_state: str, current: DetailGeneration) -> dict[st
         consistency=current.consistency_validation_state,
         safety=current.safety_validation_state,
         has_output=current.has_output,
+        allow_completed=allow_completed,
     ):
         return {
             "state": "AVAILABLE",
