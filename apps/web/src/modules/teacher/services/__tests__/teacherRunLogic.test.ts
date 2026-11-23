@@ -1,7 +1,7 @@
 ﻿import { describe, expect, it } from "vitest";
 import type { Occurrence } from "../../../../shared/api/teacherOccurrenceApi";
 import type { TeacherRun } from "../../../../shared/api/teacherRunApi";
-import { availableActions, entryLinks, shouldPoll } from "../teacherRunLogic";
+import { availableActions, entryLinks, shouldPoll, waitingForFirstStory } from "../teacherRunLogic";
 import { stateLabel } from "../teacherRunCopy";
 describe("Teacher sample run logic", () => {
  it("gates links by occurrence and slot", () => {
@@ -27,6 +27,16 @@ describe("Teacher sample run logic", () => {
   }
   for (const job_state of ["QUEUED", "RUNNING", "AWAITING_RECONCILIATION"]) expect(shouldPoll({ ...r, job_state })).toBe(true);
   for (const job_state of ["SUCCEEDED", "FAILED", "FUTURE"]) expect(shouldPoll({ ...r, job_state })).toBe(false);
+  expect(shouldPoll({ ...r, run_state: "SCRIPT_REVIEW", job_state: "FAILED" })).toBe(false);
   for (const transcript of ["NONE", "NEEDS_CONFIRMATION", "CONFIRMED", "FAILED"]) expect(shouldPoll(r, transcript)).toBe(false);
+ });
+ it("shows first-story waiting only when visible Teacher gates are complete", () => {
+  const waiting = { run_state: "PREPARATION_REVIEW", context_confirmed: true, candidate: { candidate_subject: "tree", visible_features: [] }, activity: { plan_activity_id: "activity" }, story_revision_no: null } as unknown as TeacherRun;
+  expect(waitingForFirstStory(waiting)).toBe(true);
+  expect(waitingForFirstStory({ ...waiting, context_confirmed: false })).toBe(false);
+  expect(waitingForFirstStory({ ...waiting, candidate: null })).toBe(false);
+  expect(waitingForFirstStory({ ...waiting, activity: null })).toBe(false);
+  expect(shouldPoll({ ...waiting, run_state: "SCRIPT_GENERATING", job_state: "QUEUED" })).toBe(true);
+  expect(shouldPoll({ ...waiting, run_state: "SAFETY_BLOCKED", job_state: "FAILED" })).toBe(false);
  });
 });

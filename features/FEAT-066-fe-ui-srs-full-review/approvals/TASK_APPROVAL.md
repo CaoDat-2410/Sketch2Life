@@ -753,3 +753,13 @@ Scope amendment, 2026-11-18 (CONV-1 fixtures): the owner approved in chat ("Cho 
 - **Excluded:** T0.6 (OD-16 open), T0.7 (owner-run), Billing, PAY-0 and quota, and every exclusion and stay of the plan.
 - **Git boundary:** commits are local only, on `feature/backend-srs-api-v3` (cut from `d40f0514`), `codex/fe-ui-web-remediation` (shared; the teammate's commits are merged, never rewritten) and `feature/fe-mobile-remediation`. **No push, no PR, no remote merge**; the owner checks the result and pushes.
 - **Records:** the goal appends nothing to `TASK_APPROVAL.md` or `DECISIONS.md`. Its decisions stay in the per-task evidence notes and in the T0.8 draft, numbered from D-066-92. `OWNER_MODAL_CALL_APPROVED=NO`.
+## Goal v4 Phase A web wiring - Teacher (2026-11-23)
+
+- **Status:** APPROVED_FOR_IMPLEMENTATION by the owner's direct launch prompt (`Status: FINAL`; Phase A 5/5).
+- **Plan:** `plan/PLAN_V4A_FE_WEB_WIRING_20261123.md`, revision 52, SHA-256 `EEE3C31BF21B3BB4E8C991FCF5AF991AE7A06F18AE38D8673B34D436BAC5B43E`.
+- **Worktree/branch:** `D:\GitHub\Sketch2Life\.worktrees\ui`, `codex/fe-ui-web-remediation`.
+- **Contract source:** owner-supplied final Phase A Teacher contract and `tmp/phase-v4/PHASE_A_FINAL_ROUTE_LIST_20261123.md`, with section 8 of `tmp/phase-v4/fe-wiring/V4A_FE_WIRING_PLAN_DRAFT1.md` taking priority where stated.
+- **Approved scope:** Teacher API, services, components, pages, copy, and named tests under `apps/web`; this plan plus FEAT-066 context, decisions, evidence, status, and this approval record. Run the five validation gates in the plan.
+- **Decision:** if visible gates are met but the run remains in `PREPARATION_REVIEW`, show a waiting hint and do not resend context confirmation.
+- **Boundaries:** no Parent/mobile, backend, route/contract changes, credentials, `.env`, `debug.keystore`, model weights, stage/stash/branch switch, commit, or push. Run logs stay in `E:\AI_LOG\CODEX\fe-v4a-web\`.
+- This task-specific approval supersedes earlier FEAT-066 Teacher exclusions only for the scope above. It does not authorize backend changes, a commit, or a push.

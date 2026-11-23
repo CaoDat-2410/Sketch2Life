@@ -18,6 +18,9 @@ export interface TeacherRun {
   story_revision_no: number | null; story_status: string | null; story_sha256: string | null;
   story: { title: string; story: { opening: string; middle: string; ending: string }; scenes: Array<{ title: string; action?: string; narration?: string; scene_index?: number; start_ms?: number; duration_ms?: number }> } | null; job_state: string | null;
   quota?: { state: "UNAVAILABLE"; granted: number | null; used: number | null; available: number | null; month: string | null };
+  activity?: { plan_activity_id: string; kind: "LESSON" | "CUSTOM" | "CATALOG"; snapshot_hash: string | null } | null;
+  story_confirmation_required?: boolean;
+  timeline?: Array<{ event: string; at: string }>;
   video: { state: string; current_generation_id: string | null; video_requests_used: number; video_requests_remaining: number; job?: { job_id: string; state: string; stage: string | null; retryable: boolean; error_code: string | null } | null; playback: { state: string }; history: Array<{ state: string }> } | null;
 }
 export interface Lifecycle { run_id: string; run_state: "DELETE_PENDING" | "DELETED"; revision: number; version: number; lifecycle_request_ref: string; purge_state: string }

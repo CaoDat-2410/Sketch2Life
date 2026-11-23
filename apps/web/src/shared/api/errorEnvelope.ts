@@ -15,6 +15,7 @@ export interface ParsedApiError {
   requestId?: string;
   retryable: boolean;
   retryAfterSeconds?: number;
+  currentVersion?: number;
   fieldErrors: FieldError[];
   conv1: boolean;
 }
@@ -123,12 +124,14 @@ export function parseApiError(
         ? source.correlation_id
         : headerRequestId ?? undefined;
   const retryAfter = source.retry_after_seconds;
+  const currentVersion = source.current_version;
   return {
     code,
     message: conv1 ? (record.message as string) : fallbackMessage(code, status),
     requestId,
     retryable: conv1 ? record.retryable === true : RETRYABLE_STATUSES.includes(status),
     retryAfterSeconds: typeof retryAfter === "number" && Number.isFinite(retryAfter) && retryAfter >= 0 ? retryAfter : undefined,
+    currentVersion: typeof currentVersion === "number" && Number.isInteger(currentVersion) ? currentVersion : undefined,
     fieldErrors: fieldErrorsOf(source.field_errors),
     conv1,
   };

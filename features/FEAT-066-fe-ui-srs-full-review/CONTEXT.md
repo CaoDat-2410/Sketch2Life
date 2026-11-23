@@ -476,3 +476,22 @@ CONV-1 applied the D-066-68 conventions to the BE1, Lesson Library, Platform Adm
 `/api/parent/v1/ai` and the M2 Parent families are unchanged. It was implemented and verified in `.worktrees/conv1` on the local branch `feature/feat066-conv1` (D-066-71, CV-B: never pushed). The fixture scope amendment is recorded in `approvals/TASK_APPROVAL.md`.
 
 **Next in the BE queue:** FR-C-08 (FEAT-063), then SEED-1. Billing is frozen by the owner.
+
+## Goal v4 Phase A web wiring - Teacher (2026-11-23)
+
+- Current task: implement the approved Goal v4 Phase A Teacher wiring in `apps/web`, using the final Teacher route list and launch-prompt contract. This task is separate from the historical FEAT-066 School Manager and MGR work.
+- Canonical requirements remain the unsigned FEAT-063 SRS v2.7-draft at the path in `docs/context/SRS_AUTHORITY.md`; the final Phase A contract controls route behavior for this integration.
+- Approved plan: `plan/PLAN_V4A_FE_WEB_WIRING_20261123.md` revision 52; approval and SHA-256 are in `approvals/TASK_APPROVAL.md`.
+- Worktree/branch: `D:\GitHub\Sketch2Life\.worktrees\ui`, `codex/fe-ui-web-remediation`.
+- Scope includes Teacher API, services, components, pages, copy, named tests, and FEAT-066 records/evidence. Parent/mobile and backend are excluded.
+- Selected behavior: if visible gates are met but the run remains in `PREPARATION_REVIEW`, show a waiting hint; do not resend context confirmation.
+- No commit, push, stage, stash, branch switch, `.env`, `debug.keystore`, credentials, or model weights. Run logs stay in `E:\AI_LOG\CODEX\fe-v4a-web\`.
+- Preflight found the BE worktree at `db7e3920` with final Phase A commit `930da61e` as an ancestor and additional committed/dirty BE work. This job will not edit that worktree and will report the tip difference.
+
+## 2026-11-23 — Goal v4 Phase A Teacher implementation review
+
+- Implementation is complete for owner review. API, UI, tests, plan, approval, decision, status, and feature evidence are recorded under FEAT-066.
+- `npm --prefix apps/web run check`: exit 0; build passed; lint exited 0 with unrelated warnings; 67 test files and 684 tests passed.
+- Security and architecture validators passed. `git diff --check` exited 0. Harness validation is blocked by pre-existing missing `apps/mobile/package.json` and FEAT-072 harness paths; see `evidence/notes/EV-066-059_V4A_WEB_WIRING_20261123.md`.
+- The BE checkout tip is `db7e3920`; supplied final `930da61e` is an ancestor. No Teacher contract contradiction was found in the reviewed code.
+- No commit, push, stage, stash, or branch switch occurred.

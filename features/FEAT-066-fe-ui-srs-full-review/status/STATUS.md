@@ -695,3 +695,20 @@ The canonical working SRS `features/FEAT-063-system-architecture-rearchitecture/
 - The host API fallback exits on missing `av==18.1.0`; no online dependency install was attempted. PostgreSQL port 5432 is closed.
 - The backend is not running from this session. No HTTP probes, tests, builds, credentials, or data operations were used. See `evidence/notes/EV-058_DOCKER_API_RESTART_PREFLIGHT_20261119.md`.
 
+
+## Goal v4 Phase A web wiring - Teacher (2026-11-23)
+
+- Status: IN_PROGRESS; task-specific approval is recorded in `approvals/TASK_APPROVAL.md`.
+- Active plan: `plan/PLAN_V4A_FE_WEB_WIRING_20261123.md` revision 52; SHA-256 `EEE3C31BF21B3BB4E8C991FCF5AF991AE7A06F18AE38D8673B34D436BAC5B43E`.
+- Scope: Teacher web contract wiring and named tests under `apps/web`, plus this feature\'s governance and evidence records.
+- Implementation choice: wait hint; no context-confirmation resend.
+- Gates and evidence are pending. No commit or push is authorized.
+
+## Goal v4 Phase A Teacher web wiring (2026-11-23)
+
+- **Status:** IMPLEMENTATION_COMPLETE_PENDING_OWNER_REVIEW.
+- **Plan:** revision 52; approval recorded; decision D-066-80 (web) selected the wait hint with no context-confirmation resend.
+- **Checks:** `npm --prefix apps/web run check` passed (67 files, 684 tests); security and architecture validators passed; `git diff --check` passed.
+- **Open repository gate:** `validate_harness.py` fails on missing `apps/mobile/package.json` and FEAT-072 paths outside this task.
+- **Evidence:** `evidence/notes/EV-066-059_V4A_WEB_WIRING_20261123.md`.
+- **Delivery:** no stage, commit, or push; working tree left for owner review.

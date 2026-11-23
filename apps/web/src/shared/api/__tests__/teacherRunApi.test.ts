@@ -27,6 +27,13 @@ describe("Teacher run API", () => {
     expect(new Headers(init.headers).has("Idempotency-Key")).toBe(false);
     expect(init.body).toBeUndefined();
   });
+
+  it.each([5, 2])("carries current_version %s from video-generation stale responses", async currentVersion => {
+    window.sketch2lifeAuth = { getIdToken: async () => "token" };
+    const fetcher = vi.fn(async () => new Response(JSON.stringify({ code: "STALE_REVISION", message: "Thông tin đã thay đổi.", correlation_id: "corr", retryable: false, retry_after_seconds: null, field_errors: [], current_version: currentVersion }), { status: 409 }));
+    vi.stubGlobal("fetch", fetcher);
+    await expect(teacherRunApi.generateVideo("run", 4, "hash", undefined, "video-key")).rejects.toMatchObject({ code: "STALE_REVISION", status: 409, currentVersion });
+  });
 });
 
 describe("sample run route contracts", () => {

@@ -7,12 +7,14 @@ export class OccurrenceApiError extends BackendApiError {
   readonly fieldErrors: FieldIssue[];
   readonly retryable?: boolean;
   readonly retryAfterSeconds?: number;
-  constructor(message: string, code: string, status: number, requestId: string | undefined, fieldErrors: FieldIssue[], retryable?: boolean, retryAfterSeconds?: number) {
+  readonly currentVersion?: number;
+  constructor(message: string, code: string, status: number, requestId: string | undefined, fieldErrors: FieldIssue[], retryable?: boolean, retryAfterSeconds?: number, currentVersion?: number) {
     super(message, code, status, requestId);
     this.name = "BackendApiError";
     this.fieldErrors = fieldErrors;
     this.retryable = retryable;
     this.retryAfterSeconds = retryAfterSeconds;
+    this.currentVersion = currentVersion;
   }
 }
 export const SAFE_FIELD = /^[A-Za-z0-9_.[\]-]{1,80}$/;
@@ -65,7 +67,7 @@ export async function request<T>(path: string, init: RequestInit = {}, condition
   }
   if (!response.ok) {
     const parsed = parseApiError(body, response.status, response.headers.get("X-Request-ID") ?? requestId);
-    throw new OccurrenceApiError(messageFor(response.status, parsed.code, parsed.message), parsed.code, response.status, parsed.requestId, safeFieldErrors(parsed.fieldErrors), parsed.retryable, parsed.retryAfterSeconds);
+    throw new OccurrenceApiError(messageFor(response.status, parsed.code, parsed.message), parsed.code, response.status, parsed.requestId, safeFieldErrors(parsed.fieldErrors), parsed.retryable, parsed.retryAfterSeconds, parsed.currentVersion);
   }
   return { data: body as T, etag, notModified: false };
 }

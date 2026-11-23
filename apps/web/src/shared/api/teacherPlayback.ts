@@ -1,9 +1,14 @@
 import { apiBaseUrl, BackendApiError } from "./backendApi";
 import { authorizedHeaders } from "./teacherHttp";
 import { teacherRunApi } from "./teacherRunApi";
+import type { TeacherRun } from "./teacherRunApi";
 
 const PART = 4 * 1024 * 1024;
 const MAX = 100 * 1024 * 1024;
+
+export function canWatchTeacherRun(run: Pick<TeacherRun, "run_state" | "video">): boolean {
+  return ["VIDEO_READY", "COMPLETED"].includes(run.run_state) && run.video?.playback.state === "AVAILABLE";
+}
 
 /** Read an owner-view grant entirely in memory; the grant never becomes a media URL. */
 export async function readTeacherPlayback(runId: string, signal: AbortSignal, getGrant: () => Promise<{ token: string; stream_path: string }> = async () => (await teacherRunApi.ownerToken(runId)).playback): Promise<Blob> {
