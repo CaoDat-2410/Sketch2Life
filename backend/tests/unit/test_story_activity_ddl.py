@@ -85,14 +85,15 @@ def test_the_revision_is_the_only_child_of_its_parent_and_the_review_epoch_follo
 
 def test_one_more_revision_and_the_head_counts_stay_fifteen_and_ten() -> None:
     graph = _graph()
-    assert len(graph) == 51
+    assert len(graph) == 52
     down_targets = {target for downs, _ in graph.values() for target in downs}
     dependency_targets = down_targets | {target for _, dep in graph.values() for target in dep}
     heads_down_only = {rev for rev in graph if rev not in down_targets}
     heads_with_depends = {rev for rev in graph if rev not in dependency_targets}
     assert (len(heads_down_only), len(heads_with_depends)) == (15, 10)
     assert _REVISION not in heads_down_only and _PARENT not in heads_down_only
-    assert "20261123_rv_0001" in heads_down_only
+    assert "20261113_svg_catalog_review" in heads_down_only
+    assert "20261123_rv_0001" not in heads_down_only
 
 
 # ----------------------------------------------------------------------------- the table

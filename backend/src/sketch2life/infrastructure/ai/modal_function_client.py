@@ -959,6 +959,12 @@ class ModalJsonFunctionResult:
 
 
 _JSON_WORKERS: dict[str, tuple[str, str, int]] = {
+    "parent.topic-subjects.suggest": (
+        "sketch2life-srs23-language-audio-dev", "suggest-parent-topic-subjects", 1800
+    ),
+    "parent.topic-subjects.validate": (
+        "sketch2life-srs23-language-audio-dev", "validate-parent-topic-subject", 1800
+    ),
     "parent.sketch-guide.generate": (
         "sketch2life-srs23-flux-image-dev",
         "generate-line-sketch-guide-candidate",

@@ -1,0 +1,85 @@
+{
+  "schema_version": "OpenMojiParentGuideManifestV1",
+  "dataset": {
+    "name": "OpenMoji",
+    "repository": "https://github.com/hfg-gmuend/openmoji",
+    "revision": "f9fc506a3f913be9897ab0181d611d4c910a4104",
+    "release_tag": "17.0.0",
+    "license_id": "CC-BY-SA-4.0",
+    "license_file": "CC-BY-SA-4.0-legalcode.txt",
+    "license_sha256": "28a9529c7d0bb4dc51f4bf5c116a3d16ef247a052f7591466768ddf563fd1cf5",
+    "license_uri": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "attribution": "All emojis designed by OpenMoji – the open-source emoji and icon project. License: CC BY-SA 4.0.",
+    "derivative_license_id": "CC-BY-SA-4.0"
+  },
+  "assets": [
+    {
+      "asset_id": "openmoji-turtle-u1f422",
+      "black_filename": "black-1F422.svg",
+      "upstream_black_path": "black/svg/1F422.svg",
+      "black_sha256": "4c617d364f6451249a06ed42e5b97344a1ccd5e19d8bf4d323f3e7cb111cfc22",
+      "color_filename": "color-1F422.svg",
+      "upstream_color_path": "color/svg/1F422.svg",
+      "color_sha256": "c3054c9394a9710c47d7057eebd48b31fe7292a555eacadb6eb47ed5a8b5d829",
+      "title_vi": "Vẽ con rùa",
+      "view_box": "0 0 72 72",
+      "source_shape_count": 12,
+      "source_shape_ids": [
+        "source-shape-001", "source-shape-002", "source-shape-003", "source-shape-004",
+        "source-shape-005", "source-shape-006", "source-shape-007", "source-shape-008",
+        "source-shape-009", "source-shape-010", "source-shape-011", "source-shape-012"
+      ],
+      "topic_aliases": ["rùa", "con rùa", "rùa xanh", "rùa biển", "con rùa biển", "sea turtle", "turtle", "tortoise"],
+      "stages": [
+        {"step_index": 1, "part_id": "turtle-shell-outline", "label_vi": "Mai và thân rùa", "instruction_vi": "Vẽ một chiếc mai lớn làm phần thân rùa.", "path_ids": ["source-shape-005", "source-shape-006"]},
+        {"step_index": 2, "part_id": "turtle-head", "label_vi": "Đầu và cổ", "instruction_vi": "Thêm đầu và chiếc cổ nhỏ ở phía trước mai.", "path_ids": ["source-shape-007"]},
+        {"step_index": 3, "part_id": "turtle-legs", "label_vi": "Bốn chân", "instruction_vi": "Vẽ các chân ngắn ở dưới mai.", "path_ids": ["source-shape-002", "source-shape-003", "source-shape-004"]},
+        {"step_index": 4, "part_id": "turtle-tail", "label_vi": "Đuôi", "instruction_vi": "Thêm chiếc đuôi nhỏ phía sau mai.", "path_ids": ["source-shape-001"]},
+        {"step_index": 5, "part_id": "turtle-shell-panels", "label_vi": "Các ô trên mai", "instruction_vi": "Chia mai thành vài ô lớn dễ nhận ra.", "path_ids": ["source-shape-008", "source-shape-009", "source-shape-010", "source-shape-011", "source-shape-012"]}
+      ]
+    },
+    {
+      "asset_id": "openmoji-butterfly-u1f98b",
+      "black_filename": "black-1F98B.svg",
+      "upstream_black_path": "black/svg/1F98B.svg",
+      "black_sha256": "a089d7e39aed63ebb945aee24dfd64949dd5b855615909f7438a76a7d47cb65c",
+      "color_filename": "color-1F98B.svg",
+      "upstream_color_path": "color/svg/1F98B.svg",
+      "color_sha256": "47b4971766ec7d4d913142eac844bb33c526b72839209c8acb531483a2f4072d",
+      "title_vi": "Vẽ con bướm",
+      "view_box": "0 0 72 72",
+      "source_shape_count": 9,
+      "source_shape_ids": [
+        "source-shape-001", "source-shape-002", "source-shape-003", "source-shape-004",
+        "source-shape-005", "source-shape-006", "source-shape-007", "source-shape-008", "source-shape-009"
+      ],
+      "topic_aliases": ["bướm", "con bướm", "butterfly"],
+      "stages": [
+        {"step_index": 1, "part_id": "butterfly-body", "label_vi": "Thân bướm", "instruction_vi": "Vẽ phần thân nhỏ ở chính giữa.", "path_ids": ["source-shape-005", "source-shape-006", "source-shape-007"]},
+        {"step_index": 2, "part_id": "butterfly-upper-wings", "label_vi": "Hai cánh trên", "instruction_vi": "Thêm hai cánh lớn ở phía trên thân.", "path_ids": ["source-shape-002", "source-shape-003"]},
+        {"step_index": 3, "part_id": "butterfly-lower-wings", "label_vi": "Hai cánh dưới", "instruction_vi": "Vẽ thêm hai cánh nhỏ phía dưới.", "path_ids": ["source-shape-001", "source-shape-004"]},
+        {"step_index": 4, "part_id": "butterfly-antennae", "label_vi": "Râu bướm", "instruction_vi": "Thêm hai chiếc râu cong trên đầu bướm.", "path_ids": ["source-shape-008", "source-shape-009"]}
+      ]
+    },
+    {
+      "asset_id": "openmoji-dog-u1f415",
+      "black_filename": "black-1F415.svg",
+      "upstream_black_path": "black/svg/1F415.svg",
+      "black_sha256": "1883bc9a8eec88065425e2cb4b801696f1d9a0734b00d83e43652739f02a6e22",
+      "color_filename": "color-1F415.svg",
+      "upstream_color_path": "color/svg/1F415.svg",
+      "color_sha256": "a01131556b1f472f2be150b5e61bb77e4ffed96bbdbc9b60ac4a36b62ffac2a3",
+      "title_vi": "Vẽ chú chó",
+      "view_box": "0 0 72 72",
+      "source_shape_count": 6,
+      "source_shape_ids": ["source-shape-001", "source-shape-002", "source-shape-003", "source-shape-004", "source-shape-005", "source-shape-006"],
+      "topic_aliases": ["chó", "con chó", "chó nhà", "dog"],
+      "stages": [
+        {"step_index": 1, "part_id": "dog-body-head", "label_vi": "Thân và đầu", "instruction_vi": "Vẽ đường bao lớn tạo thành thân và đầu chú chó.", "path_ids": ["source-shape-003"]},
+        {"step_index": 2, "part_id": "dog-back-and-tail", "label_vi": "Lưng và đuôi", "instruction_vi": "Thêm phần lưng, đuôi và chân phía sau.", "path_ids": ["source-shape-001", "source-shape-002"]},
+        {"step_index": 3, "part_id": "dog-legs", "label_vi": "Chân chó", "instruction_vi": "Vẽ thêm các nét chân ở dưới thân.", "path_ids": ["source-shape-004", "source-shape-006"]},
+        {"step_index": 4, "part_id": "dog-paws", "label_vi": "Bàn chân", "instruction_vi": "Hoàn thiện bàn chân bằng những nét ngắn.", "path_ids": ["source-shape-005"]}
+      ]
+    }
+  ]
+}

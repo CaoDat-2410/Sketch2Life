@@ -479,7 +479,8 @@ def test_head_counts_by_both_methods_match_the_derived_expectation() -> None:
     # as the head of the same branch (heads stay 15 and 10; 50 revisions).
     # FEAT-066 goal v4 T-1b-fix: 20261123_rv_0001 (DDL-B1c) follows 20261123_as_0001 and replaces it
     # as the head (heads stay 15 and 10; 51 revisions).
-    assert len(graph) == 51
+    # SVG catalog extends the Phase A Story head without creating a new branch.
+    assert len(graph) == 52
     down_targets = {target for down, _ in graph.values() for target in down}
     dependency_targets = down_targets | {target for _, dep in graph.values() for target in dep}
     heads_down_only = {rev for rev in graph if rev not in down_targets}

@@ -7,6 +7,8 @@ from __future__ import annotations
 import base64
 import binascii
 import hashlib
+import logging
+import re
 from io import BytesIO
 from math import isfinite
 from typing import Annotated, Any, Literal
@@ -32,26 +34,32 @@ from sketch2life.application.services.parent_story_runs import (
     ParentStoryRunService,
     ParentStoryRunServiceError,
 )
+from sketch2life.application.services.parent_svg_guide import (
+    ParentSvgGuideUnavailable,
+    build_parent_svg_guide,
+)
 from sketch2life.application.services.story_output import (
     StoryOutputInvalid,
     complete_generated_story,
 )
 from sketch2life.contracts.schemas.modal_ai import (
     ParentDrawingAnalysisRequestV1,
-    ParentSketchGuideRequestV1,
     ParentStoryRequestV1,
 )
 from sketch2life.contracts.schemas.parent_story_runs import (
     ParentStoryRunLifecycleEnvelopeV1,
 )
+from sketch2life.contracts.schemas.svg_engine import (
+    SvgTopicStrokeGuideRequestV1,
+    SvgTopicStrokeGuideSourceDraftResponseV1,
+)
 from sketch2life.infrastructure.ai.modal_function_client import (
-    FLUX_MODEL_PROVENANCE,
     STORY_MODEL_ID,
     STORY_MODEL_REVISION,
     ModalDrawingFunctionClient,
     ModalFunctionExecutionFailed,
     ModalFunctionOutcomeUnknown,
-    ModalJsonFunctionClient,
+    ModalJsonFunctionClient,  # noqa: F401 ? retained for the no-fallback contract test
     ModalStoryFunctionClient,
     prepare_drawing_input,
 )
@@ -68,6 +76,7 @@ from sketch2life.interfaces.http.routers.parent_story_runs import story_run_resp
 
 router = APIRouter(prefix="/api/parent/v1/ai", tags=["Parent AI v1"])
 _LOGGER = get_logger(__name__)
+_SAFE_LOGGER = logging.getLogger(__name__)
 _STORY_PROMPT_VERSION = "parent-story-v2.2026-11-10"
 
 
@@ -155,52 +164,74 @@ def _fail_story_run(
         raise
 
 
-@router.post("/sketch-guides", summary="Generate an optional generic line-sketch guide")
+@router.post(
+    "/sketch-guides",
+    response_model=SvgTopicStrokeGuideSourceDraftResponseV1,
+    summary="Create an optional private SVG guide from a curated source",
+)
 def generate_sketch_guide(
-    payload: ParentSketchGuideRequestV1,
+    payload: SvgTopicStrokeGuideRequestV1,
+    request: Request,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
 ) -> dict[str, object]:
     _require_parent(db, principal)
-    _require_modal_dev()
-    request_id = str(uuid4())
+    request_id = getattr(request.state, "be1_request_id", str(uuid4()))
     try:
-        result = ModalJsonFunctionClient().invoke(
-            "parent.sketch-guide.generate",
-            {
-                "topic": payload.topic,
-                "difficulty": payload.difficulty,
-                "step_count": payload.step_count,
+        result = build_parent_svg_guide(
+            topic=payload.topic,
+            intended_subject=payload.intended_subject,
+            request_id=request_id,
+            builders=request.app.state.parent_svg_guide_builders,
+        )
+    except ParentSvgGuideUnavailable as exc:
+        code = str(exc)
+        _SAFE_LOGGER.warning(
+            "parent_svg_guide_source_rejected request_id=%s error_code=%s",
+            request_id,
+            code,
+        )
+        raise HTTPException(
+            status_code=422,
+            detail={"code": code, "request_id": request_id},
+        ) from None
+    except Exception as exc:
+        reason_code = str(exc)
+        if re.fullmatch(r"[A-Z][A-Z0-9_]{0,79}", reason_code) is None:
+            reason_code = "UNCLASSIFIED_SOURCE_FAILURE"
+        _SAFE_LOGGER.error(
+            "parent_svg_guide_source_failed request_id=%s exception_type=%s reason_code=%s",
+            request_id,
+            type(exc).__name__,
+            reason_code,
+        )
+        raise HTTPException(
+            status_code=503,
+            detail={"code": "CURATED_SVG_GUIDE_UNAVAILABLE", "request_id": request_id},
+        ) from None
+    if result is None:
+        _SAFE_LOGGER.info(
+            "parent_svg_guide_source_missing request_id=%s source=curated_svg_catalog",
+            request_id,
+        )
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "code": "CURATED_SVG_GUIDE_NOT_FOUND",
+                "request_id": request_id,
+                "message": "No approved source drawing guide is available for this subject yet.",
             },
         )
-    except (ModalFunctionOutcomeUnknown, ModalFunctionExecutionFailed) as exc:
-        raise _provider_error(
-            exc, request_id=request_id, workload="parent.sketch-guide.generate"
-        ) from None
-    output = result.output
-    if output.get("model") != FLUX_MODEL_PROVENANCE:
-        raise HTTPException(status_code=502, detail={"code": "MODAL_MODEL_REVISION_MISMATCH"})
-    asset = output.get("asset")
-    if not isinstance(asset, dict) or not isinstance(asset.get("bytes"), bytes):
-        raise HTTPException(status_code=502, detail={"code": "MODAL_OUTPUT_CONTRACT_INVALID"})
-    image_bytes = asset["bytes"]
-    response_asset = {key: value for key, value in asset.items() if key != "bytes"}
-    _LOGGER.info(
-        "parent_modal_request_completed",
-        request_id=request_id,
-        modal_call_id=result.call_id,
-        workload="parent.sketch-guide.generate",
-        elapsed_seconds=result.elapsed_seconds,
+    _SAFE_LOGGER.info(
+        "parent_svg_guide_source_completed request_id=%s generation_source=%s "
+        "path_count=%s stage_count=%s document_sha256=%s",
+        result["request_id"],
+        result["generation_source"],
+        result["path_count"],
+        result["stage_count"],
+        result["document_sha256"],
     )
-    return {
-        "request_id": request_id,
-        "modal_call_id": result.call_id,
-        "status": "DRAFT",
-        "review_required": True,
-        "model": output.get("model"),
-        "asset": response_asset,
-        "image_base64": base64.b64encode(image_bytes).decode("ascii"),
-    }
+    return result
 
 
 # Keep this legacy artwork-ingestion flow outside I2. It writes source and

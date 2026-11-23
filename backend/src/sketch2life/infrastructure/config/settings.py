@@ -90,6 +90,7 @@ class Settings(BaseSettings):
     be1_artifact_root: Path = Path(".runtime/be1-artifacts")
     session_idle_ttl_seconds: int = Field(default=1800, ge=60, le=86_400)
     # FEAT-064 dev pilot: synthetic eligibility is honored only when this is on in local/test.
+    parent_topic_subject_ai_enabled: bool = False
     synthetic_pilot_enabled: bool = False
     # FEAT-066 T-4b1 (OPEN-3, owner-visible): the most draws (one draw, one stale reselect) a
     # lesson occurrence ever gets. A product deviation that goes beyond SRS l.346; 1 forbids the

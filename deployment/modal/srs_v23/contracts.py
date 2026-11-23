@@ -22,6 +22,8 @@ L4_WORKLOADS = frozenset(
         "story.generate",
         "storyboard.generate",
         "parent.sketch-guide.generate",
+        "parent.topic-subjects.suggest",
+        "parent.topic-subjects.validate",
         "teacher.sketch-deck.generate",
         "lesson.plan.suggest",
         "lesson.visual.generate",

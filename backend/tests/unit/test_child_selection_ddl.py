@@ -139,13 +139,13 @@ def test_revision_is_the_only_child_of_nt_0001_and_ends_the_library_chain() -> N
     assert chain[-1] == "20261120_sel_0001" and chain[-2] == _PARENT
 
 
-def test_the_graph_has_51_revisions_and_fifteen_heads() -> None:
+def test_the_graph_has_52_revisions_and_fifteen_heads() -> None:
     graph = _graph()
     # 41 after T-4b1; T-4b2 adds 20261120_b2_0001 on the Story branch (heads stay 14)
     # FEAT-072 adds the seven Platform Admin revisions as their own branch (one more head).
     # FEAT-066 goal v4 T-2e-a adds 20261123_as_0001 (DDL-B3) on the Story branch (heads unchanged).
     # FEAT-066 goal v4 T-1b-fix adds 20261123_rv_0001 (DDL-B1c) on the same branch (heads same).
-    assert len(graph) == 51
+    assert len(graph) == 52
     down_targets = {target for downs in graph.values() for target in downs}
     assert len([revision for revision in graph if revision not in down_targets]) == 15
 
