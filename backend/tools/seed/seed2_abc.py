@@ -2,7 +2,8 @@
 
 Run from ``backend/`` as ``python -m tools.seed.seed2_abc``, after S1 and S7a. The stages are
 S8 (lesson occurrences), S9 (class lifecycle and enrollment move), S7b (Parent StoryRun states),
-S10 (notification inbox) and S11 (Teacher-cancelled organization run and private lesson shares).
+S10 (notification inbox), S11 (Teacher-cancelled organization run and private lesson shares) and
+S12 (Phase A StoryRun activity selections, review epochs, safety block and replayable video).
 Each stage is idempotent and prints a counts-only table; the exit code is 0 only when every
 stage's totals match its expected counts. The API test kit runs this one module name.
 """
@@ -21,6 +22,7 @@ from tools.seed import (
     s9_classes,
     s10_inbox,
     s11_org_run_shares,
+    s12_story_v4a,
 )
 from tools.seed.guard import SeedGuardError
 from tools.seed.stage_common import (
@@ -38,6 +40,7 @@ STAGES: tuple[tuple[str, StageRunner], ...] = (
     ("s7b_story_states", s7b_story_states.run_s7b),
     ("s10_inbox", s10_inbox.run_s10),
     ("s11_org_run_shares", s11_org_run_shares.run_s11),
+    ("s12_story_v4a", s12_story_v4a.run_s12),
 )
 
 

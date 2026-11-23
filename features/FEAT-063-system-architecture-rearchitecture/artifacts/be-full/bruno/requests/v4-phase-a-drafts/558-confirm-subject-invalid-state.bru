@@ -1,0 +1,45 @@
+meta {
+  name: 558 [DRAFT-V4A] [LOCAL / TEST ONLY] Confirm StoryRun subject in wrong run state
+  type: http
+  seq: 558
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{teacher_run_id}}/subject-confirmation
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "expected_understanding_revision": {{teacher_understanding_revision}},
+    "confirmed_subject": "dragon"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("INVALID_STATE_TRANSITION");
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Teacher - set bearerToken to seed-tch-a1 token
+  Needs: teacher_run_id after 556 has moved it out of SUBJECT_REVIEW, teacher_understanding_revision
+  Expected: 409 / INVALID_STATE_TRANSITION
+  Source: backend/src/sketch2life/infrastructure/persistence/parent_story_repository.py:1395-1430
+}

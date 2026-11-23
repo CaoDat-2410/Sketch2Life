@@ -1,0 +1,49 @@
+meta {
+  name: 597 [DRAFT-V4A] [LOCAL / TEST ONLY] Rewrite Parent story on legacy SAFETY_BLOCKED row
+  type: http
+  seq: 597
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{legacy_blocked_parent_run_id}}/story-rewrites
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "expected_story_revision": {{legacy_blocked_parent_story_revision_no}},
+    "expected_story_sha256": "{{legacy_blocked_parent_story_sha256}}",
+    "hint": "Gentle adventure with a friendly ending"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(202);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(String(res.getHeader("Content-Location"))).to.equal("/v1/story-runs/" + bru.getVar("legacy_blocked_parent_run_id"));
+    const body = res.getBody();
+    expect(body.story_run_id).to.equal(bru.getVar("legacy_blocked_parent_run_id"));
+    expect(body.run_state).to.equal("SCRIPT_GENERATING");
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Parent - set bearerToken to seed-parent-p1 token
+  Needs: needs-fixture - legacy_blocked_parent_run_id, legacy_blocked_parent_story_revision_no, legacy_blocked_parent_story_sha256 (LEGACY Parent StoryRun row stored at run_state=SAFETY_BLOCKED below the rewrite cap)
+  Expected: 202 (accepts the legacy SAFETY_BLOCKED row and queues a new story rewrite in SCRIPT_GENERATING)
+  Source: backend/src/sketch2life/domain/story_video/model.py:95, backend/src/sketch2life/infrastructure/persistence/parent_story_repository.py:2768,2787-2791, backend/tests/integration/story_video/test_safety_block_exit_postgres.py:278-285
+}

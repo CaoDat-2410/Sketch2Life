@@ -1,0 +1,52 @@
+meta {
+  name: 548 [DRAFT-V4A] [LOCAL / TEST ONLY] Select Parent main activity with stale revision
+  type: http
+  seq: 548
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{parent_story_run_id}}/activity-selection
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "expected_revision": 1,
+    "activity": {
+      "lesson_id": "{{activity_lesson_id}}",
+      "version_id": "{{activity_version_id}}",
+      "content_sha256": "{{activity_content_sha256}}",
+      "activity_index": {{activity_index}}
+    }
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.code).to.equal("STALE_REVISION");
+    expect(body.current_version).to.equal(Number(bru.getVar("parent_story_run_revision")));
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Parent - set bearerToken to seed-parent-p1 token
+  Needs: parent_story_run_id in PREPARATION_REVIEW with run_revision > 1 (captured in parent_story_run_revision by 559, before 545/551 start the story), activity_* vars from 540
+  Expected: 409 / STALE_REVISION (current_version = run_revision)
+  Source: backend/src/sketch2life/infrastructure/persistence/parent_story_repository.py:1360-1361, backend/tests/contract/test_parent_activities_contract.py:443-449
+}

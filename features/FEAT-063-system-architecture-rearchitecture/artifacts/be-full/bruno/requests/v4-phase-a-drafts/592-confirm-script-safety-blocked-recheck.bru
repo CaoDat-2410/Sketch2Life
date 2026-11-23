@@ -1,0 +1,50 @@
+meta {
+  name: 592 [DRAFT-V4A] [LOCAL / TEST ONLY] Confirm script on legacy SAFETY_BLOCKED row
+  type: http
+  seq: 592
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{legacy_blocked_parent_run_id}}/script-confirmation
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "expected_revision": {{legacy_blocked_parent_story_revision_no}},
+    "story_sha256": "{{legacy_blocked_parent_story_sha256}}"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const story = res.getBody().story_run;
+    expect(story.run_id).to.equal(bru.getVar("legacy_blocked_parent_run_id"));
+    expect(story.run_state).to.equal("SCRIPT_REVIEW");
+    expect(story.job_state).to.equal("SUCCEEDED");
+    expect(story.story_status).to.equal("CONFIRMED");
+    expect(story.story_confirmation_required).to.equal(false);
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Parent - set bearerToken to seed-parent-p1 token (Teacher equivalent also applies)
+  Needs: needs-fixture - legacy_blocked_parent_run_id, legacy_blocked_parent_story_revision_no, legacy_blocked_parent_story_sha256 (LEGACY StoryRun row stored at run_state=SAFETY_BLOCKED before the automatic return to SCRIPT_REVIEW)
+  Expected: 200 (moves the legacy SAFETY_BLOCKED row back to SCRIPT_REVIEW with story_status=CONFIRMED and story_confirmation_required=false)
+  Source: backend/src/sketch2life/domain/story_video/model.py:95, backend/src/sketch2life/infrastructure/persistence/parent_story_repository.py:3493,3608-3621, backend/tests/integration/story_video/test_safety_block_exit_postgres.py:264-275
+}

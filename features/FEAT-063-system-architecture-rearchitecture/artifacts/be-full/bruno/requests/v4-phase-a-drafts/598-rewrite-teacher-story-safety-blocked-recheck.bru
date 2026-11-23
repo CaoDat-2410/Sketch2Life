@@ -1,0 +1,49 @@
+meta {
+  name: 598 [DRAFT-V4A] [LOCAL / TEST ONLY] Rewrite Teacher story after video safety block (automatic return)
+  type: http
+  seq: 598
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{blocked_teacher_run_id}}/story-rewrites
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "expected_story_revision": {{blocked_teacher_story_revision_no}},
+    "expected_story_sha256": "{{blocked_teacher_story_sha256}}",
+    "hint": "Shorter story with a kind ending"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(202);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(String(res.getHeader("Content-Location"))).to.equal("/v1/story-runs/" + bru.getVar("blocked_teacher_run_id"));
+    const body = res.getBody();
+    expect(body.story_run_id).to.equal(bru.getVar("blocked_teacher_run_id"));
+    expect(body.run_state).to.equal("SCRIPT_GENERATING");
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Teacher - set bearerToken to seed-tch-a1 token
+  Needs: needs-fixture - blocked_teacher_run_id, blocked_teacher_story_revision_no, blocked_teacher_story_sha256 (Teacher StoryRun after a video safety block automatically returned it to SCRIPT_REVIEW, or a legacy SAFETY_BLOCKED row, below the rewrite cap)
+  Expected: 202 (rewrite door accepts a safety-blocked CONFIRMED revision via SPENT_GENERATION_STATES and queues a new story revision in SCRIPT_GENERATING)
+  Source: backend/src/sketch2life/application/services/story_review_rules.py:27, backend/src/sketch2life/infrastructure/persistence/parent_story_repository.py:2657-2677,2768,2787-2791, backend/tests/integration/story_teacher/test_teacher_safety_block_exit_postgres.py:55-68
+}

@@ -1,0 +1,44 @@
+meta {
+  name: 561 [DRAFT-V4A] [LOCAL / TEST ONLY] Get completed Parent StoryRun playback state AVAILABLE
+  type: http
+  seq: 561
+}
+
+get {
+  url: {{baseUrl}}/v1/story-runs/{{completed_story_run_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const story = res.getBody().story_run;
+    expect(story.run_id).to.equal(bru.getVar("completed_story_run_id"));
+    expect(story.run_state).to.equal("COMPLETED");
+    expect(story.video).to.be.an("object");
+    expect(story.video.state).to.equal("READY");
+    expect(story.video.playback.state).to.equal("AVAILABLE");
+    expect(String(story.video.playback.asset_ref).startsWith("vid_")).to.equal(true);
+    expect(story.video.playback.token_route).to.equal("/v1/story-runs/" + bru.getVar("completed_story_run_id") + "/playback-token");
+    expect(story.post_video_activities === null || Array.isArray(story.post_video_activities)).to.equal(true);
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Parent - set bearerToken to seed-parent-p1 token
+  Needs: completed_story_run_id (Parent run at COMPLETED after 573 with a READY safety-passed video)
+  Expected: 200 (video.playback.state AVAILABLE)
+  Source: backend/src/sketch2life/application/services/story_run_detail.py:105-121, backend/src/sketch2life/infrastructure/persistence/parent_story_repository.py:587, backend/tests/integration/story_video/test_playback_and_detail_postgres.py:754-764
+}

@@ -1,0 +1,45 @@
+meta {
+  name: 614 [DRAFT-V4A] [LOCAL / TEST ONLY] Refuse script re-confirmation at video regeneration limit
+  type: http
+  seq: 614
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{limit_exhausted_run_id}}/script-confirmation
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "expected_revision": {{limit_exhausted_story_revision_no}},
+    "story_sha256": "{{limit_exhausted_story_sha256}}"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("VIDEO_REGENERATION_LIMIT_REACHED");
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Parent or Teacher - set bearerToken to the run owner's token
+  Needs: needs-fixture - limit_exhausted_run_id, limit_exhausted_story_revision_no, limit_exhausted_story_sha256 (StoryRun back at SCRIPT_REVIEW after 3 accepted video requests are spent)
+  Expected: 409 / VIDEO_REGENERATION_LIMIT_REACHED
+  Source: backend/src/sketch2life/infrastructure/persistence/parent_story_repository.py:3522-3535, backend/tests/integration/story_video/test_story_reconfirm_postgres.py:182-215
+}

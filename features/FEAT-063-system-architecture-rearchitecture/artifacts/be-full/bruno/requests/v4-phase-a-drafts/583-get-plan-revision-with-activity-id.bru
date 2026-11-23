@@ -1,0 +1,54 @@
+meta {
+  name: 583 [DRAFT-V4A] [LOCAL / TEST ONLY] Get occurrence plan revision with plan_activity_id
+  type: http
+  seq: 583
+}
+
+get {
+  url: {{baseUrl}}/v1/lesson-occurrences/{{occurrence_id}}/plan-revisions/{{plan_revision_no}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+script:post-response {
+  const body = res.getBody();
+  bru.setVar("plan_etag", res.getHeader("ETag"));
+  bru.setVar("plan_hash", body.content_hash);
+  if (Array.isArray(body.activities) && body.activities.length > 0 && body.activities[0].plan_activity_id) {
+    bru.setVar("plan_activity_id", body.activities[0].plan_activity_id);
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("ETag")).to.be.a("string");
+    expect(res.getHeader("Cache-Control")).to.equal("private, no-cache");
+    const body = res.getBody();
+    expect(body.contract).to.equal("LessonPlanRevisionV1");
+    expect(body.activities).to.be.an("array");
+    body.activities.forEach(function (activity) {
+      expect(activity.plan_activity_id).to.be.a("string");
+      expect(activity.plan_activity_id.length >= 1).to.equal(true);
+      expect(activity.plan_activity_id.length <= 36).to.equal(true);
+    });
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Teacher - set bearerToken to seed-tch-a1 token
+  Needs: occurrence_id, plan_revision_no from 576 or 580
+  Expected: 200
+  Source: backend/src/sketch2life/interfaces/http/routers/lesson_occurrences.py:534-559, backend/tests/contract/test_lesson_plan_routes.py:778-791
+}

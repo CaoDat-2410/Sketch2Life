@@ -1,0 +1,44 @@
+meta {
+  name: 562 [DRAFT-V4A] [LOCAL / TEST ONLY] Get StoryRun after video safety block (automatic return to SCRIPT_REVIEW)
+  type: http
+  seq: 562
+}
+
+get {
+  url: {{baseUrl}}/v1/story-runs/{{blocked_parent_run_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const story = res.getBody().story_run;
+    expect(story.run_id).to.equal(bru.getVar("blocked_parent_run_id"));
+    expect(story.run_state).to.equal("SCRIPT_REVIEW");
+    expect(story.job_state).to.equal("FAILED");
+    expect(story.error_code).to.equal("VIDEO_SAFETY_BLOCKED");
+    expect(story.story_confirmation_required).to.equal(true);
+    expect(story.video.state).to.equal("SAFETY_BLOCKED");
+    expect(story.video.job.error_code).to.equal("VIDEO_SAFETY_BLOCKED");
+    expect(story.video.playback.state).to.equal("UNAVAILABLE");
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Parent - set bearerToken to seed-parent-p1 token (Teacher equivalent reads the same fields on a blocked Teacher run)
+  Needs: needs-fixture - blocked_parent_run_id (Parent StoryRun after the NEW automatic return from a safety-blocked video generation with fewer than 3 accepted requests)
+  Expected: 200 (run_state SCRIPT_REVIEW, story_confirmation_required true, error_code VIDEO_SAFETY_BLOCKED)
+  Source: backend/src/sketch2life/domain/story_video/model.py:89,116, backend/src/sketch2life/infrastructure/story_video/repository.py:1391-1405, backend/tests/integration/story_video/test_safety_block_exit_postgres.py:90-110
+}

@@ -1,0 +1,49 @@
+meta {
+  name: 603 [DRAFT-V4A] [LOCAL / TEST ONLY] Refuse re-confirming class projection after Complete when confirmed before Complete
+  type: http
+  seq: 603
+}
+
+post {
+  url: {{baseUrl}}/v1/lesson-occurrences/{{pre_complete_projected_occurrence_id}}/projection-confirmation
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  If-Match: {{pre_complete_projected_occurrence_etag}}
+}
+
+body:json {
+  {
+    "story_run_id": "{{pre_complete_projected_run_id}}",
+    "video_generation_id": "{{pre_complete_projected_generation_id}}",
+    "checklist": [
+      "CONTENT_APPROPRIATE_FOR_CLASS",
+      "CLASSROOM_PROJECTION_INTENT_CONFIRMED"
+    ]
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("INVALID_STATE_TRANSITION");
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Teacher - set bearerToken to seed-tch-a1 token
+  Needs: needs-fixture - pre_complete_projected_occurrence_id, pre_complete_projected_occurrence_etag, pre_complete_projected_run_id, pre_complete_projected_generation_id (occurrence whose sample run was projection-confirmed at VIDEO_READY via 529 and then completed via 526/572; C1 option a ends pre-Complete confirmation at Complete)
+  Expected: 409 / INVALID_STATE_TRANSITION (cannot revive a pre-Complete projection confirmation after Complete)
+  Source: backend/src/sketch2life/infrastructure/lesson_occurrences/projection.py:253-270,463-497, backend/tests/integration/lesson_occurrences/test_projection_after_complete_postgres.py:84-110
+}

@@ -1,0 +1,64 @@
+meta {
+  name: 601 [DRAFT-V4A] [LOCAL / TEST ONLY] Repeat class projection confirmation after post-Complete claim
+  type: http
+  seq: 601
+}
+
+post {
+  url: {{baseUrl}}/v1/lesson-occurrences/{{occurrence_id}}/projection-confirmation
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  If-Match: {{occurrence_etag}}
+}
+
+body:json {
+  {
+    "story_run_id": "{{completed_run_id}}",
+    "video_generation_id": "{{completed_generation_id}}",
+    "checklist": [
+      "CONTENT_APPROPRIATE_FOR_CLASS",
+      "CLASSROOM_PROJECTION_INTENT_CONFIRMED"
+    ]
+  }
+}
+
+script:post-response {
+  const etag = res.getHeader("ETag");
+  if (etag) {
+    bru.setVar("occurrence_etag", etag);
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("ETag")).to.be.a("string");
+    expect(res.getHeader("Cache-Control")).to.equal("private, no-cache");
+    const body = res.getBody();
+    expect(body.contract).to.equal("ClassProjectionConfirmationV1");
+    expect(body.occurrence_id).to.equal(bru.getVar("occurrence_id"));
+    expect(body.story_run_id).to.equal(bru.getVar("completed_run_id"));
+    expect(body.video_generation_id).to.equal(bru.getVar("completed_generation_id"));
+    expect(body.sample_video.slot_state).to.equal("CLAIMED");
+    expect(body.sample_video.story_run_id).to.equal(bru.getVar("completed_run_id"));
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Teacher - set bearerToken to seed-tch-a1 token
+  Needs: run after 600 (or 530) has claimed the sample slot after Complete, using updated occurrence_etag
+  Expected: 200 (repeat confirmation on the post-Complete claimed sample succeeds)
+  Source: backend/src/sketch2life/infrastructure/lesson_occurrences/projection.py:249-316, backend/tests/integration/lesson_occurrences/test_projection_after_complete_postgres.py:70-81
+}

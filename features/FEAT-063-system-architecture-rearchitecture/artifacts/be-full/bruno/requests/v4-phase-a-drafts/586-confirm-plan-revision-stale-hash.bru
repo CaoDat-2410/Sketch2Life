@@ -1,0 +1,47 @@
+meta {
+  name: 586 [DRAFT-V4A] [LOCAL / TEST ONLY] Confirm plan revision with stale hash
+  type: http
+  seq: 586
+}
+
+post {
+  url: {{baseUrl}}/v1/lesson-occurrences/{{occurrence_id}}/plan-revisions/{{plan_revision_no}}/confirm
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "expected_plan_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "checklist": []
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.code).to.equal("STALE_REVISION");
+    expect(body.current_version).to.equal(Number(bru.getVar("plan_revision_no")));
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Teacher - set bearerToken to seed-tch-a1 token
+  Needs: occurrence_id, plan_revision_no (head revision)
+  Expected: 409 / STALE_REVISION (with current_version)
+  Source: backend/src/sketch2life/infrastructure/lesson_occurrences/plans.py:202-211,676-677, backend/tests/contract/test_lesson_plan_routes.py:596-608
+}

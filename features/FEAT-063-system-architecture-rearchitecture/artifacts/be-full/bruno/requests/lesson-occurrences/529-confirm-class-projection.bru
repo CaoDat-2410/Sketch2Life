@@ -52,7 +52,7 @@ tests {
 
 docs {
   Role: Teacher - set bearerToken to that synthetic account's token
-  Needs: occurrence_id, occurrence_etag (refreshed by a GET of the occurrence right before 529), teacher_run_id, teacher_generation_id; run is at VIDEO_READY and not completed (confirm before Complete)
+  Needs: occurrence_id, occurrence_etag (refreshed by a GET of the occurrence right before 529), teacher_run_id, teacher_generation_id; run is at VIDEO_READY and not completed (confirm before Complete ends at Complete)
   Expected: 200
-  Source: backend/tests/integration/lesson_occurrences/test_projection_postgres.py, backend/tests/contract/test_projection_routes.py
+  Source: backend/src/sketch2life/infrastructure/lesson_occurrences/projection.py:201-316, backend/tests/integration/lesson_occurrences/test_projection_postgres.py, backend/tests/integration/lesson_occurrences/test_projection_after_complete_postgres.py:84-110
 }

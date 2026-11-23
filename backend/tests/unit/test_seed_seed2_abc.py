@@ -19,6 +19,7 @@ def test_the_stages_run_in_the_documented_order() -> None:
         "s7b_story_states",
         "s10_inbox",
         "s11_org_run_shares",
+        "s12_story_v4a",
     ]
 
 

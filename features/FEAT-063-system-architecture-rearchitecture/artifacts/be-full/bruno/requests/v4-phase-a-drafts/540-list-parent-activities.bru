@@ -1,0 +1,53 @@
+meta {
+  name: 540 [DRAFT-V4A] [LOCAL / TEST ONLY] List Parent main-activity candidates
+  type: http
+  seq: 540
+}
+
+get {
+  url: {{baseUrl}}/v1/activities?story_run_id={{parent_story_run_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (Array.isArray(body.items) && body.items.length > 0) {
+    const ref = body.items[0].activity_ref;
+    bru.setVar("activity_lesson_id", ref.lesson_id);
+    bru.setVar("activity_version_id", ref.version_id);
+    bru.setVar("activity_content_sha256", ref.content_sha256);
+    bru.setVar("activity_index", String(ref.activity_index));
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.request_id).to.be.a("string");
+    expect(body.items).to.be.an("array");
+    expect(body.items.length <= 12).to.equal(true);
+    expect(["36-71", "72-107", "108-120"]).to.include(body.basis.age_band);
+    expect(typeof body.basis.pinned_lesson).to.equal("boolean");
+    expect(typeof body.basis.no_candidate).to.equal("boolean");
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Parent - set bearerToken to seed-parent-p1 token
+  Needs: parent_story_run_id in PREPARATION_REVIEW (subject confirmed)
+  Expected: 200
+  Source: backend/src/sketch2life/interfaces/http/routers/parent_story_activities.py:55-84, backend/tests/contract/test_parent_activities_contract.py:92-122
+}

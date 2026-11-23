@@ -1,0 +1,36 @@
+meta {
+  name: 617 [DRAFT-V4A] [LOCAL / TEST ONLY] Refuse playback token for completed Parent run after child profile deleted
+  type: http
+  seq: 617
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{deleted_profile_completed_run_id}}/playback-token
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_NOT_FOUND");
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Parent - set bearerToken to seed-parent-p1 token
+  Needs: needs-fixture - deleted_profile_completed_run_id (COMPLETED Parent StoryRun whose subject child profile was subsequently deleted)
+  Expected: 404 / RESOURCE_NOT_FOUND (_parent_profile_revoked revokes post-Complete Parent playback when the child profile is gone)
+  Source: backend/src/sketch2life/infrastructure/story_video/repository.py:1221-1222,1239-1276, backend/tests/integration/story_video/test_playback_and_detail_postgres.py:345-375
+}
