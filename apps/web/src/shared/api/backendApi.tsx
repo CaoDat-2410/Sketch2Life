@@ -1,6 +1,7 @@
 import React from "react";
 import { resolveBackendRuntimeConfig } from "./backendRuntimeConfig";
 import { parseApiError } from "./errorEnvelope";
+import { CURSOR_PAGE_LIMIT, collectCursorPages } from "./cursorPages";
 
 export type PortalRole = "parent" | "teacher" | "school_manager" | "platform_admin";
 export type PlatformAccountRole = PortalRole;
@@ -62,16 +63,28 @@ export class BackendApiError extends Error {
   }
 }
 
+export type Be1ClassState = "active" | "suspended" | "archived";
+/** T-7b: the A07 state filter; `all` is every state the caller may see (no archived for a Teacher). */
+export type Be1ClassListFilter = Be1ClassState | "all";
+
 export interface Be1Class {
   class_id: string;
   display_name: string;
-  state: string;
+  state: Be1ClassState;
+  /** T-7b: class revision for the strong If-Match of class commands (separate from assignment_revision). */
+  class_revision?: number;
+  assignment_revision?: number;
+  has_active_teacher?: boolean;
 }
+
+interface Be1ClassPage { contract: string; items: Be1Class[]; next_cursor: string | null }
 
 export interface Be1CreatedClass {
   contract: "Be1ClassV1";
   class_id: string;
   display_name: string;
+  state: "active" | "inactive";
+  assignment_revision: number;
 }
 
 export interface Be1Assignment {
@@ -366,7 +379,12 @@ export const backendApi = {
   health: () => backendRequest<{ status: "ok"; service: string }>("/health", {}, { auth: false }),
   accountRole: () => backendRequest<{ role: PortalRole }>("/api/auth/v1/me"),
   assignments: (organizationId: string) => backendRequest<Be1Assignments>(`${orgPath(organizationId)}/me`),
-  classes: (organizationId: string) => backendRequest<{ contract: string; items: Be1Class[] }>(`${orgPath(organizationId)}/classes`),
+  // T-7a/T-7b (SRS l.1640): A07 is cursor paged (default 25) and filtered by class state; read every page.
+  classes: async (organizationId: string, state: Be1ClassListFilter = "active") => {
+    const { first, items } = await collectCursorPages<Be1Class, Be1ClassPage>((cursor) =>
+      backendRequest<Be1ClassPage>(`${orgPath(organizationId)}/classes${q({ state, limit: CURSOR_PAGE_LIMIT, cursor })}`));
+    return { contract: first.contract, items };
+  },
   profiles: (organizationId: string, classId: string) => backendRequest<{ contract: string; items: Array<{ child_id: string; class_id: string; display_name: string; age_months: number }> }>(`${orgPath(organizationId)}/classes/${encodeURIComponent(classId)}/profiles`),
   consents: (organizationId: string, classId: string) => backendRequest<{ contract: string; items: Array<{ consent_id: string; child_id: string; purpose_ref: string; state: string; effective: boolean }> }>(`${orgPath(organizationId)}/classes/${encodeURIComponent(classId)}/consents`),
   recordConsent: (organizationId: string, classId: string, childId: string, purposeRef: string, idempotencyKey = createRequestId()) => backendRequest<Record<string, unknown>>(`${orgPath(organizationId)}/classes/${encodeURIComponent(classId)}/consents`, {
@@ -374,8 +392,10 @@ export const backendApi = {
     headers: { "Idempotency-Key": idempotencyKey },
     body: JSON.stringify({ class_id: classId, child_id: childId, purpose_ref: purposeRef }),
   }),
-  createClass: (organizationId: string, displayName: string) => backendRequest<Be1CreatedClass>(`${orgPath(organizationId)}/classes`, {
-    method: "POST", body: JSON.stringify({ display_name: displayName }),
+  createClass: (organizationId: string, displayName: string, idempotencyKey = createRequestId()) => backendRequest<Be1CreatedClass>(`${orgPath(organizationId)}/classes`, {
+    method: "POST",
+    headers: { "Idempotency-Key": idempotencyKey },
+    body: JSON.stringify({ display_name: displayName }),
   }),
   lessons: (organizationId: string, options: { state?: string; visibility?: string; cursor?: string } = {}) =>
     backendRequest<LessonPage>(`${lessonPath(organizationId)}/lessons${q(options)}`),

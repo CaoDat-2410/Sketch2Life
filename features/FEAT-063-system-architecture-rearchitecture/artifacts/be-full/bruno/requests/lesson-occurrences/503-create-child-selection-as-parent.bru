@@ -1,0 +1,42 @@
+meta {
+  name: 503 [LOCAL / TEST ONLY] Create child selection as Parent
+  type: http
+  seq: 503
+}
+
+post {
+  url: {{baseUrl}}/v1/lesson-occurrences/{{occurrence_id}}/child-selections
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_NOT_FOUND");
+    expect(JSON.stringify(res.getBody())).to.not.include("display_name");
+  });
+}
+
+docs {
+  Role: Parent - set bearerToken to that synthetic account's token
+  Needs: occurrence_id
+  Expected: 404 / RESOURCE_NOT_FOUND (wrong role gets uniform 404 with no child data)
+  Source: backend/tests/integration/lesson_occurrences/test_child_selection_postgres.py, backend/tests/contract/test_child_selection_routes.py
+}

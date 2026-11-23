@@ -1,0 +1,35 @@
+meta {
+  name: 423 [LOCAL / TEST ONLY] Current School Manager scope
+  type: http
+  seq: 423
+}
+
+get {
+  url: {{baseUrl}}/api/auth/v1/me
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.role).to.equal("school_manager");
+    expect(body.state).to.equal("active");
+    expect(body.scope.accounts.managed).to.equal("NONE");
+    expect(body.scope.permissions).to.deep.equal([]);
+    expect(body.scope.truncated).to.equal(false);
+    expect(body.scope.organizations.some(item => item.organization_id === "seed-org-a" && item.roles.includes("school_admin"))).to.equal(true);
+    expect(body.scope.classes).to.deep.equal([]);
+  });
+}

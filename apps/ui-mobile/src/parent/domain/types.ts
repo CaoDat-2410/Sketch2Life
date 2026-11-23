@@ -509,6 +509,16 @@ export type ParentStorySubjectConfirmationV1 = {
   decision: 'CONFIRMED';
 };
 
+/**
+ * Phase B 202 body of the subject confirmation (SRS l.1666). The frozen `ParentStorySubjectConfirmationV1`
+ * above only knows `CONFIRMED`; an edited subject can also answer `RERUN_REQUESTED` (SRS l.394, l.1413):
+ * the visual understanding runs again and the new revision is confirmed in a second call.
+ */
+export type ParentStorySubjectConfirmationAcceptedV1 = Omit<ParentStorySubjectConfirmationV1, 'decision'> & {
+  decision: ParentStorySubjectConfirmationV1['decision'] | 'RERUN_REQUESTED';
+  run_revision?: number;
+};
+
 export type ParentStoryScriptConfirmationV1 = ParentStoryRunEnvelopeV1;
 
 export type ParentStoryRevisionResultV1 = {

@@ -1,0 +1,31 @@
+meta {
+  name: 300 [LOCAL / TEST ONLY] Teacher A10 retains consent item projection and cursor
+  type: http
+  seq: 300
+}
+
+get {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/classes/{{class_id}}/consents?limit=25
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().contract).to.equal("Be1ConsentListV1");
+    expect(res.getBody()).to.have.property("next_cursor");
+    expect(res.getBody().items).to.be.an("array");
+  });
+}
+

@@ -1,0 +1,28 @@
+meta {
+  name: 242 [LOCAL / TEST ONLY] Stale occurrence validator returns current body
+  type: http
+  seq: 242
+}
+
+get {
+  url: {{baseUrl}}/v1/lesson-occurrences/{{occurrence_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  If-None-Match: "0"
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+  });
+}

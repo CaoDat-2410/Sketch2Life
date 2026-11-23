@@ -473,7 +473,7 @@ class LifecycleAuditWriterPort(Protocol):
 
 
 class LifecycleNoticePort(Protocol):
-    """AI Jobs cancellation notice for a Parent run (DTR §5.2); matches no job."""
+    """AI Jobs cancellation notice of a StoryRun lifecycle (DTR §5.2); matches no job."""
 
     def notice_exists(self, notice_id: str) -> bool: ...
 
@@ -485,7 +485,20 @@ class LifecycleNoticePort(Protocol):
         story_run_ref: str,
         reason_code: str,
     ) -> None:
-        """Insert-if-absent, ``COMPLETE`` with ``applied_count = 0``."""
+        """Insert-if-absent, ``COMPLETE`` with ``applied_count = 0``; a Parent scope only."""
+        ...
+
+    def record_lifecycle_notice(
+        self,
+        *,
+        notice_id: str,
+        scope: LifecycleScope,
+        story_run_ref: str,
+        reason_code: str,
+    ) -> None:
+        """Insert-if-absent, ``COMPLETE`` with ``applied_count = 0``, for the Parent scope and
+        for an ``ORGANIZATION`` scope (a Teacher run, FEAT-066 T-13a). It never selects a job
+        (T-4b2 adds the job match, hand-off H2)."""
         ...
 
 

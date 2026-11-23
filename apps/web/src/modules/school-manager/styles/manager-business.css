@@ -152,11 +152,19 @@
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-button:disabled { opacity: .56; cursor: not-allowed; }
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-pagination { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; padding-top: 13px; border-top: 1px solid var(--manager-rule); color: var(--manager-muted); font-size: 12px; }
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-pagination > div { display: flex; flex-wrap: wrap; gap: 8px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-class { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, .85fr); gap: 12px 24px; align-items: center; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-class h2 { margin: 0; color: var(--manager-ink); font-size: 18px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-class p { margin: 7px 0 0; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-class form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: end; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-class label { grid-column: 1 / -1; color: var(--manager-ink); font-size: 13px; font-weight: 700; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-class input { min-width: 0; min-height: 42px; padding: 8px 11px; border: 1px solid var(--manager-rule-strong); border-radius: 10px; background: #fffefa; color: var(--manager-ink); font: inherit; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-class > .manager-business-subtle { grid-column: 1 / -1; margin-top: 0; }
 @media (max-width: 820px) {
   :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-grid { grid-template-columns: minmax(0, 1fr); }
   :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-class-picker { grid-template-columns: minmax(0, 1fr); }
   :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-class-picker .manager-business-subtle { grid-column: 1; }
   :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-organization { grid-template-columns: minmax(0, 1fr); }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-class { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 560px) {
   :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-card { padding: 14px; }
@@ -359,3 +367,10 @@
 @media (prefers-reduced-motion: reduce) {
   :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-nav-link { transition: none; }
 }
+/* Goal v3 Phase B (T-7a/T-7b): roster count and class state controls. */
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-roster-count { margin: 4px 0 0; color: var(--manager-ink); font-size: 15px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-roster-count strong { font-size: 28px; margin-right: 6px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-filter { display: grid; gap: 4px; margin: 0 0 10px; color: var(--manager-ink); font-size: 13px; font-weight: 700; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-filter select { min-height: 38px; padding: 6px 10px; border: 1px solid var(--manager-rule-strong); border-radius: 10px; background: #fffefa; color: var(--manager-ink); font: inherit; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-lifecycle > div { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-lifecycle [role="group"] > p { flex-basis: 100%; margin: 0; }

@@ -1,0 +1,28 @@
+meta {
+  name: 241 [LOCAL / TEST ONLY] Read unchanged occurrence with ETag
+  type: http
+  seq: 241
+}
+
+get {
+  url: {{baseUrl}}/v1/lesson-occurrences/{{occurrence_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  If-None-Match: {{occurrence_etag}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(304);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+  });
+}

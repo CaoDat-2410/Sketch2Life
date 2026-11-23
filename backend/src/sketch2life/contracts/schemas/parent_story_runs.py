@@ -9,6 +9,11 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field
 
 from sketch2life.contracts.schemas.lesson_library import LessonActivityInputV1
+from sketch2life.contracts.schemas.story_run_video import (
+    ParentStoryQuotaSummaryV1,
+    ParentStoryRunVideoV1,
+    ParentStoryTimelineEventV1,
+)
 
 
 class ParentLessonVersionRefV1(BaseModel):
@@ -118,6 +123,74 @@ ParentStoryRunStateV1 = Literal[
 ]
 
 
+# --- T-2e-a (DDL-B3, SRS l.514, l.527, l.532, l.1412, l.1667): the Parent's main activity ---------
+class ParentActivityRefV1(BaseModel):
+    """The exact lesson activity a Parent chose: version, content hash and index (never a URL)."""
+
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    lesson_id: str = Field(min_length=1, max_length=36)
+    version_id: str = Field(min_length=1, max_length=36)
+    content_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    activity_index: int = Field(ge=0, le=23)
+
+
+class ParentActivityV1(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    activity_ref: ParentActivityRefV1
+    title: str
+    objective: str
+    materials_text: str
+    preparation_text: str
+    instructions_text: str
+    observation_notes: str
+    safety_notes: str
+    activity_kind: Literal["outdoor", "indoor", "mixed"]
+    source: Literal["PINNED_LESSON", "PUBLIC", "SHARED"]
+    lesson_title: str
+    lesson_topic: str
+
+
+class ParentPostVideoActivityV1(ParentActivityV1):
+    is_main: bool
+
+
+class ParentMainActivityV1(BaseModel):
+    """``NOT_SELECTED`` until the adult chose; then the stored snapshot (no catalog read)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    state: Literal["NOT_SELECTED", "SELECTED"]
+    selected: ParentActivityV1 | None = None
+    selected_at: datetime | None = None
+
+
+class ParentActivityListBasisV1(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    age_band: Literal["36-71", "72-107", "108-120"]
+    pinned_lesson: bool
+    no_candidate: bool
+
+
+class ParentActivityListV1(BaseModel):
+    """At most 12 age-fit activities in a deterministic order; not a paged collection."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    request_id: UUID
+    items: list[ParentActivityV1] = Field(max_length=12)
+    basis: ParentActivityListBasisV1
+
+
+class ParentActivitySelectionRequestV1(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    expected_revision: int = Field(ge=1)
+    activity: ParentActivityRefV1
+
+
 class ParentStoryRunResponseV1(BaseModel):
     run_id: UUID
     run_revision: int = Field(ge=1)
@@ -145,6 +218,17 @@ class ParentStoryRunResponseV1(BaseModel):
     error_code: str | None
     created_at: datetime
     updated_at: datetime
+    # FEAT-066 T-1c (StoryRunDetailV1, SRS l.1811): additive fields only (l.1635).
+    video: ParentStoryRunVideoV1 | None = None
+    quota: ParentStoryQuotaSummaryV1 = Field(default_factory=ParentStoryQuotaSummaryV1)
+    timeline: list[ParentStoryTimelineEventV1] = Field(default_factory=list)
+    # FEAT-066 T-2e-a (SRS l.514, l.532, l.1414): additive. The name is not ``activity``: the
+    # Teacher response already has that field.
+    main_activity: ParentMainActivityV1 | None = None
+    post_video_activities: list[ParentPostVideoActivityV1] | None = None
+    # FEAT-066 V4-A T-1b-fix (SRS l.406, l.1728; additive, l.1635): true when the adult has to
+    # confirm the current story (again) before a video can be requested.
+    story_confirmation_required: bool = False
 
 
 class ParentStoryRunEnvelopeV1(BaseModel):
@@ -247,10 +331,20 @@ class ParentContextConfirmationRequestV1(BaseModel):
 
 
 class ParentSubjectConfirmationResponseV1(BaseModel):
+    """202 body of the subject confirmation (SRS l.1666).
+
+    ``CONFIRMED``: the subject was accepted as ``understanding_revision``. ``RERUN_REQUESTED``: the
+    adult edited the subject, the visual understanding runs again and the new revision is
+    confirmed in a second call (SRS l.394, l.1413); ``understanding_revision`` is then the revision
+    the adult edited. ``run_revision`` is the revision the command created. The job reference is
+    parked (Q-J), so there is no ``job`` field.
+    """
+
     request_id: UUID
     story_run_id: UUID
     understanding_revision: int
-    decision: Literal["CONFIRMED"]
+    decision: Literal["CONFIRMED", "RERUN_REQUESTED"]
+    run_revision: int = Field(ge=1)
 
 
 class ParentStoryRevisionRequestV1(BaseModel):
@@ -268,7 +362,14 @@ class ParentStoryRevisionConfirmationRequestV1(BaseModel):
 
 
 __all__ = [
+    "ParentActivityListBasisV1",
+    "ParentActivityListV1",
+    "ParentActivityRefV1",
+    "ParentActivitySelectionRequestV1",
+    "ParentActivityV1",
     "ParentDrawingCandidateV1",
+    "ParentMainActivityV1",
+    "ParentPostVideoActivityV1",
     "ParentContextConfirmationRequestV1",
     "ParentLessonVersionRefV1",
     "ParentRunContextSnapshotV1",

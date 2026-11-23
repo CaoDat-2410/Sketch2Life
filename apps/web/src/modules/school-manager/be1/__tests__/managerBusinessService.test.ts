@@ -23,21 +23,37 @@ describe("School Manager business API adapter", () => {
     expect(mocks.adminBe1Request).toHaveBeenCalledWith("/organizations/org%20%2Fqa", {});
   });
 
-  it("reads the minimal class roster through the BE1 route", async () => {
+  it("reads the T-7a roster count summary through the BE1 route", async () => {
     const signal = new AbortController().signal;
-    await managerBusinessService.profiles("class/one", signal);
+    mocks.adminBe1Request.mockResolvedValueOnce({ contract: "Be1ClassRosterSummaryV1", class_id: "class/one", active_profile_count: 3 });
+    await expect(managerBusinessService.rosterSummary("class/one", signal)).resolves.toEqual({
+      contract: "Be1ClassRosterSummaryV1", class_id: "class/one", active_profile_count: 3,
+    });
     expect(mocks.adminBe1Request).toHaveBeenCalledWith(
       "/organizations/org%20%2Fqa/classes/class%2Fone/profiles",
       { signal },
     );
   });
 
-  it("reads consent status without exposing write operations", async () => {
-    await managerBusinessService.consents("class-1");
-    expect(mocks.adminBe1Request).toHaveBeenCalledWith(
-      "/organizations/org%20%2Fqa/classes/class-1/consents",
-      {},
-    );
+  it("refuses a Teacher-shaped roster body instead of passing child names to the Manager screen", async () => {
+    mocks.adminBe1Request.mockResolvedValueOnce({
+      contract: "Be1ManagedProfileListV1",
+      items: [{ child_id: "c-1", class_id: "class-1", display_name: "Synthetic An", age_months: 60 }],
+    });
+    await expect(managerBusinessService.rosterSummary("class-1")).rejects.toThrow("không đúng contract");
+  });
+
+  it("reads every consent page and keeps only the Manager item fields", async () => {
+    mocks.adminBe1Request
+      .mockResolvedValueOnce({ contract: "Be1ConsentListManagerV1", items: [{ consent_id: "k-1", state: "PENDING", effective: false }], next_cursor: "cur 2" })
+      .mockResolvedValueOnce({ contract: "Be1ConsentListManagerV1", items: [{ consent_id: "k-2", state: "ACTIVE", effective: false, child_id: "leak", purpose_ref: "leak" }], next_cursor: null });
+    const items = await managerBusinessService.consents("class-1");
+    expect(items).toEqual([
+      { consent_id: "k-1", state: "PENDING", effective: false },
+      { consent_id: "k-2", state: "ACTIVE", effective: false },
+    ]);
+    expect(mocks.adminBe1Request).toHaveBeenNthCalledWith(1, "/organizations/org%20%2Fqa/classes/class-1/consents?limit=100", {});
+    expect(mocks.adminBe1Request).toHaveBeenNthCalledWith(2, "/organizations/org%20%2Fqa/classes/class-1/consents?limit=100&cursor=cur+2", {});
   });
 
   it("lists parent groups with an opaque cursor", async () => {

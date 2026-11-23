@@ -1,0 +1,29 @@
+meta {
+  name: 152 [PARENT - STATE CHANGE - LOCAL TEST ONLY] Confirm Parent Story Script
+  type: http
+  seq: 152
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{parent_story_run_id}}/script-confirmation
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_REQUEST_ID_152
+  Idempotency-Key: REPLACE_WITH_SYNTHETIC_KEY_152
+}
+
+body:json {
+  {
+    "expected_revision": 1,
+    "story_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  }
+}

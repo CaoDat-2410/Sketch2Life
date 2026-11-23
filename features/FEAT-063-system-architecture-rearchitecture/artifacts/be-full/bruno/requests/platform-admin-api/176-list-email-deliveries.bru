@@ -1,0 +1,27 @@
+meta {
+  name: 176 [PLATFORM ADMIN - READ ONLY] List Email Deliveries
+  type: http
+  seq: 176
+}
+
+get {
+  url: {{baseUrl}}/api/platform-admin/v1/email-deliveries?state=pending&limit=25
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+docs {
+  Expected success status: 200
+  Main error cases: 401 AUTH_REQUIRED; 403 ACTION_NOT_ALLOWED; 400 INVALID_REQUEST; 422 INVALID_CURSOR.
+  If-Match required: no.
+  Idempotency-Key required: no.
+}

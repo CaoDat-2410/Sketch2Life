@@ -1,0 +1,48 @@
+meta {
+  name: 568 [DRAFT-V4A] [LOCAL / TEST ONLY] Request Teacher video on superseded plan
+  type: http
+  seq: 568
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{teacher_run_id}}/video-generations
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "expected_revision": {{teacher_run_revision}},
+    "story_sha256": "{{teacher_story_sha256}}",
+    "quality_reason_code": null
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.code).to.equal("STALE_REVISION");
+    expect(body.current_version).to.equal(Number(bru.getVar("plan_revision_no")));
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Teacher - set bearerToken to seed-tch-a1 token
+  Needs: teacher_run_id in SCRIPT_REVIEW with confirmed story, current teacher_run_revision and teacher_story_sha256, after a newer plan revision was confirmed via 585 so the run's pinned plan is superseded (current_version is the approved plan revision number in plan_revision_no, not the run revision)
+  Expected: 409 / STALE_REVISION (current_version = approved plan revision_no)
+  Source: backend/src/sketch2life/infrastructure/story_video/repository.py:208-235,481-485, backend/tests/integration/story_teacher/test_teacher_plan_fence_postgres.py:82-95
+}

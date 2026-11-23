@@ -1,0 +1,28 @@
+meta {
+  name: 431 [LOCAL / TEST ONLY] Read unchanged job with ETag
+  type: http
+  seq: 431
+}
+
+get {
+  url: {{baseUrl}}/v1/jobs/{{owned_job_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  If-None-Match: {{owned_job_etag}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(304);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+  });
+}

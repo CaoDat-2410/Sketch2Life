@@ -151,6 +151,12 @@ def _parent_actor(db: Session, principal: VerifiedPrincipal) -> None:
 
 
 def _platform_admin(db: Session, principal: VerifiedPrincipal) -> None:
+    from sketch2life.infrastructure.platform_admin.service import PlatformAdminService
+    from sketch2life.domain.platform_admin import AdminError
+    try:
+        PlatformAdminService(db, principal).identity(content=True)
+    except AdminError as exc:
+        raise HTTPException(exc.status, detail={"code": exc.code}) from None
     identity = db.get(AdultIdentityModel, principal.subject)
     if (
         identity is None

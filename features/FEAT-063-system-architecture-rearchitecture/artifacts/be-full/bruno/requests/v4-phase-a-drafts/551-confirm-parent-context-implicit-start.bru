@@ -1,0 +1,57 @@
+meta {
+  name: 551 [DRAFT-V4A] [LOCAL / TEST ONLY] Confirm Parent context triggering implicit first story
+  type: http
+  seq: 551
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{parent_story_run_id}}/context-confirmation
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "expected_context_revision": {{story_context_revision}},
+    "context_snapshot_sha256": "{{story_context_hash}}",
+    "confirmed": true
+  }
+}
+
+script:post-response {
+  const story = res.getBody().story_run;
+  bru.setVar("parent_story_run_revision", String(story.run_revision));
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const story = res.getBody().story_run;
+    expect(story.context_confirmed).to.equal(true);
+    expect(story.main_activity.state).to.equal("SELECTED");
+    expect(story.run_state).to.equal("SCRIPT_GENERATING");
+    expect(story.job_state).to.equal("QUEUED");
+    expect(story.story_revision_no).to.equal(1);
+    expect(story.story_status).to.equal("GENERATING");
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Parent - set bearerToken to seed-parent-p1 token
+  Needs: parent_story_run_id, story_context_revision, story_context_hash; run after 545 (activity selected, subject confirmed, drawing and idea/transcript ready) so context-confirmation is the last gate of the implicit first-story start
+  Expected: 200 (run_state SCRIPT_GENERATING, job_state QUEUED, story_revision_no 1)
+  Source: backend/src/sketch2life/interfaces/http/routers/parent_story_runs.py:623-656, backend/src/sketch2life/infrastructure/persistence/story_first_start.py:197-226
+}

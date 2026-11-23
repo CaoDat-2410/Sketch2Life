@@ -1,0 +1,30 @@
+meta {
+  name: 295 [LOCAL / TEST ONLY] A07 continue class cursor page
+  type: http
+  seq: 295
+}
+
+get {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/classes?state=active&limit=1&cursor={{phase_b_class_list_cursor}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().items).to.be.an("array");
+    expect(res.getBody().items[0].class_revision).to.be.a("number");
+  });
+}
+

@@ -1,0 +1,30 @@
+meta {
+  name: 151 [PARENT - STATE CHANGE - LOCAL TEST ONLY] Confirm Parent Story Context
+  type: http
+  seq: 151
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{parent_story_run_id}}/context-confirmation
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_REQUEST_ID_151
+  Idempotency-Key: REPLACE_WITH_SYNTHETIC_KEY_151
+}
+
+body:json {
+  {
+    "expected_context_revision": 1,
+    "context_snapshot_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "confirmed": true
+  }
+}

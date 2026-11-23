@@ -1,0 +1,49 @@
+meta {
+  name: 546 [DRAFT-V4A] [LOCAL / TEST ONLY] Select Parent main activity without key
+  type: http
+  seq: 546
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{parent_story_run_id}}/activity-selection
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "expected_revision": {{parent_story_run_revision}},
+    "activity": {
+      "lesson_id": "{{activity_lesson_id}}",
+      "version_id": "{{activity_version_id}}",
+      "content_sha256": "{{activity_content_sha256}}",
+      "activity_index": {{activity_index}}
+    }
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("INVALID_REQUEST");
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Parent - set bearerToken to seed-parent-p1 token
+  Needs: parent_story_run_id, parent_story_run_revision, activity_* vars from 540
+  Expected: 400 / INVALID_REQUEST
+  Source: backend/src/sketch2life/interfaces/http/routers/parent_story_activities.py:87-122, backend/tests/contract/test_parent_activities_contract.py:247-262
+}

@@ -1,0 +1,21 @@
+meta {
+  name: 149 [PARENT - STATE CHANGE - LOCAL TEST ONLY] Request Parent Profile Deletion
+  type: http
+  seq: 149
+}
+
+delete {
+  url: {{baseUrl}}/v1/parent/profiles/{{parent_profile_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_REQUEST_ID_149
+  Idempotency-Key: REPLACE_WITH_SYNTHETIC_KEY_149
+}

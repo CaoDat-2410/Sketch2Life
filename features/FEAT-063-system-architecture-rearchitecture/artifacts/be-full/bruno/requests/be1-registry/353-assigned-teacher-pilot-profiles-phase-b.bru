@@ -1,0 +1,30 @@
+meta {
+  name: 353 [LOCAL / TEST ONLY] Class-assigned Teacher reads pilot profiles
+  type: http
+  seq: 353
+}
+
+get {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/sessions/{{pilot_session_id}}/pilot-profiles
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect([200, 409]).to.include(res.getStatus());
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    if (res.getStatus() === 200) expect(res.getBody().contract).to.equal("Be1PilotProfileListV1");
+    if (res.getStatus() === 409) expect(["PILOT_PROFILE_LOOKUP_UNAVAILABLE", "SESSION_NOT_IN_LOBBY"]).to.include(res.getBody().code);
+  });
+}
+

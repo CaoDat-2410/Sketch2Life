@@ -107,6 +107,8 @@ def test_s10_columns_are_the_dtr_list_and_exclude_identity_scope_state_and_versi
         "understanding_revision",
         "error_code",
         "current_input_revision",
+        # FEAT-066 T-1a: the pointer to the current video generation.
+        "current_video_generation_id",
     }
     assert not {"run_id", "actor_scope_ref", "run_state", "revision", "version"} & set(
         S10_RUN_COLUMNS
@@ -163,18 +165,26 @@ def test_purge_story_content_deletes_children_nulls_s10_and_tombstones_in_one_tr
     store, session = _store(monkeypatch, snapshot)
     store.purge_story_content(StoryPurgePlan(RUN, story_plan_ids(snapshot)))
     tables = session.tables()
-    assert tables[:6] == [
+    assert tables[:11] == [
+        # FEAT-066 T-1a: video scenes, the run pointer, then the generations go before the reviews.
+        "video_generation_scenes",
+        "runs",
+        "video_generations",
         "story_revision_reviews",
         "review_decisions",
+        # FEAT-066 goal v4 T-2e-a: the activity selections (lesson text copied into Story).
+        "activity_selections",
         "story_scenes",
         "story_revisions",
         "understanding_revisions",
+        # FEAT-066 T-2c: the transcript text is deleted before its run input (BR-23).
+        "transcript_revisions",
         "run_inputs",
     ]
-    run_update = session.statements[6]
+    run_update = session.statements[11]
     assert run_update.table.name == "runs"
     assert {name for name in run_update._values} == set(S10_RUN_COLUMNS)
-    receipt_updates = session.statements[7:]
+    receipt_updates = session.statements[12:]
     assert len(receipt_updates) == 2  # the CREATE_RUN fingerprint and the M2 CANCEL_RUN body
     dialect: Any = postgresql.dialect
     params = [dict(update.compile(dialect=dialect()).params) for update in receipt_updates]
@@ -299,7 +309,10 @@ class _ReconcileSession:
                 from types import SimpleNamespace
 
                 return SimpleNamespace(
-                    run_state=outer.state, revision=2, actor_scope_ref="a" * 64
+                    run_state=outer.state,
+                    revision=2,
+                    actor_scope_ref="a" * 64,
+                    actor_scope_kind="PARENT_ACCOUNT",
                 )
 
             def scalar_one_or_none(self) -> Any:

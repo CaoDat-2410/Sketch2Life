@@ -1,0 +1,46 @@
+meta {
+  name: 570 [DRAFT-V4A] [LOCAL / TEST ONLY] Request video at regeneration limit
+  type: http
+  seq: 570
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{limit_exhausted_run_id}}/video-generations
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "expected_revision": {{limit_exhausted_run_revision}},
+    "story_sha256": "{{limit_exhausted_story_sha256}}",
+    "quality_reason_code": "QUALITY_LOW"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("VIDEO_REGENERATION_LIMIT_REACHED");
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Parent or Teacher - set bearerToken to the run owner's token
+  Needs: needs-fixture - limit_exhausted_run_id in SCRIPT_REVIEW with a confirmed story review whose run already has 3 accepted video generations
+  Expected: 409 / VIDEO_REGENERATION_LIMIT_REACHED
+  Source: backend/src/sketch2life/infrastructure/story_video/repository.py:610-635
+}

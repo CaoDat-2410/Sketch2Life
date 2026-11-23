@@ -1,0 +1,29 @@
+meta {
+  name: 215 [LOCAL / TEST ONLY] Read upload session
+  type: http
+  seq: 215
+}
+
+get {
+  url: {{baseUrl}}/v1/upload-sessions/{{generic_upload_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().upload_id).to.equal(bru.getVar("generic_upload_id"));
+    expect(res.getBody().state).to.equal("OPEN");
+  });
+}

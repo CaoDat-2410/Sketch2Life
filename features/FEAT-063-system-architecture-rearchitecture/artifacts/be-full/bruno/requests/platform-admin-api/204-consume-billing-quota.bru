@@ -1,0 +1,37 @@
+meta {
+  name: 204 [PLATFORM ADMIN - STATE CHANGE - SYNTHETIC ONLY] Consume Billing Quota
+  type: http
+  seq: 204
+}
+
+post {
+  url: {{baseUrl}}/api/platform-admin/v1/billing/sandbox/consume
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+  Idempotency-Key: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+body:json {
+  {
+    "owner_kind": "ORGANIZATION",
+    "owner_ref": "{{organization_id}}",
+    "admission_ref": "synthetic-admission-001"
+  }
+}
+
+docs {
+  Expected success status: 200
+  Main error cases: 401 AUTH_REQUIRED; 403 ACTION_NOT_ALLOWED; 403 BILLING_SANDBOX_DISABLED; 404 RESOURCE_NOT_FOUND; 400 INVALID_REQUEST.
+  If-Match required: no.
+  Idempotency-Key required: yes.
+}

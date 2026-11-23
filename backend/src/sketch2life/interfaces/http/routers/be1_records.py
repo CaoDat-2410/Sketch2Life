@@ -39,7 +39,9 @@ from sketch2life.interfaces.http.routers.be1_common import (
     failure,
     get_class,
     get_session,
+    hide_archived_from_teacher,
     require_assignment,
+    require_class_teacher_row,
     session_event,
 )
 
@@ -407,8 +409,12 @@ def read_portfolio(
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
 ) -> dict[str, object]:
-    require_assignment(db, principal, organization_id, class_id=class_id)
-    get_class(db, organization_id, class_id)
+    assignments = require_assignment(db, principal, organization_id, class_id=class_id)
+    # T-7b: a read (suspended and archived classes stay readable); archived is Manager-only.
+    hide_archived_from_teacher(get_class(db, organization_id, class_id, write=False), assignments)
+    # T-7a2-DEC-1/DEC-5: only the class's own Teacher row; the Manager, a guide, an observer and
+    # an org-wide `teacher` row get 403 before the profile lookup can confirm a child id.
+    require_class_teacher_row(assignments, class_id)
     profile = db.scalar(
         select(ManagedProfileModel).where(
             ManagedProfileModel.organization_id == organization_id,

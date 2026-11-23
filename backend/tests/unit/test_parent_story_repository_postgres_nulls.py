@@ -120,20 +120,22 @@ def test_create_with_lesson_pin_writes_the_snapshot(monkeypatch: pytest.MonkeyPa
 def _attach(monkeypatch: pytest.MonkeyPatch, lesson_pin: dict[str, Any] | None) -> _Session:
     repository, session = _repository()
     run = {"run_id": _RUN_ID, "run_state": "INPUT_PROCESSING", "current_input_revision": 1}
-    previous = {
-        "input_revision": 1,
-        "original_asset_ref": None,
-        "typed_idea": None,
-        "idea_source": None,
-        "source_profile_revision_ref": "33333333-3333-4333-8333-333333333333",
-        "context_revision": 1,
-        "context_snapshot": {"schema_version": "sketch2life.parent-context.v1"},
-        "context_snapshot_sha256": _HASH,
-        "lesson_pin_snapshot": lesson_pin,
-        "lesson_pin_snapshot_sha256": _HASH if lesson_pin is not None else None,
-        "context_confirmed_by": None,
-        "context_confirmed_at": None,
-    }
+    from sketch2life.infrastructure.story_run_lite import tables as story_tables
+
+    # T-2c: the writer copies every non-drawing column, so the fake row names all of them.
+    previous: dict[str, Any] = {column.name: None for column in story_tables.run_inputs.columns}
+    previous.update(
+        {
+            "run_id": _RUN_ID,
+            "input_revision": 1,
+            "source_profile_revision_ref": "33333333-3333-4333-8333-333333333333",
+            "context_revision": 1,
+            "context_snapshot": {"schema_version": "sketch2life.parent-context.v1"},
+            "context_snapshot_sha256": _HASH,
+            "lesson_pin_snapshot": lesson_pin,
+            "lesson_pin_snapshot_sha256": _HASH if lesson_pin is not None else None,
+        }
+    )
     monkeypatch.setattr(repository, "_owned_run", lambda *_args, **_kwargs: dict(run))
     monkeypatch.setattr(repository, "_current_input", lambda _run: dict(previous))
     monkeypatch.setattr(repository, "read_current_input", lambda **_kwargs: None)

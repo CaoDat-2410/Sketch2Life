@@ -85,6 +85,8 @@ from sketch2life.domain.ai_jobs.model import (
 from sketch2life.infrastructure.ai_jobs.sql import tables as t
 
 UNIQUE_VIOLATION = "23505"
+PARENT_NOTICE_SCOPE_KIND = "PARENT_ACCOUNT"
+ORGANIZATION_NOTICE_SCOPE_KIND = "ORGANIZATION"
 # Unique/primary-key constraint name -> UniqueConflict.kind.
 _CONFLICT_KINDS = {
     "pk_job": "job",
@@ -971,10 +973,13 @@ class SqlAiJobUnitOfWork:
 
 
 class SqlParentLifecycleNoticeStore:
-    """FR-C-08 AI Jobs owner write for a Parent lifecycle notice (DTR Draft 6 §5.2, step 2).
+    """FR-C-08 AI Jobs owner write for a StoryRun lifecycle notice (DTR Draft 6 §5.2, step 2).
 
     The notice is inserted if absent in one statement, ``COMPLETE`` with ``applied_count = 0``
-    because no Parent product run creates an AI job (S4). It never selects or changes a job.
+    because no product run creates an AI job yet (S4; a Teacher run may own one from T-4b2, which
+    adds the job match here, hand-off H2). It never selects or changes a job. The class keeps its
+    Parent name because ``tools/run_be1_lifecycle_consumer.py`` builds it; since FEAT-066 T-13a it
+    also records the notice of an ``ORGANIZATION`` (Teacher) run.
     """
 
     def __init__(self, engine: Engine, *, clock: Callable[[], datetime]) -> None:
@@ -996,21 +1001,49 @@ class SqlParentLifecycleNoticeStore:
         story_run_ref: str,
         reason_code: str,
     ) -> None:
+        if str(scope.kind) != PARENT_NOTICE_SCOPE_KIND:
+            raise ValueError("only a Parent lifecycle notice is recorded here")
+        self.record_lifecycle_notice(
+            notice_id=notice_id,
+            scope=scope,
+            story_run_ref=story_run_ref,
+            reason_code=reason_code,
+        )
+
+    def record_lifecycle_notice(
+        self,
+        *,
+        notice_id: str,
+        scope: Any,
+        story_run_ref: str,
+        reason_code: str,
+    ) -> None:
+        """Parent: the typed scope and the run, no organization. ``ORGANIZATION`` (a Teacher run):
+        the organization, the scope ref equal to it and the run ref; session, job type and subject
+        stay NULL, so ``jobs_for_notice`` selects nothing and no job of the organization changes
+        (T-13a-DEC-4)."""
+
+        kind = str(scope.kind)
+        ref = str(scope.ref)
+        if kind == PARENT_NOTICE_SCOPE_KIND:
+            organization_id: str | None = None
+        elif kind == ORGANIZATION_NOTICE_SCOPE_KIND:
+            organization_id = ref
+        else:
+            raise ValueError("unsupported lifecycle notice scope")
         notice = CancellationNotice(
             notice_id=notice_id,
-            organization_id=None,
+            organization_id=organization_id,
             reason_code=reason_code,
-            owner_scope_kind=str(scope.kind),
-            owner_scope_ref=str(scope.ref),
+            owner_scope_kind=kind,
+            owner_scope_ref=ref,
             story_run_ref=story_run_ref,
         )
-        if not notice.is_parent:
-            raise ValueError("only a Parent lifecycle notice is recorded here")
         statement = (
             postgresql_insert(t.cancellation_notice)
             .values(
                 notice_id=notice.notice_id,
-                organization_id=None,
+                organization_id=notice.organization_id,
                 reason_code=notice.reason_code,
                 session_id=None,
                 job_type=None,

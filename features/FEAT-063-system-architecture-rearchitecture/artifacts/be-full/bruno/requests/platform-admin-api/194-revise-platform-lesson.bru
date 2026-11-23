@@ -1,0 +1,56 @@
+meta {
+  name: 194 [PLATFORM ADMIN - STATE CHANGE - SYNTHETIC ONLY] Revise Platform Lesson
+  type: http
+  seq: 194
+}
+
+patch {
+  url: {{baseUrl}}/api/platform-admin/v1/lessons/{{platform_lesson_id}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+  If-Match: "REPLACE_WITH_REVISION"
+  Idempotency-Key: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+body:json {
+  {
+    "content": {
+      "locale": "vi-VN",
+      "title": "Synthetic platform lesson revised",
+      "topic": "nature",
+      "target_age_band_ref": "seed-age-band-placeholder",
+      "target_age_band_version": 1,
+      "objectives": [
+        "Notice simple shapes."
+      ],
+      "drawing_subject": "butterfly",
+      "drawing_steps_text": "Draw a body and two pairs of wings.",
+      "subject_learning_notes": "Synthetic content.",
+      "activities": [
+        {
+          "title": "Observe",
+          "objective": "Notice the shape.",
+          "instructions_text": "Observe the drawing.",
+          "activity_kind": "indoor"
+        }
+      ]
+    }
+  }
+}
+
+docs {
+  Expected success status: 200
+  Main error cases: 401 AUTH_REQUIRED; 403 ACTION_NOT_ALLOWED; 400 INVALID_REQUEST; 404 RESOURCE_NOT_FOUND; 409 STALE_REVISION; 422 INVALID_REVISION; 428 PRECONDITION_REQUIRED.
+  If-Match required: yes.
+  Idempotency-Key required: yes.
+}

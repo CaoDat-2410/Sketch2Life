@@ -276,7 +276,7 @@ def test_get_returns_the_live_envelope_before_and_the_projection_after_delete_pe
         (
             f"/v1/story-runs/{_RUN_ID}/subject-confirmation",
             {"expected_understanding_revision": 1, "confirmed_subject": "butterfly"},
-            200,
+            202,  # FEAT-066 T-2d (SRS l.1666)
         ),
         (
             f"/v1/story-runs/{_RUN_ID}/script-confirmation",
@@ -347,9 +347,11 @@ def test_a_second_command_on_a_purged_run_is_a_409_parent_error(
     assert response.headers["X-Request-ID"] == "second"
 
 
-def test_only_the_cancel_stale_revision_error_carries_current_version(
+def test_a_story_run_stale_revision_error_carries_current_version_and_no_other_error_does(
     harness: tuple[TestClient, _Service],
 ) -> None:
+    # FEAT-066 T-2b (D10, SRS l.1699): every /v1/story-runs* 409 STALE_REVISION with an integer
+    # current version carries it (it was the cancel route only); any other error never does.
     client, service = harness
     service.view = ParentStoryRunError(409, "STALE_REVISION", current_version=4)
     cancel = client.post(
@@ -359,7 +361,13 @@ def test_only_the_cancel_stale_revision_error_carries_current_version(
     )
     assert cancel.json()["current_version"] == 4
     delete = client.delete(f"/v1/story-runs/{_RUN_ID}", headers={"Idempotency-Key": "k-4"})
-    assert "current_version" not in delete.json()
+    assert delete.json()["current_version"] == 4
+    service.view = ParentStoryRunError(409, "INVALID_STATE_TRANSITION", current_version=4)
+    other = client.delete(f"/v1/story-runs/{_RUN_ID}", headers={"Idempotency-Key": "k-5"})
+    assert "current_version" not in other.json()
+    service.view = ParentStoryRunError(404, "RESOURCE_NOT_FOUND", current_version=4)
+    missing = client.delete(f"/v1/story-runs/{_RUN_ID}", headers={"Idempotency-Key": "k-6"})
+    assert "current_version" not in missing.json()
 
 
 def test_a_missing_run_is_404_before_anything_else(harness: tuple[TestClient, _Service]) -> None:

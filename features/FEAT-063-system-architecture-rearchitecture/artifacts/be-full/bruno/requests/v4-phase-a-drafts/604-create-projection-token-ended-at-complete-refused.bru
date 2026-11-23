@@ -1,0 +1,36 @@
+meta {
+  name: 604 [DRAFT-V4A] [LOCAL / TEST ONLY] Refuse projection playback token after Complete for pre-Complete confirmation
+  type: http
+  seq: 604
+}
+
+post {
+  url: {{baseUrl}}/v1/lesson-occurrences/{{pre_complete_projected_occurrence_id}}/projection-playback-token
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("INVALID_STATE_TRANSITION");
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Teacher - set bearerToken to seed-tch-a1 token
+  Needs: needs-fixture - pre_complete_projected_occurrence_id (occurrence whose sample run was projection-confirmed before Complete and then completed)
+  Expected: 409 / INVALID_STATE_TRANSITION (pre-Complete confirmation ended at Complete)
+  Source: backend/src/sketch2life/infrastructure/lesson_occurrences/projection.py:338-368,463-497, backend/tests/integration/lesson_occurrences/test_projection_after_complete_postgres.py:93-102
+}

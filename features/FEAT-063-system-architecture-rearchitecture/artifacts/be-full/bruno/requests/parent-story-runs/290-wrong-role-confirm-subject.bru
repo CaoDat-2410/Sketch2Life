@@ -1,0 +1,38 @@
+meta {
+  name: 290 [LOCAL / TEST ONLY] Teacher gets uniform StoryRun not-found on subject confirmation
+  type: http
+  seq: 290
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{parent_story_run_id}}/subject-confirmation
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{phase_b_wrong_role_story_key}}
+}
+
+body:json {
+  {
+    "expected_understanding_revision": {{story_understanding_revision}},
+    "confirmed_subject": "paper kite"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_NOT_FOUND");
+  });
+}
+

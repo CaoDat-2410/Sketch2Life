@@ -1,0 +1,36 @@
+meta {
+  name: 544 [DRAFT-V4A] [LOCAL / TEST ONLY] List Parent activities in wrong run state
+  type: http
+  seq: 544
+}
+
+get {
+  url: {{baseUrl}}/v1/activities?story_run_id={{parent_story_run_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("INVALID_STATE_TRANSITION");
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Parent - set bearerToken to seed-parent-p1 token
+  Needs: parent_story_run_id that has already left PREPARATION_REVIEW (e.g. after 551 moves it to SCRIPT_GENERATING or SCRIPT_REVIEW)
+  Expected: 409 / INVALID_STATE_TRANSITION
+  Source: backend/src/sketch2life/infrastructure/persistence/parent_story_repository.py:2492-2523, backend/tests/contract/test_parent_activities_contract.py:163-174
+}

@@ -1,0 +1,28 @@
+meta {
+  name: 246 [LOCAL / TEST ONLY] List refuses limit above 100
+  type: http
+  seq: 246
+}
+
+get {
+  url: {{baseUrl}}/v1/lesson-occurrences?class_id=seed-org-a-class-1&limit=101
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("INVALID_REQUEST");
+  });
+}

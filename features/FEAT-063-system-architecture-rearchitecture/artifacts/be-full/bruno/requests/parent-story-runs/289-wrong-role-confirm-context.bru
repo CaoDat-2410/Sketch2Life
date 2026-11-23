@@ -1,0 +1,39 @@
+meta {
+  name: 289 [LOCAL / TEST ONLY] Teacher gets uniform StoryRun not-found on context confirmation
+  type: http
+  seq: 289
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{parent_story_run_id}}/context-confirmation
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{phase_b_wrong_role_story_key}}
+}
+
+body:json {
+  {
+    "expected_context_revision": {{story_context_revision}},
+    "context_snapshot_sha256": "{{story_context_hash}}",
+    "confirmed": true
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_NOT_FOUND");
+  });
+}
+

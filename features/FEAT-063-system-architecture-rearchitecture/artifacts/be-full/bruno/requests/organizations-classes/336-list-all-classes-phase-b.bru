@@ -1,0 +1,30 @@
+meta {
+  name: 336 [LOCAL / TEST ONLY] A07 accepts the all-state filter
+  type: http
+  seq: 336
+}
+
+get {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/classes?state=all&limit=100
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().items.every(item => ["active", "suspended", "archived"].includes(item.state))).to.equal(true);
+    expect(res.getBody().items.every(item => typeof item.class_revision === "number")).to.equal(true);
+  });
+}
+

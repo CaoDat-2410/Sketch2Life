@@ -22,7 +22,9 @@ export function TeacherAssignmentCard({ selectedClass, onAssigned }: Props) {
   const [reloadCandidates, setReloadCandidates] = useState(0);
   const keys = useRef(new Map<string, string>());
   const revision = selectedClass?.assignment_revision;
-  const canAssign = Boolean(selectedClass && revision !== undefined && !selectedClass.has_active_teacher);
+  // T-7b: a suspended or archived class is read-only, so no assignment is offered (SRS l.593).
+  const classActive = selectedClass?.state === "active";
+  const canAssign = Boolean(selectedClass && classActive && revision !== undefined && !selectedClass.has_active_teacher);
 
   useEffect(() => {
     if (!canAssign) return;
@@ -95,6 +97,8 @@ export function TeacherAssignmentCard({ selectedClass, onAssigned }: Props) {
   let body: ReactNode;
   if (!selectedClass) {
     body = <p className="manager-business-state">Chọn lớp để phân công Teacher.</p>;
+  } else if (!classActive) {
+    body = <p className="manager-business-state">Lớp không ở trạng thái hoạt động (tạm ngưng chỉ đọc hoặc đã lưu trữ); không thể phân công Teacher.</p>;
   } else if (selectedClass.has_active_teacher) {
     body = <p className="manager-business-state">Lớp đã có Teacher phụ trách; đổi Teacher chưa được hỗ trợ.</p>;
   } else if (revision === undefined) {

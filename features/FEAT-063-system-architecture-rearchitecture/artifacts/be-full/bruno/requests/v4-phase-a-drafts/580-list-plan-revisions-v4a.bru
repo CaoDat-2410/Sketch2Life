@@ -1,0 +1,57 @@
+meta {
+  name: 580 [DRAFT-V4A] [LOCAL / TEST ONLY] List occurrence plan revisions (unchanged summary regression)
+  type: http
+  seq: 580
+}
+
+get {
+  url: {{baseUrl}}/v1/lesson-occurrences/{{occurrence_id}}/plan-revisions?limit=25
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (Array.isArray(body.items) && body.items.length > 0) {
+    bru.setVar("plan_head_revision_no", String(body.items[0].revision_no));
+    bru.setVar("plan_revision_no", String(body.items[0].revision_no));
+    bru.setVar("plan_hash", body.items[0].content_hash);
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("Cache-Control")).to.equal("private, no-cache");
+    expect(res.getHeader("ETag")).to.equal(undefined);
+    const body = res.getBody();
+    expect(body.contract).to.equal("LessonPlanRevisionPageV1");
+    expect(body.items).to.be.an("array");
+    expect(JSON.stringify(body)).to.not.include("plan_activity_id");
+    if (body.items.length > 0) {
+      expect(typeof body.items[0].revision_no).to.equal("number");
+      expect(["DRAFT", "APPROVED", "SUPERSEDED"]).to.include(body.items[0].state);
+      expect(body.items[0].content_hash).to.be.a("string");
+      expect(typeof body.items[0].activity_count).to.equal("number");
+      expect(body.items[0].activities).to.equal(undefined);
+    }
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Teacher - set bearerToken to seed-tch-a1 token
+  Needs: occurrence_id
+  Expected: 200 (summary items carry no activities or plan_activity_id and no ETag header)
+  Source: backend/src/sketch2life/interfaces/http/routers/lesson_occurrences.py:511-531, backend/src/sketch2life/contracts/schemas/lesson_occurrences.py:409-425, backend/tests/contract/test_lesson_plan_routes.py:583-593,793-808
+}

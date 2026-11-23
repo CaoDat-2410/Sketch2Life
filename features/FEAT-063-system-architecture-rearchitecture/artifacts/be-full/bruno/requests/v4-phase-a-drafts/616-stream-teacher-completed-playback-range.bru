@@ -1,0 +1,39 @@
+meta {
+  name: 616 [DRAFT-V4A] [LOCAL / TEST ONLY] Stream completed Teacher owner-view playback range
+  type: http
+  seq: 616
+}
+
+get {
+  url: {{baseUrl}}/v1/story-runs/{{completed_run_id}}/playback
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  X-Playback-Token: {{teacher_completed_playback_token}}
+  Range: bytes=0-3
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(206);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(String(res.getHeader("content-range")).startsWith("bytes 0-3/")).to.equal(true);
+    expect(String(res.getHeader("Cache-Control"))).to.include("no-store");
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Teacher - set bearerToken to seed-tch-a1 token
+  Needs: completed_run_id and teacher_completed_playback_token from 615
+  Expected: 206 (partial MP4 stream with Content-Range and Cache-Control: private, no-store, max-age=0)
+  Source: backend/src/sketch2life/interfaces/http/routers/story_run_video.py:432-535, backend/tests/integration/story_video/test_playback_and_detail_postgres.py:748-778
+}

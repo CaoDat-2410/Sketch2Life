@@ -1,0 +1,29 @@
+meta {
+  name: 155 [PARENT AI - LOCAL TEST ONLY - NEVER RUN CONFIGURED] Generate Parent Sketch Guide
+  type: http
+  seq: 155
+}
+
+post {
+  url: {{baseUrl}}/api/parent/v1/ai/sketch-guides
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_REQUEST_ID_155
+}
+
+body:json {
+  {
+    "topic": "REPLACE_WITH_SYNTHETIC_TOPIC",
+    "difficulty": "beginner",
+    "step_count": 3
+  }
+}

@@ -1,0 +1,43 @@
+meta {
+  name: 518 [LOCAL / TEST ONLY] Rewrite Teacher story run story
+  type: http
+  seq: 518
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{teacher_run_id}}/story-rewrites
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "expected_story_revision": {{teacher_story_revision_no}},
+    "hint": "Shorter story with a kind ending"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(202);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+  });
+}
+
+docs {
+  Role: Teacher - set bearerToken to that synthetic account's token
+  Needs: teacher_run_id, teacher_story_revision_no; needs a run at SCRIPT_REVIEW with a first story (no HTTP route creates the first Teacher story in this release; the seed does) and a confirmed subject
+  Expected: 202
+  Source: backend/tests/integration/story_teacher/test_teacher_run_inputs_postgres.py
+}

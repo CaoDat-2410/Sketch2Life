@@ -1,12 +1,14 @@
-"""BE1 lifecycle consumer for the FR-C-08 Parent StoryRun purge (DTR Draft 6 §5.1, §6.2-§6.3).
+"""BE1 lifecycle consumer for the FR-C-08 StoryRun purge (DTR Draft 6 §5.1, §6.2-§6.3).
 
-The consumer is the coordinator of the three owner modules. It claims one Story lifecycle event
-from the Core outbox, keeps the BE1 receipt in ``be1_data_lifecycle_requests`` and runs the
-purge steps through owner ports only:
+The consumer is the coordinator of the three owner modules. The run's own owner scope decides
+the rows it writes: ``PARENT_ACCOUNT`` with no organization (unchanged), or ``ORGANIZATION`` with
+``organization_id`` = the scope ref for a Teacher run (FEAT-066 T-13a). It claims one Story
+lifecycle event from the Core outbox, keeps the BE1 receipt in ``be1_data_lifecycle_requests`` and
+runs the purge steps through owner ports only:
 
 0. insert the receipt if absent, then ``running``;
 1. Core uploads that name the run (plan, close, verify);
-2. the AI Jobs Parent notice (insert-if-absent, verify);
+2. the AI Jobs lifecycle notice (insert-if-absent, verify);
 3. Core assets: closure, Story's cross-run answer, all-or-nothing plan, objects, sweep, Story
    re-ask, rows, verification. A retained plan writes no entry and runs no sweep;
 4. Story content purge (one Story transaction);
@@ -40,6 +42,7 @@ from sqlalchemy.engine import CursorResult
 from sqlalchemy.orm import Session, sessionmaker
 
 from sketch2life.application.ports.core_foundation import (
+    ORGANIZATION_SCOPE_KIND,
     PARENT_SCOPE_KIND,
     CoreAssetPurgeError,
     LifecycleAuditWriterPort,
@@ -80,6 +83,12 @@ RETRY_BOUND: Final = 10
 DEFAULT_LEASE_SECONDS: Final = 900
 STEP_DEADLINE_SECONDS: Final = 300
 NOTICE_REASON_CODE: Final = "PARENT_STORY_RUN_DELETED"
+# T-13a (review note N2): the reason code names the scope that asked for the purge.
+NOTICE_REASON_CODES: Final = {
+    PARENT_SCOPE_KIND: NOTICE_REASON_CODE,
+    ORGANIZATION_SCOPE_KIND: "TEACHER_STORY_RUN_DELETED",
+}
+_LIFECYCLE_SCOPE_KINDS: Final = frozenset({PARENT_SCOPE_KIND, ORGANIZATION_SCOPE_KIND})
 
 _ENTRY = re.compile(r"^(upload|ai|asset|story)=([pv]):([0-9]+):([0-9a-f]{16})@([0-9a-f]{8})$")
 _SHA = re.compile(r"^sha256=([0-9a-f]{64})$")
@@ -281,6 +290,13 @@ class ConsumerConfig:
             raise ValueError("lifecycle worker id must be 1-128 characters")
 
 
+def organization_id_of(scope: LifecycleScope) -> str | None:
+    """The ``organization_id`` column of a lifecycle row: NULL for a Parent scope (the typed scope
+    carries it), the scope ref for an ``ORGANIZATION`` scope (the CHECK needs it, T-13a-DEC-3)."""
+
+    return scope.ref if scope.kind == ORGANIZATION_SCOPE_KIND else None
+
+
 def _foreign_receipt(receipt: LifecycleReceipt, scope: LifecycleScope, run_ref: str) -> str | None:
     """The code when the receipt is not this run's receipt in this owner scope, else None."""
 
@@ -356,7 +372,10 @@ class Be1LifecycleConsumer:
             scope = LifecycleScope(envelope.owner_scope_kind, envelope.owner_scope_ref or "")
         except CoreAssetPurgeError as exc:
             return self._invalid_event(envelope, exc.code)
-        if scope.kind != PARENT_SCOPE_KIND or envelope.event_type not in LIFECYCLE_EVENT_TYPES:
+        if (
+            scope.kind not in _LIFECYCLE_SCOPE_KINDS
+            or envelope.event_type not in LIFECYCLE_EVENT_TYPES
+        ):
             return self._invalid_event(envelope, "LIFECYCLE_EVENT_INVALID")
         request_id = lifecycle_request_id(run_ref)
         if envelope.attempt_count >= self._config.retry_bound:
@@ -416,11 +435,11 @@ class Be1LifecycleConsumer:
             attempt,
             "ai",
             plan=lambda: (notice_id,),
-            act=lambda _ids: self._notices.record_parent_notice(
+            act=lambda _ids: self._notices.record_lifecycle_notice(
                 notice_id=notice_id,
                 scope=scope,
                 story_run_ref=run_ref,
-                reason_code=NOTICE_REASON_CODE,
+                reason_code=NOTICE_REASON_CODES[scope.kind],
             ),
             verified=lambda: self._notices.notice_exists(notice_id),
         )
@@ -836,14 +855,14 @@ class SqlLifecycleReceiptStore:
     def _ensure(
         cls, session: Session, request_id: str, run_ref: str, scope: LifecycleScope
     ) -> LifecycleReceipt:
-        if scope.kind != PARENT_SCOPE_KIND:
+        if scope.kind not in _LIFECYCLE_SCOPE_KINDS:
             raise CoreAssetPurgeError("SCOPE_INVALID")
         session.execute(
             pg_insert(_REQUESTS)
             .values(
                 request_id=request_id,
-                organization_id=None,
-                owner_scope_kind=PARENT_SCOPE_KIND,
+                organization_id=organization_id_of(scope),
+                owner_scope_kind=scope.kind,
                 owner_scope_ref=scope.ref,
                 request_type="delete",
                 target_ref=lifecycle_target_ref(run_ref),
@@ -882,8 +901,8 @@ class SqlLifecycleAuditWriter:
             pg_insert(_AUDIT)
             .values(
                 audit_id=lifecycle_exception_audit_id(processed_event_id),
-                organization_id=None,
-                owner_scope_kind=PARENT_SCOPE_KIND,
+                organization_id=organization_id_of(scope),
+                owner_scope_kind=scope.kind,
                 owner_scope_ref=scope.ref,
                 actor_ref=LIFECYCLE_WORKER_ACTOR,
                 action=AUDIT_EXCEPTION,
@@ -902,6 +921,7 @@ __all__ = [
     "DEFAULT_CONSUMER_NAME",
     "LifecycleToken",
     "LifecycleTokenError",
+    "NOTICE_REASON_CODES",
     "RETRY_BOUND",
     "STEPS",
     "SqlLifecycleAuditWriter",
@@ -910,6 +930,7 @@ __all__ = [
     "asset_plan_entry",
     "final_token",
     "flip",
+    "organization_id_of",
     "plan_entry",
     "retry_delay_seconds",
     "write_pending",

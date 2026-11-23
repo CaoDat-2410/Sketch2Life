@@ -1,0 +1,36 @@
+meta {
+  name: 543 [DRAFT-V4A] [LOCAL / TEST ONLY] List Parent activities before subject confirmed
+  type: http
+  seq: 543
+}
+
+get {
+  url: {{baseUrl}}/v1/activities?story_run_id={{unconfirmed_subject_run_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(422);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("SUBJECT_NOT_CONFIRMED");
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Parent - set bearerToken to seed-parent-p1 token
+  Needs: needs-fixture - unconfirmed_subject_run_id (Parent StoryRun in INPUT_PROCESSING, INPUT_REVIEW, or SUBJECT_REVIEW)
+  Expected: 422 / SUBJECT_NOT_CONFIRMED
+  Source: backend/src/sketch2life/infrastructure/persistence/parent_story_repository.py:2492-2523, backend/tests/contract/test_parent_activities_contract.py:177-189
+}

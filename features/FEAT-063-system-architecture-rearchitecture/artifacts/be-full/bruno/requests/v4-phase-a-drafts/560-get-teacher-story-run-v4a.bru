@@ -1,0 +1,60 @@
+meta {
+  name: 560 [DRAFT-V4A] [LOCAL / TEST ONLY] Get Teacher StoryRun with v4 Phase A fields
+  type: http
+  seq: 560
+}
+
+get {
+  url: {{baseUrl}}/v1/story-runs/{{teacher_run_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+script:post-response {
+  const story = res.getBody().story_run;
+  if (story) {
+    bru.setVar("teacher_run_revision", String(story.run_revision));
+    bru.setVar("teacher_context_revision", String(story.context_revision));
+    bru.setVar("teacher_context_hash", story.context_snapshot_sha256);
+    if (story.understanding_revision !== null) bru.setVar("teacher_understanding_revision", String(story.understanding_revision));
+    if (story.story_revision_no !== null) bru.setVar("teacher_story_revision_no", String(story.story_revision_no));
+    if (story.story_sha256 !== null) bru.setVar("teacher_story_sha256", story.story_sha256);
+    if (story.video && story.video.current_generation_id) {
+      bru.setVar("teacher_generation_id", story.video.current_generation_id);
+    }
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("ETag")).to.be.a("string");
+    expect(res.getHeader("Cache-Control")).to.equal("private, no-cache");
+    const story = res.getBody().story_run;
+    expect(story.run_id).to.equal(bru.getVar("teacher_run_id"));
+    expect(typeof story.story_confirmation_required).to.equal("boolean");
+    expect(story.plan).to.be.an("object");
+    expect(story.activity).to.be.an("object");
+    expect(story.activity.plan_activity_id).to.be.a("string");
+    expect(story.main_activity).to.equal(undefined);
+    expect(story.post_video_activities).to.equal(undefined);
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Teacher - set bearerToken to seed-tch-a1 token
+  Needs: teacher_run_id from 508 (verifies Teacher story_confirmation_required, plan/activity pins, and absence of Parent-only main_activity and post_video_activities)
+  Expected: 200
+  Source: backend/src/sketch2life/contracts/schemas/teacher_story_runs.py:147-189, backend/src/sketch2life/interfaces/http/routers/story_run_create_dispatch.py:91-125
+}

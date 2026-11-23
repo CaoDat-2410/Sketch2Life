@@ -8,6 +8,7 @@ from datetime import datetime
 from uuid import UUID
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
+from sketch2life.application.ports.parent_story_inputs import SubjectConfirmOutcome
 from sketch2life.application.ports.parent_story_profile_lookup import (
     ParentStoryProfileLookupPort,
     ParentStoryProfileLookupUnavailable,
@@ -19,6 +20,7 @@ from sketch2life.application.ports.parent_story_runs import (
     ParentStoryRunRepositoryPort,
     ParentStoryRunSummary,
     ParentStoryRunView,
+    StoryStartedCallback,
 )
 
 _SAFE_TOPIC = re.compile(r"\S")
@@ -144,6 +146,8 @@ class ParentStoryRunService:
         expected_context_revision: int,
         expected_context_snapshot_sha256: str,
         idempotency_key: str,
+        on_story_started: StoryStartedCallback | None = None,
+        generator_supports_role: bool = True,
     ) -> ParentStoryRunView:
         return self._repository.confirm_context(
             principal=principal,
@@ -151,6 +155,8 @@ class ParentStoryRunService:
             expected_context_revision=expected_context_revision,
             expected_context_snapshot_sha256=expected_context_snapshot_sha256,
             idempotency_key=idempotency_key,
+            on_story_started=on_story_started,
+            generator_supports_role=generator_supports_role,
         )
 
     def confirm_subject(
@@ -161,7 +167,10 @@ class ParentStoryRunService:
         expected_understanding_revision: int,
         confirmed_subject: str,
         idempotency_key: str,
-    ) -> int | ParentStoryLifecycleRecord:
+        rerun_on_edit: bool = False,
+        on_story_started: StoryStartedCallback | None = None,
+        generator_supports_role: bool = True,
+    ) -> SubjectConfirmOutcome | ParentStoryLifecycleRecord:
         subject = confirmed_subject.strip()
         if not subject or len(subject) > 160:
             raise ParentStoryRunServiceError(422, "PARENT_CONFIRMED_SUBJECT_INVALID")
@@ -171,6 +180,9 @@ class ParentStoryRunService:
             expected_understanding_revision=expected_understanding_revision,
             confirmed_subject=subject,
             idempotency_key=idempotency_key,
+            rerun_on_edit=rerun_on_edit,
+            on_story_started=on_story_started,
+            generator_supports_role=generator_supports_role,
         )
 
     def reserve_story_revision(
@@ -184,6 +196,7 @@ class ParentStoryRunService:
         model_id: str,
         model_revision: str,
         prompt_version: str,
+        require_activity_selection: bool = False,
     ) -> ParentStoryRevisionReservation:
         instruction = rewrite_instruction.strip() if rewrite_instruction else None
         if instruction is not None and (not instruction or len(instruction) > 400):
@@ -198,6 +211,7 @@ class ParentStoryRunService:
             model_id=model_id,
             model_revision=model_revision,
             prompt_version=prompt_version,
+            require_activity_selection=require_activity_selection,
         )
 
     def confirm_story_revision(

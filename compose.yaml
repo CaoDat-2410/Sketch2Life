@@ -1,6 +1,22 @@
 name: sketch2life
 
 services:
+  email-worker:
+    image: sketch2life-api:local
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    profiles: ["email"]
+    working_dir: /workspace/backend
+    command: ["python", "-m", "sketch2life.infrastructure.platform_admin.email_worker", "--loop"]
+    environment:
+      PYTHONPATH: /workspace/backend/src
+    volumes:
+      - .:/workspace:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
   postgres:
     image: postgres:17-alpine
     environment:
@@ -84,8 +100,16 @@ services:
     environment:
       SKETCH2LIFE_ENV: local
       SKETCH2LIFE_API_HOST: 0.0.0.0
+      SKETCH2LIFE_BILLING_SANDBOX_ENABLED: ${SKETCH2LIFE_BILLING_SANDBOX_ENABLED:-false}
+      SKETCH2LIFE_SMTP_HOST: ${SKETCH2LIFE_SMTP_HOST:-}
+      SKETCH2LIFE_SMTP_PORT: ${SKETCH2LIFE_SMTP_PORT:-587}
+      SKETCH2LIFE_SMTP_FROM: ${SKETCH2LIFE_SMTP_FROM:-}
+      SKETCH2LIFE_SMTP_STARTTLS: ${SKETCH2LIFE_SMTP_STARTTLS:-true}
+      SKETCH2LIFE_SMTP_USERNAME: ${SKETCH2LIFE_SMTP_USERNAME:-}
+      SKETCH2LIFE_SMTP_PASSWORD: ${SKETCH2LIFE_SMTP_PASSWORD:-}
       SKETCH2LIFE_API_PORT: 8000
       SKETCH2LIFE_DATABASE_URL: postgresql+psycopg://${SKETCH2LIFE_POSTGRES_USER:-sketch2life}:${SKETCH2LIFE_POSTGRES_PASSWORD:-change-me}@postgres:5432/${SKETCH2LIFE_POSTGRES_DB:-sketch2life}
+      SKETCH2LIFE_REDIS_URL: redis://redis:6379/0
       SKETCH2LIFE_S3_ENDPOINT: ${SKETCH2LIFE_S3_ENDPOINT-http://minio:9000}
       SKETCH2LIFE_S3_REGION: ${SKETCH2LIFE_S3_REGION:-us-east-1}
       SKETCH2LIFE_S3_BUCKET: ${SKETCH2LIFE_S3_BUCKET:-sketch2life-private}
@@ -101,12 +125,15 @@ services:
       SKETCH2LIFE_FIREBASE_ADMIN_JSON_BASE64: ${SKETCH2LIFE_FIREBASE_ADMIN_JSON_BASE64:-}
       SKETCH2LIFE_FIREBASE_CHECK_REVOKED_TOKENS: ${SKETCH2LIFE_FIREBASE_CHECK_REVOKED_TOKENS:-true}
       SKETCH2LIFE_AI_PROVIDER: ${SKETCH2LIFE_AI_PROVIDER:-disabled}
+      SKETCH2LIFE_OPS_PROBE_TOKEN: ${SKETCH2LIFE_OPS_PROBE_TOKEN:-}
       MODAL_TOKEN_ID: ${MODAL_TOKEN_ID:-}
       MODAL_TOKEN_SECRET: ${MODAL_TOKEN_SECRET:-}
     ports:
       - "127.0.0.1:${SKETCH2LIFE_API_PORT:-8000}:8000"
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
       minio-init:
         condition: service_completed_successfully
@@ -119,6 +146,42 @@ services:
       timeout: 3s
       retries: 5
       start_period: 15s
+    restart: unless-stopped
+
+  # The periodic story sweep (FEAT-066 T-1d1-fix): lost-task reaper, admission reconciler and the
+  # adult-wait closeout. Off by default: start it with `docker compose --profile sweeper up`.
+  story-sweeper:
+    profiles: ["sweeper"]
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command:
+      [
+        "python",
+        "-m",
+        "sketch2life.infrastructure.story_video.sweep_worker",
+        "--heartbeat-file",
+        "/tmp/story-sweep-heartbeat",
+      ]
+    environment:
+      SKETCH2LIFE_ENV: local
+      SKETCH2LIFE_DATABASE_URL: postgresql+psycopg://${SKETCH2LIFE_POSTGRES_USER:-sketch2life}:${SKETCH2LIFE_POSTGRES_PASSWORD:-change-me}@postgres:5432/${SKETCH2LIFE_POSTGRES_DB:-sketch2life}
+      SKETCH2LIFE_STORY_SWEEP_ENABLED: ${SKETCH2LIFE_STORY_SWEEP_ENABLED:-true}
+      SKETCH2LIFE_STORY_SWEEP_INTERVAL_SECONDS: ${SKETCH2LIFE_STORY_SWEEP_INTERVAL_SECONDS:-300}
+      SKETCH2LIFE_STORY_SWEEP_BATCH_SIZE: ${SKETCH2LIFE_STORY_SWEEP_BATCH_SIZE:-50}
+      SKETCH2LIFE_STORY_SWEEP_TASK_LEASE_SECONDS: ${SKETCH2LIFE_STORY_SWEEP_TASK_LEASE_SECONDS:-21600}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      # Alive means a pass with no failing step (or one that found the lock busy) finished within
+      # three intervals plus two minutes; the limit follows the configured interval (up to 3600 s).
+      test:
+        ["CMD", "python", "-c", "import os, sys, time; limit = 3 * float(os.environ.get('SKETCH2LIFE_STORY_SWEEP_INTERVAL_SECONDS', '300')) + 120; sys.exit(0 if time.time() - os.path.getmtime('/tmp/story-sweep-heartbeat') < limit else 1)"]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+      start_period: 120s
     restart: unless-stopped
 
 volumes:

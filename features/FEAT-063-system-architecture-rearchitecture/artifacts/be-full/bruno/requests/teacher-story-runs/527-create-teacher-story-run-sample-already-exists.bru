@@ -1,0 +1,48 @@
+meta {
+  name: 527 [LOCAL / TEST ONLY] Create Teacher story run when sample video already exists
+  type: http
+  seq: 527
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "profile_ref": { "kind": "MANAGED_PROFILE", "id": "{{selection_child_id}}" },
+    "occurrence_id": "{{occurrence_id}}",
+    "plan": { "revision_no": {{plan_revision_no}}, "plan_hash": "{{plan_hash}}" },
+    "activity_id": "{{plan_activity_id}}",
+    "selection_id": "{{selection_id}}",
+    "selection_sha256": "{{selection_sha256}}"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("SAMPLE_VIDEO_ALREADY_EXISTS");
+  });
+}
+
+docs {
+  Role: Teacher - set bearerToken to that synthetic account's token
+  Needs: run after 526 on the same occurrence; repeat 500 and 506 first to get a fresh confirmed selection (a READY sample that was completed but never projected still holds the slot)
+  Expected: 409 / SAMPLE_VIDEO_ALREADY_EXISTS
+  Source: backend/tests/integration/story_teacher/test_teacher_run_video_postgres.py
+}

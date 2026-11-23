@@ -41,12 +41,15 @@ from sketch2life.application.ports.core_foundation import (
 )
 from sketch2life.application.ports.object_storage import ObjectStorageFailure, ObjectStoragePort
 from sketch2life.application.ports.story_run_lifecycle import canonical_json, sha256_hex
+from sketch2life.infrastructure.lesson_library.tables import UPLOAD_SESSIONS as _GENERIC_UPLOADS
 from sketch2life.infrastructure.persistence.core_models import CoreAssetMetadataModel
 from sketch2life.infrastructure.story_run_lite import tables as story_tables
 
 MAX_CLOSURE_ASSETS = 256
 _REASON_ORDER = {"SCOPE_MISMATCH": 0, "KEY_UNKNOWN": 1, "SHARED_REFERENCE": 2, "LINEAGE_KEPT": 3}
 _OPEN_UPLOAD_STATES = ("RECEIVING", "PENDING", "PROCESSING")
+# T-2a: purposes of the generic upload sessions whose target is a Parent run.
+_RUN_UPLOAD_PURPOSES = ("RUN_ARTWORK", "RUN_AUDIO")
 
 
 class AssetReader(Protocol):
@@ -429,7 +432,15 @@ class SqlCoreRunAssetPurge(CoreRunAssetPurge):
 
 
 class SqlCoreRunUploadClose:
-    """``RunUploadClosePort``: open upload sessions that name the run (DTR step 1)."""
+    """``RunUploadClosePort``: open upload sessions that name the run (DTR step 1).
+
+    Two tables hold such sessions: the StoryRun-lite demo tables (``story_tables.upload_sessions``)
+    and, since T-2a, the generic ``core_upload_sessions`` (``RUN_ARTWORK`` and ``RUN_AUDIO``
+    sessions of a Parent run). The plan is the union of both id lists and the close count is their
+    sum. A generic session goes to ``ABORTED`` with ``error_code = 'RUN_DELETED'``; its chunk
+    objects live under ``parent/{run_ref}/`` and are removed by the run-prefix sweep, and its
+    completed-but-unattached assets are ``core_asset_metadata`` rows seeded by ``source_refs``.
+    """
 
     def __init__(self, sessions: sessionmaker[Session]) -> None:
         self._sessions = sessions
@@ -444,18 +455,37 @@ class SqlCoreRunUploadClose:
             uploads.c.state.in_(_OPEN_UPLOAD_STATES),
         )
 
+    @staticmethod
+    def _generic_predicate(scope: LifecycleScope, run_ref: str) -> Any:
+        return and_(
+            _GENERIC_UPLOADS.c.owner_scope_kind == scope.kind,
+            _GENERIC_UPLOADS.c.owner_scope_ref == scope.ref,
+            _GENERIC_UPLOADS.c.target_ref == run_ref,
+            _GENERIC_UPLOADS.c.purpose.in_(_RUN_UPLOAD_PURPOSES),
+            _GENERIC_UPLOADS.c.state == "OPEN",
+        )
+
     def plan_close_run_uploads(self, scope: LifecycleScope, run_ref: str) -> tuple[str, ...]:
         run_ref = validate_run_ref(run_ref)
         uploads = story_tables.upload_sessions
         with self._sessions() as session:
-            return tuple(
+            lite = [
                 str(value)
                 for value in session.scalars(
                     select(uploads.c.upload_session_id)
                     .where(self._predicate(scope, run_ref))
                     .order_by(uploads.c.upload_session_id)
                 )
-            )
+            ]
+            generic = [
+                str(value)
+                for value in session.scalars(
+                    select(_GENERIC_UPLOADS.c.upload_session_id)
+                    .where(self._generic_predicate(scope, run_ref))
+                    .order_by(_GENERIC_UPLOADS.c.upload_session_id)
+                )
+            ]
+            return tuple(sorted({*lite, *generic}))
 
     def close_run_uploads(self, scope: LifecycleScope, run_ref: str) -> int:
         run_ref = validate_run_ref(run_ref)
@@ -474,7 +504,19 @@ class SqlCoreRunUploadClose:
                     )
                 ),
             )
-            return int(result.rowcount)
+            generic = cast(
+                CursorResult[Any],
+                session.execute(
+                    update(_GENERIC_UPLOADS)
+                    .where(self._generic_predicate(scope, run_ref))
+                    .values(
+                        state="ABORTED",
+                        error_code="RUN_DELETED",
+                        aborted_at=datetime.now(UTC),
+                    )
+                ),
+            )
+            return int(result.rowcount) + int(generic.rowcount)
 
 
 __all__ = [

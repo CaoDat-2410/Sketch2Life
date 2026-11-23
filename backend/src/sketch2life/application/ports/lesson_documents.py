@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 from dataclasses import dataclass
 from typing import BinaryIO, Protocol
 
@@ -15,6 +16,10 @@ class LessonDocumentExtraction:
     page_coverage: tuple[int, ...]
     extracted_fields: dict[str, object]
     warnings: tuple[str, ...]
+    # Full extracted text, normalised (no NUL or other control character, no lone surrogate) and
+    # at most 2 MiB of UTF-8. Added for the occurrence document attach (FEAT-066 T-3b); the lesson
+    # library ignores it, hence the default.
+    extracted_text: str = ""
 
 
 class LessonDocumentParser(Protocol):
@@ -32,6 +37,16 @@ class MalwareScanResult:
     scanner_name: str
     scanner_version: str
     verdict: str
+
+
+def scanner_identity_sha256(scanner_name: str, scanner_version: str) -> str:
+    """SHA-256 of the scanner identity (name, NUL, version), the Parent lineage formula.
+
+    ``core_asset_lineage.scanner_sha256`` is written with this value by the Parent artwork
+    repository. The StoryRun-lite writer stores a content digest in the same column (finding
+    F-1); this helper does not settle that meaning, it only names the Parent one.
+    """
+    return hashlib.sha256(f"{scanner_name}\0{scanner_version}".encode()).hexdigest()
 
 
 class LessonDocumentRejected(ValueError):
@@ -56,4 +71,5 @@ __all__ = [
     "MalwareScanResult",
     "MalwareScanner",
     "MalwareScannerUnavailable",
+    "scanner_identity_sha256",
 ]

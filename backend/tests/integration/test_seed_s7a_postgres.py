@@ -32,6 +32,8 @@ from tools.seed import data
 from tools.seed.guard import SEED_URL_VARIABLE, guarded_engine
 from tools.seed.s1_core import count_rows
 from tools.seed.s7a_runs import count_s7a_rows
+from tools.seed.s7b_story_states_data import EXPECTED as EXPECTED_S7B_COUNTS
+from tools.seed.stage_common import check_database_prefix
 
 pytestmark = pytest.mark.skipif(
     not os.environ.get(SEED_URL_VARIABLE), reason=f"{SEED_URL_VARIABLE} is not set"
@@ -67,6 +69,7 @@ def seed_engine() -> Iterator[Engine]:
 
     previous = os.environ.get("SKETCH2LIFE_DATABASE_URL")
     try:
+        check_database_prefix()
         engine, _target = guarded_engine()
         try:
             yield engine
@@ -86,7 +89,17 @@ def runs(seed_engine: Engine) -> dict[str, tuple[int, dict[str, tuple[int, int, 
     s1 = _run_module("tools.seed.s1_core")
     first = _run_module("tools.seed.s7a_runs")
     second = _run_module("tools.seed.s7a_runs")
-    return {"s1": s1, "first": first, "second": second}
+    s7b_first = _run_module("tools.seed.s7b_story_states")
+    s7b_second = _run_module("tools.seed.s7b_story_states")
+    after_s7b = _run_module("tools.seed.s7a_runs")
+    return {
+        "s1": s1,
+        "first": first,
+        "second": second,
+        "s7b_first": s7b_first,
+        "s7b_second": s7b_second,
+        "after_s7b": after_s7b,
+    }
 
 
 def test_s1_then_s7a_exit_cleanly(
@@ -95,6 +108,9 @@ def test_s1_then_s7a_exit_cleanly(
     assert runs["s1"][0] == 0
     assert runs["first"][0] == 0
     assert runs["second"][0] == 0
+    assert runs["s7b_first"][0] == 0
+    assert runs["s7b_second"][0] == 0
+    assert runs["after_s7b"][0] == 0
 
 
 def test_first_run_adds_zero_or_expected_and_second_adds_zero(
@@ -108,6 +124,18 @@ def test_first_run_adds_zero_or_expected_and_second_adds_zero(
         assert first_rows[name][1] == expected, name
         assert second_rows[name][0] == 0, name
         assert second_rows[name][1] == expected, name
+        assert runs["after_s7b"][1][name][0] == 0, name
+        assert runs["after_s7b"][1][name][1] == expected, name
+    for rows_key in ("s7b_first", "s7b_second"):
+        rows = runs[rows_key][1]
+        assert set(rows) == set(EXPECTED_S7B_COUNTS)
+        for name, expected in EXPECTED_S7B_COUNTS.items():
+            assert rows[name][1] == expected, (rows_key, name)
+            assert rows[name][3] == "yes", (rows_key, name)
+    for name, row in runs["s7b_first"][1].items():
+        assert 0 <= row[0] <= EXPECTED_S7B_COUNTS[name], name
+    for name, row in runs["s7b_second"][1].items():
+        assert row[0] == 0, name
 
 
 def test_counts_in_the_database(seed_engine: Engine, runs: object) -> None:
@@ -142,7 +170,7 @@ def test_p4_and_p5_have_one_confirmed_active_run(
     finally:
         session.rollback()
         session.close()
-    assert record.run_state == "INPUT_PROCESSING"
+    assert record.run_state in {"INPUT_PROCESSING", "SUBJECT_REVIEW", "VIDEO_READY"}
     assert record.context_confirmed is True
     assert str(record.parent_profile_id) == str(data.parent_profile_id(profile_key))
     assert response.context_snapshot.topic == topic

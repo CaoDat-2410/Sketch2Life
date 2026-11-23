@@ -1,0 +1,40 @@
+meta {
+  name: 213 [LOCAL / TEST ONLY] RUN_AUDIO is enabled
+  type: http
+  seq: 213
+}
+
+post {
+  url: {{baseUrl}}/v1/upload-sessions
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "purpose": "RUN_AUDIO",
+    "target_ref": "{{parent_story_run_id}}",
+    "media_type": "audio/wav",
+    "expected_size_bytes": 100,
+    "expected_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().state).to.equal("OPEN");
+  });
+}

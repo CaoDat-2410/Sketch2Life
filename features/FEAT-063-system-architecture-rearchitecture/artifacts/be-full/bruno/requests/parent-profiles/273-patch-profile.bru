@@ -1,0 +1,41 @@
+meta {
+  name: 273 [LOCAL / TEST ONLY] Patch Parent profile with expected revision
+  type: http
+  seq: 273
+}
+
+patch {
+  url: {{baseUrl}}/v1/parent/profiles/{{phase_b_parent_profile_id}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "expected_revision": {{phase_b_parent_profile_revision}},
+    "display_name": "Phase B synthetic profile updated",
+    "age_months": 61,
+    "interests_summary": "Butterflies, drawing, and stories"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().profile_id).to.equal(bru.getVar("phase_b_parent_profile_id"));
+    expect(res.getBody().revision_no).to.be.greaterThan(1);
+  });
+}
+

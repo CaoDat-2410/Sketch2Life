@@ -7,14 +7,12 @@ from __future__ import annotations
 import base64
 import binascii
 import hashlib
-import json
 from io import BytesIO
 from math import isfinite
 from typing import Annotated, Any, Literal
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response
-from pydantic import ValidationError
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from structlog import get_logger
@@ -34,9 +32,9 @@ from sketch2life.application.services.parent_story_runs import (
     ParentStoryRunService,
     ParentStoryRunServiceError,
 )
-from sketch2life.contracts.schemas.ai_story import (
-    StoryRevisionDraftV1,
-    validate_butterfly_lifecycle_v1,
+from sketch2life.application.services.story_output import (
+    StoryOutputInvalid,
+    complete_generated_story,
 )
 from sketch2life.contracts.schemas.modal_ai import (
     ParentDrawingAnalysisRequestV1,
@@ -45,7 +43,6 @@ from sketch2life.contracts.schemas.modal_ai import (
 )
 from sketch2life.contracts.schemas.parent_story_runs import (
     ParentStoryRunLifecycleEnvelopeV1,
-    ParentStoryRunResponseV1,
 )
 from sketch2life.infrastructure.ai.modal_function_client import (
     FLUX_MODEL_PROVENANCE,
@@ -67,6 +64,7 @@ from sketch2life.infrastructure.persistence.parent_story_repository import (
     SqlParentStoryRunRepository,
 )
 from sketch2life.interfaces.http.be1_runtime import get_db, get_verified_adult
+from sketch2life.interfaces.http.routers.parent_story_runs import story_run_response
 
 router = APIRouter(prefix="/api/parent/v1/ai", tags=["Parent AI v1"])
 _LOGGER = get_logger(__name__)
@@ -81,7 +79,9 @@ def _require_parent(db: Session, principal: VerifiedPrincipal) -> AdultIdentityM
         or identity.account_role != "parent"
         or identity.issuer != principal.issuer
     ):
-        raise HTTPException(status_code=403, detail={"code": "PARENT_ROLE_REQUIRED"})
+        # CONV-1 (SRS l.864-865, T-2d, OD-18b): not an active Parent means out of scope, so the
+        # answer is the one uniform 404 of an unknown resource, before the provider gate.
+        raise HTTPException(status_code=404, detail={"code": "RESOURCE_NOT_FOUND"})
     return identity
 
 
@@ -127,33 +127,9 @@ def _story_service(db: Session) -> ParentStoryRunService:
     )
 
 
-def _story_response(record: ParentStoryRunRecord) -> ParentStoryRunResponseV1:
-    return ParentStoryRunResponseV1(
-        run_id=record.run_id,
-        run_revision=record.run_revision,
-        run_state=record.run_state,
-        parent_profile_id=record.parent_profile_id,
-        profile_revision_ref=record.profile_revision_ref,
-        context_revision=record.context_revision,
-        context_confirmed=record.context_confirmed,
-        context_snapshot=record.context_snapshot,
-        context_snapshot_sha256=record.context_snapshot_sha256,
-        lesson_pin_snapshot=record.lesson_pin_snapshot,
-        current_input_revision=record.current_input_revision,
-        understanding_revision=record.understanding_revision,
-        subject_label=record.subject_label,
-        candidate=record.candidate,
-        story_revision_id=record.story_revision_id,
-        story_revision_no=record.story_revision_no,
-        story_status=record.story_status,
-        story_sha256=record.story_sha256,
-        story=record.story_content,
-        job_state=record.job_state,
-        retryable=record.retryable,
-        error_code=record.error_code,
-        created_at=record.created_at,
-        updated_at=record.updated_at,
-    )
+# One builder for the whole run model (T-1c): this legacy route family shows the same shape as
+# ``/v1/story-runs`` (video, quota summary and timeline included).
+_story_response = story_run_response
 
 
 def _lifecycle_body(request_id: str, record: ParentStoryLifecycleRecord) -> dict[str, object]:
@@ -479,6 +455,9 @@ def generate_story_revision(
             model_id=STORY_MODEL_ID,
             model_revision=STORY_MODEL_REVISION,
             prompt_version=_STORY_PROMPT_VERSION,
+            # T-2e-a D9: the dev-only first-story route needs the adult's main activity first; the
+            # refusal is 409 ``PARENT_ACTIVITY_SELECTION_REQUIRED`` (passed through as the code).
+            require_activity_selection=True,
         )
     except (ParentStoryRunError, ParentStoryRunServiceError) as exc:
         raise HTTPException(status_code=exc.status_code, detail={"code": exc.code}) from None
@@ -492,6 +471,8 @@ def generate_story_revision(
         record = repository.get_run(principal=principal, run_id=str(run_id))
         if isinstance(record, ParentStoryLifecycleRecord):
             return _lifecycle_body(request_id, record)
+        if not isinstance(record, ParentStoryRunRecord):  # a Parent repository never yields one
+            raise HTTPException(status_code=404, detail={"code": "RESOURCE_NOT_FOUND"})
         return {
             "request_id": request_id,
             "modal_call_id": replay_body.get("modal_call_id"),
@@ -553,56 +534,27 @@ def generate_story_revision(
             workload="story.generate",
         ) from None
     try:
-        story = StoryRevisionDraftV1.model_validate(raw_story)
-        validate_butterfly_lifecycle_v1(
-            story,
-            confirmed_subject=str(reservation.worker_input["confirmed_subject"]),
-        )
-    except (ValidationError, ValueError) as exc:
-        code = (
-            "EDUCATIONAL_FACT_CHECK_FAILED"
-            if str(exc) in {
-                "EDUCATIONAL_FACT_FORBIDDEN_CLAIM",
-                "EDUCATIONAL_FACT_STAGE_MISSING",
-                "EDUCATIONAL_FACT_ORDER_INVALID",
-            }
-            else "STORY_OUTPUT_INVALID"
-        )
-        _fail_story_run(
+        # The validation, the fact check, the hash and the store live in the shared service
+        # (T-2d), which the story-rewrites runner calls too.
+        record = complete_generated_story(
             repository,
-            operation="story",
             principal=principal,
             reservation=reservation,
-            error_code=code,
-            outcome_unknown=False,
-        )
-        raise HTTPException(status_code=502, detail={"code": code, "request_id": request_id}) from None
-    normalized_story = story.model_dump(mode="json")
-    story_hash = hashlib.sha256(
-        json.dumps(
-            normalized_story,
-            ensure_ascii=False,
-            sort_keys=True,
-            separators=(",", ":"),
-        ).encode("utf-8")
-    ).hexdigest()
-    try:
-        record = repository.complete_story_revision(
-            reservation=reservation,
-            principal=principal,
-            story=normalized_story,
-            story_sha256=story_hash,
+            raw_story=raw_story,
             provider_call_id=modal_call_id,
             model_id=STORY_MODEL_ID,
             model_revision=STORY_MODEL_REVISION,
         )
+    except StoryOutputInvalid as invalid:
+        raise HTTPException(
+            status_code=502, detail={"code": invalid.code, "request_id": request_id}
+        ) from None
     except ParentStoryRunError as exc:
         if exc.code != "INVALID_STATE_TRANSITION":
             raise
         raise HTTPException(status_code=exc.status_code, detail={"code": exc.code}) from None
-    if isinstance(record, ParentStoryLifecycleRecord):
-        # complete_story_revision refuses a purged run; a projection here is never served.
-        raise HTTPException(status_code=409, detail={"code": "INVALID_STATE_TRANSITION"})
+    if not isinstance(record, ParentStoryRunRecord):  # a Parent repository never yields one
+        raise HTTPException(status_code=404, detail={"code": "RESOURCE_NOT_FOUND"})
     _LOGGER.info(
         "parent_modal_request_completed",
         request_id=request_id,

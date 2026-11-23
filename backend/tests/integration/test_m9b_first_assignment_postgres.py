@@ -286,6 +286,12 @@ def test_m9b_assignment_headers_revision_replay_and_conflicts(m9b_api: M9bApi) -
     no_key = _assign(api, class_id, first, 1, None)
     assert no_key.status_code == 400, no_key.text
     assert {"field": "Idempotency-Key", "code": "REQUIRED"} in no_key.json()["field_errors"]
+    # T0.1 (C-D5, OQ-4): the key is 1-128 visible ASCII; a space or 129 characters is a 400.
+    for bad_key in ("with space", "k" * 129):
+        bad = _assign(api, class_id, first, 1, bad_key)
+        assert bad.status_code == 400, bad.text
+        assert bad.json()["code"] == "INVALID_REQUEST"
+        assert bad.json()["field_errors"][0]["field"] == "Idempotency-Key"
     no_match = _assign(api, class_id, first, None, f"m9b-{uuid4()}")
     assert no_match.status_code == 400
     assert no_match.json()["field_errors"] == [{"field": "If-Match", "code": "REQUIRED"}]

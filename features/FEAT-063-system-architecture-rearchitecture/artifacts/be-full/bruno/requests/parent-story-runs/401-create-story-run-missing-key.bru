@@ -1,0 +1,38 @@
+meta {
+  name: 401 [LOCAL / TEST ONLY] Create StoryRun without key
+  type: http
+  seq: 401
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "parent_profile_id": "{{parent_profile_id}}",
+    "topic": "A paper kite",
+    "adult_confirmed_idea": "A child draws a bright kite",
+    "lesson_version": null
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("INVALID_REQUEST");
+  });
+}

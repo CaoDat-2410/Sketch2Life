@@ -1,0 +1,45 @@
+meta {
+  name: 510 [LOCAL / TEST ONLY] Create Teacher story run missing required fields
+  type: http
+  seq: 510
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "profile_ref": { "kind": "MANAGED_PROFILE", "id": "{{selection_child_id}}" }
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("INVALID_REQUEST");
+    const fields = res.getBody().field_errors.map(function (item) { return item.field; });
+    expect(fields).to.include.members(["occurrence_id", "plan", "activity_id", "selection_id", "selection_sha256"]);
+  });
+}
+
+docs {
+  Role: Teacher - set bearerToken to that synthetic account's token
+  Needs: selection_child_id from 506
+  Expected: 400 / INVALID_REQUEST
+  Source: backend/tests/integration/story_teacher/test_teacher_run_create_postgres.py, backend/tests/contract/test_teacher_story_run_create_contract.py
+}

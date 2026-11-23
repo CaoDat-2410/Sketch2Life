@@ -1,0 +1,31 @@
+meta {
+  name: 148 [PARENT - STATE CHANGE - LOCAL TEST ONLY] Update Parent Profile
+  type: http
+  seq: 148
+}
+
+patch {
+  url: {{baseUrl}}/v1/parent/profiles/{{parent_profile_id}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_REQUEST_ID_148
+  Idempotency-Key: REPLACE_WITH_SYNTHETIC_KEY_148
+}
+
+body:json {
+  {
+    "expected_revision": 1,
+    "display_name": "REPLACE_WITH_SYNTHETIC_PROFILE_NAME",
+    "age_months": 60,
+    "interests_summary": "REPLACE_WITH_SYNTHETIC_INTEREST_SUMMARY"
+  }
+}

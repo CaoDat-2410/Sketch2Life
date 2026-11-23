@@ -1,0 +1,67 @@
+meta {
+  name: 545 [DRAFT-V4A] [LOCAL / TEST ONLY] Select Parent main activity
+  type: http
+  seq: 545
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{parent_story_run_id}}/activity-selection
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{phase_a_select_activity_key}}
+}
+
+body:json {
+  {
+    "expected_revision": {{parent_story_run_revision}},
+    "activity": {
+      "lesson_id": "{{activity_lesson_id}}",
+      "version_id": "{{activity_version_id}}",
+      "content_sha256": "{{activity_content_sha256}}",
+      "activity_index": {{activity_index}}
+    }
+  }
+}
+
+script:pre-request {
+  const key = "select-act-" + Date.now();
+  bru.setVar("phase_a_select_activity_key", key);
+  bru.setVar("phase_a_select_expected_revision", bru.getVar("parent_story_run_revision"));
+}
+
+script:post-response {
+  const story = res.getBody().story_run;
+  bru.setVar("parent_story_run_revision", String(story.run_revision));
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const story = res.getBody().story_run;
+    expect(story.run_id).to.equal(bru.getVar("parent_story_run_id"));
+    expect(story.main_activity.state).to.equal("SELECTED");
+    expect(story.main_activity.selected.activity_ref.lesson_id).to.equal(bru.getVar("activity_lesson_id"));
+    expect(story.main_activity.selected.activity_ref.version_id).to.equal(bru.getVar("activity_version_id"));
+    expect(story.main_activity.selected.activity_ref.content_sha256).to.equal(bru.getVar("activity_content_sha256"));
+    expect(story.main_activity.selected.activity_ref.activity_index).to.equal(Number(bru.getVar("activity_index")));
+  });
+}
+
+docs {
+  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  Role: Parent - set bearerToken to seed-parent-p1 token
+  Needs: parent_story_run_id in PREPARATION_REVIEW, parent_story_run_revision from 559, activity_* vars from 540 (saves phase_a_select_activity_key and phase_a_select_expected_revision for 607/608 replay checks)
+  Expected: 200
+  Source: backend/src/sketch2life/interfaces/http/routers/parent_story_activities.py:146-183, backend/src/sketch2life/infrastructure/persistence/parent_story_repository.py:1308-1445, backend/tests/contract/test_parent_activities_contract.py:389-404
+}

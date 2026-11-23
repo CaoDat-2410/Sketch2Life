@@ -1,0 +1,37 @@
+meta {
+  name: 205 [PLATFORM ADMIN - STATE CHANGE - SYNTHETIC ONLY] Create Capacity Price
+  type: http
+  seq: 205
+}
+
+post {
+  url: {{baseUrl}}/api/platform-admin/v1/billing/sandbox/capacity-prices
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+  Idempotency-Key: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+body:json {
+  {
+    "cycle_months": 1,
+    "base_amount_vnd": 10000,
+    "slot_amount_vnd": 5000
+  }
+}
+
+docs {
+  Expected success status: 201
+  Main error cases: 401 AUTH_REQUIRED; 403 ACTION_NOT_ALLOWED; 403 BILLING_SANDBOX_DISABLED; 400 INVALID_REQUEST.
+  If-Match required: no.
+  Idempotency-Key required: yes.
+}

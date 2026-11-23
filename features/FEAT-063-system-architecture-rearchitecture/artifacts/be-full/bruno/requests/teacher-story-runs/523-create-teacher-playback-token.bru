@@ -1,0 +1,42 @@
+meta {
+  name: 523 [LOCAL / TEST ONLY] Create Teacher playback token
+  type: http
+  seq: 523
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{teacher_run_id}}/playback-token
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+script:post-response {
+  bru.setVar("teacher_playback_token", res.getBody().playback.token);
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const playback = res.getBody().playback;
+    expect(playback.stream_path).to.equal("/v1/story-runs/" + bru.getVar("teacher_run_id") + "/playback");
+    expect(playback.media_type).to.equal("video/mp4");
+    expect(res.getHeader("Cache-Control")).to.equal("no-store");
+  });
+}
+
+docs {
+  Role: Teacher - set bearerToken to that synthetic account's token
+  Needs: teacher_run_id; the run must be at VIDEO_READY (the video worker has finished)
+  Expected: 200
+  Source: backend/tests/integration/story_teacher/test_teacher_run_video_postgres.py
+}

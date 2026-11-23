@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { RefreshCw, Users } from "lucide-react";
 import { PageHeading } from "../../../../shared/components/FeatureAvailability";
-import { classService, type Be1Class } from "../services/classService";
+import { classService, classStateLabel, type Be1Class } from "../services/classService";
+import { AdminBe1Error } from "../services/be1Client";
 import { TeacherAssignmentCard } from "./TeacherAssignmentCard";
 import {
   managerBusinessService,
-  type Be1ConsentStatus,
-  type Be1ManagedProfile,
+  type Be1ManagerConsentStatus,
 } from "../services/managerBusinessService";
 
 type LoadState = "idle" | "loading" | "loaded" | "error";
@@ -15,18 +15,19 @@ function errorMessage(cause: unknown, fallback: string) {
   return cause instanceof Error ? cause.message : fallback;
 }
 
-function formatAge(ageMonths: number) {
-  const years = Math.floor(ageMonths / 12);
-  const months = ageMonths % 12;
-  if (years === 0) return months + " tháng";
-  if (months === 0) return years + " tuổi";
-  return years + " tuổi " + months + " tháng";
+function rosterErrorMessage(cause: unknown, fallback: string) {
+  if (cause instanceof AdminBe1Error && cause.status === 403 && cause.code === "ACTION_NOT_ALLOWED") {
+    return "Bạn không có quyền xem hồ sơ trẻ trong lớp này.";
+  }
+  return errorMessage(cause, fallback);
 }
 
 function consentStateLabel(state: string) {
-  if (state === "ACTIVE") return "Đã ghi nhận";
-  if (state === "PENDING") return "Đang chờ xác nhận";
-  if (state === "REVOKED") return "Đã thu hồi";
+  // The backend stores lower-case states; compare case-insensitively.
+  const key = state.toUpperCase();
+  if (key === "ACTIVE" || key === "EFFECTIVE") return "Đã ghi nhận";
+  if (key === "PENDING") return "Đang chờ xác nhận";
+  if (key === "REVOKED") return "Đã thu hồi";
   return state;
 }
 
@@ -37,16 +38,18 @@ export function RosterConsentPage() {
   const [selectedClassId, setSelectedClassId] = useState("");
   const [reloadCount, setReloadCount] = useState(0);
   const selectedClassIdRef = useRef("");
-  const [profiles, setProfiles] = useState<Be1ManagedProfile[]>([]);
+  // T-7a (SRS l.2586): the Manager sees how many active profiles a class has, never who they are.
+  const [profileCount, setProfileCount] = useState<number | null>(null);
   const [profileState, setProfileState] = useState<LoadState>("idle");
   const [profileError, setProfileError] = useState("");
-  const [consents, setConsents] = useState<Be1ConsentStatus[]>([]);
+  const [consents, setConsents] = useState<Be1ManagerConsentStatus[]>([]);
   const [consentState, setConsentState] = useState<LoadState>("idle");
   const [consentError, setConsentError] = useState("");
 
   useEffect(() => {
     let current = true;
-    classService.listClasses()
+    // T-7b: every state, so a suspended or archived class stays visible to its School Manager.
+    classService.listClasses("all")
       .then((items) => {
         if (!current) return;
         setClasses(items);
@@ -56,7 +59,7 @@ export function RosterConsentPage() {
           : items[0]?.class_id ?? "";
         selectedClassIdRef.current = nextSelected;
         setSelectedClassId(nextSelected);
-        setProfiles([]);
+        setProfileCount(null);
         setConsents([]);
         setProfileError("");
         setConsentError("");
@@ -83,17 +86,17 @@ export function RosterConsentPage() {
 
     const controller = new AbortController();
 
-    managerBusinessService.profiles(selectedClassId, controller.signal)
+    managerBusinessService.rosterSummary(selectedClassId, controller.signal)
       .then((result) => {
         if (!controller.signal.aborted) {
-          setProfiles(result.items);
+          setProfileCount(result.active_profile_count);
           setProfileState("loaded");
         }
       })
       .catch((cause: unknown) => {
         if (!controller.signal.aborted) {
-          setProfiles([]);
-          setProfileError(errorMessage(cause, "Không tải được roster từ BE1."));
+          setProfileCount(null);
+          setProfileError(rosterErrorMessage(cause, "Không tải được roster từ BE1."));
           setProfileState("error");
         }
       });
@@ -101,7 +104,7 @@ export function RosterConsentPage() {
     managerBusinessService.consents(selectedClassId, controller.signal)
       .then((result) => {
         if (!controller.signal.aborted) {
-          setConsents(result.items);
+          setConsents(result);
           setConsentState("loaded");
         }
       })
@@ -120,7 +123,7 @@ export function RosterConsentPage() {
   const changeSelectedClass = (classId: string) => {
     selectedClassIdRef.current = classId;
     setSelectedClassId(classId);
-    setProfiles([]);
+    setProfileCount(null);
     setConsents([]);
     setProfileError("");
     setConsentError("");
@@ -141,7 +144,7 @@ export function RosterConsentPage() {
             onClick={() => {
               setClassError("");
               setClassState("loading");
-              setProfiles([]);
+              setProfileCount(null);
               setConsents([]);
               setProfileError("");
               setConsentError("");
@@ -180,7 +183,13 @@ export function RosterConsentPage() {
             ))}
           </select>
         )}
-        {selectedClass && <p className="manager-business-subtle">Trạng thái lớp từ BE1: {selectedClass.state}</p>}
+        {selectedClass && (
+          <p className="manager-business-subtle">
+            Trạng thái lớp từ BE1: {classStateLabel(selectedClass.state)}
+            {selectedClass.state === "suspended" ? " · Lớp tạm ngưng chỉ đọc, mọi dữ liệu vẫn được giữ." : ""}
+            {selectedClass.state === "archived" ? " · Lớp đã lưu trữ; chỉ School Manager còn xem được." : ""}
+          </p>
+        )}
       </section>
 
       {selectedClassId && (
@@ -189,32 +198,21 @@ export function RosterConsentPage() {
             <div className="manager-business-card-heading">
               <div>
                 <p className="manager-business-eyebrow">GET · BE1</p>
-                <h2><Users size={18} aria-hidden="true" /> Roster được phép</h2>
+                <h2><Users size={18} aria-hidden="true" /> Tóm tắt roster</h2>
               </div>
-              {profileState === "loaded" && <span className="manager-business-chip">{profiles.length} hồ sơ</span>}
             </div>
             {profileState === "loading" ? (
-              <p className="manager-business-state" role="status">Đang kiểm tra quyền và tải roster…</p>
+              <p className="manager-business-state" role="status">Đang kiểm tra quyền và tải tóm tắt roster…</p>
             ) : profileState === "error" ? (
               <p className="manager-business-alert" role="alert">{profileError}</p>
-            ) : profileState === "loaded" && profiles.length === 0 ? (
-              <p className="manager-business-state">BE1 chưa trả hồ sơ nào có consent hiệu lực cho lớp này.</p>
-            ) : profileState === "loaded" ? (
-              <ul className="manager-business-profile-list">
-                {profiles.map((profile) => (
-                  <li key={profile.child_id}>
-                    <span className="manager-business-avatar" aria-hidden="true">{profile.display_name.slice(0, 1).toLocaleUpperCase()}</span>
-                    <span>
-                      <strong>{profile.display_name}</strong>
-                      <small>{formatAge(profile.age_months)}</small>
-                    </span>
-                  </li>
-                ))}
-              </ul>
+            ) : profileState === "loaded" && profileCount !== null ? (
+              <p className="manager-business-roster-count">
+                <strong>{profileCount}</strong> hồ sơ đang hoạt động trong lớp
+              </p>
             ) : (
-              <p className="manager-business-state">Chọn lớp để đọc roster.</p>
+              <p className="manager-business-state">Chọn lớp để đọc tóm tắt roster.</p>
             )}
-            <p className="manager-business-subtle">Không hiển thị mã hồ sơ, ảnh, media hoặc nội dung story.</p>
+            <p className="manager-business-subtle">School Manager chỉ xem số hồ sơ; không hiển thị tên, tuổi, mã hồ sơ, ảnh, media hoặc nội dung story.</p>
           </article>
 
           <article className="manager-business-card">
@@ -235,13 +233,12 @@ export function RosterConsentPage() {
               <div className="manager-business-table-wrap">
                 <table className="manager-business-table">
                   <thead>
-                    <tr><th>Bản ghi</th><th>Mục đích</th><th>Trạng thái</th><th>Hiệu lực</th></tr>
+                    <tr><th>Bản ghi</th><th>Trạng thái</th><th>Hiệu lực</th></tr>
                   </thead>
                   <tbody>
                     {consents.map((consent, index) => (
                       <tr key={consent.consent_id}>
                         <td>Bản ghi {index + 1}</td>
-                        <td><code>{consent.purpose_ref}</code></td>
                         <td>{consentStateLabel(consent.state)}</td>
                         <td>{consent.effective ? "Có" : "Không"}</td>
                       </tr>

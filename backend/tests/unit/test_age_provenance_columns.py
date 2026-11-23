@@ -10,6 +10,8 @@ from typing import Protocol, cast
 import pytest
 from alembic.migration import MigrationContext
 from alembic.operations import Operations
+from fastapi import Request, Response
+from pydantic import SecretStr
 from sketch2life.application.ports.identity import VerifiedPrincipal
 from sketch2life.contracts.schemas.be1_runtime import CreateProfileRequest
 from sketch2life.infrastructure.persistence.be1_models import ManagedProfileModel
@@ -114,15 +116,25 @@ def test_registry_profile_creation_records_synthetic_age_and_origin(
     class FakeSession:
         def __init__(self) -> None:
             self.rows: list[object] = []
+            self.committed = False
 
         def scalar(self, _statement: object) -> object:
-            return SimpleNamespace(class_id="synthetic-class")
+            return SimpleNamespace(class_id="synthetic-class", state="active", revision=1)
+
+        def get(self, _model: object, _key: object) -> None:
+            return None
+
+        def add(self, row: object) -> None:
+            self.rows.append(row)
 
         def add_all(self, rows: list[object]) -> None:
             self.rows.extend(rows)
 
         def flush(self) -> None:
             return None
+
+        def commit(self) -> None:
+            self.committed = True
 
     assignment = SimpleNamespace(class_id="synthetic-class", role="teacher")
     monkeypatch.setattr(
@@ -131,7 +143,6 @@ def test_registry_profile_creation_records_synthetic_age_and_origin(
     monkeypatch.setattr(be1_registry.secrets, "token_hex", lambda _length: "a" * 24)
     monkeypatch.setattr(be1_registry, "audit", lambda *args, **kwargs: None)
     monkeypatch.setattr(be1_registry, "event", lambda *args, **kwargs: None)
-    monkeypatch.setattr(be1_registry, "commit", lambda *args, **kwargs: None)
     db = FakeSession()
     principal = VerifiedPrincipal(
         subject="synthetic-adult",
@@ -143,16 +154,26 @@ def test_registry_profile_creation_records_synthetic_age_and_origin(
     response = be1_registry.create_profile(
         "synthetic-org",
         "synthetic-class",
-        CreateProfileRequest(
-            class_id="synthetic-class",
-            display_name="Synthetic profile",
-            age_months=60,
+        CreateProfileRequest(display_name="Synthetic profile", age_months=60),
+        Request(
+            {
+                "type": "http",
+                "headers": [(b"idempotency-key", b"synthetic-key")],
+            }
         ),
+        Response(),
+        "synthetic-key",
+        '"1"',
         principal,
         runtime=cast(
             be1_registry.Be1Runtime,
             SimpleNamespace(
-                settings=SimpleNamespace(env="test", synthetic_pilot_enabled=True)
+                settings=SimpleNamespace(
+                    env="test",
+                    synthetic_pilot_enabled=True,
+                    real_profile_data_enabled=False,
+                    profile_receipt_hmac_key=SecretStr("synthetic-receipt-key-" + "k" * 32),
+                )
             ),
         ),
         db=db,  # type: ignore[arg-type]
@@ -166,3 +187,5 @@ def test_registry_profile_creation_records_synthetic_age_and_origin(
     assert profile.consent_purpose_ref is None
     assert response["child_id"] == "synthetic-" + "a" * 24
     assert response["data_origin"] == "SYNTHETIC_DEV"
+    assert response["class_revision"] == 1
+    assert db.committed

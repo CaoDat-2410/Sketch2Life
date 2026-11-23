@@ -267,6 +267,31 @@ export function isConfirmedRunSubject(value: unknown, expectedSubject: string): 
       || candidate?.decision === 'CORRECTED_BY_ADULT');
 }
 
+export type SubjectConfirmationOutcome = 'confirmed' | 'rerun-requested' | 'invalid';
+
+/**
+ * Reads the 202 body of the subject confirmation (SRS l.1666). `CONFIRMED` keeps the reviewed
+ * understanding revision, or moves it up by one when the server recorded an edited subject as the
+ * next revision without a rerun. `RERUN_REQUESTED` (SRS l.394, l.1413) is an accepted edit whose
+ * result is not confirmed yet: it must never be shown as a confirmed subject or as an error.
+ * Any other decision, run or revision is `invalid`.
+ */
+export function readSubjectConfirmationOutcome(
+  response: unknown,
+  expected: { runId: string; understandingRevision: number; subjectEdited: boolean },
+): SubjectConfirmationOutcome {
+  if (!isRecord(response) || response.story_run_id !== expected.runId) return 'invalid';
+  const revision = response.understanding_revision;
+  if (typeof revision !== 'number' || !Number.isInteger(revision)) return 'invalid';
+  if (response.decision === 'RERUN_REQUESTED') {
+    return revision === expected.understandingRevision ? 'rerun-requested' : 'invalid';
+  }
+  if (response.decision !== 'CONFIRMED') return 'invalid';
+  const accepted = revision === expected.understandingRevision
+    || (expected.subjectEdited && revision === expected.understandingRevision + 1);
+  return accepted ? 'confirmed' : 'invalid';
+}
+
 export function isActiveOrUnreconciledStoryRun(value: unknown): boolean {
   if (!isRecord(value)) return true;
   return value.story_status === 'GENERATING'
@@ -424,6 +449,7 @@ const parentRecoveryGroups: Record<string, ParentRecoveryGroup> = {
   LESSON_FILE_TOO_LARGE: 'teacher-only',
   TRANSCRIPT_NOT_CONFIRMED: 'transcript-review',
   SUBJECT_NOT_CONFIRMED: 'subject-review',
+  SUBJECT_RERUN_PENDING: 'subject-review',
   PROFILE_CONTEXT_NOT_CONFIRMED: 'context-review',
   LESSON_PLAN_NOT_APPROVED: 'teacher-only',
   STORY_REWRITE_LIMIT_REACHED: 'story-review',
@@ -489,6 +515,7 @@ export function safeParentFlowErrorMessage(error: unknown): string {
     PARENT_CONTEXT_NOT_CONFIRMED: 'Người lớn cần xác nhận ngữ cảnh trước khi tiếp tục.',
     PARENT_DRAWING_REQUIRED: 'Hãy chọn ảnh tranh trước khi tiếp tục xem xét.',
     PARENT_DRAWING_RESULT_INVALID: 'Chưa thể đọc kết quả xem xét tranh. Hãy kiểm tra trạng thái trước khi gửi lại.',
+    SUBJECT_RERUN_PENDING: 'Hệ thống đang xem lại bức tranh theo chủ thể bạn vừa sửa. Hãy chờ một lát rồi mở lại buổi học để xác nhận kết quả mới.',
     PARENT_SUBJECT_CONFIRMATION_INVALID: 'Chưa thể xác nhận chủ thể của bức tranh.',
     PARENT_STORY_REVISION_INVALID: 'Chưa thể xác nhận đúng phiên bản kịch bản. Hãy kiểm tra lại buổi học.',
     PARENT_STORY_NOT_CONFIRMABLE: 'Kịch bản chưa có đủ thông tin để xác nhận.',

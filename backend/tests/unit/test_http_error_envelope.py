@@ -23,6 +23,11 @@ SCANNED_MODULES = (
     "interfaces/http/routers/platform_admin_accounts.py",
     "interfaces/http/routers/auth_registration.py",
     "interfaces/http/routers/teacher_ai.py",
+    "interfaces/http/routers/jobs.py",
+    "interfaces/http/routers/upload_sessions.py",
+    "interfaces/http/routers/lesson_occurrences.py",
+    "interfaces/http/routers/notifications.py",
+    "infrastructure/notifications/inbox_repository.py",
     "interfaces/http/be1_runtime.py",
     "infrastructure/lesson_library/service.py",
 )
@@ -177,6 +182,19 @@ def test_messages_are_vietnamese_table_values_never_route_text() -> None:
     assert odd["message"]
 
 
+def test_t4b1_sample_gate_codes_have_their_own_vietnamese_messages() -> None:
+    """SRS §9.8 l.866 and l.871: the two codes the child selection raises are worded."""
+    for status, code in ((409, "SAMPLE_VIDEO_ALREADY_EXISTS"), (422, "LESSON_PLAN_NOT_APPROVED")):
+        message = envelope.MESSAGES[code]
+        assert message and message != envelope.STATUS_MESSAGES[status]
+        body = envelope.build_error_body(status=status, code=code, request_id="r")
+        assert body["code"] == code and body["message"] == message
+        kept = envelope.normalize_http_error(
+            status, {"code": code}, idempotency_header_present=False
+        )
+        assert kept[:2] == (status, code)
+
+
 def test_every_scanned_code_literal_is_classified() -> None:
     """A new code fails this test until it is worded or listed as status-message-only."""
     unclassified: list[str] = []
@@ -206,7 +224,66 @@ def test_conv1_families() -> None:
     assert envelope.is_conv1_path("/api/platform-admin/v1/accounts")
     assert envelope.is_conv1_path("/api/auth/v1/me")
     assert envelope.is_conv1_path("/api/teacher/v1/organizations/o/ai/lesson-plan-suggestions")
+    assert envelope.is_conv1_path("/v1/jobs/job_fx_001")
+    assert not envelope.is_conv1_path("/v1/jobs")  # the prefix has a trailing slash
+    assert not envelope.is_conv1_path("/v1/jobsfoo/job_fx_001")
+    # FEAT-066 T-2a: the generic upload sessions, matched on whole path segments.
+    assert envelope.is_conv1_path("/v1/upload-sessions")
+    assert envelope.is_conv1_path("/v1/upload-sessions/up_1/parts/1")
+    assert not envelope.is_conv1_path("/v1/upload-sessionsfoo")
+    assert not envelope.is_conv1_path("/v1/upload-sessions/up_1", include_upload_sessions=False)
+    # FEAT-066 T-3a: the Teacher lesson occurrences, always in the family, whole segments only.
+    assert envelope.is_conv1_path("/v1/lesson-occurrences")
+    assert envelope.is_conv1_path("/v1/lesson-occurrences/occ_1/documents")
+    assert envelope.is_conv1_path("/v1/lesson-occurrences", include_upload_sessions=False)
+    assert not envelope.is_conv1_path("/v1/lesson-occurrencesfoo")
+    # FEAT-066 T-8a: the notification inbox, always in the family, whole segments only.
+    assert envelope.is_conv1_path("/v1/notifications")
+    assert envelope.is_conv1_path("/v1/notifications/read-all")
+    assert envelope.is_conv1_path("/v1/notifications/ntf_1/read", include_upload_sessions=False)
+    assert not envelope.is_conv1_path("/v1/notificationsfoo")
     assert not envelope.is_conv1_path("/api/parent/v1/ai/drawing-understandings")
     assert not envelope.is_conv1_path("/v1/parent/profiles")
     assert not envelope.is_conv1_path("/v1/story-runs")
     assert not envelope.is_conv1_path("/v1/sessions/s/media/image")
+
+
+# --- FEAT-066 T-2b (D10): the Parent story envelope passes route field errors through ----------
+def test_story_field_errors_pass_plain_items_with_a_fixed_message() -> None:
+    from sketch2life.interfaces.http.app import _story_field_errors
+
+    assert _story_field_errors([{"field": "asset_ref", "code": "INVALID_FORMAT"}]) == [
+        {
+            "field": "asset_ref",
+            "code": "INVALID_FORMAT",
+            "message": "Giá trị trường không hợp lệ.",
+        }
+    ]
+    assert _story_field_errors(None) is None
+    assert _story_field_errors([]) is None
+    assert _story_field_errors("INVALID_FORMAT") is None
+
+
+def test_story_field_errors_drop_anything_that_is_not_plain_and_hide_the_key_item() -> None:
+    from sketch2life.interfaces.http.app import _story_field_errors
+
+    for bad in (
+        [{"field": "x", "code": "lowercase"}],
+        [{"field": "has space", "code": "INVALID_FORMAT"}],
+        [{"field": "x" * 121, "code": "INVALID_FORMAT"}],
+        [{"field": "x", "code": 3}],
+        [{"field": "x"}],
+        ["x"],
+        [{"field": "ok", "code": "INVALID_FORMAT"}, {"field": "bad field", "code": "X"}],
+    ):
+        assert _story_field_errors(bad) is None, bad
+    # T0.1 (C-D5): a bad Idempotency-Key stays a plain 400 without field_errors on these routes.
+    assert _story_field_errors([{"field": "Idempotency-Key", "code": "INVALID_FORMAT"}]) is None
+    kept = _story_field_errors(
+        [
+            {"field": "Idempotency-Key", "code": "INVALID_FORMAT"},
+            {"field": "asset_ref", "code": "REQUIRED"},
+        ]
+    )
+    assert kept is not None and [item["field"] for item in kept] == ["asset_ref"]
+    assert len(_story_field_errors([{"field": "f", "code": "C"}] * 30) or []) == 20

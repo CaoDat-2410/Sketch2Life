@@ -1,0 +1,37 @@
+meta {
+  name: 207 [PLATFORM ADMIN - STATE CHANGE - SYNTHETIC ONLY] Quote Existing Subscription
+  type: http
+  seq: 207
+}
+
+post {
+  url: {{baseUrl}}/api/platform-admin/v1/billing/sandbox/subscriptions/{{subscription_id}}/quote
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+  If-Match: "REPLACE_WITH_REVISION"
+  Idempotency-Key: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+body:json {
+  {
+    "mode": "ADDON",
+    "addon_slots": 1
+  }
+}
+
+docs {
+  Expected success status: 201
+  Main error cases: 401 AUTH_REQUIRED; 403 ACTION_NOT_ALLOWED; 403 BILLING_SANDBOX_DISABLED; 404 RESOURCE_NOT_FOUND; 400 INVALID_REQUEST; 409 STALE_REVISION; 422 INVALID_REVISION; 428 PRECONDITION_REQUIRED.
+  If-Match required: yes.
+  Idempotency-Key required: yes.
+}

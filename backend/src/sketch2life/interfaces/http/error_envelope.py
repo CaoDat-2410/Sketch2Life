@@ -19,7 +19,23 @@ CONV1_PREFIXES: tuple[str, ...] = (
     "/api/platform-admin/v1",
     "/api/auth/v1",
     "/api/teacher/v1/",
+    # FEAT-066 T0.4: trailing slash so a sibling such as ``/v1/jobsfoo`` is not captured.
+    "/v1/jobs/",
 )
+
+# FEAT-066 T-2a: the generic upload sessions (SRS l.1654-1658) use the same envelope, but only while
+# they are mounted: the StoryRun-lite demo owns the literal path with its own bodies, so a caller
+# that serves the demo asks ``is_conv1_path(..., include_upload_sessions=False)``. The base is
+# matched on a whole segment, so ``/v1/upload-sessionsfoo`` is not captured.
+UPLOAD_SESSIONS_BASE = "/v1/upload-sessions"
+
+# FEAT-066 T-3a: the Teacher lesson occurrences (SRS l.1652-1660). No demo owns this path, so the
+# base is always part of the family; it is matched on a whole segment like the upload base.
+LESSON_OCCURRENCES_BASE = "/v1/lesson-occurrences"
+
+# FEAT-066 T-8a: the notification inbox (SRS l.1681). Matched on a whole segment, so
+# ``/v1/notificationsfoo`` is not captured; the T-8b push-endpoint paths are not registered.
+NOTIFICATIONS_BASE = "/v1/notifications"
 
 FIELD_ERROR_CODES = frozenset(
     {
@@ -30,6 +46,10 @@ FIELD_ERROR_CODES = frozenset(
         "INVALID_TYPE",
         "INVALID_FORMAT",
         "UNKNOWN_FIELD",
+        # FEAT-066 T-3d: a value the API deliberately refuses for now (a Teacher-written activity
+        # while no safety checklist exists, an activity-catalog reference before TD-16). Without
+        # this member ``safe_field_errors`` would drop the explicit signal.
+        "NOT_SUPPORTED",
     }
 )
 
@@ -93,6 +113,39 @@ MESSAGES: Mapping[str, str] = {
     "UPLOAD_SESSION_STATE_CONFLICT": "Phiên tải lên không còn ở trạng thái cho phép thao tác này.",
     "UPLOAD_SESSION_EXPIRED": "Phiên tải lên đã hết hạn. Vui lòng tải tệp lại từ đầu.",
     "UPLOAD_INCOMPLETE": "Tệp chưa được tải lên đủ các phần.",
+    # FEAT-066 T-2a: SRS §9.8 upload codes of the generic upload sessions (l.867-873).
+    "UNSUPPORTED_LESSON_TYPE": "Chỉ nhận tệp giáo án PDF, DOCX hoặc PPTX.",
+    "UPLOAD_CHECKSUM_MISMATCH": "Nội dung tải lên không khớp với mã kiểm tra đã khai báo.",
+    "UPLOAD_CONTENT_MISMATCH": "Nội dung tệp không khớp với định dạng đã khai báo.",
+    "STORAGE_UNAVAILABLE": "Kho lưu trữ tạm thời chưa sẵn sàng. Vui lòng thử lại sau.",
+    # FEAT-066 T-2c: SRS l.982, a run audio over 20,000,000 bytes or two minutes.
+    "AUDIO_TOO_LARGE": "Bản ghi âm vượt quá 2 phút hoặc 20 MB. Vui lòng ghi âm ngắn hơn.",
+    # FEAT-066 T-3a: SRS §9.8 l.866, a Teacher who is not assigned to the class.
+    "TEACHER_ASSIGNMENT_REQUIRED": "Giáo viên chưa được phân công phụ trách lớp học này.",
+    # FEAT-066 T-4b1: SRS §9.8 l.866 and l.871, the sample-video gates of the child selection.
+    "SAMPLE_VIDEO_ALREADY_EXISTS": (
+        "Buổi học này đã có video mẫu. Không thể chọn bé cho một video mẫu khác."
+    ),
+    "LESSON_PLAN_NOT_APPROVED": (
+        "Giáo án của buổi học chưa được duyệt. Vui lòng duyệt giáo án rồi thử lại."
+    ),
+    # FEAT-066 T-3b: refusals of an attached occurrence document (SRS §9.8 l.862-873; the last
+    # three are the parser's own stable codes, not named by §9.8, see T-3b-DEC-5).
+    "INVALID_FILE_CONTENT": (
+        "Nội dung tệp không hợp lệ hoặc không đọc được. Vui lòng chọn tệp khác."
+    ),
+    "OCR_NOT_SUPPORTED": (
+        "Tệp chỉ gồm trang quét ảnh nên chưa thể đọc văn bản. Vui lòng dùng tệp có văn bản."
+    ),
+    "ENCRYPTED_DOCUMENT_UNSUPPORTED": (
+        "Tệp được mã hóa hoặc đặt mật khẩu. Vui lòng gỡ mật khẩu rồi tải lại."
+    ),
+    "DOCUMENT_PAGE_LIMIT_EXCEEDED": (
+        "Tệp vượt quá 100 trang hoặc slide. Vui lòng chia nhỏ tệp rồi tải lại."
+    ),
+    "DOCUMENT_TEXT_LIMIT_EXCEEDED": (
+        "Văn bản trong tệp quá dài (tối đa 2 MB). Vui lòng rút gọn tệp rồi tải lại."
+    ),
 }
 
 STATUS_MESSAGES: Mapping[int, str] = {
@@ -131,7 +184,8 @@ STATUS_MESSAGE_ONLY = frozenset(
         "CLASS_TEACHER_EXISTS", "COMPLETION_STAGE_REQUIRED", "CONSENT_NOT_EFFECTIVE",
         "CONTRIBUTORS_REQUIRED", "DATABASE_NOT_CONFIGURED", "DATABASE_UNAVAILABLE",
         "DEVICE_AUTHENTICATION_REQUIRED", "DEVICE_GRANT_INACTIVE", "DEVICE_MEMBERSHIP_INACTIVE",
-        "DEVICE_SCOPE_INACTIVE", "DRAWING_RECEIPT_REQUIRED", "GALLERY_NOT_PUBLISHED",
+        "DEVICE_SCOPE_INACTIVE", "DRAWING_RECEIPT_REQUIRED", "EMAIL_VERIFICATION_REQUIRED",
+        "GALLERY_NOT_PUBLISHED",
         "GROUP_DRAFT_REQUIRED", "GROUP_NOT_WRITABLE", "IDEMPOTENCY_KEY_REUSED",
         "IDENTITY_ISSUER_MISMATCH", "IDENTITY_PROVIDER_UNAVAILABLE", "IMAGE_DIMENSIONS_EXCEEDED",
         "IMAGE_INVALID", "INVALID_DEVICE_CREDENTIAL", "INVALID_GALLERY_TRANSITION",
@@ -145,7 +199,8 @@ STATUS_MESSAGE_ONLY = frozenset(
         "PILOT_LEDGER_UNAVAILABLE", "PILOT_PROFILE_LOOKUP_UNAVAILABLE", "PUBLICATION_REQUIRED",
         "PUBLISHED_GALLERY_REQUIRED", "REQUEST_TOO_LARGE", "RESERVED_CONFIGURATION_KEY",
         "RESOURCE_CONFLICT", "ROOM_CODE_CLOSED", "ROOM_CODE_RATE_LIMITED", "ROOM_CODE_UNAVAILABLE",
-        "SCOPE_DENIED", "SELF_ROLE_CHANGE_DENIED", "SESSION_NOT_ACTIVE", "SESSION_NOT_IN_LOBBY",
+        "SCOPE_DENIED", "SELF_DISABLE_DENIED", "SELF_ROLE_CHANGE_DENIED", "SESSION_NOT_ACTIVE",
+        "SESSION_NOT_IN_LOBBY",
         "SESSION_NOT_OPEN", "SESSION_NOT_RUNNING", "SESSION_OUTCOME_ALREADY_RECORDED",
         "SRS_STAGE_CONTRACT_UNAVAILABLE", "STALE_AGGREGATE", "STALE_CANVAS_REVISION",
         "STALE_SESSION_REVISION", "STALE_STAGE_REVISION", "SYNTHETIC_PROFILE_CREATION_UNAVAILABLE",
@@ -158,9 +213,17 @@ STATUS_MESSAGE_ONLY = frozenset(
 _VALIDATION_422_CODES = frozenset({"INVALID_REQUEST", "IDEMPOTENCY_KEY_REQUIRED"})
 
 
-def is_conv1_path(path: str) -> bool:
+def is_conv1_path(path: str, *, include_upload_sessions: bool = True) -> bool:
     """Return whether a request path belongs to a CONV-1 envelope family."""
-    return path.startswith(CONV1_PREFIXES)
+    if path.startswith(CONV1_PREFIXES):
+        return True
+    if path == LESSON_OCCURRENCES_BASE or path.startswith(LESSON_OCCURRENCES_BASE + "/"):
+        return True
+    if path == NOTIFICATIONS_BASE or path.startswith(NOTIFICATIONS_BASE + "/"):
+        return True
+    return include_upload_sessions and (
+        path == UPLOAD_SESSIONS_BASE or path.startswith(UPLOAD_SESSIONS_BASE + "/")
+    )
 
 
 def _valid_code(value: object) -> str | None:
@@ -268,10 +331,13 @@ __all__ = [
     "FIELD_ERROR_CODES",
     "GENERIC_CODE_MAP",
     "KEPT_404_CODES",
+    "LESSON_OCCURRENCES_BASE",
     "MESSAGES",
+    "NOTIFICATIONS_BASE",
     "STATUS_DEFAULT_CODES",
     "STATUS_MESSAGES",
     "STATUS_MESSAGE_ONLY",
+    "UPLOAD_SESSIONS_BASE",
     "build_error_body",
     "is_conv1_path",
     "map_code",

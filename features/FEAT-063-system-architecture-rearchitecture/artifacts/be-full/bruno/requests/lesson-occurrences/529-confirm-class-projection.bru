@@ -1,0 +1,58 @@
+meta {
+  name: 529 [LOCAL / TEST ONLY] Confirm class projection
+  type: http
+  seq: 529
+}
+
+post {
+  url: {{baseUrl}}/v1/lesson-occurrences/{{occurrence_id}}/projection-confirmation
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+  If-Match: {{occurrence_etag}}
+}
+
+body:json {
+  {
+    "run_id": "{{teacher_run_id}}",
+    "generation_id": "{{teacher_generation_id}}",
+    "audience": "CLASS",
+    "use": "CLASS_PROJECTION"
+  }
+}
+
+script:post-response {
+  bru.setVar("occurrence_etag", res.getHeader("ETag"));
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.contract).to.equal("ClassProjectionConfirmationV1");
+    expect(body.audience).to.equal("CLASS");
+    expect(body.use).to.equal("CLASS_PROJECTION");
+    expect(body.sample_video.slot_state).to.equal("CLAIMED");
+    expect(body.sample_video.run_ref).to.equal(bru.getVar("teacher_run_id"));
+    expect(String(res.getHeader("Cache-Control"))).to.include("no-store");
+    expect(JSON.stringify(body)).to.not.include("display_name");
+  });
+}
+
+docs {
+  Role: Teacher - set bearerToken to that synthetic account's token
+  Needs: occurrence_id, occurrence_etag (refreshed by a GET of the occurrence right before 529), teacher_run_id, teacher_generation_id; run is at VIDEO_READY and not completed (confirm before Complete ends at Complete)
+  Expected: 200
+  Source: backend/src/sketch2life/infrastructure/lesson_occurrences/projection.py:201-316, backend/tests/integration/lesson_occurrences/test_projection_postgres.py, backend/tests/integration/lesson_occurrences/test_projection_after_complete_postgres.py:84-110
+}

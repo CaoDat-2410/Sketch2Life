@@ -1,0 +1,30 @@
+meta {
+  name: 230 [LOCAL / TEST ONLY] Replay abort receipt
+  type: http
+  seq: 230
+}
+
+delete {
+  url: {{baseUrl}}/v1/upload-sessions/{{abort_upload_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  If-Match: {{abort_etag_current}}
+  Idempotency-Key: {{upload_abort_key}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(202);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().state).to.equal("ABORTED");
+  });
+}

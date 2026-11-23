@@ -1,0 +1,36 @@
+meta {
+  name: 250 [LOCAL / TEST ONLY] Complete occurrence document upload
+  type: http
+  seq: 250
+}
+
+post {
+  url: {{baseUrl}}/v1/upload-sessions/{{occurrence_doc_upload_id}}/complete
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "expected_size_bytes": 48,
+    "expected_sha256": "6cfaace76ba33bc57672888a60a9b7626b73b3366e2a40e1e727deb3f04d8539"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(202);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+  });
+}

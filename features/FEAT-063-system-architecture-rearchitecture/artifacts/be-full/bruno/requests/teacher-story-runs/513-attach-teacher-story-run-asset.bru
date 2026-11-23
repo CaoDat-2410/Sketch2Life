@@ -1,0 +1,47 @@
+meta {
+  name: 513 [LOCAL / TEST ONLY] Attach Teacher story run asset
+  type: http
+  seq: 513
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{teacher_run_id}}/assets
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "asset_ref": "{{teacher_asset_ref}}"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(202);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.asset_ref).to.equal(bru.getVar("teacher_asset_ref"));
+    expect(body.asset_state).to.equal("READY");
+    expect(body.run_state).to.equal("INPUT_PROCESSING");
+    expect(String(res.getHeader("Content-Location")).endsWith(bru.getVar("teacher_run_id"))).to.equal(true);
+  });
+}
+
+docs {
+  Role: Teacher - set bearerToken to that synthetic account's token
+  Needs: teacher_run_id from 508, teacher_asset_ref (a completed RUN_ARTWORK upload session whose target is this run)
+  Expected: 202
+  Source: backend/tests/integration/story_teacher/test_teacher_run_inputs_postgres.py
+}

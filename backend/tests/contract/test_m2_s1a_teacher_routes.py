@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
-from typing import cast
+from typing import Any, cast
 
 import pytest
 from fastapi import HTTPException, Response
@@ -38,37 +38,33 @@ def test_teacher_requests_do_not_accept_client_identity_or_consent_fields() -> N
             class_id="synthetic-class",
         )
 
-    profile = CreateProfileRequest(
-        class_id="synthetic-class",
-        display_name="Synthetic learner",
-        age_months=120,
-    )
+    # T-7c: the class is the path only; `consent_id` is the one optional reference field.
+    profile = CreateProfileRequest(display_name="Synthetic learner", age_months=120)
     assert profile.model_dump() == {
-        "class_id": "synthetic-class",
         "display_name": "Synthetic learner",
         "age_months": 120,
+        "consent_id": None,
     }
+    assert CreateProfileRequest(
+        display_name="Synthetic learner", age_months=36, consent_id="synthetic-consent"
+    ).consent_id == "synthetic-consent"
+    with pytest.raises(ValidationError):
+        CreateProfileRequest(display_name="Synthetic learner", age_months=121)
     with pytest.raises(ValidationError):
         CreateProfileRequest(
-            class_id="synthetic-class",
-            display_name="Synthetic learner",
-            age_months=121,
-        )
-    with pytest.raises(ValidationError):
-        CreateProfileRequest(
-            child_id="synthetic-client-id",
-            consent_id="synthetic-consent",
+            child_id="synthetic-client-id",  # type: ignore[call-arg]
             purpose_ref="synthetic-purpose",
+            display_name="Synthetic learner",
+            age_months=60,
+        )
+    with pytest.raises(ValidationError):
+        CreateProfileRequest(  # type: ignore[call-arg]
             class_id="synthetic-class",
             display_name="Synthetic learner",
             age_months=60,
         )
     with pytest.raises(ValidationError):
-        CreateProfileRequest(
-            class_id="synthetic-class",
-            display_name="Learner",
-            age_months=60,
-        )
+        CreateProfileRequest(display_name="Learner", age_months=60)
 
 
 def test_class_lock_select_takes_for_update() -> None:
@@ -110,6 +106,7 @@ def test_missing_class_assignment_uses_generic_scope_denial(
         be1_registry.assign_class_teacher(
             "synthetic-missing-class",
             CreateAssignmentRequest(candidate_ref="synthetic-candidate"),
+            cast(Any, SimpleNamespace()),  # T0.1: the request
             Response(),
             "synthetic-key",
             '"1"',
@@ -146,18 +143,22 @@ def test_profile_requires_exact_class_teacher_assignment(
     db = FakeSession()
     runtime = cast(
         be1_registry.Be1Runtime,
-        SimpleNamespace(settings=SimpleNamespace(env="test", synthetic_pilot_enabled=True)),
+        SimpleNamespace(
+            settings=SimpleNamespace(
+                env="test", synthetic_pilot_enabled=True, real_profile_data_enabled=False
+            )
+        ),
     )
 
     with pytest.raises(HTTPException) as error:
         be1_registry.create_profile(
             "synthetic-org",
             "synthetic-class",
-            CreateProfileRequest(
-                class_id="synthetic-class",
-                display_name="Synthetic learner",
-                age_months=60,
-            ),
+            CreateProfileRequest(display_name="Synthetic learner", age_months=60),
+            cast(Any, SimpleNamespace()),  # T-7c: the request (never reached)
+            Response(),
+            "synthetic-key",
+            '"1"',
             _principal("synthetic-teacher"),
             runtime=runtime,
             db=cast(be1_registry.Session, db),
@@ -198,17 +199,21 @@ def test_missing_or_wrong_class_scope_uses_generic_denial(
     monkeypatch.setattr(be1_registry, "require_assignment", unexpected_assignment_lookup)
     runtime = cast(
         be1_registry.Be1Runtime,
-        SimpleNamespace(settings=SimpleNamespace(env="test", synthetic_pilot_enabled=True)),
+        SimpleNamespace(
+            settings=SimpleNamespace(
+                env="test", synthetic_pilot_enabled=True, real_profile_data_enabled=False
+            )
+        ),
     )
     with pytest.raises(HTTPException) as error:
         be1_registry.create_profile(
             organization_id,
             "synthetic-class",
-            CreateProfileRequest(
-                class_id="synthetic-class",
-                display_name="Synthetic learner",
-                age_months=60,
-            ),
+            CreateProfileRequest(display_name="Synthetic learner", age_months=60),
+            cast(Any, SimpleNamespace()),  # T-7c: the request (never reached)
+            Response(),
+            "synthetic-key",
+            '"1"',
             _principal("synthetic-teacher"),
             runtime=runtime,
             db=cast(be1_registry.Session, FakeSession()),

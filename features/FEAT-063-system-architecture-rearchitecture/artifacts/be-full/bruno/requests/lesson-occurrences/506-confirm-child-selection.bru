@@ -1,0 +1,56 @@
+meta {
+  name: 506 [LOCAL / TEST ONLY] Confirm child selection
+  type: http
+  seq: 506
+}
+
+post {
+  url: {{baseUrl}}/v1/lesson-occurrences/{{occurrence_id}}/child-selections/{{selection_id}}/confirmation
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+  If-Match: {{selection_etag}}
+}
+
+body:json {
+  {
+    "expected_selection_sha256": "{{selection_sha256}}"
+  }
+}
+
+script:post-response {
+  const body = res.getBody();
+  bru.setVar("selection_etag", res.getHeader("ETag"));
+  bru.setVar("selection_revision", String(body.revision));
+  bru.setVar("selection_child_id", body.child.profile_id);
+  bru.setVar("plan_revision_no", String(body.plan.revision_no));
+  bru.setVar("plan_hash", body.plan.plan_hash);
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.state).to.equal("CONFIRMED");
+    expect(body.revision).to.equal(2);
+    expect(res.getHeader("ETag")).to.equal('"2"');
+  });
+}
+
+docs {
+  Role: Teacher - set bearerToken to that synthetic account's token
+  Needs: occurrence_id, selection_id, selection_etag, selection_sha256 from 500
+  Expected: 200
+  Source: backend/tests/integration/lesson_occurrences/test_child_selection_postgres.py, backend/tests/contract/test_child_selection_routes.py
+}

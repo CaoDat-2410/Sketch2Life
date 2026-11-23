@@ -1,0 +1,40 @@
+meta {
+  name: 521 [LOCAL / TEST ONLY] Get Teacher video job
+  type: http
+  seq: 521
+}
+
+get {
+  url: {{baseUrl}}/v1/jobs/{{teacher_job_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.job_id).to.equal(bru.getVar("teacher_job_id"));
+    expect(body.target_kind).to.equal("VIDEO_GENERATION");
+    expect(body.result_refs).to.deep.equal([]);
+    expect(res.getHeader("Cache-Control")).to.equal("private, no-cache");
+    expect(JSON.stringify(body)).to.not.include("amazonaws");
+  });
+}
+
+docs {
+  Role: Teacher - set bearerToken to that synthetic account's token
+  Needs: teacher_job_id from 520
+  Expected: 200
+  Source: backend/tests/integration/story_teacher/test_teacher_run_video_postgres.py
+}

@@ -1,0 +1,30 @@
+meta {
+  name: 226 [LOCAL / TEST ONLY] Abort with stale ETag
+  type: http
+  seq: 226
+}
+
+delete {
+  url: {{baseUrl}}/v1/upload-sessions/{{abort_upload_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  If-Match: {{abort_etag_initial}}
+  Idempotency-Key: {{upload_abort_key}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("STALE_REVISION");
+  });
+}

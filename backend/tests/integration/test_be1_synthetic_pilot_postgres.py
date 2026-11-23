@@ -158,6 +158,8 @@ class PilotHarness:
     session_factory: sessionmaker[Session]
     database_url: str = field(repr=False)
     created_ai_jobs: list[tuple[str, tuple[str, ...]]] = field(default_factory=list, repr=False)
+    # T0.11: extra adult identities (Teacher actors) created by a test, removed at teardown.
+    extra_adult_subjects: set[str] = field(default_factory=set, repr=False)
 
 
 def _is_loopback_host(host: object) -> bool:
@@ -454,11 +456,13 @@ def pilot_harness(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Iterator[P
 
     app.dependency_overrides[get_verified_adult] = verified_test_adult
     created_ai_jobs: list[tuple[str, tuple[str, ...]]] = []
+    extra_adult_subjects: set[str] = set()
     try:
         with TestClient(app) as client:
             class_response = client.post(
                 f"/api/be1/v1/organizations/{organization_id}/classes",
                 json={"display_name": "Synthetic T12 Class"},
+                headers={"Idempotency-Key": f"class-{uuid4().hex}"},
             )
             assert class_response.status_code == 201, class_response.text
             yield PilotHarness(
@@ -471,11 +475,15 @@ def pilot_harness(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Iterator[P
                 session_factory=session_factory,
                 database_url=database_url,
                 created_ai_jobs=created_ai_jobs,
+                extra_adult_subjects=extra_adult_subjects,
             )
     finally:
         app.dependency_overrides.clear()
         _delete_test_organization_rows(
-            engine, organization_id, {adult_subject}, created_ai_jobs=created_ai_jobs
+            engine,
+            organization_id,
+            {adult_subject, *extra_adult_subjects},
+            created_ai_jobs=created_ai_jobs,
         )
         engine.dispose()
         get_settings.cache_clear()
@@ -772,6 +780,54 @@ def _prepare_synthetic_lobby(harness: PilotHarness) -> tuple[str, str]:
         run_ref=run_ref,
     )
     return session_id, child_id
+
+
+@contextmanager
+def _acting_as_teacher(harness: PilotHarness, *, class_id: str | None = None) -> Iterator[str]:
+    """Run the calls inside the block as a real Teacher account (T0.11).
+
+    The harness principal is a School Manager. The pilot-profiles and class profile list
+    routes now refuse that role, so the Teacher-side tests act as a Teacher account with a
+    ``teacher`` assignment on ``class_id`` (default: the harness class).
+    """
+    teacher_subject = _synthetic_id()
+    with harness.session_factory.begin() as db:
+        db.add(
+            AdultIdentityModel(
+                subject=teacher_subject,
+                issuer="synthetic-t12",
+                state="active",
+                account_role="teacher",
+            )
+        )
+        db.flush()
+        db.add(
+            OrganizationAssignmentModel(
+                assignment_id=_synthetic_id(),
+                organization_id=harness.organization_id,
+                subject=teacher_subject,
+                class_id=class_id or harness.class_id,
+                role="teacher",
+                active=True,
+            )
+        )
+    harness.extra_adult_subjects.add(teacher_subject)
+    teacher_principal = VerifiedPrincipal(
+        subject=teacher_subject,
+        issuer="synthetic-t12",
+        roles=frozenset(),
+        token_id=_synthetic_id(),
+    )
+
+    async def verified_teacher() -> VerifiedPrincipal:
+        return teacher_principal
+
+    previous = harness.app.dependency_overrides[get_verified_adult]
+    harness.app.dependency_overrides[get_verified_adult] = verified_teacher
+    try:
+        yield teacher_subject
+    finally:
+        harness.app.dependency_overrides[get_verified_adult] = previous
 
 
 def _status_request(harness: PilotHarness, session_id: str) -> Request:
@@ -1322,7 +1378,8 @@ def test_t9_teacher_pilot_profile_route_returns_only_the_scoped_candidate_fields
         profile = db.get(ManagedProfileModel, child_id)
         assert profile is not None
         expected_display_name = profile.display_name
-    response = harness.client.get(_session_path(harness, session_id, "/pilot-profiles"))
+    with _acting_as_teacher(harness):
+        response = harness.client.get(_session_path(harness, session_id, "/pilot-profiles"))
     assert response.status_code == 200, response.text
     body = response.json()
     assert body["contract"] == "Be1PilotProfileListV1"
@@ -1383,7 +1440,8 @@ def test_t9_invalid_proof_or_profile_is_not_a_candidate(
             assert profile is not None
             profile.state = "inactive"
 
-    response = harness.client.get(_session_path(harness, session_id, "/pilot-profiles"))
+    with _acting_as_teacher(harness):
+        response = harness.client.get(_session_path(harness, session_id, "/pilot-profiles"))
     assert response.status_code == 200, response.text
     assert response.json()["items"] == []
 
@@ -1397,7 +1455,8 @@ def test_t9_profile_route_is_disabled_outside_local_pilot(
     harness = pilot_harness
     session_id, _child_id = _prepare_synthetic_lobby(harness)
     monkeypatch.setattr(harness.runtime.settings, setting, value)
-    response = harness.client.get(_session_path(harness, session_id, "/pilot-profiles"))
+    with _acting_as_teacher(harness):
+        response = harness.client.get(_session_path(harness, session_id, "/pilot-profiles"))
     assert response.status_code == 409, response.text
     assert response.json()["code"] == "PILOT_PROFILE_LOOKUP_UNAVAILABLE"
     assert "items" not in response.json()
@@ -1408,20 +1467,21 @@ def test_t9_profile_route_requires_lobby_state_and_assignment(
 ) -> None:
     harness = pilot_harness
     session_id, _child_id, _group_id, _grant_id, _device_key = _prepare_synthetic_group(harness)
-    not_lobby = harness.client.get(_session_path(harness, session_id, "/pilot-profiles"))
-    assert not_lobby.status_code == 409
-    assert not_lobby.json()["code"] == "SESSION_NOT_IN_LOBBY"
-    with harness.session_factory.begin() as db:
-        assignment = db.scalar(
-            select(OrganizationAssignmentModel).where(
-                OrganizationAssignmentModel.organization_id == harness.organization_id,
-                OrganizationAssignmentModel.subject == harness.adult_subject,
-                OrganizationAssignmentModel.active.is_(True),
+    with _acting_as_teacher(harness) as teacher_subject:
+        not_lobby = harness.client.get(_session_path(harness, session_id, "/pilot-profiles"))
+        assert not_lobby.status_code == 409
+        assert not_lobby.json()["code"] == "SESSION_NOT_IN_LOBBY"
+        with harness.session_factory.begin() as db:
+            assignment = db.scalar(
+                select(OrganizationAssignmentModel).where(
+                    OrganizationAssignmentModel.organization_id == harness.organization_id,
+                    OrganizationAssignmentModel.subject == teacher_subject,
+                    OrganizationAssignmentModel.active.is_(True),
+                )
             )
-        )
-        assert assignment is not None
-        assignment.active = False
-    unassigned = harness.client.get(_session_path(harness, session_id, "/pilot-profiles"))
+            assert assignment is not None
+            assignment.active = False
+        unassigned = harness.client.get(_session_path(harness, session_id, "/pilot-profiles"))
     # CONV-1 (D-066-68 C-D4): an unassigned adult is out of scope -> uniform 404.
     assert unassigned.status_code == 404
     assert "items" not in unassigned.json()
@@ -1447,33 +1507,126 @@ def test_t9_teacher_assigned_to_a_different_class_is_denied(
     other_class = harness.client.post(
         f"/api/be1/v1/organizations/{harness.organization_id}/classes",
         json={"display_name": "Synthetic Other Class"},
+        headers={"Idempotency-Key": f"class-{uuid4().hex}"},
     )
     assert other_class.status_code == 201, other_class.text
-    with harness.session_factory.begin() as db:
-        global_assignment = db.scalar(
-            select(OrganizationAssignmentModel).where(
-                OrganizationAssignmentModel.organization_id == harness.organization_id,
-                OrganizationAssignmentModel.subject == harness.adult_subject,
-                OrganizationAssignmentModel.class_id.is_(None),
-                OrganizationAssignmentModel.active.is_(True),
-            )
-        )
-        assert global_assignment is not None
-        global_assignment.active = False
-        db.add(
-            OrganizationAssignmentModel(
-                assignment_id=_synthetic_id(),
-                organization_id=harness.organization_id,
-                subject=harness.adult_subject,
-                class_id=other_class.json()["class_id"],
-                role="teacher",
-                active=True,
-            )
-        )
-    response = harness.client.get(_session_path(harness, session_id, "/pilot-profiles"))
+    # T0.11: a real Teacher account assigned only to the other class.
+    with _acting_as_teacher(harness, class_id=other_class.json()["class_id"]):
+        response = harness.client.get(_session_path(harness, session_id, "/pilot-profiles"))
     # CONV-1 (D-066-68 C-D4): a class the teacher is not assigned to is out of scope -> 404.
     assert response.status_code == 404, response.text
     assert "items" not in response.json()
+
+
+def test_t011_school_manager_is_refused_on_pilot_profiles(
+    pilot_harness: PilotHarness, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # T0.11 (SRS l.2586, D-066-69 O-PRIV): the Manager principal of this harness gets 403
+    # ACTION_NOT_ALLOWED in every state, and the body carries no candidate list.
+    harness = pilot_harness
+    lobby_session_id, _child_id = _prepare_synthetic_lobby(harness)
+    started_session_id, _c, _g, _grant, _key = _prepare_synthetic_group(harness)
+    for session_id in (lobby_session_id, started_session_id):
+        response = harness.client.get(_session_path(harness, session_id, "/pilot-profiles"))
+        assert response.status_code == 403, response.text
+        assert response.json()["code"] == "ACTION_NOT_ALLOWED"
+        assert "items" not in response.json()
+    # The role refusal comes before the pilot-disabled 409.
+    monkeypatch.setattr(harness.runtime.settings, "env", "staging")
+    disabled = harness.client.get(_session_path(harness, lobby_session_id, "/pilot-profiles"))
+    assert disabled.status_code == 403, disabled.text
+    assert disabled.json()["code"] == "ACTION_NOT_ALLOWED"
+    assert "items" not in disabled.json()
+
+
+def _class_profiles_path(harness: PilotHarness, class_id: str | None = None) -> str:
+    return (
+        f"/api/be1/v1/organizations/{harness.organization_id}"
+        f"/classes/{class_id or harness.class_id}/profiles"
+    )
+
+
+def _add_pending_consent_profile(harness: PilotHarness) -> str:
+    child_id = _synthetic_id()
+    consent_id = _synthetic_id()
+    purpose_ref = f"synthetic-purpose-{_synthetic_uuid_token()}"
+    with harness.session_factory.begin() as db:
+        db.add(
+            ConsentRecordModel(
+                consent_id=consent_id,
+                organization_id=harness.organization_id,
+                class_id=harness.class_id,
+                child_id=child_id,
+                purpose_ref=purpose_ref,
+                state="pending",
+                recorded_by=harness.adult_subject,
+            )
+        )
+        db.add(
+            ManagedProfileModel(
+                child_id=child_id,
+                organization_id=harness.organization_id,
+                class_id=harness.class_id,
+                display_name="Synthetic Roster Guard Profile",
+                age_months=72,
+                age_revision=1,
+                age_source="ADULT_DECLARED",
+                consent_id=consent_id,
+                consent_purpose_ref=purpose_ref,
+                created_by=harness.adult_subject,
+            )
+        )
+    return child_id
+
+
+def test_t011_school_manager_gets_the_count_summary_on_class_profile_list(
+    pilot_harness: PilotHarness,
+) -> None:
+    # T-7a (SRS l.2586, D-066-75 CM-3, CM-5) flips the T0.11 interim 403: the Manager reads a
+    # count only, with no child field, no consent gate and no 409.
+    harness = pilot_harness
+    empty = harness.client.get(_class_profiles_path(harness))
+    assert empty.status_code == 200, empty.text
+    assert empty.json() == {
+        "contract": "Be1ClassRosterSummaryV1",
+        "class_id": harness.class_id,
+        "active_profile_count": 0,
+    }
+
+    _add_pending_consent_profile(harness)
+    with_profile = harness.client.get(_class_profiles_path(harness))
+    # A pending consent made a Teacher read 409; the Manager summary has no gate.
+    assert with_profile.status_code == 200, with_profile.text
+    assert with_profile.json()["active_profile_count"] == 1
+    assert set(with_profile.json()) == {"contract", "class_id", "active_profile_count"}
+    assert "Synthetic Roster Guard Profile" not in with_profile.text
+
+    # An unknown class inside the organization is 404; an unknown organization stays 404.
+    unknown_class = harness.client.get(_class_profiles_path(harness, _synthetic_id()))
+    assert unknown_class.status_code == 404, unknown_class.text
+    unknown_org = harness.client.get(
+        f"/api/be1/v1/organizations/{_synthetic_id()}/classes/{harness.class_id}/profiles"
+    )
+    assert unknown_org.status_code == 404, unknown_org.text
+    assert unknown_org.json()["code"] == "RESOURCE_NOT_FOUND"
+
+
+def test_t011_teacher_class_profile_list_is_unchanged(pilot_harness: PilotHarness) -> None:
+    harness = pilot_harness
+    with _acting_as_teacher(harness):
+        empty = harness.client.get(_class_profiles_path(harness))
+        assert empty.status_code == 200, empty.text
+        assert empty.json() == {"contract": "Be1ManagedProfileListV1", "items": []}
+        _add_pending_consent_profile(harness)
+        pending = harness.client.get(_class_profiles_path(harness))
+        assert pending.status_code == 409, pending.text
+        assert pending.json()["code"] == "CONSENT_NOT_EFFECTIVE"
+        assert "items" not in pending.json()
+    with _acting_as_teacher(harness):
+        # The Teacher is assigned to the harness class only; any other class id is out of scope.
+        unknown_class = harness.client.get(_class_profiles_path(harness, _synthetic_id()))
+        assert unknown_class.status_code == 404, unknown_class.text
+        assert unknown_class.json()["code"] == "RESOURCE_NOT_FOUND"
 
 
 def test_t12_http_admission_rejects_invalid_pilot_basis_and_pending_real_consent(

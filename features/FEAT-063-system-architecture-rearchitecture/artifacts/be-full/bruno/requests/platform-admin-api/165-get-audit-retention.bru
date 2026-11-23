@@ -1,0 +1,27 @@
+meta {
+  name: 165 [PLATFORM ADMIN - READ ONLY] Get Audit Retention
+  type: http
+  seq: 165
+}
+
+get {
+  url: {{baseUrl}}/api/platform-admin/v1/audit/retention
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+docs {
+  Expected success status: 200
+  Main error cases: 401 AUTH_REQUIRED; 403 ACTION_NOT_ALLOWED.
+  If-Match required: no.
+  Idempotency-Key required: no.
+}

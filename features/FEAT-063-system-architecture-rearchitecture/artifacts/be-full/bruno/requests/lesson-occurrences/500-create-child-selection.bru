@@ -1,0 +1,58 @@
+meta {
+  name: 500 [LOCAL / TEST ONLY] Create child selection
+  type: http
+  seq: 500
+}
+
+post {
+  url: {{baseUrl}}/v1/lesson-occurrences/{{occurrence_id}}/child-selections
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{phase_d_select_key}}
+}
+
+body:json {
+  {}
+}
+
+script:pre-request {
+  bru.setVar("phase_d_select_key", "phase-d-select-" + Date.now());
+}
+
+script:post-response {
+  const body = res.getBody();
+  bru.setVar("selection_id", body.selection_id);
+  bru.setVar("selection_etag", res.getHeader("ETag"));
+  bru.setVar("selection_sha256", body.selection_sha256);
+  bru.setVar("selection_revision", String(body.revision));
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.outcome).to.equal("SELECTED");
+    expect(body.state).to.equal("OPEN");
+    expect(body.revision).to.equal(1);
+    expect(String(res.getHeader("Cache-Control"))).to.include("no-store");
+    expect(String(res.getHeader("Location")).endsWith(body.selection_id)).to.equal(true);
+  });
+}
+
+docs {
+  Role: Teacher - set bearerToken to that synthetic account's token
+  Needs: occurrence_id
+  Expected: 201 (a live offer already present returns 200 instead of 201)
+  Source: backend/tests/integration/lesson_occurrences/test_child_selection_postgres.py, backend/tests/contract/test_child_selection_routes.py
+}

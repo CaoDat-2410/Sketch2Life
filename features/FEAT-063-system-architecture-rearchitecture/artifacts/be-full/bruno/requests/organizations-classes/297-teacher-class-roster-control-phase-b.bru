@@ -1,0 +1,30 @@
+meta {
+  name: 297 [LOCAL / TEST ONLY] Teacher A09 retains the class profile list
+  type: http
+  seq: 297
+}
+
+get {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/classes/{{created_class_id}}/profiles
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().contract).to.equal("Be1ManagedProfileListV1");
+    expect(res.getBody().items).to.be.an("array");
+  });
+}
+

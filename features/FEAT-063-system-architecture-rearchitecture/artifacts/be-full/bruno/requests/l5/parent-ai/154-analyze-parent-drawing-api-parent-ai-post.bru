@@ -1,0 +1,29 @@
+meta {
+  name: 154 [PARENT AI - LOCAL TEST ONLY - NEVER RUN CONFIGURED] Analyze Parent Drawing
+  type: http
+  seq: 154
+}
+
+post {
+  url: {{baseUrl}}/api/parent/v1/ai/drawing-understandings
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_REQUEST_ID_154
+}
+
+body:json {
+  {
+    "story_run_id": "REPLACE_WITH_SYNTHETIC_UUID",
+    "image_base64": "REPLACE_WITH_SYNTHETIC_BASE64_IMAGE",
+    "media_type": "image/png"
+  }
+}

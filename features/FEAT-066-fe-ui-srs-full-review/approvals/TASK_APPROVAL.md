@@ -708,3 +708,48 @@ Scope amendment, 2026-11-18 (CONV-1 fixtures): the owner approved in chat ("Cho 
 - **Full collection:** 147 requests run against the local API with the placeholder bearer value, no token and no Firebase write: 4 PASS, 0 FAIL, 95 BLOCKED-AUTH, 46 BLOCKED-ENV, 2 STALE. No real defect found. Decision D-066-85. Evidence: `evidence/notes/B2_BRUNO_FULL_COLLECTION_RUN_20261119.md` and the B2 re-run record in `evidence/notes/BRU_0A_IMPLEMENTATION_EVIDENCE_20261119.md`.
 - **Review:** one independent review round (Sonnet 5.5, high effort, fresh non-forked subagent, because the review was run inside this session): ACCEPTABLE WITH NOTES, 0 P1 / 3 P2 / 6 P3. Report `B2_REVIEW_R1.md` (kept outside the repository). The three P2 items (the explanation of Bruno's counter, a stale evidence-note status, and request 126 being counted as auth-blocked while its route is not mounted) and the README heading were corrected before the commit. Remaining notes: `144` uses an undefined variable, a missing `local.bru` entry for the owner to decide; the A02 run output was not retained.
 - **Not covered:** any push, PR or merge; authenticated runs (need SD-5 and tokens); BRU-0b (A17, A20, A22, A26, A27) and A08, which stay unapproved; Bruno requests for the routes listed as "no request" in the full-collection note.
+
+## FEAT-066 Bruno follow-up after B2 — environment variable, requests for uncovered routes, authenticated-run readiness (2026-11-19)
+
+- **Status:** APPROVED_FOR_IMPLEMENTATION by the owner (Person 2) on 2026-11-19. Nothing is implemented yet; the launch needs a separate owner word.
+- **Scope (three items):**
+  1. Define `platform_account_id` in `environments/local.bru` as a placeholder (request `144` uses it; it is undefined). The only other edits to that file are placeholder path variables that items 2 needs and that are missing. A scripted check lists any other undefined `{{name}}` variable; they are reported, not fixed.
+  2. Add one Bruno request per route that has none: `POST /v1/parent/profiles`; `PATCH` and `DELETE /v1/parent/profiles/{profile_id}`; `DELETE /v1/story-runs/{run_id}`; `POST /v1/story-runs/{run_id}/context-confirmation` and `/script-confirmation`; `POST /api/auth/v1/registrations`; `POST /api/parent/v1/ai/drawing-understandings`, `/sketch-guides`, `/story-runs/{run_id}/story-revisions`; `POST /api/teacher/v1/organizations/{organization_id}/ai/lesson-plan-suggestions`, `/lesson-visuals`, `/sketch-decks`. Update `ROLE_GUIDE.md` and `requests/l5/README.md` counts and labels. Re-run the route-to-request coverage check. Run the collection once against the local API with the placeholder bearer only, excluding the registration and AI requests, and record counts by class.
+  3. Write one authenticated-run readiness note, `plan/L5_AUTH_RUN_READINESS_DRAFT1_20261119.md`. It prepares the run; it does not run anything and does not decide O-BRU-AUTH.
+- **Base:** local branch `claude/feat066-b2-bruno-d20b0c`, tip `3b2a3580973cdec1d78e951394a55580d74e82f3` (B2, never pushed). The work happens in a new worktree and branch created by the owner or the coordinator, because the Codex sandbox cannot write `.git`. SRS pin: 701,810 bytes, SHA-256 `443A3CA37272D2FE96127564BAF400461F394E098724A6BD999D723A4E504021`.
+- **Allowlist (new or edited):**
+  - in `features/FEAT-063-system-architecture-rearchitecture/artifacts/be-full/bruno/`: `environments/local.bru` (item 1 and missing path placeholders only), new request files under `requests/` (new `seq` numbers after `146`), `ROLE_GUIDE.md`, `requests/l5/README.md`;
+  - in `features/FEAT-066-fe-ui-srs-full-review/`: one new evidence note under `evidence/notes/` (counts and request paths only, no bodies or headers) and `plan/L5_AUTH_RUN_READINESS_DRAFT1_20261119.md`.
+  - Not edited: `collection.bru`, existing requests, `approvals/TASK_APPROVAL.md`, `DECISIONS.md`, any source code.
+- **Safety boundary:**
+  - Requests for registrations and the six AI routes are written and checked statically only; they are never run, because they can create an identity-provider account or reach a model provider.
+  - The collection run uses a new disposable database on the loopback `frc08` container, the API on 127.0.0.1:8010 and `--env-var baseUrl=http://127.0.0.1:8010`; the loopback guard stays active. No database is dropped.
+  - No token is created, faked or printed; no Firebase request; no Modal call; no use of ports 5432 or 5433, of `sketch2life_m2_s1a`, or of `D:\s2l-gate-secrets`.
+- **Records:** the executor writes its approval entry and decisions (from D-066-86) as drafts outside the repository; the coordinator appends them after the owner approves, with the head hash checked.
+- **Review and git:** one independent review on Sonnet 5.5 at high effort, set explicitly, at most 3 rounds (D-171). One local commit, explicit paths, after the three validators and `git diff --check`. No push, no PR, no merge.
+- **Not covered:** authenticated runs (need SD-5 and the O-BRU-AUTH decision), BRU-0b and A08, and any change to the loopback guard.
+
+### FEAT-066 Bruno follow-up after B2 — completion record (2026-11-20, record of work done; owner Person 2 to accept)
+
+- **Status:** IMPLEMENTED, REVIEWED AND COMMITTED LOCALLY; **owner acceptance pending**. This addendum approves nothing new. Nothing was pushed, no PR was opened, nothing was merged.
+- **Where:** branch `feature/feat066-bruno-next`, one local commit `91b52806` (`test(bruno): complete FEAT-066 L5 follow-up`), 18 paths, then cherry-picked onto `feature/backend-srs-api-and-fe-integration` without conflicts and committed there together with this record (entry, this addendum, D-066-86 and D-066-87) as one local commit; the hash is that commit's own (see `git log`). The entry's own change to `approvals/TASK_APPROVAL.md` is not in the commit.
+- **Delivered:** `platform_account_id` placeholder in `environments/local.bru`; Bruno requests `147` to `159` for the 13 routes that had none; `ROLE_GUIDE.md` and `requests/l5/README.md` updated (README carries the safe run command); the authenticated-run readiness note (prepares only; O-BRU-AUTH not decided); the run evidence note.
+- **Who did what:** Codex wrote the files and ran the static checks. The coordinating review session (not Codex) ran the runtime steps because the Codex sandbox had no Docker access: a disposable database on the loopback `frc08` container, the API from the worktree on 127.0.0.1:8010, the collection with the loopback guard active, the placeholder bearer only, and requests `153` to `159` excluded. Result: 153 requests, 4 PASS, 0 FAIL, 101 BLOCKED-AUTH, 46 BLOCKED-ENV, 2 STALE; no real defect found. Every route of the running app (framework routes excluded) now has a request.
+- **Parse check of `153` to `159`:** after the run, the seven excluded requests were loaded by Bruno CLI 4.3.0 in a throwaway copy with the base URL overridden to a non-loopback name; each was parsed and then stopped by the loopback guard before any send (portal-auth 1 of 1, parent-ai 3 of 3, teacher-ai 3 of 3, all guard errors). This closes the "parsing NOT VERIFIED" note for them. They have still never been sent to an API.
+- **Reviews (independent, fresh non-forked subagent, read-only):** round 1 on Sonnet 5.5 at high effort: ACCEPTABLE WITH NOTES, 0 P1 / 2 P2 / 8 P3. Round 2 on Sonnet 5.5 at **medium** effort at the owner's instruction (a deviation from the high-effort rule): ACCEPTABLE WITH NOTES, 0 P1 / 0 P2 / 3 P3. All findings were fixed in the commit and the final three P3 were fixed by amending it; the amended text was not reviewed a third time. Reports are kept outside the repository (`FOLLOWUP_REVIEW_R1.md`, `FOLLOWUP_REVIEW_R2.md`).
+- **Checks:** `validate_harness.py`, `validate_repository_security.py`, `validate_architecture.py` and `git diff --check` exited 0 before the amend.
+- **Not covered, still open:** authenticated runs (SD-5 and O-BRU-AUTH); BRU-0b and A08; any push, PR or merge into `feature/feat066-be-integration`.
+
+## FEAT-066 goal v3 — backend API completion program APPROVED and launched by the owner — 2026-11-19
+
+- **Owner decision:** the owner approved the goal v3 program `plan/GOAL_V3_BACKEND_API_COMPLETION_PROGRAM_20261119.md` (8,393 bytes, SHA-256 `822234B594A74FC81FBD9317FD4C79DDB1CC91C0C732B8527A23F32B13F17DD5`) and gave the launch word. The program merges the four planned goals (v3a, v3b, v4, v5) of the backend API completion plan Draft 5 into one run.
+- **What the approval covers:** this approval is the Task Approval for every task listed in the program's section 2, phases A to D, including T-7a (OD-05 option b). Each task stays inside the program's ground rules (section 1):
+  - decisions come from the SRS;
+  - each plan and each implementation is reviewed independently on Sonnet 5.5 high;
+  - each DDL package is approved by name under OD-01, and only after its task plan review;
+  - one local commit per finished task and branch;
+  - only the disposable `frc08` loopback containers are used;
+  - the program's never-list applies.
+- **Excluded:** T0.6 (OD-16 open), T0.7 (owner-run), Billing, PAY-0 and quota, and every exclusion and stay of the plan.
+- **Git boundary:** commits are local only, on `feature/backend-srs-api-v3` (cut from `d40f0514`), `codex/fe-ui-web-remediation` (shared; the teammate's commits are merged, never rewritten) and `feature/fe-mobile-remediation`. **No push, no PR, no remote merge**; the owner checks the result and pushes.
+- **Records:** the goal appends nothing to `TASK_APPROVAL.md` or `DECISIONS.md`. Its decisions stay in the per-task evidence notes and in the T0.8 draft, numbered from D-066-92. `OWNER_MODAL_CALL_APPROVED=NO`.

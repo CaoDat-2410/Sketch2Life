@@ -1,0 +1,39 @@
+meta {
+  name: 349 [LOCAL / TEST ONLY] Target assigned to another Teacher is hidden
+  type: http
+  seq: 349
+}
+
+post {
+  url: {{baseUrl}}/api/be1/v1/classes/{{created_class_id}}/profiles/{{phase_b_child_id}}/move
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+  If-Match: {{phase_b_move_source_revision_etag}}
+}
+
+body:json {
+  {
+    "target_class_id": "seed-org-a-class-2",
+    "target_class_revision": 1
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_NOT_FOUND");
+  });
+}
+

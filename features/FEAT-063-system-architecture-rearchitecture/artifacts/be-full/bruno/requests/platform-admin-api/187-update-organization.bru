@@ -1,0 +1,36 @@
+meta {
+  name: 187 [PLATFORM ADMIN - STATE CHANGE - SYNTHETIC ONLY] Update Organization
+  type: http
+  seq: 187
+}
+
+patch {
+  url: {{baseUrl}}/api/platform-admin/v1/organizations/{{platform_organization_id}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+  If-Match: "REPLACE_WITH_REVISION"
+  Idempotency-Key: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+body:json {
+  {
+    "state": "paused"
+  }
+}
+
+docs {
+  Expected success status: 200
+  Main error cases: 401 AUTH_REQUIRED; 403 ACTION_NOT_ALLOWED; 400 INVALID_REQUEST; 404 RESOURCE_NOT_FOUND; 409 STALE_REVISION; 422 INVALID_REVISION; 428 PRECONDITION_REQUIRED.
+  If-Match required: yes.
+  Idempotency-Key required: yes.
+}

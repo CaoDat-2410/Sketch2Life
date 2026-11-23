@@ -458,13 +458,34 @@ def test_head_counts_by_both_methods_match_the_derived_expectation() -> None:
     # Story context revisions, plus the FR-C-08 lifecycle revision
     # (20261119_frc08_lifecycle_scope, its own frc08_lifecycle branch).
     # FEAT-066 C5: 20261119_ar_0002 (BE1 command receipts) follows 20261110_ar_0001.
-    assert len(graph) == 33
+    # FEAT-066 T-2a: 20261119_uf_0001 (DDL-F upload scope) follows 20261119_ar_0002.
+    # FEAT-066 T-3a: 20261119_oc_0001 (DDL-A lesson occurrence and plan) follows 20261119_uf_0001.
+    # FEAT-072: seven forward-only Platform Admin revisions (20261119_admin_foundation to
+    # 20261120_admin_ops_retention) branch from 20261110_ar_0001.
+    # 20261119_admin_publication depends on 20261017_lc_0001, so it stops being a depends head.
+    # FEAT-066 T-7b: 20261120_cls_0001 (DDL-H class revision) follows 20261119_oc_0001.
+    # FEAT-066 T-7d: 20261120_cls_0002 (DDL-H enrollment active-unique) follows 20261120_cls_0001.
+    # FEAT-066 T-2c: 20261120_b1_0001 (DDL-B1 voice idea and transcripts) follows
+    # 20261119_frc08_lifecycle_scope and replaces it as the head of the frc08_lifecycle branch.
+    # FEAT-066 T-1a: 20261120_vb_0002 (DDL-B1 video generations) follows 20261120_b1_0001 and
+    # replaces it as the head of the same branch (heads stay 14 and 10).
+    # FEAT-066 T-8a: 20261120_nt_0001 (DDL-C part 1, the notification inbox) follows
+    # 20261120_cls_0002 and replaces it as the head of the lesson_library branch.
+    # FEAT-066 T-4b1: 20261120_sel_0001 (the Teacher child-selection evidence table) follows
+    # 20261120_nt_0001 and replaces it as the head of the lesson_library branch.
+    # FEAT-066 T-4b2: 20261120_b2_0001 (DDL-B2, the Teacher lock, the occurrence pin) follows
+    # 20261120_vb_0002 and replaces it as the head of the frc08_lifecycle branch.
+    # FEAT-066 goal v4 T-2e-a: 20261123_as_0001 (DDL-B3) follows 20261120_b2_0001 and replaces it
+    # as the head of the same branch (heads stay 15 and 10; 50 revisions).
+    # FEAT-066 goal v4 T-1b-fix: 20261123_rv_0001 (DDL-B1c) follows 20261123_as_0001 and replaces it
+    # as the head (heads stay 15 and 10; 51 revisions).
+    assert len(graph) == 51
     down_targets = {target for down, _ in graph.values() for target in down}
     dependency_targets = down_targets | {target for _, dep in graph.values() for target in dep}
     heads_down_only = {rev for rev in graph if rev not in down_targets}
     heads_with_depends = {rev for rev in graph if rev not in dependency_targets}
     # Parent is an independent root; the existing BE1 and pilot graph remains unchanged.
-    assert (len(heads_down_only), len(heads_with_depends)) == (14, 10)
+    assert (len(heads_down_only), len(heads_with_depends)) == (15, 10)
     assert "20261101_be1_age_0001" in heads_down_only
     assert "20261102_pv_0001" in heads_down_only
     assert "20261102_pv_0001" not in heads_with_depends

@@ -1,0 +1,30 @@
+meta {
+  name: 279 [LOCAL / TEST ONLY] Teacher gets profile-family not-found on delete
+  type: http
+  seq: 279
+}
+
+delete {
+  url: {{baseUrl}}/v1/parent/profiles/{{phase_b_parent_profile_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Idempotency-Key: {{phase_b_profile_wrong_role_key}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("PROFILE_NOT_FOUND");
+  });
+}
+

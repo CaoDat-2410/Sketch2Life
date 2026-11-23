@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
+import re
 import uuid
 from typing import Any
 
@@ -62,6 +65,23 @@ def test_counts_match_expected() -> None:
     assert {name: len(rows()) for name, rows in ALL_ROWS.items()} == data.EXPECTED_COUNTS
 
 
+def test_all_s1_primary_ids_and_account_ids_are_unchanged() -> None:
+    id_columns = TEXT_ID_COLUMNS | UUID_ID_COLUMNS
+    snapshot = sorted(
+        (table, str(row[column]))
+        for table, rows in ALL_ROWS.items()
+        for row in rows()
+        for column in (id_columns.get(table),)
+        if column is not None
+    )
+    snapshot.extend(("account_id", row["account_id"]) for row in data.adult_rows())
+    snapshot.sort()
+    encoded = json.dumps(snapshot, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    assert hashlib.sha256(encoded).hexdigest() == (
+        "409dac4d2519036e4b933cc4952464db7270f0be210bd50ff458b43587ff30f4"
+    )
+
+
 @pytest.mark.parametrize("table", sorted(TEXT_ID_COLUMNS))
 def test_text_ids_are_marked_and_short(table: str) -> None:
     ids = [row[TEXT_ID_COLUMNS[table]] for row in ALL_ROWS[table]()]
@@ -91,18 +111,60 @@ def test_rows_are_deterministic() -> None:
     assert data.seed_uuid("x") == uuid.uuid5(data.SEED_NAMESPACE, "x")
 
 
-def test_display_names_are_marked() -> None:
-    for rows in (
-        data.organization_rows,
-        data.classroom_rows,
-        data.managed_profile_rows,
-        data.parent_group_rows,
-        data.profile_revision_rows,
-    ):
-        for row in rows():
-            assert row["display_name"].startswith("[SEED]")
-    for row in data.library_version_rows():
-        assert row["content_json"]["title"].startswith("[SEED]")
+def _strings(value: Any) -> list[str]:
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, dict):
+        return [text for item in value.values() for text in _strings(item)]
+    if isinstance(value, (list, tuple)):
+        return [text for item in value for text in _strings(item)]
+    return []
+
+
+def test_display_text_is_realistic_and_has_no_seed_templates() -> None:
+    forbidden = ("[SEED]", "Mục tiêu:", "Hướng dẫn trẻ thực hiện")
+    assert all(
+        not any(marker in value for marker in forbidden)
+        for rows in ALL_ROWS.values()
+        for row in rows()
+        for value in _strings(row)
+    )
+    organizations = data.organization_rows()
+    assert len({row["display_name"] for row in organizations}) == 8
+    assert organizations[0]["display_name"] == "Trường Mầm non Hoa Sen"
+    assert all(row["display_name"].startswith("Trường Mầm non ") for row in organizations)
+
+
+def test_child_names_and_class_names_follow_the_seed_rules() -> None:
+    profiles = data.managed_profile_rows()
+    assert len({row["display_name"] for row in profiles}) == len(profiles)
+    assert all(len(row["display_name"].split()) == 3 for row in profiles)
+    assert all(
+        re.fullmatch(r"Lớp (Mầm|Chồi|Lá) \d+", row["display_name"]) for row in data.classroom_rows()
+    )
+    assert [row["display_name"] for row in data.classroom_rows()[:4]] == [
+        "Lớp Mầm 1",
+        "Lớp Chồi 1",
+        "Lớp Lá 1",
+        "Lớp Lá 2",
+    ]
+    assert data.class_display_name("a", 5) == "Lớp Mầm 2"
+    assert data.class_display_name("a", 6) == "Lớp Chồi 2"
+    assert [data.class_display_name("b", number) for number in range(1, 5)] == [
+        "Lớp Mầm 1",
+        "Lớp Chồi 1",
+        "Lớp Lá 1",
+        "Lớp Mầm 2",
+    ]
+    assert data.class_age_group("a", 5) == "mam"
+    assert data.class_age_group("b", 4) == "mam"
+    classes = {row["class_id"]: row for row in data.classroom_rows()}
+    for profile in profiles:
+        classroom = classes[profile["class_id"]]
+        key = classroom["organization_id"].removeprefix("seed-org-")
+        class_number = int(classroom["class_id"].rsplit("-", 1)[1])
+        low, high = data.CLASS_PROFILE_AGE_RANGES[data.class_age_group(key, class_number)]
+        assert low <= profile["age_months"] <= high
 
 
 def test_adult_roles() -> None:
@@ -114,7 +176,7 @@ def test_adult_roles() -> None:
 
 def test_class_profiles_are_synthetic() -> None:
     for row in data.managed_profile_rows():
-        assert 36 <= row["age_months"] <= 120
+        assert 36 <= row["age_months"] <= 71
         assert row["data_origin"] == "SYNTHETIC_DEV"
         assert row["consent_id"] is None and row["consent_purpose_ref"] is None
         assert row["age_source"] == "SYNTHETIC_FIXTURE"
@@ -166,6 +228,15 @@ def test_parent_profiles_and_revisions() -> None:
         assert 36 <= row["age_months"] <= 120
         assert row["age_band_ref"] is None and row["age_band_version"] is None
         assert len(row["revision_hash"]) == 64
+    profiles = {spec[0]: spec[3] for spec in data.PARENT_PROFILE_SPECS}
+    assert [revision[0] for revision in profiles["k1"]] == ["Mít", "Mít"]
+    assert [revision[1] for revision in profiles["k1"]] == [60, 61]
+    assert profiles["k1"][1][2] != profiles["k1"][0][2]
+    assert [revision[0] for revision in profiles["k3"]] == ["Tí", "Tí"]
+    assert [revision[1] for revision in profiles["k3"]] == [84, 85]
+    assert profiles["k3"][1][2] != profiles["k3"][0][2]
+    assert data.parent_group_rows()[0]["display_name"] == "Phụ huynh lớp Mầm 1"
+    assert data.parent_group_rows()[1]["display_name"] == "Phụ huynh lớp Chồi 1"
 
 
 @pytest.mark.parametrize("spec", data.LESSON_SPECS, ids=lambda spec: spec[0])
@@ -173,6 +244,27 @@ def test_lesson_content_is_valid(spec: tuple[Any, ...]) -> None:
     for _number, _state, content in spec[3]:
         validate_content(content)
         LessonContentInputV1.model_validate(content)
+        assert 2 <= len(content["objectives"]) <= 3
+        assert 4 <= len(re.findall(r"(?m)^\d+\.", content["drawing_steps_text"])) <= 6
+        assert len(content["activities"]) == 2
+        for activity in content["activities"]:
+            for field in (
+                "objective",
+                "materials_text",
+                "preparation_text",
+                "instructions_text",
+                "observation_notes",
+                "safety_notes",
+            ):
+                assert activity[field].strip()
+            assert activity["activity_kind"] in {"indoor", "outdoor"}
+            assert len(re.findall(r"(?m)^\d+\.", activity["instructions_text"])) >= 3
+
+
+def test_three_argument_lesson_content_call_remains_available() -> None:
+    content = data.lesson_content("Vẽ quả bóng", "Nhận biết hình tròn", "quả bóng")
+    validate_content(content)
+    assert len(content["activities"]) == 2
 
 
 def test_lesson_versions_store_like_the_product() -> None:
@@ -223,7 +315,7 @@ def test_visibility_rule(kinds: tuple[str, ...], internal: str, expected: str) -
 
 
 def test_visibility_ignores_inactive_and_expired_grants() -> None:
-    grants = [
+    grants: list[dict[str, Any]] = [
         {"audience_kind": "PUBLIC", "state": "REVOKED", "expires_at": None},
         {"audience_kind": "ORGANIZATION", "state": "ACTIVE", "expires_at": data.SEED_TIME},
     ]
@@ -298,7 +390,7 @@ def test_p4_and_p5_profiles_are_synthetic_and_in_range() -> None:
         assert state == "ACTIVE"
         assert len(revisions) == 1
         name, months, _interests = revisions[0]
-        assert name.startswith("[SEED]")
+        assert name in {"Na", "Sóc"}
         assert months == age
         assert 36 <= months <= 120
     assert len(data.child_profile_rows()) == 5
@@ -323,6 +415,7 @@ def test_s7a_specs_and_keys() -> None:
         assert profile_key in {spec[0] for spec in data.PARENT_PROFILE_SPECS}
         assert 0 < len(topic) <= 120 and topic.strip()
         assert 0 < len(idea) <= 500
+        assert "[SEED]" not in topic and "[SEED]" not in idea
         assert data.s7a_create_key(parent_key) != data.s7a_confirm_key(parent_key)
     assert data.EXPECTED_S7A_COUNTS == {
         "story.runs": 2,

@@ -1,0 +1,48 @@
+meta {
+  name: 514 [LOCAL / TEST ONLY] Submit Teacher story run idea
+  type: http
+  seq: 514
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{teacher_run_id}}/idea
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "expected_run_revision": {{teacher_run_revision}},
+    "text": "Con rồng nhỏ chia kẹo cho bạn"
+  }
+}
+
+script:post-response {
+  bru.setVar("teacher_run_revision", String(res.getBody().run_revision));
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(202);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().story_run_id).to.equal(bru.getVar("teacher_run_id"));
+  });
+}
+
+docs {
+  Role: Teacher - set bearerToken to that synthetic account's token
+  Needs: teacher_run_id and teacher_run_revision from 508
+  Expected: 202
+  Source: backend/tests/integration/story_teacher/test_teacher_run_inputs_postgres.py
+}

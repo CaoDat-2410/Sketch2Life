@@ -1,0 +1,28 @@
+meta {
+  name: 191 [PLATFORM ADMIN - STATE CHANGE - SYNTHETIC ONLY] Mark Inbox Item Read
+  type: http
+  seq: 191
+}
+
+post {
+  url: {{baseUrl}}/api/platform-admin/v1/inbox/{{item_id}}/read
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+  Idempotency-Key: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+docs {
+  Expected success status: 200
+  Main error cases: 401 AUTH_REQUIRED; 403 ACTION_NOT_ALLOWED; 400 INVALID_REQUEST; 404 RESOURCE_NOT_FOUND.
+  If-Match required: no.
+  Idempotency-Key required: yes.
+}
