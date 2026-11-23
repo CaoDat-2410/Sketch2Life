@@ -87,6 +87,7 @@ describe('FEAT-081 C3b API request', () => {
 describe('FEAT-081 C3b copy (the UI-copy validator does not scan src/parent)', () => {
   const screen = readFileSync(new URL('../src/parent/presentation/screens/StoryHistoryScreen.tsx', import.meta.url), 'utf8');
   const controller = readFileSync(new URL('../src/parent/presentation/navigation/useParentPlatformController.ts', import.meta.url), 'utf8');
+  const learningController = readFileSync(new URL('../src/parent/presentation/navigation/useParentController.ts', import.meta.url), 'utf8');
   it('states that cancel and delete remove the session content for good', () => {
     expect(screen).toContain('Buổi học sẽ dừng và nội dung của buổi sẽ bị xóa, không khôi phục được.');
     expect(screen).toContain('Nội dung của buổi sẽ bị xóa và không khôi phục được.');
@@ -97,5 +98,17 @@ describe('FEAT-081 C3b copy (the UI-copy validator does not scan src/parent)', (
     expect(controller.indexOf('setRunsError(runActionMessages[outcome])'))
       .toBeGreaterThan(controller.indexOf('await loadRuns(runsProfileId, null)'));
     expect(controller).toContain('requestNumber !== runsRequest.current');
+  });
+
+  it('offers a completed-row watch action that fetches the full run before playback', () => {
+    expect(screen).toContain("run.run_state === 'COMPLETED'");
+    expect(screen).toContain('Xem lại video');
+    expect(screen).toContain('props.onWatch(run.run_id)');
+    const start = learningController.indexOf('async function watchHistoryRun');
+    const end = learningController.indexOf('function onPlaybackError', start);
+    const watch = learningController.slice(start, end);
+    expect(watch).toContain('readLiveRun(runId)');
+    expect(watch).toContain('application.learning.openPlaybackV1(runId)');
+    expect(watch).toContain("setVideoBackStep('history')");
   });
 });

@@ -1,5 +1,4 @@
 import type {
-  Activity,
   ConsentPolicy,
   LessonDetail,
   LessonSummary,
@@ -21,6 +20,8 @@ import type {
   ParentProfileShareGrant,
   ParentProfileSharePage,
   ParentRunLifecycleReceipt,
+  ParentActivityListV1,
+  ParentActivitySelectionRequestV1,
   ParentStoryRunLifecycleEnvelopeV1,
   ParentStoryRunResultV1,
   ParentActiveStoryRunEnvelopeV1,
@@ -46,7 +47,6 @@ import type {
   ParentVideoRequestV1,
   ParentVideoUnsuitableRequestV1,
   StoryRun,
-  SuggestedActivity,
 } from '../../domain/types';
 
 export interface ParentIdentityPort {
@@ -89,6 +89,8 @@ export interface ParentApiPort {
   getStoryRun(runId: string): Promise<{ request_id: string; story_run: StoryRun }>;
   getActiveStoryRunV1(): Promise<ParentActiveStoryRunEnvelopeV1>;
   getStoryRunV1(runId: string): Promise<ParentStoryRunResultV1>;
+  listActivitiesV1(runId: string): Promise<ParentActivityListV1>;
+  selectActivityV1(runId: string, input: ParentActivitySelectionRequestV1, actionIdentity: ParentActionIdentity): Promise<ParentStoryRunEnvelopeV1>;
   listStoryRuns(profileId?: string, cursor?: string | null): Promise<ParentStoryRunHistoryPage>;
   cancelStoryRun(runId: string): Promise<ParentRunLifecycleReceipt>;
   cancelStoryRunV1(runId: string, expectedRevision: number, actionIdentity: ParentActionIdentity): Promise<ParentStoryRunLifecycleEnvelopeV1>;
@@ -110,7 +112,6 @@ export interface ParentApiPort {
   createStoryRevisionV1(runId: string, revision: number, rewriteInstruction: string | undefined, actionIdentity: ParentActionIdentity): Promise<ParentStoryRevisionResultV1>;
   analyzeDrawing(storyRunId: string, imageBase64: string, mediaType: ParentDrawingMediaType): Promise<DrawingUnderstandingResult>;
   confirmSubject(storyRunId: string, revision: number, subject: string): Promise<SubjectConfirmationResult>;
-  suggestActivities(storyRunId: string, revision: number): Promise<ActivitySuggestionResult>;
   generateStory(storyRunId: string, revision: number, rewriteInstruction?: string): Promise<StoryGenerationResult>;
   confirmStory(storyRunId: string, revision: number, sha256: string): Promise<{ request_id: string; story_run: StoryRun }>;
   attachRunAssetV1(runId: string, assetRef: string, expectedRunRevision: number | null, actionIdentity: ParentActionIdentity): Promise<ParentRunAssetAcceptedV1>;
@@ -184,18 +185,6 @@ export type SubjectConfirmationResult = {
   story_run_id: string;
   understanding_revision: number;
   decision: string;
-};
-
-export type ActivitySuggestionResult = {
-  request_id: string;
-  story_run_id: string;
-  understanding_revision: number;
-  modal_call_id?: string;
-  contract: 'ParentActivitySuggestionResponseV2';
-  selection_mode: 'CATALOG_SELECTION' | 'AI_GENERATED_FALLBACK';
-  catalog_candidate_count: number;
-  review_required: true;
-  activities: SuggestedActivity[];
 };
 
 export type StoryGenerationResult = {

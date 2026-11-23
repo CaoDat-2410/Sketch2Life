@@ -12,8 +12,8 @@ import type {
   ParentNotification,
   ParentProfileViewV1,
   ParentStoryRunV1,
+  ParentActivityListV1,
   ParentUser,
-  SuggestedActivity,
   StoryDraft,
 } from '../domain/types';
 import type { ParentCapabilityState } from '../application/ports/ParentCapabilityPorts';
@@ -91,15 +91,23 @@ const previewActivity: Activity = {
   activity_kind: 'indoor',
 };
 
-const previewSuggestedActivity: SuggestedActivity = {
-  ...previewActivity,
-  source: 'PINNED_LESSON',
-  source_lesson_id: 'preview-lesson-01',
-  source_lesson_title: 'Mô phỏng · khu vườn nhỏ',
-  source_lesson_version_id: 'Mô phỏng · phiên bản 01',
-  source_content_sha256: 'Mô phỏng · không phải mã băm thật',
-  source_activity_index: 0,
-  match_reason: 'Mô phỏng · minh họa hoạt động chỉ đọc.',
+const previewActivityList: ParentActivityListV1 = {
+  request_id: 'preview-only',
+  items: [{
+    activity_ref: { lesson_id: 'preview-lesson-01', version_id: 'preview-v1', content_sha256: 'a'.repeat(64), activity_index: 0 },
+    title: previewActivity.title,
+    objective: previewActivity.objective,
+    materials_text: previewActivity.materials_text,
+    preparation_text: previewActivity.preparation_text,
+    instructions_text: previewActivity.instructions_text,
+    observation_notes: previewActivity.observation_notes,
+    safety_notes: previewActivity.safety_notes,
+    activity_kind: previewActivity.activity_kind,
+    source: 'PINNED_LESSON',
+    lesson_title: 'Mô phỏng · khu vườn nhỏ',
+    lesson_topic: 'Mô phỏng · cây cối',
+  }],
+  basis: { age_band: '36-71', pinned_lesson: true, no_candidate: false },
 };
 
 const previewLessonSummary: LessonSummary = {
@@ -535,7 +543,7 @@ export function ParentVisualPreviewHarness(): React.JSX.Element {
     understanding: <UnderstandingScreen candidate={previewCandidate} stepLabel="5 / 8" subject="Mô phỏng · một con bướm" busy={false} error="" onSubject={ignoreAction} onConfirm={ignoreAction} onBack={ignoreAction} />,
     'context-before': <ContextScreen profile={previewProfile} contextRun={null} stepLabel="6 / 8" busy={false} confirmed={false} error="" onRetryCreate={ignoreAction} onConfirm={ignoreAction} onContinue={ignoreAction} onBack={ignoreAction} />,
     'context-after': <ContextScreen profile={previewProfile} contextRun={previewContextRun} stepLabel="6 / 8" busy={false} confirmed={false} error="" onRetryCreate={ignoreAction} onConfirm={ignoreAction} onContinue={ignoreAction} onBack={ignoreAction} />,
-    activity: <ActivityScreen stepLabel="7 / 8" topic="Khu vườn" subject="Một chú bướm" suggestions={null} selectedIndex={null} loading={false} attempted={false} error="" onSuggest={ignoreAction} onSelect={ignoreAction} onContinue={ignoreAction} onBack={ignoreAction} />,
+    activity: <ActivityScreen stepLabel="7 / 8" topic="Khu vườn" subject="Một chú bướm" activities={previewActivityList} selectedIndex={0} loading={false} saving={false} attempted={false} error="" onRetry={ignoreAction} onSelect={ignoreAction} onContinue={ignoreAction} onCancel={ignoreAction} onBack={ignoreAction} />,
     story: <StoryScreen
       stepLabel="8 / 8"
       story={previewStory}
@@ -551,17 +559,19 @@ export function ParentVisualPreviewHarness(): React.JSX.Element {
       rewriting={false}
       rewriteNotice=""
       rewriteAfterVideo={false}
+      confirmationRequired={false}
+      onlyCancel={false}
       rewritesLeft={3}
       onOpenVideo={ignoreAction}
       onRewriteInstruction={ignoreAction}
-      onGenerate={ignoreAction}
-      onRetry={ignoreAction}
       onRewrite={ignoreAction}
       onConfirm={ignoreAction}
+      onRefresh={ignoreAction}
+      onOpenHistory={ignoreAction}
       onBack={ignoreAction}
     />,
     handoff: <HandoffScreen storyTitle="Mô phỏng · kịch bản đã xác nhận" events={[]} videoCapability={unavailable('video')} jobStage={{ state: 'unavailable', stage: 'unavailable' }} onResumeActiveRun={ignoreAction} />,
-    history: <StoryHistoryScreen capability={unavailable('run-history')} runs={[]} loading={false} error="" hasMore={false} onLoad={ignoreAction} onLoadMore={ignoreAction} onCancel={ignoreAction} onDelete={ignoreAction} onBack={ignoreAction} />,
+    history: <StoryHistoryScreen capability={unavailable('run-history')} runs={[]} loading={false} error="" hasMore={false} onLoad={ignoreAction} onLoadMore={ignoreAction} onCancel={ignoreAction} onDelete={ignoreAction} onWatch={ignoreAction} onBack={ignoreAction} />,
     'lesson-history': <LessonHistoryScreen capability={unavailable('lesson-history')} deliveries={[]} loading={false} error="" hasMore={false} onLoad={ignoreAction} onLoadMore={ignoreAction} onSubmitFeedback={pendingPreviewAsync} onBack={ignoreAction} />,
     quota: <QuotaScreen capability={unavailable('quota')} quota={null} loading={false} error="" onLoad={ignoreAction} onBack={ignoreAction} />,
     notifications: <NotificationsScreen capability={unavailable('notifications')} items={[]} unreadCount={null} loading={false} error="" hasMore={false} onLoad={ignoreAction} onLoadMore={ignoreAction} onMarkRead={ignoreAction} onMarkAllRead={ignoreAction} onBack={ignoreAction} />,

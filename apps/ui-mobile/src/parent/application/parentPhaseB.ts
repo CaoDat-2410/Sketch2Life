@@ -1,4 +1,7 @@
 import type {
+  ParentActivityListV1,
+  ParentActivityRefV1,
+  ParentActivityV1,
   ParentPlaybackGrantV1,
   ParentPlaybackSourceV1,
   ParentRunAssetAcceptedV1,
@@ -6,6 +9,7 @@ import type {
   ParentRunTranscriptV1,
   ParentStoryRewriteAcceptedV1,
   ParentStoryRunV1,
+  ParentPostVideoActivityV1,
   ParentTranscriptConfirmedV1,
   ParentVideoGenerationAcceptedV1,
   ParentVideoReasonCodeV1,
@@ -41,6 +45,75 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function isPositiveInt(value: unknown): value is number {
   return typeof value === 'number' && Number.isInteger(value) && value >= 1;
+}
+
+function isString(value: unknown): value is string {
+  return typeof value === 'string';
+}
+
+function readActivityRef(value: unknown): ParentActivityRefV1 | null {
+  if (!isRecord(value) || !isString(value.lesson_id) || !value.lesson_id.trim()
+    || !isString(value.version_id) || !value.version_id.trim()
+    || !isString(value.content_sha256) || !/^[0-9a-f]{64}$/i.test(value.content_sha256)
+    || typeof value.activity_index !== 'number' || !Number.isInteger(value.activity_index)
+    || value.activity_index < 0 || value.activity_index > 23) return null;
+  return {
+    lesson_id: value.lesson_id,
+    version_id: value.version_id,
+    content_sha256: value.content_sha256,
+    activity_index: value.activity_index,
+  };
+}
+
+function readActivity(value: unknown): ParentActivityV1 | null {
+  if (!isRecord(value)) return null;
+  const activity_ref = readActivityRef(value.activity_ref);
+  const textFields = ['title', 'objective', 'materials_text', 'preparation_text', 'instructions_text', 'observation_notes', 'safety_notes', 'lesson_title', 'lesson_topic'] as const;
+  if (!activity_ref || textFields.some((field) => !isString(value[field]))) return null;
+  if (value.activity_kind !== 'outdoor' && value.activity_kind !== 'indoor' && value.activity_kind !== 'mixed') return null;
+  if (value.source !== 'PINNED_LESSON' && value.source !== 'PUBLIC' && value.source !== 'SHARED') return null;
+  return {
+    activity_ref,
+    title: value.title as string,
+    objective: value.objective as string,
+    materials_text: value.materials_text as string,
+    preparation_text: value.preparation_text as string,
+    instructions_text: value.instructions_text as string,
+    observation_notes: value.observation_notes as string,
+    safety_notes: value.safety_notes as string,
+    activity_kind: value.activity_kind,
+    source: value.source,
+    lesson_title: value.lesson_title as string,
+    lesson_topic: value.lesson_topic as string,
+  };
+}
+
+/** Reads the bounded Parent catalog response without trusting arbitrary JSON from the server. */
+export function readActivityListV1(value: unknown): ParentActivityListV1 | null {
+  if (!isRecord(value) || !isString(value.request_id) || !Array.isArray(value.items)
+    || value.items.length > 12 || !isRecord(value.basis)) return null;
+  const age_band = value.basis.age_band;
+  if (age_band !== '36-71' && age_band !== '72-107' && age_band !== '108-120') return null;
+  if (typeof value.basis.pinned_lesson !== 'boolean' || typeof value.basis.no_candidate !== 'boolean') return null;
+  const items = value.items.map(readActivity);
+  if (items.some((item) => item === null) || (items.length === 0) !== value.basis.no_candidate) return null;
+  return {
+    request_id: value.request_id,
+    items: items as ParentActivityV1[],
+    basis: { age_band, pinned_lesson: value.basis.pinned_lesson, no_candidate: value.basis.no_candidate },
+  };
+}
+
+/** `null` is a normal post-video answer when the pinned lesson is no longer accessible. */
+export function readPostVideoActivities(value: unknown): ParentPostVideoActivityV1[] | null {
+  if (value === null || value === undefined) return null;
+  if (!Array.isArray(value) || value.length > 24) return null;
+  const items = value.map((item) => {
+    if (!isRecord(item) || typeof item.is_main !== 'boolean') return null;
+    const activity = readActivity(item);
+    return activity ? { ...activity, is_main: item.is_main } : null;
+  });
+  return items.some((item) => item === null) ? null : items as ParentPostVideoActivityV1[];
 }
 
 // --------------------------------------------------------------------------- answer readers
@@ -294,6 +367,9 @@ export type VideoPanel = {
   closed: boolean;
   requestsRemaining: number | null;
   scenes: Array<{ index: number; label: string }>;
+  postVideoActivities: ParentPostVideoActivityV1[] | null;
+  storyConfirmationRequired: boolean;
+  onlyCancel: boolean;
 };
 
 const SCENE_LABELS = { QUEUED: 'Đang chờ', GENERATING: 'Đang tạo', READY: 'Đã xong', FAILED: 'Chưa tạo được' } as const;
@@ -301,6 +377,7 @@ const SCENE_LABELS = { QUEUED: 'Đang chờ', GENERATING: 'Đang tạo', READY: 
 const closedPanel = (headline: string, detail: string | null, tone: VideoPanel['tone']): VideoPanel => ({
   headline, detail, tone, inFlight: false, canRequest: false, requiresReason: false, needsScriptReview: false,
   canPlay: false, canMarkUnsuitable: false, canComplete: false, closed: true, requestsRemaining: null, scenes: [],
+  postVideoActivities: null, storyConfirmationRequired: false, onlyCancel: false,
 });
 
 /**
@@ -342,11 +419,23 @@ export function readVideoPanel(
     requiresReason: used > 0, needsScriptReview: false, canPlay: false, canMarkUnsuitable: false,
     canComplete: false, closed: false, requestsRemaining: remaining,
     scenes: (video?.scenes ?? []).map((scene) => ({ index: scene.scene_index, label: SCENE_LABELS[scene.state] ?? 'Đang chờ' })),
+    postVideoActivities: readPostVideoActivities(run.post_video_activities),
+    storyConfirmationRequired: run.story_confirmation_required === true,
+    onlyCancel: false,
   };
 
   switch (state) {
     case 'COMPLETED':
-      return closedPanel('Buổi học đã hoàn tất.', 'Video không phát lại trong ứng dụng sau khi hoàn tất. Nội dung được giữ cho đến khi bạn xóa buổi học.', 'success');
+      return {
+        ...base,
+        headline: 'Buổi học đã hoàn tất.',
+        detail: video?.state === 'READY' && video.playback.state === 'AVAILABLE'
+          ? 'Bạn có thể xem lại video trong lịch sử buổi học.'
+          : 'Video hiện chưa thể phát. Nội dung được giữ cho đến khi bạn xóa buổi học.',
+        tone: 'success',
+        canPlay: video?.state === 'READY' && video.playback.state === 'AVAILABLE',
+        closed: true,
+      };
     case 'ABANDONED':
       return closedPanel('Buổi học đã tự đóng.', 'Buổi học không có thao tác trong 7 ngày nên được đóng lại. Nội dung được giữ cho đến khi bạn xóa buổi học.', 'info');
     case 'FAILED':
@@ -356,11 +445,18 @@ export function readVideoPanel(
     case 'DELETED':
       return closedPanel('Buổi học đã được xóa.', null, 'info');
     case 'SAFETY_BLOCKED':
-      return closedPanel(
-        'Video này chưa qua kiểm tra an toàn nên không được phát.',
-        'Bạn có thể hủy buổi học trong lịch sử rồi bắt đầu một buổi học mới.',
-        'warning',
-      );
+      return {
+        ...base,
+        headline: 'Video chưa qua kiểm tra an toàn.',
+        detail: run.story_confirmation_required === true
+          ? 'Bạn có thể xác nhận lại cùng kịch bản hoặc viết lại câu chuyện.'
+          : 'Đã hết lượt tạo video. Bạn có thể dừng buổi học trong lịch sử.',
+        tone: 'warning',
+        needsScriptReview: run.story_confirmation_required === true,
+        storyConfirmationRequired: run.story_confirmation_required === true,
+        onlyCancel: run.story_confirmation_required === false,
+        closed: run.story_confirmation_required === false,
+      };
     case 'VIDEO_ADMISSION_PENDING':
       return { ...base, headline: 'Đang xác nhận yêu cầu tạo video…', detail: 'Chưa gửi lại yêu cầu. Máy chủ đang kiểm tra lượt tạo video.', inFlight: true };
     case 'VIDEO_QUEUED':
@@ -406,28 +502,33 @@ function scriptReviewPanel(run: ParentStoryRunV1, base: VideoPanel, spentState: 
   const video = run.video ?? null;
   const confirmed = run.story_status === 'CONFIRMED' && typeof run.story_sha256 === 'string' && SHA256_HEX.test(run.story_sha256);
   const remaining = base.requestsRemaining ?? 3;
-  if (!confirmed) {
-    return { ...base, headline: 'Hãy xác nhận kịch bản trước khi tạo video.', detail: 'Video chỉ được tạo từ kịch bản người lớn đã xác nhận.', tone: 'warning', needsScriptReview: true };
-  }
-  if (remaining <= 0) {
+  const confirmationRequired = typeof run.story_confirmation_required === 'boolean'
+    ? run.story_confirmation_required
+    : !confirmed || spentState !== 'no';
+  const atVideoCap = remaining <= 0 || (video?.video_requests_used ?? 0) >= 3;
+  if (atVideoCap) {
     return {
       ...base,
       headline: 'Đã dùng hết lượt tạo video của buổi học này.',
-      detail: 'Bạn có thể hủy hoặc xóa buổi học trong lịch sử.',
+      detail: 'Bạn có thể dừng buổi học trong lịch sử.',
       tone: 'warning',
       requiresReason: false,
+      storyConfirmationRequired: false,
+      onlyCancel: true,
+      closed: true,
     };
+  }
+  if (!confirmed) {
+    return { ...base, headline: 'Hãy xác nhận kịch bản trước khi tạo video.', detail: 'Video chỉ được tạo từ kịch bản người lớn đã xác nhận.', tone: 'warning', needsScriptReview: true, storyConfirmationRequired: confirmationRequired };
   }
   const last = video?.state ?? null;
   const advice = adviceAfter(last, video?.job?.error_code ?? run.error_code);
   const noRewritesLeft = rewritesLeft(run.story_revision_no) === 0;
-  if (spentState !== 'no') {
+  if (confirmationRequired) {
     const detail = noRewritesLeft
       ? 'Đã hết lượt viết lại kịch bản. Bạn có thể dừng buổi học trong lịch sử.'
       : advice.detail;
-    // `known`: the server will refuse a second request on this script. `likely`: the app cannot be sure
-    // (for example after a restart), so the adult may still try and the server answers.
-    return { ...base, headline: advice.headline, detail, tone: 'warning', needsScriptReview: true, canRequest: spentState === 'likely' };
+    return { ...base, headline: advice.headline, detail, tone: 'warning', needsScriptReview: true, storyConfirmationRequired: true };
   }
   if (last === 'ADMISSION_REJECTED') {
     return { ...base, headline: 'Chưa nhận được yêu cầu tạo video.', detail: 'Lượt này không bị tính. Bạn có thể thử lại sau ít phút.', tone: 'warning', canRequest: true };
@@ -442,6 +543,12 @@ function scriptReviewPanel(run: ParentStoryRunV1, base: VideoPanel, spentState: 
 }
 
 function adviceAfter(last: string | null, code: string | null | undefined): { headline: string; detail: string } {
+  if (last === 'SAFETY_BLOCKED' || code === 'VIDEO_SAFETY_BLOCKED') {
+    return {
+      headline: 'Video chưa qua kiểm tra an toàn.',
+      detail: 'Bạn có thể xác nhận lại cùng kịch bản hoặc viết lại câu chuyện.',
+    };
+  }
   if (last === 'REJECTED_BY_ADULT') {
     return {
       headline: 'Bạn đã đánh dấu video chưa phù hợp.',

@@ -308,6 +308,7 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
     onLoadMore={() => void platform.loadRuns(parent.profile?.profile_id, platform.runsCursor)}
     onCancel={(id) => void platform.cancelRun(id)}
     onDelete={(id) => void platform.deleteRun(id)}
+    onWatch={(id) => void parent.watchHistoryRun(id)}
     onBack={() => parent.setStep(historyReturnStep)}
   />);
   if (parent.step === 'profile-sharing') return mainSection('profiles', <ProfileSharingScreen
@@ -359,19 +360,15 @@ function renderLearningStep(
     parent.contextRun?.run_id
     && parent.contextConfirmed
     && parent.subjectConfirmed
-    && ((parent.selectedActivityIndex !== null && parent.activitySelectionPersisted) || parent.story),
+    && (parent.contextRun.main_activity?.state === 'SELECTED' || parent.story),
   );
-  const storyBlockedReason = parent.selectedActivityIndex === null
-    ? 'Chọn hoạt động chính trước khi tiếp tục.'
-    : !parent.activitySelectionPersisted
-      ? 'Bạn đã chọn hoạt động, nhưng backend chưa có API lưu lựa chọn vào StoryRun. Chưa thể tạo câu chuyện.'
-      : 'Xác nhận tranh và ngữ cảnh trước khi tạo câu chuyện.';
+  const storyBlockedReason = 'Hãy hoàn tất lựa chọn hoạt động và xác nhận ngữ cảnh trước khi xem câu chuyện.';
   const canConfirmStory = canConfirmDisplayedStory({
     runId: parent.contextRun?.run_id,
     displayedRunId: parent.storyDisplayedRunId,
     storyPresent: Boolean(parent.story),
     subjectConfirmed: parent.subjectConfirmed,
-    storyConfirmed: parent.storyConfirmed,
+    storyConfirmed: parent.storyConfirmed && !parent.storyConfirmationRequired,
     storyRevisionNo: parent.storyRevisionNo,
     storySha256: parent.storySha256,
   });
@@ -430,7 +427,7 @@ function renderLearningStep(
     onRetryCreate={() => void parent.retryContextCreation()}
     onConfirm={() => void parent.confirmContext()}
     onContinue={parent.continueToCapture}
-    onBack={parent.contextRun ? undefined : () => parent.setStep('drawing-guide')}
+    onBack={parent.contextRun?.context_confirmed ? undefined : parent.contextRun ? () => parent.setStep('activity') : () => parent.setStep('drawing-guide')}
   />;
   if (step === 'capture') return <CaptureScreen
     photo={parent.photo}
@@ -458,15 +455,17 @@ function renderLearningStep(
     stepLabel={stepLabel(7)}
     topic={parent.topic}
     subject={parent.subject}
-    suggestions={parent.activitySuggestions}
+    activities={parent.activitySuggestions}
     selectedIndex={parent.selectedActivityIndex}
     loading={parent.activityBusy}
+    saving={parent.busy === 'activity-selection'}
     attempted={parent.activityAttempted}
     error={parent.activityError || parent.error}
-    onSuggest={() => void parent.requestActivitySuggestions()}
+    onRetry={() => void parent.requestActivityList(true)}
     onSelect={parent.chooseActivity}
-    onContinue={() => parent.setStep('story')}
-    onBack={() => parent.setStep('context')}
+    onContinue={() => void parent.selectActivity()}
+    onCancel={() => void parent.cancelEmptyActivityRun()}
+    onBack={() => parent.setStep(parent.contextRun?.context_confirmed ? 'context' : 'understanding')}
   />;
   if (step === 'transcript') return <TranscriptReviewScreen
     stepLabel={stepLabel(5)}
@@ -500,7 +499,7 @@ function renderLearningStep(
     onBackToStory={() => parent.leaveWait('story')}
     onOpenHistory={() => parent.leaveWait('history')}
     onRefresh={() => void parent.refreshVideo()}
-    onBack={() => parent.leaveWait(parent.story ? 'story' : 'home')}
+    onBack={() => parent.leaveWait(parent.videoBackStep)}
   />;
   if (step === 'story') return <StoryScreen
     stepLabel={stepLabel(8)}
@@ -517,14 +516,16 @@ function renderLearningStep(
     rewriting={parent.busy === 'rewrite'}
     rewriteNotice={parent.rewriteNotice}
     rewriteAfterVideo={parent.rewriteAfterVideo}
+    confirmationRequired={parent.storyConfirmationRequired}
+    onlyCancel={parent.storyOnlyCancel}
     rewritesLeft={rewritesLeft(parent.storyRevisionNo)}
     onOpenVideo={() => void parent.openVideoStep()}
     onRewriteInstruction={parent.setRewriteInstruction}
-    onGenerate={() => void parent.requestStory()}
     onRewrite={() => void parent.rewriteStory(parent.rewriteInstruction)}
-    onRetry={() => void parent.requestStory(undefined, true)}
     onConfirm={() => void parent.confirmStory()}
-    onBack={() => parent.leaveWait('activity')}
+    onRefresh={() => void parent.refreshStory()}
+    onOpenHistory={() => parent.leaveWait('history')}
+    onBack={() => parent.leaveWait(parent.story ? 'home' : 'activity')}
   />;
   if (step === 'handoff') return <HandoffScreen
     storyTitle={parent.story?.title ?? ''}

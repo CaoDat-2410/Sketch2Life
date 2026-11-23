@@ -84,6 +84,18 @@ export function VideoScreen(props: Props): React.JSX.Element {
         </Card>
       ) : null}
 
+      {panel.postVideoActivities && panel.postVideoActivities.length > 0 ? (
+        <Card variant="creative" style={styles.playerCard}>
+          <SectionTitle variant="creative">Hoạt động sau khi xem</SectionTitle>
+          {panel.postVideoActivities.map((activity) => (
+            <View key={`${activity.activity_ref.lesson_id}-${activity.activity_ref.version_id}-${activity.activity_ref.activity_index}`} style={styles.activityRow}>
+              <Text style={styles.activityTitle}>{activity.is_main ? 'Hoạt động chính' : 'Hoạt động gợi ý'} · {activity.title}</Text>
+              <Text style={styles.bodyText}>{activity.objective}</Text>
+            </View>
+          ))}
+        </Card>
+      ) : null}
+
       {needsReason ? (
         <Card variant="creative" style={styles.reasonCard}>
           <SectionTitle variant="creative">{props.markingUnsuitable ? 'Video chưa phù hợp vì sao?' : 'Vì sao tạo lại video?'}</SectionTitle>
@@ -143,6 +155,8 @@ const styles = StyleSheet.create({
   metaText: { color: palette.creativeMuted, fontSize: 11, lineHeight: 16, flexShrink: 1, minWidth: 0 },
   sceneList: { gap: 4 },
   sceneRow: { color: palette.creativeInk, fontSize: 12, lineHeight: 17 },
+  activityRow: { gap: 4, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#EEE5F8' },
+  activityTitle: { color: palette.creativeInk, fontSize: 13, lineHeight: 18, fontWeight: '800' },
   player: { width: '100%', aspectRatio: 16 / 9, backgroundColor: '#000000', borderRadius: 14 },
   reasonRow: { minHeight: 44, justifyContent: 'center', borderRadius: 14, borderWidth: 1.2, borderColor: palette.creativeBorder, paddingHorizontal: 12, backgroundColor: palette.white },
   reasonRowSelected: { borderColor: palette.creativePrimary, backgroundColor: palette.creativeLavender },

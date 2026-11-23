@@ -3,7 +3,6 @@ import { ParentApplicationError, type ParentApplicationErrorMetadata, type Paren
 import type { ParentCapabilityId } from '../../application/ports/ParentCapabilityPorts';
 import type {
   AuthTokenPort,
-  ActivitySuggestionResult,
   ParentActionIdentity,
   ParentApiPort,
   ParentDrawingMediaType,
@@ -14,6 +13,8 @@ import type {
   LessonInvitation,
   LessonSummary,
   ParentCandidate,
+  ParentActivityListV1,
+  ParentActivitySelectionRequestV1,
   ParentGroupInvitation,
   ParentLessonDeliveryPage,
   ParentNotification,
@@ -62,6 +63,12 @@ import {
   readNotificationReadAllV1,
   readNotificationV1,
 } from '../../application/parentNotifications';
+
+const PHASE_A_ACTIVITY_ERROR_CODES = new Set([
+  'AUTH_REQUIRED', 'INVALID_TOKEN', 'INVALID_REQUEST', 'INVALID_IDEMPOTENCY_KEY',
+  'RESOURCE_NOT_FOUND', 'INVALID_STATE_TRANSITION', 'STALE_REVISION', 'SUBJECT_NOT_CONFIRMED',
+  'PARENT_ACTIVITY_SELECTION_REQUIRED', 'PARENT_STORY_RUN_STORE_UNAVAILABLE', 'DEPENDENCY_UNAVAILABLE',
+]);
 
 export class ParentApiError extends ParentApplicationError {
   constructor(code: string, requestId: string, status?: number, metadata: ParentApplicationErrorMetadata = {}) {
@@ -194,6 +201,22 @@ export class ParentApi implements ParentApiPort {
 
   getStoryRunV1(runId: string) {
     return this.request<ParentStoryRunResultV1>(`/v1/story-runs/${encodeURIComponent(runId)}`, 'GET');
+  }
+
+  listActivitiesV1(runId: string) {
+    const query = new URLSearchParams({ story_run_id: runId });
+    return this.request<ParentActivityListV1>(`/v1/activities?${query.toString()}`, 'GET');
+  }
+
+  selectActivityV1(runId: string, input: ParentActivitySelectionRequestV1, actionIdentity: ParentActionIdentity) {
+    assertVisibleAsciiKey(actionIdentity);
+    return this.request<ParentStoryRunEnvelopeV1>(
+      `/v1/story-runs/${encodeURIComponent(runId)}/activity-selection`,
+      'POST',
+      input,
+      30_000,
+      { 'Idempotency-Key': actionIdentity },
+    ).then(liveRunOrLifecycleError);
   }
 
   createStoryRunV1(input: ParentStoryRunCreateV1, actionIdentity: ParentActionIdentity) {
@@ -567,12 +590,6 @@ export class ParentApi implements ParentApiPort {
     return this.unavailable<{ request_id: string; story_run_id: string; understanding_revision: number; decision: string }>('story-creation');
   }
 
-  suggestActivities(storyRunId: string, revision: number) {
-    void storyRunId;
-    void revision;
-    return this.unavailable<ActivitySuggestionResult>('story-creation');
-  }
-
   generateStory(storyRunId: string, revision: number, rewriteInstruction?: string) {
     return this.request<{
       request_id: string;
@@ -709,7 +726,10 @@ export class ParentApi implements ParentApiPort {
       });
       const payload = await response.json().catch(() => null) as Record<string, unknown> | null;
       if (!response.ok) {
-        throw apiErrorFromResponse(payload, response.status, requestId, response.headers);
+        const activityErrorCodes = path.startsWith('/v1/activities') || path.endsWith('/activity-selection')
+          ? PHASE_A_ACTIVITY_ERROR_CODES
+          : undefined;
+        throw apiErrorFromResponse(payload, response.status, requestId, response.headers, activityErrorCodes);
       }
       if (!payload || typeof payload !== 'object') throw new ParentApiError('INVALID_API_RESPONSE', requestId, response.status);
       return payload as T;
@@ -736,9 +756,20 @@ function apiErrorMessage(code: string): string {
     REQUEST_CONFLICT: 'Dữ liệu đã thay đổi. Hãy tải lại trạng thái trước khi tiếp tục.',
     ACTION_NOT_ALLOWED: 'Tài khoản này chưa thể thực hiện thao tác vừa chọn.',
     PARENT_STORE_UNAVAILABLE: 'Hồ sơ đang tạm thời không khả dụng. Vui lòng thử lại sau.',
+    PARENT_STORY_RUN_STORE_UNAVAILABLE: 'Buổi học đang tạm thời không khả dụng. Hãy thử tải lại sau.',
+    DEPENDENCY_UNAVAILABLE: 'Danh sách hoạt động đang tạm thời không khả dụng. Hãy thử tải lại sau.',
+    PARENT_ACTIVITY_SELECTION_REQUIRED: 'Hãy chọn và lưu một hoạt động trước khi tiếp tục câu chuyện.',
+    SUBJECT_NOT_CONFIRMED: 'Hãy xem lại và xác nhận chủ thể trước khi chọn hoạt động.',
+    RESOURCE_NOT_FOUND: 'Không tìm thấy nội dung hoặc bạn không thể truy cập nội dung này.',
+    INVALID_IDEMPOTENCY_KEY: 'Thao tác chưa khớp với lần gửi trước. Hãy tải lại trạng thái rồi thử lại.',
     ACTIVE_RUN_EXISTS: 'Hồ sơ đang có một buổi học chưa hoàn tất.',
     STALE_REVISION: 'Dữ liệu đã thay đổi. Hãy tải lại và kiểm tra trước khi tiếp tục.',
     INVALID_STATE_TRANSITION: 'Trạng thái hồ sơ đã thay đổi. Hãy tải lại hồ sơ.',
+    INVALID_REQUEST: 'Yêu cầu chưa hợp lệ. Hãy kiểm tra lại thông tin rồi thử lại.',
+    VIDEO_REGENERATION_LIMIT_REACHED: 'Đã dùng hết lượt tạo video của buổi học này. Bạn có thể dừng buổi học trong lịch sử.',
+    VIDEO_SAFETY_BLOCKED: 'Video chưa qua kiểm tra an toàn. Hãy xác nhận lại câu chuyện hoặc viết lại.',
+    STORAGE_UNAVAILABLE: 'Video đang tạm thời không khả dụng. Hãy thử lại sau.',
+    PROVIDER_UNAVAILABLE: 'Dịch vụ tạo nội dung hiện chưa khả dụng. Hãy thử lại sau.',
     INVALID_LIMIT: 'Không thể tải danh sách hồ sơ lúc này.',
     ROUTE_NOT_MOUNTED: 'Tính năng này chưa sẵn sàng.',
     CAPABILITY_UNAVAILABLE: 'Tính năng này chưa có tuyến dịch vụ được xác nhận.',
@@ -758,9 +789,11 @@ export function apiErrorFromResponse(
   status: number,
   fallbackRequestId: string,
   headers?: Headers,
+  allowedCodes?: ReadonlySet<string>,
 ): ParentApiError {
   const detail = isRecord(payload?.detail) ? payload.detail : null;
-  const code = safeErrorCode(payload?.code) ?? safeErrorCode(detail?.code) ?? `HTTP_${status}`;
+  const candidateCode = safeErrorCode(payload?.code) ?? safeErrorCode(detail?.code);
+  const code = candidateCode && (!allowedCodes || allowedCodes.has(candidateCode)) ? candidateCode : `HTTP_${status}`;
   const requestId = safeIdentifier(payload?.request_id)
     ?? safeIdentifier(detail?.request_id)
     ?? safeIdentifier(headers?.get('X-Request-ID'))

@@ -1,125 +1,93 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import type { ActivitySuggestionResult } from '../../application/ports/ParentPorts';
-import type { SuggestedActivity } from '../../domain/types';
-import { Card, Notice, PrimaryButton, ScreenFrame, SectionTitle, palette } from '../components/ui';
+import type { ParentActivityListV1, ParentActivityV1 } from '../../domain/types';
+import { Card, ConfirmButton, Notice, PrimaryButton, ScreenFrame, SectionTitle, SecondaryButton, palette } from '../components/ui';
 
 type Props = {
   stepLabel: string;
   topic: string;
   subject: string;
-  suggestions: ActivitySuggestionResult | null;
+  activities: ParentActivityListV1 | null;
   selectedIndex: number | null;
   loading: boolean;
+  saving: boolean;
   attempted: boolean;
   error: string;
-  onSuggest: () => void;
+  onRetry: () => void;
   onSelect: (index: number) => void;
   onContinue: () => void;
-  onBack: () => void;
+  onCancel: () => void;
+  onBack?: () => void;
 };
 
 export function ActivityScreen(props: Props): React.JSX.Element {
-  const hasSelection = props.selectedIndex !== null
-    && Boolean(props.suggestions?.activities[props.selectedIndex]);
-  const selectionMode = props.suggestions?.selection_mode;
+  const items = props.activities?.items ?? [];
+  const noCandidate = props.activities?.basis.no_candidate === true;
+  const hasSelection = props.selectedIndex !== null && Boolean(items[props.selectedIndex]);
 
   return (
     <ScreenFrame
       title="Hoạt động cùng bé"
-      subtitle="Chọn một hoạt động chính trước khi tạo câu chuyện."
+      subtitle="Người lớn chọn hoạt động chính trước khi bắt đầu câu chuyện."
       step={props.stepLabel}
-      onBack={props.onBack}
+      onBack={noCandidate ? undefined : props.onBack}
       visualTone="creative"
     >
       <Card variant="creative" style={styles.introCard}>
-        <View style={styles.introIcon}>
-          <Ionicons name="sparkles" size={22} color={palette.creativePrimary} />
-        </View>
+        <View style={styles.introIcon}><Ionicons name="sparkles" size={22} color={palette.creativePrimary} /></View>
         <View style={styles.introCopy}>
-          <Text style={styles.eyebrow}>GỢI Ý THEO BỨC TRANH</Text>
-          <SectionTitle variant="creative">Một ý tưởng để cùng làm</SectionTitle>
-          <Text style={styles.description}>
-            {props.subject.trim()
-              ? `Chủ thể đã xác nhận: ${props.subject.trim()}`
-              : 'Gợi ý sẽ dựa trên chủ thể người lớn đã xác nhận.'}
-          </Text>
+          <Text style={styles.eyebrow}>HOẠT ĐỘNG PHÙ HỢP</Text>
+          <SectionTitle variant="creative">Chọn một hoạt động chính</SectionTitle>
+          <Text style={styles.description}>{props.subject.trim() ? `Chủ thể đã xác nhận: ${props.subject.trim()}` : 'Hoạt động dựa trên chủ thể đã xác nhận.'}</Text>
           {props.topic.trim() ? <Text style={styles.topicText}>Chủ đề · {props.topic.trim()}</Text> : null}
+          {props.activities ? <Text style={styles.metaText}>Độ tuổi phù hợp · {props.activities.basis.age_band} tháng</Text> : null}
         </View>
       </Card>
 
-      {!props.suggestions ? (
-        <Card variant="creative" style={styles.emptyCard}>
-          <View style={styles.emptyArtwork}>
-            <View style={styles.emptyGlow} />
-            <View style={styles.artPage}>
-              <View style={styles.artSun} />
-              <View style={styles.artHill} />
-              <View style={styles.artStem} />
-              <View style={styles.artLeafOne} />
-              <View style={styles.artLeafTwo} />
-            </View>
-            <View style={styles.artSparkleOne}><Ionicons name="sparkles" size={18} color="#ECA90A" /></View>
-            <View style={styles.artSparkleTwo}><Ionicons name="star" size={13} color="#9B68E8" /></View>
-          </View>
-          <View style={styles.emptyCopy}>
-            <SectionTitle variant="creative">Tìm hoạt động hợp với tranh</SectionTitle>
-            <Text style={styles.description}>
-              {props.error
-                ? 'Bạn có thể thử tải gợi ý lại.'
-                : props.attempted
-                  ? 'Chưa có gợi ý. Hãy thử lại.'
-                  : 'Gợi ý dựa trên chủ thể và ngữ cảnh đã xác nhận.'}
-            </Text>
-          </View>
-          {props.error ? <Notice variant="creative" text={props.error} tone="error" /> : null}
-          <PrimaryButton
-            variant="creative"
-            label={props.attempted ? 'Thử lấy gợi ý lại' : 'Tìm hoạt động phù hợp'}
-            busy={props.loading}
-            onPress={props.onSuggest}
+      {props.loading && !props.activities ? (
+        <Card variant="creative" style={styles.stateCard}><ActivityIndicator color={palette.creativePrimary} /><Text style={styles.description}>Đang tải danh sách hoạt động…</Text></Card>
+      ) : noCandidate ? (
+        <Card variant="creative" style={styles.stateCard}>
+          <SectionTitle variant="creative">Chưa có hoạt động phù hợp</SectionTitle>
+          <Text style={styles.description}>Buổi học này chưa thể bắt đầu câu chuyện. Bạn có thể dừng buổi học trong lịch sử.</Text>
+          <ConfirmButton
+            label="Dừng buổi học"
+            title="Dừng buổi học này?"
+            message="Buổi học sẽ dừng và không thể tiếp tục."
+            confirmLabel="Dừng buổi học"
+            destructive
+            onConfirm={props.onCancel}
           />
+        </Card>
+      ) : !props.activities ? (
+        <Card variant="creative" style={styles.stateCard}>
+          <SectionTitle variant="creative">Chưa tải được hoạt động</SectionTitle>
+          {props.error ? <Notice variant="creative" text={props.error} tone="error" /> : null}
+          <PrimaryButton variant="creative" label={props.attempted ? 'Tải lại danh sách' : 'Tải danh sách hoạt động'} busy={props.loading} disabled={props.loading} onPress={props.onRetry} />
         </Card>
       ) : (
         <>
           <View style={styles.resultsHeading}>
-            <View style={styles.resultsCopy}>
-              <SectionTitle variant="creative">Chọn một hoạt động</SectionTitle>
-              <Text style={styles.description}>
-                {selectionMode === 'CATALOG_SELECTION'
-                  ? 'Các hoạt động được chọn từ nội dung bài học phù hợp.'
-                  : 'Đây là bản nháp do AI gợi ý. Người lớn cần xem lại trước khi dùng.'}
-              </Text>
-            </View>
-            <View style={[styles.modeBadge, selectionMode === 'AI_GENERATED_FALLBACK' && styles.draftBadge]}>
-              <Text style={[styles.modeBadgeText, selectionMode === 'AI_GENERATED_FALLBACK' && styles.draftBadgeText]}>
-                {selectionMode === 'CATALOG_SELECTION' ? 'BÀI HỌC' : 'BẢN NHÁP'}
-              </Text>
-            </View>
+            <SectionTitle variant="creative">Hoạt động có thể chọn</SectionTitle>
+            <Text style={styles.description}>{props.activities.basis.pinned_lesson ? 'Danh sách theo bài học đã ghim.' : 'Danh sách hoạt động phù hợp với buổi học.'}</Text>
           </View>
-
-          {props.suggestions.activities.map((activity, index) => (
+          {items.map((activity, index) => (
             <ActivityOption
-              key={`${activity.source}-${activity.source_lesson_version_id ?? 'draft'}-${activity.source_activity_index ?? index}-${activity.title}`}
+              key={`${activity.activity_ref.lesson_id}-${activity.activity_ref.version_id}-${activity.activity_ref.activity_index}`}
               activity={activity}
               selected={props.selectedIndex === index}
               onPress={() => props.onSelect(index)}
             />
           ))}
-
           {props.error ? <Notice variant="creative" text={props.error} tone="error" /> : null}
-          {hasSelection ? (
-            <Notice
-              variant="creative"
-              text="Lựa chọn chưa được lưu, nên chưa thể tạo câu chuyện."
-              tone="warning"
-            />
-          ) : null}
+          {props.selectedIndex !== null ? <Notice variant="creative" text="Bạn có thể đổi lựa chọn cho đến khi câu chuyện bắt đầu." tone="info" /> : null}
+          {props.attempted && props.error ? <SecondaryButton variant="creative" label="Tải lại danh sách" disabled={props.loading || props.saving} onPress={props.onRetry} /> : null}
           <PrimaryButton
             variant="creative"
-            label="Tiếp tục đến câu chuyện"
-            disabled={!hasSelection}
+            label="Lưu lựa chọn và tiếp tục"
+            busy={props.saving}
+            disabled={!hasSelection || props.loading || props.saving}
             onPress={props.onContinue}
           />
         </>
@@ -128,74 +96,48 @@ export function ActivityScreen(props: Props): React.JSX.Element {
   );
 }
 
-function ActivityOption({ activity, selected, onPress }: {
-  activity: SuggestedActivity;
-  selected: boolean;
-  onPress: () => void;
-}): React.JSX.Element {
+function ActivityOption({ activity, selected, onPress }: { activity: ParentActivityV1; selected: boolean; onPress: () => void }): React.JSX.Element {
   return (
-    <Pressable
-      accessibilityRole="radio"
-      accessibilityState={{ checked: selected }}
-      accessibilityLabel={`Chọn hoạt động ${activity.title}`}
-      onPress={onPress}
-      style={({ pressed }) => [styles.optionPressable, pressed && styles.pressed]}
-    >
+    <Pressable accessibilityRole="radio" accessibilityState={{ checked: selected }} accessibilityLabel={`Chọn hoạt động ${activity.title}`} onPress={onPress} style={({ pressed }) => [styles.optionPressable, pressed && styles.pressed]}>
       <Card variant="creative" style={[styles.activityCard, selected && styles.activityCardSelected]}>
         <View style={styles.activityHeader}>
-          <View style={[styles.activityIcon, selected && styles.activityIconSelected]}>
-            <Ionicons name={activityIcon(activity.activity_kind)} size={20} color={palette.creativePrimary} />
-          </View>
+          <View style={[styles.activityIcon, selected && styles.activityIconSelected]}><Ionicons name={activityIcon(activity.activity_kind)} size={20} color={palette.creativePrimary} /></View>
           <View style={styles.activityTitleBlock}>
             <Text style={styles.activityTitle}>{activity.title}</Text>
-            <Text style={styles.activityKind}>{activityKindLabel(activity.activity_kind)}</Text>
+            <Text style={styles.activityKind}>{activityKindLabel(activity.activity_kind)} · {activitySourceLabel(activity.source)}</Text>
           </View>
-          <View style={[styles.radio, selected && styles.radioSelected]}>
-            {selected ? <View style={styles.radioDot} /> : null}
-          </View>
+          <View style={[styles.radio, selected && styles.radioSelected]}>{selected ? <View style={styles.radioDot} /> : null}</View>
         </View>
-
-        {activity.match_reason ? <Text style={styles.matchReason}>{activity.match_reason}</Text> : null}
         <View style={styles.objectiveBox}>
           <Text style={styles.fieldLabel}>MỤC TIÊU</Text>
           <Text style={styles.bodyText}>{activity.objective}</Text>
         </View>
-        <View style={styles.detailRow}>
-          <Ionicons name="color-palette-outline" size={16} color={palette.creativePrimary} />
-          <Text style={styles.bodyText}>
-            Chuẩn bị: {activity.materials_text || 'Không yêu cầu vật liệu đặc biệt'}
-          </Text>
-        </View>
+        <Text style={styles.sourceText}>Bài học · {activity.lesson_title}{activity.lesson_topic ? ` · ${activity.lesson_topic}` : ''}</Text>
+        {activity.materials_text ? <Text style={styles.bodyText}>Chuẩn bị · {activity.materials_text}</Text> : null}
         {activity.preparation_text ? <Text style={styles.detailText}>{activity.preparation_text}</Text> : null}
         <View style={styles.instructionBox}>
           <Text style={styles.fieldLabel}>CÁCH CÙNG LÀM</Text>
           <Text style={styles.bodyText}>{activity.instructions_text}</Text>
         </View>
-        {activity.safety_notes ? (
-          <View style={styles.safetyBox}>
-            <Ionicons name="shield-checkmark-outline" size={16} color="#87600A" />
-            <Text style={styles.safetyText}>{activity.safety_notes}</Text>
-          </View>
-        ) : null}
-        {activity.source_lesson_title ? (
-          <Text style={styles.sourceText}>Nguồn · {activity.source_lesson_title}
-            {activity.source_lesson_version_id ? ` · ${activity.source_lesson_version_id}` : ''}
-          </Text>
-        ) : activity.source === 'AI_GENERATED_DRAFT' ? (
-          <Text style={styles.sourceText}>Gợi ý AI · cần người lớn xem lại</Text>
-        ) : null}
+        {activity.observation_notes ? <Text style={styles.detailText}>Quan sát · {activity.observation_notes}</Text> : null}
+        {activity.safety_notes ? <View style={styles.safetyBox}><Ionicons name="shield-checkmark-outline" size={16} color="#87600A" /><Text style={styles.safetyText}>{activity.safety_notes}</Text></View> : null}
       </Card>
     </Pressable>
   );
 }
 
-function activityKindLabel(kind: SuggestedActivity['activity_kind']): string {
+function activitySourceLabel(source: ParentActivityV1['source']): string {
+  if (source === 'PINNED_LESSON') return 'Bài học đã ghim';
+  return source === 'PUBLIC' ? 'Bài học công khai' : 'Bài học được chia sẻ';
+}
+
+function activityKindLabel(kind: ParentActivityV1['activity_kind']): string {
   if (kind === 'indoor') return 'Trong nhà';
   if (kind === 'outdoor') return 'Ngoài trời';
   return 'Trong nhà hoặc ngoài trời';
 }
 
-function activityIcon(kind: SuggestedActivity['activity_kind']): React.ComponentProps<typeof Ionicons>['name'] {
+function activityIcon(kind: ParentActivityV1['activity_kind']): React.ComponentProps<typeof Ionicons>['name'] {
   if (kind === 'indoor') return 'home-outline';
   if (kind === 'outdoor') return 'leaf-outline';
   return 'sunny-outline';
@@ -208,24 +150,9 @@ const styles = StyleSheet.create({
   eyebrow: { color: palette.creativePrimary, fontSize: 9, lineHeight: 13, fontWeight: '800', letterSpacing: 0.6 },
   description: { color: palette.creativeMuted, fontSize: 13, lineHeight: 19, flexShrink: 1 },
   topicText: { color: palette.creativePrimary, fontSize: 12, lineHeight: 17, fontWeight: '700' },
-  emptyCard: { gap: 14, backgroundColor: '#FFFEFF' },
-  emptyArtwork: { height: 154, borderRadius: 20, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F4ECFF' },
-  emptyGlow: { position: 'absolute', width: 145, height: 145, borderRadius: 80, backgroundColor: '#E5D4FF', opacity: 0.75 },
-  artPage: { width: 88, height: 104, borderRadius: 13, backgroundColor: '#FFFEFF', borderWidth: 1.5, borderColor: '#DAC7F2', overflow: 'hidden', transform: [{ rotate: '-7deg' }] },
-  artSun: { position: 'absolute', width: 15, height: 15, borderRadius: 8, right: 15, top: 15, backgroundColor: '#FFD267' },
-  artHill: { position: 'absolute', width: 100, height: 42, bottom: -18, left: -9, borderRadius: 30, backgroundColor: '#BFE7D2' },
-  artStem: { position: 'absolute', width: 4, height: 35, left: 44, bottom: 23, borderRadius: 2, backgroundColor: '#65A67E' },
-  artLeafOne: { position: 'absolute', width: 22, height: 12, left: 25, bottom: 39, borderRadius: 14, backgroundColor: '#8CD6AA', transform: [{ rotate: '-25deg' }] },
-  artLeafTwo: { position: 'absolute', width: 22, height: 12, left: 45, bottom: 31, borderRadius: 14, backgroundColor: '#A3DDB4', transform: [{ rotate: '22deg' }] },
-  artSparkleOne: { position: 'absolute', top: 25, right: '23%' },
-  artSparkleTwo: { position: 'absolute', bottom: 29, left: '24%' },
-  emptyCopy: { gap: 6 },
-  resultsHeading: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingHorizontal: 2 },
-  resultsCopy: { flex: 1, minWidth: 0, gap: 5 },
-  modeBadge: { minHeight: 27, paddingHorizontal: 10, borderRadius: 999, backgroundColor: '#E6F5EC', alignItems: 'center', justifyContent: 'center' },
-  modeBadgeText: { color: '#286344', fontSize: 9, lineHeight: 13, fontWeight: '800', letterSpacing: 0.35 },
-  draftBadge: { backgroundColor: '#FFF1D0' },
-  draftBadgeText: { color: '#795408' },
+  metaText: { color: palette.creativeMuted, fontSize: 11, lineHeight: 16 },
+  stateCard: { gap: 14, backgroundColor: '#FFFEFF' },
+  resultsHeading: { gap: 5 },
   optionPressable: { minWidth: 0 },
   pressed: { opacity: 0.86 },
   activityCard: { gap: 12, backgroundColor: '#FFFEFF', borderWidth: 1.4, borderColor: palette.creativeBorder },
@@ -239,14 +166,12 @@ const styles = StyleSheet.create({
   radio: { width: 24, height: 24, borderRadius: 12, borderWidth: 1.7, borderColor: '#B6A4CA', alignItems: 'center', justifyContent: 'center' },
   radioSelected: { borderColor: palette.creativePrimary },
   radioDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: palette.creativePrimary },
-  matchReason: { color: palette.creativePrimary, fontSize: 12, lineHeight: 17, fontWeight: '700' },
   objectiveBox: { gap: 4, borderRadius: 13, padding: 11, backgroundColor: '#F8F3FF' },
   fieldLabel: { color: palette.creativePrimary, fontSize: 9, lineHeight: 13, fontWeight: '800', letterSpacing: 0.45 },
   bodyText: { color: palette.creativeInk, fontSize: 13, lineHeight: 19, flexShrink: 1 },
-  detailRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 7 },
-  detailText: { color: palette.creativeMuted, fontSize: 12, lineHeight: 18, paddingLeft: 23 },
+  detailText: { color: palette.creativeMuted, fontSize: 12, lineHeight: 18 },
   instructionBox: { gap: 4 },
+  sourceText: { color: palette.creativeMuted, fontSize: 11, lineHeight: 16, fontWeight: '700' },
   safetyBox: { flexDirection: 'row', alignItems: 'flex-start', gap: 7, borderRadius: 12, padding: 10, backgroundColor: '#FFF5D9' },
   safetyText: { flex: 1, color: '#72530D', fontSize: 12, lineHeight: 17 },
-  sourceText: { color: palette.creativeMuted, fontSize: 10, lineHeight: 15 },
 });

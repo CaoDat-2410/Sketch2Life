@@ -8,6 +8,7 @@ import type {
 import type {
   LessonDetail,
   ParentActiveStoryRunEnvelopeV1,
+  ParentActivitySelectionRequestV1,
   ParentLessonVersionPinV1,
   ParentProfile,
   ParentStoryRunEnvelopeV1,
@@ -157,7 +158,24 @@ export class ParentLearningUseCases {
     if (!subject.trim()) throw new ParentApplicationError('PARENT_SUBJECT_REQUIRED', 'Xác nhận chủ thể của bức vẽ trước.');
     return this.api.confirmStoryRunSubjectV1(runId, revision, subject, actionIdentity);
   }
-  suggestActivities(runId: string, revision: number) { return this.api.suggestActivities(runId, revision); }
+  listActivitiesV1(runId: string) {
+    if (!runId.trim()) throw new ParentApplicationError('PARENT_ACTIVITY_RUN_INVALID', 'Chưa chọn được buổi học để tải hoạt động.');
+    return this.api.listActivitiesV1(runId);
+  }
+  selectActivityV1(runId: string, input: ParentActivitySelectionRequestV1, actionIdentity: ParentActionIdentity) {
+    if (!runId.trim() || !Number.isInteger(input.expected_revision) || input.expected_revision < 1) {
+      throw new ParentApplicationError('PARENT_ACTIVITY_SELECTION_INVALID', 'Chưa xác nhận được hoạt động đã chọn.');
+    }
+    if ('activity' in input && (!input.activity.lesson_id.trim() || !input.activity.version_id.trim()
+      || !/^[0-9a-f]{64}$/i.test(input.activity.content_sha256)
+      || !Number.isInteger(input.activity.activity_index) || input.activity.activity_index < 0 || input.activity.activity_index > 23)) {
+      throw new ParentApplicationError('PARENT_ACTIVITY_SELECTION_INVALID', 'Chưa xác nhận được hoạt động đã chọn.');
+    }
+    if ('round_id' in input && (!input.round_id.trim() || !Number.isInteger(input.draft_index) || input.draft_index < 0)) {
+      throw new ParentApplicationError('PARENT_ACTIVITY_SELECTION_INVALID', 'Chưa xác nhận được hoạt động đã chọn.');
+    }
+    return this.api.selectActivityV1(runId, input, actionIdentity);
+  }
   generateStory(runId: string, revision: number, rewriteInstruction?: string, rewriteCount = 0) {
     if (rewriteInstruction?.trim() && rewriteCount >= 3) {
       throw new ParentApplicationError('PARENT_STORY_REWRITE_LIMIT', 'Đã dùng hết 3 lượt gợi ý viết lại.');

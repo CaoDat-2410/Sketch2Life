@@ -78,6 +78,44 @@ describe('Phase B error and state degradation', () => {
       expect(message).not.toContain(code);
       expect(parentRecoveryGroupForError({ code })).toBe('story-review');
     }
+    for (const code of [
+      'PARENT_ACTIVITY_SELECTION_REQUIRED', 'DEPENDENCY_UNAVAILABLE', 'PARENT_STORY_RUN_STORE_UNAVAILABLE',
+      'SUBJECT_NOT_CONFIRMED', 'STALE_REVISION', 'INVALID_STATE_TRANSITION', 'VIDEO_REGENERATION_LIMIT_REACHED',
+      'VIDEO_SAFETY_BLOCKED', 'STORAGE_UNAVAILABLE', 'PROVIDER_UNAVAILABLE',
+    ]) {
+      const message = safeParentFlowErrorMessage({ code, message: `private ${code}` });
+      expect(message).not.toContain(code);
+      expect(message).not.toContain(`private ${code}`);
+    }
+  });
+
+  it('routes a completed history row into a fresh run read and playback grant', () => {
+    const historyScreen = readFileSync('src/parent/presentation/screens/StoryHistoryScreen.tsx', 'utf8');
+    const controller = readFileSync('src/parent/presentation/navigation/useParentController.ts', 'utf8');
+    expect(historyScreen).toContain("run.run_state === 'COMPLETED'");
+    expect(historyScreen).toContain('props.onWatch(run.run_id)');
+    const start = controller.indexOf('async function watchHistoryRun');
+    const end = controller.indexOf('function onPlaybackError', start);
+    const watch = controller.slice(start, end);
+    expect(watch).toContain('readLiveRun(runId)');
+    expect(watch).toContain("run.run_state !== 'COMPLETED'");
+    expect(watch).toContain("run.video?.state !== 'READY'");
+    expect(watch).toContain('application.learning.openPlaybackV1(runId)');
+  });
+
+  it('re-confirms only the same spent story revision after a fresh run read', () => {
+    const controller = readFileSync('src/parent/presentation/navigation/useParentController.ts', 'utf8');
+    const start = controller.indexOf('async function confirmStory');
+    const end = controller.indexOf('async function resumeActiveRun', start);
+    const confirm = controller.slice(start, end);
+    expect(confirm).toContain('getLatestRun(runId)');
+    expect(confirm).toContain("latest.story_confirmation_required === true");
+    expect(confirm).toContain("latest.story_status === 'CONFIRMED'");
+    expect(confirm).toContain('latest.story_revision_no !== revisionNo');
+    expect(confirm).toContain('latest.story_sha256 !== revisionSha256');
+    expect(confirm).toContain('retainedActionIdentity(scriptConfirmationAction, signature)');
+    expect(confirm).toContain('scriptConfirmationAction.current = null');
+    expect(confirm).toContain('application.learning.confirmScriptV1(runId, revisionNo, revisionSha256, actionIdentity)');
   });
 
   it('words the pending subject rerun and routes it to the subject review', () => {

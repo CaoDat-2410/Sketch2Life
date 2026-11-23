@@ -146,13 +146,17 @@ describe('Parent run lifecycle client (FR-C-08)', () => {
 
   it('turns a lifecycle answer of a confirmation or revision route into a typed error', async () => {
     const answer = { status: 200, body: { request_id: 'r6', lifecycle: { ...lifecycle, run_state: 'DELETED' } } };
-    const { api } = createApi([answer, answer, answer, answer]);
+    const { api } = createApi([answer, answer, answer, answer, answer]);
 
     const results = await Promise.all([
       api.confirmStoryRunContextV1('synthetic-run', { expected_context_revision: 1, expected_context_snapshot_sha256: 'h' } as never, 'a1').catch((c: unknown) => c),
       api.confirmStoryRunSubjectV1('synthetic-run', 1, 'diều', 'a2').catch((c: unknown) => c),
       api.confirmStoryRunScriptV1('synthetic-run', 1, 'h', 'a3').catch((c: unknown) => c),
       api.createStoryRevisionV1('synthetic-run', 1, undefined, 'a4').catch((c: unknown) => c),
+      api.selectActivityV1('synthetic-run', {
+        expected_revision: 3,
+        activity: { lesson_id: 'lesson-1', version_id: 'version-1', content_sha256: 'a'.repeat(64), activity_index: 0 },
+      }, 'a5').catch((c: unknown) => c),
     ]);
 
     for (const result of results) {

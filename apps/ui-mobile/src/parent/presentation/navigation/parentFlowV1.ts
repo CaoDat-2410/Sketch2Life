@@ -426,6 +426,7 @@ export type ParentRecoveryGroup =
   | 'transcript-review'
   | 'subject-review'
   | 'context-review'
+  | 'activity-review'
   | 'story-review'
   | 'quota-summary'
   | 'provider-hold'
@@ -440,10 +441,17 @@ const parentRecoveryGroups: Record<string, ParentRecoveryGroup> = {
   INVALID_TOKEN: 'authentication',
   TOKEN_EXPIRED: 'authentication',
   RESOURCE_NOT_FOUND: 'resource-refresh',
+  PARENT_ACTIVITY_SELECTION_REQUIRED: 'activity-review',
+  PARENT_ACTIVITY_RUN_INVALID: 'activity-review',
+  PARENT_ACTIVITY_LIST_INVALID: 'activity-review',
+  PARENT_ACTIVITY_SELECTION_INVALID: 'activity-review',
+  DEPENDENCY_UNAVAILABLE: 'activity-review',
+  PARENT_STORY_RUN_STORE_UNAVAILABLE: 'provider-hold',
   ACTION_NOT_ALLOWED: 'action-denied',
   ACTIVE_RUN_EXISTS: 'resume-active-run',
   MULTI_CHILD_NOT_SUPPORTED: 'teacher-only',
   STALE_REVISION: 'review-current-state',
+  INVALID_STATE_TRANSITION: 'review-current-state',
   OCR_NOT_SUPPORTED: 'teacher-only',
   UNSUPPORTED_LESSON_TYPE: 'teacher-only',
   LESSON_FILE_TOO_LARGE: 'teacher-only',
@@ -469,7 +477,7 @@ const parentRecoveryGroups: Record<string, ParentRecoveryGroup> = {
   PLAYBACK_TOKEN_REJECTED: 'unavailable',
   INVALID_IDEMPOTENCY_KEY: 'review-current-state',
   IDEMPOTENCY_KEY_INVALID: 'review-current-state',
-  VIDEO_REGENERATION_LIMIT_REACHED: 'quota-summary',
+  VIDEO_REGENERATION_LIMIT_REACHED: 'story-review',
   VIDEO_QUOTA_EXCEEDED: 'quota-summary',
   AI_COST_LIMIT_REACHED: 'provider-hold',
   PROVIDER_UNAVAILABLE: 'provider-hold',
@@ -496,6 +504,12 @@ export function safeParentFlowErrorMessage(error: unknown): string {
   const messages: Record<string, string> = {
     ACTION_NOT_ALLOWED: 'Tài khoản hiện không thể thực hiện thao tác này.',
     PARENT_STORE_UNAVAILABLE: 'Hồ sơ đang tạm thời không khả dụng. Vui lòng thử lại sau.',
+    PARENT_STORY_RUN_STORE_UNAVAILABLE: 'Buổi học đang tạm thời không khả dụng. Hãy thử tải lại sau.',
+    DEPENDENCY_UNAVAILABLE: 'Danh sách hoạt động đang tạm thời không khả dụng. Hãy thử tải lại sau.',
+    PARENT_ACTIVITY_SELECTION_REQUIRED: 'Hãy chọn và lưu một hoạt động trước khi tiếp tục câu chuyện.',
+    PARENT_ACTIVITY_RUN_INVALID: 'Chưa chọn được buổi học để tải hoạt động. Hãy mở lại buổi học.',
+    PARENT_ACTIVITY_LIST_INVALID: 'Chưa tải được danh sách hoạt động. Hãy thử tải lại.',
+    PARENT_ACTIVITY_SELECTION_INVALID: 'Chưa xác nhận được hoạt động đã chọn. Hãy kiểm tra lại danh sách.',
     STALE_REVISION: 'Hồ sơ đã thay đổi. Hãy kiểm tra thông tin mới nhất rồi lưu lại.',
     INVALID_STATE_TRANSITION: 'Hồ sơ đã thay đổi trạng thái. Hãy kiểm tra lại trước khi tiếp tục.',
     ACTIVE_RUN_EXISTS: 'Hồ sơ đang có buổi học chưa hoàn tất. Hãy tiếp tục buổi học hiện tại.',
@@ -510,7 +524,7 @@ export function safeParentFlowErrorMessage(error: unknown): string {
     PROFILE_CONTEXT_NOT_CONFIRMED: 'Hãy xem lại và xác nhận ngữ cảnh trước khi tiếp tục.',
     LESSON_PLAN_NOT_APPROVED: 'Thao tác này chưa khả dụng trong luồng dành cho phụ huynh.',
     STORY_REWRITE_LIMIT_REACHED: 'Đã dùng hết lượt viết lại. Bạn có thể xác nhận kịch bản hiện tại hoặc dừng.',
-    VIDEO_REGENERATION_LIMIT_REACHED: 'Đã dùng hết lượt tạo lại video. Trạng thái video hiện tại vẫn do máy chủ xác nhận.',
+    VIDEO_REGENERATION_LIMIT_REACHED: 'Đã dùng hết lượt tạo video của buổi học này. Bạn có thể dừng buổi học trong lịch sử.',
     VIDEO_QUOTA_EXCEEDED: 'Máy chủ chưa xác nhận quyền tạo video. Hãy xem tóm tắt hạn mức nếu có.',
     AI_COST_LIMIT_REACHED: 'Hệ thống tạm thời chưa thể nhận yêu cầu này. Chưa xác nhận tiêu hạn mức.',
     PROVIDER_UNAVAILABLE: 'Dịch vụ tạo nội dung hiện chưa khả dụng. Hãy kiểm tra trạng thái trước khi thử lại.',

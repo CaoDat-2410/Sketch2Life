@@ -479,3 +479,16 @@ Status: **PARTIAL — runtime behaviour verified, catalog pending.** This is the
 - **Record:** `evidence/notes/MGR_8_EVIDENCE_INDEPENDENT_REVIEW_20261118.md` (6,705 B, `8AE285D1B68DFFB2…`).
 - **Commit:** the owner word "Làm G0 luôn" covers the record, one S-LL task commit and a push to the M2 branch, which updates PR #30 into `dev`.
 - **Next:** Phase B, starting with CONV-1.
+
+## Goal v4 Phase A Parent Android wiring � 2026-11-23
+
+- Status: IN_PROGRESS under the task-specific approval appended to approvals/TASK_APPROVAL.md.
+- Scope: apps/ui-mobile plus this task's required FEAT-066 plan and evidence records; no backend or obsolete apps/mobile.
+
+## Goal v4 Phase A Parent Android wiring completion - 2026-11-23
+
+- Status: IMPLEMENTED AND VERIFIED; all six requested gates exited 0.
+- App tests: 18 files passed, 228 tests passed, and UI_COPY_AND_RECOVERY_VALID printed.
+- Evidence: evidence/notes/PHASE_A_PARENT_ANDROID_WIRING_EVIDENCE_20261123.md.
+- Limitations: no lint script or native Android test suite exists in apps/ui-mobile; optional Gradle assembly was not run.
+- Working tree: changes remain unstaged and uncommitted for owner review. No push was made.

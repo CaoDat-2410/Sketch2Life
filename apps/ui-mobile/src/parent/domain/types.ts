@@ -417,6 +417,51 @@ export type ParentStoryJobStateV1 =
   | 'FAILED'
   | 'AWAITING_RECONCILIATION';
 
+export type ParentActivityRefV1 = {
+  lesson_id: string;
+  version_id: string;
+  content_sha256: string;
+  activity_index: number;
+};
+
+export type ParentActivityV1 = {
+  activity_ref: ParentActivityRefV1;
+  title: string;
+  objective: string;
+  materials_text: string;
+  preparation_text: string;
+  instructions_text: string;
+  observation_notes: string;
+  safety_notes: string;
+  activity_kind: 'outdoor' | 'indoor' | 'mixed';
+  source: 'PINNED_LESSON' | 'PUBLIC' | 'SHARED';
+  lesson_title: string;
+  lesson_topic: string;
+};
+
+export type ParentActivityListV1 = {
+  request_id: string;
+  items: ParentActivityV1[];
+  basis: {
+    age_band: '36-71' | '72-107' | '108-120';
+    pinned_lesson: boolean;
+    no_candidate: boolean;
+  };
+};
+
+/** Phase D can add the suggestion-round variant without changing this method's callers. */
+export type ParentActivitySelectionRequestV1 =
+  | { expected_revision: number; activity: ParentActivityRefV1 }
+  | { expected_revision: number; round_id: string; draft_index: number };
+
+export type ParentMainActivityV1 = {
+  state: 'NOT_SELECTED' | 'SELECTED';
+  selected: ParentActivityV1 | null;
+  selected_at: string | null;
+};
+
+export type ParentPostVideoActivityV1 = ParentActivityV1 & { is_main: boolean };
+
 export type ParentDrawingCandidateDecisionV1 =
   | 'REVIEW_REQUIRED'
   | 'CONFIRMED_BY_ADULT'
@@ -467,6 +512,9 @@ export type ParentStoryRunV1 = {
   story_sha256: string | null;
   story: ParentStoryDisplayV1 | null;
   job_state: ParentStoryJobStateV1 | null;
+  main_activity?: ParentMainActivityV1 | null;
+  post_video_activities?: ParentPostVideoActivityV1[] | null;
+  story_confirmation_required?: boolean;
   retryable: boolean;
   error_code: string | null;
   created_at: string;

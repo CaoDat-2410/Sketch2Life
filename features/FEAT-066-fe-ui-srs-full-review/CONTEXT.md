@@ -356,3 +356,13 @@ The owner then ran the tests in their own terminal:
 The owner decision was "R ok verified làm bước 5 đi": MGR-8 is **VERIFIED**, with the ClamAV PDF test recorded as an environment limit outside MGR-7. ClamAV becomes a prerequisite for the Teacher C-T upload slice, the L5 upload runs and Phase D.
 
 Evidence: `evidence/notes/MGR_8_ROOT_RUN_RESULTS_20261118.md` (6,785 bytes, `19A6E63C106EFF951A162CF4B48475FBF442EF3656A30D29F910FFC2CECE1601`). Next: an independent evidence review, then one S-LL commit on the owner's word.
+
+## Goal v4 Phase A Parent Android wiring - 2026-11-23
+
+The owner launched the task in the prompt and the task-specific plan and approval were recorded before implementation. Scope stayed in `apps/ui-mobile`; this worktree remains uncommitted and unstaged. The adopted Phase A route list and prompt set the Parent integration contract. FEAT-063 SRS v2.7-draft remains unsigned.
+
+Implementation covers activity list and selection, implicit first-story start from the last successful activity/context gate, run confirmation fields, safe re-confirmation and safety-block recovery, completed playback from history, and nullable post-video activities. First story creation does not call the legacy `story-revisions` route. Resuming `PREPARATION_REVIEW` reloads the activity list as needed; `SCRIPT_GENERATING` uses the first-story wait reader.
+
+The task text has one sequencing conflict: work item 3 says load activities after both subject and context confirmation, while the final R3 text says activity selection is expected first and context confirmation last. The implementation follows the explicit final order and still handles either gate as the last successful gate. No other conflict with the supplied final route list was found during this task.
+
+Verification: all six requested gates passed. Vitest: 18 files, 228 tests, and `UI_COPY_AND_RECOVERY_VALID`. `evidence/notes/PHASE_A_PARENT_ANDROID_WIRING_EVIDENCE_20261123.md` records the gate outputs. No lint script or native Android test suite is present in `apps/ui-mobile`; optional Gradle assembly was not run.

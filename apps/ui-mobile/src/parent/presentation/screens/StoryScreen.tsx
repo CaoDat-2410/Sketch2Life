@@ -22,14 +22,16 @@ type Props = {
   rewriteNotice: string;
   /** After a video was marked unsuitable (or failed) on the confirmed script, a rewrite is the way on (T-1b). */
   rewriteAfterVideo: boolean;
+  confirmationRequired: boolean;
+  onlyCancel: boolean;
   /** Story revision 4 is the last: three rewrites, then confirm or stop (FR-P-07). */
   rewritesLeft: number;
   onOpenVideo: () => void;
   onRewriteInstruction: (value: string) => void;
-  onGenerate: () => void;
-  onRetry: () => void;
   onRewrite: () => void;
   onConfirm: () => void;
+  onRefresh: () => void;
+  onOpenHistory: () => void;
   onBack: () => void;
 };
 
@@ -53,22 +55,14 @@ export function StoryScreen(props: Props): React.JSX.Element {
 
       {!props.story ? (
         <Card variant="creative" style={styles.generationCard}>
-          <View style={styles.storyArtwork}>
-            <StoryIllustration />
-          </View>
           <View style={styles.generationCopy}>
             <Text style={styles.eyebrow}>TỪ BỨC TRANH CỦA BÉ</Text>
-            <SectionTitle variant="creative">Sẵn sàng mở ra một câu chuyện?</SectionTitle>
-            <Text style={styles.bodyText}>Kịch bản sẽ được tạo từ bức tranh và chủ thể người lớn đã xác nhận.</Text>
+            <SectionTitle variant="creative">Chưa có câu chuyện để xem</SectionTitle>
+            <Text style={styles.bodyText}>Kiểm tra trạng thái buổi học hoặc mở lịch sử. Không gửi lại yêu cầu tạo câu chuyện.</Text>
           </View>
-          {props.attempted ? (
-            <>
-              <Notice variant="creative" text="Chưa có kết quả xác nhận. Kiểm tra trạng thái trước khi gửi lại." tone="warning" />
-              <SecondaryButton variant="creative" label="Gửi lại cùng yêu cầu" disabled={!props.storyReady || props.busy} onPress={props.onRetry} />
-            </>
-          ) : (
-            <PrimaryButton variant="creative" label="Tạo câu chuyện" busy={props.busy} disabled={!props.storyReady} onPress={props.onGenerate} />
-          )}
+          {props.attempted ? <Notice variant="creative" text="Không gửi lại yêu cầu tạo câu chuyện. Hãy kiểm tra trạng thái buổi học." tone="warning" /> : null}
+          <SecondaryButton variant="creative" label="Kiểm tra trạng thái" disabled={props.busy} onPress={props.onRefresh} />
+          <SecondaryButton variant="creative" label="Mở lịch sử buổi học" disabled={props.busy} onPress={props.onOpenHistory} />
         </Card>
       ) : (
         <>
@@ -120,11 +114,11 @@ export function StoryScreen(props: Props): React.JSX.Element {
             ))}
           </Card>
 
-          {!props.confirmed || props.rewriteAfterVideo ? (
+          {!props.onlyCancel && (!props.confirmed || props.confirmationRequired) ? (
             <Card variant="creative" style={styles.revisionCard}>
               <SectionTitle variant="creative">Muốn đổi một chi tiết?</SectionTitle>
-              <Text style={styles.bodyText}>{props.rewriteAfterVideo
-                ? 'Video lần trước chưa dùng được. Hãy viết lại câu chuyện, xác nhận bản mới rồi tạo video.'
+              <Text style={styles.bodyText}>{props.confirmationRequired
+                ? 'Video lần trước chưa dùng được. Bạn có thể xác nhận lại câu chuyện này hoặc viết lại.'
                 : 'Thêm gợi ý để tạo bản câu chuyện mới.'}</Text>
               {props.rewritesLeft > 0 ? (
                 <>
@@ -145,10 +139,10 @@ export function StoryScreen(props: Props): React.JSX.Element {
                   />
                 </>
               ) : <Notice variant="creative" text={props.rewriteAfterVideo ? 'Bạn đã dùng hết số lần viết lại. Bạn có thể dừng buổi học trong lịch sử.' : 'Bạn đã dùng hết số lần viết lại cho câu chuyện này. Hãy xác nhận câu chuyện hiện tại hoặc dừng buổi học.'} tone="info" />}
-              {!props.confirmed ? (
+              {!props.confirmed || props.confirmationRequired ? (
                 <PrimaryButton
                   variant="creative"
-                  label="Xác nhận câu chuyện này"
+                  label={props.confirmationRequired ? 'Xác nhận lại câu chuyện này' : 'Xác nhận câu chuyện này'}
                   busy={props.busy}
                   disabled={!props.storyReady || !props.canConfirm || !props.story.revisionId || !props.story.sha256}
                   onPress={props.onConfirm}
@@ -156,12 +150,17 @@ export function StoryScreen(props: Props): React.JSX.Element {
               ) : null}
             </Card>
           ) : (
-            <Notice variant="creative" text="Câu chuyện này đã được người lớn xác nhận." tone="success" />
+            <>
+              {props.onlyCancel
+                ? <Notice variant="creative" text="Đã dùng hết lượt tạo video. Bạn có thể dừng buổi học trong lịch sử." tone="warning" />
+                : <Notice variant="creative" text="Câu chuyện này đã được người lớn xác nhận." tone="success" />}
+              {props.onlyCancel ? <SecondaryButton variant="creative" label="Mở lịch sử buổi học" onPress={props.onOpenHistory} /> : null}
+            </>
           )}
         </>
       )}
 
-      {props.story && props.confirmed ? <PrimaryButton variant="creative" label="Tiếp tục tạo video" disabled={props.busy} onPress={props.onOpenVideo} /> : null}
+      {props.story && props.confirmed && !props.confirmationRequired && !props.onlyCancel ? <PrimaryButton variant="creative" label="Tiếp tục tạo video" disabled={props.busy} onPress={props.onOpenVideo} /> : null}
     </ScreenFrame>
   );
 }

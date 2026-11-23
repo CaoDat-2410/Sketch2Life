@@ -391,3 +391,11 @@ MGR-8 verification result, 2026-11-18: the owner ran D1, D2, D3 and `tests/contr
 Owner decision: "R ok verified làm bước 5 đi" — MGR-8 VERIFIED, with the ClamAV environment limit recorded. Evidence: `evidence/notes/MGR_8_ROOT_RUN_RESULTS_20261118.md` (6,785 bytes, SHA-256 `19A6E63C106EFF951A162CF4B48475FBF442EF3656A30D29F910FFC2CECE1601`). This note does not approve a commit or push.
 
 Mobile Phase D approval, 2026-11-22: The owner approved the goal v3 Phase D Android Parent wiring for `apps/ui-mobile` (task: check the Phase D backend range `5d1af59b..c47cd6d8`, squash `8c1cf931`, against every route the Parent app calls and wire only Parent-visible changes). Scope: `apps/ui-mobile`, the Phase D plan and the evidence note of this feature folder; no backend, `apps/web`, `apps/mobile`, records or Teacher flows. Result: no Parent-visible backend change was found; the only code change is the explicit serialisation of the Parent create body with its tests. Commit range: `dafe6e0d..` the Phase D commit on `feature/fe-mobile-remediation` (Phase B `c657aa66`, Phase C `dafe6e0d`). Independent audit: Sonnet 5.5 (high), one round, ACCEPT WITH NOTES, no P1/P2. Evidence: `evidence/notes/PHASE_D_MOBILE_WIRING_EVIDENCE_20261122.md`. This entry is appended after implementation because the plan file recorded the owner launch instruction; it does not approve any other task.
+
+## Goal v4 Phase A � Parent Android wiring (2026-11-23)
+
+- **Status:** APPROVED_FOR_IMPLEMENTATION by the owner's explicit launch in the current task prompt (launch word is GIVEN; running this prompt IS the launch).
+- **Plan:** plan/PHASE_A_PARENT_ANDROID_WIRING_PLAN_20261123.md, SHA-256 2102F420F267C4EA5C271FCE1DCA8B51128B84605E508C8A2C527BFBBB60FFF9.
+- **Scope:** apps/ui-mobile on feature/fe-mobile-remediation; this task's FEAT-066 plan, approval, context/decision/status and evidence records. No backend, apps/mobile, credentials/signing files, .env, commit, stage, stash, branch switch or push.
+- **Contract:** final Phase A route list 2026-11-23 and user's task prompt; FEAT-063 SRS remains a draft and is not signed off.
+- This entry approves only Goal v4 Phase A Parent Android wiring and does not alter other FEAT-066 approvals or scopes.

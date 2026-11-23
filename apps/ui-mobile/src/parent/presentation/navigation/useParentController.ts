@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 import { ParentApplicationError } from '../../application/ParentApplicationError';
 import { createParentActionIdentity } from '../../application/ports/ParentPorts';
-import type { ActivitySuggestionResult } from '../../application/ports/ParentPorts';
 import type { ParentActionIdentity } from '../../application/ports/ParentPorts';
 import type { ParentApplicationModule } from '../../application/ports/ParentApplicationModule';
 import { parseStoryDraft } from '../../domain/storyDraft';
@@ -11,6 +10,8 @@ import type {
   LessonInvitation,
   LessonSummary,
   ParentDrawingCandidateV1,
+  ParentActivityListV1,
+  ParentActivitySelectionRequestV1,
   ParentGroupInvitation,
   ParentProfileDeletePendingV1,
   ParentPlaybackSourceV1,
@@ -20,18 +21,17 @@ import type {
   ParentUser,
   ParentVideoReasonCodeV1,
   StoryDraft,
-  SuggestedActivity,
 } from '../../domain/types';
 import { requireLiveStoryRun } from '../../application/storyRunResult';
 import {
   BACKGROUND_RUN_STATES,
   classifyDrawingProgress,
   rewriteRangeForRun,
-  scriptSpentByVideo,
   classifyRewriteProgress,
   classifyTranscript,
   isClosedRunState,
   readVideoPanel,
+  readActivityListV1,
 } from '../../application/parentPhaseB';
 import {
   RunWaitCancelled,
@@ -67,7 +67,6 @@ import {
   canConfirmDisplayedStory,
   canConfirmDrawingSubject,
   canContinueToCapture,
-  canRequestStoryRevision,
   isProfileDeletionPending,
   lessonVersionPinFromDetail,
   mergeProfilePage,
@@ -98,6 +97,7 @@ type SelectedPhotoWithRunLock = SelectedPhoto & { locked?: boolean };
 
 export function useParentController(application: ParentApplicationModule) {
   const [step, setStep] = useState<AppStep>('auth');
+  const [videoBackStep, setVideoBackStep] = useState<AppStep>('home');
   const [currentUser, setCurrentUser] = useState<ParentUser | null>(null);
   const [profiles, setProfiles] = useState<ParentProfileViewV1[]>([]);
   const [profile, setProfile] = useState<ParentProfileViewV1 | null>(null);
@@ -133,12 +133,11 @@ export function useParentController(application: ParentApplicationModule) {
   const [subject, setSubject] = useState('');
   const [subjectConfirmed, setSubjectConfirmed] = useState(false);
   const [understandingRevision, setUnderstandingRevision] = useState(0);
-  const [activitySuggestions, setActivitySuggestions] = useState<ActivitySuggestionResult | null>(null);
+  const [activitySuggestions, setActivitySuggestions] = useState<ParentActivityListV1 | null>(null);
   const [selectedActivityIndex, setSelectedActivityIndex] = useState<number | null>(null);
   const [activityBusy, setActivityBusy] = useState(false);
   const [activityAttempted, setActivityAttempted] = useState(false);
   const [activityError, setActivityError] = useState('');
-  const activitySelectionPersisted = false as const;
   const [story, setStory] = useState<StoryDraft | null>(null);
   const [storyDisplayedRunId, setStoryDisplayedRunId] = useState('');
   const [storyRevisionNo, setStoryRevisionNo] = useState<number | null>(null);
@@ -170,8 +169,9 @@ export function useParentController(application: ParentApplicationModule) {
   const invitationActionsInFlight = useRef(new Set<string>());
   const contextConfirmationAction = useRef<RetainedActionIdentity | null>(null);
   const subjectConfirmationAction = useRef<RetainedActionIdentity | null>(null);
-  const storyRevisionAction = useRef<RetainedActionIdentity | null>(null);
   const scriptConfirmationAction = useRef<RetainedActionIdentity | null>(null);
+  const activitySelectionAction = useRef<RetainedActionIdentity | null>(null);
+  const activityCancelAction = useRef<RetainedActionIdentity | null>(null);
   const runCreationInFlight = useRef(false);
   const drawingAnalysisInFlight = useRef(false);
   const drawingUploadAction = useRef<RetainedKeySet<'create' | 'complete' | 'attach'> | null>(null);
@@ -670,6 +670,8 @@ export function useParentController(application: ParentApplicationModule) {
     setActivityBusy(false);
     setActivityAttempted(false);
     setActivityError('');
+    activitySelectionAction.current = null;
+    activityCancelAction.current = null;
   }
 
   async function createContextRun(): Promise<ParentStoryRunV1 | null> {
@@ -792,6 +794,7 @@ export function useParentController(application: ParentApplicationModule) {
     }
     setError('');
     setStep('activity');
+    void requestActivityList();
   }
 
   async function getLatestRun(runId: string): Promise<ParentStoryRunV1> {
@@ -822,7 +825,6 @@ export function useParentController(application: ParentApplicationModule) {
     setRewriteCount(Math.max(0, readModel.value.storyRevisionNo - 1));
     setStoryAttempted(true);
     setStoryConfirmed(run.story_status === 'CONFIRMED');
-    storyRevisionAction.current = null;
     scriptConfirmationAction.current = null;
     return true;
   }
@@ -852,7 +854,6 @@ export function useParentController(application: ParentApplicationModule) {
       setStoryAttempted(false);
       setStoryConfirmed(false);
       setRewriteCount(0);
-      storyRevisionAction.current = null;
       scriptConfirmationAction.current = null;
     }
     setPhotoValue((current) => current ? { ...current, locked: true } as SelectedPhoto : current);
@@ -864,9 +865,7 @@ export function useParentController(application: ParentApplicationModule) {
         setError(safeParentFlowErrorMessage({ code: 'PARENT_STORY_REVISION_INVALID' }));
       }
     } else {
-      setStep(confirmed
-        ? (run.context_confirmed === true ? 'activity' : 'context')
-        : 'understanding');
+      setStep(confirmed ? 'activity' : 'understanding');
     }
     return true;
   }
@@ -880,7 +879,7 @@ export function useParentController(application: ParentApplicationModule) {
       return;
     }
     const signature = JSON.stringify([run.run_id, run.context_revision, run.context_snapshot_sha256]);
-    setBusy('context-confirmation');
+    const busyToken = beginBusy('context-confirmation');
     setError('');
     try {
       if (contextConfirmationAction.current) {
@@ -888,6 +887,7 @@ export function useParentController(application: ParentApplicationModule) {
         if (latest.context_confirmed === true) {
           setContextConfirmed(true);
           contextConfirmationAction.current = null;
+          await handleStoryGateResult(latest, false);
           return;
         }
         if (latest.context_revision !== run.context_revision
@@ -913,32 +913,24 @@ export function useParentController(application: ParentApplicationModule) {
       setContextConfirmed(true);
       contextConfirmationAction.current = null;
       setSubjectConfirmed(isConfirmedRunSubject(confirmedRun, subject));
+      await handleStoryGateResult(confirmedRun);
     } catch (cause) {
-      if (cause instanceof ParentApplicationError && cause.code === 'STALE_REVISION') {
+      let handledConflict = false;
+      if (cause instanceof ParentApplicationError && (cause.code === 'STALE_REVISION' || cause.code === 'INVALID_STATE_TRANSITION')) {
         contextConfirmationAction.current = null;
         try {
-          const latest = await getLatestRun(run.run_id);
-          setContextRun(latest);
-          setContextConfirmed(latest.context_confirmed === true);
-          const latestUnderstanding = readRunUnderstanding(latest);
-          if (!latestUnderstanding) {
-            setSubjectConfirmed(false);
-            setStep('home');
-          } else if (latestUnderstanding.understandingRevision !== understandingRevision
-            || !isConfirmedRunSubject(latest, subject)
-            || latest.context_revision !== run.context_revision
-            || latest.context_snapshot_sha256 !== run.context_snapshot_sha256) {
-            adoptServerUnderstanding(latest);
-          }
+          const latest = await readLiveRun(run.run_id);
+          await handleStoryGateResult(latest, false);
+          handledConflict = true;
         } catch {
           setContextConfirmed(false);
           setSubjectConfirmed(false);
           setStep('home');
         }
       }
-      setError(safeParentFlowErrorMessage(cause));
+      if (!handledConflict) setError(safeParentFlowErrorMessage(cause));
     } finally {
-      setBusy('');
+      endBusy(busyToken);
     }
   }
 
@@ -1045,8 +1037,9 @@ export function useParentController(application: ParentApplicationModule) {
           setSubject(currentUnderstanding.subject);
           setUnderstandingRevision(currentUnderstanding.understandingRevision);
           setSubjectConfirmed(true);
-          setStep(latest.context_confirmed === true ? 'activity' : 'context');
+          setStep('activity');
           subjectConfirmationAction.current = null;
+          await requestActivityList();
           return;
         }
         if (currentUnderstanding.understandingRevision !== understandingRevision) {
@@ -1102,8 +1095,9 @@ export function useParentController(application: ParentApplicationModule) {
       setCandidate(confirmedRun.candidate ?? null);
       setSubjectConfirmed(true);
       resetActivityReview();
-      setStep('context');
+      setStep('activity');
       subjectConfirmationAction.current = null;
+      await requestActivityList();
     } catch (cause) {
       if (cause instanceof ParentApplicationError && cause.code === 'STALE_REVISION') {
         subjectConfirmationAction.current = null;
@@ -1129,43 +1123,43 @@ export function useParentController(application: ParentApplicationModule) {
     }
   }
 
-  async function requestActivitySuggestions(): Promise<void> {
-    if (activityBusy || (activityAttempted && activitySuggestions)) return;
+  async function requestActivityList(force = false, sourceRun?: ParentStoryRunV1): Promise<void> {
+    if (!sourceRun && (activityBusy || (!force && activityAttempted && activitySuggestions))) return;
     if (!ensureLearningProfileAllowed(profile)) return;
-    const run = contextRun;
-    if (!run || !contextConfirmed || !subjectConfirmed || !isConfirmedRunSubject(run, subject)) {
-      setActivityError('Xác nhận chủ thể và ngữ cảnh của buổi học trước khi tìm hoạt động.');
+    const run = sourceRun ?? contextRun;
+    const sourceUnderstanding = run ? readRunUnderstanding(run) : null;
+    const sourceSubject = sourceUnderstanding?.subject ?? subject;
+    const sourceRevision = sourceUnderstanding?.understandingRevision ?? understandingRevision;
+    if (!run || (!sourceRun && !subjectConfirmed) || !isConfirmedRunSubject(run, sourceSubject)) {
+      setActivityError(safeParentFlowErrorMessage({ code: 'SUBJECT_NOT_CONFIRMED' }));
       return;
     }
 
     setActivityAttempted(true);
     setActivityBusy(true);
     setActivityError('');
-    setActivitySuggestions(null);
-    setSelectedActivityIndex(null);
     try {
-      const latest = await getLatestRun(run.run_id);
-      const latestUnderstanding = readRunUnderstanding(latest);
-      if (latest.context_revision !== run.context_revision
-        || latest.context_snapshot_sha256 !== run.context_snapshot_sha256
-        || !latestUnderstanding
-        || latestUnderstanding.understandingRevision !== understandingRevision
-        || !isConfirmedRunSubject(latest, subject)) {
+      const latest = await readLiveRun(run.run_id);
+      if (latest.run_state !== 'PREPARATION_REVIEW') {
+        await handleStoryGateResult(latest, false);
+        return;
+      }
+      if (!isConfirmedRunSubject(latest, sourceSubject) || latest.understanding_revision !== sourceRevision) {
         setActivityError(safeParentFlowErrorMessage({ code: 'STALE_REVISION' }));
         return;
       }
-      const result = await timeRequest(
-        'activity-suggestions',
-        () => application.learning.suggestActivities(run.run_id, understandingRevision),
-      );
-      if (result.story_run_id !== run.run_id
-        || result.understanding_revision !== understandingRevision
-        || result.review_required !== true
-        || !Array.isArray(result.activities)
-        || result.activities.length === 0) {
-        throw new ParentApplicationError('PARENT_ACTIVITY_RESPONSE_INVALID', 'Chưa nhận được danh sách hoạt động hợp lệ.');
+      const response = await timeRequest('activity-list', () => application.learning.listActivitiesV1(run.run_id));
+      const activityList = readActivityListV1(response);
+      if (!activityList) {
+        throw new ParentApplicationError('PARENT_ACTIVITY_LIST_INVALID', 'The activity list did not match the approved response shape.');
       }
-      setActivitySuggestions(result);
+      setActivitySuggestions(activityList);
+      const selectedRef = latest.main_activity?.state === 'SELECTED' ? latest.main_activity.selected?.activity_ref : null;
+      const selectedIndex = selectedRef
+        ? activityList.items.findIndex((item) => JSON.stringify(item.activity_ref) === JSON.stringify(selectedRef))
+        : -1;
+      setSelectedActivityIndex(selectedIndex >= 0 ? selectedIndex : null);
+      adoptPolledRun(latest);
     } catch (cause) {
       setActivityError(safeParentFlowErrorMessage(cause));
     } finally {
@@ -1174,164 +1168,213 @@ export function useParentController(application: ParentApplicationModule) {
   }
 
   function chooseActivity(index: number): void {
-    if (!activitySuggestions || !Number.isInteger(index) || index < 0 || index >= activitySuggestions.activities.length) return;
+    if (!activitySuggestions || !Number.isInteger(index) || index < 0 || index >= activitySuggestions.items.length) return;
     setSelectedActivityIndex(index);
+    setActivityError('');
   }
 
-  async function requestStory(instruction?: string, allowSameActionRetry = false): Promise<void> {
-    if (busy) return;
-    if (!ensureLearningProfileAllowed(profile)) return;
-    if (selectedActivityIndex === null || !activitySuggestions?.activities[selectedActivityIndex]) {
-      setError('Chọn một hoạt động phù hợp trước khi tạo câu chuyện.');
-      return;
-    }
-    if (!activitySelectionPersisted) {
-      setError('Chưa thể tạo câu chuyện: backend chưa có API để lưu hoạt động đã chọn vào StoryRun.');
-      return;
-    }
+  async function selectActivity(): Promise<void> {
+    if (busy || activityBusy || !ensureLearningProfileAllowed(profile)) return;
+    const selected = selectedActivityIndex === null ? null : activitySuggestions?.items[selectedActivityIndex] ?? null;
     const runId = contextRun?.run_id;
-    const normalizedInstruction = instruction?.trim() ?? '';
-    const expectedContextRevision = contextRun?.context_revision;
-    const expectedContextHash = contextRun?.context_snapshot_sha256 ?? '';
-    const signature = runId
-      ? JSON.stringify([runId, expectedContextRevision, expectedContextHash, understandingRevision, normalizedInstruction || null, storyRevisionNo, storySha256])
-      : '';
-    const sameRetainedAction = Boolean(signature && storyRevisionAction.current?.signature === signature);
-    const canRequest = canRequestStoryRevision({
-      runId,
-      understandingRevision,
-      storyPresent: Boolean(story),
-      storyAttempted,
-      rewriteCount,
-      rewriteInstruction: normalizedInstruction,
-      storyConfirmed,
-      subjectConfirmed,
-      allowSameActionRetry: allowSameActionRetry || sameRetainedAction,
-    });
-    if (!canRequest || !runId) {
-      const code = normalizedInstruction && rewriteCount >= 3 ? 'PARENT_STORY_REWRITE_LIMIT' : 'PARENT_STORY_REVISION_INVALID';
-      setError(safeParentFlowErrorMessage({ code }));
+    if (!runId || !selected) {
+      setActivityError('Chọn một hoạt động trong danh sách trước khi tiếp tục.');
       return;
     }
 
-    const isRewrite = Boolean(normalizedInstruction);
-    setBusy(isRewrite ? 'rewrite' : 'story');
+    const busyToken = beginBusy('activity-selection');
+    setError('');
+    setActivityError('');
+    try {
+      const latest = await readLiveRun(runId);
+      if (latest.run_state !== 'PREPARATION_REVIEW') {
+        await handleStoryGateResult(latest, false);
+        return;
+      }
+      if (latest.understanding_revision !== understandingRevision || !isConfirmedRunSubject(latest, subject)) {
+        setActivityError(safeParentFlowErrorMessage({ code: 'STALE_REVISION' }));
+        return;
+      }
+      const signature = JSON.stringify([runId, latest.run_revision, selected.activity_ref]);
+      const actionIdentity = retainedActionIdentity(activitySelectionAction, signature);
+      const request: ParentActivitySelectionRequestV1 = {
+        expected_revision: latest.run_revision,
+        activity: selected.activity_ref,
+      };
+      const envelope = await timeRequest('activity-selection', () => application.learning.selectActivityV1(runId, request, actionIdentity));
+      activitySelectionAction.current = null;
+      await handleStoryGateResult(envelope.story_run);
+    } catch (cause) {
+      if (cause instanceof ParentApplicationError && (cause.code === 'STALE_REVISION' || cause.code === 'INVALID_STATE_TRANSITION')) {
+        activitySelectionAction.current = null;
+        try {
+          const latest = await readLiveRun(runId);
+          await handleStoryGateResult(latest, false);
+        } catch (reloadError) {
+          setActivityError(safeParentFlowErrorMessage(reloadError));
+        }
+      } else if (cause instanceof ParentApplicationError && cause.code === 'RESOURCE_NOT_FOUND') {
+        activitySelectionAction.current = null;
+        setActivitySuggestions(null);
+        setSelectedActivityIndex(null);
+        setActivityAttempted(false);
+        await requestActivityList(true);
+        setActivityError('Danh sách hoạt động đã thay đổi. Hãy chọn lại.');
+      } else {
+        if (isDefinitiveClientError(cause)) activitySelectionAction.current = null;
+        setActivityError(safeParentFlowErrorMessage(cause));
+      }
+    } finally {
+      endBusy(busyToken);
+    }
+  }
+
+  async function handleStoryGateResult(run: ParentStoryRunV1, reloadIfBothGatesRemain = true): Promise<void> {
+    adoptPolledRun(run);
+    if (run.run_state === 'SCRIPT_GENERATING' || run.run_state === 'STORY_GENERATING') {
+      await followFirstStory(run.run_id);
+      return;
+    }
+    if (run.run_state === 'SCRIPT_REVIEW') {
+      if (!adoptServerStory(run)) {
+        setError(safeParentFlowErrorMessage({ code: 'PARENT_STORY_REVISION_INVALID' }));
+        return;
+      }
+      setStep(run.story_status === 'CONFIRMED' && run.story_confirmation_required !== true ? 'video' : 'story');
+      return;
+    }
+    if (run.run_state === 'PREPARATION_REVIEW') {
+      if (run.main_activity?.state !== 'SELECTED') {
+        setStep('activity');
+        void requestActivityList();
+        return;
+      }
+      if (run.context_confirmed !== true) {
+        setStep('context');
+        return;
+      }
+      if (reloadIfBothGatesRemain) {
+        try {
+          const latest = await readLiveRun(run.run_id);
+          if (latest.run_state !== 'PREPARATION_REVIEW') {
+            await handleStoryGateResult(latest, false);
+            return;
+          }
+          adoptPolledRun(latest);
+        } catch {
+          // Show the safe not-ready state below; never loop on a gate command.
+        }
+      }
+      setStep('story');
+      setStoryAttempted(true);
+      setError('Câu chuyện chưa sẵn sàng. Hãy kiểm tra lại trạng thái buổi học sau.');
+      return;
+    }
+    if (['VIDEO_ADMISSION_PENDING', 'VIDEO_QUEUED', 'VIDEO_GENERATING', 'VIDEO_SAFETY_VALIDATING', 'VIDEO_READY', 'COMPLETED'].includes(run.run_state)) {
+      await openVideoStep(run.run_id);
+      return;
+    }
+    if (run.run_state === 'FAILED') {
+      setStep('story');
+      setStoryAttempted(true);
+      setError('Chưa tạo được câu chuyện. Hãy bắt đầu một buổi học mới.');
+      return;
+    }
+    setStep('story');
+    setStoryAttempted(true);
+    setError('Buổi học chưa sẵn sàng. Hãy kiểm tra lại trạng thái sau.');
+  }
+
+  async function followFirstStory(runId: string): Promise<void> {
+    const busyToken = beginBusy('story');
+    setStep('story');
+    setStoryAttempted(true);
     setError('');
     try {
-      const latest = await getLatestRun(runId);
-      const latestUnderstanding = readRunUnderstanding(latest);
-      if (latest.context_revision !== expectedContextRevision
-        || latest.context_snapshot_sha256 !== expectedContextHash) {
-        storyRevisionAction.current = null;
-        if (latestUnderstanding) adoptServerUnderstanding(latest);
-        setError(safeParentFlowErrorMessage({ code: 'STALE_REVISION' }));
+      const result = await waitRun(
+        runId,
+        (run) => run.run_state !== 'SCRIPT_GENERATING' && run.run_state !== 'STORY_GENERATING',
+        { onRun: adoptPolledRun },
+      );
+      const latest = result.value;
+      if (!latest || result.timedOut) {
+        setError('Câu chuyện đang được tạo. Hãy kiểm tra lại sau; không gửi yêu cầu tạo trùng.');
         return;
       }
-      if (latest.context_confirmed !== true
-        || !latestUnderstanding
-        || latestUnderstanding.understandingRevision !== understandingRevision
-        || !isConfirmedRunSubject(latest, subject)) {
-        if (latestUnderstanding) adoptServerUnderstanding(latest);
-        setError(safeParentFlowErrorMessage({ code: 'STALE_REVISION' }));
+      if (latest.run_state === 'SCRIPT_REVIEW' && latest.story_status === 'DRAFT' && adoptServerStory(latest)) {
+        adoptPolledRun(latest);
+        setStep('story');
         return;
       }
-      if (isActiveOrUnreconciledStoryRun(latest)) {
+      if (latest.run_state === 'FAILED') {
+        setError('Chưa tạo được câu chuyện. Hãy bắt đầu một buổi học mới.');
+        return;
+      }
+      if (latest.run_state === 'SCRIPT_GENERATION_UNKNOWN') {
         setError(safeParentFlowErrorMessage({ code: 'AWAITING_RECONCILIATION' }));
         return;
       }
-
-      const latestRead = readStoryRevisionReadModel({ story_run: latest }, runId);
-      const latestHasStory = latestRead.kind === 'valid' && parseStoryDraft(latestRead.value.story) !== null;
-      if (latest.story_status === 'CONFIRMED' && latestHasStory) {
-        adoptServerStory(latest);
-        setContextRun(latest);
-        setActiveRun(latest);
-        return;
-      }
-      if (latest.story_status === 'CONFIRMED') {
-        setError(safeParentFlowErrorMessage({ code: 'PARENT_STORY_REVISION_INVALID' }));
-        return;
-      }
-      const latestMatchesDisplayed = latestRead.kind === 'valid'
-        && latestRead.value.storyRevisionNo === storyRevisionNo
-        && latestRead.value.storySha256 === storySha256;
-      if (latestHasStory && !latestMatchesDisplayed) {
-        adoptServerStory(latest);
-        setError(safeParentFlowErrorMessage({ code: 'STALE_REVISION' }));
-        return;
-      }
-      if (latest.story_revision_id && latest.story_status === 'DRAFT' && !latestHasStory) {
-        setError(safeParentFlowErrorMessage({ code: 'PARENT_STORY_REVISION_INVALID' }));
-        return;
-      }
-      if (storyRevisionAction.current && !sameRetainedAction) {
-        setError('Hãy kiểm tra và gửi lại yêu cầu viết đang chờ trước khi bắt đầu yêu cầu khác.');
-        return;
-      }
-      if (latest.story_status === 'FAILED' && (!sameRetainedAction || latest.retryable !== true)) {
-        setError(safeParentFlowErrorMessage({ code: 'PARENT_STORY_REVISION_INVALID' }));
-        return;
-      }
-      if (!story && latestHasStory) {
-        adoptServerStory(latest);
-        return;
-      }
-
-      const actionIdentity = retainedActionIdentity(storyRevisionAction, signature);
-      const isNewAction = !sameRetainedAction;
-      setStoryAttempted(true);
-      if (isRewrite && isNewAction) setRewriteCount((count) => count + 1);
-      const receipt = await timeRequest(
-        isRewrite ? 'story-rewrite' : 'story-create',
-        () => application.learning.createStoryRevisionV1(
-          runId,
-          understandingRevision,
-          normalizedInstruction || undefined,
-          actionIdentity,
-        ),
-      );
-      const readModel = readStoryRevisionReadModel(receipt, runId);
-      if (readModel.kind !== 'valid' || readModel.value.storyStatus !== 'DRAFT') {
-        throw new ParentApplicationError('PARENT_STORY_REVISION_INVALID', 'Story response lacks a validated draft revision pin.');
-      }
-      const returnedRun = receipt.story_run;
-      if (!returnedRun || returnedRun.run_id !== runId) {
-        throw new ParentApplicationError('PARENT_STORY_REVISION_INVALID', 'Story response lacks the current server run.');
-      }
-      const parsedStory = parseStoryDraft(readModel.value.story);
-      if (!parsedStory) {
-        throw new ParentApplicationError('PARENT_STORY_REVISION_INVALID', 'Story response does not match the required schema.');
-      }
-      const pinnedStory = {
-        ...parsedStory,
-        revisionId: readModel.value.storyRevisionId,
-        revisionNo: readModel.value.storyRevisionNo,
-        sha256: readModel.value.storySha256,
-      };
-      setStory(pinnedStory);
-      setStoryDisplayedRunId(readModel.value.runId);
-      setStoryRevisionNo(readModel.value.storyRevisionNo);
-      setStorySha256(readModel.value.storySha256);
-      setRewriteCount(Math.max(0, readModel.value.storyRevisionNo - 1));
-      setContextRun(returnedRun);
-      setActiveRun(returnedRun);
-      setRewriteInstruction('');
-      storyRevisionAction.current = null;
-      scriptConfirmationAction.current = null;
+      await handleStoryGateResult(latest, false);
     } catch (cause) {
-      if (cause instanceof ParentApplicationError && cause.code === 'STALE_REVISION') {
-        storyRevisionAction.current = null;
-        try {
-          const latest = await getLatestRun(runId);
-          const latestUnderstanding = readRunUnderstanding(latest);
-          if (latestUnderstanding) adoptServerUnderstanding(latest);
-        } catch {
-          setStoryConfirmed(false);
-        }
+      if (!(cause instanceof RunWaitCancelled)) setError(safeParentFlowErrorMessage(cause));
+    } finally {
+      endBusy(busyToken);
+    }
+  }
+
+  async function cancelEmptyActivityRun(): Promise<void> {
+    const runId = contextRun?.run_id;
+    if (busy || !runId || !ensureLearningProfileAllowed(profile)) return;
+    const busyToken = beginBusy('activity-cancel');
+    setActivityError('');
+    setError('');
+    try {
+      const latest = await readLiveRun(runId);
+      const signature = JSON.stringify([runId, latest.run_revision, 'cancel-no-activity']);
+      const actionIdentity = retainedActionIdentity(activityCancelAction, signature);
+      await timeRequest('activity-cancel', () => application.platform.cancelRunV1(runId, latest.run_revision, actionIdentity));
+      activityCancelAction.current = null;
+      setContextRun(null);
+      setActiveRun(null);
+      resetActivityReview();
+      setStep('home');
+    } catch (cause) {
+      if (isDefinitiveClientError(cause)) activityCancelAction.current = null;
+      setActivityError(safeParentFlowErrorMessage(cause));
+    } finally {
+      endBusy(busyToken);
+    }
+  }
+  async function refreshStory(): Promise<void> {
+    const runId = contextRun?.run_id;
+    if (busy || !runId) return;
+    const busyToken = beginBusy('story');
+    setError('');
+    try {
+      const latest = await readLiveRun(runId);
+      if (latest.run_state === 'SCRIPT_GENERATING' || latest.run_state === 'STORY_GENERATING') {
+        await followFirstStory(runId);
+        return;
       }
+      if (latest.run_state === 'SCRIPT_GENERATION_UNKNOWN') {
+        adoptPolledRun(latest);
+        setError(safeParentFlowErrorMessage({ code: 'AWAITING_RECONCILIATION' }));
+        return;
+      }
+      if (latest.run_state === 'SCRIPT_REVIEW') {
+        if (!adoptServerStory(latest)) {
+          setError(safeParentFlowErrorMessage({ code: 'PARENT_STORY_REVISION_INVALID' }));
+          return;
+        }
+        adoptPolledRun(latest);
+        setStep(latest.story_status === 'CONFIRMED' && latest.story_confirmation_required !== true ? 'video' : 'story');
+        return;
+      }
+      await handleStoryGateResult(latest, false);
+    } catch (cause) {
       setError(safeParentFlowErrorMessage(cause));
     } finally {
-      setBusy('');
+      endBusy(busyToken);
     }
   }
 
@@ -1344,7 +1387,7 @@ export function useParentController(application: ParentApplicationModule) {
       displayedRunId: storyDisplayedRunId,
       storyPresent: Boolean(story),
       subjectConfirmed,
-      storyConfirmed,
+      storyConfirmed: storyConfirmed && contextRun?.story_confirmation_required !== true,
       storyRevisionNo,
       storySha256,
     }) || !runId || storyRevisionNo === null) {
@@ -1373,7 +1416,8 @@ export function useParentController(application: ParentApplicationModule) {
       }
       if (latest.story_status === 'CONFIRMED'
         && latest.story_revision_no === revisionNo
-        && latest.story_sha256 === revisionSha256) {
+        && latest.story_sha256 === revisionSha256
+        && latest.story_confirmation_required !== true) {
         if (!adoptServerStory(latest)) {
           setStoryConfirmed(false);
           setError(safeParentFlowErrorMessage({ code: 'PARENT_STORY_REVISION_INVALID' }));
@@ -1382,7 +1426,10 @@ export function useParentController(application: ParentApplicationModule) {
         setStoryConfirmed(true);
         return;
       }
-      if (latest.story_status !== 'DRAFT'
+      const reconfirmingSpentStory = latest.story_status === 'CONFIRMED'
+        && latest.story_confirmation_required === true
+        && (latest.run_state === 'SCRIPT_REVIEW' || latest.run_state === 'SAFETY_BLOCKED');
+      if ((!reconfirmingSpentStory && latest.story_status !== 'DRAFT')
         || latest.story_revision_no !== revisionNo
         || latest.story_sha256 !== revisionSha256) {
         if (latest.story_revision_id) adoptServerStory(latest);
@@ -1409,11 +1456,12 @@ export function useParentController(application: ParentApplicationModule) {
       setConfirmedStoryRevisionNo(revisionNo);
       scriptConfirmationAction.current = null;
     } catch (cause) {
-      if (cause instanceof ParentApplicationError && cause.code === 'STALE_REVISION') {
+      if (cause instanceof ParentApplicationError && ['STALE_REVISION', 'INVALID_STATE_TRANSITION', 'VIDEO_REGENERATION_LIMIT_REACHED'].includes(cause.code)) {
+        scriptConfirmationAction.current = null;
         try {
           const latest = await getLatestRun(runId);
           if (latest.story_revision_id) adoptServerStory(latest);
-          scriptConfirmationAction.current = null;
+          setStoryConfirmed(latest.story_status === 'CONFIRMED');
         } catch {
           setStoryConfirmed(false);
         }
@@ -1751,6 +1799,7 @@ export function useParentController(application: ParentApplicationModule) {
   async function rewriteStory(hint?: string): Promise<void> {
     const run = contextRun;
     if (busy || !run || !ensureLearningProfileAllowed(profile)) return;
+    if (readVideoPanel(run, { spentRevisionNo: spentStoryRevisionNo, confirmedRevisionNo: confirmedStoryRevisionNo }).onlyCancel) return;
     const instruction = (hint ?? rewriteInstruction).trim();
     const busyToken = beginBusy('rewrite');
     setError('');
@@ -1764,7 +1813,7 @@ export function useParentController(application: ParentApplicationModule) {
         return;
       }
       const read = readStoryRevisionReadModel({ story_run: latest }, run.run_id);
-      if (read.kind !== 'valid' || latest.run_state !== 'SCRIPT_REVIEW'
+      if (read.kind !== 'valid' || (latest.run_state !== 'SCRIPT_REVIEW' && latest.run_state !== 'SAFETY_BLOCKED')
         || read.value.storyRevisionNo !== storyRevisionNo || read.value.storySha256 !== storySha256) {
         if (read.kind === 'valid') adoptServerStory(latest);
         setError(safeParentFlowErrorMessage({ code: 'STALE_REVISION' }));
@@ -1836,6 +1885,7 @@ export function useParentController(application: ParentApplicationModule) {
     // A resume passes the run it just read: the state of this render does not hold it yet.
     const runId = explicitRunId ?? contextRun?.run_id;
     if (!runId) return;
+    setVideoBackStep(step === 'story' ? 'story' : step === 'history' ? 'history' : 'home');
     setStep('video');
     setError('');
     const busyToken = beginBusy('video-refresh');
@@ -1897,6 +1947,10 @@ export function useParentController(application: ParentApplicationModule) {
       setVideoReason(null);
       setBusy('video-refresh');
       const followed = await followVideo(run.run_id);
+      if (followed?.run_state === 'SCRIPT_REVIEW' && followed.story_revision_id) {
+        adoptServerStory(followed);
+        setStep('story');
+      }
       // The script is spent only once the generation was not rejected at admission (T-1a: a refused admission keeps it).
       if (followed && followed.video && followed.video.state !== 'ADMISSION_REJECTED') {
         setSpentStoryRevisionNo(latest.story_revision_no);
@@ -1904,10 +1958,15 @@ export function useParentController(application: ParentApplicationModule) {
     } catch (cause) {
       if (cause instanceof RunWaitCancelled) return;
       if (cause instanceof ParentApplicationError && cause.code === 'INVALID_STATE_TRANSITION') {
-        // The server refuses a second request on the same confirmed script: the way on is the script review.
         videoRequestAction.current = null;
-        setSpentStoryRevisionNo(run.story_revision_no);
-        setError('Kịch bản này đã được dùng để tạo video. Hãy viết lại kịch bản, xác nhận lại rồi tạo video mới.');
+        try {
+          const latest = await readLiveRun(run.run_id);
+          adoptPolledRun(latest);
+          if (latest.run_state === 'SCRIPT_REVIEW' && latest.story_confirmation_required === true) setStep('story');
+        } catch {
+          // Keep the safe command error when the refresh is unavailable.
+        }
+        setError(safeParentFlowErrorMessage(cause));
       } else {
         if (isDefinitiveClientError(cause)) videoRequestAction.current = null;
         setError(safeRunMessage(cause));
@@ -1933,6 +1992,31 @@ export function useParentController(application: ParentApplicationModule) {
       setError(safePlaybackMessage(cause));
     } finally {
       setBusy('');
+    }
+  }
+
+  async function watchHistoryRun(runId: string): Promise<void> {
+    if (busy || !runId.trim()) return;
+    const busyToken = beginBusy('video-playback');
+    setVideoBackStep('history');
+    setPlayback(null);
+    setError('');
+    try {
+      const run = await readLiveRun(runId);
+      adoptRunForLaterSteps(run);
+      setActiveRun(null);
+      setStep('video');
+      if (run.run_state !== 'COMPLETED' || run.video?.state !== 'READY' || run.video.playback.state !== 'AVAILABLE') {
+        setError('Video chưa sẵn sàng hoặc không còn phát được.');
+        return;
+      }
+      const source = await application.learning.openPlaybackV1(runId);
+      playbackOpenedAt.current = Date.now();
+      setPlayback(source);
+    } catch (cause) {
+      setError(safePlaybackMessage(cause));
+    } finally {
+      endBusy(busyToken);
     }
   }
 
@@ -1976,6 +2060,7 @@ export function useParentController(application: ParentApplicationModule) {
       setPlayback(null);
       setMarkingUnsuitable(false);
       setSpentStoryRevisionNo(updated.story_revision_no);
+      if (updated.run_state === 'SCRIPT_REVIEW' && updated.story_revision_id) setStep('story');
       // The reason stays selected: the next request asks for one again (T-1b P3-3).
     } catch (cause) {
       if (cause instanceof ParentApplicationError && cause.status !== undefined && cause.status >= 400 && cause.status < 500
@@ -2042,7 +2127,20 @@ export function useParentController(application: ParentApplicationModule) {
       }
       return true;
     }
-    if (state === 'SCRIPT_GENERATING' || state === 'STORY_GENERATING') {
+    if (state === 'SCRIPT_GENERATING') {
+      adoptRunForLaterSteps(run);
+      setStep('story');
+      const busyToken = beginBusy('story');
+      try {
+        await followFirstStory(run.run_id);
+      } catch (cause) {
+        if (!(cause instanceof RunWaitCancelled)) setError(safeRunMessage(cause));
+      } finally {
+        endBusy(busyToken);
+      }
+      return true;
+    }
+    if (state === 'STORY_GENERATING') {
       adoptRunForLaterSteps(run);
       setStep('story');
       const busyToken = beginBusy('rewrite');
@@ -2056,7 +2154,33 @@ export function useParentController(application: ParentApplicationModule) {
       }
       return true;
     }
-    const videoStates = new Set(['VIDEO_ADMISSION_PENDING', 'VIDEO_QUEUED', 'VIDEO_GENERATING', 'VIDEO_SAFETY_VALIDATING', 'VIDEO_READY', 'SAFETY_BLOCKED']);
+    if (state === 'PREPARATION_REVIEW') {
+      const understanding = readRunUnderstanding(run);
+      if (!understanding || !adoptServerUnderstanding(run)) return false;
+      if (!isConfirmedRunSubject(run, understanding.subject)) return true;
+      if (run.main_activity?.state === 'SELECTED' && run.context_confirmed !== true) {
+        setStep('context');
+        return true;
+      }
+      if (run.main_activity?.state !== 'SELECTED') {
+        setStep('activity');
+        await requestActivityList(false, run);
+        return true;
+      }
+      await handleStoryGateResult(run);
+      return true;
+    }
+    const videoStates = new Set(['VIDEO_ADMISSION_PENDING', 'VIDEO_QUEUED', 'VIDEO_GENERATING', 'VIDEO_SAFETY_VALIDATING', 'VIDEO_READY']);
+    if (state === 'SCRIPT_REVIEW' && run.story_confirmation_required === true && run.story_revision_id) {
+      adoptRunForLaterSteps(run);
+      setStep('story');
+      return true;
+    }
+    if (state === 'SAFETY_BLOCKED' && run.story_revision_id) {
+      adoptRunForLaterSteps(run);
+      setStep('story');
+      return true;
+    }
     if (videoStates.has(state) || (state === 'SCRIPT_REVIEW' && run.story_status === 'CONFIRMED')) {
       adoptRunForLaterSteps(run);
       await openVideoStep(run.run_id);
@@ -2135,6 +2259,7 @@ export function useParentController(application: ParentApplicationModule) {
     resetActivityReview();
     setStory(null); setStoryDisplayedRunId(''); setStoryRevisionNo(null); setStorySha256('');
     setStoryAttempted(false); setStoryConfirmed(false); setRewriteCount(0); setRewriteInstruction('');
+    setVideoBackStep('home');
     setGuideBase64(''); setGuideEnabled(false); setEvents([]); setError(''); setBusy('');
     profileCreateAction.current = null;
     profilePatchActions.current.clear();
@@ -2157,12 +2282,11 @@ export function useParentController(application: ParentApplicationModule) {
     setPlayback(null); setVideoReason(null); setMarkingUnsuitable(false); setSpentStoryRevisionNo(null); setRewriteNotice('');
     contextConfirmationAction.current = null;
     subjectConfirmationAction.current = null;
-    storyRevisionAction.current = null;
     scriptConfirmationAction.current = null;
   }
 
   return {
-    step, setStep, currentUser, profiles, profile, setProfile, selectedProfileId, profileBeingEdited, setProfileBeingEdited,
+    step, setStep, videoBackStep, currentUser, profiles, profile, setProfile, selectedProfileId, profileBeingEdited, setProfileBeingEdited,
     pendingDeletions, pendingDeletionLoadingId, profileFieldErrors, consentState,
     publicSettings: application.publicSettings,
     activeRun, topic, setTopic, idea, setIdea, lesson, setLesson, lessons, lessonLoading, lessonLoadingId, lessonError,
@@ -2170,7 +2294,7 @@ export function useParentController(application: ParentApplicationModule) {
     guideBase64, guideBusy, guideError, photo, setPhoto, audio, setAudio,
     contextRun, contextConfirmed, candidate, subject, setSubject, subjectConfirmed, understandingRevision,
     activitySuggestions, selectedActivityIndex, activityBusy, activityAttempted, activityError,
-    activitySelectionPersisted: false as const, requestActivitySuggestions, chooseActivity,
+    requestActivityList, chooseActivity, selectActivity, cancelEmptyActivityRun,
     story, storyDisplayedRunId, storyRevisionNo,
     storySha256, storyAttempted,
     storyConfirmed, rewriteCount, rewriteInstruction, setRewriteInstruction, events, busy, error, authError, bootstrapBusy,
@@ -2178,7 +2302,7 @@ export function useParentController(application: ParentApplicationModule) {
     selectProfile, requestProfileDeletion, refreshPendingDeletion, continueWithProfile, openLessons, chooseLesson, acceptLessonInvitation,
     declineLessonInvitation, acceptGroupInvitation, createGuide, openDrawingGuide, openContextReview, confirmContext,
     continueToCapture, analyzeDrawingForCurrentRun, confirmSubject,
-    requestStory, confirmStory, drawingGuideIndex, setDrawingGuideIndex,
+    confirmStory, refreshStory, drawingGuideIndex, setDrawingGuideIndex,
     resumeActiveRun, changePassword, resetCurrentPassword, signOut,
     leaveWait,
     transcript, transcriptText, setTranscriptText, transcriptWaiting, refreshTranscript, confirmTranscriptReview,
@@ -2189,8 +2313,10 @@ export function useParentController(application: ParentApplicationModule) {
     videoPanel: readVideoPanel(contextRun, { spentRevisionNo: spentStoryRevisionNo, confirmedRevisionNo: confirmedStoryRevisionNo }),
     playback, videoReason, setVideoReason, markingUnsuitable, startUnsuitable, cancelUnsuitable,
     openVideoStep, refreshVideo, requestVideo, playVideo, onPlaybackError, markVideoUnsuitable, completeRun,
-    rewriteAfterVideo: Boolean(contextRun && storyConfirmed
-      && scriptSpentByVideo(contextRun, { spentRevisionNo: spentStoryRevisionNo, confirmedRevisionNo: confirmedStoryRevisionNo }) !== 'no'),
+    watchHistoryRun,
+    storyConfirmationRequired: contextRun?.story_confirmation_required === true,
+    storyOnlyCancel: Boolean(contextRun && readVideoPanel(contextRun, { spentRevisionNo: spentStoryRevisionNo, confirmedRevisionNo: confirmedStoryRevisionNo }).onlyCancel),
+    rewriteAfterVideo: Boolean(contextRun?.story_status === 'CONFIRMED' && contextRun.story_confirmation_required === true),
     retryContextCreation: createContextRun,
     resetWorkflow, backToProfile: () => { setStep('profile'); setError(''); },
     clearProfileFormErrors: () => setProfileFieldErrors({}),

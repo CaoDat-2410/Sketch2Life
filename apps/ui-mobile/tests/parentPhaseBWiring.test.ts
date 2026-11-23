@@ -15,6 +15,8 @@ import {
   isPlaybackGrantForRun,
   playbackNeedsRefresh,
   readIdeaAccepted,
+  readActivityListV1,
+  readPostVideoActivities,
   readRewriteAccepted,
   readRunAssetAccepted,
   readTranscript,
@@ -364,21 +366,21 @@ describe('Run waits and states', () => {
     expect(first).toMatchObject({ canRequest: true, requiresReason: false, closed: false, needsScriptReview: false });
 
     const regen = readVideoPanel(runOf({ video: videoOf({ state: 'FAILED', video_requests_used: 1, video_requests_remaining: 2, playback: { state: 'UNAVAILABLE', asset_ref: null, token_route: null } }) }));
-    expect(regen).toMatchObject({ canRequest: true, requiresReason: true });
+    expect(regen).toMatchObject({ canRequest: false, needsScriptReview: true, requiresReason: true, storyConfirmationRequired: true });
     // The script the app already asked a video for (or marked unsuitable) is spent: the way on is the script review.
     expect(readVideoPanel(confirmed, { spentRevisionNo: 2 })).toMatchObject({ canRequest: false, needsScriptReview: true });
     expect(readVideoPanel(confirmed, { spentRevisionNo: 1 }).canRequest).toBe(true);
     // After a restart nothing is known locally: a failed or rejected last video makes the script "likely spent" (review F8).
     const afterFailure = runOf({ video: videoOf({ state: 'FAILED', video_requests_used: 1, video_requests_remaining: 2, playback: { state: 'UNAVAILABLE', asset_ref: null, token_route: null } }) });
     expect(scriptSpentByVideo(afterFailure)).toBe('likely');
-    expect(readVideoPanel(afterFailure)).toMatchObject({ needsScriptReview: true, canRequest: true, requiresReason: true });
+    expect(readVideoPanel(afterFailure)).toMatchObject({ needsScriptReview: true, canRequest: false, requiresReason: true, storyConfirmationRequired: true });
     expect(scriptSpentByVideo(afterFailure, { spentRevisionNo: 2 })).toBe('known');
     expect(scriptSpentByVideo(afterFailure, { confirmedRevisionNo: 2 })).toBe('no');
     expect(scriptSpentByVideo(runOf({ video: null }))).toBe('no');
     expect(scriptSpentByVideo(runOf({ story_status: 'DRAFT', video: videoOf({ state: 'FAILED' }) }))).toBe('no');
-    // `likely` is only a guess: at revision 4 (unspent after a restart) the adult may still ask, the server answers (review P2-2).
+    // A spent confirmed story must be re-confirmed before another video request.
     expect(readVideoPanel(runOf({ story_revision_no: 4, video: videoOf({ state: 'FAILED', video_requests_used: 1 }) })))
-      .toMatchObject({ canRequest: true, needsScriptReview: true });
+      .toMatchObject({ canRequest: false, needsScriptReview: true, storyConfirmationRequired: true });
     // A refused admission keeps the script reusable, even if this session believed it spent.
     expect(scriptSpentByVideo(runOf({ video: videoOf({ state: 'ADMISSION_REJECTED' }) }), { spentRevisionNo: 2 })).toBe('no');
     // An understood drawing with only the voice transcript pending is server work, not "waiting for a drawing".
@@ -402,13 +404,34 @@ describe('Run waits and states', () => {
     expect(readVideoPanel(runOf({ run_state: 'VIDEO_READY', video: videoOf({ video_requests_remaining: 0 }) })).canMarkUnsuitable).toBe(false);
     expect(readVideoPanel(runOf({ run_state: 'VIDEO_READY', video: videoOf({ playback: { state: 'HIDDEN', asset_ref: null, token_route: null } }) }))).toMatchObject({ canPlay: false, canComplete: true });
 
-    for (const state of ['COMPLETED', 'ABANDONED', 'FAILED', 'DELETE_PENDING', 'DELETED', 'SAFETY_BLOCKED'] as const) {
+    for (const state of ['ABANDONED', 'FAILED', 'DELETE_PENDING', 'DELETED'] as const) {
       const panel = readVideoPanel(runOf({ run_state: state }));
       expect(panel).toMatchObject({ closed: true, canRequest: false, canPlay: false, canComplete: false });
     }
-    expect(readVideoPanel(runOf({ run_state: 'COMPLETED' })).detail).toContain('không phát lại');
+    expect(readVideoPanel(runOf({ run_state: 'COMPLETED', video: videoOf() })).detail).toContain('xem lại video');
+    expect(readVideoPanel(runOf({ run_state: 'COMPLETED', video: videoOf() })).canPlay).toBe(true);
+    expect(readVideoPanel(runOf({ run_state: 'COMPLETED', video: videoOf({ playback: { state: 'HIDDEN', asset_ref: null, token_route: null } }) })).canPlay).toBe(false);
+    expect(readVideoPanel(runOf({ run_state: 'SAFETY_BLOCKED', story_confirmation_required: true })))
+      .toMatchObject({ closed: false, needsScriptReview: true, storyConfirmationRequired: true, onlyCancel: false });
     expect(readVideoPanel(runOf({ run_state: 'FAILED', error_code: 'VIDEO_DEADLINE_EXCEEDED' })).detail).toContain('thời gian cho phép');
     expect(readVideoPanel(null).closed).toBe(true);
+  });
+
+  it('uses the public story confirmation flag and treats missing post-video activities as normal', () => {
+    const blocked = readVideoPanel(runOf({
+      run_state: 'SCRIPT_REVIEW', story_confirmation_required: true,
+      video: videoOf({ state: 'SAFETY_BLOCKED', job: { job_id: 'j', state: 'blocked_unsafe', stage: null, retryable: false, error_code: 'VIDEO_SAFETY_BLOCKED' } }),
+    }));
+    expect(blocked).toMatchObject({ headline: 'Video chưa qua kiểm tra an toàn.', storyConfirmationRequired: true, needsScriptReview: true, canRequest: false, onlyCancel: false });
+    const capped = readVideoPanel(runOf({
+      run_state: 'SCRIPT_REVIEW', story_confirmation_required: false,
+      video: videoOf({ video_requests_used: 3, video_requests_remaining: 0, state: 'SAFETY_BLOCKED' }),
+    }));
+    expect(capped).toMatchObject({ onlyCancel: true, closed: true, storyConfirmationRequired: false, canRequest: false });
+    expect(readPostVideoActivities(null)).toBeNull();
+    expect(readPostVideoActivities(undefined)).toBeNull();
+    expect(readActivityListV1({ request_id: 'r', items: [], basis: { age_band: '72-107', pinned_lesson: false, no_candidate: true } })).toMatchObject({ items: [], basis: { no_candidate: true } });
+    expect(readActivityListV1({ request_id: 'r', items: [], basis: { age_band: '72-107', pinned_lesson: false, no_candidate: false } })).toBeNull();
   });
 });
 
