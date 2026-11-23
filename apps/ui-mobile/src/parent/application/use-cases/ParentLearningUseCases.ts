@@ -22,7 +22,18 @@ export class ParentLearningUseCases {
   getRun(runId: string) { return this.api.getStoryRun(runId); }
   getActiveRunV1(): Promise<ParentActiveStoryRunEnvelopeV1> { return this.api.getActiveStoryRunV1(); }
   getRunV1(runId: string) { return this.api.getStoryRunV1(runId); }
-  generateSketchGuide(topic: string) { return this.api.generateSketchGuide(topic); }
+  listTopicSuggestions(draftId: string, excludedSetIds: string[]) {
+    return this.api.listTopicSuggestions(draftId, excludedSetIds);
+  }
+  listDrawingSubjectSuggestions(input: {
+    draftId: string; topicId: string; topic: string; excludedSetIds: string[]; excludedSubjects?: string[];
+  }) { return this.api.listDrawingSubjectSuggestions(input); }
+  validateCustomSubject(input: { topicId: string; topic: string; subject: string }) {
+    return this.api.validateCustomSubject(input);
+  }
+  generateSketchGuide(topic: string, intendedSubject: string) {
+    return this.api.generateSketchGuide(topic, intendedSubject);
+  }
   async createRunBeforeDrawingV1(input: {
     profileId: string;
     topic: string;
@@ -67,6 +78,7 @@ export class ParentLearningUseCases {
     profileId: string;
     topic: string;
     adultIdea: string;
+    intendedDrawingSubject?: string;
     lessonPin: ParentLessonVersionPinV1 | null;
     actionIdentity: ParentActionIdentity;
   }): Promise<ParentStoryRunEnvelopeV1> {
@@ -82,6 +94,7 @@ export class ParentLearningUseCases {
       parent_profile_id: profileId,
       topic: input.topic.trim(),
       adult_confirmed_idea: input.adultIdea.trim(),
+      intended_drawing_subject: input.intendedDrawingSubject?.trim() || null,
       ...(pin ? { lesson_version: {
         lesson_id: pin.lesson_id,
         version_id: pin.version_id,
@@ -139,7 +152,30 @@ export class ParentLearningUseCases {
     if (!subject.trim()) throw new ParentApplicationError('PARENT_SUBJECT_REQUIRED', 'Xác nhận chủ thể của bức vẽ trước.');
     return this.api.confirmStoryRunSubjectV1(runId, revision, subject, actionIdentity);
   }
-  suggestActivities(runId: string, revision: number) { return this.api.suggestActivities(runId, revision); }
+  suggestActivities(runId: string, revision: number, actionIdentity: ParentActionIdentity) {
+    if (!runId.trim() || revision < 1) {
+      throw new ParentApplicationError('PARENT_ACTIVITY_CONTEXT_REQUIRED', 'Xác nhận chủ thể và ngữ cảnh trước khi tìm hoạt động.');
+    }
+    return this.api.suggestActivities(runId, revision, actionIdentity);
+  }
+  selectActivity(input: {
+    runId: string;
+    suggestionSetId: string;
+    revision: number;
+    activityIndex: number;
+    actionIdentity: ParentActionIdentity;
+  }) {
+    if (!input.runId.trim() || !input.suggestionSetId.trim() || input.revision < 1 || input.activityIndex < 0) {
+      throw new ParentApplicationError('PARENT_ACTIVITY_SELECTION_INVALID', 'Hãy chọn một hoạt động trong danh sách hiện tại.');
+    }
+    return this.api.selectActivity({
+      storyRunId: input.runId,
+      suggestionSetId: input.suggestionSetId,
+      revision: input.revision,
+      activityIndex: input.activityIndex,
+      actionIdentity: input.actionIdentity,
+    });
+  }
   generateStory(runId: string, revision: number, rewriteInstruction?: string, rewriteCount = 0) {
     if (rewriteInstruction?.trim() && rewriteCount >= 3) {
       throw new ParentApplicationError('PARENT_STORY_REWRITE_LIMIT', 'Đã dùng hết 3 lượt gợi ý viết lại.');

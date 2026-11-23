@@ -1,0 +1,11 @@
+services:
+  # Enable synthetic-only pilot endpoints for this disposable local E2E stack.
+  # This setting is intentionally not enabled in the shared Compose defaults.
+  api:
+    environment:
+      SKETCH2LIFE_SYNTHETIC_PILOT_ENABLED: "true"
+  # The existing legacy stack owns host port 3310. ClamAV remains available to
+  # the task API on the private Compose network at clamav:3310; it needs no
+  # host-published port for this E2E run.
+  clamav:
+    ports: !override []

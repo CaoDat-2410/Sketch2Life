@@ -1,0 +1,224 @@
+{
+  "modal_call_id": "fc-01M7SVM2RR3035ZYNXRGARQ89F",
+  "sanitized": true,
+  "event_count": 25,
+  "events": [
+    {
+      "event": "worker_started",
+      "stage": "worker_entrypoint",
+      "workload": "drawing.analyze",
+      "model_id": "Qwen/Qwen3.5-9B",
+      "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "gpu_class": "L40S|L4|A10"
+    },
+    {
+      "event": "worker_phase_started",
+      "stage": "input_envelope",
+      "workload": "drawing.analyze",
+      "model_id": "Qwen/Qwen3.5-9B",
+      "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "gpu_class": "L40S|L4|A10"
+    },
+    {
+      "event": "worker_phase_succeeded",
+      "stage": "input_envelope",
+      "duration_ms": 0,
+      "workload": "drawing.analyze",
+      "model_id": "Qwen/Qwen3.5-9B",
+      "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "gpu_class": "L40S|L4|A10"
+    },
+    {
+      "event": "worker_phase_started",
+      "stage": "workload_gate",
+      "workload": "drawing.analyze",
+      "model_id": "Qwen/Qwen3.5-9B",
+      "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "gpu_class": "L40S|L4|A10"
+    },
+    {
+      "event": "worker_phase_succeeded",
+      "stage": "workload_gate",
+      "duration_ms": 0,
+      "workload": "drawing.analyze",
+      "model_id": "Qwen/Qwen3.5-9B",
+      "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "gpu_class": "L40S|L4|A10"
+    },
+    {
+      "event": "worker_phase_started",
+      "stage": "scratch_volume_reload",
+      "workload": "drawing.analyze",
+      "model_id": "Qwen/Qwen3.5-9B",
+      "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "gpu_class": "L40S|L4|A10"
+    },
+    {
+      "event": "worker_phase_succeeded",
+      "stage": "scratch_volume_reload",
+      "duration_ms": 1220,
+      "workload": "drawing.analyze",
+      "model_id": "Qwen/Qwen3.5-9B",
+      "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "gpu_class": "L40S|L4|A10"
+    },
+    {
+      "event": "worker_phase_started",
+      "stage": "input_asset_verify",
+      "workload": "drawing.analyze",
+      "model_id": "Qwen/Qwen3.5-9B",
+      "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "gpu_class": "L40S|L4|A10"
+    },
+    {
+      "event": "worker_phase_succeeded",
+      "stage": "input_asset_verify",
+      "duration_ms": 2652,
+      "workload": "drawing.analyze",
+      "model_id": "Qwen/Qwen3.5-9B",
+      "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "gpu_class": "L40S|L4|A10"
+    },
+    {
+      "event": "worker_phase_started",
+      "stage": "model_load",
+      "workload": "drawing.analyze",
+      "model_id": "Qwen/Qwen3.5-9B",
+      "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "gpu_class": "L40S|L4|A10"
+    },
+    {
+      "event": "worker_phase_succeeded",
+      "stage": "model_load",
+      "duration_ms": 15942,
+      "workload": "drawing.analyze",
+      "model_id": "Qwen/Qwen3.5-9B",
+      "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "gpu_class": "L40S|L4|A10"
+    },
+    {
+      "event": "worker_phase_started",
+      "stage": "image_preprocess",
+      "workload": "drawing.analyze",
+      "model_id": "Qwen/Qwen3.5-9B",
+      "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "gpu_class": "L40S|L4|A10"
+    },
+    {
+      "event": "worker_phase_succeeded",
+      "stage": "image_preprocess",
+      "duration_ms": 20,
+      "workload": "drawing.analyze",
+      "model_id": "Qwen/Qwen3.5-9B",
+      "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "gpu_class": "L40S|L4|A10"
+    },
+    {
+      "event": "worker_phase_started",
+      "stage": "prompt_encode",
+      "workload": "drawing.analyze",
+      "model_id": "Qwen/Qwen3.5-9B",
+      "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "gpu_class": "L40S|L4|A10"
+    },
+    {
+      "event": "worker_phase_succeeded",
+      "stage": "prompt_encode",
+      "duration_ms": 72,
+      "workload": "drawing.analyze",
+      "model_id": "Qwen/Qwen3.5-9B",
+      "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "gpu_class": "L40S|L4|A10"
+    },
+    {
+      "event": "worker_phase_started",
+      "stage": "constrained_decoder_setup",
+      "workload": "drawing.analyze",
+      "model_id": "Qwen/Qwen3.5-9B",
+      "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "gpu_class": "L40S|L4|A10"
+    },
+    {
+      "event": "worker_phase_succeeded",
+      "stage": "constrained_decoder_setup",
+      "duration_ms": 3239,
+      "workload": "drawing.analyze",
+      "model_id": "Qwen/Qwen3.5-9B",
+      "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "gpu_class": "L40S|L4|A10"
+    },
+    {
+      "event": "worker_phase_started",
+      "stage": "model_inference",
+      "workload": "drawing.analyze",
+      "model_id": "Qwen/Qwen3.5-9B",
+      "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "gpu_class": "L40S|L4|A10"
+    },
+    {
+      "event": "worker_phase_succeeded",
+      "stage": "model_inference",
+      "duration_ms": 7118,
+      "workload": "drawing.analyze",
+      "model_id": "Qwen/Qwen3.5-9B",
+      "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "gpu_class": "L40S|L4|A10"
+    },
+    {
+      "event": "drawing_candidate_generated",
+      "generated_token_count": 91,
+      "max_output_units": 512,
+      "ended_with_model_eos": true,
+      "empty_output": false,
+      "input_token_count": 453,
+      "output_sequence_length": 544,
+      "model_eos_token_ids": [
+        248044
+      ],
+      "token_limit_reached": false
+    },
+    {
+      "event": "worker_phase_started",
+      "stage": "model_output_validation",
+      "workload": "drawing.analyze",
+      "model_id": "Qwen/Qwen3.5-9B",
+      "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "gpu_class": "L40S|L4|A10"
+    },
+    {
+      "event": "worker_phase_succeeded",
+      "stage": "model_output_validation",
+      "duration_ms": 0,
+      "workload": "drawing.analyze",
+      "model_id": "Qwen/Qwen3.5-9B",
+      "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "gpu_class": "L40S|L4|A10"
+    },
+    {
+      "event": "worker_phase_started",
+      "stage": "output_parse_and_contract_validation",
+      "workload": "drawing.analyze",
+      "model_id": "Qwen/Qwen3.5-9B",
+      "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "gpu_class": "L40S|L4|A10"
+    },
+    {
+      "event": "worker_phase_succeeded",
+      "stage": "output_parse_and_contract_validation",
+      "duration_ms": 0,
+      "workload": "drawing.analyze",
+      "model_id": "Qwen/Qwen3.5-9B",
+      "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "gpu_class": "L40S|L4|A10"
+    },
+    {
+      "event": "worker_succeeded",
+      "stage": "terminal",
+      "duration_ms": 30301,
+      "workload": "drawing.analyze",
+      "model_id": "Qwen/Qwen3.5-9B",
+      "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "gpu_class": "L40S|L4|A10"
+    }
+  ]
+}

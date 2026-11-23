@@ -8,6 +8,8 @@ import {
   canAnalyzeDrawing,
   canBeginContextStep,
   canConfirmDisplayedStory,
+  isActiveOrUnreconciledStoryRun,
+  isRecoverableStoryOutputFailure,
   lessonVersionPinFromDetail,
   selectProfileById,
 } from './navigation/parentFlowV1';
@@ -18,7 +20,9 @@ import { ActivityScreen } from './screens/ActivityScreen';
 import { AuthScreen } from './screens/AuthScreen';
 import { CaptureScreen } from './screens/CaptureScreen';
 import { ContextScreen } from './screens/ContextScreen';
-import { DrawingGuideScreen } from './screens/DrawingGuideScreen';
+import { SketchGuideScreen } from './screens/SketchGuideScreen';
+import { LearningPathScreen } from './screens/LearningPathScreen';
+import { DrawingSubjectScreen } from './screens/DrawingSubjectScreen';
 import { HandoffScreen } from './screens/HandoffScreen';
 import { HomeScreen } from './screens/HomeScreen';
 import { IdeaScreen } from './screens/IdeaScreen';
@@ -33,6 +37,7 @@ import { ProfileScreen } from './screens/ProfileScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import { ProfileSharingScreen } from './screens/ProfileSharingScreen';
 import { StoryScreen } from './screens/StoryScreen';
+import { VideoCandidateScreen } from './screens/VideoCandidateScreen';
 import { StoryHistoryScreen } from './screens/StoryHistoryScreen';
 import { QuotaScreen } from './screens/QuotaScreen';
 import { TopicScreen } from './screens/TopicScreen';
@@ -52,14 +57,14 @@ export default function ParentExpoApp({ application }: Props): React.JSX.Element
 
 function ParentExpoAppContent({ application }: Props): React.JSX.Element {
   const parent = useParentController(application);
-  const platform = useParentPlatformController(application);
+  const platform = useParentPlatformController(application, parent.contextRun?.run_id ?? null);
   const selectedProfile = selectProfileById(parent.profiles, parent.selectedProfileId);
   const [historyReturnStep, setHistoryReturnStep] = React.useState<'home' | 'profile'>('profile');
   const [pendingCaptureSource, setPendingCaptureSource] = React.useState<'camera' | 'gallery' | null>(null);
   const [drawingGuideEntryRequested, setDrawingGuideEntryRequested] = React.useState(false);
 
   React.useEffect(() => {
-    if (!drawingGuideEntryRequested || parent.step !== 'topic') return;
+    if (!drawingGuideEntryRequested || parent.step !== 'entry') return;
     parent.setGuideEnabled(true);
     setDrawingGuideEntryRequested(false);
   }, [drawingGuideEntryRequested, parent.step, parent.setGuideEnabled]);
@@ -213,9 +218,23 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
       onOpenNotifications={openNotifications}
       onOpenLessons={() => void parent.openLessons('gallery')}
       onOpenDrawingGuide={openDrawingGuide}
-      onResumeRun={parent.resumeActiveRun}
+      onResumeRun={() => {
+        if (isRecoverableStoryOutputFailure(parent.activeRun)
+          && parent.contextRun?.run_id === parent.activeRun?.run_id) {
+          parent.setStep('story');
+          return;
+        }
+        void parent.resumeActiveRun();
+      }}
     />);
   }
+
+  if (parent.step === 'entry') return <LearningPathScreen
+    error={parent.error}
+    onTopic={() => void parent.beginTopicPath()}
+    onLesson={() => void parent.beginLessonPath()}
+    onBack={() => parent.setStep('home')}
+  />;
 
   if (parent.step === 'profile-create' || parent.step === 'profile-edit') {
     const isEditing = parent.step === 'profile-edit';
@@ -326,7 +345,13 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
     onBack={() => parent.setStep('profile')}
   />);
 
-  return renderLearningStep(parent, platform, pendingCaptureSource, () => setPendingCaptureSource(null));
+  return renderLearningStep(
+    parent,
+    platform,
+    pendingCaptureSource,
+    () => setPendingCaptureSource(null),
+    () => openHistory('home'),
+  );
 }
 
 function renderLearningStep(
@@ -334,6 +359,7 @@ function renderLearningStep(
   platform: ReturnType<typeof useParentPlatformController>,
   pendingCaptureSource: 'camera' | 'gallery' | null,
   onCaptureIntentHandled: () => void,
+  onOpenHistory: () => void,
 ): React.JSX.Element {
   const step: AppStep = parent.step;
   const stepLabel = (number: number): string => `${number} / 8`;
@@ -348,15 +374,43 @@ function renderLearningStep(
   });
   const storyReady = Boolean(
     parent.contextRun?.run_id
+    && (
+      parent.contextRun.run_state === 'PREPARATION_REVIEW'
+      || parent.contextRun.run_state === 'SCRIPT_REVIEW'
+      || isRecoverableStoryOutputFailure(parent.contextRun)
+    )
     && parent.contextConfirmed
     && parent.subjectConfirmed
     && parent.selectedActivityIndex !== null
     && parent.activitySelectionPersisted,
   );
-  const storyBlockedReason = parent.selectedActivityIndex === null
+  const storyCurrent = Boolean(
+    parent.storyDraftCurrent
+    && parent.contextRun?.run_state === 'SCRIPT_REVIEW'
+    && (parent.contextRun.story_status === 'DRAFT' || parent.contextRun.story_status === 'CONFIRMED')
+    && parent.contextRun.story_revision_no === parent.storyRevisionNo
+    && parent.contextRun.story_sha256 === parent.storySha256,
+  );
+  const storyServerPending = Boolean(parent.contextRun && (
+    isActiveOrUnreconciledStoryRun(parent.contextRun)
+    || parent.contextRun.run_state === 'SCRIPT_GENERATING'
+    || parent.contextRun.run_state === 'SCRIPT_GENERATION_UNKNOWN'
+  ));
+  const storyReconciliationRequired = Boolean(parent.contextRun && (
+    parent.contextRun.run_state === 'SCRIPT_GENERATION_UNKNOWN'
+    || parent.contextRun.story_status === 'AWAITING_RECONCILIATION'
+    || parent.contextRun.job_state === 'AWAITING_RECONCILIATION'
+  ));
+  const storyBlockedReason = storyServerPending
+    ? parent.contextRun?.run_state === 'SCRIPT_GENERATION_UNKNOWN'
+      ? 'Đang xác minh kết quả từ máy chủ. Không gửi lại yêu cầu; hãy kiểm tra trạng thái buổi học.'
+      : 'Máy chủ vẫn đang tạo kịch bản. Không gửi thêm yêu cầu để tránh tạo trùng.'
+    : parent.contextRun?.run_state === 'FAILED'
+      ? 'Lượt tạo này đã thất bại. Bản nháp cũ không thể xác nhận; hãy quay lại để xem trạng thái buổi học.'
+      : parent.selectedActivityIndex === null
     ? 'Chọn hoạt động chính trước khi tiếp tục.'
     : !parent.activitySelectionPersisted
-      ? 'Bạn đã chọn hoạt động, nhưng backend chưa có API lưu lựa chọn vào StoryRun. Chưa thể tạo câu chuyện.'
+      ? 'Lựa chọn hoạt động chưa được lưu vào buổi học. Chưa thể tạo câu chuyện.'
       : 'Xác nhận tranh và ngữ cảnh trước khi tạo câu chuyện.';
   const canConfirmStory = canConfirmDisplayedStory({
     runId: parent.contextRun?.run_id,
@@ -366,13 +420,39 @@ function renderLearningStep(
     storyConfirmed: parent.storyConfirmed,
     storyRevisionNo: parent.storyRevisionNo,
     storySha256: parent.storySha256,
-  });
+  }) && storyCurrent;
   if (step === 'topic') return <TopicScreen
     topic={parent.topic}
+    selectedTopicId={parent.selectedTopicId}
+    cards={parent.topicSuggestions}
+    loading={parent.topicSuggestionBusy}
+    error={parent.topicSuggestionError}
+    canContinue={Boolean(parent.selectedTopicId && parent.topic.trim()) && !parent.topicSuggestionBusy}
     stepLabel={stepLabel(1)}
-    onTopic={parent.setTopic}
-    onContinue={() => parent.setStep('idea')}
-    onBack={parent.backToProfile}
+    onSelect={parent.selectTopicCard}
+    onTopic={parent.setCustomTopic}
+    onRefresh={() => void parent.refreshTopicSuggestions()}
+    onContinue={() => void parent.continueTopicSelection()}
+    onSkip={parent.skipTopicSelection}
+    onBack={() => parent.setStep('entry')}
+  />;
+  if (step === 'subject') return <DrawingSubjectScreen
+    topic={parent.topic}
+    cards={parent.subjectSuggestions}
+    generationSource={parent.subjectSuggestionSets.at(-1)?.generation_source ?? null}
+    selectedSubject={parent.intendedDrawingSubject}
+    customSubject={parent.customDrawingSubject}
+    loading={parent.subjectSuggestionBusy}
+    validating={parent.subjectSuggestionBusy}
+    error={parent.subjectSuggestionError}
+    validationMessage={parent.subjectValidationMessage}
+    canContinue={Boolean(parent.intendedDrawingSubject.trim())}
+    onSelect={parent.selectDrawingSubject}
+    onCustomSubject={parent.setCustomSubject}
+    onValidate={() => void parent.validateCustomDrawingSubject()}
+    onRefresh={() => void parent.refreshSubjectSuggestions()}
+    onContinue={parent.continueFromSubjectSelection}
+    onBack={() => parent.setStep(parent.intendedDrawingSubject ? 'subject' : 'topic')}
   />;
   if (step === 'idea') return <IdeaScreen
     topic={parent.topic}
@@ -394,13 +474,17 @@ function renderLearningStep(
     onContinue={parent.openDrawingGuide}
     onBack={() => parent.setStep('topic')}
   />;
-  if (step === 'drawing-guide' && parent.lesson) return <DrawingGuideScreen
-    lesson={parent.lesson}
-    stepLabel={stepLabel(3)}
-    currentIndex={parent.drawingGuideIndex}
-    onIndexChange={parent.setDrawingGuideIndex}
-    onContinue={parent.openContextReview}
-    onBack={() => parent.setStep('idea')}
+  if (step === 'drawing-guide') return <SketchGuideScreen
+    topic={parent.topic}
+    layout={null}
+    draft={parent.svgGuideDraft}
+    catalogChecked={Boolean(parent.svgGuideDraft)}
+    busy={parent.guideBusy}
+    error={parent.guideError}
+    onFindCatalog={() => void parent.createGuide()}
+    onGenerateDraft={() => void parent.createGuide()}
+    onSkip={() => parent.setStep('capture')}
+    onBack={() => parent.setStep(parent.lesson ? 'entry' : 'idea')}
   />;
   if (step === 'lessons') return <LessonPickerScreen
     lessons={parent.lessons}
@@ -409,8 +493,8 @@ function renderLearningStep(
     loadingId={parent.lessonLoadingId}
     error={parent.lessonError}
     onSelect={(id) => void parent.chooseLesson(id)}
-    onClear={() => { parent.setLesson(null); parent.setStep('idea'); }}
-    onBack={() => parent.setStep('idea')}
+    onClear={() => { parent.setLesson(null); parent.setStep('entry'); }}
+    onBack={() => parent.setStep('entry')}
   />;
   if (step === 'context') return <ContextScreen
     profile={parent.profile}
@@ -429,11 +513,14 @@ function renderLearningStep(
     stepLabel={stepLabel(4)}
     canAnalyze={canAnalyze}
     analysisBusy={parent.busy === 'context-create' || parent.busy === 'understanding'}
+    closingRun={parent.busy === 'close-run'}
+    flowError={parent.error}
     runExists={Boolean(parent.contextRun?.run_id)}
     initialCaptureSource={pendingCaptureSource}
     onCaptureIntentHandled={onCaptureIntentHandled}
     onPhoto={parent.setPhoto}
     onContinue={() => void parent.analyzeDrawingForCurrentRun()}
+    onCloseUnresolvedRun={() => void parent.closeUnresolvedDrawingRun()}
     onBack={() => parent.setStep(parent.contextRun ? 'context' : 'idea')}
   />;
   if (step === 'understanding' && parent.candidate) return <UnderstandingScreen
@@ -452,6 +539,8 @@ function renderLearningStep(
     subject={parent.subject}
     suggestions={parent.activitySuggestions}
     selectedIndex={parent.selectedActivityIndex}
+    selectionPersisted={parent.activitySelectionPersisted}
+    selectionBusy={parent.activitySelectionBusy}
     loading={parent.activityBusy}
     attempted={parent.activityAttempted}
     error={parent.activityError || parent.error}
@@ -461,15 +550,22 @@ function renderLearningStep(
     onBack={() => parent.setStep('context')}
   />;
   if (step === 'story') return <StoryScreen
+    storyRunId={parent.contextRun?.run_id ?? ''}
     videoCapability={platform.capabilities.video}
     jobStage={platform.videoJobStage}
+    videoCandidate={platform.videoCandidate}
     stepLabel={stepLabel(8)}
     story={parent.story}
+    storyCurrent={storyCurrent}
+    failedGeneration={isRecoverableStoryOutputFailure(parent.contextRun)}
+    serverPending={storyServerPending}
+    reconciliationRequired={storyReconciliationRequired}
     storyReady={storyReady}
     blockedReason={storyBlockedReason}
     rewriteCount={parent.rewriteCount}
     rewriteInstruction={parent.rewriteInstruction}
     busy={parent.busy === 'story' || parent.busy === 'rewrite' || parent.busy === 'confirm-story'}
+    busyOperation={parent.busy === 'rewrite' ? 'rewriting' : parent.busy === 'confirm-story' ? 'confirming' : parent.busy === 'story' ? 'generating' : null}
     attempted={parent.storyAttempted}
     canConfirm={canConfirmStory}
     error={parent.error}
@@ -477,9 +573,38 @@ function renderLearningStep(
     onRewriteInstruction={parent.setRewriteInstruction}
     onGenerate={() => void parent.requestStory()}
     onRewrite={() => void parent.requestStory(parent.rewriteInstruction)}
-    onRetry={() => void parent.requestStory(undefined, true)}
     onConfirm={() => void parent.confirmStory()}
-    onBack={() => parent.setStep('activity')}
+    onBack={storyServerPending ? undefined : () => parent.setStep('activity')}
+    onOpenHistory={onOpenHistory}
+    onOpenVideo={() => {
+      parent.setStep('video');
+      const runId = parent.contextRun?.run_id;
+      if (runId) void platform.loadVideoJob(runId);
+    }}
+  />;
+  if (step === 'video') return <VideoCandidateScreen
+    runId={parent.contextRun?.run_id ?? ''}
+    storyRevision={platform.videoCandidateLookupComplete ? parent.storyRevisionNo : null}
+    storySha256={parent.storySha256}
+    storyConfirmed={parent.storyConfirmed}
+    candidate={platform.videoCandidate}
+    busy={platform.videoBusy}
+    requestAttempted={platform.videoRequestAttempted}
+    error={platform.videoError}
+    previewSource={platform.videoPreviewSource}
+    onStart={() => {
+      const runId = parent.contextRun?.run_id;
+      if (!runId || parent.storyRevisionNo === null) return;
+      if (platform.videoRequestAttempted) void platform.loadVideoJob(runId);
+      else void platform.requestVideo(runId, parent.storyRevisionNo, parent.storySha256);
+    }}
+    onRefresh={() => parent.contextRun?.run_id ? platform.loadVideoJob(parent.contextRun.run_id) : undefined}
+    onPreview={() => {
+      const runId = parent.contextRun?.run_id;
+      const candidateId = platform.videoCandidate?.video_candidate_id;
+      if (runId && candidateId) void platform.loadVideoPreview(runId, candidateId);
+    }}
+    onBack={() => parent.setStep('story')}
   />;
   if (step === 'handoff') return <HandoffScreen
     storyTitle={parent.story?.title ?? ''}

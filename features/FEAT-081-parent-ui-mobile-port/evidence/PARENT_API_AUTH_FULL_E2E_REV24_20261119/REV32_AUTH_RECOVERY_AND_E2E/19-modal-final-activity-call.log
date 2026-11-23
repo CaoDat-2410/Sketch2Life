@@ -1,0 +1,201 @@
+<local-machine-path> DeprecationWarning: 'asyncio.WindowsSelectorEventLoopPolicy' is deprecated and slated for removal in Python 3.16
+  asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+<local-machine-path> DeprecationWarning: 'asyncio.set_event_loop_policy' is deprecated and slated for removal in Python 3.16
+  asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+2026-11-20 08:01:48+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_started","workload":"parent.activity.suggest","job_ref":"da343692835eb55d","generation_ref":"8def302b21ec2d9d","attempt_ref":"15e16977b21f1fea","stage":"worker_entrypoint","timestamp_utc":"2026-11-20T01:01:48.648093+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-20 08:01:48+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"parent.activity.suggest","job_ref":"da343692835eb55d","generation_ref":"8def302b21ec2d9d","attempt_ref":"15e16977b21f1fea","stage":"input_envelope","timestamp_utc":"2026-11-20T01:01:48.648281+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-20 08:01:48+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"parent.activity.suggest","job_ref":"da343692835eb55d","generation_ref":"8def302b21ec2d9d","attempt_ref":"15e16977b21f1fea","stage":"input_envelope","timestamp_utc":"2026-11-20T01:01:48.648379+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":0}
+2026-11-20 08:01:48+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"parent.activity.suggest","job_ref":"da343692835eb55d","generation_ref":"8def302b21ec2d9d","attempt_ref":"15e16977b21f1fea","stage":"workload_gate","timestamp_utc":"2026-11-20T01:01:48.648422+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-20 08:01:48+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"parent.activity.suggest","job_ref":"da343692835eb55d","generation_ref":"8def302b21ec2d9d","attempt_ref":"15e16977b21f1fea","stage":"workload_gate","timestamp_utc":"2026-11-20T01:01:48.648472+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":0}
+2026-11-20 08:01:48+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"parent.activity.suggest","job_ref":"da343692835eb55d","generation_ref":"8def302b21ec2d9d","attempt_ref":"15e16977b21f1fea","stage":"scratch_volume_reload","timestamp_utc":"2026-11-20T01:01:48.648507+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-20 08:01:48+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"parent.activity.suggest","job_ref":"da343692835eb55d","generation_ref":"8def302b21ec2d9d","attempt_ref":"15e16977b21f1fea","stage":"scratch_volume_reload","timestamp_utc":"2026-11-20T01:01:48.904675+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":256}
+2026-11-20 08:01:48+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"parent.activity.suggest","job_ref":"da343692835eb55d","generation_ref":"8def302b21ec2d9d","attempt_ref":"15e16977b21f1fea","stage":"input_manifest_read","timestamp_utc":"2026-11-20T01:01:48.905219+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-20 08:01:49+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"parent.activity.suggest","job_ref":"da343692835eb55d","generation_ref":"8def302b21ec2d9d","attempt_ref":"15e16977b21f1fea","stage":"input_manifest_read","timestamp_utc":"2026-11-20T01:01:49.044749+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":140}
+2026-11-20 08:01:49+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"parent.activity.suggest","job_ref":"da343692835eb55d","generation_ref":"8def302b21ec2d9d","attempt_ref":"15e16977b21f1fea","stage":"parent_activity_request_validation","timestamp_utc":"2026-11-20T01:01:49.044890+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-20 08:01:49+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"parent.activity.suggest","job_ref":"da343692835eb55d","generation_ref":"8def302b21ec2d9d","attempt_ref":"15e16977b21f1fea","stage":"parent_activity_request_validation","timestamp_utc":"2026-11-20T01:01:49.045180+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":0}
+2026-11-20 08:01:49+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"parent.activity.suggest","job_ref":"da343692835eb55d","generation_ref":"8def302b21ec2d9d","attempt_ref":"15e16977b21f1fea","stage":"checkpoint_verification","timestamp_utc":"2026-11-20T01:01:49.045279+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-20 08:01:49+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"parent.activity.suggest","job_ref":"da343692835eb55d","generation_ref":"8def302b21ec2d9d","attempt_ref":"15e16977b21f1fea","stage":"checkpoint_verification","timestamp_utc":"2026-11-20T01:01:49.096670+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":51}
+2026-11-20 08:01:49+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"parent.activity.suggest","job_ref":"da343692835eb55d","generation_ref":"8def302b21ec2d9d","attempt_ref":"15e16977b21f1fea","stage":"model_load","timestamp_utc":"2026-11-20T01:01:49.096800+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-20 08:02:01+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_runtime_verified","workload":"parent.activity.suggest","job_ref":"da343692835eb55d","generation_ref":"8def302b21ec2d9d","attempt_ref":"15e16977b21f1fea","stage":"model_load","timestamp_utc":"2026-11-20T01:02:01.873651+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","torch_version":"2.7.1+cu126","torch_cuda_version":"12.6","fla_version":"0.6.0","causal_conv1d_version":"1.7.0","triton_version":"3.3.1","gpu_capability":"8.6"}
+2026-11-20 08:02:03+07:00 
+2026-11-20 08:02:03+07:00 [1A
+Loading weights:   0%|          | 0/427 [00:00<?, ?it/s]
+2026-11-20 08:02:05+07:00 
+2026-11-20 08:02:05+07:00 [1A
+2026-11-20 08:02:05+07:00 Loading weights:   0%|          | 1/427 [00:02<16:33,  2.33s/it]
+2026-11-20 08:02:05+07:00 [1A
+2026-11-20 08:02:05+07:00 Loading weights:   2%|▏         | 10/427 [00:02<01:15,  5.55it/s]
+2026-11-20 08:02:05+07:00 [1A
+Loading weights:   4%|▎         | 15/427 [00:02<00:47,  8.59it/s]
+2026-11-20 08:02:06+07:00 
+2026-11-20 08:02:06+07:00 [1A
+2026-11-20 08:02:06+07:00 Loading weights:   6%|▌         | 26/427 [00:02<00:22, 17.46it/s]
+2026-11-20 08:02:06+07:00 [1A
+2026-11-20 08:02:06+07:00 Loading weights:   7%|▋         | 32/427 [00:02<00:18, 21.62it/s]
+2026-11-20 08:02:06+07:00 [1A
+2026-11-20 08:02:06+07:00 Loading weights:   9%|▉         | 38/427 [00:02<00:14, 26.68it/s]
+2026-11-20 08:02:06+07:00 [1A
+2026-11-20 08:02:06+07:00 Loading weights:  10%|█         | 44/427 [00:03<00:13, 28.19it/s]
+2026-11-20 08:02:06+07:00 [1A
+2026-11-20 08:02:06+07:00 Loading weights:  11%|█▏        | 49/427 [00:03<00:13, 28.06it/s]
+2026-11-20 08:02:06+07:00 [1A
+2026-11-20 08:02:06+07:00 Loading weights:  14%|█▍        | 60/427 [00:03<00:08, 41.96it/s]
+2026-11-20 08:02:06+07:00 [1A
+Loading weights:  16%|█▌        | 67/427 [00:03<00:08, 41.86it/s]
+2026-11-20 08:02:07+07:00 
+2026-11-20 08:02:07+07:00 [1A
+2026-11-20 08:02:07+07:00 Loading weights:  18%|█▊        | 75/427 [00:03<00:08, 43.61it/s]
+2026-11-20 08:02:07+07:00 [1A
+2026-11-20 08:02:07+07:00 Loading weights:  19%|█▉        | 82/427 [00:03<00:07, 44.94it/s]
+2026-11-20 08:02:07+07:00 [1A
+2026-11-20 08:02:07+07:00 Loading weights:  21%|██        | 90/427 [00:04<00:06, 50.38it/s]
+2026-11-20 08:02:07+07:00 [1A
+2026-11-20 08:02:07+07:00 Loading weights:  22%|██▏       | 96/427 [00:04<00:07, 46.40it/s]
+2026-11-20 08:02:07+07:00 [1A
+2026-11-20 08:02:07+07:00 Loading weights:  24%|██▍       | 102/427 [00:04<00:07, 45.07it/s]
+2026-11-20 08:02:07+07:00 [1A
+2026-11-20 08:02:07+07:00 Loading weights:  26%|██▌       | 112/427 [00:04<00:05, 56.31it/s]
+2026-11-20 08:02:07+07:00 [1A
+Loading weights:  28%|██▊       | 120/427 [00:04<00:06, 50.57it/s]
+2026-11-20 08:02:08+07:00 
+2026-11-20 08:02:08+07:00 [1A
+2026-11-20 08:02:08+07:00 Loading weights:  31%|███       | 131/427 [00:04<00:04, 63.15it/s]
+2026-11-20 08:02:08+07:00 [1A
+2026-11-20 08:02:08+07:00 Loading weights:  33%|███▎      | 139/427 [00:04<00:04, 61.83it/s]
+2026-11-20 08:02:08+07:00 [1A
+2026-11-20 08:02:08+07:00 Loading weights:  34%|███▍      | 147/427 [00:05<00:04, 60.96it/s]
+2026-11-20 08:02:08+07:00 [1A
+2026-11-20 08:02:08+07:00 Loading weights:  36%|███▌      | 154/427 [00:05<00:05, 46.55it/s]
+2026-11-20 08:02:08+07:00 [1A
+2026-11-20 08:02:08+07:00 Loading weights:  39%|███▉      | 167/427 [00:05<00:04, 62.60it/s]
+2026-11-20 08:02:08+07:00 [1A
+Loading weights:  41%|████      | 175/427 [00:05<00:04, 56.06it/s]
+2026-11-20 08:02:09+07:00 
+2026-11-20 08:02:09+07:00 [1A
+2026-11-20 08:02:09+07:00 Loading weights:  43%|████▎     | 182/427 [00:05<00:04, 56.49it/s]
+2026-11-20 08:02:09+07:00 [1A
+2026-11-20 08:02:09+07:00 Loading weights:  44%|████▍     | 189/427 [00:05<00:04, 54.48it/s]
+2026-11-20 08:02:09+07:00 [1A
+2026-11-20 08:02:09+07:00 Loading weights:  47%|████▋     | 200/427 [00:05<00:03, 61.92it/s]
+2026-11-20 08:02:09+07:00 [1A
+2026-11-20 08:02:09+07:00 Loading weights:  48%|████▊     | 207/427 [00:06<00:04, 47.18it/s]
+2026-11-20 08:02:09+07:00 [1A
+2026-11-20 08:02:09+07:00 Loading weights:  51%|█████     | 218/427 [00:06<00:03, 58.82it/s]
+2026-11-20 08:02:09+07:00 [1A
+2026-11-20 08:02:09+07:00 Loading weights:  53%|█████▎    | 226/427 [00:06<00:03, 62.60it/s]
+2026-11-20 08:02:09+07:00 [1A
+Loading weights:  55%|█████▍    | 234/427 [00:06<00:03, 61.95it/s]
+2026-11-20 08:02:10+07:00 
+2026-11-20 08:02:10+07:00 [1A
+2026-11-20 08:02:10+07:00 Loading weights:  56%|█████▋    | 241/427 [00:06<00:03, 51.25it/s]
+2026-11-20 08:02:10+07:00 [1A
+2026-11-20 08:02:10+07:00 Loading weights:  59%|█████▉    | 253/427 [00:06<00:02, 65.21it/s]
+2026-11-20 08:02:10+07:00 [1A
+2026-11-20 08:02:10+07:00 Loading weights:  61%|██████    | 261/427 [00:07<00:03, 48.41it/s]
+2026-11-20 08:02:10+07:00 [1A
+2026-11-20 08:02:10+07:00 Loading weights:  64%|██████▍   | 275/427 [00:07<00:02, 65.45it/s]
+2026-11-20 08:02:10+07:00 [1A
+2026-11-20 08:02:10+07:00 Loading weights:  67%|██████▋   | 284/427 [00:07<00:02, 58.95it/s]
+2026-11-20 08:02:10+07:00 [1A
+2026-11-20 08:02:10+07:00 Loading weights:  68%|██████▊   | 292/427 [00:07<00:02, 62.87it/s]
+2026-11-20 08:02:10+07:00 [1A
+Loading weights:  70%|███████   | 300/427 [00:07<00:02, 63.07it/s]
+2026-11-20 08:02:11+07:00 
+2026-11-20 08:02:11+07:00 [1A
+2026-11-20 08:02:11+07:00 Loading weights:  72%|███████▏  | 308/427 [00:07<00:02, 51.20it/s]
+2026-11-20 08:02:11+07:00 [1A
+2026-11-20 08:02:11+07:00 Loading weights:  74%|███████▎  | 314/427 [00:08<00:02, 47.41it/s]
+2026-11-20 08:02:11+07:00 [1A
+2026-11-20 08:02:11+07:00 Loading weights:  77%|███████▋  | 327/427 [00:08<00:01, 56.98it/s]
+2026-11-20 08:02:11+07:00 [1A
+2026-11-20 08:02:11+07:00 Loading weights:  78%|███████▊  | 334/427 [00:08<00:01, 55.29it/s]
+2026-11-20 08:02:11+07:00 [1A
+2026-11-20 08:02:11+07:00 Loading weights:  81%|████████  | 345/427 [00:08<00:01, 62.38it/s]
+2026-11-20 08:02:11+07:00 [1A
+Loading weights:  82%|████████▏ | 352/427 [00:08<00:01, 62.99it/s]
+2026-11-20 08:02:12+07:00 
+2026-11-20 08:02:12+07:00 [1A
+2026-11-20 08:02:12+07:00 Loading weights:  84%|████████▍ | 359/427 [00:08<00:01, 63.47it/s]
+2026-11-20 08:02:12+07:00 [1A
+2026-11-20 08:02:12+07:00 Loading weights:  86%|████████▌ | 366/427 [00:08<00:01, 50.11it/s]
+2026-11-20 08:02:12+07:00 [1A
+2026-11-20 08:02:12+07:00 Loading weights:  89%|████████▉ | 381/427 [00:09<00:00, 66.34it/s]
+2026-11-20 08:02:12+07:00 [1A
+2026-11-20 08:02:12+07:00 Loading weights:  91%|█████████ | 389/427 [00:09<00:00, 62.16it/s]
+2026-11-20 08:02:12+07:00 [1A
+2026-11-20 08:02:12+07:00 Loading weights:  93%|█████████▎| 397/427 [00:09<00:00, 62.70it/s]
+2026-11-20 08:02:12+07:00 [1A
+2026-11-20 08:02:12+07:00 Loading weights:  95%|█████████▌| 407/427 [00:09<00:00, 66.43it/s]
+2026-11-20 08:02:12+07:00 [1A
+Loading weights:  97%|█████████▋| 414/427 [00:09<00:00, 60.87it/s]
+2026-11-20 08:02:13+07:00 
+2026-11-20 08:02:13+07:00 [1A
+2026-11-20 08:02:13+07:00 Loading weights:  99%|█████████▊| 421/427 [00:09<00:00, 59.12it/s]
+2026-11-20 08:02:13+07:00 [1A
+2026-11-20 08:02:13+07:00 Loading weights: 100%|██████████| 427/427 [00:09<00:00, 43.69it/s]
+2026-11-20 08:02:14+07:00 {"attention_implementation": "sdpa", "device_map_module_counts": {"cpu": 0, "cuda": 0, "disk": 0, "other": 0}, "event": "qwen_text_model_placement", "gpu_allocated_memory_mib": 17078, "gpu_name": "NVIDIA A10G", "gpu_reserved_memory_mib": 17094, "gpu_total_memory_mib": 22609, "model_class": "Qwen3_5ForCausalLM", "use_cache": true}
+2026-11-20 08:02:14+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"parent.activity.suggest","job_ref":"da343692835eb55d","generation_ref":"8def302b21ec2d9d","attempt_ref":"15e16977b21f1fea","stage":"model_load","timestamp_utc":"2026-11-20T01:02:14.065565+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":24969}
+2026-11-20 08:02:14+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"parent.activity.suggest","job_ref":"da343692835eb55d","generation_ref":"8def302b21ec2d9d","attempt_ref":"15e16977b21f1fea","stage":"prompt_encoding","timestamp_utc":"2026-11-20T01:02:14.065673+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-20 08:02:14+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"parent.activity.suggest","job_ref":"da343692835eb55d","generation_ref":"8def302b21ec2d9d","attempt_ref":"15e16977b21f1fea","stage":"prompt_encoding","timestamp_utc":"2026-11-20T01:02:14.134164+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":68}
+2026-11-20 08:02:14+07:00 {"event": "parent_activity_prompt_encoded", "input_token_count": 1001, "max_new_tokens": 1000}
+2026-11-20 08:02:14+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"parent.activity.suggest","job_ref":"da343692835eb55d","generation_ref":"8def302b21ec2d9d","attempt_ref":"15e16977b21f1fea","stage":"constrained_decoder_setup","timestamp_utc":"2026-11-20T01:02:14.134357+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-20 08:02:18+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"parent.activity.suggest","job_ref":"da343692835eb55d","generation_ref":"8def302b21ec2d9d","attempt_ref":"15e16977b21f1fea","stage":"constrained_decoder_setup","timestamp_utc":"2026-11-20T01:02:18.713448+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":4579}
+2026-11-20 08:02:18+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"parent.activity.suggest","job_ref":"da343692835eb55d","generation_ref":"8def302b21ec2d9d","attempt_ref":"15e16977b21f1fea","stage":"model_inference","timestamp_utc":"2026-11-20T01:02:18.713679+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-20 08:02:18+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"model_generation_progress","workload":"parent.activity.suggest","job_ref":"da343692835eb55d","generation_ref":"8def302b21ec2d9d","attempt_ref":"15e16977b21f1fea","stage":"model_inference","timestamp_utc":"2026-11-20T01:02:18.713802+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","progress_kind":"started","generated_token_count":0,"max_new_tokens":1000,"elapsed_ms":0,"tokens_per_second":0.0}
+2026-11-20 08:02:33+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"model_generation_progress","workload":"parent.activity.suggest","job_ref":"da343692835eb55d","generation_ref":"8def302b21ec2d9d","attempt_ref":"15e16977b21f1fea","stage":"model_inference","timestamp_utc":"2026-11-20T01:02:33.714894+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","progress_kind":"heartbeat","generated_token_count":0,"max_new_tokens":1000,"elapsed_ms":15001,"tokens_per_second":0.0}
+2026-11-20 08:02:48+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"model_generation_progress","workload":"parent.activity.suggest","job_ref":"da343692835eb55d","generation_ref":"8def302b21ec2d9d","attempt_ref":"15e16977b21f1fea","stage":"model_inference","timestamp_utc":"2026-11-20T01:02:48.716008+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","progress_kind":"heartbeat","generated_token_count":0,"max_new_tokens":1000,"elapsed_ms":30002,"tokens_per_second":0.0}
+2026-11-20 08:02:59+07:00 {"allowed_token_count": 648, "callback_count": 25, "callback_duration_max_ms": 106, "callback_duration_ms": 106, "callback_duration_total_ms": 258, "event": "qwen_json_decoder_callback_timing", "input_token_count": 1025}
+2026-11-20 08:03:02+07:00 {"allowed_token_count": 225493, "callback_count": 50, "callback_duration_max_ms": 106, "callback_duration_ms": 20, "callback_duration_total_ms": 689, "event": "qwen_json_decoder_callback_timing", "input_token_count": 1050}
+2026-11-20 08:03:03+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"model_generation_progress","workload":"parent.activity.suggest","job_ref":"da343692835eb55d","generation_ref":"8def302b21ec2d9d","attempt_ref":"15e16977b21f1fea","stage":"model_inference","timestamp_utc":"2026-11-20T01:03:03.717098+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","progress_kind":"heartbeat","generated_token_count":69,"max_new_tokens":1000,"elapsed_ms":45003,"tokens_per_second":1.533}
+2026-11-20 08:03:04+07:00 {"allowed_token_count": 270, "callback_count": 75, "callback_duration_max_ms": 106, "callback_duration_ms": 7, "callback_duration_total_ms": 849, "event": "qwen_json_decoder_callback_timing", "input_token_count": 1075}
+2026-11-20 08:03:06+07:00 {"allowed_token_count": 246870, "callback_count": 100, "callback_duration_max_ms": 106, "callback_duration_ms": 16, "callback_duration_total_ms": 1312, "event": "qwen_json_decoder_callback_timing", "input_token_count": 1100}
+2026-11-20 08:03:08+07:00 {"allowed_token_count": 8, "callback_count": 125, "callback_duration_max_ms": 106, "callback_duration_ms": 6, "callback_duration_total_ms": 1633, "event": "qwen_json_decoder_callback_timing", "input_token_count": 1125}
+2026-11-20 08:03:10+07:00 {"allowed_token_count": 246838, "callback_count": 150, "callback_duration_max_ms": 106, "callback_duration_ms": 11, "callback_duration_total_ms": 2108, "event": "qwen_json_decoder_callback_timing", "input_token_count": 1150}
+2026-11-20 08:03:13+07:00 {"allowed_token_count": 246900, "callback_count": 175, "callback_duration_max_ms": 106, "callback_duration_ms": 11, "callback_duration_total_ms": 2501, "event": "qwen_json_decoder_callback_timing", "input_token_count": 1175}
+2026-11-20 08:03:15+07:00 {"allowed_token_count": 246772, "callback_count": 200, "callback_duration_max_ms": 106, "callback_duration_ms": 13, "callback_duration_total_ms": 2840, "event": "qwen_json_decoder_callback_timing", "input_token_count": 1200}
+2026-11-20 08:03:17+07:00 {"allowed_token_count": 246803, "callback_count": 225, "callback_duration_max_ms": 106, "callback_duration_ms": 13, "callback_duration_total_ms": 3234, "event": "qwen_json_decoder_callback_timing", "input_token_count": 1225}
+2026-11-20 08:03:18+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"model_generation_progress","workload":"parent.activity.suggest","job_ref":"da343692835eb55d","generation_ref":"8def302b21ec2d9d","attempt_ref":"15e16977b21f1fea","stage":"model_inference","timestamp_utc":"2026-11-20T01:03:18.730028+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","progress_kind":"heartbeat","generated_token_count":231,"max_new_tokens":1000,"elapsed_ms":60016,"tokens_per_second":3.849}
+2026-11-20 08:03:20+07:00 {"allowed_token_count": 246804, "callback_count": 250, "callback_duration_max_ms": 106, "callback_duration_ms": 14, "callback_duration_total_ms": 3633, "event": "qwen_json_decoder_callback_timing", "input_token_count": 1250}
+2026-11-20 08:03:22+07:00 {"allowed_token_count": 3, "callback_count": 275, "callback_duration_max_ms": 106, "callback_duration_ms": 5, "callback_duration_total_ms": 3889, "event": "qwen_json_decoder_callback_timing", "input_token_count": 1275}
+2026-11-20 08:03:24+07:00 {"allowed_token_count": 5, "callback_count": 300, "callback_duration_max_ms": 106, "callback_duration_ms": 5, "callback_duration_total_ms": 4203, "event": "qwen_json_decoder_callback_timing", "input_token_count": 1300}
+2026-11-20 08:03:26+07:00 {"allowed_token_count": 4, "callback_count": 325, "callback_duration_max_ms": 106, "callback_duration_ms": 5, "callback_duration_total_ms": 4574, "event": "qwen_json_decoder_callback_timing", "input_token_count": 1325}
+2026-11-20 08:03:28+07:00 {"allowed_token_count": 6, "callback_count": 350, "callback_duration_max_ms": 106, "callback_duration_ms": 6, "callback_duration_total_ms": 4928, "event": "qwen_json_decoder_callback_timing", "input_token_count": 1350}
+2026-11-20 08:03:31+07:00 {"allowed_token_count": 648, "callback_count": 375, "callback_duration_max_ms": 106, "callback_duration_ms": 105, "callback_duration_total_ms": 5408, "event": "qwen_json_decoder_callback_timing", "input_token_count": 1375}
+2026-11-20 08:03:33+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"model_generation_progress","workload":"parent.activity.suggest","job_ref":"da343692835eb55d","generation_ref":"8def302b21ec2d9d","attempt_ref":"15e16977b21f1fea","stage":"model_inference","timestamp_utc":"2026-11-20T01:03:33.730406+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","progress_kind":"heartbeat","generated_token_count":399,"max_new_tokens":1000,"elapsed_ms":75017,"tokens_per_second":5.319}
+2026-11-20 08:03:33+07:00 {"allowed_token_count": 246815, "callback_count": 400, "callback_duration_max_ms": 106, "callback_duration_ms": 17, "callback_duration_total_ms": 5753, "event": "qwen_json_decoder_callback_timing", "input_token_count": 1400}
+2026-11-20 08:03:36+07:00 {"allowed_token_count": 246796, "callback_count": 425, "callback_duration_max_ms": 106, "callback_duration_ms": 13, "callback_duration_total_ms": 6132, "event": "qwen_json_decoder_callback_timing", "input_token_count": 1425}
+2026-11-20 08:03:38+07:00 {"allowed_token_count": 246815, "callback_count": 450, "callback_duration_max_ms": 106, "callback_duration_ms": 11, "callback_duration_total_ms": 6497, "event": "qwen_json_decoder_callback_timing", "input_token_count": 1450}
+2026-11-20 08:03:40+07:00 {"allowed_token_count": 272, "callback_count": 475, "callback_duration_max_ms": 106, "callback_duration_ms": 8, "callback_duration_total_ms": 6732, "event": "qwen_json_decoder_callback_timing", "input_token_count": 1475}
+2026-11-20 08:03:42+07:00 {"allowed_token_count": 648, "callback_count": 500, "callback_duration_max_ms": 106, "callback_duration_ms": 101, "callback_duration_total_ms": 7129, "event": "qwen_json_decoder_callback_timing", "input_token_count": 1500}
+2026-11-20 08:03:44+07:00 {"allowed_token_count": 8, "callback_count": 525, "callback_duration_max_ms": 106, "callback_duration_ms": 6, "callback_duration_total_ms": 7390, "event": "qwen_json_decoder_callback_timing", "input_token_count": 1525}
+2026-11-20 08:03:46+07:00 {"allowed_token_count": 246838, "callback_count": 550, "callback_duration_max_ms": 106, "callback_duration_ms": 17, "callback_duration_total_ms": 7840, "event": "qwen_json_decoder_callback_timing", "input_token_count": 1550}
+2026-11-20 08:03:48+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"model_generation_progress","workload":"parent.activity.suggest","job_ref":"da343692835eb55d","generation_ref":"8def302b21ec2d9d","attempt_ref":"15e16977b21f1fea","stage":"model_inference","timestamp_utc":"2026-11-20T01:03:48.762104+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","progress_kind":"heartbeat","generated_token_count":571,"max_new_tokens":1000,"elapsed_ms":90048,"tokens_per_second":6.341}
+2026-11-20 08:03:49+07:00 {"allowed_token_count": 246900, "callback_count": 575, "callback_duration_max_ms": 106, "callback_duration_ms": 11, "callback_duration_total_ms": 8221, "event": "qwen_json_decoder_callback_timing", "input_token_count": 1575}
+2026-11-20 08:03:51+07:00 {"allowed_token_count": 246750, "callback_count": 600, "callback_duration_max_ms": 106, "callback_duration_ms": 13, "callback_duration_total_ms": 8559, "event": "qwen_json_decoder_callback_timing", "input_token_count": 1600}
+2026-11-20 08:03:53+07:00 {"allowed_token_count": 246759, "callback_count": 625, "callback_duration_max_ms": 106, "callback_duration_ms": 14, "callback_duration_total_ms": 8922, "event": "qwen_json_decoder_callback_timing", "input_token_count": 1625}
+2026-11-20 08:03:56+07:00 {"allowed_token_count": 246766, "callback_count": 650, "callback_duration_max_ms": 106, "callback_duration_ms": 14, "callback_duration_total_ms": 9270, "event": "qwen_json_decoder_callback_timing", "input_token_count": 1650}
+2026-11-20 08:03:57+07:00 {"allowed_token_count": 255, "callback_count": 675, "callback_duration_max_ms": 106, "callback_duration_ms": 10, "callback_duration_total_ms": 9494, "event": "qwen_json_decoder_callback_timing", "input_token_count": 1675}
+2026-11-20 08:03:58+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"model_generation_progress","workload":"parent.activity.suggest","job_ref":"da343692835eb55d","generation_ref":"8def302b21ec2d9d","attempt_ref":"15e16977b21f1fea","stage":"model_inference","timestamp_utc":"2026-11-20T01:03:58.286487+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","progress_kind":"completed","generated_token_count":682,"max_new_tokens":1000,"elapsed_ms":99573,"tokens_per_second":6.849}
+2026-11-20 08:03:58+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"parent.activity.suggest","job_ref":"da343692835eb55d","generation_ref":"8def302b21ec2d9d","attempt_ref":"15e16977b21f1fea","stage":"model_inference","timestamp_utc":"2026-11-20T01:03:58.286634+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":99573}
+2026-11-20 08:03:58+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"parent.activity.suggest","job_ref":"da343692835eb55d","generation_ref":"8def302b21ec2d9d","attempt_ref":"15e16977b21f1fea","stage":"output_parse_and_contract_validation","timestamp_utc":"2026-11-20T01:03:58.287244+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-20 08:03:58+07:00 {"allowed_token_count_last": 212, "callback_calls": 682, "callback_duration_last_ms": 9, "callback_duration_max_ms": 106, "callback_duration_total_ms": 9559, "enforcer_decoder_decoded_character_count": 2378, "enforcer_decoder_json_complete": true, "event": "parent_activity_suggestions_output_invalid", "final_model_eos_prefix_parser_can_end": true, "final_model_eos_was_allowed_at_previous_prefix": true, "final_token_id": 248044, "force_stop_parser_calls": 0, "generated_non_eos_special_token_count": 0, "generated_special_token_count": 1, "incremental_vs_replay_can_end_mismatch": false, "last_model_eos_allowed": true, "last_parser_can_end": true, "last_parser_state_class": "JsonSchemaParser", "max_active_string_limit": 150, "max_new_tokens": 1000, "max_observed_string_length": 147, "model_eos_token_id": 248044, "model_eos_token_ids": [248044], "output_token_count": 682, "reason_code": "MODAL_MODEL_OUTPUT_INVALID_NON_LATIN_SCRIPT", "replay_parser_can_end": true, "replay_parser_error_count": 0, "string_limit_boundary_checks": 1, "string_limit_boundary_violations": 0, "tokenizer_eos_token_id": 248046, "unbounded_active_string_calls": 127}
+2026-11-20 08:03:58+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_failed","workload":"parent.activity.suggest","job_ref":"da343692835eb55d","generation_ref":"8def302b21ec2d9d","attempt_ref":"15e16977b21f1fea","stage":"output_parse_and_contract_validation","timestamp_utc":"2026-11-20T01:03:58.291241+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":4,"error_code":"MODAL_MODEL_OUTPUT_INVALID_NON_LATIN_SCRIPT","error_type":"RuntimeError"}
+2026-11-20 08:03:58+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_failed","workload":"parent.activity.suggest","job_ref":"da343692835eb55d","generation_ref":"8def302b21ec2d9d","attempt_ref":"15e16977b21f1fea","stage":"output_parse_and_contract_validation","timestamp_utc":"2026-11-20T01:03:58.291296+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":129643,"error_code":"MODAL_MODEL_OUTPUT_INVALID_NON_LATIN_SCRIPT","error_type":"RuntimeError"}
+2026-11-20 08:03:58+07:00 Traceback (most recent call last):
+2026-11-20 08:03:58+07:00   File "/pkg/modal/_runtime/container_io_manager.py", line 987, in handle_input_exception
+2026-11-20 08:03:58+07:00     yield
+2026-11-20 08:03:58+07:00   File "/pkg/modal/_container_entrypoint.py", line 189, in run_input_sync
+2026-11-20 08:03:58+07:00     values = io_context.call_function_sync()
+2026-11-20 08:03:58+07:00              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-20 08:03:58+07:00   File "/pkg/modal/_runtime/container_io_manager.py", line 266, in call_function_sync
+2026-11-20 08:03:58+07:00     expected_value_or_values = self.finalized_function.callable(*args, **kwargs)
+2026-11-20 08:03:58+07:00                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-20 08:03:58+07:00   File "/root/worker_observability.py", line 458, in wrapped
+2026-11-20 08:03:58+07:00     result = function(*args, **kwargs)
+2026-11-20 08:03:58+07:00              ^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-20 08:03:58+07:00   File "/root/language_audio_app.py", line 1136, in suggest_parent_activities
+2026-11-20 08:03:58+07:00     parsed = _parse_parent_activity_suggestions(
+2026-11-20 08:03:58+07:00              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-20 08:03:58+07:00   File "/root/language_audio_app.py", line 1874, in _parse_parent_activity_suggestions
+2026-11-20 08:03:58+07:00     raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID_NON_LATIN_SCRIPT")
+2026-11-20 08:03:58+07:00 RuntimeError: MODAL_MODEL_OUTPUT_INVALID_NON_LATIN_SCRIPT

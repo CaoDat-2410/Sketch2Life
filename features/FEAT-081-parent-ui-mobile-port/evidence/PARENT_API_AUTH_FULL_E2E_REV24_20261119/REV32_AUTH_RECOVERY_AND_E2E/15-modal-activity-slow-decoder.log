@@ -1,0 +1,139 @@
+<local-machine-path> DeprecationWarning: 'asyncio.WindowsSelectorEventLoopPolicy' is deprecated and slated for removal in Python 3.16
+  asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+<local-machine-path> DeprecationWarning: 'asyncio.set_event_loop_policy' is deprecated and slated for removal in Python 3.16
+  asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+2026-11-20 07:46:04+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_started","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"worker_entrypoint","timestamp_utc":"2026-11-20T00:46:04.409573+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-20 07:46:04+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"input_envelope","timestamp_utc":"2026-11-20T00:46:04.409759+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-20 07:46:04+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"input_envelope","timestamp_utc":"2026-11-20T00:46:04.409830+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":0}
+2026-11-20 07:46:04+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"workload_gate","timestamp_utc":"2026-11-20T00:46:04.409864+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-20 07:46:04+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"workload_gate","timestamp_utc":"2026-11-20T00:46:04.409891+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":0}
+2026-11-20 07:46:04+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"scratch_volume_reload","timestamp_utc":"2026-11-20T00:46:04.409915+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-20 07:46:04+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"scratch_volume_reload","timestamp_utc":"2026-11-20T00:46:04.858887+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":449}
+2026-11-20 07:46:04+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"input_manifest_read","timestamp_utc":"2026-11-20T00:46:04.859031+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-20 07:46:05+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"input_manifest_read","timestamp_utc":"2026-11-20T00:46:05.191137+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":332}
+2026-11-20 07:46:05+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"parent_activity_request_validation","timestamp_utc":"2026-11-20T00:46:05.191280+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-20 07:46:05+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"parent_activity_request_validation","timestamp_utc":"2026-11-20T00:46:05.191667+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":0}
+2026-11-20 07:46:05+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"checkpoint_verification","timestamp_utc":"2026-11-20T00:46:05.191743+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-20 07:46:05+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"checkpoint_verification","timestamp_utc":"2026-11-20T00:46:05.269640+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":78}
+2026-11-20 07:46:05+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"model_load","timestamp_utc":"2026-11-20T00:46:05.269757+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-20 07:46:14+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_runtime_verified","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"model_load","timestamp_utc":"2026-11-20T00:46:14.397565+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","torch_version":"2.7.1+cu126","torch_cuda_version":"12.6","fla_version":"0.6.0","causal_conv1d_version":"1.7.0","triton_version":"3.3.1","gpu_capability":"8.6"}
+2026-11-20 07:46:15+07:00 
+2026-11-20 07:46:15+07:00 [1A
+Loading weights:   0%|          | 0/427 [00:00<?, ?it/s]
+2026-11-20 07:46:17+07:00 
+2026-11-20 07:46:17+07:00 [1A
+2026-11-20 07:46:17+07:00 Loading weights:   0%|          | 1/427 [00:01<10:16,  1.45s/it]
+2026-11-20 07:46:17+07:00 [1A
+2026-11-20 07:46:17+07:00 Loading weights:   3%|▎         | 14/427 [00:01<00:34, 12.04it/s]
+2026-11-20 07:46:17+07:00 [1A
+2026-11-20 07:46:17+07:00 Loading weights:   6%|▌         | 26/427 [00:01<00:16, 24.08it/s]
+2026-11-20 07:46:17+07:00 [1A
+2026-11-20 07:46:17+07:00 Loading weights:   8%|▊         | 35/427 [00:01<00:12, 31.96it/s]
+2026-11-20 07:46:17+07:00 [1A
+2026-11-20 07:46:17+07:00 Loading weights:  10%|█         | 44/427 [00:01<00:10, 37.43it/s]
+2026-11-20 07:46:17+07:00 [1A
+2026-11-20 07:46:17+07:00 Loading weights:  12%|█▏        | 52/427 [00:02<00:08, 43.08it/s]
+2026-11-20 07:46:17+07:00 [1A
+2026-11-20 07:46:17+07:00 Loading weights:  15%|█▍        | 63/427 [00:02<00:06, 54.48it/s]
+2026-11-20 07:46:17+07:00 [1A
+Loading weights:  17%|█▋        | 74/427 [00:02<00:05, 65.53it/s]
+2026-11-20 07:46:18+07:00 
+2026-11-20 07:46:18+07:00 [1A
+2026-11-20 07:46:18+07:00 Loading weights:  19%|█▉        | 83/427 [00:02<00:05, 64.95it/s]
+2026-11-20 07:46:18+07:00 [1A
+2026-11-20 07:46:18+07:00 Loading weights:  22%|██▏       | 95/427 [00:02<00:04, 73.94it/s]
+2026-11-20 07:46:18+07:00 [1A
+2026-11-20 07:46:18+07:00 Loading weights:  24%|██▍       | 104/427 [00:02<00:04, 70.65it/s]
+2026-11-20 07:46:18+07:00 [1A
+2026-11-20 07:46:18+07:00 Loading weights:  28%|██▊       | 118/427 [00:02<00:03, 84.60it/s]
+2026-11-20 07:46:18+07:00 [1A
+2026-11-20 07:46:18+07:00 Loading weights:  30%|██▉       | 128/427 [00:02<00:03, 83.59it/s]
+2026-11-20 07:46:18+07:00 [1A
+2026-11-20 07:46:18+07:00 Loading weights:  32%|███▏      | 137/427 [00:03<00:03, 84.15it/s]
+2026-11-20 07:46:18+07:00 [1A
+2026-11-20 07:46:18+07:00 Loading weights:  35%|███▍      | 148/427 [00:03<00:03, 79.34it/s]
+2026-11-20 07:46:18+07:00 [1A
+Loading weights:  37%|███▋      | 158/427 [00:03<00:03, 83.69it/s]
+2026-11-20 07:46:19+07:00 
+2026-11-20 07:46:19+07:00 [1A
+2026-11-20 07:46:19+07:00 Loading weights:  40%|████      | 172/427 [00:03<00:02, 97.34it/s]
+2026-11-20 07:46:19+07:00 [1A
+2026-11-20 07:46:19+07:00 Loading weights:  43%|████▎     | 183/427 [00:03<00:02, 96.86it/s]
+2026-11-20 07:46:19+07:00 [1A
+2026-11-20 07:46:19+07:00 Loading weights:  45%|████▌     | 193/427 [00:03<00:02, 96.93it/s]
+2026-11-20 07:46:19+07:00 [1A
+2026-11-20 07:46:19+07:00 Loading weights:  48%|████▊     | 203/427 [00:03<00:02, 87.63it/s]
+2026-11-20 07:46:19+07:00 [1A
+2026-11-20 07:46:19+07:00 Loading weights:  50%|████▉     | 213/427 [00:03<00:02, 84.20it/s]
+2026-11-20 07:46:19+07:00 [1A
+2026-11-20 07:46:19+07:00 Loading weights:  53%|█████▎    | 226/427 [00:04<00:02, 94.18it/s]
+2026-11-20 07:46:19+07:00 [1A
+2026-11-20 07:46:19+07:00 Loading weights:  56%|█████▌    | 237/427 [00:04<00:01, 96.86it/s]
+2026-11-20 07:46:19+07:00 [1A
+2026-11-20 07:46:19+07:00 Loading weights:  58%|█████▊    | 247/427 [00:04<00:01, 93.76it/s]
+2026-11-20 07:46:19+07:00 [1A
+Loading weights:  60%|██████    | 257/427 [00:04<00:01, 89.16it/s]
+2026-11-20 07:46:20+07:00 
+2026-11-20 07:46:20+07:00 [1A
+2026-11-20 07:46:20+07:00 Loading weights:  63%|██████▎   | 267/427 [00:04<00:01, 91.77it/s]
+2026-11-20 07:46:20+07:00 [1A
+2026-11-20 07:46:20+07:00 Loading weights:  65%|██████▌   | 278/427 [00:04<00:01, 80.71it/s]
+2026-11-20 07:46:20+07:00 [1A
+2026-11-20 07:46:20+07:00 Loading weights:  69%|██████▊   | 293/427 [00:04<00:01, 86.25it/s]
+2026-11-20 07:46:20+07:00 [1A
+2026-11-20 07:46:20+07:00 Loading weights:  72%|███████▏  | 307/427 [00:04<00:01, 94.77it/s]
+2026-11-20 07:46:20+07:00 [1A
+2026-11-20 07:46:20+07:00 Loading weights:  74%|███████▍  | 317/427 [00:05<00:01, 87.76it/s]
+2026-11-20 07:46:20+07:00 [1A
+2026-11-20 07:46:20+07:00 Loading weights:  78%|███████▊  | 331/427 [00:05<00:00, 98.37it/s]
+2026-11-20 07:46:20+07:00 [1A
+2026-11-20 07:46:20+07:00 Loading weights:  80%|████████  | 342/427 [00:05<00:00, 98.27it/s]
+2026-11-20 07:46:20+07:00 [1A
+Loading weights:  83%|████████▎ | 353/427 [00:05<00:00, 95.40it/s]
+2026-11-20 07:46:21+07:00 
+2026-11-20 07:46:21+07:00 [1A
+2026-11-20 07:46:21+07:00 Loading weights:  85%|████████▌ | 363/427 [00:05<00:00, 86.58it/s]
+2026-11-20 07:46:21+07:00 [1A
+2026-11-20 07:46:21+07:00 Loading weights:  87%|████████▋ | 372/427 [00:05<00:00, 85.14it/s]
+2026-11-20 07:46:21+07:00 [1A
+2026-11-20 07:46:21+07:00 Loading weights:  90%|█████████ | 385/427 [00:05<00:00, 92.47it/s]
+2026-11-20 07:46:21+07:00 [1A
+2026-11-20 07:46:21+07:00 Loading weights:  93%|█████████▎| 399/427 [00:05<00:00, 91.85it/s]
+2026-11-20 07:46:21+07:00 [1A
+2026-11-20 07:46:21+07:00 Loading weights:  97%|█████████▋| 413/427 [00:06<00:00, 98.56it/s]
+2026-11-20 07:46:21+07:00 [1A
+2026-11-20 07:46:21+07:00 Loading weights:  99%|█████████▉| 423/427 [00:06<00:00, 98.06it/s]
+2026-11-20 07:46:21+07:00 [1A
+2026-11-20 07:46:21+07:00 Loading weights: 100%|██████████| 427/427 [00:06<00:00, 69.44it/s]
+2026-11-20 07:46:22+07:00 {"attention_implementation": "sdpa", "device_map_module_counts": {"cpu": 0, "cuda": 0, "disk": 0, "other": 0}, "event": "qwen_text_model_placement", "gpu_allocated_memory_mib": 17078, "gpu_name": "NVIDIA A10", "gpu_reserved_memory_mib": 17094, "gpu_total_memory_mib": 22587, "model_class": "Qwen3_5ForCausalLM", "use_cache": true}
+2026-11-20 07:46:22+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"model_load","timestamp_utc":"2026-11-20T00:46:22.289123+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":17019}
+2026-11-20 07:46:22+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"prompt_encoding","timestamp_utc":"2026-11-20T00:46:22.289202+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-20 07:46:22+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"prompt_encoding","timestamp_utc":"2026-11-20T00:46:22.345119+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":56}
+2026-11-20 07:46:22+07:00 {"event": "parent_activity_prompt_encoded", "input_token_count": 1001, "max_new_tokens": 1000}
+2026-11-20 07:46:22+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"constrained_decoder_setup","timestamp_utc":"2026-11-20T00:46:22.345219+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-20 07:46:26+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"constrained_decoder_setup","timestamp_utc":"2026-11-20T00:46:26.193055+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":3848}
+2026-11-20 07:46:26+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"model_inference","timestamp_utc":"2026-11-20T00:46:26.193234+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-20 07:46:26+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"model_generation_progress","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"model_inference","timestamp_utc":"2026-11-20T00:46:26.193346+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","progress_kind":"started","generated_token_count":0,"max_new_tokens":1000,"elapsed_ms":0,"tokens_per_second":0.0}
+2026-11-20 07:46:41+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"model_generation_progress","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"model_inference","timestamp_utc":"2026-11-20T00:46:41.194714+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","progress_kind":"heartbeat","generated_token_count":0,"max_new_tokens":1000,"elapsed_ms":15001,"tokens_per_second":0.0}
+2026-11-20 07:46:56+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"model_generation_progress","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"model_inference","timestamp_utc":"2026-11-20T00:46:56.195515+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","progress_kind":"heartbeat","generated_token_count":0,"max_new_tokens":1000,"elapsed_ms":30002,"tokens_per_second":0.0}
+2026-11-20 07:46:59+07:00 {"allowed_token_count": 648, "callback_count": 25, "callback_duration_max_ms": 64, "callback_duration_ms": 64, "callback_duration_total_ms": 251, "event": "qwen_json_decoder_callback_timing", "input_token_count": 1025}
+2026-11-20 07:47:01+07:00 {"allowed_token_count": 225493, "callback_count": 50, "callback_duration_max_ms": 64, "callback_duration_ms": 17, "callback_duration_total_ms": 674, "event": "qwen_json_decoder_callback_timing", "input_token_count": 1050}
+2026-11-20 07:47:02+07:00 {"allowed_token_count": 270, "callback_count": 75, "callback_duration_max_ms": 64, "callback_duration_ms": 11, "callback_duration_total_ms": 917, "event": "qwen_json_decoder_callback_timing", "input_token_count": 1075}
+2026-11-20 07:47:11+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"model_generation_progress","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"model_inference","timestamp_utc":"2026-11-20T00:47:11.201505+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","progress_kind":"heartbeat","generated_token_count":97,"max_new_tokens":1000,"elapsed_ms":45008,"tokens_per_second":2.155}
+2026-11-20 07:47:26+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"model_generation_progress","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"model_inference","timestamp_utc":"2026-11-20T00:47:26.207697+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","progress_kind":"heartbeat","generated_token_count":97,"max_new_tokens":1000,"elapsed_ms":60014,"tokens_per_second":1.616}
+2026-11-20 07:47:41+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"model_generation_progress","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"model_inference","timestamp_utc":"2026-11-20T00:47:41.213725+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","progress_kind":"heartbeat","generated_token_count":97,"max_new_tokens":1000,"elapsed_ms":75020,"tokens_per_second":1.293}
+2026-11-20 07:47:54+07:00 {"allowed_token_count": 246515, "callback_count": 98, "callback_duration_max_ms": 50341, "callback_duration_ms": 50341, "callback_duration_total_ms": 51687, "event": "qwen_json_decoder_callback_timing", "input_token_count": 1098}
+2026-11-20 07:47:56+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"model_generation_progress","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"model_inference","timestamp_utc":"2026-11-20T00:47:56.220269+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","progress_kind":"heartbeat","generated_token_count":98,"max_new_tokens":1000,"elapsed_ms":90027,"tokens_per_second":1.089}
+2026-11-20 07:48:11+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"model_generation_progress","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"model_inference","timestamp_utc":"2026-11-20T00:48:11.226465+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","progress_kind":"heartbeat","generated_token_count":98,"max_new_tokens":1000,"elapsed_ms":105033,"tokens_per_second":0.933}
+2026-11-20 07:48:26+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"model_generation_progress","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"model_inference","timestamp_utc":"2026-11-20T00:48:26.232825+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","progress_kind":"heartbeat","generated_token_count":98,"max_new_tokens":1000,"elapsed_ms":120039,"tokens_per_second":0.816}
+2026-11-20 07:48:41+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"model_generation_progress","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"model_inference","timestamp_utc":"2026-11-20T00:48:41.238897+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","progress_kind":"heartbeat","generated_token_count":98,"max_new_tokens":1000,"elapsed_ms":135046,"tokens_per_second":0.726}
+2026-11-20 07:48:45+07:00 {"allowed_token_count": 246512, "callback_count": 99, "callback_duration_max_ms": 50818, "callback_duration_ms": 50818, "callback_duration_total_ms": 102505, "event": "qwen_json_decoder_callback_timing", "input_token_count": 1099}
+2026-11-20 07:48:56+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"model_generation_progress","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"model_inference","timestamp_utc":"2026-11-20T00:48:56.245578+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","progress_kind":"heartbeat","generated_token_count":99,"max_new_tokens":1000,"elapsed_ms":150052,"tokens_per_second":0.66}
+2026-11-20 07:49:11+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"model_generation_progress","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"model_inference","timestamp_utc":"2026-11-20T00:49:11.252068+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","progress_kind":"heartbeat","generated_token_count":99,"max_new_tokens":1000,"elapsed_ms":165059,"tokens_per_second":0.6}
+2026-11-20 07:49:26+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"model_generation_progress","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"model_inference","timestamp_utc":"2026-11-20T00:49:26.257850+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","progress_kind":"heartbeat","generated_token_count":99,"max_new_tokens":1000,"elapsed_ms":180065,"tokens_per_second":0.55}
+2026-11-20 07:49:35+07:00 {"allowed_token_count": 246507, "callback_count": 100, "callback_duration_max_ms": 50818, "callback_duration_ms": 50442, "callback_duration_total_ms": 152947, "event": "qwen_json_decoder_callback_timing", "input_token_count": 1100}
+2026-11-20 07:49:41+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"model_generation_progress","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"model_inference","timestamp_utc":"2026-11-20T00:49:41.263795+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","progress_kind":"heartbeat","generated_token_count":100,"max_new_tokens":1000,"elapsed_ms":195070,"tokens_per_second":0.513}
+2026-11-20 07:49:55+07:00 [modal-client] 2026-11-20T00:49:55+0000 Received a cancellation signal while processing input ('in-01M7V6NPSC63JXQXV2BRSBV61Q:1795135560510-0',)
+2026-11-20 07:49:55+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_failed","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"model_inference","timestamp_utc":"2026-11-20T00:49:55.088785+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":208896,"error_code":"WORKER_CANCELLED","error_type":"InputCancellation"}
+2026-11-20 07:49:55+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_failed","workload":"parent.activity.suggest","job_ref":"03e16c94b8298f5e","generation_ref":"8d93186fdd0e52de","attempt_ref":"63c79096babf5c13","stage":"model_inference","timestamp_utc":"2026-11-20T00:49:55.088861+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":230679,"error_code":"WORKER_CANCELLED","error_type":"InputCancellation"}
+2026-11-20 07:49:55+07:00 [modal-client] 2026-11-20T00:49:55+0000 Successfully canceled input ('in-01M7V6NPSC63JXQXV2BRSBV61Q:1795135560510-0',)

@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import logging
+from contextlib import suppress
+
 from sketch2life.application.ports.identity import (
-    IdentityAccountProfile,
     IdentityAccountConflict,
+    IdentityAccountProfile,
     IdentityAccountProvisioningUnavailable,
     ProvisionedIdentity,
 )
@@ -13,6 +16,8 @@ from sketch2life.infrastructure.identity.firebase_admin_app import (
     FirebaseAdminUnavailable,
     get_firebase_admin_app,
 )
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class FirebaseAdminAccountProvisioner:
@@ -53,9 +58,19 @@ class FirebaseAdminAccountProvisioner:
                 subject=user.uid,
                 issuer=f"https://securetoken.google.com/{self._settings.firebase_project_id}",
             )
-        except FirebaseAdminUnavailable:
+        except FirebaseAdminUnavailable as exc:
+            cause = exc.__cause__
+            _LOGGER.error(
+                "firebase_account_create_failed error_type=%s error_module=%s "
+                "cause_type=%s cause_module=%s",
+                type(exc).__name__,
+                type(exc).__module__,
+                type(cause).__name__ if cause is not None else "unknown",
+                type(cause).__module__ if cause is not None else "unknown",
+            )
             raise IdentityAccountProvisioningUnavailable from None
         except ImportError:
+            _LOGGER.error("firebase_account_create_failed error_type=ImportError")
             raise IdentityAccountProvisioningUnavailable from None
         except Exception as exc:
             try:
@@ -65,6 +80,11 @@ class FirebaseAdminAccountProvisioner:
                     raise IdentityAccountConflict from None
             except ImportError:
                 pass
+            _LOGGER.error(
+                "firebase_account_create_failed error_type=%s error_module=%s",
+                type(exc).__name__,
+                type(exc).__module__,
+            )
             raise IdentityAccountProvisioningUnavailable from None
 
     def delete_account(self, subject: str) -> None:
@@ -72,9 +92,19 @@ class FirebaseAdminAccountProvisioner:
             from firebase_admin import auth
 
             auth.delete_user(subject, app=get_firebase_admin_app(self._settings))
-        except FirebaseAdminUnavailable:
+        except FirebaseAdminUnavailable as exc:
+            cause = exc.__cause__
+            _LOGGER.error(
+                "firebase_account_delete_failed error_type=%s error_module=%s "
+                "cause_type=%s cause_module=%s",
+                type(exc).__name__,
+                type(exc).__module__,
+                type(cause).__name__ if cause is not None else "unknown",
+                type(cause).__module__ if cause is not None else "unknown",
+            )
             raise IdentityAccountProvisioningUnavailable from None
         except ImportError:
+            _LOGGER.error("firebase_account_delete_failed error_type=ImportError")
             raise IdentityAccountProvisioningUnavailable from None
         except Exception as exc:
             try:
@@ -84,6 +114,11 @@ class FirebaseAdminAccountProvisioner:
                     return
             except ImportError:
                 pass
+            _LOGGER.error(
+                "firebase_account_delete_failed error_type=%s error_module=%s",
+                type(exc).__name__,
+                type(exc).__module__,
+            )
             raise IdentityAccountProvisioningUnavailable from None
 
     def set_account_disabled(self, subject: str, disabled: bool) -> None:
@@ -98,10 +133,8 @@ class FirebaseAdminAccountProvisioner:
                 except Exception:
                     # Keep provider state aligned with the still-active database row if token
                     # revocation cannot be completed.
-                    try:
+                    with suppress(Exception):
                         auth.update_user(subject, disabled=False, app=app)
-                    except Exception:
-                        pass
                     raise
         except FirebaseAdminUnavailable:
             raise IdentityAccountProvisioningUnavailable from None

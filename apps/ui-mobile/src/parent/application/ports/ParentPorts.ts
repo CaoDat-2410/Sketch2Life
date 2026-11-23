@@ -28,6 +28,8 @@ import type {
   ParentStoryRunHistoryPage,
   ParentUser,
   ParentVideoQuota,
+  ParentVideoCandidateEnvelopeV1,
+  ParentCurrentVideoCandidateEnvelopeV1,
   ParentStoryContextConfirmationV1,
   ParentStoryRevisionResultV1,
   ParentStoryRunCreateV1,
@@ -35,9 +37,13 @@ import type {
   ParentStoryRunV1,
   ParentStoryScriptConfirmationV1,
   ParentStorySubjectConfirmationV1,
+  ParentTopicSuggestionSetV1,
+  ParentDrawingSubjectSuggestionSetV1,
+  ParentCustomSubjectValidationV1,
   StoryRun,
   SuggestedActivity,
 } from '../../domain/types';
+import type { SvgTopicStrokeGuideDraftV1 } from '../../domain/svgGuide';
 
 export interface ParentIdentityPort {
   currentUser(): Promise<ParentUser | null>;
@@ -80,7 +86,7 @@ export interface ParentApiPort {
   getActiveStoryRunV1(): Promise<ParentActiveStoryRunEnvelopeV1>;
   getStoryRunV1(runId: string): Promise<ParentStoryRunResultV1>;
   listStoryRuns(profileId?: string, cursor?: string | null): Promise<ParentStoryRunHistoryPage>;
-  cancelStoryRun(runId: string): Promise<ParentRunLifecycleReceipt>;
+  cancelStoryRun(runId: string): Promise<ParentStoryRunLifecycleEnvelopeV1>;
   cancelStoryRunV1(runId: string, expectedRevision: number, actionIdentity: ParentActionIdentity): Promise<ParentStoryRunLifecycleEnvelopeV1>;
   deleteStoryRunV1(runId: string, actionIdentity: ParentActionIdentity): Promise<ParentStoryRunLifecycleEnvelopeV1>;
   deleteStoryRun(runId: string): Promise<ParentRunLifecycleReceipt>;
@@ -91,7 +97,12 @@ export interface ParentApiPort {
   declineLessonInvitation(invitationId: string): Promise<unknown>;
   listParentGroupInvitations(): Promise<{ contract: string; items: ParentGroupInvitation[]; next_cursor: string | null }>;
   acceptParentGroupInvitation(membershipId: string): Promise<unknown>;
-  generateSketchGuide(topic: string): Promise<SketchGuideResult>;
+  listTopicSuggestions(draftId: string, excludedSetIds: string[]): Promise<ParentTopicSuggestionSetV1>;
+  listDrawingSubjectSuggestions(input: {
+    draftId: string; topicId: string; topic: string; excludedSetIds: string[]; excludedSubjects?: string[];
+  }): Promise<ParentDrawingSubjectSuggestionSetV1>;
+  validateCustomSubject(input: { topicId: string; topic: string; subject: string }): Promise<ParentCustomSubjectValidationV1>;
+  generateSketchGuide(topic: string, intendedSubject: string): Promise<SvgTopicStrokeGuideDraftV1>;
   createStoryRun(input: StoryRunCreateInput): Promise<{ request_id: string; story_run: StoryRun }>;
   createStoryRunV1(input: ParentStoryRunCreateV1, actionIdentity: ParentActionIdentity): Promise<ParentStoryRunEnvelopeV1>;
   confirmStoryRunContextV1(runId: string, input: ParentStoryContextConfirmationV1, actionIdentity: ParentActionIdentity): Promise<ParentStoryRunEnvelopeV1>;
@@ -100,7 +111,14 @@ export interface ParentApiPort {
   createStoryRevisionV1(runId: string, revision: number, rewriteInstruction: string | undefined, actionIdentity: ParentActionIdentity): Promise<ParentStoryRevisionResultV1>;
   analyzeDrawing(storyRunId: string, imageBase64: string, mediaType: ParentDrawingMediaType): Promise<DrawingUnderstandingResult>;
   confirmSubject(storyRunId: string, revision: number, subject: string): Promise<SubjectConfirmationResult>;
-  suggestActivities(storyRunId: string, revision: number): Promise<ActivitySuggestionResult>;
+  suggestActivities(storyRunId: string, revision: number, actionIdentity: ParentActionIdentity): Promise<ActivitySuggestionResult>;
+  selectActivity(input: {
+    storyRunId: string;
+    suggestionSetId: string;
+    revision: number;
+    activityIndex: number;
+    actionIdentity: ParentActionIdentity;
+  }): Promise<ActivitySelectionReceipt>;
   generateStory(storyRunId: string, revision: number, rewriteInstruction?: string): Promise<StoryGenerationResult>;
   confirmStory(storyRunId: string, revision: number, sha256: string): Promise<{ request_id: string; story_run: StoryRun }>;
   transcribeAudio(storyRunId: string, audio: AudioUploadInput): Promise<ParentAudioTranscription>;
@@ -115,6 +133,10 @@ export interface ParentApiPort {
   listNotifications(cursor?: string | null): Promise<ParentNotificationPage>;
   markNotificationRead(notificationId: string): Promise<ParentNotification>;
   getVideoQuota(): Promise<ParentVideoQuota>;
+  requestVideoCandidate(runId: string, storyRevision: number, storySha256: string, actionIdentity: ParentActionIdentity): Promise<ParentVideoCandidateEnvelopeV1>;
+  getCurrentVideoCandidate(runId: string): Promise<ParentCurrentVideoCandidateEnvelopeV1>;
+  getVideoCandidate(runId: string, candidateId: string): Promise<ParentVideoCandidateEnvelopeV1>;
+  getVideoCandidatePreviewSource(runId: string, candidateId: string): Promise<{ uri: string; headers: Record<string, string> }>;
 }
 
 export type ProfileCreateInput = {
@@ -149,16 +171,6 @@ export type StoryRunCreateInput = {
   lesson_version_id?: string;
 };
 
-export type SketchGuideResult = {
-  request_id: string;
-  modal_call_id?: string;
-  status: string;
-  review_required: true;
-  model?: { id: string; revision: string };
-  image_base64: string;
-  asset?: Record<string, unknown>;
-};
-
 export type DrawingUnderstandingResult = {
   request_id: string;
   modal_call_id?: string;
@@ -177,13 +189,29 @@ export type SubjectConfirmationResult = {
 export type ActivitySuggestionResult = {
   request_id: string;
   story_run_id: string;
+  suggestion_set_id: string;
+  set_revision: number;
   understanding_revision: number;
+  activities_snapshot_sha256: string;
   modal_call_id?: string;
-  contract: 'ParentActivitySuggestionResponseV2';
+  contract: 'ParentActivitySuggestionSetV1';
   selection_mode: 'CATALOG_SELECTION' | 'AI_GENERATED_FALLBACK';
   catalog_candidate_count: number;
   review_required: true;
   activities: SuggestedActivity[];
+};
+
+export type ActivitySelectionReceipt = {
+  contract: 'ParentActivitySelectionReceiptV1';
+  request_id: string;
+  story_run_id: string;
+  suggestion_set_id: string;
+  activity_selection_id: string;
+  selection_revision: number;
+  understanding_revision: number;
+  activity_index: number;
+  activity_snapshot_sha256: string;
+  persisted_at: string;
 };
 
 export type StoryGenerationResult = {

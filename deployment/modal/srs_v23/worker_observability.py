@@ -5,8 +5,10 @@ from __future__ import annotations
 import contextvars
 import hashlib
 import json
+import math
 import re
 import sys
+import threading
 import time
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
@@ -18,6 +20,7 @@ EVENT_SCHEMA = "sketch2life.modal.worker-event.v1"
 _OPAQUE_ID = re.compile(r"\A[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}\Z")
 _SAFE_CODE = re.compile(r"\A[A-Z][A-Z0-9_]{2,95}\Z")
 _SAFE_STAGE = re.compile(r"\A[a-z][a-z0-9_]{1,63}\Z")
+_SAFE_RUNTIME_VALUE = re.compile(r"\A[A-Za-z0-9._:+-]{1,80}\Z")
 _ACTIVE_RUN: contextvars.ContextVar[WorkerRun | None] = contextvars.ContextVar(
     "modal_worker_run", default=None
 )
@@ -168,8 +171,60 @@ class WorkerRun:
             "binary_output_bytes",
             "output_sha256",
             "binary_output_sha256",
+            "generated_token_count",
+            "max_new_tokens",
+            "elapsed_ms",
+            "tokens_per_second",
+            "progress_kind",
+            "torch_version",
+            "torch_cuda_version",
+            "fla_version",
+            "causal_conv1d_version",
+            "triton_version",
+            "gpu_capability",
         }
-        record.update({key: value for key, value in fields.items() if key in allowed})
+        integer_fields = {
+            "duration_ms",
+            "output_size_bytes",
+            "binary_output_bytes",
+            "generated_token_count",
+            "max_new_tokens",
+            "elapsed_ms",
+        }
+        runtime_fields = {
+            "torch_version",
+            "torch_cuda_version",
+            "fla_version",
+            "causal_conv1d_version",
+            "triton_version",
+            "gpu_capability",
+        }
+        for key, value in fields.items():
+            if key not in allowed:
+                continue
+            if key in integer_fields:
+                if isinstance(value, int) and not isinstance(value, bool) and value >= 0:
+                    record[key] = value
+            elif key == "tokens_per_second":
+                if isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value) and value >= 0:
+                    record[key] = round(float(value), 3)
+            elif key == "progress_kind":
+                if value in {"started", "heartbeat", "completed", "failed"}:
+                    record[key] = value
+            elif key in runtime_fields:
+                if isinstance(value, str) and _SAFE_RUNTIME_VALUE.fullmatch(value):
+                    record[key] = value
+            elif key == "error_code":
+                if isinstance(value, str) and _SAFE_CODE.fullmatch(value):
+                    record[key] = value
+            elif key == "error_type":
+                if isinstance(value, str) and re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{0,63}", value):
+                    record[key] = value
+            elif key == "output_kind" and value in {"json", "media"}:
+                record[key] = value
+            elif key in {"output_sha256", "binary_output_sha256"}:
+                if isinstance(value, str) and re.fullmatch(r"[0-9a-f]{64}", value):
+                    record[key] = value
         print(
             json.dumps(record, ensure_ascii=True, separators=(",", ":")),
             file=sys.stdout,
@@ -259,6 +314,9 @@ class WorkerRun:
         )
         self._active_stage_started = None
 
+    def runtime_verified(self, **safe_metadata: str) -> None:
+        self.emit("worker_runtime_verified", **safe_metadata)
+
     @contextmanager
     def phase(self, name: str) -> Iterator[None]:
         self.mark_stage(name)
@@ -270,6 +328,66 @@ class WorkerRun:
         else:
             self.finish_stage()
 
+
+class GenerationProgress:
+    """Emit bounded generation heartbeats with token counts only."""
+
+    def __init__(self, *, max_new_tokens: int, heartbeat_seconds: float = 15.0) -> None:
+        if max_new_tokens <= 0 or heartbeat_seconds <= 0:
+            raise ValueError("generation progress limits must be positive")
+        self._run = _ACTIVE_RUN.get()
+        self._max_new_tokens = max_new_tokens
+        self._heartbeat_seconds = heartbeat_seconds
+        self._started = time.perf_counter()
+        self._generated_tokens = 0
+        self._lock = threading.Lock()
+        self._stop = threading.Event()
+        self._thread: threading.Thread | None = None
+
+    def __enter__(self) -> GenerationProgress:
+        if self._run is not None:
+            self._emit("started")
+            self._thread = threading.Thread(
+                target=self._heartbeat,
+                name="qwen-generation-progress",
+                daemon=True,
+            )
+            self._thread.start()
+        return self
+
+    def __exit__(self, exc_type: Any, _exc: Any, _traceback: Any) -> None:
+        self._stop.set()
+        if self._thread is not None:
+            self._thread.join(timeout=1.0)
+        if self._run is not None:
+            self._emit("failed" if exc_type is not None else "completed")
+
+    def update(self, generated_token_count: int) -> None:
+        if isinstance(generated_token_count, bool) or not isinstance(generated_token_count, int):
+            return
+        bounded = min(self._max_new_tokens, max(0, generated_token_count))
+        with self._lock:
+            self._generated_tokens = max(self._generated_tokens, bounded)
+
+    def _heartbeat(self) -> None:
+        while not self._stop.wait(self._heartbeat_seconds):
+            self._emit("heartbeat")
+
+    def _emit(self, progress_kind: str) -> None:
+        if self._run is None:
+            return
+        with self._lock:
+            generated_tokens = self._generated_tokens
+        elapsed_ms = round((time.perf_counter() - self._started) * 1000)
+        elapsed_seconds = max(elapsed_ms / 1000, 0.001)
+        self._run.emit(
+            "model_generation_progress",
+            progress_kind=progress_kind,
+            generated_token_count=generated_tokens,
+            max_new_tokens=self._max_new_tokens,
+            elapsed_ms=elapsed_ms,
+            tokens_per_second=generated_tokens / elapsed_seconds,
+        )
 
 @contextmanager
 def worker_phase(name: str) -> Iterator[None]:
@@ -287,6 +405,13 @@ def worker_stage(name: str) -> None:
     run = _ACTIVE_RUN.get()
     if run is not None:
         run.mark_stage(name)
+
+
+def worker_runtime_verified(**safe_metadata: str) -> None:
+    """Record allowlisted runtime versions for the current worker invocation."""
+    run = _ACTIVE_RUN.get()
+    if run is not None:
+        run.runtime_verified(**safe_metadata)
 
 
 def refresh_worker_volume(volume: Any) -> None:

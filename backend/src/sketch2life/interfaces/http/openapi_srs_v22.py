@@ -106,6 +106,38 @@ SRS_V22_OPERATION_TAGS.update(
         if key[1].startswith("/v1/parent/profiles")
     }
 )
+
+# Additive FEAT-081 Parent Expo routes. The legacy projection above deliberately
+# remains pinned to its historical operation set; these owner-approved routes
+# are published separately so Swagger matches the current Parent client.
+PARENT_EXPO_INCLUDED_OPERATIONS: frozenset[tuple[str, str]] = frozenset(
+    {
+        ("post", "/api/auth/v1/registrations"),
+        ("post", "/api/auth/v1/registrations/complete"),
+        ("get", "/api/auth/v1/me"),
+        ("get", "/api/lesson-library/v1/me/lesson-invitations"),
+        ("post", "/api/lesson-library/v1/me/lesson-invitations/{access_grant_id}/accept"),
+        ("post", "/api/lesson-library/v1/me/lesson-invitations/{access_grant_id}/decline"),
+        ("get", "/api/lesson-library/v1/me/lessons"),
+        ("get", "/api/lesson-library/v1/me/lessons/{lesson_id}"),
+        ("get", "/api/lesson-library/v1/me/lessons/{lesson_id}/download"),
+        ("get", "/api/lesson-library/v1/me/parent-group-invitations"),
+        ("post", "/api/lesson-library/v1/me/parent-group-invitations/{membership_id}/accept"),
+        ("get", "/api/parent/v1/topics/suggestions"),
+        ("get", "/api/parent/v1/topics/{topic_id}/drawing-subject-suggestions"),
+        ("post", "/api/parent/v1/topics/custom-subject-validation"),
+        ("post", "/api/parent/v1/ai/sketch-guides"),
+        ("post", "/api/parent/v1/ai/drawing-understandings"),
+        ("post", "/api/parent/v1/ai/story-runs/{run_id}/story-revisions"),
+        ("post", "/api/parent/v1/ai/story-runs/{run_id}/activity-suggestions"),
+        ("post", "/api/parent/v1/ai/story-runs/{run_id}/activity-selection"),
+        ("post", "/v1/story-runs/{run_id}/video-generations"),
+        ("get", "/v1/story-runs/{run_id}/video-generations/current"),
+        ("get", "/v1/story-runs/{run_id}/video-generations/{video_candidate_id}"),
+        ("get", "/v1/story-runs/{run_id}/video-generations/{video_candidate_id}/preview"),
+    }
+)
+PARENT_EXPO_OPERATION_TAG = "Parent — Expo workflow"
 SRS_V22_OPERATION_TAGS.update(
     {
         key: "Parent StoryRuns"
@@ -179,31 +211,41 @@ SRS_V22_TAGS: list[dict[str, str]] = [
         "name": "Parent StoryRuns",
         "description": "Proposed Parent StoryRun create, read, and confirmation slice.",
     },
+    {
+        "name": PARENT_EXPO_OPERATION_TAG,
+        "description": (
+            "Parent mobile: lessons, SVG guides, stories, technical video previews."
+        ),
+    },
 ]
 
 SRS_V22_OPENAPI_DESCRIPTION = "\n\n".join(
     (
-        "Implemented FE APIs cover Parent profiles, a proposed Parent StoryRun slice, "
-        "organization/class management, consent, and Teacher lesson preparation.",
-        "Authentication and role/resource access are checked per operation.",
-        "Parent activity catalog, Teacher occurrence, Sketch Deck, sample video, jobs/playback, "
-        "quota/payment, and notifications are unavailable.",
-        "Proposed Parent confirmations and draft SRS status remain subject to approval.",
+        "FEAT-063 v2.7-draft is the unsigned working SRS. This API publishes Parent "
+        "authentication, lessons, topic/subject choices, SVG guides, artwork analysis, activities, "
+        "stories, and a local/test synthetic-only LTX preview. Candidate video is not "
+        "safety-validated or product-playable. Quota/payment and ordinary video playback remain "
+        "unpublished.",
     )
 )
 
 
 def project_srs_v22_openapi(runtime_spec: dict[str, Any]) -> dict[str, Any]:
-    """Return only the explicit SRS v2.2-related implemented operations."""
+    """Return the reviewed FE-facing API operations."""
     spec = deepcopy(runtime_spec)
     published: dict[str, dict[str, Any]] = {}
     for path, path_item in spec.get("paths", {}).items():
         retained: dict[str, Any] = {}
         for method, operation in path_item.items():
             key = (method.lower(), path)
-            if key not in SRS_V22_INCLUDED_OPERATIONS:
+            if (
+                key not in SRS_V22_INCLUDED_OPERATIONS
+                and key not in PARENT_EXPO_INCLUDED_OPERATIONS
+            ):
                 continue
-            operation["tags"] = [SRS_V22_OPERATION_TAGS[key]]
+            operation["tags"] = [
+                SRS_V22_OPERATION_TAGS.get(key, PARENT_EXPO_OPERATION_TAG)
+            ]
             retained[method] = operation
         if retained:
             published[path] = retained

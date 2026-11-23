@@ -22,6 +22,9 @@ L4_WORKLOADS = frozenset(
         "story.generate",
         "storyboard.generate",
         "parent.sketch-guide.generate",
+        "parent.topic-subjects.suggest",
+        "parent.topic-subjects.validate",
+        "parent.activity.suggest",
         "teacher.sketch-deck.generate",
         "lesson.plan.suggest",
         "lesson.visual.generate",
@@ -31,7 +34,7 @@ L4_WORKLOADS = frozenset(
         "video.final-safety.validate",
     }
 )
-L40S_WORKLOADS = frozenset({"video.scene.generate"})
+L40S_WORKLOADS = frozenset({"video.scene.generate", "video.story.generate"})
 _OPAQUE_ID = re.compile(r"\A[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}\Z")
 _SHA256 = re.compile(r"\A[0-9a-f]{64}\Z")
 

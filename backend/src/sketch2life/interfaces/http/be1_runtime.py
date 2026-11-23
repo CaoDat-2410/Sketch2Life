@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import logging
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from uuid import uuid4
@@ -92,6 +93,16 @@ class VerifiedDeviceStatusContext:
 
 PilotVisionFactory = Callable[[Settings, Engine], object]
 
+_LOGGER = logging.getLogger(__name__)
+
+
+def _safe_sqlstate(error: BaseException | None) -> str | None:
+    """Return a DB driver's five-character SQLSTATE without exposing its message."""
+    value = getattr(error, "sqlstate", None) or getattr(error, "pgcode", None)
+    if isinstance(value, str) and len(value) == 5 and value.isalnum():
+        return value
+    return None
+
 
 def build_be1_runtime(
     settings: Settings,
@@ -149,15 +160,37 @@ def get_runtime(request: Request) -> Be1Runtime:
     return runtime
 
 
-def get_db(runtime: Be1Runtime = Depends(get_runtime)) -> Iterator[Session]:
+def get_db(
+    request: Request,
+    runtime: Be1Runtime = Depends(get_runtime),
+) -> Iterator[Session]:
     assert runtime.session_factory is not None
     session = runtime.session_factory()
     try:
         # Probe at request start so unavailable PostgreSQL fails closed before any route work.
         session.execute(text("SELECT 1"))
         yield session
-    except SQLAlchemyError:
-        session.rollback()
+    except SQLAlchemyError as exc:
+        try:
+            session.rollback()
+        except SQLAlchemyError as rollback_error:
+            _LOGGER.error(
+                "be1_database_probe_rollback_failed request_id=%s error_type=%s error_module=%s",
+                getattr(request.state, "be1_request_id", "unknown"),
+                type(rollback_error).__name__,
+                type(rollback_error).__module__,
+            )
+        original = getattr(exc, "orig", None)
+        _LOGGER.error(
+            "be1_database_unavailable request_id=%s error_type=%s error_module=%s "
+            "driver_error_type=%s driver_error_module=%s sqlstate=%s",
+            getattr(request.state, "be1_request_id", "unknown"),
+            type(exc).__name__,
+            type(exc).__module__,
+            type(original).__name__ if original is not None else "unknown",
+            type(original).__module__ if original is not None else "unknown",
+            _safe_sqlstate(original),
+        )
         raise HTTPException(status_code=503, detail={"code": "DATABASE_UNAVAILABLE"}) from None
     finally:
         session.close()

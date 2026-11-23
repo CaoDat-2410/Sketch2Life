@@ -74,6 +74,7 @@ describe('ParentLearningUseCases I2 pre-drawing flow', () => {
       parent_profile_id: 'synthetic-profile',
       topic: 'khu vườn',
       adult_confirmed_idea: 'chú bướm tìm bạn',
+      intended_drawing_subject: null,
     }, 'story-after-photo-1');
     const request = api.createStoryRunV1.mock.calls[0][0];
     expect(request).not.toHaveProperty('lesson_version');

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Image, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { Audio } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import type { LessonDetail } from '../../domain/types';
@@ -183,13 +183,17 @@ export function IdeaScreen(props: Props): React.JSX.Element {
             thumbColor={props.guideEnabled ? palette.creativePrimary : '#F7F4FA'}
           />
         </View>
-        {props.guideEnabled ? <PrimaryButton variant="creative" label="Tạo gợi ý nét vẽ" busy={props.guideBusy} disabled={!props.topic.trim()} onPress={props.onGenerateGuide} /> : null}
-        {props.guideError ? <Notice variant="creative" text={props.guideError} tone="error" /> : null}
-        {props.guideBase64 ? <Image accessibilityLabel="Gợi ý nét vẽ do trí tuệ nhân tạo tạo" source={{ uri: `data:image/png;base64,${props.guideBase64}` }} resizeMode="contain" style={styles.guideImage} /> : null}
+        {props.guideEnabled ? <PrimaryButton variant="creative" label="Mở gợi ý nét vẽ" busy={props.guideBusy} disabled={!props.topic.trim()} onPress={props.onGenerateGuide} /> : null}
+        {props.guideError ? <Notice variant="creative" text={props.guideError} tone="warning" /> : null}
       </Card>
 
       {props.error ? <Notice variant="creative" text={props.error} tone="error" /> : null}
-      <PrimaryButton variant="creative" label="Tiếp tục đến bức tranh" disabled={!props.canContinue || props.guideBusy} onPress={props.onContinue} />
+      <PrimaryButton
+        variant="creative"
+        label={props.guideError ? 'Tiếp tục không cần gợi ý' : 'Tiếp tục đến bức tranh'}
+        disabled={!props.canContinue || props.guideBusy}
+        onPress={props.onContinue}
+      />
     </ScreenFrame>
   );
 }
@@ -217,5 +221,4 @@ const styles = StyleSheet.create({
   lessonActionLabel: { color: palette.creativePrimary, fontSize: 11, fontWeight: '800' },
   guideIcon: { alignItems: 'center', backgroundColor: '#FFF2DD', borderRadius: 13, height: 38, justifyContent: 'center', width: 38 },
   guideHeading: { alignItems: 'center', flexDirection: 'row', gap: 10, minHeight: 48, minWidth: 0 },
-  guideImage: { backgroundColor: palette.white, borderColor: palette.creativeBorder, borderRadius: 16, borderWidth: 1.5, height: 240, width: '100%' },
 });

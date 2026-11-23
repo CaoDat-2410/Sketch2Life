@@ -141,6 +141,38 @@ class ParentStoryRunSummary:
     updated_at: datetime
 
 
+@dataclass(frozen=True, slots=True)
+class ParentActivitySuggestionReservation:
+    run_id: str
+    suggestion_set_id: str
+    set_revision: int
+    understanding_revision: int
+    input_revision: int
+    context_revision: int
+    context_snapshot: dict[str, Any]
+    subject_label: str
+    visible_features: tuple[str, ...]
+    lesson_pin_snapshot: dict[str, Any] | None
+    excluded_candidate_keys: tuple[str, ...]
+    excluded_activities: tuple[dict[str, Any], ...]
+    receipt_id: str | None = None
+    replayed: bool = False
+    replay_body: dict[str, Any] | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class ParentActivitySelectionRecord:
+    run_id: str
+    activity_selection_id: str
+    suggestion_set_id: str
+    selection_revision: int
+    understanding_revision: int
+    activity_index: int
+    activity_snapshot: dict[str, Any]
+    activity_snapshot_sha256: str
+    created_at: datetime
+
+
 class ParentStoryRunRepositoryPort(Protocol):
     def list_runs(
         self,
@@ -162,6 +194,7 @@ class ParentStoryRunRepositoryPort(Protocol):
         idempotency_key: str,
         topic: str,
         adult_confirmed_idea: str,
+        intended_drawing_subject: str | None = None,
         lesson_version_ref: dict[str, str] | None = None,
     ) -> ParentStoryRunView | None: ...
 
@@ -175,6 +208,7 @@ class ParentStoryRunRepositoryPort(Protocol):
         run_id: str,
         topic: str,
         adult_confirmed_idea: str,
+        intended_drawing_subject: str | None = None,
         lesson_version_ref: dict[str, str] | None = None,
         lesson_pin_snapshot: dict[str, Any] | None = None,
     ) -> ParentStoryRunView: ...
@@ -240,6 +274,45 @@ class ParentStoryRunRepositoryPort(Protocol):
         self, *, principal: VerifiedPrincipal, run_id: str
     ) -> ParentStoryInputRecord: ...
 
+    def reserve_activity_suggestion_set(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        run_id: str,
+        expected_understanding_revision: int,
+        idempotency_key: str,
+    ) -> ParentActivitySuggestionReservation: ...
+
+    def complete_activity_suggestion_set(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        reservation: ParentActivitySuggestionReservation,
+        response: dict[str, Any],
+        provider_call_id: str | None,
+    ) -> dict[str, Any]: ...
+
+    def fail_activity_suggestion_set(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        reservation: ParentActivitySuggestionReservation,
+        error_code: str,
+        response_status: int,
+    ) -> None: ...
+
+    def select_activity(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        run_id: str,
+        suggestion_set_id: str,
+        expected_understanding_revision: int,
+        activity_index: int,
+        idempotency_key: str,
+        activity_selection_id: str,
+    ) -> ParentActivitySelectionRecord: ...
+
     def record_understanding(
         self,
         *,
@@ -264,6 +337,7 @@ class ParentStoryRunRepositoryPort(Protocol):
         self,
         *,
         principal: VerifiedPrincipal,
+        account_id: str,
         run_id: str,
         expected_understanding_revision: int,
         rewrite_instruction: str | None,
@@ -313,6 +387,8 @@ class ParentStoryRunRepositoryPort(Protocol):
 __all__ = [
     "ParentStoryInputRecord",
     "ParentStoryLifecycleRecord",
+    "ParentActivitySelectionRecord",
+    "ParentActivitySuggestionReservation",
     "ParentStoryRevisionReservation",
     "ParentStoryRunError",
     "ParentStoryRunRecord",

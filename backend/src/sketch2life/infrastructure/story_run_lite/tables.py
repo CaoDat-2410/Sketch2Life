@@ -441,7 +441,8 @@ story_command_receipts = Table(
     ),
     CheckConstraint(
         "operation IN ('CREATE_RUN','ATTACH_ASSET','CONFIRM_SUBJECT','CONFIRM_CONTEXT',"
-        "'CANCEL_RUN','GENERATE_STORY_REVISION','CONFIRM_STORY_REVISION','DELETE_RUN')",
+        "'CANCEL_RUN','GENERATE_STORY_REVISION','CONFIRM_STORY_REVISION',"
+        "'DELETE_RUN','GENERATE_ACTIVITY_SET','SELECT_ACTIVITY')",
         name="ck_story_receipt_operation",
     ),
     CheckConstraint(
@@ -519,6 +520,11 @@ story_revisions = Table(
     Column("model_id", String(256), nullable=False),
     Column("model_revision", String(128), nullable=False),
     Column("request_sha256", String(64), nullable=False),
+    Column(
+        "activity_selection_id",
+        String(36),
+        ForeignKey("story.parent_activity_selections.activity_selection_id", ondelete="NO ACTION"),
+    ),
     Column("provider_call_id", String(128)),
     Column("created_at", DateTime(timezone=True), nullable=False, server_default=text("now()")),
     UniqueConstraint("run_id", "revision_no", name="uq_story_revision_run_no"),
@@ -552,6 +558,7 @@ story_revisions = Table(
     ),
 )
 Index("ix_story_revision_run_status", story_revisions.c.run_id, story_revisions.c.status)
+Index("ix_story_revision_activity_selection", story_revisions.c.activity_selection_id)
 
 story_scenes = Table(
     "story_scenes",
@@ -608,12 +615,136 @@ story_revision_reviews = Table(
     CheckConstraint("length(target_story_sha256) = 64", name="ck_story_revision_review_hash"),
 )
 
+parent_activity_suggestion_sets = Table(
+    "parent_activity_suggestion_sets",
+    STORY_METADATA,
+    Column("suggestion_set_id", String(36), primary_key=True),
+    Column("run_id", String(36), ForeignKey("story.runs.run_id", ondelete="CASCADE"), nullable=False),
+    Column("set_revision", Integer, nullable=False),
+    Column("understanding_revision", Integer, nullable=False),
+    Column("input_revision", Integer, nullable=False),
+    Column("context_revision", Integer, nullable=False),
+    Column("selection_mode", String(32), nullable=False),
+    Column("catalog_candidate_count", Integer, nullable=False),
+    Column("activities_snapshot", JSONB, nullable=False),
+    Column("activities_snapshot_sha256", String(64), nullable=False),
+    Column("provider_call_id", String(128)),
+    Column("created_at", DateTime(timezone=True), nullable=False, server_default=text("now()")),
+    UniqueConstraint("run_id", "set_revision", name="uq_story_parent_activity_set_revision"),
+    UniqueConstraint("run_id", "suggestion_set_id", name="uq_story_parent_activity_set_owner"),
+    CheckConstraint("set_revision > 0 AND understanding_revision > 0", name="ck_story_parent_activity_set_revisions"),
+    CheckConstraint("input_revision > 0 AND context_revision > 0", name="ck_story_parent_activity_set_inputs"),
+    CheckConstraint("selection_mode IN ('CATALOG_SELECTION','AI_GENERATED_FALLBACK')", name="ck_story_parent_activity_set_mode"),
+    CheckConstraint("catalog_candidate_count BETWEEN 0 AND 500", name="ck_story_parent_activity_set_candidate_count"),
+    CheckConstraint("length(activities_snapshot_sha256) = 64", name="ck_story_parent_activity_set_hash"),
+    CheckConstraint("jsonb_typeof(activities_snapshot) = 'array' AND octet_length(activities_snapshot::text) <= 262144", name="ck_story_parent_activity_set_snapshot"),
+)
+Index(
+    "ix_story_parent_activity_set_current",
+    parent_activity_suggestion_sets.c.run_id,
+    parent_activity_suggestion_sets.c.understanding_revision,
+    parent_activity_suggestion_sets.c.set_revision,
+)
+
+parent_activity_selections = Table(
+    "parent_activity_selections",
+    STORY_METADATA,
+    Column("activity_selection_id", String(36), primary_key=True),
+    Column("run_id", String(36), nullable=False),
+    Column("selection_revision", Integer, nullable=False),
+    Column("suggestion_set_id", String(36), nullable=False),
+    Column("understanding_revision", Integer, nullable=False),
+    Column("activity_index", Integer, nullable=False),
+    Column("activity_snapshot", JSONB, nullable=False),
+    Column("activity_snapshot_sha256", String(64), nullable=False),
+    Column("actor_scope_ref", String(128), nullable=False),
+    Column("created_at", DateTime(timezone=True), nullable=False, server_default=text("now()")),
+    ForeignKeyConstraint(
+        ["run_id", "suggestion_set_id"],
+        ["story.parent_activity_suggestion_sets.run_id", "story.parent_activity_suggestion_sets.suggestion_set_id"],
+        ondelete="CASCADE",
+        name="fk_story_parent_activity_selection_set_owner",
+    ),
+    UniqueConstraint("run_id", "selection_revision", name="uq_story_parent_activity_selection_revision"),
+    CheckConstraint("selection_revision > 0 AND understanding_revision > 0", name="ck_story_parent_activity_selection_revisions"),
+    CheckConstraint("activity_index BETWEEN 0 AND 23", name="ck_story_parent_activity_selection_index"),
+    CheckConstraint("length(activity_snapshot_sha256) = 64", name="ck_story_parent_activity_selection_hash"),
+    CheckConstraint("jsonb_typeof(activity_snapshot) = 'object' AND octet_length(activity_snapshot::text) <= 32768", name="ck_story_parent_activity_selection_snapshot"),
+)
+Index(
+    "ix_story_parent_activity_selection_current",
+    parent_activity_selections.c.run_id,
+    parent_activity_selections.c.understanding_revision,
+    parent_activity_selections.c.selection_revision,
+)
+
+parent_video_candidate_jobs = Table(
+    "video_candidate_jobs",
+    STORY_METADATA,
+    Column(
+        "video_candidate_id",
+        String(36),
+        primary_key=True,
+    ),
+    Column("run_id", String(36), ForeignKey("story.runs.run_id", ondelete="CASCADE"), nullable=False),
+    Column("owner_issuer", String(64), nullable=False),
+    Column("owner_subject", String(128), nullable=False),
+    Column("story_revision_id", String(36), nullable=False),
+    Column("story_revision_no", Integer, nullable=False),
+    Column("story_sha256", String(64), nullable=False),
+    Column("source_asset_ref", String(256), nullable=False),
+    Column("source_asset_version", Integer, nullable=False),
+    Column("source_asset_sha256", String(64), nullable=False),
+    Column("source_media_type", String(32), nullable=False),
+    Column("activity_selection_id", String(36), ForeignKey("story.parent_activity_selections.activity_selection_id", ondelete="RESTRICT"), nullable=False),
+    Column("activity_snapshot_sha256", String(64), nullable=False),
+    Column("idempotency_key_sha256", String(64), nullable=False),
+    Column("request_fingerprint_sha256", String(64), nullable=False),
+    Column("state", String(32), nullable=False),
+    Column("modal_call_id", String(128)),
+    Column("job_id", String(80), nullable=False),
+    Column("generation_id", String(80), nullable=False),
+    Column("attempt_id", String(80), nullable=False),
+    Column("attempt_prefix", String(256), nullable=False),
+    Column("output_asset_ref", String(256)),
+    Column("output_sha256", String(64)),
+    Column("output_size_bytes", BigInteger),
+    Column("output_manifest_sha256", String(64)),
+    Column("output_metadata", JSONB),
+    Column("safe_failure_code", String(80)),
+    Column("created_at", DateTime(timezone=True), nullable=False, server_default=text("now()")),
+    Column("updated_at", DateTime(timezone=True), nullable=False, server_default=text("now()")),
+    UniqueConstraint("run_id", name="uq_story_video_candidate_run"),
+    UniqueConstraint("run_id", "idempotency_key_sha256", name="uq_story_video_candidate_idempotency"),
+    ForeignKeyConstraint(
+        ["run_id", "story_revision_id"],
+        ["story.story_revisions.run_id", "story.story_revisions.story_revision_id"],
+        ondelete="CASCADE",
+        name="fk_story_video_candidate_revision_owner",
+    ),
+    CheckConstraint("state IN ('STAGING','DISPATCHING','QUEUED','GENERATING','CANDIDATE_READY','FAILED','AWAITING_RECONCILIATION')", name="ck_story_video_candidate_state"),
+    CheckConstraint("story_revision_no BETWEEN 1 AND 4", name="ck_story_video_candidate_story_revision"),
+    CheckConstraint("source_asset_version > 0", name="ck_story_video_candidate_source_version"),
+    CheckConstraint("length(story_sha256) = 64 AND length(source_asset_sha256) = 64", name="ck_story_video_candidate_input_hashes"),
+    CheckConstraint("length(activity_snapshot_sha256) = 64", name="ck_story_video_candidate_activity_hash"),
+    CheckConstraint("length(idempotency_key_sha256) = 64 AND length(request_fingerprint_sha256) = 64", name="ck_story_video_candidate_request_hashes"),
+    CheckConstraint("output_sha256 IS NULL OR length(output_sha256) = 64", name="ck_story_video_candidate_output_hash"),
+    CheckConstraint("output_manifest_sha256 IS NULL OR length(output_manifest_sha256) = 64", name="ck_story_video_candidate_manifest_hash"),
+    CheckConstraint("output_size_bytes IS NULL OR output_size_bytes BETWEEN 1 AND 268435456", name="ck_story_video_candidate_output_size"),
+    CheckConstraint("(state = 'CANDIDATE_READY' AND output_asset_ref IS NOT NULL AND output_sha256 IS NOT NULL AND output_manifest_sha256 IS NOT NULL AND output_size_bytes IS NOT NULL AND safe_failure_code IS NULL) OR (state != 'CANDIDATE_READY' AND output_asset_ref IS NULL AND output_sha256 IS NULL AND output_manifest_sha256 IS NULL AND output_size_bytes IS NULL)", name="ck_story_video_candidate_ready_shape"),
+    CheckConstraint("(state = 'FAILED' AND safe_failure_code IS NOT NULL) OR (state != 'FAILED' AND safe_failure_code IS NULL)", name="ck_story_video_candidate_failure_shape"),
+)
+Index("ix_story_video_candidate_state_updated", parent_video_candidate_jobs.c.state, parent_video_candidate_jobs.c.updated_at)
+
 
 __all__ = [
     "CORE_METADATA",
     "STORY_METADATA",
     "STORY_SCHEMA",
     "asset_lineage",
+    "parent_activity_selections",
+    "parent_activity_suggestion_sets",
+    "parent_video_candidate_jobs",
     "review_decisions",
     "run_inputs",
     "story_command_receipts",

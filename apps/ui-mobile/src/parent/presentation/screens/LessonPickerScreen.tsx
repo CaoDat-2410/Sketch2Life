@@ -24,16 +24,17 @@ export function LessonPickerScreen(props: Props): React.JSX.Element {
       subtitle="Chọn một bài học phù hợp cho buổi sáng tạo cùng bé."
       step="Thư viện"
       onBack={props.onBack}
+      visualTone="creative"
     >
-      {props.error ? <Notice text={props.error} tone="error" /> : null}
+      {props.error ? <Notice variant="creative" text={props.error} tone="error" /> : null}
 
-      <Card style={styles.introCard}>
+      <Card variant="creative" style={styles.introCard}>
         <View style={styles.introHeading}>
           <View style={styles.introIcon}>
             <Ionicons name="color-palette-outline" size={23} color={colors.purple} accessible={false} />
           </View>
           <View style={styles.introCopy}>
-            <SectionTitle>{selection ? 'Bài học đã chọn' : 'Chọn cảm hứng cho bé'}</SectionTitle>
+            <SectionTitle variant="creative">{selection ? 'Bài học đã chọn' : 'Chọn cảm hứng cho bé'}</SectionTitle>
             <Text style={styles.introText}>
               {selection ? selection.title : 'Chọn một bài học để xem và dùng trong buổi sáng tạo.'}
             </Text>
@@ -46,14 +47,14 @@ export function LessonPickerScreen(props: Props): React.JSX.Element {
       </Card>
 
       {props.loading && props.lessons.length === 0 ? (
-        <Card style={styles.stateCard}>
+        <Card variant="creative" style={styles.stateCard}>
           <ActivityIndicator color={colors.purple} />
           <Text style={styles.stateText}>Đang tải bài học…</Text>
         </Card>
       ) : null}
 
       {!props.loading && !props.error && props.lessons.length === 0 ? (
-        <Card style={styles.emptyCard}>
+        <Card variant="creative" style={styles.emptyCard}>
           <View style={styles.emptyIcon}>
             <Ionicons name="book-outline" size={30} color={colors.purple} accessible={false} />
           </View>

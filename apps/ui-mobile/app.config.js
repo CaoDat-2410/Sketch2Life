@@ -1,24 +1,7 @@
-const fs = require('node:fs');
-const path = require('node:path');
-
-function readRootEnv() {
-  const envPath = path.resolve(__dirname, '../../.env');
-  if (!fs.existsSync(envPath)) return {};
-  const values = {};
-  for (const line of fs.readFileSync(envPath, 'utf8').split(/\r?\n/)) {
-    const match = line.match(/^\s*(?:export\s+)?([A-Z0-9_]+)\s*=\s*(.*?)\s*$/);
-    if (!match || match[1].startsWith('#')) continue;
-    let value = match[2];
-    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
-      value = value.slice(1, -1);
-    }
-    values[match[1]] = value;
-  }
-  return values;
-}
+const { readRootEnv } = require('./config/rootEnv');
 
 module.exports = ({ config }) => {
-  const rootEnv = readRootEnv();
+  const rootEnv = readRootEnv(__dirname);
   return {
     ...config,
     extra: {

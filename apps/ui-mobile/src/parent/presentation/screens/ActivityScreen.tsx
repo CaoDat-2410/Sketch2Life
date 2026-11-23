@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type { ActivitySuggestionResult } from '../../application/ports/ParentPorts';
 import type { SuggestedActivity } from '../../domain/types';
 import { Card, Notice, PrimaryButton, ScreenFrame, SectionTitle, palette } from '../components/ui';
+import { ParentAiLoadingState } from '../components/ParentAiLoadingState';
 
 type Props = {
   stepLabel: string;
@@ -11,6 +12,8 @@ type Props = {
   subject: string;
   suggestions: ActivitySuggestionResult | null;
   selectedIndex: number | null;
+  selectionPersisted: boolean;
+  selectionBusy: boolean;
   loading: boolean;
   attempted: boolean;
   error: string;
@@ -49,7 +52,14 @@ export function ActivityScreen(props: Props): React.JSX.Element {
         </View>
       </Card>
 
-      {!props.suggestions ? (
+      {props.loading ? (
+        <ParentAiLoadingState
+          testID="parent-activity-ai-loading"
+          title="Đang tìm hoạt động phù hợp"
+          description="Hệ thống đang kiểm tra bài học đã chia sẻ. Nếu chưa có hoạt động phù hợp, AI sẽ tạo gợi ý để người lớn xem lại."
+          note="Giữ màn hình này đến khi có kết quả. Không gửi lại khi yêu cầu đang chạy."
+        />
+      ) : !props.suggestions ? (
         <Card variant="creative" style={styles.emptyCard}>
           <View style={styles.emptyArtwork}>
             <View style={styles.emptyGlow} />
@@ -64,14 +74,16 @@ export function ActivityScreen(props: Props): React.JSX.Element {
             <View style={styles.artSparkleTwo}><Ionicons name="star" size={13} color="#9B68E8" /></View>
           </View>
           <View style={styles.emptyCopy}>
-            <SectionTitle variant="creative">Tìm hoạt động hợp với tranh</SectionTitle>
-            <Text style={styles.description}>
-              {props.error
-                ? 'Bạn có thể thử tải gợi ý lại.'
-                : props.attempted
-                  ? 'Chưa có gợi ý. Hãy thử lại.'
+            <SectionTitle variant="creative">
+              {props.error ? 'Chưa lấy được gợi ý' : 'Tìm hoạt động hợp với tranh'}
+            </SectionTitle>
+            {!props.error ? (
+              <Text style={styles.description}>
+                {props.attempted
+                  ? 'Chưa có gợi ý được lưu cho buổi học này.'
                   : 'Gợi ý dựa trên chủ thể và ngữ cảnh đã xác nhận.'}
-            </Text>
+              </Text>
+            ) : null}
           </View>
           {props.error ? <Notice variant="creative" text={props.error} tone="error" /> : null}
           <PrimaryButton
@@ -89,7 +101,7 @@ export function ActivityScreen(props: Props): React.JSX.Element {
               <Text style={styles.description}>
                 {selectionMode === 'CATALOG_SELECTION'
                   ? 'Các hoạt động được chọn từ nội dung bài học phù hợp.'
-                  : 'Đây là bản nháp do AI gợi ý. Người lớn cần xem lại trước khi dùng.'}
+                  : 'Chưa tìm thấy hoạt động phù hợp trong thư viện. Đây là gợi ý AI để người lớn xem lại.'}
               </Text>
             </View>
             <View style={[styles.modeBadge, selectionMode === 'AI_GENERATED_FALLBACK' && styles.draftBadge]}>
@@ -109,17 +121,27 @@ export function ActivityScreen(props: Props): React.JSX.Element {
           ))}
 
           {props.error ? <Notice variant="creative" text={props.error} tone="error" /> : null}
-          {hasSelection ? (
+          {hasSelection && props.selectionBusy ? (
             <Notice
               variant="creative"
-              text="Lựa chọn chưa được lưu, nên chưa thể tạo câu chuyện."
+              text="Đang lưu lựa chọn vào buổi học…"
               tone="warning"
             />
           ) : null}
+          {hasSelection && !props.selectionBusy && !props.selectionPersisted ? (
+            <Notice
+              variant="creative"
+              text="Chưa lưu được lựa chọn. Hãy chọn lại để thử lưu trước khi tiếp tục."
+              tone="warning"
+            />
+          ) : null}
+          {hasSelection && props.selectionPersisted ? (
+            <Text style={styles.savedText}>Đã lưu lựa chọn cho buổi học này.</Text>
+          ) : null}
           <PrimaryButton
             variant="creative"
-            label="Tiếp tục đến câu chuyện"
-            disabled={!hasSelection}
+            label={props.selectionBusy ? 'Đang lưu lựa chọn…' : 'Tiếp tục đến câu chuyện'}
+            disabled={!hasSelection || !props.selectionPersisted || props.selectionBusy}
             onPress={props.onContinue}
           />
         </>
@@ -155,7 +177,9 @@ function ActivityOption({ activity, selected, onPress }: {
           </View>
         </View>
 
-        {activity.match_reason ? <Text style={styles.matchReason}>{activity.match_reason}</Text> : null}
+        {activity.source !== 'AI_GENERATED_DRAFT' && activity.match_reason ? (
+          <Text style={styles.matchReason}>{activity.match_reason}</Text>
+        ) : null}
         <View style={styles.objectiveBox}>
           <Text style={styles.fieldLabel}>MỤC TIÊU</Text>
           <Text style={styles.bodyText}>{activity.objective}</Text>
@@ -249,4 +273,5 @@ const styles = StyleSheet.create({
   safetyBox: { flexDirection: 'row', alignItems: 'flex-start', gap: 7, borderRadius: 12, padding: 10, backgroundColor: '#FFF5D9' },
   safetyText: { flex: 1, color: '#72530D', fontSize: 12, lineHeight: 17 },
   sourceText: { color: palette.creativeMuted, fontSize: 10, lineHeight: 15 },
+  savedText: { color: '#286344', fontSize: 12, lineHeight: 18, fontWeight: '700', paddingHorizontal: 3 },
 });

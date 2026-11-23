@@ -23,9 +23,10 @@ export function DrawingGuideScreen(props: Props): React.JSX.Element {
       subtitle="Có thể bỏ qua hướng dẫn bất cứ lúc nào. Không ảnh hưởng việc chụp tranh."
       step={props.stepLabel}
       onBack={props.onBack}
+      visualTone="creative"
     >
-      <Card style={styles.guideCard}>
-        <SectionTitle>{props.lesson.title}</SectionTitle>
+      <Card variant="creative" style={styles.guideCard}>
+        <SectionTitle variant="creative">{props.lesson.title}</SectionTitle>
         <Text style={styles.lessonPinText}>
           Phiên bản bài học đã ghim vẫn được giữ nguyên trong buổi học.
         </Text>
@@ -35,12 +36,13 @@ export function DrawingGuideScreen(props: Props): React.JSX.Element {
           </Text>
           <Text style={styles.stepText}>{guide.steps[currentIndex]}</Text>
           <SecondaryButton
+            variant="creative"
             label={currentIndex + 1 < stepCount ? 'Bước tiếp' : 'Quay lại bước đầu'}
             onPress={() => props.onIndexChange(currentIndex + 1 < stepCount ? currentIndex + 1 : 0)}
           />
-        </> : <Notice text="Hướng dẫn vẽ chưa khả dụng." tone="warning" />}
+        </> : <Notice variant="creative" text="Hướng dẫn vẽ chưa khả dụng." tone="warning" />}
       </Card>
-      <PrimaryButton label="Bỏ qua hướng dẫn" onPress={props.onContinue} />
+      <PrimaryButton variant="creative" label="Bỏ qua hướng dẫn" onPress={props.onContinue} />
     </ScreenFrame>
   );
 }

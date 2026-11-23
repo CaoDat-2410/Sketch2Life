@@ -34,7 +34,7 @@ def _valid_story() -> dict[str, Any]:
         "title": "Hành trình của bướm",
         "story": {
             "opening": "Trên chiếc lá có một chấm trứng nhỏ.",
-            "middle": "Trứng nở thành sâu bướm. Sâu bướm ăn lá, lớn lên rồi hóa nhộng.",
+            "middle": "Sâu bướm ăn lá rồi hóa nhộng.",
             "ending": "Bướm trưởng thành chui ra khỏi nhộng và bay đến bông hoa.",
         },
         "duration_ms": 30_000,
@@ -65,22 +65,41 @@ def _parse(payload: dict[str, Any] | str) -> dict[str, Any]:
 
 def _valid_content() -> dict[str, Any]:
     story = _valid_story()
+
+    def sentence(value: str) -> dict[str, str]:
+        normalized = value.strip()
+        if normalized and normalized[-1] in ".?!":
+            return {"body": normalized[:-1], "terminator": normalized[-1]}
+        return {"body": normalized, "terminator": "."}
+
     return {
         "title": story["title"],
-        "story": story["story"],
+        "story": {
+            key: sentence(value) for key, value in story["story"].items()
+        },
         "scenes": [
             {
-                key: scene[key]
-                for key in (
-                    "title",
-                    "action",
-                    "visual_prompt",
-                    "narration",
-                    "character_anchors",
-                )
+                "title": scene["title"],
+                "action": sentence(scene["action"]),
+                "visual_prompt": scene["visual_prompt"],
+                "narration": sentence(scene["narration"]),
+                "character_anchors": scene["character_anchors"],
             }
             for scene in story["scenes"]
         ],
+    }
+
+
+def _valid_activity() -> dict[str, str]:
+    return {
+        "title": "Quan sát lá",
+        "objective": "Nhận biết hình dạng và gân lá.",
+        "materials_text": "Một chiếc lá rụng.",
+        "preparation_text": "Chọn chiếc lá sạch, không sắc cạnh.",
+        "instructions_text": "Cùng quan sát hình dạng và đường gân trên lá.",
+        "observation_notes": "Để trẻ tự mô tả điều nhìn thấy.",
+        "safety_notes": "Người lớn chọn lá an toàn.",
+        "activity_kind": "outdoor",
     }
 
 
@@ -138,21 +157,89 @@ def test_story_fact_validation_uses_canonical_order_after_json_key_reordering() 
     assert list(parsed["story"]) == ["opening", "middle", "ending"]
 
 
-def test_story_parser_accepts_nonempty_text_without_terminal_punctuation() -> None:
+def test_story_parser_rejects_story_prose_without_terminal_punctuation() -> None:
     content = _valid_content()
-    for key in tuple(content["story"]):
-        content["story"][key] = content["story"][key].rstrip(".")
-    for scene in content["scenes"]:
-        for field in ("action", "visual_prompt", "narration"):
-            scene[field] = scene[field].rstrip(".")
+    content["story"]["middle"]["terminator"] = ""
+
+    with pytest.raises(story_worker.StoryOutputValidationError) as error:
+        _parse_content(content)
+
+    assert error.value.reason_code == "STORY_SENTENCE_FIELDS_INVALID"
+    assert error.value.field_path == "story.middle"
+
+
+def test_story_parser_rejects_dangling_vietnamese_clause_even_with_period() -> None:
+    content = _valid_content()
+    content["story"]["middle"] = {
+        "body": "Bé đặt thẻ xuống đất để không bị",
+        "terminator": ".",
+    }
+
+    with pytest.raises(story_worker.StoryOutputValidationError) as error:
+        _parse_content(content)
+
+    assert error.value.reason_code == "STORY_TEXT_INCOMPLETE"
+    assert error.value.field_path == "story.middle"
+
+
+@pytest.mark.parametrize("terminator", ["?", "!"])
+def test_story_parser_preserves_each_allowed_sentence_terminator(terminator: str) -> None:
+    content = _valid_content()
+    content["story"]["opening"] = {
+        "body": "Bé nhìn thấy điều gì trên chiếc lá",
+        "terminator": terminator,
+    }
 
     parsed = _parse_content(content)
 
-    assert all(value.strip() for value in parsed["story"].values())
-    assert all(scene["visual_prompt"] for scene in parsed["scenes"])
+    assert parsed["story"]["opening"].endswith(terminator)
 
 
-def test_story_failure_diagnostics_identify_incomplete_field_without_text() -> None:
+@pytest.mark.parametrize(
+    ("value", "reason"),
+    [
+        ({"body": "Bé nhìn chiếc lá", "terminator": "…"}, "STORY_SENTENCE_FIELDS_INVALID"),
+        ({"body": "Bé nhìn chiếc lá", "terminator": ".", "extra": "x"}, "STORY_SENTENCE_SCHEMA_INVALID"),
+        ({"body": "x" * 81, "terminator": "."}, "STORY_SENTENCE_FIELDS_INVALID"),
+    ],
+)
+def test_story_parser_rejects_invalid_sentence_object(
+    value: dict[str, str], reason: str
+) -> None:
+    content = _valid_content()
+    content["story"]["opening"] = value
+
+    with pytest.raises(story_worker.StoryOutputValidationError) as error:
+        _parse_content(content)
+
+    assert error.value.reason_code == reason
+    assert error.value.field_path == "story.opening"
+
+
+def test_story_parser_rejects_mixed_script_in_child_facing_prose() -> None:
+    content = _valid_content()
+    content["story"]["opening"] = {
+        "body": "Bé quan sát con rùa 完",
+        "terminator": ".",
+    }
+
+    with pytest.raises(story_worker.StoryOutputValidationError) as error:
+        _parse_content(content)
+
+    assert error.value.reason_code == "STORY_TEXT_NON_LATIN_SCRIPT"
+    assert error.value.field_path == "story.opening"
+
+
+def test_story_parser_allows_unpunctuated_english_visual_prompt() -> None:
+    content = _valid_content()
+    content["scenes"][0]["visual_prompt"] = "A turtle card beside a child's drawing"
+
+    parsed = _parse_content(content)
+
+    assert parsed["scenes"][0]["visual_prompt"] == content["scenes"][0]["visual_prompt"]
+
+
+def test_story_failure_diagnostics_do_not_require_visual_prompt_punctuation() -> None:
     content = _valid_content()
     content["scenes"][1]["visual_prompt"] = "A child studies a butterfly"
 
@@ -161,9 +248,7 @@ def test_story_failure_diagnostics_identify_incomplete_field_without_text() -> N
     )
 
     assert diagnostics["story_field_diagnostics_available"] is True
-    assert diagnostics["story_incomplete_sentence_fields"] == [
-        "scenes[2].visual_prompt"
-    ]
+    assert diagnostics["story_incomplete_sentence_fields"] == []
     visual_metric = next(
         metric
         for metric in diagnostics["story_text_field_metrics"]
@@ -172,41 +257,98 @@ def test_story_failure_diagnostics_identify_incomplete_field_without_text() -> N
     assert visual_metric == {
         "field": "scenes[2].visual_prompt",
         "character_count": 27,
-        "max_length": 240,
-        "sentence_complete": False,
+        "max_length": 100,
     }
     assert "A child studies a butterfly" not in json.dumps(diagnostics)
 
 
-def test_story_parser_preserves_schema_valid_trailing_fragments() -> None:
+def test_story_failure_diagnostics_mark_dangling_body_without_echoing_text() -> None:
     content = _valid_content()
-    original_opening = content["story"]["opening"]
-    original_action = content["scenes"][0]["action"]
+    content["story"]["opening"] = {"body": "Bé nhìn chiếc lá để", "terminator": "."}
+
+    diagnostics = story_worker._story_output_field_diagnostics(
+        json.dumps(content, ensure_ascii=False)
+    )
+
+    assert diagnostics["story_incomplete_sentence_fields"] == ["story.opening"]
+    assert "Bé nhìn chiếc lá" not in json.dumps(diagnostics, ensure_ascii=False)
+
+
+def test_story_parser_rejects_unfinished_trailing_fragment_without_rewriting() -> None:
+    content = _valid_content()
+    original_opening = content["story"]["opening"]["body"]
+    original_action = content["scenes"][0]["action"]["body"]
     original_visual_prompt = content["scenes"][0]["visual_prompt"]
-    original_narration = content["scenes"][0]["narration"]
-    content["story"]["opening"] += " Then the sentence continues without punctuation"
-    content["scenes"][0]["action"] += " The child continues to observe"
+    original_narration = content["scenes"][0]["narration"]["body"]
+    content["story"]["opening"]["body"] += ". Then the sentence continues"
+    content["scenes"][0]["action"]["body"] += ". The child continues"
     content["scenes"][0]["visual_prompt"] += " with a green leaf in the foreground"
-    content["scenes"][0]["narration"] += " and the butterfly rests nearby"
+    content["scenes"][0]["narration"]["body"] += ". The butterfly rests nearby"
+
+    with pytest.raises(story_worker.StoryOutputValidationError) as error:
+        _parse_content(content)
+
+    assert error.value.reason_code == "STORY_SENTENCE_BODY_CONTAINS_TERMINATOR"
+    assert error.value.field_path == "story.opening"
+    assert original_opening in content["story"]["opening"]["body"]
+    assert original_action in content["scenes"][0]["action"]["body"]
+    assert original_visual_prompt in content["scenes"][0]["visual_prompt"]
+    assert original_narration in content["scenes"][0]["narration"]["body"]
+
+
+@pytest.mark.parametrize(
+    ("field_path", "leaked_text"),
+    [
+        (("story", "opening", "body"), "Trên lá có trứng nhỏ (149 ký tự)"),
+        (("story", "middle", "body"), "Sâu bướm ăn lá rồi hóa nhộng. 68"),
+        (("scenes", 0, "action", "body"), "Gió nhẹ lay chiếc lá 68 ký tự"),
+        (("scenes", 1, "narration", "body"), "Cùng quan sát nhé\n69"),
+    ],
+)
+def test_story_parser_rejects_character_count_leak_without_rewriting(
+    field_path: tuple[str | int, ...], leaked_text: str
+) -> None:
+    content = _valid_content()
+    target: Any = content
+    for key in field_path[:-1]:
+        target = target[key]
+    target[field_path[-1]] = leaked_text
+
+    with pytest.raises(story_worker.StoryOutputValidationError) as error:
+        _parse_content(content)
+
+    assert error.value.reason_code == "STORY_COUNT_METADATA_LEAKED"
+    assert str(error.value) == "MODAL_MODEL_OUTPUT_INVALID"
+
+
+def test_story_parser_keeps_meaningful_numbers_inside_prose() -> None:
+    content = _valid_content()
+    content["story"]["opening"] = {"body": "Có 3 chiếc lá xanh quanh con bướm", "terminator": "."}
 
     parsed = _parse_content(content)
 
-    assert (
-        parsed["story"]["opening"]
-        == original_opening + " Then the sentence continues without punctuation"
+    assert parsed["story"]["opening"] == "Có 3 chiếc lá xanh quanh con bướm."
+
+
+def test_parent_story_prompt_marks_length_targets_as_internal_metadata() -> None:
+    prompt = story_worker._parent_story_prompt(
+        {
+            "topic": "Động vật",
+            "confirmed_subject": "Con bướm",
+            "lesson_subject_learning_notes": "Bướm phát triển qua các giai đoạn trứng, sâu, nhộng và trưởng thành.",
+            "visible_features": ["hai cặp cánh"],
+            "child_age_months": 60,
+            "primary_activity": _valid_activity(),
+            "adult_confirmed_idea": "",
+            "rewrite_instruction": None,
+        }
     )
-    assert (
-        parsed["scenes"][0]["action"]
-        == original_action + " The child continues to observe"
-    )
-    assert (
-        parsed["scenes"][0]["visual_prompt"]
-        == original_visual_prompt + " with a green leaf in the foreground"
-    )
-    assert (
-        parsed["scenes"][0]["narration"]
-        == original_narration + " and the butterfly rests nearby"
-    )
+
+    assert "chỉ là quy tắc nội bộ" in prompt
+    assert "Mỗi phần story có body mục tiêu 35-50 ký tự" in prompt
+    assert "Mọi câu chỉ có một mệnh đề chính" in prompt
+    assert '"topic":"Động vật"' in prompt
+    assert '"lesson_subject_learning_notes":"Bướm phát triển' in prompt
 
 
 def test_parent_story_generation_schema_uses_compact_fields_with_srs_scene_count() -> (
@@ -217,10 +359,29 @@ def test_parent_story_generation_schema_uses_compact_fields_with_srs_scene_count
     scene_fields = scene_schema["items"]["properties"]
 
     assert scene_schema["minItems"] == scene_schema["maxItems"] == 5
-    assert scene_fields["visual_prompt"]["maxLength"] == 240
-    assert scene_fields["action"]["maxLength"] == 180
-    assert scene_fields["narration"]["maxLength"] == 180
-    assert schema["properties"]["story"]["properties"]["opening"]["maxLength"] == 300
+    assert scene_fields["visual_prompt"]["maxLength"] == 100
+    assert scene_fields["action"]["properties"]["body"]["maxLength"] == 60
+    assert scene_fields["narration"]["properties"]["body"]["maxLength"] == 60
+    opening_schema = schema["properties"]["story"]["properties"]["opening"]
+    assert opening_schema["properties"]["body"]["maxLength"] == 80
+    assert opening_schema["properties"]["terminator"]["enum"] == [".", "?", "!"]
+    assert scene_fields["action"]["properties"]["body"]["maxLength"] == 60
+    prompt = story_worker._parent_story_prompt(
+        {
+            "topic": "Động vật",
+            "confirmed_subject": "Con bướm",
+            "lesson_subject_learning_notes": "Bướm có các giai đoạn phát triển riêng biệt.",
+            "visible_features": ["hai cặp cánh"],
+            "child_age_months": 60,
+            "primary_activity": _valid_activity(),
+            "adult_confirmed_idea": "",
+            "rewrite_instruction": None,
+        }
+    )
+    assert "Mỗi phần story có body mục tiêu 35-50 ký tự" in prompt
+    assert "Mỗi action có body mục tiêu 20-32 ký tự" in prompt
+    assert "Mỗi narration có body mục tiêu 20-35 ký tự" in prompt
+    assert "Mọi câu chỉ có một mệnh đề chính" in prompt
     assert "pattern" not in scene_fields["narration"]
     assert scene_fields["character_anchors"]["maxItems"] == 2
     assert story_worker.STORY_GENERATION_BUDGET == 4_096
@@ -324,8 +485,10 @@ def test_vietnamese_characters_keep_json_parser_inside_bounded_string(
             "CONTENT_SCENE_SCHEMA_INVALID",
         ),
         (
-            lambda value: value["scenes"][0].update(action="a" * 501),
-            "CONTENT_SCENE_TEXT_INVALID",
+            lambda value: value["scenes"][0].update(
+                action={"body": "a" * 61, "terminator": "."}
+            ),
+            "STORY_SENTENCE_FIELDS_INVALID",
         ),
         (
             lambda value: value["scenes"][0].update(character_anchors=[]),
@@ -548,7 +711,7 @@ def test_constrained_decoder_receives_worker_story_schema(
         schema["properties"]["scenes"]["items"]["properties"]["visual_prompt"][
             "maxLength"
         ]
-        == 240
+        == 100
     )
     assert "scene_index" not in schema["properties"]["scenes"]["items"]["properties"]
     assert "start_ms" not in schema["properties"]["scenes"]["items"]["properties"]
@@ -641,29 +804,50 @@ def test_transformers5_compatible_prefix_adapter_enforces_json_tokens(
 
 
 def test_parent_story_prompt_spells_out_timeline_and_butterfly_order() -> None:
+    activity = {
+        "title": "Quan sát lá",
+        "objective": "Nhận biết hình dạng và gân lá.",
+        "materials_text": "Một chiếc lá rụng.",
+        "preparation_text": "Chọn chiếc lá sạch, không sắc cạnh.",
+        "instructions_text": "Cùng quan sát hình dạng và đường gân trên lá.",
+        "observation_notes": "Để trẻ tự mô tả điều nhìn thấy.",
+        "safety_notes": "Người lớn chọn lá an toàn.",
+        "activity_kind": "outdoor",
+    }
     prompt = story_worker._parent_story_prompt(
         {
+            "topic": "Thiên nhiên",
             "confirmed_subject": "bướm",
+            "lesson_subject_learning_notes": "Bướm có các giai đoạn phát triển riêng biệt.",
             "visible_features": ["cánh tròn"],
             "child_age_months": 60,
             "adult_confirmed_idea": "",
             "rewrite_instruction": None,
+            "primary_activity": activity,
         }
     )
     assert "đúng 5 cảnh" in prompt
-    assert "hệ thống sẽ tự thêm số thứ tự và thời gian" in prompt
+    assert "Mỗi action có body mục tiêu 20-32 ký tự, tối đa 60" in prompt
+    assert "Mỗi action chỉ kể một hành động chính" in prompt
+    assert "Không cắt câu để đạt giới hạn" in prompt
+    assert "Hệ thống tự thêm số thứ tự và thời gian cho cảnh" in prompt
     assert "start_ms lần lượt" not in prompt
-    assert "opening phải nói về trứng" in prompt
-    assert "middle phải kể sâu bướm ăn lá rồi hóa nhộng" in prompt
-    assert "ending phải kể bướm trưởng thành chui ra khỏi nhộng" in prompt
+    assert "trứng → sâu bướm ăn lá → nhộng → bướm trưởng thành" in prompt
+    assert "không được kể như thể trẻ đã làm xong" in prompt
+    assert "Nhân vật trung tâm phải là đúng chủ thể người lớn đã xác nhận trong tranh" in prompt
+    assert "không dùng chữ Hán, Nhật, Hàn" in prompt
+    assert '"title":"Quan sát lá"' in prompt
 
     generic_prompt = story_worker._parent_story_prompt(
         {
+            "topic": "Thiên nhiên",
             "confirmed_subject": "chiếc lá",
+            "lesson_subject_learning_notes": "Lá có phiến lá và gân lá.",
             "visible_features": ["gân lá"],
             "child_age_months": 60,
             "adult_confirmed_idea": "",
             "rewrite_instruction": None,
+            "primary_activity": activity,
         }
     )
     assert "trứng”" not in generic_prompt

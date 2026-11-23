@@ -42,10 +42,15 @@ export interface ParentApplicationModule {
     | 'acceptGroupInvitation'>;
   learning: Pick<ParentLearningUseCases,
     | 'getRunV1'
+    | 'listTopicSuggestions'
+    | 'listDrawingSubjectSuggestions'
+    | 'validateCustomSubject'
+    | 'generateSketchGuide'
     | 'createRunAfterPhotoV1'
     | 'confirmRunContextV1'
     | 'confirmSubjectV1'
     | 'suggestActivities'
+    | 'selectActivity'
     | 'confirmScriptV1'
     | 'createStoryRevisionV1'
     | 'understandDrawing'> & {
@@ -64,5 +69,9 @@ export interface ParentApplicationModule {
     | 'submitFeedback'
     | 'listNotifications'
     | 'markNotificationRead'
-    | 'getVideoQuota'>;
+    | 'getVideoQuota'
+    | 'requestVideoCandidate'
+    | 'getCurrentVideoCandidate'
+    | 'getVideoCandidate'
+    | 'getVideoCandidatePreviewSource'>;
 }

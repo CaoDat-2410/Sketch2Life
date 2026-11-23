@@ -402,6 +402,7 @@ class LifecycleOutboxPort(Protocol):
         limit: int = 50,
         lease_seconds: int = 30,
         event_types: Collection[str] | None = None,
+        aggregate_ids: Collection[str] | None = None,
     ) -> Sequence[OutboxEnvelope]: ...
 
     def renew_lease(self, *, event_id: str, worker_id: str, lease_seconds: int) -> bool: ...

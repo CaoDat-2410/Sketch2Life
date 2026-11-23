@@ -9,11 +9,14 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
+from datetime import datetime, timezone
 from types import SimpleNamespace
 from typing import Any
 
 import pytest
 from sqlalchemy.dialects import postgresql
+from sqlalchemy.exc import OperationalError
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
 from sketch2life.application.ports.parent_story_runs import (
@@ -306,6 +309,35 @@ def test_cancel_error_order_puts_the_revision_before_the_state(
     assert session.rollbacks == 1
 
 
+def test_lifecycle_store_failure_logs_only_safe_database_diagnostics(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    repository, session, _stored = _repository(monkeypatch)
+    database_error = OperationalError(
+        "SECRET SQL must not be logged",
+        {"secret_parameter": "private"},
+        SimpleNamespace(
+            sqlstate="23514",
+            diag=SimpleNamespace(constraint_name="ck_safe_constraint"),
+        ),
+    )
+
+    def fail_execute(*_args: Any, **_kwargs: Any) -> Any:
+        raise database_error
+
+    monkeypatch.setattr(session, "execute", fail_execute)
+    with caplog.at_level(logging.ERROR, logger="sketch2life.parent_story_repository"):
+        with pytest.raises(ParentStoryRunError) as captured:
+            _cancel(repository)
+
+    assert captured.value.status_code == 503
+    assert session.rollbacks == 1
+    assert "parent_story_lifecycle_command_failed" in caplog.text
+    assert "exception_type=OperationalError sqlstate=23514 constraint_name=ck_safe_constraint" in caplog.text
+    assert "SECRET SQL" not in caplog.text
+    assert "private" not in caplog.text
+
+
 def test_cancel_replay_returns_the_stored_projection_before_the_revision_check(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -464,6 +496,46 @@ def test_the_drawing_failure_update_is_fenced_and_a_lost_update_is_refused(
     assert session.commits == 0
 
 
+def test_fail_story_revision_records_terminal_failure_without_unknown_revision_column(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    repository, session, _stored = _repository(monkeypatch)
+    reservation = ParentStoryRevisionReservation(
+        run_id=_RUN_ID,
+        story_revision_id="44444444-4444-4444-8444-444444444444",
+        revision_no=2,
+        understanding_revision=1,
+        context_revision=1,
+        source_asset_sha256="a" * 64,
+        worker_input={},
+        request_sha256="b" * 64,
+        receipt_id="55555555-5555-4555-8555-555555555555",
+    )
+
+    repository.fail_story_revision(
+        principal=_PRINCIPAL,
+        reservation=reservation,
+        error_code="STORY_OUTPUT_INVALID",
+        outcome_unknown=False,
+    )
+
+    (revision_update,) = session.writes_to("story_revisions")
+    assert "updated_at" not in revision_update._values
+    assert revision_update._values["status"].value == "FAILED"
+    (run_update,) = session.writes_to("runs")
+    assert run_update._values["run_state"].value == "FAILED"
+    assert run_update._values["job_state"].value == "FAILED"
+    assert run_update._values["error_code"].value == "STORY_OUTPUT_INVALID"
+    (receipt_update,) = session.writes_to("command_receipts")
+    assert receipt_update._values["state"].value == "FINAL"
+    assert receipt_update._values["response_status"].value == 502
+    assert receipt_update._values["response_body"].value == {
+        "error_code": "STORY_OUTPUT_INVALID"
+    }
+    assert session.commits == 1
+    assert session.rollbacks == 0
+
+
 @pytest.mark.parametrize("run_state", ("DELETE_PENDING", "DELETED"))
 def test_read_current_input_and_the_artwork_recheck_refuse_a_purged_run(
     monkeypatch: pytest.MonkeyPatch, run_state: str
@@ -563,3 +635,63 @@ def test_a_replayed_subject_confirmation_of_a_purged_run_returns_the_projection(
     )
     assert isinstance(result, ParentStoryLifecycleRecord)
     assert result.purge_state == "COMPLETED"
+
+
+@pytest.mark.parametrize(
+    ("confirmation_receipt", "expected_decision"),
+    (("decision-1", "CONFIRMED_BY_ADULT"), (None, "REVIEW_REQUIRED")),
+)
+def test_get_run_projects_the_persisted_adult_subject_decision(
+    monkeypatch: pytest.MonkeyPatch,
+    confirmation_receipt: str | None,
+    expected_decision: str,
+) -> None:
+    repository, session, _stored = _repository(monkeypatch, run_state="PREPARATION_REVIEW")
+    now = datetime.now(timezone.utc)
+    profile_id = "11111111-1111-4111-8111-111111111111"
+    profile_revision_id = "33333333-3333-4333-8333-333333333333"
+    run = {
+        "run_id": _RUN_ID,
+        "run_state": "PREPARATION_REVIEW",
+        "revision": 3,
+        "profile_ref": profile_id,
+        "current_input_revision": 1,
+        "understanding_revision": 1,
+        "subject_label": "sea turtle",
+        "retryable": False,
+        "error_code": None,
+        "job_state": None,
+        "created_at": now,
+        "updated_at": now,
+    }
+    input_row = {
+        "source_profile_revision_ref": profile_revision_id,
+        "context_revision": 1,
+        "context_confirmed_by": "parent-owner",
+        "context_confirmed_at": now,
+        "context_snapshot": {"topic": "ocean"},
+        "context_snapshot_sha256": "a" * 64,
+        "lesson_pin_snapshot": None,
+    }
+    latest_understanding = {
+        "revision_no": 1,
+        "result_snapshot": {
+            "result": {
+                "candidate_subject": "sea turtle",
+                "visible_features": ["shell"],
+                "confidence": 0.9,
+                "adult_confirmation_required": True,
+                "decision": "REVIEW_REQUIRED",
+            }
+        },
+    }
+    monkeypatch.setattr(repository, "_owned_run", lambda *_args, **_kwargs: dict(run))
+    monkeypatch.setattr(repository, "_current_input", lambda _run: input_row)
+    monkeypatch.setattr(repository, "_latest_understanding", lambda _run_id: latest_understanding)
+    monkeypatch.setattr(session, "scalar", lambda *_args, **_kwargs: confirmation_receipt)
+
+    view = repository.get_run(principal=_PRINCIPAL, run_id=_RUN_ID)
+
+    assert view.candidate is not None
+    assert view.candidate["decision"] == expected_decision
+    assert latest_understanding["result_snapshot"]["result"]["decision"] == "REVIEW_REQUIRED"

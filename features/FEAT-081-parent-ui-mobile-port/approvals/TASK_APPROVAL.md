@@ -675,23 +675,861 @@ Addendum 33 - FEAT-081 publish completed SRS Rev67 Parent UI alignment
 - Create one new commit `fix(FEAT-081): enforce Rev67 Parent flow gates` on `feature/fe-mobile-remediation`, then push that branch to `origin` without force. Do not amend, rebase, squash, or rewrite existing commits. The Git push is the only authorized network action.
 - This addendum supersedes Addendum 32 only for its exact publication allowlist and the security validator authorization above. It authorizes no further implementation or API/backend changes. OWNER_MODAL_CALL_APPROVED=NO.
 
-Addendum 35 - FEAT-081 C-P0: merge the M2 foundation (`ba295f11`) into the mobile line
+## Addendum 34 — merge latest dev into feature/fe-mobile-remediation
 
-- Status: APPROVED_FOR_IMPLEMENTATION by the owner on 2026-11-19 (D-023). **Not launched:** it starts only on a separate owner word.
-- Approved plan pin: `features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_20.md`, 22,981 bytes / SHA-256 `95C9E51ABAF997B0A5164A3EBB713E7060BBAC0A0E3BF05694DA192DC38EA55E`, §4 C-P0.
-- `TASK_APPROVAL.md` pre-append pin: 89,663 bytes / SHA-256 prefix `F2727C99`.
-- Steps, each on the owner's word: HieuNewBie confirms the mobile line's `backend/alembic/env.py` and `compose.yaml` deviations and that nothing of his is unpushed; check that `origin/feature/fe-mobile-remediation` is still `5aa9443a` (a fetch needs the owner's word; if it moved, stop); a local side branch from the mobile tip; `git merge ba295f11`, resolving `.gitattributes` by keeping both sides' appended lines; owner-run `pnpm` typecheck and vitest in `apps/ui-mobile`; `validate_harness.py`, `validate_repository_security.py`, `validate_architecture.py`, `validate_skeleton.py` and `git diff --check`; then fast-forward `feature/fe-mobile-remediation`, push without force, delete the side branch.
-- Authorized scope: the merge commit only, covering every path of `git diff 1c9148e8 ba295f11` plus the `.gitattributes` resolution. No other edit.
-- No force-push, rebase, squash or rewrite. OWNER_MODAL_CALL_APPROVED=NO.
+- Status: APPROVED and launched by the owner's direct request on 2026-11-19 (Asia/Saigon) to merge the newest dev commits into this branch.
+- Approved plan: features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_19.md, revision 19, 2729 bytes, SHA-256 DBB87D404631265B0A3DF03E2C9E8CD195B5ABE6A11DCB5324EE31C7F3164302.
+- Exact source: fetched origin/dev at ba295f1113129fa233ddc762ef29fadd92b996e8; target starts at 5aa9443a772462d247a6018a62aab4e37d2092ae. The branches diverge from 1c9148e88600a101887e477541c4c4893ba1c7df; 16 dev-only and 7 feature-only commits were present.
+- Approved scope: merge that exact dev tip into feature/fe-mobile-remediation; preserve all branch-only FEAT-081 files; resolve the sole merge-tree conflict in .gitattributes by retaining both the complete incoming dev rules and FEAT-081 byte-preservation rules for Plan Revisions 5 and 7; add this plan, approval, one merge evidence note, and a status update.
+- Required verification: repository security validator before commit; inspect merge ancestry, unmerged paths, preservation attributes, and pre-merge/post-merge hashes for Plan Revisions 5 and 7.
+- Not authorized: push, rebase/reset/squash, product code edits outside Git's merge result, tests, API/AI/runtime calls, Docker/DB/Firebase/Modal operations, secret/env changes, or changes to historical SRS decisions. No tests are part of this merge task.
+- This addendum supersedes Addendum 33 only for fetching origin/dev and merging the exact fetched tip above, with the documentation and verification listed here. All other restrictions remain in effect.
+## Addendum 35 — implement Parent Expo real E2E integration plan
 
-Addendum 36 - FEAT-081 C-P1: Parent story-run type parity and request ids
+- Status: APPROVED and launched by the owner's direct instruction “implement” on 2026-11-19.
+- Approved plan: plan/PLAN_REVISION_20_PARENT_UI_E2E_INTEGRATION_20261119.md, revision 20, 31625 bytes, SHA-256 C049A32458598D4F8C1A9C0D07834D6F37C81D6EEFB6DF3D1CAB642E96AF18D8.
+- TASK_APPROVAL.md pre-append pin: 91332 bytes / SHA-256 641378288CA9AE1AEE3ED4B991193ACCC77EAA652F8068ECC8138940C7F55A64.
+- Scope: implement Plan Rev20 in the current feature worktree. This includes the M0 API/SRS contract reconciliation, Parent Expo UI and API integration, Parent-specific backend contracts/routes/persistence, SVG topic/object suggestions, photo/VLM, activity selection persistence, story/revision, platform support surfaces, and E2E evidence, subject to the dependencies and gates in Rev20.
+- Authorized source scope: apps/ui-mobile/src/parent/**, apps/ui-mobile/src/App.tsx when required for composition, apps/ui-mobile/tests/**; Parent-specific backend code under backend/src/sketch2life/application, contracts, interfaces/http, infrastructure/ai and infrastructure/persistence; backend OpenAPI contract mapping and focused tests; deployment/modal/** only when required by the Parent workloads; backend/alembic/versions/** only when M0 demonstrates a persistence gap and the matching Data Table Register mapping is updated; FEAT-063 canonical SRS/DECISIONS and FEAT-081 plan/status/evidence records.
+- Excluded scope: billing, quota, purchases, subscription/payment, Teacher UI and unrelated routes/features. Do not implement or modify quota/payment contracts. Do not use the legacy session video route as a Parent StoryRun API.
+- SRS amendment: record the owner's two-stage topic/object suggestion direction and resolve the current SRS no-preselected-subject wording explicitly. Keep SRS unsigned and identify this as an owner amendment; do not imply formal SRS sign-off.
+- Data/privacy: synthetic Parent account/profile and synthetic/generated artwork only. No real child data, fake consent, fake UI success, preview harness, or fixture-backed E2E. Preserve Firebase Auth as the only Firebase service used.
+- Verification authorized: focused FE/backend contract and unit checks, typecheck/build as needed, local Docker/backend API checks, Android emulator E2E, and the real Modal non-video inference needed for the approved flow. Use a bounded run: at most one live inference per required workload per end-to-end path before reviewing results; no automatic repeat loops or GPU warming. Video inference is not authorized until real quota admission is handed off and a separate bounded video budget is recorded.
+- No migration may be run against a shared or production database. Any migration must be additive, documented in the matching data register, and run only against disposable local dev data.
+- No staging, commit, push, branch switch, rebase, reset, or history rewrite is authorized.
+- OWNER_MODAL_CALL_APPROVED=YES for the bounded non-video Parent E2E calls above; OWNER_VIDEO_INFERENCE_APPROVED=NO pending quota admission handoff.
+## Addendum 36 — typecheck root-cause fix and second bounded Parent E2E path
 
-- Status: APPROVED_FOR_IMPLEMENTATION by the owner on 2026-11-19 (D-023). **Not launched:** it starts only after Addendum 35 is complete and on a separate owner word.
-- Approved plan pin: `features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_20.md` (as above), §4 C-P1.
-- Allowlist: `apps/ui-mobile/src/parent/domain/types.ts`; `apps/ui-mobile/src/parent/infrastructure/http/ParentApi.ts`; `apps/ui-mobile/src/parent/presentation/screens/HomeScreen.tsx`; `apps/ui-mobile/src/parent/presentation/ParentVisualPreviewHarness.tsx`; `apps/ui-mobile/src/parent/presentation/navigation/parentFlowV1.ts`; `apps/ui-mobile/src/parent/presentation/navigation/useParentController.ts`; `apps/ui-mobile/tests/parentApiI2Contract.test.ts`, `parentFlowV1.test.ts`, `parentLearningI2.test.ts`; a new contract test and a new request-id test under `apps/ui-mobile/tests/`; the C-P1 evidence note under `features/FEAT-081-parent-ui-mobile-port/evidence/`; `features/FEAT-081-parent-ui-mobile-port/status/STATUS.md` (append). Any other file that typecheck flags as reading a tightened field is added by an appended amendment before it is edited. No backend, Bruno or `apps/mobile` file.
-- Checks, owner-run: `pnpm` typecheck and vitest in `apps/ui-mobile`; the UI-copy validator; the repository validators; `git diff --check`. Then an independent review (Sonnet 5.5 high) before owner acceptance.
-- Git: one commit after owner acceptance; push only on the owner's word; no force-push. OWNER_MODAL_CALL_APPROVED=NO.
+- Status: APPROVED by the owner's direct answers on 2026-11-19 (Asia/Saigon): "Cho sửa" for the typecheck fix and "Cho phép, bạn điều khiển máy" for one more bounded live Parent E2E path driven by the assistant through computer use.
+- TASK_APPROVAL.md pre-append pin: 94440 bytes / SHA-256 A55B7F77F74C4B785D0F38C61C4DF36E79B0CEB827AA930D94E33BC2C2788BE8.
+- Typecheck scope: add React type path mappings to `apps/ui-mobile/tsconfig.typecheck.json` only (not `tsconfig.json`: Expo CLI 0.22 enables `experiments.tsconfigPaths` by default, so a `react` path in `tsconfig.json` would also redirect Metro's runtime resolution to the types-only package). Root cause: pnpm hoists `@types/react@19.2.18` into `node_modules/.pnpm/node_modules`, so Expo libraries (`@expo/vector-icons`, `expo-linear-gradient`, `react-native-svg`) resolve React 19 types while the app pins React 18.3.1 / `@types/react` ~18.3.12. No dependency, lockfile, or install change. Verify with `pnpm --dir apps/ui-mobile typecheck` (or the equivalent local tsc invocation) and the existing mobile tests.
+- Live scope: one new end-to-end Parent path on the existing synthetic Parent account/profile and synthetic artwork, with at most one live inference per required non-video workload (drawing VLM, activity selection, story) before reviewing results. No automatic repeats, GPU warming, video inference, quota/payment changes, real child data, preview harness, or fixtures. Stop task-local Docker and the Modal non-video apps used after the run; leave the Modal video app untouched.
+- All Addendum 35 limits otherwise remain: no staging, commit, push, branch switch, rebase, reset, history rewrite, or migration against shared/production data. OWNER_MODAL_CALL_APPROVED=YES (bounded, non-video, this path only); OWNER_VIDEO_INFERENCE_APPROVED=NO.
 
-Addendum 36, amendment 1 (2026-11-19, owner Person 2): `apps/ui-mobile/src/parent/application/use-cases/ParentLearningUseCases.ts` is added to the allowlist, as the plan's rule for files that typecheck shows reading a tightened field allows. Reason: owner-run typecheck error TS2322 at line 58: the envelope is rebuilt with an optional `request_id`, while `ParentStoryRunEnvelopeV1.request_id` is now required. Allowed change: lines 58-61 only, pass `request_id: active.request_id` unconditionally instead of the conditional spread. No other edit to that file. Everything else in Addendum 36 is unchanged. OWNER_MODAL_CALL_APPROVED=NO.
+## Addendum 37 — one bounded rerun after drawing parser fix
 
-Addendum 36, acceptance (2026-11-19, owner Person 2): C-P1 is ACCEPTED as implemented, on base `700717fbe9befa01a1152dc7138540a1548a8083`. Basis: owner-run `pnpm run typecheck` reported no TypeScript errors; owner-run `pnpm run test` passed 10 files and 96 tests and printed `UI_COPY_AND_RECOVERY_VALID`; independent review CP1-R1 (Sonnet 5.5, high effort) returned READY WITH NOTES, 0 P1, 0 P2, 5 P3. The five P3 notes are accepted as non-blocking and carried forward without a code change (CP1-R1-01 no wire-level assertion that each attempt sends a distinct `X-Request-ID`; CP1-R1-02 evidence note and STATUS refresh, done as a docs-only edit; CP1-R1-03 nullability and inner scene keys not pinned by the contract test; CP1-R1-04 one fixture with `activities: []` and a missing-decision reader case; CP1-R1-05 the type half of the contract test is enforced only by `pnpm typecheck`, as the plan specifies). Accepted file pins (SHA-256): `types.ts` `07137968A22330922B9C8E5F994A9E9E924B922014DA571202E2375183B2169B`; `ParentApi.ts` `DB3B024EB2743059101CD49DC194DBCE0DF385A93C88799439D4B95772335092`; `ParentLearningUseCases.ts` `89007F64E826690C13C15B56FB26361BBCDA22E61D19F53DA90F1474F5C01FAC`; `parentStoryRunProjectionContract.test.ts` `C0D532CF79C88F61F6A9B7A262B0A202AECAD47AF6523C86C9AB75C80658F21E`; `parentRequestId.test.ts` `4A12D81D91999A058BF52AB535AC6F773F4CF7E415C4A59AF6643D9B4B6F0587`; evidence note `9E86A287CCB3ED5435EDC45C87295E680321C797D09640BA42E292349273E87B`. Git: the owner's approval records and C-P1 (code, tests, evidence and STATUS) are committed as one commit, by the owner's instruction of 2026-11-19, explicit paths only, after `python tools/validate_repository_security.py`; pushed on the owner's word of the same date. OWNER_MODAL_CALL_APPROVED=NO.
+- Status: APPROVED and launched by the owner's direct request on 2026-11-19 (Asia/Saigon): “chạy lại thử đi, đã fix r”.
+- Scope: verify the byte-fragment/EOS parser fix in the existing FEAT-081 local Android workflow using synthetic Parent data and the generated synthetic turtle artwork. Run the focused offline parser tests first. If those pass, permit one fresh non-video Parent path with at most one live drawing VLM inference, then at most one activity-suggestion inference and one story-generation inference only if all preceding steps pass. No automatic retries or repeat calls.
+- Do not call video, narration, quota, payment, or use real child data, fixtures, preview harness, or direct database edits. If the existing run/profile or authentication state prevents a genuine UI path, stop and report it; do not bypass it.
+- Stop only the task-local Docker stack, task Metro, and Modal non-video apps used by this run afterward. Leave the deployed Modal video app untouched.
+- No migration against shared/production data, stage, commit, push, branch switch, rebase, reset, or history rewrite is authorized. This addendum records the owner's new one-shot test authorization; OWNER_MODAL_CALL_APPROVED=YES for this bounded non-video rerun only; OWNER_VIDEO_INFERENCE_APPROVED=NO.
+
+## Addendum 38 — align Parent drawing confidence contract
+
+- Status: APPROVED by the owner's direct instruction on 2026-11-19 (Asia/Saigon): “fix cái đó đi”.
+- Approved plan: `plan/PLAN_REVISION_21_DRAWING_CONFIDENCE_CONTRACT_20261119.md`, 4,528 bytes, SHA-256 `9C32A46DAF4095741A7D54B7051E7CEE847F913C0FB564D5F02FBBDD9E168822`.
+- TASK_APPROVAL.md pre-append pin: 97,705 bytes, SHA-256 `1838B4510A650EB9DBBC533588B09DC05DC858E470263C7C2F4314F92FA33807`.
+- Authorized implementation paths: `deployment/modal/srs_v23/drawing_vlm_app.py`; this plan and approval record; FEAT-081 `CONTEXT.md` and `status/STATUS.md`.
+- Scope: add the advisory drawing-subject confidence required by SRS AT-14 and the existing backend contract to the Qwen worker's constrained JSON schema, prompt, strict parser, and returned result. Keep the value finite and within [0,1], retain mandatory adult confirmation, and do not claim calibration or create a fallback score. Backend contract remains unchanged.
+- No tests, typecheck, deployment, Modal inference, Docker, database, migration, SRS change, staging, commit, push, branch switch, rebase, reset, or history rewrite is authorized by this addendum. Source review only; runtime verification remains pending.
+- This addendum does not renew the consumed one-shot Modal inference authorization in Addendum 37 and does not alter the prohibition on video/quota/payment work. OWNER_MODAL_CALL_APPROVED=NO for new live calls; OWNER_VIDEO_INFERENCE_APPROVED=NO.
+
+## Addendum 39 — record FEAT-081 source-fix evidence path
+
+- Status: Scope clarification recorded under the owner's existing Addendum 38 instruction to fix the drawing confidence contract. This adds the repository-required feature-local evidence note to Plan Revision 21's authorized paths; it does not claim a new owner decision or expand code, test, deployment, inference, or publication scope.
+- Updated plan pin: `plan/PLAN_REVISION_21_DRAWING_CONFIDENCE_CONTRACT_20261119.md`, 4,585 bytes, SHA-256 `3B132715CA6948677080D040313621A8DE81774058C4207DB7D86D5D93CCA163`.
+- TASK_APPROVAL.md pre-append pin: 99,200 bytes, SHA-256 `B82943D3BD9DF6B0472DBED15257CAB0732AFCB29B433390717ED1D4A50B203E`.
+- Added authorized documentation path: `evidence/DRAWING_CONFIDENCE_CONTRACT_FIX_20261119.md`. All other Addendum 38 boundaries remain unchanged.
+
+## Addendum 40 — one bounded Android UI verification of drawing confidence
+
+- Status: APPROVED by the owner's direct instruction on 2026-11-19 (Asia/Saigon): “sửa r thì test lại trên UI đi, lựa ảnh nào phù hợp vs trẻ”.
+- Approved plan: `plan/PLAN_REVISION_22_DRAWING_CONFIDENCE_ANDROID_UI_VERIFICATION_20261119.md`, 3,783 bytes, SHA-256 `E166064D5FE7A155DD92B6032513A4C3DC677C0EF3A0D892550CB3A274BC1023`.
+- TASK_APPROVAL.md pre-append pin: 100,046 bytes, SHA-256 `4E2139195B33D34D34877D007B6642E81C636AC2CCD1EB39E2EB04B0BDC4680C`.
+- Scope: run the focused `test_drawing_lmfe_byte_fragments.py` regression file; deploy only `drawing_vlm_app.py` to Modal dev; use the real Parent Android UI and one fresh synthetic turtle drawing inference to verify HTTP/API acceptance and visible confidence/adult-confirmation UI. Use synthetic data only and no preview harness/fixture. A fresh synthetic Parent/profile may be created through the UI if the prior failed StoryRun blocks a new run.
+- No retries, second inference, activity/story/narration/video/quota/payment calls, direct database edits/migrations, unrelated Modal deployment, commit, push, branch switch, rebase, reset, or history rewrite.
+- Stop task-local Docker/Metro, the Modal drawing app, and the emulator started for this test. Leave Modal video and unrelated services untouched. This addendum supersedes Addendum 38 only for this bounded deploy/test scope; Addendum 37's consumed inference is not reused.
+- OWNER_MODAL_CALL_APPROVED=YES for this single drawing inference only. OWNER_VIDEO_INFERENCE_APPROVED=NO.
+
+## Addendum 41 — Parent activity, story, and video E2E
+
+- Status: APPROVED by the owner's direct instruction on 2026-11-19 (Asia/Saigon): “bước chọn hoạt động, video đồ nữa thì sao, chạy full luồng end to end đi, đừng quan tâm quota”.
+- Approved plan: `plan/PLAN_REVISION_23_PARENT_ACTIVITY_STORY_VIDEO_E2E_20261119.md`, SHA-256 `5896253DBC2AE4484B2DE57FCF9A0377E987570241EC9BCC8BAE0C82B5C12EEA`.
+- TASK_APPROVAL.md pre-append pin: 101,641 bytes, SHA-256 `3E7363BFCCBD15E51F358952B1723F452E1F39F06E941F674CC5DF794ADF80BE`.
+- Authorized scope: resume the existing synthetic Parent Android run after adult subject review; complete catalog-first activity selection and persisted receipt, story generation/review/confirmation, and a real silent LTX-2.5 Modal video request; add only the Parent API/UI/worker wiring and local synthetic no-quota guard needed to make that real vertical slice executable; run one bounded live request per AI stage and capture sanitized evidence.
+- Quota bypass is authorized only for local development with a synthetic Parent/profile, must default OFF, be server-guarded and auditable, and must not change non-local/product quota enforcement. Preserve subject, activity, script, schema, and fail-closed video safety gates.
+- Use SRS target LTX-2.5. No Wan or legacy session-video substitution. No fixture/mock, direct DB edits, real child data, narration, payment/quota test, shared/production migration, commit, or push. Stop before substituting another model if the existing Modal environment cannot access/run the pinned LTX target.
+- Authorized paths are exactly those listed in Plan Revision 23 §6. Modal activity/story/video inference is approved within the plan's one-call-per-stage bound; no duplicate taps/retries. OWNER_MODAL_CALL_APPROVED=YES (bounded); OWNER_VIDEO_INFERENCE_APPROVED=YES (one video request, scenes only as required by the confirmed storyboard, no scene retries).
+
+## Addendum 42 — continue the real Parent E2E under the newly registered account
+
+- Status: APPROVED by the owner's direct request to run the complete workflow end to end, followed by “đăng ký đi” when the real Android app required authentication.
+- Updated plan: `plan/PLAN_REVISION_23_PARENT_ACTIVITY_STORY_VIDEO_E2E_20261119.md`, 12,127 bytes, SHA-256 `1C55B8AFC862D48B2C761FD25FFA11923826E213A89A9251F566122B1A0DD392`.
+- TASK_APPROVAL.md pre-append pin: 103,593 bytes, SHA-256 `01A49C547A377C6DBA990DD140280E1676F4D2B49F107E875337425467E0814B`.
+- The synthetic Parent account was created through the real Android UI and is a different principal from the owner of the earlier Rev22 run. Do not impersonate or transfer that run. Create one synthetic profile and a fresh run through the UI, reusing only the existing generated synthetic turtle drawing as input.
+- Newly authorized live-call bound: one Drawing VLM inference, one catalog-first activity suggestion inference, one story inference, and one silent LTX-2.5 video request. No retries, warmups, duplicate submissions, or per-scene retries. All calls must be reached through the real UI and authenticated backend; outputs must be actual model results.
+- Scope additions are limited to creating the synthetic profile/run and performing the one fresh drawing inference needed to complete the requested full workflow. Synthetic-only local quota bypass and Rev23 safety/quality gates remain mandatory. Stop before the next inference if a preceding contract or gate fails.
+- This addendum supersedes Addendum 41 only for the existing-run ownership, one-repeat drawing prohibition, and the corresponding starting-state acceptance criterion. All remaining Rev23 restrictions remain in force: no real child data, consent relaxation, direct DB edits, production deployment, payment test, fixture/mock output, commit, push, or unrelated service changes. Do not store credentials or Firebase tokens. OWNER_MODAL_CALL_APPROVED=YES (bounded four-stage flow); OWNER_VIDEO_INFERENCE_APPROVED=YES (one request, scenes only as required by the confirmed storyboard, no retries).
+
+## Addendum 43 — recover from the real pre-dispatch drawing failure
+
+- Status: APPROVED under the owner's direct instruction to run the complete Parent flow end to end and continue fixing failures; this records the narrow recovery needed after the current test encountered a confirmed pre-dispatch failure.
+- Evidence: API call failed at `function_spawn` with Modal `NotFoundError`, no Modal call ID, while the expected drawing app was stopped. The app was subsequently deployed from the pinned source. No model inference was dispatched by the failed request.
+- Approved: expose the existing authenticated Parent StoryRun cancellation route in the real mobile UI for the unresolved synthetic photo run; add the narrow backend classification for `NotFoundError` specifically at spawn as terminal `MODAL_FUNCTION_NOT_DEPLOYED`; add focused regression coverage; create one new UI StoryRun with the same approved synthetic artwork and allow one actual drawing inference, followed by the already-approved at-most-one activity suggestion, story, and silent LTX-2.5 request only when prior gates pass.
+- Cancellation records `DELETE_PENDING`; it is not represented as stopping a Modal task. No direct DB access/edit, fixture, duplicate model inference, auto-retry, model warm-up, quota/payment change, real child data, commit, push, or non-Rev23 work is authorized.
+- The prior 504 attempt is recorded as a failed pre-dispatch request and not as an inference. All other Addendum 42 limits and cleanup boundaries remain in force. OWNER_MODAL_CALL_APPROVED=YES (one actual model call per workload); OWNER_VIDEO_INFERENCE_APPROVED=YES (one request, storyboard scenes only, no scene retries).
+
+## Addendum 44 — synchronize the active Parent branch with dev
+
+- Status: APPROVED by the owner's direct instruction on 2026-11-19 (Asia/Saigon): “CHECK DEV XEM CÓ CÁI J THÌ PULL VỀ, SÀI ĐI”.
+- Plan: `plan/PLAN_REVISION_23_PARENT_ACTIVITY_STORY_VIDEO_E2E_20261119.md`, Execution Amendment A3.
+- Source snapshot: merge the fetched `origin/dev` at `a43c2aee71160926b3d7979a0235f39d735ead1c`, whose last shared base with the feature branch is `ba295f1113129fa233ddc762ef29fadd92b996e8`.
+- Approved: merge the complete dev delta into `feature/fe-mobile-remediation` with history preserved; a single merge commit is allowed as the integration record. No push. Existing dirty and untracked work must be preserved and restored; inspect/resolve all overlapping Parent, backend, SRS, and approval files before continuing the Rev23 E2E.
+- Run focused integration checks and `python tools/validate_repository_security.py` before the merge commit; record results and conflict resolutions in FEAT-081 evidence/status. This addendum does not authorize additional AI calls beyond Addenda 42–43, production changes, real child data, direct database edits, or unrelated implementation.
+
+## Addendum 45 — diagnose Parent signup and run the Parent API workflow
+
+- Status: APPROVED and launched by the owner's direct instruction on 2026-11-19 (Asia/Saigon) to diagnose the supplied registration error, check/fix Parent APIs, and run the Parent workflows through the UI; product quota must not block this local test.
+- Approved plan: `plan/PLAN_REVISION_24_PARENT_API_AUTH_E2E_20261119.md`, 6,744 bytes, SHA-256 `9916DAA363597DB6CD20982223AEB6279296D1377BC331B71571CD9CDCEC768A`.
+- Scope: correct repository-owned Expo/Firebase/API config and Parent API/UI/backend/worker defects within the existing Rev23 boundaries; compare the live served OpenAPI with Parent UI/SRS; run one fresh synthetic Android Parent flow through the APIs/workers available.
+- Reauthorization: after offline contract/code fixes and readiness checks, this addendum permits one fresh live request for each of drawing understanding, activity suggestions, story generation, and silent LTX-2.5 video. The prior failed drawing attempt is not replayed. No retry, duplicate submission, warmup, per-scene retry, real child data, fixture/mock output, direct DB mutation, production change, or provider substitution.
+- Quota/payment endpoints are not tested. A no-product-quota video request remains local-only, synthetic-only, server-guarded, auditable, and disabled by default. Existing SRS subject/activity/story/safety gates stay mandatory.
+- Evidence goes only in `evidence/PARENT_API_AUTH_FULL_E2E_REV24_20261119/`. Do not record credentials, Firebase API/admin secrets, or ID/refresh tokens. Stop only services started/used by this task; do not stop unrelated apps.
+- Authorized paths: Plan Revision 24 §7. No commit, push, branch switch, rebase, reset, history rewrite, `.env` edit, quota/payment implementation, or Teacher work.
+- OWNER_MODAL_CALL_APPROVED=YES for the bounded one-fresh-path calls above; OWNER_VIDEO_INFERENCE_APPROVED=YES for one silent LTX-2.5 request with no scene retry.
+
+## Addendum 46 — one fresh emulator run after dev-seed inspection
+
+- Status: APPROVED and launched by the owner's direct instruction on 2026-11-20 (Asia/Saigon): inspect the new dev seed, use it if it is a usable Parent login, and rerun the full Parent flow on the Android emulator.
+- Finding that narrows execution: the dev seed added in `origin/dev` creates development-mode PostgreSQL principals and content, not Firebase Auth login accounts. Its guard requires development auth and disabled AI, while this local API uses Firebase Auth and Modal. Do not bypass the seed guard or inject seed principals into the Firebase-backed database.
+- Execution amendment to Plan Revision 24 §4: run one fresh real Android Parent path with a newly registered synthetic Firebase Parent and synthetic profile/artwork. Permit at most one live request each for drawing understanding, activity suggestion, story generation, and silent LTX-2.5 video, only as prior business gates pass. No fixture, replay of an uncertain registration, automatic retry, duplicate inference, warm-up, real child data, quota/payment work, or direct DB mutation.
+- Preserve all remaining Plan Revision 24 and Addenda 42–45 boundaries, evidence location, and task-owned-service cleanup rules. No commit, push, environment-file edit, or unrelated service shutdown.
+- OWNER_MODAL_CALL_APPROVED=YES for this fresh bounded path; OWNER_VIDEO_INFERENCE_APPROVED=YES for at most one silent request, with no scene retry.
+
+## Addendum 47 — recover the Parent activity worker contract gate
+
+- Status: APPROVED under the owner's active 2026-11-20 instruction to run the real Parent flow on the emulator and fix blockers until the flow can proceed.
+- Evidence: the only dispatched `parent.activity.suggest` call failed at worker `input_envelope` with `MODAL_WORKLOAD_NOT_ALLOWED`; Modal logs show no model-load or inference phase. The deterministic contract allowlist omitted a workload implemented by the deployed `suggest-parent-activities` function.
+- Authorized: add `parent.activity.suggest` to the L4 worker-envelope allowlist, add a focused offline regression test, redeploy the task-used language/audio app, then allow exactly one UI-driven recovery request for this workload. No further activity request if that recovery fails.
+- All other Plan Revision 24 and Addendum 46 boundaries remain: synthetic-only, no fixture, no direct DB mutation, no quota/payment, no automatic retry, no commit/push, evidence in the existing FEAT-081 folder, and stop only task-used services after recording results.
+- OWNER_MODAL_CALL_APPROVED=YES for one recovery call after the pre-model contract failure; OWNER_VIDEO_INFERENCE_APPROVED=YES remains capped at one silent request with no scene retry.
+
+## Addendum 48 — recover Qwen3.5 activity inference and continue Parent E2E
+
+- Status: APPROVED by the owner's direct instruction on 2026-11-20 (Asia/Saigon): “fix tiếp đi, nào nó chạy đc hết thig dùng”.
+- Approved plan: `plan/PLAN_REVISION_25_QWEN35_ACTIVITY_INFERENCE_RECOVERY_20261120.md`, SHA-256 `780975555258CBA8314AAFAF3228543612DC440A0EE15467CDB4A31185A96229`.
+- Evidence from the previous real Android run: activity worker passed request/model preparation and then stalled in Qwen3.5 `model_inference` for 1,800 seconds without token progress or terminal output. Modal warned that optional FLA and causal-conv1d fast kernels were missing. This is the issue to fix; no SRS quality/safety gate may be weakened.
+- Authorized: pin compatible fast-kernel dependencies in the shared Qwen Modal image; add safe runtime readiness/fail-fast checks and token-count-only inference progress for Parent activity/story; cap activity request duration at 8 minutes; test offline and verify CPU health/readiness without loading weights or issuing a warm-up inference; deploy the task language/audio app; perform up to two real activity attempts via the authenticated Android UI, only when the prior attempt yielded an actionable defect and a code/deploy fix was made. No model/provider substitution.
+- If activity succeeds, continue via the real UI with one activity-selection persistence, one Qwen3.5 story request/review, and at most one silent LTX-2.5 request if the exact API/worker and all gates are executable. Reuse the prior successful drawing/context result when the supported workflow permits; do not replay a successful inference. No direct worker call or synthetic result fabrication.
+- Preserve all other Plan Revision 24/Addenda 42–46 restrictions: synthetic-only, no fixture/mock, no direct DB mutation, no real child data, no quota/payment test, no secret or `.env` edit, no auto-retry, no scene retry, no commit/push, and stop only task-owned services after evidence capture. Evidence remains in `evidence/PARENT_API_AUTH_FULL_E2E_REV24_20261119/`.
+- OWNER_MODAL_CALL_APPROVED=YES for up to two bounded post-fix activity calls (8 minutes each), one story call after activity selection, and at most one silent LTX-2.5 call after story confirmation. OWNER_VIDEO_INFERENCE_APPROVED=YES remains limited to the single silent request with no scene retries.
+
+## Addendum 49 — fix Parent custom-topic canonicalization from real UI evidence
+
+- Status: APPROVED by the owner's direct instruction on 2026-11-20 (Asia/Saigon) to keep fixing the real Parent workflow until it runs.
+- Approved plan: `plan/PLAN_REVISION_26_TOPIC_CANONICALIZATION_FIX_20261120.md`.
+- Evidence: the authenticated topic-subject catalog request returned HTTP 200 and three cards for the Vietnamese `Động vật` catalog entry, but the UI rejected the response because it compared the canonical accented label to the user's unaccented `Dong vat` input with exact string equality. No Modal worker was called by that request.
+- Authorized: add a pure Vietnamese-aware topic-label normalizer, use it only to validate the server's canonical topic response, preserve canonical server ID/label on success, add a safe topic-flow-specific contract error message, and focused regression coverage. Verify by one real emulator catalog-only request after rebuilding/reloading the app.
+- This does not grant any additional AI inference. Plan Revision 25's existing limits remain: up to two post-fix activity calls at 8 minutes each only when justified by an actionable fix, one story call after a persisted activity receipt, and at most one silent LTX-2.5 video request after all gates pass. No topic-subject AI call, retry, warm-up, fixture, real child data, direct DB mutation, `.env`/secret edit, quota/payment work, migration, commit, push, or unrelated service shutdown.
+- Authorized paths are exactly those in Plan Revision 26 §5, in addition to Plan Revision 25. Preserve all other active FEAT-081 boundaries and the existing task-local evidence folder.
+- OWNER_MODAL_CALL_APPROVED remains as bounded by Addendum 48; this addendum does not renew it. OWNER_VIDEO_INFERENCE_APPROVED remains capped at one silent request, no scene retries.
+
+## Addendum 50 — recover the bounded Parent E2E after Android bundle reload
+
+- Status: APPROVED under the owner's active direct instruction on 2026-11-20 to keep fixing and run the Parent workflow through to completion.
+- Approved plan: `plan/PLAN_REVISION_27_REAUTH_AFTER_BUNDLE_RELOAD_20261120.md`.
+- Evidence: after restarting the Expo dev app to ensure the updated topic-normalization bundle was loaded, Android returned to the Firebase Parent sign-in screen and did not restore the prior in-memory test session. The previous synthetic account/profile/run are left untouched; no credentials are available in evidence.
+- Authorized: create one additional synthetic Firebase Parent account and profile via the actual Android UI, with generated credentials held only transiently and never logged, stored, or captured; continue the real UI workflow from that new profile.
+- No AI inference allowance is renewed. Plan Revision 25's existing drawing-if-required, activity, story, and silent-video caps remain in force. No account enumeration/password reset, direct DB mutation, deletion of prior data, fixture, real child data, `.env`/secret edit, quota/payment change, retry, warm-up, commit, push, or unrelated service shutdown.
+- Preserve Addenda 48–49 and all other FEAT-081 boundaries. Evidence stays in `evidence/PARENT_API_AUTH_FULL_E2E_REV24_20261119/`; do not stop the emulator.
+- OWNER_MODAL_CALL_APPROVED and OWNER_VIDEO_INFERENCE_APPROVED remain only as bounded by Addendum 48; this addendum does not expand them.
+
+## Addendum 51 — correct custom-topic resolution and isolate the remaining UI rejection
+
+- Status: APPROVED under the owner's active direct instruction on 2026-11-20 to continue fixing the real Parent workflow until it runs.
+- Approved plan: `plan/PLAN_REVISION_28_CUSTOM_TOPIC_RESOLUTION_DIAGNOSTICS_20261120.md`.
+- Evidence: the live API returned 200 for the custom topic request and the backend resolved it to the canonical animals topic with three curated cards, yet the emulator remained on the topic screen with a misleading account message after the first normalization patch. The remaining rejected-contract field has not yet been proven.
+- Authorized: compare ID + normalized label for selected catalog cards; for custom text, accept the backend-resolved canonical topic ID/label when the three-card contract is valid; emit only development-time boolean/count diagnostics on rejection; add/update focused regression cases; and perform one catalog-only UI request after the code update.
+- If the UI still fails, stop before AI and report the sanitized contract flags. No repeated catalog request, topic-subject AI request, drawing/activity/story/video inference, retry, quota/payment change, real child data, fixture, account enumeration/reset, direct DB mutation, `.env`/secret edit, migration, commit, push, or unrelated service stop is authorized by this addendum.
+- All prior Plan Revision 25 call limits remain unchanged and are not renewed here. Evidence remains in `evidence/PARENT_API_AUTH_FULL_E2E_REV24_20261119/`.
+
+## Addendum 52 — show topic-specific errors after the final catalog verification
+
+- Status: APPROVED under the owner's active 2026-11-20 direct instruction to keep fixing the Parent flow until it works.
+- Approved plan: `plan/PLAN_REVISION_29_TOPIC_ERROR_CLASSIFICATION_FIX_20261120.md`.
+- Evidence: the emulator still showed “Chưa thể hoàn tất thao tác tài khoản” after the canonical-topic fix, although the subject endpoint returned HTTP 200. A topic error handler uses `instanceof ParentApplicationError`, which may fail across Expo Fast Refresh module instances and route the error to the unrelated account message. This is a plausible error-message cause; it does not by itself explain why navigation did not advance.
+- Authorized: classify topic errors by structural safe code, provide topic-specific fallback copy, retain the Revision 28 backend-canonical custom-topic behavior and boolean/count-only diagnostics, add focused coverage, and make one final catalog-only UI request after the update.
+- No AI inference, repeat request after this final catalog attempt, real child data, fixture, direct DB mutation, account enumeration/reset, `.env`/secret edit, quota/payment, migration, commit, push, or unrelated shutdown. If the final UI attempt fails, stop and report the exact safe failure boundary rather than submitting another request.
+- Plan Revision 25 AI limits remain unchanged; this addendum does not renew any Modal call. Evidence remains in `evidence/PARENT_API_AUTH_FULL_E2E_REV24_20261119/`.
+
+## Addendum 53 — continue the same Parent E2E through the curated animal topic
+
+- Status: APPROVED under the owner's active 2026-11-20 request to continue fixing the Parent flow and run it when it works.
+- Approved plan: `plan/PLAN_REVISION_30_CONTINUE_VIA_CATALOG_TOPIC_20261120.md`.
+- Starting state: the same authenticated synthetic Parent UI remains on topic choice with the curated `Động vật` topic card visible; the current profile is synthetic and has not been run through drawing/activity/story/video in this continuation.
+- Authorized: select that curated card and make one catalog-only subject-suggestion request. If the UI advances with three cards, continue the Android E2E under Plan Revision 25's existing per-workload limits. Do not make another custom-topic request.
+- If this curated path fails, stop before Modal inference and report the exact sanitized failure. No extra account/profile creation, app restart, direct DB mutation, fixture, real child data, quota/payment, `.env`/secret edit, retry, warm-up, commit, push, or unrelated service shutdown.
+- Plan Revision 25 inference limits remain unchanged and are not renewed. Evidence stays in `evidence/PARENT_API_AUTH_FULL_E2E_REV24_20261119/`.
+
+## Addendum 54 — restore the absent drawing Modal deployment
+
+- Status: APPROVED under the owner's active 2026-11-20 direct instruction: “fix tiếp đi, nào nó chạy đc hết thig dùng”.
+- Approved plan: `plan/PLAN_REVISION_31_RESTORE_DRAWING_MODAL_DEPLOYMENT_20261120.md`.
+- Evidence: the current real Parent UI request failed before Modal worker execution with `MODAL_FUNCTION_UNAVAILABLE` / `NotFoundError` at `function_spawn`; Modal `dev` inventory confirms the drawing app is absent, while the pinned Qwen checkpoint directory and existing HF Secret are present.
+- Authorized: deploy the existing drawing worker to Modal `dev` without changing its code/model/secret; verify function registration and checkpoint presence without GPU warm-up; reconcile the unresolved run through supported UI/API; if required, create one new real UI run on the existing synthetic profile/artwork and submit exactly one actual drawing inference. The previous pre-worker dispatch rejection is not a model inference. If the actual inference fails, do not resend the drawing.
+- If drawing succeeds, continue only under Plan Revision 25's existing caps: activity up to two calls only after actionable fix (8-minute hard cap), one story after persisted activity selection, and at most one silent LTX-2.5 call after all gates pass. No extra activity/story/video allowance is added.
+- All other restrictions remain: synthetic-only, no fixtures/mocks/direct worker or DB, no real child data, quota/payment change or bypass, secret/`.env` edit, model download/warm-up, migration, commit/push, and no unrelated shutdown. Keep emulator online; clean up only task-used services after evidence capture.
+- OWNER_MODAL_CALL_APPROVED=YES for one UI-driven actual drawing inference after deployment; subsequent workload limits and OWNER_VIDEO_INFERENCE_APPROVED remain exactly as in Addendum 48.
+
+## Addendum 55 — recover the Parent E2E after transient sign-in values were rejected
+
+- Status: APPROVED under the owner's active 2026-11-20 direct instruction to keep fixing and run the Parent flow until it works.
+- Approved plan: `plan/PLAN_REVISION_32_RECOVER_PARENT_AUTH_FOR_REAL_E2E_20261120.md`.
+- Evidence: Android system Back returned the app to auth; the transient account values still visible in the form were rejected by Firebase sign-in. Credentials were not recorded. The original account/profile remain untouched.
+- Authorized: create exactly one new synthetic Parent account through real Expo signup, with a generated unique email/password held only transiently and never logged, captured, or persisted; create one synthetic profile through the same UI after signup success; continue the workflow. No second attempt if account or profile creation fails.
+- The newly deployed Modal drawing app and Revision 31's one real UI-driven drawing inference allowance remain active. No additional AI-call allowance is added; Revision 25 activity/story/silent-video caps remain unchanged.
+- All other restrictions remain: no account enumeration/reset/delete/transfer, backend/admin account creation, real child data, fixture/mock, direct DB write, `.env`/secret edit, quota/payment, migration, commit/push or branch/history operation. Use in-app navigation only, keep emulator online, and stop only task-used services after evidence capture.
+
+## Addendum 56 — diagnose Firebase ID-token rejection after successful signup
+
+- Status: APPROVED under the owner's active 2026-11-20 instruction to keep fixing and run the Parent workflow until it works.
+- Approved plan amendment: Plan Revision 32 §1.1.
+- Evidence: the one authorized Expo signup returned HTTP 201; the following `/api/auth/v1/me` request returned 401 and Firebase Admin reported `InvalidIdTokenError`. Public Firebase configuration and Admin credential project IDs match `sketch2life-dev`; no credentials or identity values were recorded.
+- Authorized: add backend-only, sanitized claim diagnostics that log booleans for token structure, audience/project match, issuer/project match, subject presence and expiration; add focused regression coverage; rebuild only the task-local API container; then sign in once through the actual Expo UI using the already-created account. Do not log token/claim values, email, UID, password, provider message, or any credential.
+- This addendum authorizes no additional signup/account/profile, account lookup/reset/deletion, `.env` or secret change, direct DB operation, new AI inference, quota/payment change, migration, commit, push, or shutdown of unrelated services. All Rev25 inference limits, Rev31 drawing limit, synthetic-only use, evidence and cleanup constraints remain in force.
+
+## Addendum 57 — fix text-only Parent activity inference throughput
+
+- **Status:** APPROVED under the owner's direct 2026-11-20 instruction to keep fixing the Parent workflow until it runs.
+- **Approved plan:** `plan/PLAN_REVISION_33_PARENT_ACTIVITY_TEXT_ONLY_INFERENCE_20261120.md`.
+- **Evidence:** after the first recovery call exposed missing `StoppingCriteriaList` and an unbound progress object, both were fixed and focused checks passed. The second real emulator call used the deployed fast-kernel build, loaded Qwen3.5-9B successfully, but emitted only 104/1,000 tokens in 424.778 seconds. The API ended with `FunctionTimeoutError`/502 and Modal logged `KeyboardInterrupt`; no result or activity receipt was produced. Runtime evidence lacked selected GPU name, module placement, cache state, and LMFE callback timing.
+- **Authorized:** change the language/audio worker to the official Qwen3.5 text-only model class while retaining the exact model/revision; add privacy-safe placement and callback timing diagnostics; update CPU readiness and focused tests; redeploy the task language/audio app; and make exactly one additional real UI-driven activity attempt with an 8-minute hard cap and no retry. Existing fast-kernel checks, schema/quality/safety gates, synthetic-only restrictions, and catalog-first business rules stay in force.
+- If activity succeeds, continue through one persisted UI activity selection, one story request/review/confirmation, and at most one silent LTX-2.5 request only if all earlier gates pass. Quota/payment are not tested or modified.
+- If the bounded activity request fails, stop activity inference under this amendment. No additional drawing call, account/profile, direct DB change, fixtures/mocks, real child data, `.env`/secret edit, quota/payment change, migration, model/provider substitution, scene retry, commit, push, or unrelated service stop is authorized. Keep the emulator online; clean up only task-owned services after evidence capture.
+
+## Addendum 58 — fix Qwen3.5 text processor/model input mismatch
+
+- **Status:** APPROVED under the owner's direct continuing instruction on 2026-11-20 to keep fixing the Parent flow until it runs.
+- **Approved plan:** `plan/PLAN_REVISION_34_QWEN35_TEXT_INPUT_COMPAT_20261120.md`.
+- **Evidence:** Revision 33's single UI-driven activity request loaded the pinned text-only Qwen3.5 model successfully, then failed before token generation because the processor passed unsupported `mm_token_type_ids` to `Qwen3_5ForCausalLM.generate()`. Worker event: `WORKER_VALUE_ERROR`; Modal call `fc-01M7V6B8Z31YNHR5SPSERRMTHE`; no activity response was persisted.
+- **Authorized:** filter only the multimodal-only metadata from text-generation kwargs across text workloads, add focused tests, redeploy the language/audio Modal app, run CPU readiness, then make at most two additional real UI-driven activity requests total, each only after a distinct code fix when needed and each capped at eight minutes. Stop on the first successful response or after the second distinct failure. No repeated call with the same build/input.
+- On activity success, continue one UI activity selection/persistence and one story request plus adult review/confirmation; a silent video remains conditional under prior limits. Synthetic-only; existing schema, quality, safety, age, catalog and consent rules remain enforced. No drawing inference, new account/profile, fixture/mock, direct DB change, quota/payment mutation or bypass, secrets/`.env` edit, migration, commit, push or unrelated service shutdown. Keep the emulator online and clean up only task-owned services after evidence capture.
+
+## Addendum 59 — optimize the remaining LMFE activity text path
+
+- **Status:** APPROVED under the owner's continuing direct 2026-11-20 instruction to keep fixing the Parent flow until it works.
+- **Approved plan:** `plan/PLAN_REVISION_35_LMFE_PARENT_ACTIVITY_DECODER_PERFORMANCE_20261120.md`.
+- **Evidence:** the Rev34 activity call passed the text-model input fix but emitted only 100 tokens in about 195 seconds. Safe LMFE telemetry showed two callbacks taking ~50 seconds each while allowing ~246.5K tokens; the Modal GPU call was cancelled to limit further GPU usage. The affected activity schema uses bounded regex patterns for prose even though the post-generation parser already validates required fields, exact length limits and terminal punctuation.
+- **Authorized:** change only the LMFE generation schema for bounded prose fields to min/max string bounds; retain and test post-generation punctuation/length/schema validation; run focused offline tests; redeploy the language/audio app; perform CPU-only readiness; then use exactly one remaining real UI-driven activity request, capped at eight minutes, with no retry.
+- On success, continue one activity selection/persistence, one story generation/adult confirmation, and at most one silent video request under existing approvals. No quota/payment mutation or bypass, drawing inference, new accounts/profiles, fixture/mock, direct DB mutation, secret/`.env` change, migration, commit/push, or unrelated shutdown. Preserve existing catalog, safety, age, consent and quality rules; keep emulator online and clean up only task-owned services.
+
+## Addendum 60 — prevent non-Latin escapes in Parent activity output
+
+- **Status:** APPROVED under the owner's continuing direct instruction on 2026-11-20: “fix tiếp đi, nào nó chạy đc hết thig dùng”.
+- **Approved plan:** `plan/PLAN_REVISION_36_PARENT_ACTIVITY_VIETNAMESE_OUTPUT_GATE_20261120.md`, 5,932 bytes, SHA-256 `6C3218AFD710117C574CF34C93709A2B07F0526FC8505B2ECD60AB2F71A38375`.
+- **TASK_APPROVAL.md pre-append pin:** 133,296 bytes, SHA-256 `65F9B7FF6AC0CFF5916E11BA0073AC30755229703E492387AD855E5A367B6776`.
+- **Evidence:** Rev35 call `fc-01M7V7JFVH0RWAMH38VB7G4E74` completed model generation in 99.573s and failed the non-Latin output gate. LMFE 0.11.3 admits `\\uXXXX` escapes inside otherwise alphabet-limited prose; generated text itself was not retained. Parser coverage also omits the catalog reason fields.
+- **Authorized:** implement only the M1/M2 changes and exact file boundary in Plan Revision 36; run focused offline tests; deploy only the dev language/audio Modal app; perform CPU-only health/readiness without a warm-up call; then make exactly one fresh, real Parent Android UI activity-suggestion request capped at eight minutes, after the distinct decoder fix passes offline checks.
+- On success, continue one activity selection/persistence and one story generation/adult confirmation under existing approvals. One silent LTX-2.5 request remains conditional on all prior gates and its existing exact authorization. On failure, stop inference and prepare another amendment before any further call. No repeat or direct worker request.
+- Synthetic-only and reuse the existing authenticated Parent/profile/run/artwork. Keep language, schema, quality, safety, age, consent, catalog, activity-selection, story-review and video-safety gates unchanged. No output repair/translation, model substitution, new account/profile/run, drawing inference, fixture, direct DB edit/migration, quota/payment mutation or bypass, `.env`/secret change, SRS change, commit/push, or unrelated service shutdown. Keep emulator online; stop only task-used services.
+- **OWNER_MODAL_CALL_APPROVED=YES** for exactly one real activity-suggestion request via the UI after the code/deploy/readiness gates; **OWNER_VIDEO_INFERENCE_APPROVED=YES** remains limited to the already approved single silent request if all existing gates pass.
+
+## Addendum 61 — block direct non-Latin Parent activity tokens
+
+- **Status:** APPROVED under the owner's continuing direct instruction on 2026-11-20 to keep fixing the Parent flow until it runs.
+- **Approved plan:** `plan/PLAN_REVISION_37_PARENT_ACTIVITY_UNICODE_TOKEN_FILTER_20261120.md`, 6,153 bytes, SHA-256 `860F6CF419C21A64B797B6EA04E5F9AD57786D87B3DFB6093A92BFB076B97ACD`.
+- **TASK_APPROVAL.md pre-append pin:** 135,643 bytes, SHA-256 `CCBC93C5C3BF8D90DCAE5B32C909CFF0020DD463902BBB157CF473296202E746`.
+- **Evidence:** Revision 36 call `fc-01M7V8T2VAQ488YP3GP9ENJEVM` generated 682 tokens but failed the existing language gate with one non-Latin letter in `no_match_reason`. The API container's current `ModalJsonFunctionClient` has no timeout override and the activity worker allows 450 seconds; the logs do not establish a 120-second timeout. No timeout increase is approved.
+- **Authorized:** implement only the M1/M2 changes and exact file boundary in Plan Revision 37; run focused offline tests; deploy only the dev language/audio Modal app; run CPU-only readiness without loading weights or warming GPU; then make exactly one fresh Parent Android UI activity-suggestion request, capped at eight minutes, with no retry or direct worker/API request.
+- If that request succeeds, continue one UI activity selection/persistence and one story generation/adult review under the existing approved limits; one silent LTX-2.5 request remains conditional on all existing gates and its exact prior authorization. If the activity request fails, stop inference and prepare another amendment before any further AI request.
+- Synthetic-only; reuse the authenticated Parent/profile/run/artwork. Keep all language, schema, quality, safety, age, consent, catalog, activity-selection, story-review, and video-safety gates. No output repair/translation, model substitution, new account/profile/run, drawing inference, fixture in the live flow, DB edit/migration, quota/payment mutation or bypass, `.env`/secret change, SRS change, commit/push, or unrelated service shutdown. Keep the emulator online; stop only task-used services after evidence capture.
+- **OWNER_MODAL_CALL_APPROVED=YES** for exactly one fresh real activity-suggestion request via the UI after the code/deploy/readiness gates. Existing story and silent-video authorizations remain only as previously bounded; this addendum does not renew them.
+
+## Addendum 62 — preserve punctuation quality and diagnose the failing field
+
+- **Status:** APPROVED under the owner's continuing direct instruction on 2026-11-20 to keep fixing the Parent flow until it runs.
+- **Approved plan:** `plan/PLAN_REVISION_38_PARENT_ACTIVITY_PUNCTUATION_DIAGNOSTICS_20261120.md`, 5,939 bytes, SHA-256 `0D36D94F762BE6B294ACC6DA6EB978BF4A4AE2E510D6E081AD037684B63D60EB`.
+- **TASK_APPROVAL.md pre-append pin:** 138,049 bytes, SHA-256 `8E081D7F8F4C87CD5FE1A2C4B71E066F41AAEA58A98C95678AB8A5927623FB5A`.
+- **Evidence:** Rev37 call `fc-01M7V9SVGD1WXFXD4FS07TSYA2` generated 746 tokens; JSON completion and EOS checks passed, but the unchanged punctuation gate returned `MODAL_MODEL_OUTPUT_INCOMPLETE_TEXT`. The exact field path was not logged. The API did not time out; the current activity wait limit is 450 seconds.
+- **Authorized:** implement only M1/M2 and the exact file boundary in Plan Revision 38; run focused offline tests; deploy only the dev language/audio Modal app; run CPU-only readiness without loading weights or warming GPU; then make exactly one fresh Parent Android UI activity request capped at eight minutes, with no retry or direct worker/API request.
+- On success, continue one UI activity selection/persistence and one story generation/adult review under existing approvals; one silent LTX-2.5 call remains conditional on all existing gates and its exact prior authorization. On failure, stop inference until another amendment is approved.
+- Reuse the authenticated synthetic Parent/profile/run/artwork. Preserve the punctuation, language, schema, quality, safety, age, consent, catalog, activity-selection, story-review, and video-safety gates. No output repair/translation, regex decoder constraint, token-limit/timeout increase, model substitution, new account/profile/run, drawing inference, live fixture, DB edit/migration, quota/payment mutation or bypass, `.env`/secret change, SRS edit, commit/push, or unrelated service shutdown. Keep the emulator online; stop only task-used services after final evidence capture.
+- **OWNER_MODAL_CALL_APPROVED=YES** for exactly one new real activity-suggestion request via the UI after the code/deploy/readiness gates. Existing story/video authorizations remain only as previously bounded; this addendum does not renew them.
+
+## Addendum 63 — constrain Parent activity sentence-ending tokens
+
+- **Status:** APPROVED under the owner's continuing direct instruction on 2026-11-20 to keep fixing the real Parent workflow until it runs.
+- **Approved plan:** `plan/PLAN_REVISION_39_PARENT_ACTIVITY_PUNCTUATION_TOKEN_FILTER_20261120.md`, 7,032 bytes, SHA-256 `EF4CA4A5545B7C674CA939C3BFE3504AD89966F2EC946A82560C6E759FDED3F5`.
+- **TASK_APPROVAL.md pre-append pin:** 140,366 bytes, SHA-256 `A6D4BF296C95F1E1B03AFF96B526B473213684551B459A3470512EB1D6571501`.
+- **Evidence:** Rev38 call `fc-01M7VAJFS2C69SNHZSZA3J0FQ1` generated 693 tokens in 112.178 seconds and completed JSON/EOS, but the unchanged punctuation gate rejected `fallback_activities[0].objective`. The API did not time out. LMFE 0.11.3's free-text fast path includes tokens ending in a quote, so removing the quote from parser characters alone would not enforce punctuation.
+- **Authorized:** implement only Plan Revision 39 M1/M2 and its exact file boundary; reuse the existing tokenizer scan and activity-only candidate filtering to block quote-ending tokens in the four required prose fields until their existing punctuation rule is met; retain every existing post-generation, language, schema, quality, age, consent, safety and catalog gate. Run focused offline tests, compilation and `git diff --check`; deploy only the dev language/audio Modal app; run CPU-only readiness; then make exactly one fresh real activity-suggestion request through the authenticated Parent Android UI, capped at eight minutes with no retry.
+- On success, continue one UI activity selection/persistence and one story generation/adult review under existing unconsumed approvals. A single silent LTX-2.5 call remains conditional on its exact prior authorization and every gate; this addendum grants no video request. If a gate is not executable, stop before the call. On activity failure, capture sanitized evidence and stop AI calls until a new bounded amendment is recorded.
+- Reuse the existing synthetic Parent/profile/drawing/context/StoryRun `ec455bbb-8211-49d5-8cef-9889df809de2`. No new accounts/profiles/runs, drawing inference, real child data, fixture, direct API/worker request, retry, regex constraint, output repair, prompt/schema/limit/timeout change, direct DB mutation/migration, quota/payment bypass or change, `.env`/secret edit, SRS edit, commit/push, or unrelated service shutdown. Keep emulator online; clean up only task-owned services after evidence capture.
+- **OWNER_MODAL_CALL_APPROVED=YES** for exactly one fresh activity-suggestion inference via the UI after implementation, offline checks, deployment and CPU readiness. Existing story and silent-video permissions remain only within their prior unconsumed limits; this addendum does not renew them.
+
+## Addendum 64 — type Parent activity sentence endings and log catalog counts
+
+- **Status:** APPROVED under the owner's continuing direct instruction on 2026-11-20: “fix tiếp đi, nào nó chạy đc hết thig dùng”.
+- **Approved plan:** `plan/PLAN_REVISION_40_PARENT_ACTIVITY_TYPED_SENTENCES_AND_CATALOG_COUNTS_20261120.md`, 9,731 bytes, SHA-256 `FC7CE36DB3DB41518CD82A2A74C99115E95F8636B514A0BBB88C4495EA33B1FE`.
+- **TASK_APPROVAL.md pre-append pin:** 143,158 bytes, SHA-256 `9E0BE0B9B1066EA0D02A4DE52EF337E1EEE8EE5F7BB705514F5583365B3C9AD8`.
+- **Evidence:** Rev39's one real Android UI request (`fc-01M7VC15RQPD9XKX454Y9ZJ3RH`) generated 681 tokens in 91.015s, completed JSON/EOS, and failed the unchanged punctuation gate at `fallback_activities[0].objective`. The quote-ending-token filter blocked 46,644 candidates but did not guarantee a sentence terminator. It was not a timeout; no suggestion set was persisted. The catalog-backed path ran, but exact lesson/candidate counts were absent from logs.
+- **Authorized:** implement only Plan Revision 40 M1–M3 and its exact file boundary: use typed sentence bodies plus an explicit ASCII-period enum in the worker's internal output, compose the existing normalized response fields before applying unchanged validators, remove the ineffective Rev39 punctuation-token filter, and add privacy-safe integer counts at the documented catalog-filter stages and worker boundary. Run the focused worker/backend tests, Python compilation and `git diff --check`.
+- Then deploy only `sketch2life-srs23-language-audio-dev` to Modal `dev`, run CPU-only readiness without weight loading/GPU warm-up, and make exactly one fresh Parent activity-suggestion attempt through the existing authenticated synthetic Parent UI on `emulator-5554`, reusing StoryRun `ec455bbb-8211-49d5-8cef-9889df809de2`; hard cap eight minutes, no retry or duplicate tap. Pass requires a valid persisted response rendered in the real UI. If no catalog activity is relevant, the trace must show zero relevance matches before the worker returns three quality-gated fallbacks.
+- On activity success, continue one real UI activity selection/persistence and one story generation/adult review only under already active, unconsumed approvals. One silent LTX-2.5 call remains conditional on the exact pre-existing video authorization being verifiably unconsumed and all prior gates passing; this addendum grants no video allowance. If the activity call fails, stop AI calls until a new amendment is recorded.
+- Keep model/checkpoint/provider, prompt policy, token/timeout limits, catalog access, top-12 cap, language/schema/quality/age/consent/safety rules, quota/admission behavior and API/persistence contracts unchanged. No fixture in the live flow, direct API/worker call, new account/profile/run, drawing inference, real child data, database edit/migration, quota/payment mutation or bypass, `.env`/secret/SRS edit, commit/push, or unrelated service shutdown. Preserve pre-existing dirty/staged changes; keep the emulator online and clean up only task-owned services.
+- **OWNER_MODAL_CALL_APPROVED=YES** for exactly one fresh activity inference through the real Parent UI after offline checks, deploy and CPU readiness. Existing story/video allowances remain only within their prior unconsumed limits; this addendum does not renew them.
+
+## Addendum 65 — rebuild only the task-local API container
+
+- **Status:** APPROVED under the owner's continuing 2026-11-20 instruction to fix and run the real Parent flow.
+- **Approved plan:** `plan/PLAN_REVISION_40A_PARENT_API_RUNTIME_REFRESH_20261120.md`, 2,334 bytes, SHA-256 `BD319DBCCEE73BF83D14B59E1B5AC07221125D733749DF5FE8E4D479CBE74727`.
+- **TASK_APPROVAL.md pre-append pin:** 146,516 bytes, SHA-256 `ABDB188B1B87E263825E505B63AD8CE0A5BF595783139A34B7CD930B35C0831F`.
+- **Evidence:** `s2l-feat081-rev23-api-1` is healthy but has no source bind mount; its Compose labels point to the existing task Compose files and the shared local `.env`. Backend source edits are therefore not active in this container.
+- **Authorized:** using the existing Compose files/overrides and external volumes, rebuild/recreate only service `api` in project `s2l-feat081-rev23` with `--no-deps`, then verify container health and `/health` at `127.0.0.1:58100`. Use the existing `.env` without reading its values into output or changing it. This is a runtime refresh only and does not expand the code boundary.
+- Do not restart other services, change Compose/env/secrets, run migration/seed, delete containers/volumes, or add an AI call. The one activity inference remains exactly the call already authorized by Addendum 64. No commit/push.
+
+## Addendum 66 — remove internal catalog wording from fallback UI
+
+- **Status:** APPROVED under the owner's continuing 2026-11-20 request to keep fixing the real Parent workflow.
+- **Approved plan:** `plan/PLAN_REVISION_40B_PARENT_ACTIVITY_FALLBACK_COPY_20261120.md`, 3,176 bytes, SHA-256 `94860CB3D5F892BD3F4D719CFFFF79E0D8E71B4FF7931FB39E49BDBBA74B44D1`.
+- **TASK_APPROVAL.md pre-append pin:** 147,845 bytes, SHA-256 `1CE631CFD8B4D6BD70567493159CAFECE4FEA190CADDB908584C9C08C6FC416C`.
+- **Evidence:** the Rev40 activity inference succeeded and persisted three fallback drafts; the UI displayed the worker's `no_match_reason` verbatim, including the internal key `candidate_activities`.
+- **Authorized:** change only the Parent Activity screen fallback copy so drafts show one stable, plain Vietnamese explanation and the per-card raw AI `match_reason` is hidden for `AI_GENERATED_DRAFT`. Preserve catalog reasons, APIs, saved data and all business/quality/safety rules. Run the mobile test suite and typecheck; verify the already-persisted response via Expo Fast Refresh on `emulator-5554` without another activity inference.
+- After the copy fix, one real activity selection/persistence and one story generation/adult review remain authorized only under Plan Revision 40's prior unconsumed allowance. This addendum adds no inference allowance. Stop at story review; video remains conditional on exact earlier authorization and all gates.
+- No fixtures/mocks, new inference, direct API/worker request, DB edit/migration, quota/payment change, secret/`.env`/SRS edit, unrelated service shutdown, commit or push. Preserve dirty/staged work and keep the emulator online.
+
+## Addendum 67 — refresh Parent screens and add the real video path
+
+- **Status:** APPROVED by the owner's direct 2026-11-20 instruction: “fix các phần chưa phải UI bản mới và thêm luồng vid vào đi”.
+- **Approved plan:** `plan/PLAN_REVISION_41_PARENT_UI_REFRESH_AND_VIDEO_FLOW_20261120.md`, 15,842 bytes, SHA-256 `697C841A5D45A61E8CD98A7FD729834F17BD1CA06776053B5984B087F0B90137`.
+- **TASK_APPROVAL.md pre-append pin:** 149,518 bytes, SHA-256 `43217EACEB1379033C2E1E9168BB1C74AB67161804F64622BD9FC0A362D7D43A`.
+- **Evidence basis:** the real Android Expo story screen displays model-generated character-count/numeric fragments in story prose; the UI now shows an adult-confirmed badge, but server-owned confirmation/hash still must be verified before video dispatch. The last fallback-copy edit was not verified after a real app reload. Parent video capability is unavailable in the client, and Modal `video_app.py` remains a fail-closed scaffold. Existing video-call authority in Addendum 41/42 has not been consumed; the latest Addendum 66 still requires its exact earlier limit and all gates.
+- **Authorized:** implement Plan Revision 41 within its §6 path families; audit/fix only active Parent screens that are stale relative to the current UI; fix story-output contamination and worker terminal-log consistency at source; wire the authenticated Parent video API, persistence/admission, LTX-2.5 Modal worker, silent composition, automated validation, and current-style progress/result UI; run focused checks and real Android UI verification; save sanitized evidence.
+- **Bounded live calls:** reuse the existing synthetic Parent/profile, source artwork, and saved primary activity. No drawing or activity inference. At most one Qwen story rewrite to correct the visible text defect after offline checks, then stop at the adult review screen. Do not confirm a story on the owner's behalf. After the adult explicitly confirms the exact story hash in the real UI and the backend accepts real quota/compute admission, at most one LTX-2.5 video request is authorized, for only the scenes in that confirmed storyboard. No retries, duplicate tap, warm-up, direct worker/API request, or scene retry. This reaffirms—but does not expand—the one-request video ceiling from Addendum 41/42. `OWNER_VIDEO_INFERENCE_APPROVED=YES` only within these exact conditions.
+- **Admission and safety:** no quota/payment mutation or bypass. Rejected admission must stop before Modal. Keep model, schema, age, consent, content, activity, and safety gates fail-closed. No playback before technical, consistency, and automatic safety checks pass. Use silent video only; no TTS/audio in this slice.
+- **Data and runtime:** synthetic data only; use the real Expo UI and authenticated backend. Any migration must be additive and applied only after verifying the target is a task-local disposable database. Do not read or edit `.env`/secrets or expose credential/token values. Preserve all pre-existing staged, unstaged, and untracked changes. No commit/push, branch/history operation, or unrelated service shutdown.
+
+## Addendum 68 — connect the existing Modal LTX worker to Parent
+
+- **Status:** APPROVED by the owner's direct 2026-11-20 instruction: “nối cái đó vào đi”. This records the owner's earlier instruction to leave quota management to the other workstream and temporarily allow the button to run.
+- **Approved plan:** `plan/PLAN_REVISION_42_PARENT_MODAL_VIDEO_CANDIDATE_INTEGRATION_20261120.md`, 11,000 bytes, SHA-256 `F7BDDCBD1C6C3928096ACFA96CA748A574DEE974658B9333AF4BCEFE1356F9C1`.
+- **TASK_APPROVAL.md pre-append pin:** 152,636 bytes, SHA-256 `BC51B28305DC7F8E91532001F5D5CB74BB67B750703364B6D195B1A82E96A923`.
+- **Evidence basis:** Modal `dev` app `sketch2life-srs23-dev-video` is deployed with LTX-2.5/L40S functions and FEAT-067 contains real video candidates. FEAT-067 Parent routes currently fail closed before worker dispatch; FEAT-081 has no Parent video UI operations.
+- **Authorized:** implement the dev candidate integration using the already deployed worker; server-owned exact confirmed story/drawing input; durable idempotent job/status; private MinIO candidate; authenticated local/test technical-preview stream; current Expo Parent UI progress/resume/preview. A no-quota path is allowed only when `SKETCH2LIFE_ENV` is local/test, an explicit default-off flag is enabled, `ai_provider=modal_dev`, synthetic pilot is enabled, the server-resolved profile is synthetic, and the caller is an authenticated Parent. Production/staging remain fail-closed. The result is `CANDIDATE_READY`, never product `VIDEO_READY`; no safety gate or ordinary product playback is bypassed.
+- **Live-call limit:** no Modal warm-up or blind retry. At most one inference through the real Parent UI, and only if a clean, exact confirmed synthetic story is available and all guards pass. This addendum does not authorize story/activity/drawing inference, quota changes, or reusing a previously generated MP4 as a UI fixture.
+- **Data/runtime:** do not read or edit the user's `.env` or Modal secrets. Add placeholders and Compose wiring only. Migrations, if needed, must be additive and applied only to the verified task-local disposable database. Preserve all existing worktree changes. No commit/push, broad merge, Modal app stop, or unrelated service shutdown.
+
+## Addendum 69 — include API contract verification for the Parent Modal candidate
+
+- **Status:** APPROVED under the owner's direct 2026-11-20 instruction: “nối cái đó vào đi”. This records the narrow test maintenance required to verify the newly exposed Parent video request/status/preview routes.
+- **Approved plan:** `plan/PLAN_REVISION_42_PARENT_MODAL_VIDEO_CANDIDATE_INTEGRATION_20261120.md`, 11,349 bytes, SHA-256 `A6C823A82ED018D53E0227B9D49753D7F61D3BDC623B056083143BB159D95702`.
+- **TASK_APPROVAL.md pre-append pin:** 154,901 bytes, SHA-256 `FE48E0FD8291D7BB4C1C120FFCECDF1A3CDA4ACA44A4642517984869C36B4BFA`.
+- **Authorized test boundary:** `backend/tests/unit/test_parent_video_candidate_manifest.py`, `backend/tests/unit/test_modal_silent_story_video_adapter.py`, and `backend/tests/contract/test_openapi_contract_catalog.py`. The focused contract check may update the expected mounted operation count for the seven current Parent additions (three topic/subject routes and four video candidate routes). Mobile API contract tests remain within `apps/ui-mobile/**`.
+- **Verification only:** run offline unit/mobile/OpenAPI checks. No Modal request, test media, DB migration, account/profile/story creation, quota change, environment/secret access, SRS change, commit/push, or service shutdown is authorized by this addendum.
+- All other Addendum 68 guards and its single conditional, UI-only LTX inference limit remain unchanged.
+
+## Addendum 70 — run one real Parent-to-Modal candidate E2E
+
+- **Status:** APPROVED by the owner's direct 2026-11-20 instruction: “chạy thử đi, end to end, ko cần quota”.
+- **Approved plan:** `plan/PLAN_REVISION_43_PARENT_VIDEO_CANDIDATE_E2E_20261120.md`, 7,511 bytes, SHA-256 `1FB81813CDE482D736B90E133578B846FACFEF56C29A24BA4855E3D1C2E01F0C`.
+- **TASK_APPROVAL.md pre-append pin:** 156,353 bytes, SHA-256 `0111E85C1E0BA3C172E6B7DE3A693B399CDAC4CEF2E98F3C7BC61A30B5939C33`.
+- **Preflight:** `emulator-5554` is online at Parent sign-in; task API `127.0.0.1:58100` is healthy but stale and lacks video routes; task Postgres is the local `s2l-feat081-rev23` container using its existing persistent FEAT-081 test volume; Modal `dev` lists the existing LTX video app deployed with zero tasks.
+- **Authorized:** refresh only the task API service from the approved worktree source; inspect and apply only necessary additive migrations to the verified task-local database; use the actual Expo Parent UI and synthetic-only data; create a local synthetic Parent account if needed; run at most one inference per required Parent stage and at most one LTX candidate request; skip quota only via the existing local/test synthetic candidate guard. Capture sanitized evidence and correlate API and Modal results.
+- **Hard limits:** never use real child data or fixture/provider responses; no legal-consent fabrication; no direct DB business-data inserts, no product `VIDEO_READY` claim, no safety/age/catalog/story gate weakening, no quota-ledger mutation, no retries or duplicate video request, no Modal deployment/warm-up/stop, no unrelated service shutdown, no `.env`/secret access or change, no commit/push.
+- If a stage fails, stop downstream inference and record its exact safe failure diagnostics. If adult review finds the story unsuitable or malformed, do not confirm it to force video generation.
+
+## Addendum 71 — load the configured root `.env` for task Compose
+
+- **Status:** APPROVED by the owner's 2026-11-20 clarification: “t có để trong /capstone cái .env r mà?”
+- **Approved plan:** `plan/PLAN_REVISION_43_PARENT_VIDEO_CANDIDATE_E2E_20261120.md`, 8,525 bytes, SHA-256 `2BC86D09CAA05DCC462B70EDBDFA8130BCB3AF6F8D66AC08E02BA28AEAEEF560`.
+- **TASK_APPROVAL.md pre-append pin:** 158,259 bytes, SHA-256 `F251ACCE5B3C545B3C323F2B6D0143DDA506099D3C970138E9571F4331C9A521`.
+- **Finding:** required Firebase/Admin and Modal keys are non-empty in `<local-machine-path>; no `.env` exists in the active worktree root `<local-machine-path> Compose had been started from the worktree without the root file, explaining the missing runtime values.
+- **Authorized:** recreate only `api` in `s2l-feat081-rev23` using `docker compose --env-file <local-machine-path> plus the existing task Compose files; keep provider `modal_dev` and the local synthetic candidate gates enabled only for this task. Verify presence/status using booleans only. The Compose process may load the root values, but must not print, copy, or edit them.
+- **All other Addendum 70 limits remain:** synthetic data only; no direct secret output; no real child data or fixture responses; at most one inference per required stage and one LTX call; no retry/warm-up/quota mutation; no product-ready claim; no unrelated service shutdown, commit, or push.
+
+## Addendum 72 — deploy missing Parent activity Modal app
+
+- **Status:** APPROVED by the owner's direct 2026-11-20 instruction: “sao lại thiếu, thiếu thì tự chạy thêm powershell up lên đi”.
+- **Approved plan:** `plan/PLAN_REVISION_44_LANGUAGE_AUDIO_MODAL_DEPLOYMENT_20261120.md`, 2,393 bytes, SHA-256 `0CA53B3595B75DF0F9E6BB3EDA63737B3EE5CA91CB86CB1A6FB0C65506C28B7F`.
+- **TASK_APPROVAL.md pre-append pin:** 159,716 bytes, SHA-256 `9FFF809175CC6D71A5CE47DCFEB3177DBA00CA3517D7E574F07F25A0F3B3F7DC`.
+- **Finding:** Rev43's single Parent activity-suggestion attempt failed with `NotFoundError` before a Modal call ID existed. The configured Modal `dev` inventory omitted `sketch2life-srs23-language-audio-dev`, which defines `suggest-parent-activities`.
+- **Authorized:** deploy only `deployment/modal/srs_v23/language_audio_app.py` to Modal environment `dev`, then verify the app appears in inventory and record sanitized evidence.
+- **Not authorized by this addendum:** invoking any Modal function or inference, readiness/model-load/warm-up calls, reattempting Parent activity suggestion, continuing story/video E2E, changing `.env`/secrets/Volumes/database/quota, or modifying any other Modal app. All other Rev43 limits remain in force.
+
+## Addendum 73 — one UTF-8-corrected deploy retry
+
+- **Status:** APPROVED as a narrow continuation of the owner's direct Addendum 72 instruction to deploy the missing app.
+- **Approved plan:** `plan/PLAN_REVISION_44_LANGUAGE_AUDIO_MODAL_DEPLOYMENT_20261120.md`, 2,583 bytes, SHA-256 `36FCBAF5C2404DDFFD6D25634316A51164115894AAE7F50BB50DB9DFA7D9F43E`.
+- **TASK_APPROVAL.md pre-append pin:** 160,976 bytes, SHA-256 `CF8E275D289A285FA7BA2105582688F9277BBC3921134DF4AA4DC20D1C37A97E`.
+- **Reason:** first deploy command exited because the Windows console could not encode Modal's `✓` output; the app record was created but appeared `stopped` in the read-only inventory check.
+- **Authorized correction:** set `PYTHONUTF8=1` for the Modal CLI and repeat the deployment exactly once for `deployment/modal/srs_v23/language_audio_app.py` in `dev`.
+- **All other Addendum 72 boundaries remain:** no Modal function invocation, readiness call, model load, GPU warm-up, AI request, E2E continuation, or other app/resource change.
+
+## Addendum 74 — resume the approved Parent E2E after deployment
+
+- **Status:** APPROVED under the owner's still-active direct request to run the Parent workflow end to end without quota, with the follow-up instruction to deploy the missing worker.
+- **Approved plan:** `plan/PLAN_REVISION_45_RESUME_PARENT_E2E_AFTER_MODAL_DEPLOY_20261120.md`, 3,676 bytes, SHA-256 `441BB0AC6FA5BDB0401E6AA62EBC9A199982840D90EF5AD3EB6AEF0BA607FF72`.
+- **TASK_APPROVAL.md pre-append pin:** 161,999 bytes, SHA-256 `1DC4E796333F7125A3028D775AAA586442FA6E5B12A98FA12B83DEC6CB112005`.
+- **Deployment status:** `sketch2life-srs23-language-audio-dev` is now deployed in Modal `dev`, with zero tasks. Rev43's activity request failed before Modal accepted a call ID, so it performed no model inference.
+- **Authorized continuation:** reuse only the existing synthetic Parent/profile/StoryRun/drawing; one actual activity suggestion inference through the real UI, one story inference if activity persists and is selected, and at most one private silent LTX candidate if story review/hash confirmation and all existing local/test synthetic gates pass. No drawing re-inference. The adult test operator must inspect the exact story and not confirm an unsuitable/malformed/mismatched result.
+- **This addendum supersedes only the deployment-only/no-E2E boundary of Addenda 72–73 after successful deploy.** No additional deployment retry, readiness/warm-up/model-load call, activity retry after this one actual inference, story/video retry, quota access/mutation, gate bypass, other app/resource change, commit, or push is authorized.
+
+## Addendum 75 — one fresh synthetic Parent account and video E2E
+
+- **Status:** APPROVED by the owner's direct 2026-11-20 instruction: “tự đký và ấy đi”.
+- **Approved plan:** `plan/PLAN_REVISION_46_FRESH_PARENT_ACCOUNT_VIDEO_E2E_20261120.md`, 3,485 bytes, SHA-256 `027B53B8AA50C0E341EB578CCB378AE15EE4E852FFA298216A5DC7841CCB7245`.
+- **TASK_APPROVAL.md pre-append pin:** 163,607 bytes, SHA-256 `8366D6641C599DE190FC8F734303BF6D09EFBD5FFEFB28F7084F4B588B02644B`.
+- **Reason:** after the Expo app was restarted, the previous Parent session was unavailable. The prior confirmed run belongs to that Firebase UID; the task database has no Parent seed identity, so a new account cannot access that run.
+- **Authorized:** register exactly one new synthetic Parent through the real Expo UI, create one synthetic 60-month profile and one fresh StoryRun, reuse the existing generated synthetic turtle artwork via Android Photo Picker, perform at most one inference each for drawing understanding, activity suggestion, and story generation, then at most one silent LTX candidate request after exact-story adult review/confirmation. Stream the authenticated private preview if a candidate is ready.
+- **Hard limits:** credentials remain ephemeral and are never printed or committed; the Firebase test account remains after the run. No real child data, fabricated consent, direct API/worker bypass, direct business DB writes, quota/billing read or mutation, payment, quota bypass, repeated inference, retry, warm-up, extra deployment, other app/resource change, `.env`/secret/SRS change, commit, or push. Failure or unsuitable story stops downstream calls.
+- **OWNER_MODAL_CALL_APPROVED=YES** for one fresh drawing call, one activity call, one story call, and at most one silent LTX candidate, only through the real UI and the existing local/test synthetic-only guard. No product `VIDEO_READY` claim.
+
+## Addendum 76 — correct Firebase token clock-skew rejection and resume the same E2E
+
+- **Status:** APPROVED as the narrow runtime repair required by the owner's active 2026-11-20 instruction to register and complete the real Parent flow: “tự đký và ấy đi”.
+- **Approved plan:** `plan/PLAN_REVISION_47_FIREBASE_IAT_SKEW_FIX_20261120.md`, 3,300 bytes, SHA-256 `796F278FBBF514D99B0310C2CEF926AC721B02CE19EECE4F4FBD68DB46296E29`.
+- **TASK_APPROVAL.md pre-append pin:** 165,511 bytes, SHA-256 `E2745E261CD41B41A23C5F688606413CFFB4EAD5C093CDFA2D74DD1B6E3BAFB4`.
+- **Evidence:** Firebase accepted the synthetic account's credentials. An immediate `/api/auth/v1/me` call failed with `INVALID_TOKEN` when token `iat` was 11 seconds ahead of the API clock and verifier tolerance was 10 seconds; the same token returned 200 after 3 seconds when measured skew was 7 seconds. No credentials or token material are included in evidence.
+- **Authorized:** change only `FIREBASE_AUTH_CLOCK_SKEW_SECONDS` from 10 to 30 in `backend/src/sketch2life/infrastructure/identity/firebase_token_verifier.py`; add a focused verifier regression test in `backend/tests/unit/test_firebase_token_verifier.py`; run focused auth checks and repository security validation; rebuild/recreate only `s2l-feat081-rev23-api-1`; sign in through the real Expo UI with the already-created account; continue Addendum 75's existing synthetic Parent flow and bounded Modal/video request limits.
+- **All other Addendum 75 boundaries remain:** no second account/profile/run, real child data, consent fabrication, direct API/worker bypass for product flow, quota/billing read or mutation, payment, quota bypass, repeated inference, AI/video retry, warm-up, extra deployment, unrelated app/resource change, `.env`/secret/SRS change, commit, or push.
+
+## Addendum 77 — corrected Plan Revision 47 pin
+
+- This correction is documentation-only. The first Plan Revision 47 draft included an absolute local worktree path, which the repository security validator rejects. That path was removed; scope and acceptance criteria are unchanged.
+- **Corrected approved plan:** `plan/PLAN_REVISION_47_FIREBASE_IAT_SKEW_FIX_20261120.md`, 3,257 bytes, SHA-256 `D0E6AD4CB1DBA33FAE361DDCE5C05C1289B9562A072DDFF488F9A99F050AFB12`.
+- **TASK_APPROVAL.md pre-append pin:** 167,326 bytes, SHA-256 `3F0A5DB3D67C086C296DDB6198957D24A60AA85875A58DDC00065D2940A10EC6`.
+- Addendum 76's approved scope and all Addendum 75 runtime limits remain unchanged.
+
+## Addendum 78 — diagnose and recover one Parent profile-create DB failure
+
+- **Status:** APPROVED as a bounded continuation of the owner's active 2026-11-20 request to register and complete the real Parent flow.
+- **Approved plan:** `plan/PLAN_REVISION_48_PARENT_PROFILE_DB_ERROR_RECOVERY_20261120.md`, 2,463 bytes, SHA-256 `AFBBD774289E1154B98226420701C6888BCC5B4CF4B7019683C799D2BEF9B9E8`.
+- **TASK_APPROVAL.md pre-append pin:** 168,004 bytes, SHA-256 `92D70A35BE39F3489CC114F7989B1520EA10375217B8A3253417F79FCD33136C`.
+- **Evidence:** the real UI's single Parent profile-create call returned 503 `PARENT_STORE_UNAVAILABLE`; sanitized API log identifies SQLAlchemy `DataError` but does not identify the driver exception/SQLSTATE. No AI inference was sent and no profile was returned.
+- **Authorized:** add safe underlying exception type/module/SQLSTATE to the Parent DB failure log in `backend/src/sketch2life/interfaces/http/parent_runtime.py`; inspect task schema read-only; make at most one localized correction in Parent profile repository/runtime if the sanitized diagnosis isolates a cause; rebuild only `s2l-feat081-rev23-api-1`; verify the profile list remains empty in the authenticated app; replay the same UI command at most once using retained idempotency; continue Rev46 only after create + read-back pass.
+- **No migration or direct DB business-data edit is authorized.** No AI/video request is authorized until the profile is active and read back. All remaining Addendum 75 limits remain unchanged.
+
+## Addendum 79 — clarify Parent video loading and make one owner-directed LTX attempt
+
+- **Status:** APPROVED by the owner's direct 2026-11-20 instruction: “gọi thửu vid đi” and “fix nào gọi đc nhé, ngoài ra thì thêm loading state rõ hơn cho cái này dùm”.
+- **Approved plan:** `plan/PLAN_REVISION_49_VIDEO_LOADING_AND_ONE_CANDIDATE_TEST_20261120.md`, 9,137 bytes, SHA-256 `0F60012C7191461C30DBFE1D5C963370FC971E77CD659E8F7EC70C6D2B567D94`.
+- **TASK_APPROVAL.md pre-append pin:** 169,524 bytes, SHA-256 `6B39C810A4718B8D6F2E0D91366251C757D65F57BD77FBD048A24FE0AC758CB5`.
+- **Known review issue:** the current synthetic story revision contains mixed-script text and awkward age phrasing, as recorded in the Rev46 evidence. The owner explicitly directs one technical video test anyway.
+- **Authorized:** improve the Parent video loading state using actual candidate states and the existing mobile design tokens; run focused checks; confirm the exact displayed story revision through the real UI solely to advance this one owner-directed synthetic technical test; submit at most one Parent UI candidate request for StoryRun `ff1021f5-e9e6-4343-9da3-ced08ad9de69`; poll status through the UI; open its authenticated technical preview only if ready. A narrow pre-dispatch code fix is allowed only if required to make this request work and must preserve every existing security/configuration guard.
+- This addendum supersedes Addendum 75's “unsuitable story stops downstream” condition **only for the single synthetic candidate attempt named above**. It does not mark the story acceptable or change SRS/product quality, consistency, safety, or playback gates.
+- **Hard limits:** no story/image regeneration, no second account/profile/run, no second candidate submit, no LTX retry after a Modal call is accepted or its outcome is uncertain, no direct API/worker bypass, no guard/quality/safety relaxation in code, no quota/billing access, no `.env`/secret/SRS/migration change, no extra Modal deploy/warm-up/app stop, and no commit/push. If the one candidate is rejected or fails, record the safe reason and stop.
+- **OWNER_MODAL_CALL_APPROVED=YES** for at most one real LTX-2.5 inference through the existing local/test synthetic-only Parent UI path for this run. This is a technical experiment only; no claim of product readiness or story quality is authorized.
+
+## Addendum 80 — one fresh synthetic Parent signup and UI video test
+
+- **Status:** APPROVED by the owner's direct 2026-11-20 instruction: “thì m đký đi, chạy đi, nào nối đc, test đc trên UI thì ngừng”. This supersedes Addendum 79's prohibition on creating a new account/profile/run only for the single synthetic flow below.
+- **Approved plan:** `plan/PLAN_REVISION_50_PARENT_SYNTHETIC_REGISTRATION_AND_VIDEO_UI_E2E_20261120.md`, 7,160 bytes, SHA-256 `74CE8AD21191B58BFC8D98405C493E78F730652123498F0DC9A315D542844E87`.
+- **TASK_APPROVAL.md pre-append pin:** 171,913 bytes, SHA-256 `65482D624B51DDBB70DBF85E3D99EFAC8DE1983CE540DDDDA0F14F4C4E854CA5`.
+- **Authorized:** register exactly one fresh synthetic Parent via the real Expo UI; create at most one synthetic profile and one StoryRun through that UI; reuse the existing synthetic turtle artwork; run each needed drawing/activity/story inference at most once; if the story passes normal Vietnamese, age-fit, contract, and safety review, submit at most one silent video candidate via the real UI. Stop at the first terminal blocker or after the UI shows the candidate result. No new story-quality override is granted by this addendum.
+- **Candidate flag:** the owner authorizes setting only `SKETCH2LIFE_PARENT_VIDEO_DEV_CANDIDATE_ENABLED=true` in the task API process environment for the single request, while `SKETCH2LIFE_ENV=local`, `SKETCH2LIFE_AI_PROVIDER=modal_dev`, and existing synthetic-pilot/identity/ownership guards remain unchanged. Do not edit `.env` or secrets; restore the effective candidate flag to `false` immediately after the result or before stopping.
+- **Hard limits:** no real child data, fabricated consent, fixture/preview-harness result, direct API/worker bypass, direct business DB edits, quota/billing read/write, payment, quota bypass, more than one new account/profile/run, any AI retry, a second candidate submission, or LTX retry after accepted/uncertain dispatch. No password reset/account deletion, extra Modal deployment/warm-up/stop, unrelated service shutdown, SRS/migration change, commit, or push. If signup requires accepting legal terms, stop before acceptance and hand control to the owner.
+- The earlier Addendum 79 single-run test exception is not carried over. The new story must pass the existing adult review before the candidate request. A technical candidate does not imply product-quality, safety, or playback approval.
+
+## Addendum 81 — repair Parent Firebase/backend auth, preserve seeds, and rerun Android E2E
+
+- **Status:** APPROVED by the owner's direct 2026-11-21 instruction to inspect and fix Firebase plus backend account synchronization, Google continuation, audit seed accounts, remove only test accounts created by this agent, and rerun the Parent flow.
+- **Approved plan:** `plan/PLAN_REVISION_51_PARENT_FIREBASE_BACKEND_GOOGLE_E2E_20261121.md`, 12,031 bytes, SHA-256 `3D5A4452D7E6892A7A138130964DAE1D0EA83D7911562CFE1687A509E76F745D`.
+- **TASK_APPROVAL.md pre-append pin:** 174,358 bytes, SHA-256 `8282D399858801F1436868F615928A4EFF583FDCF8AD426CEF99B8E15FF175F5`.
+- **Authorized backend/mobile scope:** diagnose the prior one-shot signup's HTTP 503 before any retry; implement safe Firebase↔BE1 registration recovery and diagnostics; support server-controlled first-time Google Parent provisioning; correct UI success/cancel/failure routing; add focused backend and mobile coverage; and continue one real ADB-driven Parent E2E. Backend role assignment must derive subject/issuer from a verified Firebase token; clients may not send role or UID. Preserve generic cross-scope errors and all SRS identity/security gates.
+- **Seed boundary:** inventory Docker and Firebase seed data read-only. Preserve every existing seed identity and entity. Cleanup is authorized only for the exact synthetic account created by this agent for this task, after matching its Firebase identity to its BE1 subject; purge this run's own generated profile/story/media through supported lifecycle operations first. If safe correlation or cleanup is unavailable, stop cleanup and leave unrelated data untouched. No seed user may be removed merely because it looks synthetic or test-like.
+- **E2E limit:** use `emulator-5554` and ADB, the actual Expo UI, and the existing synthetic artwork. Reuse the exact identity from the prior 503 if it exists; create no more than one new account if it is proven absent. At most one profile/run, one inference per required AI workload, and one video candidate request under Rev50/Addendum 80's approved local synthetic-only flag and gates. No quota/payment access, mutation, or bypass; no direct API/worker bypass; no real child data or fabricated consent; no fixture/preview harness; no Modal deploy/warm/stop; no `.env` or SRS edit; no unrelated service changes; no commit/push.
+- Parent self-registration email-verification behavior is not silently changed; follow the canonical FEAT-063 SRS and record the open requirement if implementation needs an owner decision.
+
+## Addendum 82 — extend Rev51 to the BE1 database preflight
+
+- **Status:** APPROVED by the owner's explicit 2026-11-21 direction: “check cả backend để xem có bug hay ko đấy, check cả backend và fix, ko chỉ sửa frontend”.
+- **Supplemental plan:** `plan/PLAN_REVISION_51A_BE1_DATABASE_FAILURE_DIAGNOSTICS_20261121.md`, 2,702 bytes, SHA-256 `FC78A950AAFA9314ED6FFA3E5593E25E651B58C9765860A0CC90FFD82EDBA9AB`.
+- **TASK_APPROVAL.md pre-append pin:** 176,938 bytes, SHA-256 `CA2D697D63E1BE2F3AE8EF1C71F3E1E730A29D88AC0D5DDC96E823C35B7158B8`.
+- **Authorized addition:** inspect/fix the DB connectivity diagnostic in `backend/src/sketch2life/interfaces/http/be1_runtime.py`; add focused tests for its existing safe 503 behavior; use the already existing task-local PostgreSQL container and volume for this E2E. It may be started and checked, but must not be recreated, reset, migrated, reseeded, or cleared under this addendum.
+- All Addendum 81 limits apply. Seeds and all pre-existing accounts/entities remain untouched.
+
+## Addendum 83 — include Parent identity synchronization in the OpenAPI contract
+
+- **Status:** APPROVED by the owner's direct 2026-11-21 request to fix backend registration/login and Google authentication, not only the UI.
+- **Supplemental plan:** `plan/PLAN_REVISION_51B_AUTH_SYNC_OPENAPI_CONTRACT_20261121.md`, 1,692 bytes, SHA-256 `DC9CB3F5C919225963E8C9684D36EF85DA0BD31C877DBF2C3104B249C11FA03D`.
+- **TASK_APPROVAL.md pre-append pin:** 177,976 bytes, SHA-256 `FA28E4A0AA85709F3A6AE775B8EC8C6D38B19A53209DECA4FE9C535D2A9DBADF`.
+- **Authorized addition:** publish `POST /api/auth/v1/registrations/complete` in the explicit OpenAPI projection and add focused contract assertions for authentication, response schema/statuses, and no client-controlled role/UID fields.
+- Plans 51/51A and Addenda 81/82 remain in force, including the seed preservation and exact-own-account-only cleanup boundary.
+
+## Addendum 84 — Parent SVG guide backend contract and optional-flow recovery
+
+- **Status:** APPROVED by the owner's direct 2026-11-21 instruction to check and fix backend defects as well as frontend behavior.
+- **Supplemental plan:** plan/PLAN_REVISION_51C_PARENT_SVG_GUIDE_BACKEND_E2E_20261121.md; SHA-256 $planHash.
+- **TASK_APPROVAL.md pre-append SHA-256:** $approvalHash.
+- **Authorized:** add safe correlation/diagnostics and focused contract tests for the mounted Parent SVG-guide endpoint; preserve its typed no-match response; make missing optional guide non-blocking in the real Parent UI; resume the same ADB E2E and inspect subsequent backend/API results.
+- **Limits:** no reactivation/dispatch of retired guide workload, no new Modal deployment/lifecycle operation, no seed/account mutation, migration/reseed, quota/payment, secret/.env/SRS edits, unrelated route changes, commit or push. Existing Addendum 81 E2E and account-preservation limits continue.
+
+## Addendum 85 — exact Parent sea-turtle source alias
+
+- **Status:** APPROVED under the owner's direct 2026-11-21 instruction to check and fix backend defects, including the catalog resolution found during the real Parent flow.
+- **Supplemental plan:** plan/PLAN_REVISION_51D_PARENT_SEA_TURTLE_GUIDE_ALIAS_20261121.md; SHA-256 $planHash.
+- **TASK_APPROVAL.md pre-append SHA-256:** $approvalHash.
+- **Authorized:** add exact sea-turtle aliases to the existing OpenMoji turtle manifest, refresh its integrity pin, add focused backend resolution tests, verify the real Parent API route, and resume the same UI flow.
+- **Limits:** do not broaden matching to arbitrary substring heuristics; do not alter SVG geometry/license or invoke AI/Modal for a catalog hit. No other asset, route, migration, seed, quota, secret/.env/SRS change, commit or push. Addenda 81 and 84 remain in force.
+
+## Addendum 86 — restore the pinned OpenMoji license bytes
+
+- **Status:** APPROVED under the owner's direct 2026-11-21 instruction to check and fix backend defects.
+- **Supplemental plan:** plan/PLAN_REVISION_51E_OPENMOJI_LICENSE_SOURCE_INTEGRITY_20261121.md; SHA-256 $planHash.
+- **TASK_APPROVAL.md pre-append SHA-256:** $approvalHash.
+- **Authorized:** restore the one missing final LF to the bundled OpenMoji CC BY-SA 4.0 legal-code file and verify it matches the existing official SHA pin; then run focused SVG tests and continue the same real Parent run.
+- **Limits:** do not replace/reformat license contents or change pins/metadata; no other dataset/source edits, Modal dispatch, seed/account mutation, migration, quota, secret/.env/SRS edit, commit or push. Addenda 81, 84 and 85 remain in force.
+
+## Addendum 87 — recover a proven pre-dispatch Parent drawing failure
+
+- **Status:** APPROVED by the owner's direct 2026-11-21 instruction to inspect and fix backend behavior, not only frontend behavior, and continue the Parent flow.
+- **Supplemental plan:** `plan/PLAN_REVISION_51F_PARENT_DRAWING_PRE_DISPATCH_RECOVERY_20261121.md`, 6,128 bytes, SHA-256 `ccb13c6f18a1530264dcedac113719237c897d3f7f0015e483cc758bd920c1d5`.
+- **TASK_APPROVAL.md pre-append bytes/SHA-256:** 181,542 / `d14d04557d65fed3c2ae3bff9a9eb5fbe24991285be3d19719dea7fad9d73e20`.
+- **Authorized:** add safe typed diagnostics for Parent drawing-analysis failures; distinguish explicitly allowlisted failures proven to occur before upload/AI dispatch; make the real Parent UI offer at most one manual retry of the same selected image on the same StoryRun, and only after a read-back confirms `current_input_revision == 1`; add focused backend/mobile tests; restart only this task's API when needed; use the existing task-local MinIO/PostgreSQL/ClamAV services and existing root `.env` via explicit Compose `--env-file`; resume the current ADB-driven synthetic flow.
+- **Failure boundary:** do not retry generic network errors, timeouts, uncertain/accepted Modal outcomes, worker/model errors, or any run whose input revision advanced. Do not create another account, profile or StoryRun. The previously observed drawing 503 left revision 1 and no upload session; after MinIO restoration, exactly one UI recovery attempt is authorized. Existing Addenda 80/81 per-workload AI and one-video-candidate limits remain in force; story adult review and every existing safety/quality gate remain mandatory before any candidate request.
+- **Data/security boundary:** preserve all seeds and pre-existing entities; no direct API/worker bypass, business DB mutation, migration/reset/reseed, quota/payment access, fabricated consent, real child data, or gate relaxation. `.env` values may be consumed by Compose but must not be printed, copied or edited. No Modal deploy/warm/stop, unrelated service change, commit or push. Addendum 81's exact-own-test-account cleanup rule remains unchanged.
+
+## Addendum 88 — reject incomplete Parent activity suggestions
+
+- **Status:** APPROVED by the owner's direct 2026-11-21 instruction: “check cả backend và fix, ko chỉ sửa frontend”.
+- **Supplemental plan:** `plan/PLAN_REVISION_52_PARENT_ACTIVITY_SENTENCE_COMPLETENESS_20261121.md`, 4,279 bytes, SHA-256 `E9C91BD4258A2E8032F71AE3654B1AAA6717C44D7BAF2A6C80BCF0289AF13B0F`.
+- **TASK_APPROVAL.md pre-append bytes/SHA-256:** 183,691 / `0327763CEBB9ECBD693E6215A8E99A3E18870655A04A943876D64DA18BB6449D`.
+- **Authorized:** add conservative Vietnamese sentence-tail validation to the Parent activity fallback worker parser and matching backend quality gate; add focused offline worker/backend tests; preserve and report the current malformed result without selecting it or proceeding to story generation.
+- **Limits:** the current activity inference has already completed: no activity retry/regeneration and no second Modal request; no Modal deploy/warm/stop; no mutation/deletion of the saved activity snapshot; no API/worker bypass, migration/reset/reseed, new account/profile/run, quota/payment, consent/security/safety gate relaxation, `.env`/secret/SRS change, unrelated service shutdown, commit or push. Addenda 80–87 remain in force.
+
+## Addendum 89 — prominent Parent AI loading and bounded real E2E continuation
+
+- **Status:** APPROVED by the owner's direct 2026-11-21 request to continue instead of stopping at the activity failure, make AI loading states clear, fix the backend as well as frontend, and run the Parent flow end to end without quota management.
+- **Supplemental plan:** `plan/PLAN_REVISION_53_PARENT_LOADING_BACKEND_E2E_20261121.md`, 10,728 bytes, SHA-256 `03D810556A5EC1E082E0125E6166D93EBF25C1C295224CCA894AD756D6B53F90`.
+- **TASK_APPROVAL.md pre-append bytes/SHA-256:** 184,939 / `A8B45EB7C8215D5A22F66223A5632985DD6D7CEED98C65CBB7DAE06AA85C6DBA`.
+- **Authorized UI work:** make the Parent drawing-analysis, activity-suggestion and story-generation waits prominently visible with honest elapsed time, clear Vietnamese copy and disabled duplicate actions; retain video progress based on server states and improve request-dispatch visibility if needed; map quality-gate failure to an explicit safe message; add focused tests. No fake percentage or invented backend phase.
+- **Authorized backend/Modal work:** apply the already documented Vietnamese incomplete-sentence checks to the worker and backend fallback gate, add focused tests, deploy only `sketch2life-srs23-language-audio-dev` in Modal `dev`, and rebuild only the task API service without touching its database/volume. Check health and route readiness before live requests.
+- **Authorized E2E:** use the real Expo app on `emulator-5554` through ADB; reuse the existing synthetic Parent identity, profile and synthetic turtle drawing source; create at most one new StoryRun. Preserve the prior malformed run/suggestion snapshot. One drawing inference; up to two activity fallback inferences total, where request two is allowed only after a definite quality-gate rejection and never after timeout/uncertain dispatch; one story inference with no rewrite; at most one silent video candidate after adult review/confirmation and existing gates. No fixture/preview-harness result or direct API/worker bypass.
+- **Quota:** do not call/read/mutate quota or payment APIs. For the candidate only, reuse the existing local/test synthetic-only configuration already authorized by Addendum 80; do not weaken identity, admission, safety, or production quota rules. Stop if existing guards cannot admit the technical candidate without a new policy change.
+- **Limits carried forward:** no real child data, fabricated consent, new account/profile, account/seed deletion, direct business-DB edits, migration/reseed/reset, secret or `.env` access/output/edit, SRS edit, unrelated service shutdown, AI retry beyond the exact caps above, story rewrite, video retry, or commit/push. After the run, stop only the task Modal apps used here if they have no other active task. Addendum 89 supersedes Addendum 88 only as to deploying the fix and making the bounded new activity request; other Addenda 80–87 constraints remain in force unless expressly bounded above.
+
+## Addendum 90 — pass story operation into loading UI
+
+- **Status:** APPROVED as a narrow implementation detail of Addendum 89, whose owner-approved objective is to make each Parent AI loading state clearly describe the actual operation.
+- **Updated plan:** `plan/PLAN_REVISION_53_PARENT_LOADING_BACKEND_E2E_20261121.md`, 11,004 bytes, SHA-256 `6E1225374E8F84EA91F95602D5F82E4A96FEF776B171FDBB6F0FD0E32189CE00`; this replaces the plan hash recorded in Addendum 89.
+- **TASK_APPROVAL.md pre-append bytes/SHA-256:** 187,929 / `12B9398CC3942935D11164B0A5A4E844899B239A479F94EB717DB7BC12D32FEC`.
+- **Added allowed file:** `apps/ui-mobile/src/parent/presentation/ParentExpoApp.tsx`, only to pass the existing `story`, `rewrite`, or `confirm-story` busy operation to `StoryScreen` for truthful loading copy. No workflow/API behavior changes are authorized by this addendum.
+- All Addendum 89 run, deployment, quota, data, safety, security and publication limits continue unchanged.
+
+## Addendum 91 — release the exact malformed synthetic run lock through Parent UI
+
+- **Status:** APPROVED as necessary to carry out the owner's direct request to continue fixing and run the Parent flow end to end. This supplements Addenda 89–90 and does not authorize a second profile or account.
+- **Approved plan:** `plan/PLAN_REVISION_53_PARENT_LOADING_BACKEND_E2E_20261121.md`, 11,462 bytes, SHA-256 `B342CE7FCD25809E6B1E81C7212BE42ADAFD505CABCC365FB6944AC87DF2A43E`.
+- **TASK_APPROVAL.md pre-append bytes/SHA-256:** 188,908 / `FFF4D6BCCC7C7F8F55A9DA39C609CCC79E43A5C513217D417622D3AEB4189C6B`.
+- **Authorized:** only if the exact previously reported synthetic run `5d7eae48-19e5-4568-8c36-69f82a381f90` still prevents the approved new run, close that run using its authenticated Parent UI lifecycle action. Preserve its StoryRun record, activity suggestion snapshot, assets, and receipts. Verify the UI/API reports the retained terminal/pending state and the owner/profile lock is released before proceeding.
+- **Stop conditions:** if the UI action would delete data immediately, if run identity cannot be confirmed, if authentication/ownership is uncertain, or if the lock remains held, stop and report. No direct API call, database write, row edit, or deletion is authorized by this addendum.
+- All other Addendum 89 limits remain unchanged: the bounded inference budget, existing safety/admission gates, no quota/payment access, no new account/profile, no real-child data, no unrelated service shutdown, and no commit/push.
+
+## Addendum 92 — recover activity worker quality failure and continue the bounded UI flow
+
+- **Status:** APPROVED by the owner's direct 2026-11-21 instruction to keep fixing the Parent flow, make loading states clear, and continue until the real end-to-end flow works without quota/payment blocking.
+- **Updated plan:** `plan/PLAN_REVISION_53_PARENT_LOADING_BACKEND_E2E_20261121.md`, 14,228 bytes, SHA-256 `C6C2AFC343BD726DE7A004C685657C1591014ABD5D9E6A35D520D0ED6119BFE8`.
+- **TASK_APPROVAL.md pre-append bytes/SHA-256:** 190,446 / `7543D9F651EF217339AFFF256415DC7841B1A310B0C15694CB4E6E17D2D9C25E`.
+- **Observed failure:** the first activity inference on synthetic StoryRun `08657e31-ebd7-4a07-8f9b-5929b4dff23b` ended definitively with worker code `MODAL_MODEL_OUTPUT_INCOMPLETE_TEXT` at `fallback_activities[0].objective`; no generated text was retained. This is a quality rejection, not an unknown dispatch.
+- **Authorized:** shorten fallback sentence schema bounds while retaining all quality/safety gates; clarify the worker prompt with concise complete-sentence patterns; collect terminal Modal logs for at most three seconds after a definite failed `call.get()` for `parent.activity.suggest`; preserve allowlisted typed output-quality worker errors; map the exact incomplete-text error to safe API code `PARENT_ACTIVITY_QUALITY_GATE_REJECTED` and diagnostic `ACTIVITY_TEXT_INCOMPLETE`; add focused tests; deploy only `sketch2life-srs23-language-audio-dev`; rebuild only task API without database/volume changes; after health checks, make at most the one remaining activity inference from the real Android UI on that same StoryRun.
+- **Boundaries:** do not loosen/skip/repair the quality gate, fabricate activities, retry after timeout or uncertain dispatch, or send a third activity inference. Continue to one story inference and at most one silent video candidate only if activity selection and adult story review pass, within Addendum 89's existing limits. Do not access quota/payment APIs, create accounts/profiles/runs, change consent/safety/admission, edit DB or `.env`, expose secrets or raw model text, stop unrelated Modal apps/services, commit, or push. Addenda 89–91 remain in force except for this narrowly authorized quality/logging fix and the one bounded activity continuation.
+## Addendum 93 — continue until the Parent flow completes after repeated quality-gate rejection
+
+- **Status:** APPROVED under the owner's direct 2026-11-21 instruction: “fix tiếp ... nào chạy được end to end ... không quota thì tính”; the owner specifically directs continued repair and full UI E2E, with quota/payment management excluded as a blocker.
+- **Updated plan:** `plan/PLAN_REVISION_53_PARENT_LOADING_BACKEND_E2E_20261121.md`, 15,882 bytes, SHA-256 `DD2C84603D27D154F10933A3AC122D0B2C9E3F3835F78C3ACA610ABED05132D4`.
+- **TASK_APPROVAL.md pre-append bytes/SHA-256:** 192,751 / `F0D36802182C9592C21D996A5E7C82A553533E37247B189A72172E59633154ED`.
+- **Observed evidence:** two UI-dispatched activity fallback calls on the same synthetic run ended definitively with `MODAL_MODEL_OUTPUT_INCOMPLETE_TEXT` at `fallback_activities[0].objective`, after 104,741 ms and 116,124 ms. Neither timed out or had uncertain dispatch; neither raw generated text nor input content is retained.
+- **Authorized:** make a substantive prompt/schema correction using concise complete Vietnamese sentence forms and tighter bounds (objective <=36 characters including period; preparation, each instruction sentence, and safety <=46); retain every completeness, age, topic, language, quality, consent, and safety gate; extend only `parent.activity.suggest` terminal-log collection to a bounded 10 seconds after a definite failed wait; preserve allowlisted typed worker error codes and the safe UI/API mapping; update and run focused tests; deploy only the language-audio Modal app and rebuild only task API; continue the real Android UI flow on the same StoryRun.
+- **Inference cap:** up to three further activity fallback inferences (five total including the two already consumed), each only after a substantive source fix, focused test pass, and healthy deploy. Dispatch only via an explicit adult action in the UI. Stop after the first accepted activity set, or immediately on a timeout, unknown outcome, or any different failure. If activities pass, continue with one UI-selected activity, one story inference and adult review, then at most one silent video candidate under existing gates. No automatic retry, story rewrite, or video retry.
+- **Boundaries:** no quota/payment API calls; no safety, consent, or admission bypass; no direct API/worker inference, database edits, migration, account/profile/run creation, seed deletion, raw text/image/secret output, unrelated Modal/service shutdown, commit, or push. Preserve all failed suggestion sets and snapshots. Addenda 89–92 remain in force except the narrow continuation cap superseded here.
+## Addendum 94 — classify incomplete activity sentence tails safely
+
+- **Status:** APPROVED under the owner's direct 2026-11-21 instruction to keep fixing and continue the real Parent flow until end-to-end completion.
+- **Updated plan:** `plan/PLAN_REVISION_53_PARENT_LOADING_BACKEND_E2E_20261121.md`, 16,247 bytes, SHA-256 `F7F902597E1F2E14CCB48DF4CE9BD39C21F3A8CF2E4253932576F5A1F23FCA91`.
+- **TASK_APPROVAL.md pre-append bytes/SHA-256:** 195,402 / `BFC58817D1DC0469CED73D8FDE3027293B6E97588D2E43526184D1E986A7FE05`.
+- **New evidence:** the third activity call also ended definitively with `MODAL_MODEL_OUTPUT_INCOMPLETE_TEXT`, now at `fallback_activities[1].instructions_text.first_sentence` after 70,607 ms. The API surfaced `PARENT_ACTIVITY_QUALITY_GATE_REJECTED` and diagnostic `ACTIVITY_TEXT_INCOMPLETE` correctly.
+- **Authorized:** tighten sentence bounds (objective <=32, preparation <=42, each instruction sentence <=32, safety <=42 characters including punctuation); add short complete Vietnamese instruction examples; add safe worker diagnostics limited to known field path, character count, and one of the enumerated tail/terminator reason categories; parse these Modal events into backend structured logs without retaining generated text; add focused tests; deploy only the language-audio Modal app; rebuild only task API; run one more explicit activity request from the real UI on the same StoryRun after tests and health checks.
+- **Inference limits:** Addendum 93's cap remains at three further activity calls total; one was consumed by the third attempt, so at most two further calls remain. Each requires a substantive fix and tests first. Stop after the first accepted set or immediately on timeout, uncertain dispatch, or any different error. If accepted, continue with the previously authorized one story inference/review and at most one silent video candidate under existing gates.
+- **Boundaries:** no raw generated text/image, quota/payment API, quality-gate relaxation, direct inference, DB edit, migration, new account/profile/run, seed deletion, consent/safety/admission bypass, unrelated service shutdown, commit, or push. All other Addenda 89–93 limits remain in force.
+## Addendum 95 — reject malformed Parent story prose and allow one UI rewrite
+
+- **Status:** APPROVED under the owner's active 2026-11-21 instruction to continue fixing the Parent flow, make loading states visible, and complete the real end-to-end path without quota/payment management.
+- **Supplemental plan:** `plan/PLAN_REVISION_54_PARENT_STORY_OUTPUT_REPAIR_20261121.md`, 5,843 bytes, SHA-256 `434CE407C6511D836D0B705E96859ED99D89B04A9A4A66E9514504881278AAAF`.
+- **TASK_APPROVAL.md pre-append pin:** 197,606 bytes / `CDAAFDCFEC34F55AD6FEA61A4DF098E19EC8EEE132EAA3C9E7B17BD77F24CE34`.
+- **Observed defect:** the first story call on synthetic StoryRun `08657e31-ebd7-4a07-8f9b-5929b4dff23b` completed but the real UI showed mixed CJK characters and incomplete Vietnamese paragraphs; the backend persisted this output. The owner has not confirmed that draft.
+- **Authorized:** add worker- and backend-boundary checks for user-facing Vietnamese script and complete prose, strengthen drawing/activity grounding instructions, add focused tests, deploy only the existing language-audio Modal app and rebuild only the task API, then submit exactly one adult-directed story rewrite from the real Parent UI on this same run after tests and health checks.
+- **Conditional continuation:** if that exact revision passes the existing adult story review, confirm it through UI and submit at most one silent video candidate through UI under existing synthetic-dev identity, admission and safety gates. Do not access quota/payment APIs. If the synthetic candidate path requires bypassing a gate, stop.
+- **Boundaries:** no new account/profile/run; no drawing/activity inference; no direct API/worker inference or DB edits; no extra story generation, rewrite or automatic retry after this one; no second video request; no quality/safety/consent/admission relaxation; no quota/payment access; no `.env`/secret/SRS or migration change; no unrelated Modal app/service change; no raw generated text/prompt/image/credentials in logs; no commit or push. Addenda 89–94 remain in force except that this addendum authorizes one UI rewrite and a narrowly scoped story-output validator/prompt repair.
+## Addendum 96 — repair story failure persistence and resume Parent E2E
+
+- **Status:** APPROVED under the owner's direct 2026-11-21 request to make the loading state clear, continue fixing the Parent flow, and run it end to end without quota/payment management.
+- **Plan:** `plan/PLAN_REVISION_55_PARENT_END_TO_END_REPAIR_20261121.md`, 7,047 bytes, SHA-256 `E7373D3DA39A89DEC05E0F2A2720A83CE8E2B260BB6AF8D20DBF3E969AC53E32`.
+- **TASK_APPROVAL.md pre-append pin:** 199,786 bytes / `F1CA1C30F7FEDD88120B7D084A34C396BF00C4438BF2D024E0FC37365BEBE730`.
+- **Observed:** the one Addendum 95 rewrite completed inference but was rejected as `STORY_TEXT_INCOMPLETE`; the backend then failed its terminal-state transaction because it writes a nonexistent `story_revisions.updated_at` column, leaving revision 2 and its receipt pending and the run in `SCRIPT_GENERATING`.
+- **Authorized:** fix the story failure transaction and add regression coverage; tighten the worker generation-only text limits and prompt while retaining every quality/safety/consent/admission rule; align visual-prompt punctuation with the backend contract; make the UI clearly report terminal story errors and prevent confirming stale drafts; deploy only the existing language-audio Modal app and task API.
+- **Live continuation:** use authenticated UI cancellation only for the stuck run and only if the service says it is cancelable; reuse the existing synthetic Parent account/profile and existing synthetic turtle artwork. Complete at most one fresh UI-driven pass: one drawing inference, catalog-first activity selection with one fallback inference only if no eligible activity exists, one story generation and at most one adult-directed rewrite after a substantive fix, then one silent video candidate only after a valid adult-reviewed and confirmed story. No direct API/worker inference, fixture harness, automatic retry, or second video request.
+- **Limits:** no quota/payment access or bypass; no safety/consent/quality-gate relaxation; no DB edits/migrations, account/profile creation/deletion, seed deletion, `.env`/secret access/change, raw prompt/text/image in logs, unrelated service shutdown, commit or push. Stop after timeout, uncertain dispatch, unavailable artwork, or any unexpected failure and preserve the evidence.
+- Addenda 89–95 remain in force except this amendment explicitly authorizes the scoped persistence repair, UI recovery, and one fresh bounded Parent run described above.
+
+## Addendum 97 — resume pending story visibly and recover only through UI
+
+- **Status:** APPROVED under the owner's direct 2026-11-21 request to keep fixing the Parent flow, make the loading state easy to see, and continue through a real end-to-end run without quota/payment management.
+- **Plan pin:** `plan/PLAN_REVISION_55_PARENT_END_TO_END_REPAIR_20261121.md`, 8,126 bytes, SHA-256 `70F59C1B5D14DA2CA9A471B3CD66438885C1F36A95FC8D5AEAEC6EE582253B0B`.
+- **TASK_APPROVAL.md pre-append pin:** 202,262 bytes / `081D71A726E6F794541A59E851B09E5633BF6678F5B02B8E5E8D54B7E41B8729`.
+- **Authorized:** fix Parent UI resume routing for server-pending story work; visibly block duplicate activity/story actions while pending; expose the existing history route from the pending screen; keep server `can_cancel` as the only cancellation authority; add focused tests; reload the real emulator UI; inspect and, only if eligible, cancel the already-stuck run through the authenticated UI; then continue within Addendum 96's single fresh synthetic UI pass and inference limits.
+- **Files:** only the Parent controller, `ParentExpoApp.tsx`, `StoryScreen.tsx`, their focused tests, and feature-local plan/context/status/evidence files already listed in Revision 55.
+- **Boundaries:** no new accounts/profiles/runs, no fixture or direct AI API/worker call, no database write/migration, no quota/payment call or bypass, no safety/consent/quality-gate relaxation, no secrets or `.env` access/change, no unrelated service shutdown, no commit/push. Addendum 96's inference limits and stop conditions remain unchanged.
+
+## Addendum 98 — make Parent AI loading state unmistakable
+
+- **Status:** APPROVED under the owner's direct 2026-11-21 request that the Parent loading state be easy to see while completing the real end-to-end workflow. This narrows no existing inference or safety limits.
+- **Plan pin:** `plan/PLAN_REVISION_55_PARENT_END_TO_END_REPAIR_20261121.md`, 8,205 bytes, SHA-256 `277D52CADBCF59FA0B12BEB4091BAE7D1B34F93FAD0865865AC0A74BECCF754B`.
+- **TASK_APPROVAL.md pre-append pin:** 203,861 bytes / `64372BEEF5B5F9B985EFB406FED3BB2C97CE0008595F4936B3C67FACA7AD80A0`.
+- **Authorized:** add an optional high-contrast emphasis mode to the shared `ParentAiLoadingState`, enable it while Parent story processing is active, and cover its visibility contract in focused mobile tests.
+- **Additional allowed file:** `apps/ui-mobile/src/parent/presentation/components/ParentAiLoadingState.tsx`. The component remains reusable; default styling for unrelated loading states is unchanged.
+- **Boundaries:** no API or AI call is authorized by this addendum. All Addenda 96–97 boundaries and inference limits remain unchanged.
+
+## Addendum 99 — sign into the existing synthetic Parent account for real UI E2E
+
+- **Status:** APPROVED under the owner's explicit instructions to use existing seed accounts and run the Parent flow end to end. This addendum supersedes only prior `.env` read restrictions that would prevent signing into the already-existing synthetic Parent account.
+- **Plan pin:** `plan/PLAN_REVISION_55_PARENT_END_TO_END_REPAIR_20261121.md`, 8,442 bytes, SHA-256 `AD746B1311CCC4584D37223DE10E40B19B3355F14C880960DDEB8EE66B728CA6`.
+- **TASK_APPROVAL.md pre-append pin:** 204,974 bytes / `96E0D5613FFB680BADD386F51DD84E3DB203E3E3C6E3F964E7E7C0069D50B081`.
+- **Authorized:** read only the existing synthetic Parent sign-in credential from `<local-machine-path> in process memory and enter it into the emulator's real login UI. Do not create/delete accounts or change the credential.
+- **Handling:** never print the credential, place it in a command transcript, write it to a file, include it in evidence, or use it for any other account/service. The only network auth requests are those caused by submitting the UI login and the owner's requested real Parent workflow.
+- **Boundaries:** no quota/payment access or bypass; no DB edits/migrations; all prior inference caps, stop conditions, safety/consent gates and no-commit boundary remain in force.
+
+## Addendum 100 — apply the missing Parent lifecycle schema revision
+
+- **Status:** APPROVED under the owner's direct request to fix the Parent backend and continue the full real E2E flow. This supersedes Addenda 96–99 only for the one migration named below.
+- **Plan pin:** `plan/PLAN_REVISION_55_PARENT_END_TO_END_REPAIR_20261121.md`, 9,376 bytes, SHA-256 `FE484123CFD845822E92A29A648335CC6BC331B2E061613AC33E0D47F2619367`.
+- **TASK_APPROVAL.md pre-append pin:** 206,316 bytes / `BC86E9E0AAEF9493251BE35BDAE428D0FE4440DFA9356CFDBBAD7D8DCF62EEE9`.
+- **Observed blocker:** the real Parent UI's authorized cancellation returned HTTP 503. Read-only Alembic inspection found the `s2l-feat081-rev23` DB missing `20261119_frc08_lifecycle_scope`, while the deployed repository and migration require its owner-scope columns.
+- **Authorized:** apply exactly `20261119_frc08_lifecycle_scope` to only the isolated `s2l-feat081-rev23` database, after the read-only current-revision check. Do not apply the unrelated pending lesson-library head. Do not run downgrade. Then recheck schema/API health and retry the already-authorized cancellation once through UI.
+- **Boundaries:** no DB edits outside this migration, no new accounts/profiles/runs until the existing stuck run is canceled; no quota/payment, gate bypass, secrets output, unrelated services, commit or push. The single fresh E2E inference limits and stop conditions in Addendum 96 remain unchanged.
+
+## Addendum 101 — preserve existing Parent activity receipts in lifecycle migration
+
+- **Status:** APPROVED under the owner's direct request to fix the failed backend lifecycle path and finish Parent E2E.
+- **Plan pin:** `plan/PLAN_REVISION_55_PARENT_END_TO_END_REPAIR_20261121.md`, 10,099 bytes, SHA-256 `00E14170A05711171BDD79275F792DCDA1B877406C55F5B386303CCB6194B5B4`.
+- **TASK_APPROVAL.md pre-append pin:** 207,771 bytes / `6CD1BCA34FA441DFEEE5F4EB6080B35979773188F40126C1C34D5E9E56385F4F`.
+- **Observed failure:** the first exact migration attempt rolled back transactionally because its receipt operation CHECK omitted two valid existing values: `GENERATE_ACTIVITY_SET` and `SELECT_ACTIVITY`. Read-only verification shows the lifecycle columns remain absent and the DB revision was not advanced.
+- **Authorized:** update only `backend/alembic/versions/20261119_frc08_lifecycle_scope.py` so both upgrade and downgrade operation CHECKs match the current runtime's pre-`DELETE_RUN` operations; add focused tests comparing migration and runtime contracts; add safe SQLAlchemy diagnostics to the existing lifecycle repository failure path; run focused tests; rebuild only the task API; apply the single approved `20261119_frc08_lifecycle_scope` migration to the task DB; then retry the same UI cancellation once.
+- **Boundaries:** preserve all receipts and rows; no manual DB edits or data deletion, no other migration/downgrade, no quota/payment access or bypass, no additional account/profile/run creation before the stuck run is canceled, no unrelated service shutdown, no commit/push. Addenda 96 and 100's remaining E2E limits still apply.
+
+## Addendum 102 — process the exact canceled run and resume real Parent E2E
+
+- **Status:** APPROVED by the owner's direct reply: “Cho phép worker xử lý đúng run này”.
+- **Approved plan:** `plan/PLAN_REVISION_55_PARENT_END_TO_END_REPAIR_20261121.md`, 13,049 bytes, SHA-256 `E5CD721CF5678FD080F186885C4FAF859BB11EDF70DC20E616D43EC36BCFE841`.
+- **TASK_APPROVAL.md pre-append pin:** 209,420 bytes / `8F07CAEE30FBE7DFAAFC75EA99D503EF90D0BB69624185A1B512519AF0A95141`.
+- **Authorized lifecycle effect:** implement/use a safe one-shot path through the existing `Be1LifecycleConsumer`, restricted to StoryRun `08657e31-ebd7-4a07-8f9b-5929b4dff23b` and its one `StoryRunCancellationRequestedV1` event. The normal lifecycle purge may remove this run's story content and run-owned assets/objects that are not referenced elsewhere, finalize `DELETED`, and retain tombstone/receipts. Account, profile, seeds, and unrelated events/data must remain untouched.
+- **Required safeguards:** preflight the isolated task Docker target, exact owner scope and `DELETE_PENDING` state, released lock, and exactly one eligible event. Claim only that aggregate/event. Verify event delivery, completed lifecycle receipt, `DELETED`, and no unrelated event mutation. Stop on mismatch or partial/unknown outcome; no direct SQL edits.
+- **Authorized continuation:** after purge completion, continue one fresh bounded Parent UI run on `emulator-5554` using the existing synthetic identity/profile and synthetic artwork; at most one drawing inference, one catalog-first activity fallback if needed, one story inference without rewrite, and one silent video candidate only after adult story review/confirmation. No quota/payment calls or bypass; existing admission, safety, consent, ownership and quality gates remain enforced.
+- **Additional allowed files:** `backend/src/sketch2life/application/ports/core_foundation.py`, `backend/src/sketch2life/infrastructure/persistence/outbox.py`, `backend/src/sketch2life/infrastructure/persistence/be1_lifecycle_consumer.py`, new `backend/tools/run_parent_lifecycle_once.py`, focused tests for aggregate filtering and one-shot preflight, plus the plan/context/status/evidence paths already listed in Rev55.
+- All other Addendum 96–101 inference, identity, data, safety, quota, and no-publication limits remain in force.
+
+## Addendum 103 — story output recovery and one bounded UI retest
+
+- **Status:** APPROVED by the owner's direct reply: “Duyệt sửa + 1 lần story (Recommended)”.
+- **Approved plan:** `plan/PLAN_REVISION_56_STORY_OUTPUT_RECOVERY_20261121.md`.
+- **Authorized scope:** completion-aware structured prose contract, focused worker/backend/mobile tests, clearer truthful loading and terminal UI actions, and at most one adult-directed story rewrite from the real Android UI on the same existing synthetic run after read-only eligibility checks.
+- **Conditional video:** only if the story passes unchanged hard gates and an adult reviews/confirms it; at most one silent video candidate via the real UI, subject to all existing consent/admission/safety/ownership checks.
+- **Limits:** no drawing/activity inference repeat, no new run/account/profile, no quota/payment access or bypass, no fixture/preview/direct inference, no data or gate-policy weakening, no commit/push. Stop on first failure. Stop only task-used Modal apps after verifying no live tasks.
+
+## Addendum 104 — resolve terminal story-failure recovery before further inference
+
+- **Status:** APPROVED by owner reply: “Approve Plan Rev57 (Recommended)” on 2026-11-21.
+- **Approved plan:** `plan/PLAN_REVISION_57_FAILED_STORY_REWRITE_RECOVERY_20261121.md`, SHA-256 `97A9AECFF7E170FDC1C0D2228CF889FACDFD31912EFFA45BCB74D2D62E7C5A7B`.
+- **Observed blocker:** the exact synthetic run from Addendum 103 is `FAILED` with `STORY_OUTPUT_INVALID`; revision 1 is `FAILED`, while one activity selection is persisted. Backend reservation accepts only `PREPARATION_REVIEW`/`SCRIPT_REVIEW`; the canonical SRS currently marks `FAILED` terminal and does not define recovery for a quality-rejected story. The Parent UI also has no route from Home/history back to that failed run.
+- **Authorized:** amend the current SRS to permit an adult-directed, fresh-key rewrite only for this deterministic `STORY_OUTPUT_INVALID` case, with server-side context/activity/drawing validation, atomic active-owner lock reacquisition, immutable failed revisions, the existing three-rewrite cap, and no automatic retry. All other failures remain terminal. Implement the necessary Parent repository/service/port/route and Home/story recovery path, focused tests, then send at most one rewrite from the real Android UI on the existing run.
+- **Conditional video:** unchanged from Addendum 103: only after the story passes all existing gates and an adult reviews/confirms it; at most one silent candidate via real UI, with no quota/payment call or bypass.
+- **Limits:** no new run/account/profile, repeated drawing/activity inference, database migration/direct edits, gate weakening, direct AI inference, unrelated app/service change, commit or push. Stop on the first failure. Addenda 89–103 remain unchanged except for this narrow state-transition and same-run rewrite authorization.
+
+## Addendum 105 — continue Parent E2E until a silent LTX video plays
+
+- **Status:** APPROVED by owner’s direct instruction “fix nếu có bug, nào chạy đc vid thì mới dừng” on 2026-11-21.
+- **Approved plan:** `plan/PLAN_REVISION_58_PARENT_SILENT_VIDEO_E2E_20261121.md`, SHA-256 `570A47B98C963BB39F7D12EF7E0C920BA9A9B97EA542D3E029093790664F129D`.
+- **Observed blocker:** the Rev57 same-run story rewrite returned `SCRIPT_GENERATION_UNKNOWN` with no Modal call ID; its run/revision is awaiting reconciliation and holds the active-owner lock. Current FEAT-081 Modal video source is only a scaffold; the task API candidate flag is false, and no video app is deployed in the current Modal environment.
+- **Authorized:** diagnose the old story call without replaying it; fix safe Modal dispatch logging; port and verify the pinned LTX-2.5 Modal worker; enable the existing local synthetic-only Parent candidate route; fix any defects in the real Parent Android path; continue diagnosis-guided synthetic UI/API/Modal inference until one valid silent LTX-2.5 MP4 candidate is authenticated and played in the Parent UI.
+- **Boundaries:** keep the old unknown run immutable and unreplayed; use a distinct synthetic profile/account if required; no real-child data, direct inference, blind retry, model/GPU substitution, audio, quota/payment mutation or bypass, production-safety/admission bypass, public playback, or product-ready claim. Candidate metadata must retain `product_playable=false` and `safety_validation=NOT_RUN`. No commit/push. Stop task-used Modal apps after verifying zero tasks.
+
+## Addendum 106 — pin the Rev58 source-dependent file list before implementation
+
+- **Status:** APPROVED under the same owner instruction recorded in Addendum 105; no code implementation had begun when this correction was made.
+- **Plan:** `plan/PLAN_REVISION_58_PARENT_SILENT_VIDEO_E2E_20261121.md`, revised SHA-256 `32EBEE6E4C41A6B00AFC9D55B69F252085445633CACF8F320146F7066EB6C23B`.
+- **Correction:** M0 source review identified required LTX worker dependencies (`contracts.py`, `workloads.json`, `story_image_guides.py`, `story_visual_plan.py`, and their focused tests) and the actual UI component name `VideoCandidateScreen.tsx`. These exact paths and their reason were added to the plan allowlist before implementation.
+- **Scope effect:** no behavioral scope changed; Addendum 106 supersedes only the earlier Rev58 plan hash in Addendum 105. All safety, synthetic-only, no-blind-retry, no-quota-bypass, candidate-only, and no-commit boundaries remain in force.
+
+## Addendum 107 — repair the diagnosed Parent activity prompt mismatch
+
+- **Status:** APPROVED under the owner's direct 2026-11-21 instruction to fix defects and continue until a video is produced, and the explicit Rev58 plan rule permitting concrete-defect files to be added to §6 before edit.
+- **Plan pin:** `plan/PLAN_REVISION_58_PARENT_SILENT_VIDEO_E2E_20261121.md`, SHA-256 `FD6A8455A4D33A15BC92FD9AD8F28C19EE462E45F1AB58E89BB1F3A6DFAAD956`.
+- **Observed blocker:** live Qwen3.5 activity inference completed successfully, but backend quality validation rejected all three drafts with `SAFETY_NOTE_MISSING`. The worker prompt bounds safety-note length without requiring the explicit precaution wording that the unchanged backend gate checks.
+- **Authorized files:** `deployment/modal/srs_v23/language_audio_app.py` and `backend/tests/unit/test_parent_activity_worker_contract.py`, added to the Rev58 allowlist before editing.
+- **Authorized repair:** make the worker prompt require a short, topic-appropriate precaution containing an explicit safety marker accepted by the existing gate; add focused prompt-contract coverage. Keep response schema, parser, backend quality/safety gates, age/ownership checks and all other policy unchanged. Redeploy only the existing language/audio Modal app, then retry the current activity suggestion once from the real Android UI after the repair and tests pass.
+- **Limits:** no direct worker/API inference, no gate relaxation, no extra account/profile/run, no quota/payment access or bypass, no video request until an adult-confirmed story exists, no unrelated app shutdown, no commit or push. Addenda 89–106 remain in force; this addendum only records the specific activity-output repair needed by Rev58's approved E2E acceptance criteria.
+
+## Addendum 108 — correct the diagnosed incomplete safety sentence
+
+- **Status:** APPROVED under the owner's continuing direct instruction to fix concrete defects and proceed until the video plays; the inference is separately bounded by the recorded defect and repair.
+- **Plan pin:** `plan/PLAN_REVISION_58_PARENT_SILENT_VIDEO_E2E_20261121.md`, SHA-256 `C4DCEF134D42DA4CCDC7C4661040A26CB0C120F35654F89F7FCB3A077B87DF3C`.
+- **Observed:** the Addendum 107 UI retry completed Qwen3.5 inference (794 tokens, 88,846 ms) but the worker parser rejected the first fallback safety note as `MODAL_MODEL_OUTPUT_INCOMPLETE_TEXT` / `dangling_word`; nothing was persisted.
+- **Authorized:** shorten the prompt target for safety-note bodies to 40 characters while preserving the schema ceiling and explicit safety marker; add a focused assertion to the already-allowed worker contract test; run offline tests; redeploy only the language/audio app; then perform one UI-triggered activity inference for this specific corrected defect.
+- **Limits:** no direct worker/API request, no parser or backend gate relaxation, no new account/profile/run, no quota/payment access or bypass, no video until the adult-confirmed story exists, and no commit/push. All other Rev58 boundaries remain unchanged.
+
+## Addendum 109 — normalize duplicate terminal punctuation in activity prose
+
+- **Status:** APPROVED under the owner's direct instruction to keep fixing concrete defects and continue through video generation.
+- **Plan pin:** `plan/PLAN_REVISION_58_PARENT_SILENT_VIDEO_E2E_20261121.md`, SHA-256 `FFB7361EFA70063A9348EEB53EE23584C508A0FEA66CC764DB543D8CAD0E4851`.
+- **Observed:** the Addendum 108 UI inference completed 888 Qwen3.5 tokens in 139,489 ms but failed output validation at `fallback_activities[0].objective` with `terminator_invalid`; no activity was persisted.
+- **Authorized:** in the already-allowed worker, when the JSON terminator is exactly `.`, strip terminal sentence punctuation from the body and append one canonical period. Keep rejecting wrong terminator values, empty/incomplete sentences, unsafe content and all backend quality/safety failures. Add focused regression coverage, run offline tests, redeploy the language/audio app, then perform one UI-triggered activity inference for this specific defect.
+- **Limits:** no direct worker/API inference, no backend gate changes, no new identity/run, no quota/payment access or bypass, and no commit/push. Existing Rev58 invariants remain unchanged.
+
+## Addendum 110 — recover the terminal incomplete-story revision
+
+- **Status:** APPROVED under the owner's direct instruction to fix concrete failures and continue through a playable video, using the story recovery already authorized in SRS v2.7-draft Rev73.
+- **Plan pin:** `plan/PLAN_REVISION_58_PARENT_SILENT_VIDEO_E2E_20261121.md`, SHA-256 `7DC133568E02EF5A7D8AF3726F66D4E010B6FB7BF468E00A6BF3A05E72532453`.
+- **Observed:** live story call `fc-01M7Z27C3S4QATFJZGHCCZ45TP` ended in a proven worker terminal failure `STORY_TEXT_INCOMPLETE`; only `scenes[4].action` was flagged incomplete, with body length 57/60 and no token-limit hit. Backend classified it as `STORY_OUTPUT_INVALID`. The run is on the UI's Rev73-permitted quality-rewrite screen; three rewrites remain.
+- **Authorized files:** `deployment/modal/srs_v23/language_audio_app.py` and `deployment/modal/srs_v23/tests/test_parent_story_output_contract.py` (added to Rev58 §6 before editing).
+- **Authorized repair and retest:** shorten only the prompt target for each scene `action` body to 24–40 characters; preserve the 60-character schema ceiling, five-scene contract, subject/activity/story rules and all validators. Add focused prompt-contract coverage, run the story worker tests, redeploy only the existing language/audio app, then submit one adult-directed story rewrite through the real UI with a fresh idempotency key. Keep the failed revision immutable and recheck input hashes.
+- **Limits:** no direct API/worker inference, no repeat of the failed provider call, no schema or quality/safety-gate relaxation, no quota/payment access or bypass, no changed identity/run, and no commit/push. Unknown outcome or any error other than the SRS-permitted `STORY_OUTPUT_INVALID` remains non-retryable.
+
+## Addendum 111 — shorten all story prose targets after same-run rewrite rejection
+
+- **Status:** APPROVED under the owner's continuing direct instruction to fix concrete bugs and continue until a real silent video candidate runs and plays; this is a diagnosis-guided continuation of Rev58 and SRS Rev73, not a new run or an inference retry without a code fix.
+- **Approved plan:** `plan/PLAN_REVISION_58_PARENT_SILENT_VIDEO_E2E_20261121.md`, 23,464 bytes, SHA-256 `A8D453484600607BBFE8D640C7A0ED8322636D25D989E6D99DAEA92AFEADC4CE`.
+- **TASK_APPROVAL.md pre-append:** 223,327 bytes, SHA-256 `BCF350311168C679C3E5902A8EA39DC9A960760220EC72DC97A8C2F53C1022C3`.
+- **Observed blocker:** the one approved UI rewrite (`fc-01M7Z301MEVNSV4T796KZZAPCG`) completed inference and JSON parsing but failed the unchanged sentence gate at `scenes[2].narration`, classified `STORY_TEXT_INCOMPLETE` / `STORY_OUTPUT_INVALID`; 49-character field, model EOS allowed, token ceiling not reached.
+- **Authorized files and repair:** only `deployment/modal/srs_v23/language_audio_app.py` and `deployment/modal/srs_v23/tests/test_parent_story_output_contract.py`. Shorten prompt targets for story sentence bodies (35–50 chars), scene actions (20–32), and narration (20–35), requiring one simple complete sentence with external terminator and no trailing conjunction. Keep schema maxima, parser and every hard/quality/safety/ownership gate unchanged. Add focused assertions and run the story-worker tests.
+- **One bounded UI retest:** after tests pass and only the language/audio Modal app is redeployed/readiness checked, confirm same-run eligibility and unchanged input hashes, then submit at most one fresh-key rewrite from the real Android UI. Do not replay either prior Modal call and do not invoke the API/worker directly.
+- **Conditional continuation:** only a valid revision reviewed and confirmed by the adult may proceed to the existing single silent candidate, with all consent/admission/ownership/safety gates intact; no quota/payment calls or bypass. Candidate remains private with `product_playable=false` and `safety_validation=NOT_RUN`.
+- **Limits:** unknown outcomes, errors other than SRS-permitted `STORY_OUTPUT_INVALID`, changed hashes, exhausted three-rewrite cap, or any safety/consent/admission failure stop this continuation. No DB edits, new identity/run, gate weakening, raw content logging, unrelated service shutdown, commit or push.
+## Addendum 112 — recover the successful LTX output rejected by a redundant metadata contract
+
+- **Status:** APPROVED by the owner's direct 2026-11-21 instruction to fix concrete defects and continue until the video runs. This is a one-time recovery of the already-completed Modal call, not authorization for another GPU inference.
+- **Approved plan:** `plan/PLAN_REVISION_58_PARENT_SILENT_VIDEO_E2E_20261121.md`, 27,193 bytes, SHA-256 `BD51BDBE14665D4E253EA800C3F03DF966A816A58784DD4A33D9EEA93DCEC105`.
+- **TASK_APPROVAL.md pre-append:** 225,770 bytes, SHA-256 `DB881AEE687092AEA9AAEC3D3697A2D968670845EEAD715EDFF6C01BDFD5E0B0`.
+- **Observed defect:** Modal call `fc-01M7Z3S0AAJ89HCJ6Q8CM2STT0` succeeded after five scene inferences, silent assembly and worker MP4 validation (474,757 ms). The Android UI then showed `VIDEO_WORKER_OUTPUT_INVALID`. The worker writes width/height/fps/codec to its SHA-256-bound manifest but omits those redundant fields from its returned JSON; backend validation requires them in both locations. The completed video, manifest and call remain available for the same candidate.
+- **Authorized files:** only paths in the approved Rev58 §6 allowlist, with `backend/src/sketch2life/application/ports/parent_video_candidates.py` and `backend/src/sketch2life/infrastructure/persistence/parent_video_candidate_repository.py` added in the plan amendment for a guarded recovery transition.
+- **Authorized repair:** add those four metadata values to future Modal results; accept the existing v2 result only by taking omitted redundant media fields from the hash-verified manifest and rejecting any supplied mismatch; preserve every other integrity, model pin, lineage, media, safety, ownership and admission check. On authenticated current-status polling, recover at most once only if the exact existing record is FAILED with `VIDEO_WORKER_OUTPUT_INVALID`, has its prior Modal call and attempt references, and has no recovery marker. Mark recovery in progress before collecting the same completed call, persist only the exact validated output, and record sanitized recovery provenance. A failed recovery becomes terminal and cannot loop. No new call, attempt, candidate, run, direct DB edit, quota/payment access, gate bypass, commit or push.
+- **Verification:** run focused offline tests; deploy the corrected Modal video app without invoking video generation; rebuild only the task API; let the Android UI's authenticated status polling recover and play the same MP4 through its private preview. Stop if IDs/hashes do not match, the output is unavailable, validation fails, or recovery was already consumed.
+
+## Addendum 113 — provide root Firebase/Modal configuration to the task API
+
+- **Status:** APPROVED under the owner's direct instruction to continue fixing diagnosed blockers until the video works; this is an operational correction required to resume the same authenticated Android run.
+- **Approved plan:** `plan/PLAN_REVISION_58_PARENT_SILENT_VIDEO_E2E_20261121.md`, 29,195 bytes, SHA-256 `515922365AFF3845044D45A7170D1D99C6EA101CBF2BBE574862236ACA821B15`.
+- **TASK_APPROVAL.md pre-append:** 228,406 bytes, SHA-256 `3ED5CA4EA38A579EC60544DEA7B08323A6E3CFF7AA75A501B246BE3AFF40D618`.
+- **Observed:** Android Firebase sign-in completed, but `/api/auth/v1/me` returned `503 IDENTITY_PROVIDER_UNAVAILABLE`. The task API was composed from `.codex-worktrees/fe` without the root `.env`, so its effective settings fell back to `auth_provider=development`, no Firebase Admin credential/project, and `ai_provider=disabled`.
+- **Authorized action:** recreate only `s2l-feat081-rev23-api-1` using the same Compose files and `--env-file <local-machine-path> Do not edit or print the env file. Preserve the project, API port, task database and all volumes; do not restart other services, migrate, seed, change accounts/profiles, submit AI/video work, or touch quota/payment.
+- **Validation:** confirm only redacted booleans and provider names inside the API container; verify Firebase Admin initialization and API health; sign into the same synthetic account and use the Android UI to refresh/recover the same completed Modal video call. Addendum 112's exact-call/hash and one-shot conditions remain mandatory.
+- **Limits:** no new inference, run, account, profile, database mutation, gate bypass, secret disclosure, commit, or push.
+
+## Addendum 114 — show unresolved story outcomes as reconciliation, not live loading
+
+- **Status:** APPROVED as a narrow continuation of the owner's active instruction to fix the Parent E2E until video works, and the loading-state scope in Addenda 89/90/98. No new AI or video inference is authorized by this addendum.
+- **Approved plan:** `plan/PLAN_REVISION_58_PARENT_SILENT_VIDEO_E2E_20261121.md`, SHA-256 `D734ECCEF0E9044B08E46A9C6AC96B24531C22C85A96A9ED2970239510B5E52D`.
+- **TASK_APPROVAL.md pre-append:** 230,139 bytes, SHA-256 `E69FA4BC1679E8F1AD2739EAB633AA3ACC86FE5E068CB5E95B0ED75393E6045B`.
+- **Observed defect:** the Android story screen maps `SCRIPT_GENERATION_UNKNOWN` to the same animated spinner and elapsed timer as active inference. The displayed timer is local to the component mount and resets when the screen opens; it is not provider execution time. Modal function history has no story call in the recorded dispatch window, while backend state remains unknown and must retain its lock.
+- **Authorized files:** `apps/ui-mobile/src/parent/presentation/ParentExpoApp.tsx`, `apps/ui-mobile/src/parent/presentation/screens/StoryScreen.tsx`, `apps/ui-mobile/src/parent/presentation/components/ParentAiLoadingState.tsx`, and `apps/ui-mobile/tests/parentSrsBehavior.test.ts`, all added to Rev58 §6 before editing.
+- **Authorized repair:** render unknown/reconciliation states as static, truthful status; remove the local timer and active spinner for those states; explain that provider acceptance/result is unconfirmed; keep duplicate submissions blocked. Known active inference retains its loading UI. Add focused UI contract assertions and run mobile typecheck/focused tests.
+- **Limits:** no run/revision mutation, lock release, retry/replay, new identity, Modal deploy, AI/video request, quota access/bypass, safety/ownership change, commit, or push. The old run remains `AWAITING_RECONCILIATION` until an approved provider reconciliation path resolves it.
+
+## Addendum 115 — make Parent activity fallback prose reliable without weakening gates
+
+- **Status:** APPROVED by the owner's direct 2026-11-21 request to inspect generated content/parsers and reduce avoidable failures across the AI path, while continuing the approved Parent E2E until video.
+- **Approved plan:** `plan/PLAN_REVISION_58_PARENT_SILENT_VIDEO_E2E_20261121.md`, SHA-256 `1009C829865825ABC364B7EA6409085C3C201488015B424AB18D66114A09B6B4`.
+- **TASK_APPROVAL.md pre-append:** 232,119 bytes, SHA-256 `095CFF1A7FC3CB3235ED9619A39D16BE6B9AD841D2998708D7CCD610B1659A5C`.
+- **Observed defect:** two real UI-triggered Parent activity calls reached Qwen3.5 and returned the same `MODAL_MODEL_OUTPUT_INCOMPLETE_TEXT` failure at `fallback_activities[0].objective` (`dangling_word`, 47 characters; 827 tokens, no token-limit hit). The raw generated text is not persisted; the worker logs only the bounded field/reason diagnostics. Retrying unchanged reproduced the same failure.
+- **Authorized files:** `deployment/modal/srs_v23/language_audio_app.py`, `deployment/modal/srs_v23/tests/test_qwen35_lesson_suggestion_contract.py`, and `backend/tests/unit/test_parent_activity_worker_contract.py`; all are listed in Rev58 §6 before edits.
+- **Authorized repair:** replace model-authored objective/preparation/safety prose with position-specific internal markers and deterministic, subject-aware Vietnamese templates; keep the external Parent API schema unchanged. Preserve the existing backend and worker safety, age, outdoor, context, catalog, Montessori, sentence, duplication, PII and adult-review gates. Add tests for all templates, bounds, and invalid markers.
+- **Verification:** run the focused worker/backend contract tests; deploy only the language/audio Modal app; verify CPU readiness without warming weights; then submit at most one corrected fallback request through the real Android UI on the same synthetic run. If any other field fails, stop and inspect its safe diagnostic before another inference.
+- **Limits:** no raw model text in logs/evidence, gate bypass, quota/payment access, new account/profile/run, direct API/worker inference, blind retry, video request until the story is confirmed, or commit/push.
+
+## Addendum 116 — harden Parent activity parser against Vietnamese false rejects
+
+- **Status:** APPROVED under the owner's direct 2026-11-21 instruction to inspect and fix content/parser failures across the system so valid flows stop failing on avoidable checks.
+- **Approved plan:** `plan/PLAN_REVISION_58_PARENT_SILENT_VIDEO_E2E_20261121.md`, SHA-256 `7AF311CBCFAABCC65F34665E92D3C125FA356F3EE1D45305F3E1F5ECEF6B5241`.
+- **TASK_APPROVAL.md pre-append:** 234,348 bytes, SHA-256 `35F271DB3D91EB3A600F9CD94222D2564C39517660A0E79C20B277E5B232CEEB`.
+- **Authorized scope:** in the already-allowlisted Parent activity worker/backend parser path, preserve Vietnamese diacritics while checking incomplete tails so valid nouns do not collide with conjunctions; keep detection for genuine incomplete tails; reject duplicate JSON keys rather than silently accepting the last value. Add focused regressions in the two newly allowlisted backend files and existing Modal contract test.
+- **Limits:** do not relax any safety, age, topic/context, Montessori, catalog, PII, uniqueness, output-shape or adult-review gate. Do not retain/log raw model text. Run only the focused offline contract suites, then at most one already-authorized UI-triggered fallback request after deployment. No direct inference, blind retries, new run/account, quota/payment action, video request before adult-confirmed story, commit or push.
+
+## Addendum 117 — prevent accepted truncated activity text and harden AI JSON parsing
+
+- **Status:** APPROVED by the owner's direct 2026-11-21 instruction to check content and parsers across the system and fix avoidable AI errors.
+- **Approved plan:** `plan/PLAN_REVISION_58_PARENT_SILENT_VIDEO_E2E_20261121.md`, SHA-256 `318AB88AEF3D04AA78782C4D78568E923AFEFDB6525D6A09566CCF25F3D76922`.
+- **TASK_APPROVAL.md pre-append:** 235756 bytes, SHA-256 `4D89E9490E0DC429CCFF6F995239E4FB54ACF7A50CC9DCD8E7CC6B0807688BA8`.
+- **Scope and acceptance:** as defined in Addendum 117 of the approved plan. One live Parent UI activity inference already completed and returned three activities; no further model inference is authorized here.
+- **Implementation checkpoint:** pending; no files beyond the existing allowlist have been modified for Addendum 117.
+## Addendum 117 plan clarification
+
+- Before implementation, clarified the backend finding: the slicing applies to catalog lesson fields being prepared as Modal context, not model output. The authorized fix is a bounded word-boundary excerpt that leaves the stored lesson unchanged and records only an aggregate safe diagnostic.
+- **Current approved plan SHA-256:** `9F29FBD3F1F36F81DBEA3D1E4700CA3DACFCE9898EFC90516E2027B8BBA294D0`.
+## Addendum 117 allowlist clarification
+
+- Before implementation, add ackend/src/sketch2life/interfaces/http/routers/parent_ai.py to the allowlist so the already-existing sanitized catalog-context truncation count can be included in its catalog-prepared event. No route or API contract change is authorized.
+- **Current approved plan SHA-256:** `FD3A2564EE0434DB07B252107B015BD61DB2652A3966741BDAC3C90936D0DA6C`.
+## Addendum 117 test-scope clarification
+
+- Direct owner request continues to authorize this diagnosis-only fixture update; no video worker implementation or inference is included.
+- Add deployment/modal/srs_v23/tests/test_silent_story_contract.py to the allowlist solely for supplying the required width/height/FPS/codec fields in its existing payload-contract test.
+- **Current approved plan SHA-256:** `BB90EEA9B529BCA7DA6218FDD08641F1F720799BAACEAF22D57B976224A7FA5C`.
+## Addendum 117 implementation checkpoint — 2026-11-22
+
+- Status: implementation and offline verification complete within the approved scope.
+- Plan pin: plan/PLAN_REVISION_58_PARENT_SILENT_VIDEO_E2E_20261121.md, SHA-256 BB90EEA9B529BCA7DA6218FDD08641F1F720799BAACEAF22D57B976224A7FA5C.
+- Verification: 184 Modal output-contract tests and 278 backend parser/service tests passed; Python compilation and scoped diff checks passed. API container health is ok; Modal language/audio CPU readiness is ready_for_gpu_worker_validation; no active Modal tasks were present.
+- Live-inference boundary: the single approved Parent UI activity call had already completed before the repair and exposed one accepted truncated materials field. No post-repair inference was sent, consistent with the one-call limit. Live validation of the repaired wording remains outstanding.
+- Audit note: silent-video worker input manifests use ordinary json.loads but are backend-produced, not model-authored. No change was made because video_app.py is outside this addendum's approved allowlist.
+- Evidence: evidence/PARENT_AI_PARSER_AUDIT_REV117_20261122/PARSER_AUDIT_REPORT.md.
+- No new video request, quota/payment action, gate bypass, account/run mutation, commit, or push.
+
+## Addendum 118 — expose persisted Parent video candidate metadata through the public contract
+
+- **Status:** APPROVED by the owner's 2026-11-22 bug report and the active instruction to fix the Parent end-to-end flow.
+- **Approved plan:** `plan/PLAN_REVISION_59_PARENT_VIDEO_READY_METADATA_RESPONSE_20261122.md`, SHA-256 `49CF7B00465B6A0A45B9CFB4FDDD1911D5D9ADFEDBAA84B82243531AE27C593D`.
+- **Observed:** the existing synthetic candidate is `CANDIDATE_READY`, has a Modal call reference and a 4,289,168-byte MP4. Fourteen status polls failed at `ParentVideoCandidateMetadataV1.model_validate`: persisted metadata included internal `output_sha256`, `output_size_bytes`, and `output_manifest_sha256`, which the strict public contract correctly rejects. The response mapper was passing the full persistence object instead of projecting public fields.
+- **Authorized repair:** explicitly project the public metadata fields in `parent_video_candidates.py`; preserve internal hashes, storage size, asset lineage, and strict response schema. Add a regression to `backend/tests/contract/test_parent_video_candidate_api.py`.
+- **Verification:** focused offline tests, then rebuild only the API and read the existing ready candidate from the real Android UI. Previewing the already stored candidate is permitted. Do not replay POST or create a new run/video.
+- **Limits:** no new inference, Modal GPU call, database mutation/migration, quota/payment call, feature-gate change, gate bypass, commit, or push.
+
+### Addendum 118 implementation checkpoint — 2026-11-22
+
+- **Result:** implemented the approved public-field projection in the Parent video candidate response mapper and added a ready-candidate regression test containing internal hash/size fields.
+- **Verification:** 14 focused backend tests passed; Python compilation and scoped diff checks passed. API container was rebuilt and `/health` returned `ok`.
+- **Live UI check:** the existing synthetic candidate remained `CANDIDATE_READY`; Android status polling showed the ready screen and opened the existing private preview. No generation request was sent.
+- **Post-rebuild logs:** zero occurrences of the reported `ParentVideoCandidateMetadataV1` validation failure in the inspected window.
+- **Evidence:** `evidence/PARENT_VIDEO_CANDIDATE_RESPONSE_FIX_REV59_20261122/RUN_REPORT.md` and its two screenshots.
+- **Limits honored:** no inference, DB mutation/migration, quota/payment operation, gate bypass, commit, or push. Safety/consistency remain `NOT_RUN`; the preview is not product-playable.
+
+## Addendum 119 — make Parent video preview playable and simplify the screen
+
+- **Status:** APPROVED by the owner's direct 2026-11-22 request to fix the non-working Play action and make the existing screen friendlier with less text.
+- **Approved plan:** `plan/PLAN_REVISION_60_PARENT_VIDEO_PLAYER_AND_COPY_20261122.md`, SHA-256 `0EDC499FF5FA58A4A5285F5F5825B58432469E3D46596DB7254620218DF968E5`.
+- **TASK_APPROVAL.md pre-append:** 241,727 bytes, SHA-256 `12EF6C1F69AF7BE151B5013F9F917CEF9CF206F2A2F2B16587FFF482C5A1F6D6`.
+- **Observed:** the authenticated preview endpoint returned HTTP 200 and rendered the first frame on Android, but the native control remained “Play” at 00:00 after tapping. The screen's `onError` handler discards player errors. The ready card repeats long notices and technical metadata.
+- **Authorized files:** `apps/ui-mobile/src/parent/presentation/screens/VideoCandidateScreen.tsx` and this FEAT-081 plan/approval/status/context/evidence record.
+- **Authorized repair:** use explicit accessible Play/Pause/Replay actions and playback status; display safe playback errors and retry the existing preview; reduce the screen to one concise experimental/safety notice, compact duration/scene details, and a prominent player.
+- **Acceptance:** use the already stored synthetic candidate on Android; verify elapsed time advances on Play and pauses/resumes. Typecheck and save feature-local screenshots/report. Do not send another generation request.
+- **Limits:** no backend/SRS/dependency change, new inference, Modal deploy/warmup, DB mutation, quota/payment call, gate bypass, safety-status or product-playable change, commit, or push.
+
+### Addendum 119 implementation checkpoint — 2026-11-22
+
+- **Implemented:** `VideoCandidateScreen.tsx` now uses explicit accessible Play/Pause/Replay calls, reports playback errors with reload, shows elapsed/duration, and presents shorter copy with one concise experimental/safety notice.
+- **Verification:** mobile TypeScript typecheck passed. Before the change, Android reproduced the reported issue: the preview endpoint returned HTTP 200 and rendered a frame, but Play remained at `00:00`; the screen had swallowed player errors.
+- **Runtime limit:** after bundle reload the in-memory Parent session was lost. Reauthentication resumed at activity selection; history has no action to reopen the existing ready candidate. Reaching video from that state would require an activity inference, which this addendum excludes. Therefore post-change playback is **not yet confirmed on-device**.
+- **Evidence:** `evidence/PARENT_VIDEO_PLAYER_UI_REV60_20261122/RUN_REPORT.md` and screenshots.
+- **No inference, video request, DB mutation, quota/payment action, gate bypass, commit, or push.** Keep this task partial until the existing ready candidate can be reopened through an approved route and Play/Pause is verified.
+
+## Addendum 120 — bounded Parent AI and playback verification
+
+- **Status:** APPROVED by the owner's direct 2026-11-22 instruction: “kiểm tra đi, cho chạy AI”.
+- **Approved plan:** `plan/PLAN_REVISION_61_BOUNDED_PARENT_AI_VIDEO_PLAYBACK_E2E_20261122.md`, SHA-256 `6F65B12A5B62D55312C0733582B503AB4727CA6ACC942DC5DDCBE23D163E873D`.
+- **Scope:** reuse the existing synthetic Parent profile/run; inspect first; on the real Android UI, send at most one request for each missing activity/story/video workload, no blind retry, and verify Play/Pause/Resume on Android.
+- **Boundaries:** no real-child data, new account or seed rewrite; no quota/payment action or bypass; no consent/age/ownership/safety/quality gate bypass; no DB mutation; no video retry; no product-code change; no commit/push. Stop only Modal apps started for this check after confirming no active tasks.
+- **Allowed records:** this plan, this approval file, FEAT-081 status/context, and the revision-specific evidence folder.
+
+## Addendum 121 — cold-resume story and existing video candidate
+
+- **Status:** APPROVED by the owner's direct 2026-11-22 instruction: “chạy fix đi”.
+- **Approved plan:** `plan/PLAN_REVISION_62_PARENT_COLD_RESUME_AND_CANDIDATE_HYDRATION_20261122.md`, SHA-256 `4F5D90063B1C92AB2F212F588048C12F02A28E8D2891CFA00A77FDE0045D5F3D`.
+- **TASK_APPROVAL.md pre-approval hash:** `A5AB083B5E123B04DEB7EC2FD821F35E856282DB8E9942720251EEE0CEE3D806`.
+- **Approved scope:** distinguish initial client hydration from a true stale revision; GET the current video candidate when opening the video step so a saved candidate is shown before any POST; verify the existing candidate's authenticated preview and Play/Pause/Resume on Android.
+- **Limits:** existing synthetic run/candidate only; no new inference/video request, account/run/data mutation, quota/payment operation, gate bypass, Modal deployment, commit, or push. Full file allowlist and acceptance criteria are in the plan.
+
+## Addendum 122 — owner authorization to commit and push completed Parent workflow
+
+- **Date:** 2026-11-23.
+- **Status:** APPROVED by the owner's direct instruction: “commit và push”.
+- **Scope:** Publish the completed Parent mobile/backend/Modal implementation and its FEAT-081/FEAT-082 plans, decisions, status, and synthetic E2E evidence currently present in this feature worktree, including related FEAT-063 SRS/register updates.
+- **Supersedes:** The earlier “no commit/push” operational limit in Addenda 120–121 for this publication only.
+- **Publication safeguards:** Exclude credentials, environment files, seed accounts, pytest basetemp/model-fixture outputs, and deployment-local pytest artifacts. Preserve the finding that FEAT-082's video remains a technical preview without demonstrated safety clearance; this authorization does not change product acceptance.
+- **Validation:** Run the repository security validator before commit and again before push. Do not send additional inference requests as part of publication.

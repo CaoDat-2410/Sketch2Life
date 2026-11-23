@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import logging
+
+# FastAPI dependency declarations intentionally use Depends in defaults.
+# ruff: noqa: B008
 import re
 import time
 from collections import OrderedDict, deque
@@ -29,6 +33,7 @@ _EMAIL_PATTERN = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 _REGISTRATION_LIMIT = 5
 _REGISTRATION_WINDOW_SECONDS = 15 * 60
 _MAX_TRACKED_CLIENTS = 128
+_LOGGER = logging.getLogger(__name__)
 
 
 class RegistrationRequest(BaseModel):
@@ -106,7 +111,13 @@ def register_account(
     request: Request,
     db: Session = Depends(get_db),
 ) -> RegistrationCreated:
+    if request.app.state.be1_runtime.settings.env not in {"local", "test"}:
+        raise HTTPException(
+            status_code=404,
+            detail={"code": "REGISTRATION_UNAVAILABLE", "message": "Registration is unavailable"},
+        )
     client_key = request.client.host if request.client else "unknown-client"
+    request_id = getattr(request.state, "be1_request_id", "unknown")
     if not request.app.state.registration_rate_limiter.allow(client_key):
         raise HTTPException(
             status_code=429,
@@ -131,7 +142,14 @@ def register_account(
                 "message": "Account setup is unavailable",
             },
         ) from None
-    except IdentityAccountProvisioningUnavailable:
+    except IdentityAccountProvisioningUnavailable as exc:
+        _LOGGER.error(
+            "parent_registration_failed stage=firebase_create request_id=%s "
+            "error_type=%s error_module=%s",
+            request_id,
+            type(exc).__name__,
+            type(exc).__module__,
+        )
         raise HTTPException(
             status_code=503,
             detail={
@@ -151,12 +169,14 @@ def register_account(
     db.add(identity)
     try:
         db.commit()
-    except IntegrityError:
-        db.rollback()
-        try:
-            provisioner.delete_account(provisioned.subject)
-        except IdentityAccountProvisioningUnavailable:
-            pass
+    except IntegrityError as exc:
+        _rollback_registration(db, request_id=request_id, stage="integrity_conflict")
+        compensation_ok = _compensate_firebase_identity(
+            provisioner, provisioned.subject, request_id=request_id
+        )
+        _log_registration_database_failure(
+            "integrity_conflict", exc, request_id=request_id, compensation_ok=compensation_ok
+        )
         raise HTTPException(
             status_code=409,
             detail={
@@ -164,12 +184,16 @@ def register_account(
                 "message": "Account setup is unavailable",
             },
         ) from None
-    except SQLAlchemyError:
-        db.rollback()
-        try:
-            provisioner.delete_account(provisioned.subject)
-        except IdentityAccountProvisioningUnavailable:
-            pass
+    except SQLAlchemyError as exc:
+        _rollback_registration(db, request_id=request_id, stage="commit_failed")
+        # A connection failure during COMMIT has an unknown outcome: PostgreSQL may
+        # have committed before the acknowledgement was lost. Deleting Firebase here
+        # could leave a committed BE1 row pointing to a deleted identity. Keep the
+        # Firebase identity so the next authenticated sign-in can reconcile via
+        # /registrations/complete once the database is reachable again.
+        _log_registration_database_failure(
+            "commit_outcome_unknown", exc, request_id=request_id, compensation_ok=None
+        )
         raise HTTPException(
             status_code=503,
             detail={
@@ -179,6 +203,89 @@ def register_account(
         ) from None
 
     return RegistrationCreated()
+
+
+@router.post(
+    "/registrations/complete",
+    response_model=CurrentAccountResponse,
+    summary="Synchronize the authenticated Parent identity with BE1",
+    description=(
+        "Uses the verified Firebase issuer and subject to idempotently ensure a server-assigned "
+        "Parent identity row. The request accepts no role, UID, or account scope from the client."
+    ),
+    responses={
+        401: {"description": "A valid Firebase identity token is required"},
+        403: {"description": "Account setup is unavailable"},
+        409: {"description": "Account setup is unavailable"},
+        503: {"description": "Identity or database service is unavailable"},
+    },
+)
+def complete_parent_registration(
+    request: Request,
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+) -> CurrentAccountResponse:
+    settings = request.app.state.be1_runtime.settings
+    if settings.env not in {"local", "test"}:
+        raise HTTPException(
+            status_code=404,
+            detail={"code": "REGISTRATION_UNAVAILABLE", "message": "Registration is unavailable"},
+        )
+    expected_issuer = f"https://securetoken.google.com/{settings.firebase_project_id}"
+    request_id = getattr(request.state, "be1_request_id", "unknown")
+    if not settings.firebase_project_id or principal.issuer != expected_issuer:
+        raise _account_setup_unavailable(status_code=403)
+
+    current = db.get(AdultIdentityModel, principal.subject)
+    if current is not None:
+        if (
+            current.issuer == principal.issuer
+            and current.state == "active"
+            and current.account_role == "parent"
+        ):
+            return CurrentAccountResponse(
+                role="parent", state="active", role_revision=current.role_revision
+            )
+        raise _account_setup_unavailable(status_code=409)
+
+    db.add(
+        AdultIdentityModel(
+            account_id=str(uuid4()),
+            subject=principal.subject,
+            issuer=principal.issuer,
+            state="active",
+            account_role="parent",
+            role_revision=1,
+        )
+    )
+    try:
+        db.commit()
+    except IntegrityError as exc:
+        _rollback_registration(db, request_id=request_id, stage="completion_conflict")
+        # A concurrent completion may have committed the same Parent row. Re-read and
+        # treat only that exact issuer/subject/role as an idempotent success.
+        current = db.get(AdultIdentityModel, principal.subject)
+        if (
+            current is not None
+            and current.issuer == principal.issuer
+            and current.state == "active"
+            and current.account_role == "parent"
+        ):
+            return CurrentAccountResponse(
+                role="parent", state="active", role_revision=current.role_revision
+            )
+        _log_registration_database_failure(
+            "completion_conflict", exc, request_id=request_id, compensation_ok=None
+        )
+        raise _account_setup_unavailable(status_code=409) from None
+    except SQLAlchemyError as exc:
+        _rollback_registration(db, request_id=request_id, stage="completion_commit_failed")
+        _log_registration_database_failure(
+            "completion_commit_failed", exc, request_id=request_id, compensation_ok=None
+        )
+        raise _account_setup_unavailable(status_code=503) from None
+
+    return CurrentAccountResponse(role="parent", state="active", role_revision=1)
 
 
 @router.get("/me", response_model=CurrentAccountResponse, summary="Resolve current account role")
@@ -208,3 +315,69 @@ def current_account(
 
 
 __all__ = ["RegistrationRateLimiter", "router"]
+
+
+def _account_setup_unavailable(*, status_code: int) -> HTTPException:
+    return HTTPException(
+        status_code=status_code,
+        detail={
+            "code": "ACCOUNT_SETUP_UNAVAILABLE",
+            "message": "Account setup is unavailable",
+        },
+    )
+
+
+def _compensate_firebase_identity(
+    provisioner: IdentityAccountProvisioner, subject: str, *, request_id: str
+) -> bool:
+    try:
+        provisioner.delete_account(subject)
+        return True
+    except IdentityAccountProvisioningUnavailable as exc:
+        _LOGGER.error(
+            "parent_registration_compensation_failed request_id=%s "
+            "error_type=%s error_module=%s",
+            request_id,
+            type(exc).__name__,
+            type(exc).__module__,
+        )
+        return False
+
+
+def _log_registration_database_failure(
+    stage: str,
+    error: SQLAlchemyError,
+    *,
+    request_id: str,
+    compensation_ok: bool | None,
+) -> None:
+    original = getattr(error, "orig", None)
+    sqlstate = getattr(original, "sqlstate", None) or getattr(original, "pgcode", None)
+    if not isinstance(sqlstate, str) or len(sqlstate) != 5 or not sqlstate.isalnum():
+        sqlstate = None
+    _LOGGER.error(
+        "parent_registration_failed stage=%s request_id=%s error_type=%s error_module=%s "
+        "driver_error_type=%s driver_error_module=%s sqlstate=%s compensation_ok=%s",
+        stage,
+        request_id,
+        type(error).__name__,
+        type(error).__module__,
+        type(original).__name__ if original is not None else "unknown",
+        type(original).__module__ if original is not None else "unknown",
+        sqlstate,
+        compensation_ok,
+    )
+
+
+def _rollback_registration(db: Session, *, request_id: str, stage: str) -> None:
+    try:
+        db.rollback()
+    except SQLAlchemyError as exc:
+        _LOGGER.error(
+            "parent_registration_rollback_failed stage=%s request_id=%s "
+            "error_type=%s error_module=%s",
+            stage,
+            request_id,
+            type(exc).__name__,
+            type(exc).__module__,
+        )

@@ -26,6 +26,7 @@ class ParentStoryRunCreateRequestV1(BaseModel):
     parent_profile_id: UUID = Field(strict=False)
     topic: str = Field(default="", max_length=120)
     adult_confirmed_idea: str = Field(default="", max_length=500)
+    intended_drawing_subject: str | None = Field(default=None, min_length=2, max_length=160)
     lesson_version: ParentLessonVersionRefV1 | None = None
 
 
@@ -46,6 +47,7 @@ class ParentRunContextSnapshotV1(BaseModel):
     interests_summary: str = Field(max_length=2000)
     topic: str = Field(max_length=120)
     adult_confirmed_idea: str = Field(max_length=500)
+    intended_drawing_subject: str | None = Field(default=None, max_length=160)
 
 
 class ParentLessonPinSnapshotV1(BaseModel):

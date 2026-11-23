@@ -25,6 +25,7 @@ import type {
   ParentProfileShareGrant,
   ParentStoryRunSummary,
   ParentVideoQuota,
+  ParentVideoCandidateV1,
 } from '../../domain/types';
 
 const unavailableReason: ParentCapabilityUnavailableReason = 'route-not-in-be-handoff';
@@ -42,13 +43,13 @@ const platformCapabilities = {
   notifications: createUnavailableCapabilityState('notifications', unavailableReason),
   quota: createUnavailableCapabilityState('quota', unavailableReason),
   jobStatus: createUnavailableCapabilityState('job-status', unavailableReason),
-  video: createUnavailableCapabilityState('video', unavailableReason),
+  video: parentConfig.apiBaseUrl
+    ? { capability: 'video' as const, state: 'available' as const }
+    : createUnavailableCapabilityState('video', 'capability-not-configured'),
 };
 
 const unavailableShareOperation: ParentOperationState<void> =
   createUnavailableOperationState<void>(unavailableReason);
-const unavailableJobStage: ParentJobStageState = { state: 'unavailable', stage: 'unavailable' };
-
 const runHistoryLoadError = 'Không tải được lịch sử buổi học. Vui lòng thử lại.';
 const runActionMessages = {
   reload: 'Buổi học vừa thay đổi; danh sách đã được tải lại.',
@@ -56,8 +57,11 @@ const runActionMessages = {
   error: 'Chưa thực hiện được thao tác. Vui lòng thử lại.',
 } as const;
 
-/** Run history is live (FEAT-081 C3b); the other absent platform routes stay local and unavailable. */
-export function useParentPlatformController(application: ParentApplicationModule) {
+/** Parent platform operations and the local synthetic video-candidate flow. */
+export function useParentPlatformController(
+  application: ParentApplicationModule,
+  activeRunId: string | null,
+) {
   const [sharesProfileId, setSharesProfileId] = useState('');
   const [deliveriesProfileId, setDeliveriesProfileId] = useState('');
   const [runs, setRuns] = useState<ParentStoryRunSummary[]>([]);
@@ -67,6 +71,20 @@ export function useParentPlatformController(application: ParentApplicationModule
   const [runsError, setRunsError] = useState('');
   const runActionKeys = useRef(new Map<string, string>());
   const runsRequest = useRef(0);
+  const videoRequestKey = useRef<{ signature: string; key: string } | null>(null);
+  const videoJobRequestId = useRef(0);
+  const videoJobRequest = useRef<{
+    runId: string;
+    requestId: number;
+    promise: Promise<ParentOperationState<void>>;
+  } | null>(null);
+  const [videoCandidate, setVideoCandidate] = useState<ParentVideoCandidateV1 | null>(null);
+  const [videoBusy, setVideoBusy] = useState(false);
+  const [videoError, setVideoError] = useState('');
+  const [videoCandidateLookupRunId, setVideoCandidateLookupRunId] = useState<string | null>(null);
+  const [videoRequestAttemptedRunId, setVideoRequestAttemptedRunId] = useState<string | null>(null);
+  const [videoPreviewSource, setVideoPreviewSource] = useState<{ uri: string; headers: Record<string, string> } | null>(null);
+  const currentVideoCandidate = videoCandidate?.story_run_id === activeRunId ? videoCandidate : null;
 
   async function loadRuns(profileId?: string, cursor: string | null = null): Promise<ParentOperationState<void>> {
     if (runHistoryCapability.state !== 'available') return unavailableShareOperation;
@@ -171,15 +189,84 @@ export function useParentPlatformController(application: ParentApplicationModule
     return unavailableShareOperation;
   }
 
-  async function loadVideoJob(runId: string): Promise<ParentOperationState<void>> {
-    void runId;
-    return unavailableShareOperation;
+  function loadVideoJob(runId: string): Promise<ParentOperationState<void>> {
+    if (platformCapabilities.video.state !== 'available') {
+      return Promise.resolve(createUnavailableOperationState('capability-not-configured'));
+    }
+    if (videoJobRequest.current?.runId === runId) return videoJobRequest.current.promise;
+    const requestId = videoJobRequestId.current + 1;
+    videoJobRequestId.current = requestId;
+    setVideoBusy(true);
+    setVideoError('');
+    setVideoCandidateLookupRunId(null);
+    const promise = (async (): Promise<ParentOperationState<void>> => {
+      try {
+        const envelope = await application.platform.getCurrentVideoCandidate(runId);
+        if (requestId !== videoJobRequestId.current) return { state: 'confirmed', value: undefined };
+        setVideoCandidate(envelope.video_candidate);
+        setVideoPreviewSource(null);
+        setVideoCandidateLookupRunId(runId);
+        if (envelope.video_candidate) setVideoRequestAttemptedRunId(runId);
+        return envelope.video_candidate
+          ? { state: 'confirmed', value: undefined }
+          : { state: 'idle' };
+      } catch (cause) {
+        if (requestId === videoJobRequestId.current) {
+          setVideoError(videoCandidateErrorMessage(cause));
+        }
+        return { state: 'failed', retry: 'same-job-check-required' };
+      } finally {
+        if (requestId === videoJobRequestId.current) {
+          setVideoBusy(false);
+          videoJobRequest.current = null;
+        }
+      }
+    })();
+    videoJobRequest.current = { runId, requestId, promise };
+    return promise;
   }
 
-  async function requestVideo(runId: string, storySha256: string): Promise<ParentOperationState<void>> {
-    void runId;
-    void storySha256;
-    return unavailableShareOperation;
+  async function requestVideo(runId: string, storyRevision: number, storySha256: string): Promise<ParentOperationState<void>> {
+    if (platformCapabilities.video.state !== 'available') return createUnavailableOperationState('capability-not-configured');
+    const signature = `${runId}:${storyRevision}:${storySha256}`;
+    const identity = videoRequestKey.current?.signature === signature
+      ? videoRequestKey.current.key
+      : createParentActionIdentity();
+    videoRequestKey.current = { signature, key: identity };
+    setVideoBusy(true);
+    setVideoError('');
+    setVideoRequestAttemptedRunId(runId);
+    try {
+      const envelope = await application.platform.requestVideoCandidate(
+        runId, storyRevision, storySha256, identity,
+      );
+      setVideoCandidate(envelope.video_candidate);
+      setVideoPreviewSource(null);
+      return { state: 'confirmed', value: undefined };
+    } catch (cause) {
+      setVideoError(videoCandidateErrorMessage(cause));
+      return { state: 'failed', retry: 'same-job-check-required' };
+    } finally {
+      setVideoBusy(false);
+    }
+  }
+
+  async function loadVideoPreview(runId: string, candidateId: string): Promise<ParentOperationState<void>> {
+    if (!videoCandidate?.preview_available || videoCandidate.state !== 'CANDIDATE_READY') {
+      return { state: 'failed', retry: 'not-retryable' };
+    }
+    setVideoBusy(true);
+    setVideoError('');
+    try {
+      const source = await application.platform.getVideoCandidatePreviewSource(runId, candidateId);
+      setVideoPreviewSource(source);
+      return { state: 'confirmed', value: undefined };
+    } catch (cause) {
+      setVideoError(videoCandidateErrorMessage(cause));
+      return { state: 'failed', retry: 'user-action-required' };
+    } finally {
+      setVideoBusy(false);
+    }
   }
 
   async function markVideoUnsuitable(runId: string, videoId: string): Promise<ParentOperationState<void>> {
@@ -235,13 +322,53 @@ export function useParentPlatformController(application: ParentApplicationModule
     quotaBusy: false,
     quotaError: unavailableMessage,
     loadQuota,
-    videoJobStage: unavailableJobStage,
-    videoOperationState: unavailableShareOperation,
+    videoCandidate: currentVideoCandidate,
+    videoJobStage: videoStageFor(currentVideoCandidate),
+    videoOperationState: currentVideoCandidate
+      ? { state: 'confirmed', value: undefined }
+      : activeRunId && videoRequestAttemptedRunId === activeRunId
+        ? { state: 'failed', retry: 'same-job-check-required' }
+        : platformCapabilities.video.state === 'available'
+          ? { state: 'idle' }
+          : createUnavailableOperationState('capability-not-configured'),
+    videoBusy,
+    videoError,
+    videoCandidateLookupComplete: Boolean(activeRunId && videoCandidateLookupRunId === activeRunId),
+    videoRequestAttempted: Boolean(activeRunId && videoRequestAttemptedRunId === activeRunId),
+    videoPreviewSource,
     loadVideoJob,
     requestVideo,
+    loadVideoPreview,
     markVideoUnsuitable,
     regenerateVideo,
     completeRun,
     capabilities: platformCapabilities,
   };
+}
+
+function videoStageFor(candidate: ParentVideoCandidateV1 | null): ParentJobStageState {
+  if (!candidate) return { state: 'idle', stage: 'idle' };
+  if (candidate.state === 'FAILED') return { state: 'failed', stage: 'failed' };
+  if (candidate.state === 'AWAITING_RECONCILIATION') return { state: 'reconciling', stage: 'reconciling' };
+  if (candidate.state === 'CANDIDATE_READY') return { state: 'confirmed', stage: 'completed' };
+  if (candidate.state === 'GENERATING') return { state: 'pending', stage: 'processing' };
+  return { state: 'pending', stage: 'queued' };
+}
+
+function videoCandidateErrorMessage(error: unknown): string {
+  const code = error instanceof ParentApplicationError ? error.code : '';
+  const messages: Record<string, string> = {
+    PARENT_VIDEO_CANDIDATE_DISABLED: 'Tạo video thử nghiệm hiện đang tắt trên backend.',
+    SYNTHETIC_PROFILE_REQUIRED: 'Chỉ hồ sơ kiểm thử mới được tạo video thử nghiệm.',
+    VIDEO_CANDIDATE_ALREADY_REQUESTED: 'Buổi học này đã có một yêu cầu video. Hãy kiểm tra trạng thái hiện tại.',
+    VIDEO_DISPATCH_OUTCOME_UNKNOWN: 'Chưa xác định được yêu cầu đã tới Modal hay chưa. Hãy kiểm tra trạng thái, không gửi yêu cầu mới.',
+    VIDEO_CANDIDATE_NOT_READY: 'Video thử nghiệm chưa sẵn sàng để xem.',
+    VIDEO_SCRIPT_CONFIRMATION_REQUIRED: 'Cần xác nhận đúng phiên bản câu chuyện trước.',
+    VIDEO_ACTIVITY_SELECTION_REQUIRED: 'Cần lưu hoạt động chính trước khi tạo video.',
+  };
+  if (messages[code]) return messages[code];
+  if (error instanceof ParentApplicationError && error.code === 'REQUEST_TIMEOUT') {
+    return 'Chưa nhận được xác nhận từ máy chủ. Hãy kiểm tra trạng thái, không gửi yêu cầu mới.';
+  }
+  return 'Chưa thể xử lý video thử nghiệm. Hãy kiểm tra trạng thái buổi học rồi thử lại sau.';
 }

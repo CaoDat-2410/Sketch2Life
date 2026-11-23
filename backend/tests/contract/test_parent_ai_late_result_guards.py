@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from typing import Any
 
 import pytest
@@ -72,7 +73,10 @@ def test_artwork_route_rechecks_the_state_before_the_first_put_object(
         lambda **_kwargs: SimpleNamespace(drawing_png=b"png", drawing_sha256="a" * 64),
     )
     state = SimpleNamespace(lesson_document_scanner=scanner, lesson_library_storage=_Storage())
-    request = SimpleNamespace(app=SimpleNamespace(state=state))
+    request = SimpleNamespace(
+        state=SimpleNamespace(story_request_id="drawing-preflight-test"),
+        app=SimpleNamespace(state=state),
+    )
     payload = ParentDrawingAnalysisRequestV1.model_validate(
         {
             "story_run_id": "22222222-2222-4222-8222-222222222222",
@@ -88,8 +92,65 @@ def test_artwork_route_rechecks_the_state_before_the_first_put_object(
             db=object(),  # type: ignore[arg-type]
         )
     assert refused.value.status_code == 409
-    assert refused.value.detail == {"code": "INVALID_STATE_TRANSITION"}
+    assert refused.value.detail == {
+        "code": "INVALID_STATE_TRANSITION",
+        "request_id": "drawing-preflight-test",
+    }
     assert puts == []
+
+
+def test_drawing_scanner_failure_is_logged_without_sensitive_exception_text(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    from types import SimpleNamespace
+
+    from sketch2life.contracts.schemas.modal_ai import ParentDrawingAnalysisRequestV1
+
+    class _Repository:
+        def read_current_input(self, **_kwargs: Any) -> Any:
+            return SimpleNamespace(original_asset_ref=None, input_revision=1)
+
+    def fail_scan(_body: Any) -> Any:
+        raise RuntimeError("private-image-and-token-sentinel")
+
+    monkeypatch.setattr(parent_ai, "_require_parent", lambda *_args: None)
+    monkeypatch.setattr(parent_ai, "_require_modal_dev", lambda: None)
+    monkeypatch.setattr(parent_ai, "SqlParentStoryRunRepository", lambda _db: _Repository())
+    state = SimpleNamespace(
+        lesson_document_scanner=SimpleNamespace(scan=fail_scan),
+        lesson_library_storage=object(),
+    )
+    request = SimpleNamespace(
+        state=SimpleNamespace(story_request_id="drawing-scan-test"),
+        app=SimpleNamespace(state=state),
+    )
+    payload = ParentDrawingAnalysisRequestV1.model_validate(
+        {
+            "story_run_id": "22222222-2222-4222-8222-222222222222",
+            "media_type": "image/png",
+            "image_base64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB",
+        }
+    )
+
+    with caplog.at_level(logging.WARNING, logger=parent_ai.__name__):
+        with pytest.raises(HTTPException) as failed:
+            parent_ai.analyze_drawing(
+                payload=payload,
+                request=request,  # type: ignore[arg-type]
+                principal=object(),  # type: ignore[arg-type]
+                db=object(),  # type: ignore[arg-type]
+            )
+
+    assert failed.value.status_code == 503
+    assert failed.value.detail == {
+        "code": "PARENT_ARTWORK_SCAN_UNAVAILABLE",
+        "request_id": "drawing-scan-test",
+    }
+    assert "stage=malware_scan" in caplog.text
+    assert "exception_type=RuntimeError" in caplog.text
+    assert "private-image-and-token-sentinel" not in caplog.text
+    assert "image_base64" not in caplog.text
 
 
 def test_artwork_guard_uses_parent_error_envelope_only_on_its_route(

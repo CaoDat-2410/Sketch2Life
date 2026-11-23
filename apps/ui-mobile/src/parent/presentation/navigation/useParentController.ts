@@ -5,6 +5,7 @@ import type { ActivitySuggestionResult } from '../../application/ports/ParentPor
 import type { ParentActionIdentity } from '../../application/ports/ParentPorts';
 import type { ParentApplicationModule } from '../../application/ports/ParentApplicationModule';
 import { parseStoryDraft } from '../../domain/storyDraft';
+import { isResolvedTopicConsistent } from '../../domain/topicMatching';
 import type {
   LessonDetail,
   LessonInvitation,
@@ -14,11 +15,16 @@ import type {
   ParentProfileDeletePendingV1,
   ParentProfileViewV1,
   ParentStoryRunV1,
+  ParentTopicCardV1,
+  ParentTopicSuggestionSetV1,
+  ParentDrawingSubjectCardV1,
+  ParentDrawingSubjectSuggestionSetV1,
   ParentUser,
   StoryDraft,
   SuggestedActivity,
 } from '../../domain/types';
 import { requireLiveStoryRun } from '../../application/storyRunResult';
+import type { SvgTopicStrokeGuideDraftV1 } from '../../domain/svgGuide';
 import {
   canStartProfileLearning,
   createUnavailableParentConsentState,
@@ -40,6 +46,11 @@ import {
 } from './workflowTypes';
 import {
   isActiveOrUnreconciledStoryRun,
+  isTerminalFailedStoryRun,
+  isRecoverableStoryOutputFailure,
+  isSafePreDispatchDrawingError,
+  readErrorCode,
+  terminalDrawingFailureMessage,
   isConfirmedRunSubject,
   isWithinOfflinePhotoLimit,
   canAnalyzeDrawing,
@@ -88,6 +99,21 @@ export function useParentController(application: ParentApplicationModule) {
   const [activeRun, setActiveRun] = useState<ParentStoryRunV1 | null>(null);
   const [activeRunCheck, setActiveRunCheck] = useState<ParentActiveRunCheckState>('checking');
   const [topic, setTopic] = useState('');
+  const [selectedTopicId, setSelectedTopicId] = useState('');
+  const [topicDraftId, setTopicDraftId] = useState('');
+  const [topicSuggestionSets, setTopicSuggestionSets] = useState<ParentTopicSuggestionSetV1[]>([]);
+  const [topicSuggestions, setTopicSuggestions] = useState<ParentTopicCardV1[]>([]);
+  const [topicSuggestionBusy, setTopicSuggestionBusy] = useState(false);
+  const [topicSuggestionError, setTopicSuggestionError] = useState('');
+  const lastTopicSuggestionSetId = useRef('');
+  const [subjectSuggestionSets, setSubjectSuggestionSets] = useState<ParentDrawingSubjectSuggestionSetV1[]>([]);
+  const [subjectSuggestions, setSubjectSuggestions] = useState<ParentDrawingSubjectCardV1[]>([]);
+  const [subjectSuggestionBusy, setSubjectSuggestionBusy] = useState(false);
+  const [subjectSuggestionError, setSubjectSuggestionError] = useState('');
+  const [intendedDrawingSubject, setIntendedDrawingSubject] = useState('');
+  const [customDrawingSubject, setCustomDrawingSubject] = useState('');
+  const [subjectValidationMessage, setSubjectValidationMessage] = useState('');
+  const [customSubjectValidated, setCustomSubjectValidated] = useState(false);
   const [idea, setIdea] = useState('');
   const [lesson, setLesson] = useState<LessonDetail | null>(null);
   const [lessons, setLessons] = useState<LessonSummary[]>([]);
@@ -103,6 +129,7 @@ export function useParentController(application: ParentApplicationModule) {
   const [guideBase64, setGuideBase64] = useState('');
   const [guideBusy, setGuideBusy] = useState(false);
   const [guideError, setGuideError] = useState('');
+  const [svgGuideDraft, setSvgGuideDraft] = useState<SvgTopicStrokeGuideDraftV1 | null>(null);
   const [drawingGuideIndex, setDrawingGuideIndex] = useState(0);
   const [photo, setPhotoValue] = useState<SelectedPhoto | null>(null);
   const [audio, setAudioValue] = useState<SelectedAudio | null>(null);
@@ -117,8 +144,10 @@ export function useParentController(application: ParentApplicationModule) {
   const [activityBusy, setActivityBusy] = useState(false);
   const [activityAttempted, setActivityAttempted] = useState(false);
   const [activityError, setActivityError] = useState('');
-  const activitySelectionPersisted = false as const;
+  const [activitySelectionPersisted, setActivitySelectionPersisted] = useState(false);
+  const [activitySelectionBusy, setActivitySelectionBusy] = useState(false);
   const [story, setStory] = useState<StoryDraft | null>(null);
+  const [storyDraftCurrent, setStoryDraftCurrent] = useState(false);
   const [storyDisplayedRunId, setStoryDisplayedRunId] = useState('');
   const [storyRevisionNo, setStoryRevisionNo] = useState<number | null>(null);
   const [storySha256, setStorySha256] = useState('');
@@ -139,11 +168,16 @@ export function useParentController(application: ParentApplicationModule) {
   const invitationActionsInFlight = useRef(new Set<string>());
   const contextConfirmationAction = useRef<RetainedActionIdentity | null>(null);
   const subjectConfirmationAction = useRef<RetainedActionIdentity | null>(null);
+  const activitySuggestionAction = useRef<RetainedActionIdentity | null>(null);
+  const activitySelectionAction = useRef<RetainedActionIdentity | null>(null);
+  const activitySuggestionInFlight = useRef(false);
+  const activitySelectionInFlight = useRef(false);
   const storyRevisionAction = useRef<RetainedActionIdentity | null>(null);
   const scriptConfirmationAction = useRef<RetainedActionIdentity | null>(null);
   const runCreationInFlight = useRef(false);
   const drawingAnalysisInFlight = useRef(false);
   const drawingAnalysisAttemptedRunId = useRef<string | null>(null);
+  const drawingAnalysisRetryRunId = useRef<string | null>(null);
 
   async function timeRequest<T>(stage: string, request: () => Promise<T>): Promise<T> {
     const started = Date.now();
@@ -408,7 +442,224 @@ export function useParentController(application: ParentApplicationModule) {
     resetWorkflow();
     setProfile(target);
     setSelectedProfileId(target.profile_id);
+    setStep('entry');
+  }
+
+  async function beginTopicPath(): Promise<void> {
+    const draftId = createDraftUuid();
+    const previousTopicSetId = lastTopicSuggestionSetId.current;
+    setTopicDraftId(draftId);
+    setTopic('');
+    setSelectedTopicId('');
+    setIntendedDrawingSubject('');
+    setSubjectSuggestions([]);
+    setTopicSuggestionSets([]);
+    setSubjectSuggestionSets([]);
+    setTopicSuggestionError('');
+    setSubjectSuggestionError('');
     setStep('topic');
+    await loadTopicSuggestionSet(draftId, previousTopicSetId ? [previousTopicSetId] : []);
+  }
+
+  async function loadTopicSuggestionSet(draftId: string, excludedSetIds: string[]): Promise<void> {
+    setTopicSuggestionBusy(true);
+    setTopicSuggestionError('');
+    try {
+      const result = await application.learning.listTopicSuggestions(draftId, excludedSetIds);
+      if (
+        result.contract !== 'ParentTopicSuggestionSetV1'
+        || result.draft_id !== draftId
+        || result.cards.length !== 3
+        || new Set(result.cards.map((card) => card.topic_id)).size !== 3
+        || excludedSetIds.includes(result.set_id)
+      ) {
+        throw new ParentApplicationError('PARENT_TOPIC_SUGGESTION_INVALID', 'Chưa nhận được ba gợi ý chủ đề hợp lệ.');
+      }
+      setTopicSuggestionSets((current) => [...current, result]);
+      setTopicSuggestions([...result.cards]);
+      lastTopicSuggestionSetId.current = result.set_id;
+    } catch (cause) {
+      setTopicSuggestionError(topicSuggestionErrorMessage(cause));
+    } finally {
+      setTopicSuggestionBusy(false);
+    }
+  }
+
+  async function refreshTopicSuggestions(): Promise<void> {
+    if (!topicDraftId || topicSuggestionBusy) return;
+    const excluded = topicSuggestionSets.map((set) => set.set_id);
+    await loadTopicSuggestionSet(topicDraftId, excluded);
+  }
+
+  function selectTopicCard(card: ParentTopicCardV1): void {
+    setTopic(card.title_vi);
+    setSelectedTopicId(card.topic_id);
+    setSubjectSuggestions([]);
+    setSubjectSuggestionSets([]);
+    setIntendedDrawingSubject('');
+    setCustomDrawingSubject('');
+    setSubjectValidationMessage('');
+    setCustomSubjectValidated(false);
+    setTopicSuggestionError('');
+  }
+
+  function setCustomTopic(value: string): void {
+    setTopic(value);
+    setSelectedTopicId('custom');
+    setSubjectSuggestions([]);
+    setSubjectSuggestionSets([]);
+    setIntendedDrawingSubject('');
+    setCustomDrawingSubject('');
+    setSubjectValidationMessage('');
+    setCustomSubjectValidated(false);
+    setSubjectSuggestionError('');
+  }
+
+  async function continueTopicSelection(): Promise<void> {
+    const selectedTopic = topic.trim();
+    if (selectedTopic.length < 2 || !topicDraftId || topicSuggestionBusy) {
+      setTopicSuggestionError('Chọn một chủ đề hoặc nhập chủ đề riêng trước khi tiếp tục.');
+      return;
+    }
+    const topicId = selectedTopicId || 'custom';
+    setSubjectSuggestionBusy(true);
+    setSubjectSuggestionError('');
+    setIntendedDrawingSubject('');
+    try {
+      const result = await application.learning.listDrawingSubjectSuggestions({
+        draftId: topicDraftId,
+        topicId,
+        topic: selectedTopic,
+        excludedSetIds: subjectSuggestionSets.map((set) => set.set_id),
+        excludedSubjects: subjectSuggestionSets.flatMap((set) =>
+          set.cards.flatMap((card) => [card.title_vi, card.guide_subject]),
+        ),
+      });
+      const contractMatches = result?.contract === 'ParentDrawingSubjectSuggestionSetV1';
+      const draftMatches = result?.draft_id === topicDraftId;
+      const topicConsistent = typeof result?.topic_id === 'string'
+        && typeof result?.topic === 'string'
+        && isResolvedTopicConsistent({
+          selectedTopicId: selectedTopicId || 'custom',
+          selectedTopic,
+          resolvedTopicId: result.topic_id,
+          resolvedTopic: result.topic,
+        });
+      const cards = Array.isArray(result?.cards) ? result.cards : [];
+      const uniqueSubjectCount = new Set(cards.map((card) => card?.subject_id).filter((id) => typeof id === 'string')).size;
+      const setIsFresh = !subjectSuggestionSets.some((set) => set.set_id === result?.set_id);
+      if (!contractMatches || !draftMatches || !topicConsistent || cards.length !== 3 || uniqueSubjectCount !== 3 || !setIsFresh) {
+        if (__DEV__) {
+          console.warn('parent_topic_subject_contract_rejected', {
+            contract_matches: contractMatches,
+            draft_matches: draftMatches,
+            topic_consistent: topicConsistent,
+            card_count: cards.length,
+            unique_subject_count: uniqueSubjectCount,
+            set_is_fresh: setIsFresh,
+          });
+        }
+        throw new ParentApplicationError('PARENT_SUBJECT_SUGGESTION_INVALID', 'Chưa nhận được ba gợi ý phù hợp.');
+      }
+      setSelectedTopicId(result.topic_id);
+      setTopic(result.topic);
+      setSubjectSuggestionSets((current) => [...current, result]);
+      setSubjectSuggestions([...result.cards]);
+      setStep('subject');
+    } catch (cause) {
+      setTopicSuggestionError(topicSuggestionErrorMessage(cause));
+      setSubjectSuggestionError(topicSuggestionErrorMessage(cause));
+    } finally {
+      setSubjectSuggestionBusy(false);
+    }
+  }
+
+  async function refreshSubjectSuggestions(): Promise<void> {
+    if (!topicDraftId || !topic || subjectSuggestionBusy) return;
+    setSubjectSuggestionBusy(true);
+    setSubjectSuggestionError('');
+    try {
+      const result = await application.learning.listDrawingSubjectSuggestions({
+        draftId: topicDraftId,
+        topicId: selectedTopicId,
+        topic,
+        excludedSetIds: subjectSuggestionSets.map((set) => set.set_id),
+        excludedSubjects: subjectSuggestionSets.flatMap((set) =>
+          set.cards.flatMap((card) => [card.title_vi, card.guide_subject]),
+        ),
+      });
+      if (
+        result.draft_id !== topicDraftId
+        || result.cards.length !== 3
+        || result.topic_id !== selectedTopicId
+        || new Set(result.cards.map((card) => card.subject_id)).size !== 3
+        || subjectSuggestionSets.some((set) => set.set_id === result.set_id)
+      ) {
+        throw new ParentApplicationError('PARENT_SUBJECT_SUGGESTION_INVALID', 'Chưa nhận được ba gợi ý khác cho chủ đề này.');
+      }
+      setSubjectSuggestionSets((current) => [...current, result]);
+      setSubjectSuggestions([...result.cards]);
+      setIntendedDrawingSubject('');
+      setCustomSubjectValidated(false);
+    } catch (cause) {
+      setSubjectSuggestionError(topicSuggestionErrorMessage(cause));
+    } finally {
+      setSubjectSuggestionBusy(false);
+    }
+  }
+
+  function selectDrawingSubject(card: ParentDrawingSubjectCardV1): void {
+    setIntendedDrawingSubject(card.guide_subject);
+    setCustomDrawingSubject('');
+    setCustomSubjectValidated(false);
+    setSubjectValidationMessage('');
+  }
+
+  function setCustomSubject(value: string): void {
+    setCustomDrawingSubject(value);
+    setCustomSubjectValidated(false);
+    setIntendedDrawingSubject('');
+    setSubjectValidationMessage('');
+  }
+
+  async function validateCustomDrawingSubject(): Promise<void> {
+    if (customDrawingSubject.trim().length < 2 || !selectedTopicId || !topic) return;
+    setSubjectSuggestionBusy(true);
+    setSubjectValidationMessage('');
+    try {
+      const result = await application.learning.validateCustomSubject({
+        topicId: selectedTopicId,
+        topic,
+        subject: customDrawingSubject.trim(),
+      });
+      setSubjectValidationMessage(result.message_vi);
+      if (result.decision === 'ON_TOPIC' && result.normalized_subject) {
+        setIntendedDrawingSubject(result.normalized_subject);
+        setCustomSubjectValidated(true);
+      } else {
+        setIntendedDrawingSubject('');
+        setCustomSubjectValidated(false);
+      }
+    } catch (cause) {
+      setSubjectValidationMessage(displayError(cause));
+      setCustomSubjectValidated(false);
+    } finally {
+      setSubjectSuggestionBusy(false);
+    }
+  }
+
+  function continueFromSubjectSelection(): void {
+    if (!intendedDrawingSubject.trim()) return;
+    setIdea('');
+    setStep('idea');
+  }
+
+  function skipTopicSelection(): void {
+    setTopic('');
+    setSelectedTopicId('');
+    setIntendedDrawingSubject('');
+    setIdea('');
+    setStep('idea');
   }
 
   function ensureLearningProfileAllowed(target: ParentProfileViewV1 | null): boolean {
@@ -502,7 +753,15 @@ export function useParentController(application: ParentApplicationModule) {
       }
       if (galleryMode === 'picker') {
         setLesson(detail);
-        setStep('topic');
+        setTopic(detail.topic);
+        setSelectedTopicId('lesson');
+        setIntendedDrawingSubject(detail.drawing_subject);
+        setIdea('');
+        setGuideEnabled(true);
+        setSvgGuideDraft(null);
+        setGuideError('');
+        setStep('drawing-guide');
+        await loadSvgGuide(detail.topic, detail.drawing_subject);
       } else {
         setGalleryLesson(detail);
       }
@@ -577,10 +836,41 @@ export function useParentController(application: ParentApplicationModule) {
     }
   }
 
-  async function createGuide(): Promise<void> {
-    if (!guideEnabled) return;
+  async function loadSvgGuide(topicValue: string, intendedSubjectValue: string): Promise<boolean> {
+    setGuideBusy(true);
     setGuideBase64('');
-    setGuideError('Gợi ý nét vẽ tự động 4–8 bước chưa khả dụng. Bạn vẫn có thể tiếp tục với hướng dẫn của bài học đã ghim.');
+    setGuideError('');
+    setSvgGuideDraft(null);
+    try {
+      const draft = await application.learning.generateSketchGuide(
+        topicValue.trim(),
+        intendedSubjectValue.trim() || topicValue.trim(),
+      );
+      if (draft.contract !== 'SvgTopicStrokeGuideSourceDraftV1'
+        || draft.status !== 'DRAFT'
+        || draft.review_required !== true
+        || draft.persisted !== false
+        || draft.guide.stages.length < 4
+        || draft.guide.stages.length > 8) {
+        throw new ParentApplicationError('PARENT_SVG_GUIDE_INVALID', 'Máy chủ chưa trả về hướng dẫn SVG 4–8 bước hợp lệ.');
+      }
+      setSvgGuideDraft(draft);
+      return true;
+    } catch (cause) {
+      setGuideError(parentSvgGuideFailureMessage(cause));
+      return false;
+    } finally {
+      setGuideBusy(false);
+    }
+  }
+
+  async function createGuide(): Promise<void> {
+    if (!guideEnabled || !topic.trim()) return;
+    const loaded = await loadSvgGuide(topic, intendedDrawingSubject || lesson?.drawing_subject || topic);
+    if (loaded) {
+      setDrawingGuideIndex(0);
+      setStep('drawing-guide');
+    }
   }
 
   function setAudio(value: SelectedAudio | null): void {
@@ -596,12 +886,26 @@ export function useParentController(application: ParentApplicationModule) {
         : current);
       return;
     }
-    setPhotoValue({ ...value, locked: false, analysisError: undefined } as SelectedPhoto);
+    setPhotoValue({ ...value, locked: false, analysisError: undefined, analysisRetryable: false } as SelectedPhoto);
     setError('');
   }
 
-  function setPhotoMessage(message: string): void {
-    setPhotoValue((current) => current ? { ...current, analysisError: message } : current);
+  function setPhotoMessage(message: string, retryable = false): void {
+    setPhotoValue((current) => current
+      ? { ...current, analysisError: message, analysisTerminal: false, analysisRetryable: retryable }
+      : current);
+  }
+
+  function setTerminalDrawingFailure(errorCode: unknown): void {
+    setPhotoValue((current) => current
+      ? {
+        ...current,
+        locked: true,
+        analysisError: terminalDrawingFailureMessage(errorCode),
+        analysisTerminal: true,
+        analysisRetryable: false,
+      }
+      : current);
   }
 
   function resetActivityReview(): void {
@@ -610,6 +914,12 @@ export function useParentController(application: ParentApplicationModule) {
     setActivityBusy(false);
     setActivityAttempted(false);
     setActivityError('');
+    setActivitySelectionPersisted(false);
+    setActivitySelectionBusy(false);
+    activitySuggestionAction.current = null;
+    activitySelectionAction.current = null;
+    activitySuggestionInFlight.current = false;
+    activitySelectionInFlight.current = false;
   }
 
   async function createContextRun(): Promise<ParentStoryRunV1 | null> {
@@ -652,6 +962,7 @@ export function useParentController(application: ParentApplicationModule) {
         profileId: targetProfile.profile_id,
         topic,
         adultIdea: idea,
+        intendedDrawingSubject,
         lessonPin: pin,
         actionIdentity,
       }));
@@ -675,6 +986,7 @@ export function useParentController(application: ParentApplicationModule) {
       setContextConfirmed(run.context_confirmed === true);
       resetActivityReview();
       drawingAnalysisAttemptedRunId.current = null;
+      drawingAnalysisRetryRunId.current = null;
       setStep('capture');
       runCreationAction.current = null;
       return run;
@@ -711,7 +1023,17 @@ export function useParentController(application: ParentApplicationModule) {
     }
     setError('');
     setDrawingGuideIndex(0);
-    setStep(lesson ? 'drawing-guide' : 'capture');
+    if (guideEnabled && topic.trim()) {
+      if (svgGuideDraft) setStep('drawing-guide');
+      else if (guideError) {
+        setGuideEnabled(false);
+        setGuideError('');
+        setStep('capture');
+      }
+      else void createGuide();
+    } else {
+      setStep('capture');
+    }
   }
 
   function continueToCapture(): void {
@@ -760,6 +1082,12 @@ export function useParentController(application: ParentApplicationModule) {
     setStoryDisplayedRunId(readModel.value.runId);
     setStoryRevisionNo(readModel.value.storyRevisionNo);
     setStorySha256(readModel.value.storySha256);
+    setStoryDraftCurrent(
+      run.run_state === 'SCRIPT_REVIEW'
+      && (run.story_status === 'DRAFT' || run.story_status === 'CONFIRMED')
+      && run.story_revision_no === readModel.value.storyRevisionNo
+      && run.story_sha256 === readModel.value.storySha256,
+    );
     setRewriteCount(Math.max(0, readModel.value.storyRevisionNo - 1));
     setStoryAttempted(true);
     setStoryConfirmed(run.story_status === 'CONFIRMED');
@@ -771,8 +1099,12 @@ export function useParentController(application: ParentApplicationModule) {
   function adoptServerUnderstanding(run: ParentStoryRunV1): boolean {
     const readModel = readRunUnderstanding(run);
     if (!readModel) return false;
-    const revisionChanged = readModel.understandingRevision !== understandingRevision;
-    const contextChanged = Boolean(contextRun && (
+    // A new controller starts with local revision 0. Do not treat that empty
+    // client snapshot as a stale update when hydrating a persisted server run.
+    const sameClientRun = contextRun?.run_id === run.run_id;
+    const revisionChanged = sameClientRun
+      && readModel.understandingRevision !== understandingRevision;
+    const contextChanged = Boolean(sameClientRun && contextRun && (
       run.context_revision !== contextRun.context_revision
       || run.context_snapshot_sha256 !== contextRun.context_snapshot_sha256
     ));
@@ -787,6 +1119,7 @@ export function useParentController(application: ParentApplicationModule) {
     resetActivityReview();
     if (revisionChanged || contextChanged || !confirmed) {
       setStory(null);
+      setStoryDraftCurrent(false);
       setStoryDisplayedRunId('');
       setStoryRevisionNo(null);
       setStorySha256('');
@@ -797,6 +1130,18 @@ export function useParentController(application: ParentApplicationModule) {
       scriptConfirmationAction.current = null;
     }
     setPhotoValue((current) => current ? { ...current, locked: true } as SelectedPhoto : current);
+    const storyPending = isActiveOrUnreconciledStoryRun(run)
+      || run.run_state === 'SCRIPT_GENERATING'
+      || run.run_state === 'SCRIPT_GENERATION_UNKNOWN';
+    if (storyPending) {
+      // The server owns the in-flight state. Resume at its status screen and never
+      // present activity/story actions that could create a second command.
+      setStoryDraftCurrent(false);
+      setStoryConfirmed(false);
+      setStep('story');
+      setError('');
+      return true;
+    }
     if (!revisionChanged && !contextChanged && confirmed && run.story_revision_id && run.context_confirmed === true) {
       if (adoptServerStory(run)) {
         setStep('story');
@@ -891,12 +1236,19 @@ export function useParentController(application: ParentApplicationModule) {
       setPhotoMessage(safeParentFlowErrorMessage({ code: 'PARENT_DRAWING_REQUIRED' }));
       return;
     }
+    const isManualPreDispatchRetry = selectedPhoto.analysisRetryable === true
+      && drawingAnalysisRetryRunId.current !== runId;
     drawingAnalysisInFlight.current = true;
     setBusy('understanding');
     setError('');
     let uploadAttempted = false;
     try {
       const latest = await getLatestRun(runId);
+      setContextRun(latest);
+      if (isTerminalFailedStoryRun(latest)) {
+        setTerminalDrawingFailure(latest.error_code);
+        return;
+      }
       const revision = latest.current_input_revision;
       if (typeof revision !== 'number' || !Number.isInteger(revision) || revision < 1) {
         setPhotoMessage(safeParentFlowErrorMessage({ code: 'PARENT_DRAWING_RESULT_INVALID' }));
@@ -916,8 +1268,16 @@ export function useParentController(application: ParentApplicationModule) {
         return;
       }
       if (drawingAnalysisAttemptedRunId.current === runId) {
-        setPhotoMessage('Chưa có phiên tải lên có thể tiếp tục. Không gửi lại ảnh; hãy kiểm tra trạng thái buổi học sau.');
-        return;
+        if (!isManualPreDispatchRetry) {
+          setPhotoMessage('Chưa có phiên tải lên có thể tiếp tục. Không gửi lại ảnh; hãy kiểm tra trạng thái buổi học sau.');
+          return;
+        }
+      }
+      if (isManualPreDispatchRetry) {
+        drawingAnalysisRetryRunId.current = runId;
+        setPhotoValue((current) => current
+          ? { ...current, analysisError: undefined, analysisRetryable: false }
+          : current);
       }
       uploadAttempted = true;
       drawingAnalysisAttemptedRunId.current = runId;
@@ -956,12 +1316,18 @@ export function useParentController(application: ParentApplicationModule) {
       if (uploadAttempted) {
         try {
           const latest = await getLatestRun(runId);
-          if (latest.current_input_revision !== 1) {
+          setContextRun(latest);
+          if (isTerminalFailedStoryRun(latest)) {
+            setTerminalDrawingFailure(latest.error_code ?? readErrorCode(cause));
+          } else if (latest.current_input_revision !== 1) {
             if (!adoptServerUnderstanding(latest)) {
               setPhotoMessage('Ảnh đã được gắn với buổi học nhưng máy chủ chưa trả về kết quả xem xét. Không gửi lại ảnh trong buổi học này.');
             }
           } else {
-            setPhotoMessage('Chưa xác nhận được kết quả tranh. Không có phiên tải lên để tiếp tục và ảnh sẽ không được gửi lại tự động.');
+            setPhotoMessage(
+              safeParentFlowErrorMessage(cause),
+              drawingAnalysisRetryRunId.current !== runId && isSafePreDispatchDrawingError(cause),
+            );
           }
         } catch {
           setPhotoMessage(PARENT_RUN_PREFLIGHT_UNAVAILABLE_MESSAGE);
@@ -982,6 +1348,62 @@ export function useParentController(application: ParentApplicationModule) {
       return;
     }
     await analyzeDrawingForRun(contextRun.run_id);
+  }
+
+  async function closeUnresolvedDrawingRun(): Promise<void> {
+    if (busy || !contextRun || !photo?.analysisError) return;
+    if (!photo.analysisTerminal && (contextRun.current_input_revision ?? 0) <= 1) return;
+    const runId = contextRun.run_id;
+    setBusy('close-run');
+    setError('');
+    try {
+      // A FAILED run is already closed server-side (active lock released) and is not
+      // cancel-eligible (SRS UC-11). Re-read it and only leave it locally; deleting
+      // its content stays an explicit history action (UC-07).
+      const latest = await getLatestRun(runId);
+      if (!isTerminalFailedStoryRun(latest)) {
+        const receipt = await timeRequest(
+          'parent-story-run-cancel',
+          () => application.platform.cancelRun(runId),
+        );
+        if (receipt.lifecycle.run_id !== runId || receipt.lifecycle.run_state !== 'DELETE_PENDING') {
+          throw new ParentApplicationError('PARENT_STORY_REVISION_INVALID', 'The cancelled run did not match the active Parent run.');
+        }
+      }
+      setContextRun(null);
+      setActiveRun(null);
+      setContextConfirmed(false);
+      setCandidate(null);
+      setSubject('');
+      setSubjectConfirmed(false);
+      setUnderstandingRevision(0);
+      resetActivityReview();
+      setStory(null);
+      setStoryDraftCurrent(false);
+      setStoryDisplayedRunId('');
+      setStoryRevisionNo(null);
+      setStorySha256('');
+      setStoryAttempted(false);
+      setStoryConfirmed(false);
+      setRewriteCount(0);
+      setRewriteInstruction('');
+      setPhotoValue((current) => current
+        ? { ...current, locked: false, analysisError: undefined, analysisTerminal: false } as SelectedPhoto
+        : null);
+      drawingAnalysisAttemptedRunId.current = null;
+      drawingAnalysisRetryRunId.current = null;
+      runCreationAction.current = null;
+      contextConfirmationAction.current = null;
+      subjectConfirmationAction.current = null;
+      storyRevisionAction.current = null;
+      scriptConfirmationAction.current = null;
+      setStep('capture');
+      setError('Buổi cũ đã được đóng. Ảnh vẫn ở thiết bị; tiếp tục sẽ tạo một buổi mới.');
+    } catch (cause) {
+      setPhotoMessage(safeParentFlowErrorMessage(cause));
+    } finally {
+      setBusy('');
+    }
   }
 
   async function confirmSubject(): Promise<void> {
@@ -1081,7 +1503,7 @@ export function useParentController(application: ParentApplicationModule) {
   }
 
   async function requestActivitySuggestions(): Promise<void> {
-    if (activityBusy || (activityAttempted && activitySuggestions)) return;
+    if (activityBusy || activitySuggestionInFlight.current || (activityAttempted && activitySuggestions)) return;
     if (!ensureLearningProfileAllowed(profile)) return;
     const run = contextRun;
     if (!run || !contextConfirmed || !subjectConfirmed || !isConfirmedRunSubject(run, subject)) {
@@ -1089,13 +1511,16 @@ export function useParentController(application: ParentApplicationModule) {
       return;
     }
 
-    setActivityAttempted(true);
     setActivityBusy(true);
-    setActivityError('');
-    setActivitySuggestions(null);
-    setSelectedActivityIndex(null);
+    activitySuggestionInFlight.current = true;
     try {
       const latest = await getLatestRun(run.run_id);
+      if (isActiveOrUnreconciledStoryRun(latest)
+        || latest.run_state === 'SCRIPT_GENERATING'
+        || latest.run_state === 'SCRIPT_GENERATION_UNKNOWN') {
+        adoptServerUnderstanding(latest);
+        return;
+      }
       const latestUnderstanding = readRunUnderstanding(latest);
       if (latest.context_revision !== run.context_revision
         || latest.context_snapshot_sha256 !== run.context_snapshot_sha256
@@ -1105,28 +1530,90 @@ export function useParentController(application: ParentApplicationModule) {
         setActivityError(safeParentFlowErrorMessage({ code: 'STALE_REVISION' }));
         return;
       }
+      setActivityAttempted(true);
+      setActivityError('');
+      setActivitySuggestions(null);
+      setSelectedActivityIndex(null);
+      setActivitySelectionPersisted(false);
+      setActivitySelectionBusy(false);
+      activitySelectionAction.current = null;
+      const actionIdentity = retainedActionIdentity(
+        activitySuggestionAction,
+        JSON.stringify([run.run_id, understandingRevision, latest.context_revision, latest.context_snapshot_sha256]),
+      );
       const result = await timeRequest(
         'activity-suggestions',
-        () => application.learning.suggestActivities(run.run_id, understandingRevision),
+        () => application.learning.suggestActivities(run.run_id, understandingRevision, actionIdentity),
       );
       if (result.story_run_id !== run.run_id
+        || !result.suggestion_set_id
+        || !Number.isInteger(result.set_revision)
         || result.understanding_revision !== understandingRevision
+        || !/^[0-9a-f]{64}$/.test(result.activities_snapshot_sha256)
+        || result.contract !== 'ParentActivitySuggestionSetV1'
         || result.review_required !== true
         || !Array.isArray(result.activities)
         || result.activities.length === 0) {
         throw new ParentApplicationError('PARENT_ACTIVITY_RESPONSE_INVALID', 'Chưa nhận được danh sách hoạt động hợp lệ.');
       }
       setActivitySuggestions(result);
+      activitySuggestionAction.current = null;
     } catch (cause) {
       setActivityError(safeParentFlowErrorMessage(cause));
+      // A retry is a new user action. There are no automatic retries for a Modal-backed request.
+      activitySuggestionAction.current = null;
     } finally {
+      activitySuggestionInFlight.current = false;
       setActivityBusy(false);
     }
   }
 
-  function chooseActivity(index: number): void {
-    if (!activitySuggestions || !Number.isInteger(index) || index < 0 || index >= activitySuggestions.activities.length) return;
+  async function chooseActivity(index: number): Promise<void> {
+    if (activitySelectionInFlight.current
+      || !activitySuggestions
+      || !contextRun
+      || !Number.isInteger(index)
+      || index < 0
+      || index >= activitySuggestions.activities.length) return;
+    if (selectedActivityIndex === index && activitySelectionPersisted) return;
+
+    const suggestionSetId = activitySuggestions.suggestion_set_id;
+    const runId = contextRun.run_id;
+    const actionIdentity = retainedActionIdentity(
+      activitySelectionAction,
+      JSON.stringify([runId, suggestionSetId, understandingRevision, index]),
+    );
     setSelectedActivityIndex(index);
+    setActivitySelectionPersisted(false);
+    setActivitySelectionBusy(true);
+    activitySelectionInFlight.current = true;
+    setActivityError('');
+    try {
+      const receipt = await timeRequest('activity-selection', () => application.learning.selectActivity({
+        runId,
+        suggestionSetId,
+        revision: understandingRevision,
+        activityIndex: index,
+        actionIdentity,
+      }));
+      if (receipt.contract !== 'ParentActivitySelectionReceiptV1'
+        || receipt.story_run_id !== runId
+        || receipt.suggestion_set_id !== suggestionSetId
+        || receipt.understanding_revision !== understandingRevision
+        || receipt.activity_index !== index
+        || !receipt.activity_selection_id
+        || !/^[0-9a-f]{64}$/.test(receipt.activity_snapshot_sha256)) {
+        throw new ParentApplicationError('PARENT_ACTIVITY_SELECTION_RESPONSE_INVALID', 'Chưa xác nhận được lựa chọn đã lưu.');
+      }
+      setActivitySelectionPersisted(true);
+    } catch (cause) {
+      setActivitySelectionPersisted(false);
+      setActivityError(safeParentFlowErrorMessage(cause));
+      activitySelectionAction.current = null;
+    } finally {
+      activitySelectionInFlight.current = false;
+      setActivitySelectionBusy(false);
+    }
   }
 
   async function requestStory(instruction?: string, allowSameActionRetry = false): Promise<void> {
@@ -1137,7 +1624,7 @@ export function useParentController(application: ParentApplicationModule) {
       return;
     }
     if (!activitySelectionPersisted) {
-      setError('Chưa thể tạo câu chuyện: backend chưa có API để lưu hoạt động đã chọn vào StoryRun.');
+      setError('Chưa thể tạo câu chuyện: lựa chọn hoạt động chưa được lưu vào buổi học.');
       return;
     }
     const runId = contextRun?.run_id;
@@ -1148,11 +1635,13 @@ export function useParentController(application: ParentApplicationModule) {
       ? JSON.stringify([runId, expectedContextRevision, expectedContextHash, understandingRevision, normalizedInstruction || null, storyRevisionNo, storySha256])
       : '';
     const sameRetainedAction = Boolean(signature && storyRevisionAction.current?.signature === signature);
+    const failedGeneration = isRecoverableStoryOutputFailure(contextRun);
     const canRequest = canRequestStoryRevision({
       runId,
       understandingRevision,
       storyPresent: Boolean(story),
       storyAttempted,
+      failedGeneration,
       rewriteCount,
       rewriteInstruction: normalizedInstruction,
       storyConfirmed,
@@ -1215,14 +1704,19 @@ export function useParentController(application: ParentApplicationModule) {
         setError(safeParentFlowErrorMessage({ code: 'PARENT_STORY_REVISION_INVALID' }));
         return;
       }
-      if (storyRevisionAction.current && !sameRetainedAction) {
+      const latestFailedGeneration = isRecoverableStoryOutputFailure(latest);
+      const newAdultRewriteAfterFailure = isRewrite && latestFailedGeneration && !sameRetainedAction;
+      if (storyRevisionAction.current && !sameRetainedAction && !newAdultRewriteAfterFailure) {
         setError('Hãy kiểm tra và gửi lại yêu cầu viết đang chờ trước khi bắt đầu yêu cầu khác.');
         return;
       }
-      if (latest.story_status === 'FAILED' && (!sameRetainedAction || latest.retryable !== true)) {
+      if (latest.story_status === 'FAILED'
+        && !newAdultRewriteAfterFailure
+        && (!sameRetainedAction || latest.retryable !== true)) {
         setError(safeParentFlowErrorMessage({ code: 'PARENT_STORY_REVISION_INVALID' }));
         return;
       }
+      if (newAdultRewriteAfterFailure) storyRevisionAction.current = null;
       if (!story && latestHasStory) {
         adoptServerStory(latest);
         return;
@@ -1231,6 +1725,7 @@ export function useParentController(application: ParentApplicationModule) {
       const actionIdentity = retainedActionIdentity(storyRevisionAction, signature);
       const isNewAction = !sameRetainedAction;
       setStoryAttempted(true);
+      if (isRewrite) setStoryDraftCurrent(false);
       if (isRewrite && isNewAction) setRewriteCount((count) => count + 1);
       const receipt = await timeRequest(
         isRewrite ? 'story-rewrite' : 'story-create',
@@ -1260,6 +1755,7 @@ export function useParentController(application: ParentApplicationModule) {
         sha256: readModel.value.storySha256,
       };
       setStory(pinnedStory);
+      setStoryDraftCurrent(true);
       setStoryDisplayedRunId(readModel.value.runId);
       setStoryRevisionNo(readModel.value.storyRevisionNo);
       setStorySha256(readModel.value.storySha256);
@@ -1270,6 +1766,28 @@ export function useParentController(application: ParentApplicationModule) {
       storyRevisionAction.current = null;
       scriptConfirmationAction.current = null;
     } catch (cause) {
+      if (runId) {
+        setStoryDraftCurrent(false);
+        if (isRewrite) setStoryConfirmed(false);
+        try {
+          const latest = await getLatestRun(runId);
+          setContextRun(latest);
+          setActiveRun(latest);
+          if (isRecoverableStoryOutputFailure(latest)) {
+            const failedRevisionNo = latest.story_revision_no ?? 1;
+            setStoryRevisionNo(failedRevisionNo);
+            setRewriteCount(Math.max(0, failedRevisionNo - 1));
+            storyRevisionAction.current = null;
+          }
+          const currentDraft = latest.run_state === 'SCRIPT_REVIEW'
+            && (latest.story_status === 'DRAFT' || latest.story_status === 'CONFIRMED');
+          if (currentDraft && !adoptServerStory(latest)) {
+            setStoryDraftCurrent(false);
+          }
+        } catch {
+          setStoryDraftCurrent(false);
+        }
+      }
       if (cause instanceof ParentApplicationError && cause.code === 'STALE_REVISION') {
         storyRevisionAction.current = null;
         try {
@@ -1452,17 +1970,23 @@ export function useParentController(application: ParentApplicationModule) {
 
   function resetWorkflow(): void {
     setTopic(''); setIdea(''); setLesson(null); setPhotoValue(null); setCandidate(null); setSubject('');
+    setSelectedTopicId(''); setTopicDraftId(''); setTopicSuggestionSets([]); setTopicSuggestions([]);
+    setSubjectSuggestionSets([]); setSubjectSuggestions([]); setIntendedDrawingSubject(''); setCustomDrawingSubject('');
+    setSubjectValidationMessage(''); setCustomSubjectValidated(false); setSvgGuideDraft(null);
+    setTopicSuggestionBusy(false); setTopicSuggestionError(''); setSubjectSuggestionBusy(false); setSubjectSuggestionError('');
     setContextRun(null); setContextConfirmed(false); setProfileFieldErrors({});
     setAudioValue(null); setDrawingGuideIndex(0); setUnderstandingRevision(0); setSubjectConfirmed(false);
     resetActivityReview();
-    setStory(null); setStoryDisplayedRunId(''); setStoryRevisionNo(null); setStorySha256('');
+    setStory(null); setStoryDraftCurrent(false); setStoryDisplayedRunId(''); setStoryRevisionNo(null); setStorySha256('');
     setStoryAttempted(false); setStoryConfirmed(false); setRewriteCount(0); setRewriteInstruction('');
     setGuideBase64(''); setGuideEnabled(false); setEvents([]); setError(''); setBusy('');
+    setActivitySelectionPersisted(false);
     profileCreateAction.current = null;
     profilePatchActions.current.clear();
     profileDeleteActions.current.clear();
     runCreationAction.current = null;
     drawingAnalysisAttemptedRunId.current = null;
+    drawingAnalysisRetryRunId.current = null;
     contextConfirmationAction.current = null;
     subjectConfirmationAction.current = null;
     storyRevisionAction.current = null;
@@ -1475,17 +1999,24 @@ export function useParentController(application: ParentApplicationModule) {
     publicSettings: application.publicSettings,
     activeRun, topic, setTopic, idea, setIdea, lesson, setLesson, lessons, lessonLoading, lessonLoadingId, lessonError,
     galleryMode, galleryLesson, lessonInvitations, groupInvitations, accountError, guideEnabled, setGuideEnabled,
-    guideBase64, guideBusy, guideError, photo, setPhoto, audio, setAudio,
+    guideBase64, guideBusy, guideError, svgGuideDraft, photo, setPhoto, audio, setAudio,
+    selectedTopicId, topicSuggestions, topicSuggestionBusy, topicSuggestionError,
+    subjectSuggestionSets, subjectSuggestions, subjectSuggestionBusy, subjectSuggestionError,
+    intendedDrawingSubject, customDrawingSubject, subjectValidationMessage,
+    beginTopicPath, beginLessonPath: () => void openLessons('picker'),
+    selectTopicCard, setCustomTopic, refreshTopicSuggestions, continueTopicSelection, skipTopicSelection,
+    selectDrawingSubject, setCustomSubject, validateCustomDrawingSubject, refreshSubjectSuggestions,
+    continueFromSubjectSelection,
     contextRun, contextConfirmed, candidate, subject, setSubject, subjectConfirmed, understandingRevision,
     activitySuggestions, selectedActivityIndex, activityBusy, activityAttempted, activityError,
-    activitySelectionPersisted: false as const, requestActivitySuggestions, chooseActivity,
-    story, storyDisplayedRunId, storyRevisionNo,
+    activitySelectionPersisted, activitySelectionBusy, requestActivitySuggestions, chooseActivity,
+    story, storyDraftCurrent, storyDisplayedRunId, storyRevisionNo,
     storySha256, storyAttempted,
     storyConfirmed, rewriteCount, rewriteInstruction, setRewriteInstruction, events, busy, error, authError, bootstrapBusy,
     loadParentData, authenticate, signInWithGoogle, resetPassword, createProfileAndReturn, updateProfile,
     selectProfile, requestProfileDeletion, refreshPendingDeletion, continueWithProfile, openLessons, chooseLesson, acceptLessonInvitation,
     declineLessonInvitation, acceptGroupInvitation, createGuide, openDrawingGuide, openContextReview, confirmContext,
-    continueToCapture, analyzeDrawingForCurrentRun, confirmSubject,
+    continueToCapture, analyzeDrawingForCurrentRun, closeUnresolvedDrawingRun, confirmSubject,
     requestStory, confirmStory, drawingGuideIndex, setDrawingGuideIndex,
     resumeActiveRun, changePassword, resetCurrentPassword, signOut,
     retryContextCreation: createContextRun,
@@ -1498,6 +2029,55 @@ export function useParentController(application: ParentApplicationModule) {
 
 function displayError(cause: unknown): string {
   return safeParentIdentityErrorMessage(cause);
+}
+
+function parentSvgGuideFailureMessage(cause: unknown): string {
+  const code = readErrorCode(cause);
+  if (code === 'CURATED_SVG_GUIDE_NOT_FOUND') {
+    return 'Chưa có hướng dẫn nét vẽ đã duyệt cho đối tượng này. Hãy tiếp tục để chụp tranh mà không cần gợi ý.';
+  }
+  if (code === 'CURATED_SVG_GUIDE_UNAVAILABLE') {
+    return 'Kho hướng dẫn SVG đang tạm thời không sẵn sàng. Bạn vẫn có thể tiếp tục chụp tranh không cần gợi ý.';
+  }
+  if (isParentSessionExpired(cause)) return safeParentIdentityErrorMessage(cause);
+  return `${safeParentFlowErrorMessage(cause)} Gợi ý nét vẽ không bắt buộc; bạn có thể tiếp tục mà không cần gợi ý.`;
+}
+
+function topicSuggestionErrorMessage(cause: unknown): string {
+  const code = readErrorCode(cause);
+  if (isParentSessionExpired(cause)) return safeParentIdentityErrorMessage(cause);
+  if (code && ['ACCOUNT_ROLE_MISMATCH', 'ACTION_NOT_ALLOWED', 'PARENT_PROFILE_NOT_AUTHORIZED'].includes(code)) {
+    return safeParentIdentityErrorMessage(cause);
+  }
+  if (code === 'PARENT_TOPIC_SUBJECT_AI_NOT_ENABLED') {
+    return 'Chủ đề này chưa có gợi ý sẵn. Hãy chọn một chủ đề gần nhất trong ba thẻ hoặc sửa nội dung.';
+  }
+  if (code === 'PARENT_TOPIC_SUBJECT_AI_OUTCOME_UNKNOWN') {
+    return 'Chưa xác nhận được kết quả cho chủ đề tự nhập. Hãy chọn một chủ đề có sẵn trước khi thử lại.';
+  }
+  if (code === 'PARENT_TOPIC_SUBJECT_AI_OUTPUT_INVALID') {
+    return 'Gợi ý chưa vượt qua kiểm tra an toàn. Hãy chọn chủ đề gợi ý hoặc thử chủ đề khác.';
+  }
+  if (code === 'PARENT_TOPIC_TEXT_NOT_ALLOWED') {
+    return 'Chỉ nhập tên chủ đề chung; không nhập tên hay thông tin riêng của trẻ.';
+  }
+  if (code === 'PARENT_TOPIC_ID_LABEL_MISMATCH') {
+    return 'Chủ đề đã thay đổi. Hãy chọn lại thẻ chủ đề hoặc sửa ô nhập.';
+  }
+  if (code === 'PARENT_SUBJECT_SUGGESTION_INVALID') {
+    return 'Ba gợi ý chưa khớp với chủ đề. Hãy chọn lại chủ đề hoặc thử đổi gợi ý.';
+  }
+  if (code === 'SUGGESTION_SET_UNAVAILABLE') {
+    return 'Chưa tạo được bộ gợi ý mới. Hãy chọn một trong các thẻ đang hiển thị hoặc đổi chủ đề.';
+  }
+  return 'Chưa tải được gợi ý đối tượng cho chủ đề này. Hãy kiểm tra kết nối rồi thử lại.';
+}
+
+function createDraftUuid(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (character) => {
+    const random = Math.floor(Math.random() * 16);
+    return (character === 'x' ? random : (random & 0x3) | 0x8).toString(16);
+  });
 }
 
 function safeProfileActionError(cause: unknown): string {

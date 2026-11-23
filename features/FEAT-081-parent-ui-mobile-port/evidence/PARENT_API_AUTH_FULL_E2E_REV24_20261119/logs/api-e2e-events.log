@@ -1,0 +1,17 @@
+2026-11-20 local +07 | POST /api/auth/v1/registrations | 409 Conflict | previously used synthetic address; value intentionally omitted
+2026-11-20 local +07 | POST /api/auth/v1/registrations | 201 Created | fresh synthetic Firebase Parent registered in Android UI
+2026-11-20 local +07 | GET /api/auth/v1/me | 200 OK
+2026-11-20 local +07 | POST /v1/parent/profiles | 201 Created | synthetic profile; no profile name recorded
+2026-11-20 local +07 | GET /v1/story-runs/active/current | 200 OK
+2026-11-20 local +07 | GET /api/parent/v1/topics/suggestions | 200 OK
+2026-11-20 local +07 | GET /api/parent/v1/topics/animals/drawing-subject-suggestions | 200 OK
+2026-11-20 local +07 | POST /v1/story-runs | 201 Created | run id 343d11c6-73fe-48e7-913a-069324b63b3d
+2026-11-20 local +07 | GET /v1/story-runs/343d11c6-73fe-48e7-913a-069324b63b3d | 200 OK
+2026-11-20 local +07 | POST /api/parent/v1/ai/drawing-understandings | 200 OK | Modal call fc-01M7TE95BG3GAJXK1CWM0TXV3K; 66.203 s
+2026-11-20 local +07 | POST /v1/story-runs/343d11c6-73fe-48e7-913a-069324b63b3d/subject-confirmation | 200 OK
+2026-11-20 local +07 | POST /v1/story-runs/343d11c6-73fe-48e7-913a-069324b63b3d/context-confirmation | 200 OK
+2026-11-20 local +07 | POST /api/parent/v1/ai/story-runs/343d11c6-73fe-48e7-913a-069324b63b3d/activity-suggestions | 504 Gateway Timeout | first request; Modal app was not deployed; no call id
+2026-11-20 local +07 | POST /api/parent/v1/ai/story-runs/343d11c6-73fe-48e7-913a-069324b63b3d/activity-suggestions | 502 Bad Gateway | worker call fc-01M7TEMQ3PXNDNZRFP0K4EF8VM; MODAL_WORKLOAD_NOT_ALLOWED at input_envelope, no model load
+2026-11-20 local +07 | POST /api/parent/v1/ai/story-runs/343d11c6-73fe-48e7-913a-069324b63b3d/activity-suggestions | 504 Gateway Timeout | recovery call fc-01M7TEYCN2MXMSY61WJN09TRRQ; wait 1,800.048 s; worker stuck at model_inference without terminal event
+ Not reached | activity selection, story generation/review, LTX-2.5 video
+ Not called | lesson guide (optional), quota/payment

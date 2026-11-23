@@ -15,11 +15,14 @@ from sketch2life.interfaces.http.routers.lesson_library import router as lesson_
 from sketch2life.interfaces.http.routers.parent_ai import router as parent_ai_router
 from sketch2life.interfaces.http.routers.parent_profiles import router as parent_profiles_router
 from sketch2life.interfaces.http.routers.parent_story_runs import router as parent_story_runs_router
+from sketch2life.interfaces.http.routers.parent_topic_suggestions import router as parent_topic_suggestions_router
+from sketch2life.interfaces.http.routers.parent_video_candidates import router as parent_video_candidates_router
 from sketch2life.interfaces.http.routers.pilot_assistance import router as pilot_assistance_router
 from sketch2life.interfaces.http.routers.platform_admin_accounts import (
     router as platform_admin_accounts_router,
 )
 from sketch2life.interfaces.http.routers.sessions import router as sessions_router
+from sketch2life.interfaces.http.routers.svg_catalog import router as svg_catalog_router
 from sketch2life.interfaces.http.routers.story_video import router as story_video_router
 from sketch2life.interfaces.http.routers.supervised_flow import renderer_source_router
 from sketch2life.interfaces.http.routers.supervised_flow import (
@@ -72,6 +75,9 @@ def mount_all_routers(
     mount_demo_routers(application)
     application.include_router(lesson_library_router)
     application.include_router(parent_ai_router)
+    application.include_router(parent_topic_suggestions_router)
+    application.include_router(svg_catalog_router)
     if include_parent_story_runs:
         application.include_router(parent_story_runs_router)
+        application.include_router(parent_video_candidates_router)
     application.include_router(teacher_ai_router)

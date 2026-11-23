@@ -117,6 +117,7 @@ class FakeOutbox:
         limit: int = 50,
         lease_seconds: int = 30,
         event_types: Collection[str] | None = None,
+        aggregate_ids: Collection[str] | None = None,
     ) -> Sequence[OutboxEnvelope]:
         assert limit == 1 and lease_seconds == 900
         claimed = []
@@ -124,6 +125,8 @@ class FakeOutbox:
             if event["status"] != "pending":
                 continue
             if event_types is not None and event["event_type"] not in event_types:
+                continue
+            if aggregate_ids is not None and event["aggregate_id"] not in aggregate_ids:
                 continue
             event.update(status="leased", owner=worker_id)
             event["attempt_count"] += 1
@@ -481,6 +484,24 @@ def test_the_claim_filters_lifecycle_event_types_and_leases_one_event() -> None:
     h.consumer.run_once()
     assert h.world.events["other"]["status"] == "pending"
     assert h.world.events["other"]["attempt_count"] == 0
+
+
+def test_targeted_run_once_does_not_claim_another_aggregate() -> None:
+    h = make_harness()
+    other_run = "33333333-3333-4333-8333-333333333333"
+    h.world.events["other-run-event"] = {
+        "event_type": CANCEL_EVENT_TYPE,
+        "aggregate_id": other_run,
+        "aggregate_revision": 2,
+        "status": "pending",
+        "owner": None,
+        "attempt_count": 0,
+    }
+
+    assert h.consumer.run_once(target_run_ref=RUN) == "completed"
+    assert h.world.events[EVENT_ID]["status"] == "delivered"
+    assert h.world.events["other-run-event"]["status"] == "pending"
+    assert h.world.events["other-run-event"]["attempt_count"] == 0
 
 
 def test_a_retained_asset_purges_story_content_deletes_nothing_and_ends_in_exception() -> None:

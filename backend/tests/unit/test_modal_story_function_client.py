@@ -10,6 +10,8 @@ import pytest
 from sketch2life.infrastructure.ai import modal_function_client as client_module
 from sketch2life.infrastructure.ai.modal_function_client import (
     ModalFunctionExecutionFailed,
+    ModalFunctionOutcomeUnknown,
+    ModalJsonFunctionClient,
     ModalStoryFunctionClient,
     summarize_worker_call_logs,
 )
@@ -80,12 +82,40 @@ class _Function:
         return self.call
 
 
+class _EventLogger:
+    def __init__(self) -> None:
+        self.events: list[tuple[str, dict[str, Any]]] = []
+
+    def info(self, event: str, **fields: Any) -> None:
+        self.events.append((event, fields))
+
+    def warning(self, event: str, **fields: Any) -> None:
+        self.events.append((event, fields))
+
+    def error(self, event: str, **fields: Any) -> None:
+        self.events.append((event, fields))
+
+
 def _story_context() -> dict[str, object]:
+    primary_activity = {
+        "title": "Quan sát lá",
+        "objective": "Nhận biết hình dạng và gân lá.",
+        "materials_text": "Một chiếc lá rụng.",
+        "preparation_text": "Chọn chiếc lá sạch, không sắc cạnh.",
+        "instructions_text": "Cùng quan sát hình dạng và đường gân trên lá.",
+        "observation_notes": "Để trẻ tự mô tả điều nhìn thấy.",
+        "safety_notes": "Người lớn chọn lá an toàn.",
+        "activity_kind": "outdoor",
+    }
+    primary_activity_sha256 = hashlib.sha256(
+        json.dumps(primary_activity, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
     return {
         "worker_input": {
-            "schema_version": "sketch2life.story-generation-input.v1",
+            "schema_version": "sketch2life.story-generation-input.v3",
             "role": "PARENT",
             "language": "vi",
+            "topic": "Động vật",
             "confirmed_subject": "Con bướm",
             "understanding_revision": 1,
             "drawing_sha256": "a" * 64,
@@ -94,7 +124,10 @@ def _story_context() -> dict[str, object]:
             "context_revision": 1,
             "adult_confirmed_idea": "Kể đúng vòng đời của bướm.",
             "rewrite_instruction": None,
+            "lesson_subject_learning_notes": "Bướm trưởng thành đẻ trứng; trứng nở thành sâu bướm.",
             "lesson_direction": None,
+            "primary_activity": primary_activity,
+            "primary_activity_sha256": primary_activity_sha256,
         }
     }
 
@@ -126,14 +159,44 @@ def test_story_manifest_uses_generic_modal_ai_request_schema() -> None:
         "size_bytes": len(request_bytes),
         "sha256": hashlib.sha256(request_bytes).hexdigest(),
     }
-    assert request["schema_version"] == "sketch2life.story-generation-input.v1"
-    assert "activities" not in request
+    assert request["schema_version"] == "sketch2life.story-generation-input.v3"
+    assert request["topic"] == "Động vật"
+    assert request["lesson_subject_learning_notes"].startswith("Bướm trưởng thành")
+    assert request["primary_activity"]["title"] == "Quan sát lá"
+    assert request["primary_activity_sha256"] == hashlib.sha256(
+        json.dumps(request["primary_activity"], ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
     assert call_id == "fc-story-test-0001"
     assert result == {"fixture": "valid"}
     assert manifest_path.rsplit("/", 1)[0] == request_path.rsplit("/", 1)[0]
     assert volume.removed_paths == [
         manifest_path.lstrip("/").rsplit("input/manifest.json", 1)[0] + "input"
     ]
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("topic", "x" * 121),
+        ("lesson_subject_learning_notes", "x" * 5001),
+        ("lesson_direction", "x" * 2001),
+    ],
+)
+def test_story_client_rejects_unbounded_context_before_dispatch(
+    field: str, value: str
+) -> None:
+    volume = _Volume()
+    function = _Function()
+    context = _story_context()
+    worker_input = context["worker_input"]
+    assert isinstance(worker_input, dict)
+    worker_input[field] = value
+
+    with pytest.raises(ValueError, match="Parent role or SRS limits"):
+        ModalStoryFunctionClient(volume=volume, function=function).generate(context)
+
+    assert function.call is None
+    assert volume.batch.files == {}
 
 
 def test_known_modal_schema_rejection_is_terminal_not_unknown() -> None:
@@ -148,6 +211,85 @@ def test_known_modal_schema_rejection_is_terminal_not_unknown() -> None:
 
     assert error.value.code == "STORY_INPUT_CONTRACT_INVALID"
     assert volume.removed_paths
+
+
+def test_story_spawn_exception_is_logged_without_provider_text_and_stays_unknown(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class _SpawnFailure:
+        def spawn(self, _payload: dict[str, Any]) -> None:
+            raise RuntimeError("private prompt and credential must not be logged")
+
+    volume = _Volume()
+    logger = _EventLogger()
+    monkeypatch.setattr(client_module, "_LOGGER", logger)
+
+    with pytest.raises(ModalFunctionOutcomeUnknown) as error:
+        ModalStoryFunctionClient(volume=volume, function=_SpawnFailure()).generate(
+            _story_context()
+        )
+
+    assert error.value.call_id is None
+    event, fields = next(
+        (event, fields)
+        for event, fields in logger.events
+        if event == "modal_worker_spawn_failed_ambiguous"
+    )
+    assert fields["stage"] == "spawn"
+    assert fields["exception_type"] == "RuntimeError"
+    assert fields["exception_module"] == "builtins"
+    assert isinstance(fields["elapsed_ms"], int)
+    assert fields["provider_call_id_present"] is False
+    assert "private prompt" not in repr(logger.events)
+    assert "credential" not in repr(logger.events)
+    assert volume.removed_paths == []
+
+
+def test_story_input_upload_failure_is_classified_before_dispatch(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class _UploadFailure(_Volume):
+        @contextmanager
+        def batch_upload(self):
+            raise OSError("private storage URL must not be logged")
+            yield self.batch
+
+    volume = _UploadFailure()
+    function = _Function()
+    logger = _EventLogger()
+    monkeypatch.setattr(client_module, "_LOGGER", logger)
+
+    with pytest.raises(ModalFunctionExecutionFailed) as error:
+        ModalStoryFunctionClient(volume=volume, function=function).generate(
+            _story_context()
+        )
+
+    assert error.value.code == "STORY_INPUT_UPLOAD_FAILED"
+    event, fields = next(
+        (event, fields)
+        for event, fields in logger.events
+        if event == "modal_story_input_upload_failed"
+    )
+    assert fields["stage"] == "scratch_upload"
+    assert fields["exception_type"] == "OSError"
+    assert fields["provider_call_id_present"] is False
+    assert "private storage URL" not in repr(logger.events)
+    assert function.call is None
+
+
+def test_story_client_rejects_activity_snapshot_hash_mismatch_before_dispatch() -> None:
+    volume = _Volume()
+    function = _Function()
+    context = _story_context()
+    worker_input = context["worker_input"]
+    assert isinstance(worker_input, dict)
+    worker_input["primary_activity"]["title"] = "Different title"
+
+    with pytest.raises(ValueError, match="approved input contract|Parent role or SRS limits"):
+        ModalStoryFunctionClient(volume=volume, function=function).generate(context)
+
+    assert function.call is None
+    assert volume.batch.files == {}
 
 
 def test_modal_remote_error_is_terminal_not_unknown() -> None:
@@ -240,14 +382,14 @@ def test_worker_log_summary_keeps_allowlisted_diagnosis_only() -> None:
                                 "story_field_diagnostics_available": True,
                                 "story_text_field_metric_count": 1,
                                 "story_incomplete_sentence_fields": [
-                                    "scenes[2].visual_prompt",
+                                    "scenes[2].action",
                                     "private generated text",
                                 ],
                                 "story_text_field_metrics": [
                                     {
-                                        "field": "scenes[2].visual_prompt",
+                                        "field": "scenes[2].action",
                                         "character_count": 27,
-                                        "max_length": 240,
+                                        "max_length": 100,
                                         "sentence_complete": False,
                                     },
                                     {
@@ -297,12 +439,12 @@ def test_worker_log_summary_keeps_allowlisted_diagnosis_only() -> None:
             "field_key_counts": {"narration": 5},
             "story_field_diagnostics_available": True,
             "story_text_field_metric_count": 1,
-            "story_incomplete_sentence_fields": ["scenes[2].visual_prompt"],
+            "story_incomplete_sentence_fields": ["scenes[2].action"],
             "story_text_field_metrics": [
                 {
-                    "field": "scenes[2].visual_prompt",
+                    "field": "scenes[2].action",
                     "character_count": 27,
-                    "max_length": 240,
+                    "max_length": 100,
                     "sentence_complete": False,
                 }
             ],
@@ -315,6 +457,9 @@ def test_worker_log_summary_keeps_allowlisted_diagnosis_only() -> None:
         "worker_output_size_bytes": None,
         "worker_output_sha256": None,
         "worker_binary_output_sha256": None,
+        "worker_progress_updates": [],
+        "worker_runtime": None,
+        "remote_call_result": None,
         "worker_failure_boundary": "worker_terminal_failure_observed",
     }
     assert "private prompt" not in repr(summary)
@@ -372,6 +517,38 @@ def test_worker_log_summary_retries_until_terminal_event_is_indexed(monkeypatch)
     assert "must not be surfaced" not in repr(summary)
 
 
+def test_successful_remote_call_is_not_reported_as_running_when_terminal_log_lags() -> None:
+    class _Logs:
+        def tail(self, *, entries: int):
+            assert entries == 500
+            return [
+                type(
+                    "Entry",
+                    (),
+                    {
+                        "message": json.dumps(
+                            {
+                                "schema_version": "sketch2life.modal.worker-event.v1",
+                                "event": "worker_started",
+                                "workload": "story.generate",
+                                "stage": "worker_entrypoint",
+                            }
+                        )
+                    },
+                )()
+            ]
+
+    summary = summarize_worker_call_logs(
+        type("Call", (), {"logs": _Logs()})(),
+        remote_call_result="succeeded",
+        max_log_wait_seconds=0,
+    )
+
+    assert summary["remote_call_result"] == "succeeded"
+    assert summary["worker_terminal_event"] is None
+    assert summary["worker_failure_boundary"] == "remote_call_succeeded_terminal_log_not_observed"
+
+
 def test_worker_log_summary_fails_closed_when_modal_logs_unavailable() -> None:
     class _Logs:
         def tail(self, *, entries: int):
@@ -383,3 +560,314 @@ def test_worker_log_summary_fails_closed_when_modal_logs_unavailable() -> None:
     assert summary["worker_started_observed"] is False
     assert summary["worker_diagnostic_code"] is None
     assert "provider diagnostic" not in repr(summary)
+
+
+def test_parent_activity_failure_log_keeps_only_safe_tail_diagnostics() -> None:
+    class _Logs:
+        def tail(self, *, entries: int):
+            assert entries == 500
+            return [
+                type(
+                    "Entry",
+                    (),
+                    {
+                        "message": json.dumps(
+                            {
+                                "event": "parent_activity_suggestions_output_invalid",
+                                "workload": "parent.activity.suggest",
+                                "reason_code": "MODAL_MODEL_OUTPUT_INCOMPLETE_TEXT",
+                                "invalid_text_field_path": (
+                                    "fallback_activities[1].instructions_text.first_sentence"
+                                ),
+                                "invalid_text_character_count": 31,
+                                "incomplete_text_reason": "dangling_word",
+                                "generated_text": "private text sentinel",
+                            }
+                        )
+                    },
+                )()
+            ]
+
+    summary = summarize_worker_call_logs(
+        type("Call", (), {"logs": _Logs()})(), max_log_wait_seconds=0
+    )
+
+    assert summary["worker_diagnostic_code"] == "MODAL_MODEL_OUTPUT_INCOMPLETE_TEXT"
+    assert summary["worker_diagnostic_details"] == {
+        "event": "parent_activity_suggestions_output_invalid",
+        "invalid_text_field_path": (
+            "fallback_activities[1].instructions_text.first_sentence"
+        ),
+        "incomplete_text_reason": "dangling_word",
+        "invalid_text_character_count": 31,
+    }
+    assert "private text sentinel" not in repr(summary)
+
+
+def test_activity_worker_progress_and_runtime_are_summarized_without_payload_text() -> None:
+    class _Logs:
+        def tail(self, *, entries: int):
+            assert entries == 500
+            events = [
+                {
+                    "schema_version": "sketch2life.modal.worker-event.v1",
+                    "event": "worker_started",
+                    "workload": "parent.activity.suggest",
+                    "stage": "worker_entrypoint",
+                },
+                {
+                    "schema_version": "sketch2life.modal.worker-event.v1",
+                    "event": "worker_runtime_verified",
+                    "workload": "parent.activity.suggest",
+                    "stage": "model_load",
+                    "fla_version": "0.6.0",
+                    "causal_conv1d_version": "1.7.0",
+                    "prompt": "do not surface",
+                },
+                {
+                    "schema_version": "sketch2life.modal.worker-event.v1",
+                    "event": "model_generation_progress",
+                    "workload": "parent.activity.suggest",
+                    "stage": "model_inference",
+                    "progress_kind": "heartbeat",
+                    "generated_token_count": 42,
+                    "max_new_tokens": 1000,
+                    "elapsed_ms": 12345,
+                    "tokens_per_second": 3.402,
+                    "generated_text": "must not surface",
+                },
+            ]
+            return [
+                type(
+                    "Entry",
+                    (),
+                    {"message": "\n".join(json.dumps(event, ensure_ascii=False) for event in events)},
+                )()
+            ]
+
+    summary = summarize_worker_call_logs(type("Call", (), {"logs": _Logs()})())
+
+    assert summary["worker_progress_updates"] == [
+        {
+            "progress_kind": "heartbeat",
+            "generated_token_count": 42,
+            "max_new_tokens": 1000,
+            "elapsed_ms": 12345,
+            "tokens_per_second": 3.402,
+        }
+    ]
+    assert summary["worker_runtime"] == {
+        "fla_version": "0.6.0",
+        "causal_conv1d_version": "1.7.0",
+    }
+    assert "do not surface" not in repr(summary)
+    assert "must not surface" not in repr(summary)
+
+
+def test_activity_terminal_kernel_error_is_mapped_and_wait_is_bounded() -> None:
+    class _JsonCall(_Call):
+        object_id = "fc-json-activity-test"
+
+        def __init__(self) -> None:
+            super().__init__(error=RuntimeError("remote worker failed"))
+            events = [
+                {
+                    "schema_version": "sketch2life.modal.worker-event.v1",
+                    "event": "worker_started",
+                    "workload": "parent.activity.suggest",
+                    "stage": "worker_entrypoint",
+                },
+                {
+                    "schema_version": "sketch2life.modal.worker-event.v1",
+                    "event": "worker_phase_started",
+                    "workload": "parent.activity.suggest",
+                    "stage": "model_load",
+                },
+                {
+                    "schema_version": "sketch2life.modal.worker-event.v1",
+                    "event": "worker_phase_failed",
+                    "workload": "parent.activity.suggest",
+                    "stage": "model_load",
+                    "error_code": "MODAL_QWEN_FAST_KERNELS_UNAVAILABLE",
+                    "error_type": "RuntimeError",
+                },
+                {
+                    "schema_version": "sketch2life.modal.worker-event.v1",
+                    "event": "worker_failed",
+                    "workload": "parent.activity.suggest",
+                    "stage": "model_load",
+                    "error_code": "MODAL_QWEN_FAST_KERNELS_UNAVAILABLE",
+                    "error_type": "RuntimeError",
+                },
+            ]
+            self.logs = type(
+                "Logs",
+                (),
+                {"tail": lambda _self, *, entries: [
+                    type("Entry", (), {"message": "\n".join(json.dumps(event) for event in events)})()
+                ]},
+            )()
+
+    class _JsonFunction:
+        spawn_calls = 0
+
+        def spawn(self, _payload):
+            self.spawn_calls += 1
+            return _JsonCall()
+
+    function = _JsonFunction()
+    client = ModalJsonFunctionClient(
+        volume=_Volume(),
+        function_resolver=lambda _app, _name: function,
+    )
+
+    with pytest.raises(ModalFunctionExecutionFailed) as error:
+        client.invoke("parent.activity.suggest", {"synthetic_probe": True})
+
+    assert error.value.code == "MODAL_QWEN_FAST_KERNELS_UNAVAILABLE"
+    assert client_module._JSON_WORKERS["parent.activity.suggest"][2] == 450
+
+
+def test_activity_terminal_output_quality_error_survives_modal_log_index_delay(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class _JsonCall(_Call):
+        object_id = "fc-json-activity-quality-test"
+
+        def __init__(self) -> None:
+            super().__init__(error=RuntimeError("remote worker failed"))
+            self.log_calls = 0
+
+            class _Logs:
+                def tail(inner_self, *, entries: int):
+                    assert entries == 500
+                    self.log_calls += 1
+                    events = [
+                        {
+                            "schema_version": "sketch2life.modal.worker-event.v1",
+                            "event": "worker_started",
+                            "workload": "parent.activity.suggest",
+                            "stage": "worker_entrypoint",
+                        }
+                    ]
+                    if self.log_calls > 1:
+                        events.append(
+                            {
+                                "schema_version": "sketch2life.modal.worker-event.v1",
+                                "event": "worker_failed",
+                                "workload": "parent.activity.suggest",
+                                "stage": "output_parse_and_contract_validation",
+                                "error_code": "MODAL_MODEL_OUTPUT_INCOMPLETE_TEXT",
+                            }
+                        )
+                    return [
+                        type(
+                            "Entry",
+                            (),
+                            {
+                                "message": "\n".join(
+                                    json.dumps(event) for event in events
+                                )
+                            },
+                        )()
+                    ]
+
+            self.logs = _Logs()
+
+    class _JsonFunction:
+        spawn_calls = 0
+
+        def spawn(self, _payload):
+            self.spawn_calls += 1
+            return _JsonCall()
+
+    function = _JsonFunction()
+    client = ModalJsonFunctionClient(
+        volume=_Volume(),
+        function_resolver=lambda _app, _name: function,
+    )
+    observed_log_windows: list[float] = []
+    original_summarize = client_module.summarize_worker_call_logs
+
+    def _summarize(call: Any, **kwargs: Any) -> dict[str, Any]:
+        observed_log_windows.append(kwargs["max_log_wait_seconds"])
+        return original_summarize(call, **kwargs)
+
+    monkeypatch.setattr(client_module.time, "sleep", lambda _delay: None)
+    monkeypatch.setattr(client_module, "summarize_worker_call_logs", _summarize)
+
+    with pytest.raises(ModalFunctionExecutionFailed) as error:
+        client.invoke("parent.activity.suggest", {"synthetic_probe": True})
+
+    assert error.value.code == "MODAL_MODEL_OUTPUT_INCOMPLETE_TEXT"
+    assert observed_log_windows == [10.0]
+    assert function.spawn_calls == 1  # log polling never retries/redispatches
+
+
+def test_activity_incomplete_text_diagnostic_survives_unclassified_wrapper_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class _JsonCall(_Call):
+        object_id = "fc-json-activity-diagnostic-test"
+
+        def __init__(self) -> None:
+            super().__init__(error=RuntimeError("remote worker failed"))
+            events = [
+                {
+                    "schema_version": "sketch2life.modal.worker-event.v1",
+                    "event": "worker_started",
+                    "workload": "parent.activity.suggest",
+                    "stage": "worker_entrypoint",
+                },
+                {
+                    "event": "parent_activity_suggestions_output_invalid",
+                    "workload": "parent.activity.suggest",
+                    "reason_code": "MODAL_MODEL_OUTPUT_INCOMPLETE_TEXT",
+                    "invalid_text_field_path": (
+                        "fallback_activities[1].instructions_text.first_sentence"
+                    ),
+                    "invalid_text_character_count": 34,
+                    "incomplete_text_reason": "dangling_word",
+                },
+                {
+                    "schema_version": "sketch2life.modal.worker-event.v1",
+                    "event": "worker_failed",
+                    "workload": "parent.activity.suggest",
+                    "stage": "output_parse_and_contract_validation",
+                    "error_code": "UNCLASSIFIED_FAILURE",
+                    "error_type": "Exception",
+                },
+            ]
+            self.logs = type(
+                "Logs",
+                (),
+                {
+                    "tail": lambda _self, *, entries: [
+                        type(
+                            "Entry",
+                            (),
+                            {"message": "\n".join(json.dumps(event) for event in events)},
+                        )()
+                    ]
+                },
+            )()
+
+    class _JsonFunction:
+        spawn_calls = 0
+
+        def spawn(self, _payload):
+            self.spawn_calls += 1
+            return _JsonCall()
+
+    function = _JsonFunction()
+    client = ModalJsonFunctionClient(
+        volume=_Volume(),
+        function_resolver=lambda _app, _name: function,
+    )
+    monkeypatch.setattr(client_module.time, "sleep", lambda _delay: None)
+
+    with pytest.raises(ModalFunctionExecutionFailed) as error:
+        client.invoke("parent.activity.suggest", {"synthetic_probe": True})
+
+    assert error.value.code == "MODAL_MODEL_OUTPUT_INCOMPLETE_TEXT"
+    assert function.spawn_calls == 1

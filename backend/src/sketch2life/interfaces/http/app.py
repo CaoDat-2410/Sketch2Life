@@ -548,6 +548,12 @@ def create_app(
             if not isinstance(code, str) or code not in safe_messages:
                 code = default_codes.get(exc.status_code, "REQUEST_FAILED")
             request_id = getattr(request.state, "parent_request_id", str(uuid4()))
+            _LOGGER.warning(
+                "parent_profile_http_error status=%s code=%s request_id=%s",
+                exc.status_code,
+                code,
+                request_id,
+            )
             field_errors = detail.get("field_errors")
             safe_field_errors = (
                 field_errors

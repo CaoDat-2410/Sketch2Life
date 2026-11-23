@@ -1,0 +1,35 @@
+{
+  "schema_version": "sketch2life.feat082.activity-failure-evidence.v1",
+  "date": "2026-11-22",
+  "environment": "Modal dev / synthetic Parent Android flow",
+  "workload": "parent.activity.suggest",
+  "backend_request_id": "def15576-132c-4670-b4e6-bc69662f315a",
+  "modal_call_id": "fc-01M820QHK486RV7GGZYAHFNGYN",
+  "story_run_id": "d8f8e127-a601-4676-b885-81373b239bfe",
+  "model": {
+    "model_id": "Qwen/Qwen3.8-27B-FP8",
+    "revision": "c3a462cc3d38cf351f3b26cbd763469eeb74ef81",
+    "gpu": "L40S",
+    "model_load_seconds": 5.156
+  },
+  "failure": {
+    "terminal": true,
+    "stage": "fp8_kernel_import",
+    "exception_type": "ModuleNotFoundError",
+    "sanitized_message": "No module named 'triton.tools.tensor_descriptor'",
+    "output_tokens": 0,
+    "activity_candidates_returned": false
+  },
+  "diagnosis": "The pinned FP8 kernel uses Triton TensorDescriptor, which is absent from the worker's Triton 3.3.1 pin and present in Triton 3.4.0. Import aliases cannot supply the missing compiler/runtime implementation.",
+  "remediation": {
+    "torch": "2.8.0",
+    "torchvision": "0.23.0",
+    "triton": "3.4.0",
+    "causal_conv1d": "1.7.0 / cu12 / torch2.8 / cp311",
+    "causal_conv1d_sha256": "b28c3657a9d6855e1f95bc912ab94f893434276b437dec8008c92c9f38b6a1f4",
+    "offline_contract_tests": "82 passed",
+    "runtime_deploy_and_readiness": "pending",
+    "fresh_ui_request": "pending"
+  },
+  "privacy": "No profile identifiers, child data, image bytes, raw prompt, or credentials are included."
+}

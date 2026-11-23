@@ -43,6 +43,8 @@ class Settings(BaseSettings):
     session_idle_ttl_seconds: int = Field(default=1800, ge=60, le=86_400)
     # FEAT-064 dev pilot: synthetic eligibility is honored only when this is on in local/test.
     synthetic_pilot_enabled: bool = False
+    # FEAT-081 Rev42: one synthetic Parent LTX candidate; never product-ready or quota-backed.
+    parent_video_dev_candidate_enabled: bool = False
 
     auth_provider: Literal["development", "firebase"] = "development"
     firebase_project_id: str = ""
@@ -52,6 +54,7 @@ class Settings(BaseSettings):
 
     # Provider calls stay backend-side; Modal is limited to local synthetic validation.
     ai_provider: Literal["disabled", "lightning_dev", "runpod", "modal_dev"] = "disabled"
+    parent_topic_subject_ai_enabled: bool = False
     lightning_ai_base_url: str = ""
     lightning_ai_token_file: Path | None = None
     lightning_model_profile: str = "live-p2-understanding-v1"
@@ -109,6 +112,8 @@ class Settings(BaseSettings):
 
         if self.ai_provider == "modal_dev" and self.env not in {"local", "test"}:
             raise ValueError("Modal dev inference is available only in local/test environments")
+        if self.parent_video_dev_candidate_enabled and self.env not in {"local", "test"}:
+            raise ValueError("Parent video candidate preview is available only in local/test")
 
         return self
 

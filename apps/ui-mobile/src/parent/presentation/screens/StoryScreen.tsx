@@ -3,32 +3,55 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { ParentCapabilityState, ParentJobStageState } from '../../application/ports/ParentCapabilityPorts';
 import type { StoryDraft } from '../../domain/types';
+import type { ParentVideoCandidateV1 } from '../../domain/types';
 import { Card, Field, Notice, PrimaryButton, SecondaryButton, ScreenFrame, SectionTitle, palette } from '../components/ui';
+import { ParentAiLoadingState } from '../components/ParentAiLoadingState';
+
+export type StoryBusyOperation = 'generating' | 'rewriting' | 'confirming' | null;
 
 type Props = {
+  storyRunId?: string;
   videoCapability: ParentCapabilityState;
   jobStage: ParentJobStageState;
   stepLabel: string;
   story: StoryDraft | null;
+  storyCurrent?: boolean;
+  failedGeneration?: boolean;
+  serverPending?: boolean;
+  reconciliationRequired?: boolean;
   storyReady: boolean;
   blockedReason: string;
   rewriteCount: number;
   rewriteInstruction: string;
   busy: boolean;
+  busyOperation?: StoryBusyOperation;
   attempted: boolean;
   canConfirm: boolean;
   error: string;
   confirmed: boolean;
+  videoCandidate?: ParentVideoCandidateV1 | null;
+  onOpenVideo?: () => void;
   onRewriteInstruction: (value: string) => void;
   onGenerate: () => void;
-  onRetry: () => void;
+  /** Kept optional for the non-interactive preview harness; never rendered as a retry action. */
+  onRetry?: () => void;
   onRewrite: () => void;
   onConfirm: () => void;
-  onBack: () => void;
+  onBack?: () => void;
+  onOpenHistory?: () => void;
 };
 
 export function StoryScreen(props: Props): React.JSX.Element {
   const [detailsVisible, setDetailsVisible] = useState(false);
+  const storyCurrent = props.storyCurrent ?? true;
+  const serverPending = props.serverPending ?? false;
+  const reconciliationRequired = props.reconciliationRequired ?? false;
+  const failedGeneration = props.failedGeneration ?? false;
+  const requestPending = props.busy || serverPending;
+  const currentVideoCandidate = props.videoCandidate
+    && (!props.storyRunId || props.videoCandidate.story_run_id === props.storyRunId)
+    ? props.videoCandidate
+    : null;
   const videoStateMessage = props.videoCapability.state === 'unavailable'
     ? 'Tạo video chưa khả dụng vì dịch vụ chưa được xác nhận.'
     : jobStageMessage(props.jobStage);
@@ -44,36 +67,113 @@ export function StoryScreen(props: Props): React.JSX.Element {
       {!props.storyReady ? (
         <Notice variant="creative" text={props.blockedReason} tone="warning" />
       ) : null}
-      {props.error ? <Notice variant="creative" text={props.error} tone="error" /> : null}
+      {props.error && !props.busy ? <Notice variant="creative" text={props.error} tone="error" /> : null}
 
-      {!props.story ? (
+      {!props.story || !storyCurrent ? (
+        <>
+        {requestPending ? (
+          <ParentAiLoadingState
+            testID="parent-story-ai-loading"
+            title={storyBusyTitle(props.busyOperation, serverPending, reconciliationRequired)}
+            description={storyBusyDescription(props.busyOperation, serverPending, reconciliationRequired)}
+            statusLabel={storyBusyStatusLabel(props.busyOperation, serverPending, reconciliationRequired)}
+            note={storyLoadingNote(reconciliationRequired)}
+            mode={reconciliationRequired ? 'reconciliation' : 'processing'}
+            showElapsed={!serverPending}
+            prominent={requestPending && !reconciliationRequired}
+          />
+        ) : null}
+        {serverPending && props.onOpenHistory ? (
+          <SecondaryButton variant="creative" label="Mở lịch sử để kiểm tra buổi đang xử lý" onPress={props.onOpenHistory} />
+        ) : null}
+        {(!props.story || !storyCurrent) && !requestPending ? (
         <Card variant="creative" style={styles.generationCard}>
           <View style={styles.storyArtwork}>
             <StoryIllustration />
           </View>
           <View style={styles.generationCopy}>
             <Text style={styles.eyebrow}>TỪ BỨC TRANH CỦA BÉ</Text>
-            <SectionTitle variant="creative">Sẵn sàng mở ra một câu chuyện?</SectionTitle>
-            <Text style={styles.bodyText}>Kịch bản sẽ được tạo từ bức tranh và chủ thể người lớn đã xác nhận.</Text>
+            <SectionTitle variant="creative">
+              {failedGeneration ? 'Bản nháp chưa đạt yêu cầu' : 'Sẵn sàng mở ra một câu chuyện?'}
+            </SectionTitle>
+            <Text style={styles.bodyText}>
+              {failedGeneration
+                ? 'AI chưa tạo được kịch bản đạt yêu cầu. Bản lỗi không thể xác nhận; hãy gửi một gợi ý mới để tạo bản khác.'
+                : 'Kịch bản sẽ được tạo từ bức tranh và chủ thể người lớn đã xác nhận.'}
+            </Text>
           </View>
-          {props.attempted ? (
+          {failedGeneration ? (
             <>
-              <Notice variant="creative" text="Chưa có kết quả xác nhận. Kiểm tra trạng thái trước khi gửi lại." tone="warning" />
-              <SecondaryButton variant="creative" label="Gửi lại cùng yêu cầu" disabled={!props.storyReady || props.busy} onPress={props.onRetry} />
+              <Notice variant="creative" text="Bản trước chưa đạt kiểm tra nội dung. Tranh, chủ thể và hoạt động đã chọn vẫn được giữ." tone="warning" />
+              {props.rewriteCount < 3 ? (
+                <>
+                  <Field
+                    variant="creative"
+                    label={`Gợi ý để AI viết lại · còn ${Math.max(0, 3 - props.rewriteCount)} lần`}
+                    value={props.rewriteInstruction}
+                    onChangeText={props.onRewriteInstruction}
+                    placeholder="Ví dụ: viết câu ngắn, đầy đủ; giữ nguyên con rùa và hoạt động đã chọn"
+                    multiline
+                    editable={props.storyReady && !props.busy}
+                  />
+                  <SecondaryButton
+                    variant="creative"
+                    label="Gửi gợi ý để viết lại"
+                    disabled={!props.storyReady || props.busy || !props.rewriteInstruction.trim()}
+                    onPress={props.onRewrite}
+                  />
+                </>
+              ) : (
+                <Notice variant="creative" text="Bạn đã dùng hết số lần viết lại cho câu chuyện này." tone="info" />
+              )}
+            </>
+          ) : props.attempted ? (
+            <>
+              <Notice variant="creative" text="Chưa có bản nháp được máy chủ xác nhận. Hãy kiểm tra trạng thái buổi học trước khi gửi yêu cầu mới." tone="warning" />
+              {props.onOpenHistory ? (
+                <SecondaryButton variant="creative" label="Mở lịch sử buổi học" onPress={props.onOpenHistory} />
+              ) : null}
             </>
           ) : (
-            <PrimaryButton variant="creative" label="Tạo câu chuyện" busy={props.busy} disabled={!props.storyReady} onPress={props.onGenerate} />
+            <PrimaryButton variant="creative" label="Tạo câu chuyện" disabled={!props.storyReady} onPress={props.onGenerate} />
           )}
         </Card>
+        ) : null}
+        {props.story && !storyCurrent && !requestPending ? (
+          <Card variant="creative" style={styles.revisionCard}>
+            <SectionTitle variant="creative">Bản nháp trước chưa được xác nhận</SectionTitle>
+            <Notice
+              variant="creative"
+              text="Lượt cập nhật chưa hoàn tất. Nội dung cũ được giữ trong buổi học nhưng không thể xem hoặc xác nhận như bản hiện hành."
+              tone="warning"
+            />
+          </Card>
+        ) : null}
+        </>
       ) : (
         <>
+          {requestPending ? (
+            <ParentAiLoadingState
+              testID="parent-story-ai-loading"
+              title={storyBusyTitle(props.busyOperation, serverPending, reconciliationRequired)}
+              description={storyBusyDescription(props.busyOperation, serverPending, reconciliationRequired)}
+              statusLabel={storyBusyStatusLabel(props.busyOperation, serverPending, reconciliationRequired)}
+              note={storyLoadingNote(reconciliationRequired)}
+              mode={reconciliationRequired ? 'reconciliation' : 'processing'}
+              showElapsed={!serverPending}
+              prominent={requestPending && !reconciliationRequired}
+            />
+          ) : null}
+          {serverPending && props.onOpenHistory ? (
+            <SecondaryButton variant="creative" label="Mở lịch sử để kiểm tra buổi đang xử lý" onPress={props.onOpenHistory} />
+          ) : null}
           <Card variant="creative" style={styles.storyCard}>
             <View style={styles.storyHeading}>
               <View style={styles.storyIcon}>
                 <Ionicons name="book-outline" size={21} color={palette.creativePrimary} />
               </View>
               <View style={styles.storyHeadingCopy}>
-                <Text style={styles.eyebrow}>{props.confirmed ? 'ĐÃ XÁC NHẬN' : 'BẢN NHÁP'} · {storyLanguageLabel(props.story.language)}</Text>
+                  <Text style={styles.eyebrow}>{props.confirmed ? 'ĐÃ XÁC NHẬN' : 'BẢN NHÁP'} · {storyLanguageLabel(props.story.language)}</Text>
                 <Text style={styles.storyTitle}>{props.story.title}</Text>
               </View>
             </View>
@@ -128,12 +228,12 @@ export function StoryScreen(props: Props): React.JSX.Element {
                     onChangeText={props.onRewriteInstruction}
                     placeholder="Ví dụ: thêm một người bạn mới"
                     multiline
-                    editable={props.storyReady && !props.busy}
+                    editable={props.storyReady && storyCurrent && !props.busy}
                   />
                   <SecondaryButton
                     variant="creative"
                     label="Viết lại câu chuyện"
-                    disabled={!props.storyReady || !props.rewriteInstruction.trim() || props.busy}
+                    disabled={!props.storyReady || !storyCurrent || !props.rewriteInstruction.trim() || requestPending}
                     onPress={props.onRewrite}
                   />
                 </>
@@ -141,8 +241,7 @@ export function StoryScreen(props: Props): React.JSX.Element {
               <PrimaryButton
                 variant="creative"
                 label="Xác nhận câu chuyện này"
-                busy={props.busy}
-                disabled={!props.storyReady || !props.canConfirm || !props.story.revisionId || !props.story.sha256}
+                disabled={requestPending || !props.storyReady || !storyCurrent || !props.canConfirm || !props.story.revisionId || !props.story.sha256}
                 onPress={props.onConfirm}
               />
             </Card>
@@ -152,9 +251,56 @@ export function StoryScreen(props: Props): React.JSX.Element {
         </>
       )}
 
-      {props.story && props.confirmed ? <Notice variant="creative" text={videoStateMessage} tone={props.videoCapability.state === 'unavailable' || props.jobStage.state === 'failed' ? 'warning' : props.jobStage.state === 'confirmed' ? 'success' : 'info'} /> : null}
+      {props.story && storyCurrent && props.confirmed && props.onOpenVideo ? (
+        <Card variant="creative" style={styles.videoCard}>
+          <SectionTitle variant="creative">Video từ tranh của bé</SectionTitle>
+          <Notice
+            variant="creative"
+            text={currentVideoCandidate?.state === 'CANDIDATE_READY'
+              ? 'Đã có bản xem thử kỹ thuật. Bản này chưa qua kiểm tra an toàn và chưa phải video hoàn tất.'
+              : videoStateMessage}
+            tone={currentVideoCandidate?.state === 'CANDIDATE_READY' ? 'success' : props.jobStage.state === 'failed' ? 'warning' : 'info'}
+          />
+          <SecondaryButton
+            variant="creative"
+            label={currentVideoCandidate ? 'Mở trạng thái video' : 'Tạo video xem thử'}
+            disabled={props.videoCapability.state === 'unavailable'}
+            onPress={props.onOpenVideo}
+          />
+        </Card>
+      ) : null}
     </ScreenFrame>
   );
+}
+
+function storyBusyTitle(operation: StoryBusyOperation | undefined, serverPending = false, reconciliationRequired = false): string {
+  if (reconciliationRequired) return 'Chưa xác nhận được kết quả';
+  if (serverPending) return 'Máy chủ đang tạo câu chuyện';
+  if (operation === 'rewriting') return 'Đang viết bản mới theo góp ý';
+  if (operation === 'confirming') return 'Đang lưu xác nhận';
+  return 'Đang tạo câu chuyện từ tranh';
+}
+
+function storyBusyDescription(operation: StoryBusyOperation | undefined, serverPending = false, reconciliationRequired = false): string {
+  if (reconciliationRequired) return 'Máy chủ chưa xác nhận Modal đã nhận yêu cầu hay chưa. Ứng dụng đã dừng chờ và sẽ không tự gửi lại.';
+  if (serverPending) return 'Máy chủ đang xử lý yêu cầu. Ứng dụng sẽ cập nhật khi nhận được kết quả chính thức.';
+  if (operation === 'rewriting') return 'AI đang dùng gợi ý của người lớn để tạo một bản nháp mới.';
+  if (operation === 'confirming') return 'Đang lưu đúng phiên bản kịch bản đã được người lớn duyệt.';
+  return 'AI đang dựa trên tranh, chủ thể đã xác nhận và hoạt động đã chọn để viết bản nháp.';
+}
+
+function storyBusyStatusLabel(operation: StoryBusyOperation | undefined, serverPending = false, reconciliationRequired = false): string {
+  if (reconciliationRequired) return 'Cần kiểm tra trạng thái';
+  if (serverPending) return 'Đang chờ kết quả máy chủ';
+  if (operation === 'rewriting') return 'Đang viết bản mới';
+  if (operation === 'confirming') return 'Đang lưu bản đã duyệt';
+  return 'Đang tạo bản nháp';
+}
+
+function storyLoadingNote(reconciliationRequired: boolean): string {
+  return reconciliationRequired
+    ? 'Mở lịch sử để xem trạng thái mới nhất. Không gửi lại lượt này để tránh tạo yêu cầu trùng.'
+    : 'Bạn có thể quay lại sau; ứng dụng sẽ cập nhật khi máy chủ có kết quả.';
 }
 
 function StoryIllustration(): React.JSX.Element {
@@ -200,6 +346,7 @@ const styles = StyleSheet.create({
   sceneBody: { color: palette.creativeInk, fontSize: 12, lineHeight: 17 },
   sceneNarration: { color: palette.creativeMuted, fontSize: 12, lineHeight: 17, fontStyle: 'italic' },
   revisionCard: { gap: 12 },
+  videoCard: { gap: 10 },
   illustrationCanvas: { flex: 1, backgroundColor: '#F2E9FF', alignItems: 'center', justifyContent: 'center' },
   illustrationGlow: { position: 'absolute', width: 170, height: 170, borderRadius: 85, backgroundColor: '#E4D2FF', opacity: 0.85 },
   bookBack: { position: 'absolute', width: 100, height: 112, borderRadius: 12, backgroundColor: '#8D54D8', transform: [{ rotate: '8deg' }], marginLeft: 28, marginTop: 8 },

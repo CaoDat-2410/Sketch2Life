@@ -275,6 +275,49 @@ export type ParentVideoQuota = {
   available: number | null;
 };
 
+export type ParentVideoCandidateMetadataV1 = {
+  duration_seconds: number;
+  width: number;
+  height: number;
+  fps: number;
+  video_codec: string;
+  audio_streams: 0;
+  scene_count: number;
+  video_profile: string;
+  model_id: string;
+  model_revision: string;
+  technical_validation: 'PASS';
+  consistency_validation: 'NOT_RUN';
+  safety_validation: 'NOT_RUN';
+  product_playable: false;
+};
+
+export type ParentVideoCandidateV1 = {
+  video_candidate_id: string;
+  story_run_id: string;
+  story_revision_id: string;
+  story_revision: number;
+  story_sha256: string;
+  state: 'STAGING' | 'DISPATCHING' | 'QUEUED' | 'GENERATING' | 'CANDIDATE_READY' | 'FAILED' | 'AWAITING_RECONCILIATION';
+  safe_failure_code: string | null;
+  metadata: ParentVideoCandidateMetadataV1 | null;
+  preview_available: boolean;
+  product_playable: false;
+  safety_validation: 'NOT_RUN';
+  created_at: string;
+  updated_at: string;
+};
+
+export type ParentVideoCandidateEnvelopeV1 = {
+  request_id: string;
+  video_candidate: ParentVideoCandidateV1;
+};
+
+export type ParentCurrentVideoCandidateEnvelopeV1 = {
+  request_id: string;
+  video_candidate: ParentVideoCandidateV1 | null;
+};
+
 export type ParentLessonDelivery = {
   contract: 'ParentLessonDeliveryV1';
   occurrence_id: string;
@@ -479,12 +522,58 @@ export type ParentStoryRunV1 = {
   updated_at: string;
 };
 
+/** Kept as a compatibility name for the current content-free FR-C-08 response. */
+export type ParentStoryRunCancelEnvelopeV1 = ParentStoryRunLifecycleEnvelopeV1;
+
 export type ParentStoryRunCreateV1 = {
   parent_profile_id: string;
   topic: string;
   adult_confirmed_idea: string;
+  intended_drawing_subject?: string | null;
   lesson_version?: ParentLessonVersionPinV1 | null;
 };
+
+export type ParentTopicCardV1 = Readonly<{
+  topic_id: string;
+  title_vi: string;
+  description_vi: string;
+}>;
+
+export type ParentTopicSuggestionSetV1 = Readonly<{
+  contract: 'ParentTopicSuggestionSetV1';
+  set_id: string;
+  draft_id: string;
+  catalog_revision: string;
+  cards: ReadonlyArray<ParentTopicCardV1>;
+  excluded_set_ids: ReadonlyArray<string>;
+}>;
+
+export type ParentDrawingSubjectCardV1 = Readonly<{
+  subject_id: string;
+  title_vi: string;
+  guide_subject: string;
+  relation_to_topic_vi?: string | null;
+}>;
+
+export type ParentDrawingSubjectSuggestionSetV1 = Readonly<{
+  contract: 'ParentDrawingSubjectSuggestionSetV1';
+  set_id: string;
+  draft_id: string;
+  topic_id: string;
+  topic: string;
+  catalog_revision: string;
+  generation_source: 'CURATED_CATALOG' | 'QWEN_DRAFT';
+  review_required: true;
+  cards: ReadonlyArray<ParentDrawingSubjectCardV1>;
+  excluded_set_ids: ReadonlyArray<string>;
+}>;
+
+export type ParentCustomSubjectValidationV1 = Readonly<{
+  contract: 'ParentCustomSubjectValidationV1';
+  decision: 'ON_TOPIC' | 'OUT_OF_TOPIC' | 'NEEDS_CLARIFICATION';
+  normalized_subject: string | null;
+  message_vi: string;
+}>;
 
 export type ParentStoryRunEnvelopeV1 = {
   request_id: string;

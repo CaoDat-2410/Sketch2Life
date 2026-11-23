@@ -1,0 +1,45 @@
+{
+  "schema_version": "sketch2life.feat082.activity-failure-evidence.v1",
+  "date": "2026-11-22",
+  "environment": "Modal dev / synthetic Parent Android flow",
+  "workload": "parent.activity.suggest",
+  "backend_request_id": "03319993-7818-4bed-808b-02d63f4abf6f",
+  "modal_call_id": "fc-01M81MB5G7XZJ0ZG4GHPNFRSPJ",
+  "story_run_id": "d8f8e127-a601-4676-b885-81373b239bfe",
+  "catalog": {
+    "accessible_lesson_count": 0,
+    "age_access_eligible_activity_count": 0,
+    "candidate_count_sent_to_model": 0,
+    "fallback_requested": true
+  },
+  "model": {
+    "model_id": "Qwen/Qwen3.8-27B-FP8",
+    "revision": "c3a462cc3d38cf351f3b26cbd763469eeb74ef81",
+    "gpu": "L40S",
+    "model_load_seconds": 5.127
+  },
+  "failure": {
+    "terminal": true,
+    "code": "MODAL_WORKER_FAILED_TERMINAL",
+    "stage": "fp8_kernel_allowlisted_load",
+    "stage_elapsed_seconds": 0.032,
+    "exception_type": "httpx.LocalProtocolError",
+    "sanitized_message": "Illegal header value b'kernels/0.17.3; hf_hub/1.32.0; python/3.11.12; '",
+    "output_tokens": 0,
+    "retry_sent": false
+  },
+  "diagnosis": "HF_HUB_DISABLE_TELEMETRY=1 caused kernels 0.17.3 to create an empty user-agent; huggingface_hub 1.32.0 formatted it with a trailing separator, rejected by httpx before worker output.",
+  "impact": {
+    "activity_returned": false,
+    "adult_selection_completed": false,
+    "story_request_sent": false,
+    "video_request_sent": false
+  },
+  "remediation": {
+    "change": "Temporarily allow only generic package/runtime metadata for the pinned FP8 kernel bootstrap, then restore telemetry-disabled state in finally.",
+    "offline_contract_tests": "78 passed",
+    "cpu_decoder_readiness": "ready",
+    "live_kernel_or_inference_reverified": false,
+    "new_inference_requires_owner_approval": true
+  }
+}

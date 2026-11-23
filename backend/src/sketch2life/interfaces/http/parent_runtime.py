@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Iterator
 
 from fastapi import Depends, Header, HTTPException, Request
@@ -28,6 +29,7 @@ from sketch2life.infrastructure.persistence.parent_profile_repository import (
 from sketch2life.interfaces.http.be1_runtime import Be1Runtime, get_runtime
 
 _bearer = HTTPBearer(auto_error=False)
+_logger = logging.getLogger(__name__)
 
 
 def get_parent_runtime(request: Request) -> Be1Runtime:
@@ -96,8 +98,19 @@ def get_parent_db(runtime: Be1Runtime = Depends(get_runtime)) -> Iterator[Sessio
     session = runtime.session_factory()
     try:
         yield session
-    except SQLAlchemyError:
+    except SQLAlchemyError as exc:
         session.rollback()
+        original = getattr(exc, "orig", None)
+        sqlstate = getattr(original, "sqlstate", None) or getattr(original, "pgcode", None)
+        _logger.warning(
+            "parent_store_request_failed error_type=%s error_module=%s "
+            "driver_error_type=%s driver_error_module=%s sqlstate=%s",
+            type(exc).__name__,
+            type(exc).__module__,
+            type(original).__name__ if original is not None else "unavailable",
+            type(original).__module__ if original is not None else "unavailable",
+            sqlstate or "unavailable",
+        )
         raise HTTPException(
             status_code=503,
             detail={

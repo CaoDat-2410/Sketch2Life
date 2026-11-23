@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 import asyncio
+import base64
+import json
+import logging
 from collections.abc import Iterator
 from types import SimpleNamespace
 from typing import Any, Protocol, cast
@@ -655,6 +658,56 @@ def test_invalid_firebase_token_maps_separately_from_expired(
         code="INVALID_TOKEN",
         request_id="parent-invalid-token-1",
     )
+
+
+def test_firebase_token_rejection_logs_typed_diagnostics_without_provider_message(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    monkeypatch.setattr(verifier_module, "get_firebase_admin_app", lambda *_args: object())
+
+    def raise_invalid(*_args: object, **_kwargs: object) -> None:
+        raise InvalidIdTokenError("synthetic private provider detail", None)  # type: ignore[no-untyped-call]
+
+    monkeypatch.setattr(auth, "verify_id_token", raise_invalid)
+    verifier = FirebaseTokenVerifier(
+        Settings(auth_provider="firebase", firebase_project_id="synthetic-project")
+    )
+    with caplog.at_level(logging.WARNING, logger=verifier_module.__name__):
+        with pytest.raises(IdentityVerificationUnavailable):
+            asyncio.run(verifier.verify("synthetic-token"))
+
+    assert "firebase_id_token_verification_rejected" in caplog.text
+    assert "InvalidIdTokenError" in caplog.text
+    assert "synthetic private provider detail" not in caplog.text
+    assert "synthetic-token" not in caplog.text
+    assert "token_structure_valid=False" in caplog.text
+    assert "token_audience_matches_project=False" in caplog.text
+
+
+def test_safe_token_claim_diagnostics_compare_only_boolean_flags() -> None:
+    claims = {
+        "aud": "synthetic-project",
+        "iss": "https://securetoken.google.com/synthetic-project",
+        "sub": "synthetic-subject-never-log",
+        "exp": 4_102_444_800,
+        "email": "synthetic-never-log@example.invalid",
+    }
+    payload = base64.urlsafe_b64encode(json.dumps(claims).encode()).decode().rstrip("=")
+    token = f"header.{payload}.signature"
+
+    diagnostics = verifier_module._safe_token_claim_diagnostics(
+        token, "synthetic-project"
+    )
+
+    assert diagnostics == {
+        "token_structure_valid": True,
+        "token_audience_matches_project": True,
+        "token_issuer_matches_project": True,
+        "token_subject_present": True,
+        "token_expiration_in_future": True,
+    }
+    assert all(type(value) is bool for value in diagnostics.values())
+    assert "synthetic-never-log" not in str(diagnostics)
 
 
 def test_missing_bearer_and_verifier_unavailability_are_distinct(

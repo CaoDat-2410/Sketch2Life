@@ -1,0 +1,40 @@
+{
+  "schema_version": "ArcadiaSvgStrokeReferenceV1",
+  "dataset": {
+    "name": "Arcadia Science Free Organism Illustration Library",
+    "revision": "1.0",
+    "doi": "10.5281/zenodo.17203578",
+    "archive_file": "arcadia-organism-library-v1.0.zip",
+    "archive_url": "https://zenodo.org/records/17203578/files/arcadia-organism-library-v1.0.zip?download=1",
+    "archive_size_bytes": 41184246,
+    "archive_md5": "a845bf16730238334f39c7cfbc1d4703",
+    "license_id": "CC0-1.0",
+    "license_uri": "https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  "asset": {
+    "asset_id": "arcadia-gallus-gallus-tricolorstroke-v1",
+    "taxon_label": "Gallus gallus",
+    "common_name_en": "Chicken (rooster illustration)",
+    "common_name_vi": "Gà",
+    "archive_member_path": "2025 Zoogle organisms/Tricolor + stroke SVGs/Gallus-gallus-tricolorstroke.svg",
+    "filename": "gallus-gallus-source.svg",
+    "variant": "Tricolor + stroke SVG",
+    "sha256": "4f6397d5d32ff7ea58451cb5e5725c87501be155c0eb64f85c5821dfe99cb1ed",
+    "reference_only": true,
+    "contains_stroke_order": false,
+    "permitted_normalized_topics": [
+      "ga",
+      "con ga",
+      "ga trong",
+      "con ga trong",
+      "chicken",
+      "rooster"
+    ]
+  },
+  "generation_policy": {
+    "purpose": "visual anatomy reference for a new child-drawable stroke guide",
+    "must_not_copy_source_paths": true,
+    "must_not_return_the_reference_illustration_as_the_guide": true,
+    "must_not_use_for_other_species_or_topics": true
+  }
+}

@@ -9,6 +9,7 @@ from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
+
 from sketch2life.infrastructure.config.settings import (
     CoreDatabaseSettings,
     Settings,
@@ -34,6 +35,7 @@ from sketch2life.interfaces.http.openapi_contract_amendments import (
     published_responses,
 )
 from sketch2life.interfaces.http.openapi_srs_v22 import (
+    PARENT_EXPO_INCLUDED_OPERATIONS,
     SRS_V22_INCLUDED_OPERATIONS,
     SRS_V22_TAGS,
 )
@@ -78,6 +80,8 @@ EXPECTED_IDEMPOTENCY_MISMATCH_OPERATION_KEYS = {
     ("delete", "/api/lesson-library/v1/upload-sessions/{upload_session_id}"),
     # FEAT-066 M9-B: the first Teacher assignment command.
     ("post", "/api/be1/v1/classes/{class_id}/assignments"),
+    ("post", "/api/parent/v1/ai/story-runs/{run_id}/activity-suggestions"),
+    ("post", "/api/parent/v1/ai/story-runs/{run_id}/activity-selection"),
 }
 
 
@@ -127,11 +131,11 @@ PR22_UNCATALOGUED_OPERATIONS = {
     # FEAT-066 M9-B: the Teacher candidate list stays runtime-only like the C5 account routes.
     ("get", "/api/be1/v1/organizations/{organization_id}/teacher-candidates"),
     ("post", "/api/auth/v1/registrations"),
+    ("post", "/api/auth/v1/registrations/complete"),
     ("get", "/api/auth/v1/me"),
     ("get", "/api/platform-admin/v1/accounts"),
     ("post", "/api/platform-admin/v1/accounts"),
     ("patch", "/api/platform-admin/v1/accounts/{account_id}"),
-    ("post", "/api/parent/v1/ai/sketch-guides"),
     ("post", "/api/parent/v1/ai/drawing-understandings"),
     ("post", "/api/parent/v1/ai/story-runs/{run_id}/story-revisions"),
     ("post", "/v1/story-runs/{run_id}/cancel"),
@@ -143,6 +147,53 @@ PR22_UNCATALOGUED_OPERATIONS = {
     ),
     ("post", "/api/teacher/v1/organizations/{organization_id}/ai/sketch-decks"),
     ("post", "/api/teacher/v1/organizations/{organization_id}/ai/lesson-visuals"),
+}
+FEAT081_SVG_CATALOG_UNCATALOGUED_OPERATIONS = {
+    ("get", "/api/svg-catalog/v1/organizations/{organization_id}/assets"),
+    (
+        "get",
+        "/api/svg-catalog/v1/organizations/{organization_id}/assets/{catalog_entry_id}/guide-revisions",
+    ),
+    ("get", "/api/svg-catalog/v1/parent/guides"),
+    ("post", "/api/svg-catalog/v1/organizations/{organization_id}/assets"),
+    (
+        "post",
+        "/api/svg-catalog/v1/organizations/{organization_id}/assets/{catalog_entry_id}/guide-revisions",
+    ),
+    (
+        "post",
+        "/api/svg-catalog/v1/organizations/{organization_id}/assets/{catalog_entry_id}/guide-revisions/{guide_revision_id}/educator-reviews",
+    ),
+    (
+        "post",
+        "/api/svg-catalog/v1/organizations/{organization_id}/assets/{catalog_entry_id}/source-reviews",
+    ),
+    ("post", "/api/svg-catalog/v1/platform/assets"),
+    (
+        "post",
+        "/api/svg-catalog/v1/platform/assets/{catalog_entry_id}/curation",
+    ),
+    (
+        "post",
+        "/api/svg-catalog/v1/platform/assets/{catalog_entry_id}/guide-revisions",
+    ),
+    (
+        "post",
+        "/api/svg-catalog/v1/platform/assets/{catalog_entry_id}/guide-revisions/{guide_revision_id}/educator-reviews",
+    ),
+    (
+        "post",
+        "/api/svg-catalog/v1/platform/assets/{catalog_entry_id}/source-reviews",
+    ),
+}
+FEAT081_PARENT_VIDEO_CANDIDATE_UNCATALOGUED_OPERATIONS = {
+    ("post", "/v1/story-runs/{run_id}/video-generations"),
+    ("get", "/v1/story-runs/{run_id}/video-generations/current"),
+    ("get", "/v1/story-runs/{run_id}/video-generations/{video_candidate_id}"),
+    (
+        "get",
+        "/v1/story-runs/{run_id}/video-generations/{video_candidate_id}/preview",
+    ),
 }
 CONTRACT_PARAMETER = re.compile(r"\b(path|query|header|cookie)\s+`([^`]+)`:\s*([^;]+)")
 CONTRACT_REQUEST_BODY = re.compile(
@@ -213,7 +264,18 @@ def test_swagger_ui_and_openapi_json_are_published(monkeypatch: pytest.MonkeyPat
             for method in path_item
             if method.lower() in HTTP_METHODS
         }
-        assert published_operations == set(SRS_V22_INCLUDED_OPERATIONS)
+        assert published_operations == (
+            set(SRS_V22_INCLUDED_OPERATIONS) | set(PARENT_EXPO_INCLUDED_OPERATIONS)
+        )
+        sync_operation = published_spec["paths"][
+            "/api/auth/v1/registrations/complete"
+        ]["post"]
+        assert "requestBody" not in sync_operation
+        assert sync_operation["security"] == [{"HTTPBearer": []}]
+        assert sync_operation["responses"]["200"]["content"]["application/json"][
+            "schema"
+        ]["$ref"].endswith("/CurrentAccountResponse")
+        assert {"401", "403", "409", "503"}.issubset(sync_operation["responses"])
     finally:
         if runtime is not None and runtime.engine is not None:
             runtime.engine.dispose()
@@ -267,7 +329,7 @@ def test_runtime_openapi_preserves_local_synthetic_examples(
     assert "without invoking an AI provider" in image_operation["description"]
 
 
-def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmounted_candidates(
+def test_runtime_openapi_matches_all_mounted_operations_and_records_unmounted_candidates(
     runtime_openapi: dict[str, Any],
 ) -> None:
     spec = runtime_openapi
@@ -280,16 +342,23 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
 
     assert spec["openapi"] == "3.1.0"
     assert spec["tags"] == public_tags(TAG_DESCRIPTIONS)
-    assert len(operations) == 154
+    assert len(operations) == 176
     catalog_operations = set(MOUNTED_OPERATIONS)
     catalog_paths = {path for _method, path in catalog_operations}
-    assert len(catalog_paths) == 118
-    assert len(catalog_operations) == MOUNTED_OPERATION_COUNT == 135
+    assert len(catalog_paths) == 124
+    assert len(catalog_operations) == MOUNTED_OPERATION_COUNT == 141
     assert set(operations) - catalog_operations == (
-        PILOT_ONLY_OPERATIONS | PR22_UNCATALOGUED_OPERATIONS
+        PILOT_ONLY_OPERATIONS
+        | PR22_UNCATALOGUED_OPERATIONS
+        | FEAT081_SVG_CATALOG_UNCATALOGUED_OPERATIONS
+        | FEAT081_PARENT_VIDEO_CANDIDATE_UNCATALOGUED_OPERATIONS
     )
     assert PILOT_ONLY_OPERATIONS.isdisjoint(MOUNTED_OPERATIONS)
     assert PR22_UNCATALOGUED_OPERATIONS.isdisjoint(MOUNTED_OPERATIONS)
+    assert FEAT081_SVG_CATALOG_UNCATALOGUED_OPERATIONS.isdisjoint(MOUNTED_OPERATIONS)
+    assert FEAT081_PARENT_VIDEO_CANDIDATE_UNCATALOGUED_OPERATIONS.isdisjoint(
+        MOUNTED_OPERATIONS
+    )
     profile_lookup = operations[
         (
             "get",
@@ -299,6 +368,8 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
     assert "x-contract-surface" not in profile_lookup
     assert len(PILOT_ONLY_OPERATIONS) == 5
     assert len(PR22_UNCATALOGUED_OPERATIONS) == 14
+    assert len(FEAT081_SVG_CATALOG_UNCATALOGUED_OPERATIONS) == 12
+    assert len(FEAT081_PARENT_VIDEO_CANDIDATE_UNCATALOGUED_OPERATIONS) == 4
 
     assert (
         "post",
@@ -560,7 +631,7 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
         assert "Be1Error" in _schema_refs(
             mismatch_response["content"]["application/json"]["schema"]
         )
-    assert len(IDEMPOTENCY_MISMATCH_OPERATION_KEYS) == 17
+    assert len(IDEMPOTENCY_MISMATCH_OPERATION_KEYS) == 19
     assert set(IDEMPOTENCY_MISMATCH_OPERATION_KEYS) == (
         EXPECTED_IDEMPOTENCY_MISMATCH_OPERATION_KEYS
     )
@@ -624,7 +695,7 @@ def test_runtime_openapi_operation_ids_are_non_empty_and_unique(
         for method, operation in path_item.items()
         if method.lower() in HTTP_METHODS
     ]
-    assert len(operation_ids) == 154
+    assert len(operation_ids) == 176
     assert all(isinstance(value, str) and value for value in operation_ids)
     assert len(set(operation_ids)) == len(operation_ids)
 

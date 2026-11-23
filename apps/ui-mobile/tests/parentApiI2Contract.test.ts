@@ -59,6 +59,45 @@ const runEnvelope = {
 };
 
 describe('ParentApi I2 contract', () => {
+  it('uses topic and drawing-subject suggestion routes with separate adult-entered inputs', async () => {
+    const topicDraft = {
+      contract: 'ParentTopicSuggestionSetV1', set_id: 'pts_000000000000000000000001',
+      draft_id: 'topic-draft-1', catalog_revision: 'parent-topic-catalog-v1', excluded_set_ids: [],
+      cards: [{ topic_id: 'animals', title_vi: 'Động vật', description_vi: 'Các bạn quanh bé' }],
+    };
+    const subjectDraft = {
+      contract: 'ParentDrawingSubjectSuggestionSetV1', set_id: 'pds_000000000000000000000002',
+      draft_id: 'topic-draft-1', topic_id: 'animals', topic: 'Động vật',
+      catalog_revision: 'parent-topic-catalog-v1', generation_source: 'CURATED_CATALOG',
+      review_required: true, excluded_set_ids: [], cards: [],
+    };
+    const validation = {
+      contract: 'ParentCustomSubjectValidationV1', decision: 'OUT_OF_TOPIC',
+      normalized_subject: null, message_vi: 'Chưa đúng chủ đề.',
+    };
+    const { api, calls } = createApi([
+      { status: 200, body: topicDraft },
+      { status: 200, body: subjectDraft },
+      { status: 200, body: validation },
+    ]);
+
+    await api.listTopicSuggestions('topic-draft-1', []);
+    await api.listDrawingSubjectSuggestions({
+      draftId: 'topic-draft-1', topicId: 'animals', topic: 'Động vật', excludedSetIds: [],
+      excludedSubjects: ['Con hươu', 'con hươu'],
+    });
+    await api.validateCustomSubject({ topicId: 'animals', topic: 'Động vật', subject: 'con hươu' });
+
+    expect(calls.map((call) => `${call.init.method} ${new URL(call.url).pathname}`)).toEqual([
+      'GET /api/parent/v1/topics/suggestions',
+      'GET /api/parent/v1/topics/animals/drawing-subject-suggestions',
+      'POST /api/parent/v1/topics/custom-subject-validation',
+    ]);
+    expect(new URL(calls[1].url).searchParams.get('topic')).toBe('Động vật');
+    expect(new URL(calls[1].url).searchParams.getAll('exclude_subjects')).toEqual(['Con hươu', 'con hươu']);
+    expect(requestBody(calls[2])).toEqual({ topic_id: 'animals', topic: 'Động vật', subject: 'con hươu' });
+  });
+
   it('encodes opaque profile cursors and reads items/next_cursor', async () => {
     const { api, calls } = createApi([{ status: 200, body: { items: [activeProfile], next_cursor: 'next +/?=', request_id: 'req-1' } }]);
     const page = await api.listProfilesV1(17, 'opaque +/?= token');
@@ -292,15 +331,68 @@ describe('ParentApi I2 contract', () => {
     expect((nested as Error).message).not.toContain('nested secret');
   });
 
-  it('does not add an idempotency key to drawing-understandings or call activity-suggestions', async () => {
-    const { api, calls, fetcher } = createApi([{ status: 200, body: { request_id: 'drawing-request' } }]);
+  it('keeps drawing analysis unkeyed and persists activity suggestions/selections with idempotency keys', async () => {
+    const { api, calls, fetcher } = createApi([
+      { status: 200, body: { request_id: 'drawing-request' } },
+      {
+        status: 200,
+        body: {
+          contract: 'ParentActivitySuggestionSetV1',
+          request_id: 'activity-request',
+          story_run_id: 'synthetic-run',
+          suggestion_set_id: 'set-1',
+          set_revision: 1,
+          understanding_revision: 2,
+          selection_mode: 'CATALOG_SELECTION',
+          catalog_candidate_count: 1,
+          activities_snapshot_sha256: 'a'.repeat(64),
+          review_required: true,
+          modal_call_id: null,
+          activities: [],
+        },
+      },
+      {
+        status: 200,
+        body: {
+          contract: 'ParentActivitySelectionReceiptV1',
+          request_id: 'selection-request',
+          story_run_id: 'synthetic-run',
+          suggestion_set_id: 'set-1',
+          activity_selection_id: 'selection-1',
+          selection_revision: 1,
+          understanding_revision: 2,
+          activity_index: 0,
+          activity_snapshot_sha256: 'b'.repeat(64),
+          persisted_at: '2026-11-19T00:00:00Z',
+        },
+      },
+    ]);
     await api.analyzeDrawing('synthetic-run', 'synthetic-image-data', 'image/png');
 
     expect(new URL(calls[0].url).pathname).toBe('/api/parent/v1/ai/drawing-understandings');
     expect(header(calls[0], 'Idempotency-Key')).toBeNull();
-    await expect(api.suggestActivities('synthetic-run', 1)).rejects.toBeInstanceOf(ParentApiError);
-    expect(fetcher).toHaveBeenCalledTimes(1);
-    expect(calls.some((call) => call.url.includes('activity-suggestions'))).toBe(false);
+    const suggestions = await api.suggestActivities('synthetic-run', 2, 'suggest-action');
+    expect(new URL(calls[1].url).pathname).toBe('/api/parent/v1/ai/story-runs/synthetic-run/activity-suggestions');
+    expect(requestBody(calls[1])).toEqual({ expected_understanding_revision: 2 });
+    expect(header(calls[1], 'Idempotency-Key')).toBe('suggest-action');
+    expect(suggestions.suggestion_set_id).toBe('set-1');
+
+    const receipt = await api.selectActivity({
+      storyRunId: 'synthetic-run',
+      suggestionSetId: 'set-1',
+      revision: 2,
+      activityIndex: 0,
+      actionIdentity: 'select-action',
+    });
+    expect(new URL(calls[2].url).pathname).toBe('/api/parent/v1/ai/story-runs/synthetic-run/activity-selection');
+    expect(requestBody(calls[2])).toEqual({
+      suggestion_set_id: 'set-1',
+      expected_understanding_revision: 2,
+      activity_index: 0,
+    });
+    expect(header(calls[2], 'Idempotency-Key')).toBe('select-action');
+    expect(receipt.activity_selection_id).toBe('selection-1');
+    expect(fetcher).toHaveBeenCalledTimes(3);
   });
 
   it('does not retry an unknown Modal outcome automatically', async () => {
@@ -313,5 +405,41 @@ describe('ParentApi I2 contract', () => {
 
     expect(fetcher).toHaveBeenCalledTimes(1);
     expect(header(calls[0], 'Idempotency-Key')).toBe('revision-action-once');
+  });
+
+  it('requests, resumes, and previews the authenticated Parent video candidate', async () => {
+    const candidate = {
+      video_candidate_id: 'candidate-1',
+      story_run_id: 'synthetic-run',
+      state: 'QUEUED',
+      preview_available: false,
+    };
+    const { api, calls, auth } = createApi([
+      { status: 202, body: { request_id: 'request-1', video_candidate: candidate } },
+      { status: 200, body: { request_id: 'request-2', video_candidate: candidate } },
+      { status: 200, body: { request_id: 'request-3', video_candidate: candidate } },
+    ]);
+    const storySha256 = 'a'.repeat(64);
+
+    await api.requestVideoCandidate('synthetic-run', 1, storySha256, 'video-action-1');
+    await api.getCurrentVideoCandidate('synthetic-run');
+    await api.getVideoCandidate('synthetic-run', 'candidate-1');
+    const preview = await api.getVideoCandidatePreviewSource('synthetic-run', 'candidate-1');
+
+    expect(calls.map((call) => `${call.init.method} ${new URL(call.url).pathname}`)).toEqual([
+      'POST /v1/story-runs/synthetic-run/video-generations',
+      'GET /v1/story-runs/synthetic-run/video-generations/current',
+      'GET /v1/story-runs/synthetic-run/video-generations/candidate-1',
+    ]);
+    expect(requestBody(calls[0])).toEqual({
+      expected_story_revision: 1,
+      expected_story_sha256: storySha256,
+    });
+    expect(header(calls[0], 'Idempotency-Key')).toBe('video-action-1');
+    expect(preview).toEqual({
+      uri: 'https://api.example.test/v1/story-runs/synthetic-run/video-generations/candidate-1/preview',
+      headers: { Authorization: 'Bearer synthetic-token' },
+    });
+    expect(auth.getIdToken).toHaveBeenCalled();
   });
 });

@@ -1,0 +1,32 @@
+<local-machine-path> DeprecationWarning: 'asyncio.WindowsSelectorEventLoopPolicy' is deprecated and slated for removal in Python 3.16
+  asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+<local-machine-path> DeprecationWarning: 'asyncio.set_event_loop_policy' is deprecated and slated for removal in Python 3.16
+  asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+✓ Created objects.
+├── ✓ Uploaded 
+│   <local-machine-path>
+│   udio_app.py
+├── ✓ Uploaded 
+│   <local-machine-path>
+│   py
+├── ✓ Uploaded 
+│   <local-machine-path>
+│   ervability.py
+├── ✓ Created Function synthesize-vietnamese-narration.
+├── ✓ Created Function download-language-audio-models.
+├── ✓ Created Function transcribe-vietnamese-audio.
+├── ✓ Created Function generate-teacher-sketch-deck.
+├── ✓ Created Function check-qwen35-readiness.
+├── ✓ Created Function generate-story-and-storyboard.
+├── ✓ Created Function suggest-lesson-plan.
+├── ✓ Created Function suggest-parent-activities.
+├── ✓ Created Function suggest-parent-topic-subjects.
+├── ✓ Created Function validate-parent-topic-subject.
+├── ✓ Created Function check-qwen35-decoder-readiness.
+├── ✓ Created Function probe-qwen35-constrained-decoder.
+└── ✓ Created Function probe-qwen35-generation-constraints.
+✓ App deployed in 7.488s! 🎉
+
+View Deployment: 
+https://modal.com/apps/anhkhoa14155/dev/deployed/sketch2life-srs23-language-aud
+io-dev

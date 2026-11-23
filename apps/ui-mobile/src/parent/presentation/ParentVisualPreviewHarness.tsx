@@ -502,9 +502,17 @@ export function ParentVisualPreviewHarness(): React.JSX.Element {
     />,
     topic: <TopicScreen
       topic="Khu vườn và thiên nhiên"
+      selectedTopicId=""
+      cards={[]}
+      loading={false}
+      error=""
+      canContinue={false}
       stepLabel="1 / 8"
+      onSelect={ignoreAction}
       onTopic={ignoreAction}
+      onRefresh={ignoreAction}
       onContinue={ignoreAction}
+      onSkip={ignoreAction}
       onBack={ignoreAction}
     />,
     idea: <IdeaScreen
@@ -535,7 +543,7 @@ export function ParentVisualPreviewHarness(): React.JSX.Element {
     understanding: <UnderstandingScreen candidate={previewCandidate} stepLabel="5 / 8" subject="Mô phỏng · một con bướm" busy={false} error="" onSubject={ignoreAction} onConfirm={ignoreAction} onBack={ignoreAction} />,
     'context-before': <ContextScreen profile={previewProfile} contextRun={null} stepLabel="6 / 8" busy={false} confirmed={false} error="" onRetryCreate={ignoreAction} onConfirm={ignoreAction} onContinue={ignoreAction} onBack={ignoreAction} />,
     'context-after': <ContextScreen profile={previewProfile} contextRun={previewContextRun} stepLabel="6 / 8" busy={false} confirmed={false} error="" onRetryCreate={ignoreAction} onConfirm={ignoreAction} onContinue={ignoreAction} onBack={ignoreAction} />,
-    activity: <ActivityScreen stepLabel="7 / 8" topic="Khu vườn" subject="Một chú bướm" suggestions={null} selectedIndex={null} loading={false} attempted={false} error="" onSuggest={ignoreAction} onSelect={ignoreAction} onContinue={ignoreAction} onBack={ignoreAction} />,
+    activity: <ActivityScreen stepLabel="7 / 8" topic="Khu vườn" subject="Một chú bướm" suggestions={null} selectedIndex={null} selectionPersisted={false} selectionBusy={false} loading={false} attempted={false} error="" onSuggest={ignoreAction} onSelect={ignoreAction} onContinue={ignoreAction} onBack={ignoreAction} />,
     story: <StoryScreen
       videoCapability={unavailable('video')}
       jobStage={{ state: 'idle', stage: 'idle' }}

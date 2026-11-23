@@ -1,0 +1,22 @@
+{
+  "checked_at_utc": "2026-11-20T01:39:00.873509+00:00",
+  "app": "sketch2life-srs23-language-audio-dev",
+  "function": "check-qwen35-decoder-readiness",
+  "result": {
+    "status": "ready_for_gpu_worker_validation",
+    "transformers_version": "5.22.1",
+    "lm_format_enforcer_version": "0.11.3",
+    "model_loader": "Qwen3_5ForCausalLM",
+    "processor_loader": "AutoProcessor",
+    "schema_parser": "JsonSchemaParser",
+    "token_enforcer": "TokenEnforcer",
+    "tokenizer_data": "TokenEnforcerTokenizerData",
+    "torch_version": "2.7.1+cu126",
+    "torch_cuda_version": "12.6",
+    "fla_version": "0.6.0",
+    "causal_conv1d_version": "1.7.0",
+    "triton_version": "3.3.1",
+    "fla_kernel_import": "deferred_to_gpu_worker",
+    "gpu_capability": "not_checked"
+  }
+}

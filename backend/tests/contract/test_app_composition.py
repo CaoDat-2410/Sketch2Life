@@ -25,6 +25,10 @@ from sketch2life.interfaces.http.app import (
     create_classroom_app,
     create_demo_app,
 )
+from sketch2life.interfaces.http.openapi_srs_v22 import (
+    PARENT_EXPO_INCLUDED_OPERATIONS,
+    PARENT_EXPO_OPERATION_TAG,
+)
 from sketch2life.interfaces.http.be1_runtime import get_db, get_verified_adult
 
 
@@ -132,8 +136,7 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
         f"{upload}/parts/{{part_number}}": ["PUT"],
     }
 
-    # Preserve the full pre-integration route surface while allowing only the
-    # reviewed classroom, Parent profile, and Lesson Library contracts.
+    # Preserve the pre-integration route surface while enumerating current additions.
     assert expected.items() <= actual.items()
     assert set(actual) - set(expected) == {
         "/api/be1/v1/classes/{class_id}/assignments",
@@ -165,6 +168,17 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
         "/api/teacher/v1/organizations/{organization_id}/ai/lesson-plan-suggestions",
         "/api/teacher/v1/organizations/{organization_id}/ai/sketch-decks",
         "/api/teacher/v1/organizations/{organization_id}/ai/lesson-visuals",
+    } | {path for _method, path in PARENT_EXPO_INCLUDED_OPERATIONS} | {
+        "/api/svg-catalog/v1/parent/guides",
+        "/api/svg-catalog/v1/organizations/{organization_id}/assets",
+        "/api/svg-catalog/v1/organizations/{organization_id}/assets/{catalog_entry_id}/guide-revisions",
+        "/api/svg-catalog/v1/organizations/{organization_id}/assets/{catalog_entry_id}/guide-revisions/{guide_revision_id}/educator-reviews",
+        "/api/svg-catalog/v1/organizations/{organization_id}/assets/{catalog_entry_id}/source-reviews",
+        "/api/svg-catalog/v1/platform/assets",
+        "/api/svg-catalog/v1/platform/assets/{catalog_entry_id}/curation",
+        "/api/svg-catalog/v1/platform/assets/{catalog_entry_id}/guide-revisions",
+        "/api/svg-catalog/v1/platform/assets/{catalog_entry_id}/guide-revisions/{guide_revision_id}/educator-reviews",
+        "/api/svg-catalog/v1/platform/assets/{catalog_entry_id}/source-reviews",
     }
     assert {path: actual[path] for path in lesson_library_methods} == lesson_library_methods
 
@@ -214,6 +228,19 @@ def test_classroom_profile_excludes_process_local_demo_routes() -> None:
     assert "/v1/profile/preferences/classify" not in paths
     assert application.state.session_service is None
     assert application.state.live_image_demo_service is None
+
+
+def test_current_parent_expo_api_operations_are_published_in_openapi() -> None:
+    application = create_app()
+    runtime_schema = application.openapi(fe_projected=False)
+    public_schema = application.openapi()
+
+    for method, path in PARENT_EXPO_INCLUDED_OPERATIONS:
+        assert method in runtime_schema["paths"][path]
+        assert method in public_schema["paths"][path]
+
+    assert any(tag["name"] == PARENT_EXPO_OPERATION_TAG for tag in public_schema["tags"])
+    assert "/api/parent/v1/ai/video-generation" not in public_schema["paths"]
 
 
 def test_pilot_assistance_gate_fails_closed_when_disabled() -> None:

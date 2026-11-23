@@ -35,6 +35,7 @@ from sketch2life.infrastructure.persistence import be1_models as _be1_models  # 
 from sketch2life.infrastructure.persistence import parent_models as _parent_models  # noqa: F401
 from sketch2life.infrastructure.persistence.core_models import CorePersistenceBase
 from sketch2life.infrastructure.persistence.parent_models import ParentPersistenceBase
+from sketch2life.infrastructure.persistence.svg_catalog_tables import METADATA as SVG_CATALOG_METADATA
 from sketch2life.infrastructure.preset_automation.tables import METADATA as PRESET_METADATA
 from sketch2life.infrastructure.preset_automation.tables import SCHEMA as PRESET_SCHEMA
 from sketch2life.infrastructure.story_run_lite.tables import (
@@ -85,6 +86,7 @@ _MANAGED_SCHEMAS.add(PILOT_VISION_SCHEMA)
 target_metadata.append(STORY_RUN_LITE_CORE_METADATA)
 target_metadata.append(STORY_RUN_LITE_METADATA)
 _MANAGED_SCHEMAS.add("story")
+target_metadata.append(SVG_CATALOG_METADATA)
 target_metadata.append(ParentPersistenceBase.metadata)
 _MANAGED_SCHEMAS.add("parent")
 

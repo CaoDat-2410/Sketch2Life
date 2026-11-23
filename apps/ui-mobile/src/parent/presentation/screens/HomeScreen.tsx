@@ -13,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { ParentProfileViewV1, ParentStoryRunV1 } from '../../domain/types';
+import { isRecoverableStoryOutputFailure } from '../navigation/parentFlowV1';
 import { Notice, ScreenScrollView } from '../components/ui';
 
 type Props = {
@@ -65,7 +66,10 @@ export function HomeScreen({
   const { width } = useWindowDimensions();
   const compact = width < 420;
   const [profilePickerVisible, setProfilePickerVisible] = useState(false);
-  const visibleRun = activeRun && !terminalRunStates.has(activeRun.run_state) ? activeRun : null;
+  const visibleRun = activeRun && (
+    !terminalRunStates.has(activeRun.run_state)
+    || isRecoverableStoryOutputFailure(activeRun)
+  ) ? activeRun : null;
   const activeRunProfile = visibleRun
     ? profiles.find((profile) => profile.profile_id === visibleRun.parent_profile_id) ?? null
     : null;

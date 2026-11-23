@@ -12,7 +12,7 @@ CONTRACT_REVISION: Final = "FEAT-063 Rev37"
 SOURCE_FILE_NAME: Final = 'API_CONTRACT_CATALOG_FEAT063_REV37_20261030.md'
 SOURCE_SHA256: Final = '56FC8BEA01360E11F73E45B2D43AC1897540B30BC8AE524CDE1ECEFACFBB1B88'
 DECLARED_OPERATION_COUNT: Final = 135
-MOUNTED_OPERATION_COUNT: Final = 135
+MOUNTED_OPERATION_COUNT: Final = 141
 UNMOUNTED_OPERATION_COUNT: Final = 11
 TAG_DESCRIPTIONS: Final[dict[str, str]] = {'BE1 — Organizations & Classes': 'Organization membership, class setup, profiles, assignments, '
                                   'and consents.',
@@ -11254,6 +11254,108 @@ MOUNTED_OPERATIONS[('post', '/v1/story-runs/{run_id}/script-confirmation')] = {
     ),
 }
 
+MOUNTED_OPERATIONS[('get', '/api/parent/v1/topics/suggestions')] = {
+    'purpose': 'Return three stable topic cards for a Parent drawing draft.',
+    'request_inputs': 'query `draft_id*`: uuid; query `exclude_set_ids`: list[string]',
+    'surface': 'Parent / topic and activity selection',
+    'tag': 'Parent StoryRuns',
+    'handler': 'parent_topic_suggestions.py::get_topic_suggestions',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'FEAT-063 Rev70; catalog-backed draft-stable topic cards',
+    'responses': (
+        {'status': '200', 'description': 'Three topic suggestions for the draft',
+         'media_type': 'application/json', 'schema_name': 'ParentTopicSuggestionSetV1'},
+        {'status': '422', 'description': 'The request does not match the API contract',
+         'media_type': 'application/json', 'schema_name': 'HTTPValidationError'},
+    ),
+}
+MOUNTED_OPERATIONS[('get', '/api/parent/v1/topics/{topic_id}/drawing-subject-suggestions')] = {
+    'purpose': 'Return three drawable subjects from the approved topic catalog; use Qwen3.5 only as a disabled-by-default fallback for an uncatalogued adult-entered topic.',
+    'request_inputs': 'path `topic_id*`: string; query `draft_id*`: uuid; query `topic*`: string; '
+                      'query `exclude_set_ids`: list[string]; query `exclude_subjects`: list[string] (max 24, used only by Qwen fallback to avoid repeating shown cards)',
+    'surface': 'Parent / topic and activity selection',
+    'tag': 'Parent StoryRuns',
+    'handler': 'parent_topic_suggestions.py::get_drawing_subject_suggestions',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'FEAT-063 Rev72; catalog-first, Qwen3.5 draft only when fewer than three unseen catalog subjects remain; no child/profile/photo data',
+    'responses': (
+        {'status': '200', 'description': 'Three drawing-subject suggestions for the selected topic',
+         'media_type': 'application/json', 'schema_name': 'ParentDrawingSubjectSuggestionSetV1'},
+        {'status': '422', 'description': 'The request does not match the API contract',
+         'media_type': 'application/json', 'schema_name': 'HTTPValidationError'},
+        {'status': '503', 'description': 'Custom-topic AI is disabled or unavailable',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '504', 'description': 'Modal result is not yet known; do not repeat blindly',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+    ),
+}
+MOUNTED_OPERATIONS[('post', '/api/parent/v1/topics/custom-subject-validation')] = {
+    'purpose': 'Check whether an adult-entered drawing subject fits the selected topic.',
+    'request_inputs': 'application/json (required): ParentCustomSubjectValidationRequestV1',
+    'surface': 'Parent / topic and activity selection',
+    'tag': 'Parent StoryRuns',
+    'handler': 'parent_topic_suggestions.py::validate_custom_subject',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'FEAT-063 Rev72; catalog-known topics use deterministic checks; custom topics use a generic Qwen3.5 relevance decision and fail closed on uncertainty',
+    'responses': (
+        {'status': '200', 'description': 'Topic relevance decision for the custom subject',
+         'media_type': 'application/json', 'schema_name': 'ParentCustomSubjectValidationV1'},
+        {'status': '422', 'description': 'The request does not match the API contract',
+         'media_type': 'application/json', 'schema_name': 'HTTPValidationError'},
+        {'status': '503', 'description': 'Custom-topic AI validation is disabled or unavailable',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '504', 'description': 'Modal result is not yet known; do not repeat blindly',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+    ),
+}
+MOUNTED_OPERATIONS[('post', '/api/parent/v1/ai/sketch-guides')] = {
+    'purpose': 'Create an optional private SVG guide from a curated source.',
+    'request_inputs': 'application/json (required): SvgTopicStrokeGuideRequestV1',
+    'surface': 'Parent / SVG drawing guide',
+    'tag': 'Parent StoryRuns',
+    'handler': 'parent_ai.py::generate_sketch_guide',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'FEAT-081 Rev20; generic topic and intended subject only; guide is optional',
+    'responses': (
+        {'status': '200', 'description': 'Private SVG guide draft returned',
+         'media_type': 'application/json', 'schema_name': 'SvgTopicStrokeGuideSourceDraftResponseV1'},
+        {'status': '422', 'description': 'No usable guide could be produced for the subject',
+         'media_type': 'application/json', 'schema_name': 'HTTPValidationError'},
+    ),
+}
+MOUNTED_OPERATIONS[('post', '/api/parent/v1/ai/story-runs/{run_id}/activity-suggestions')] = {
+    'purpose': 'Suggest and persist Parent activities from the authorized lesson catalog.',
+    'request_inputs': 'path `run_id*`: uuid; header `Idempotency-Key*`: string; '
+                      'application/json (required): ParentActivitySuggestionsRequestV1',
+    'surface': 'Parent / topic and activity selection',
+    'tag': 'Parent StoryRuns',
+    'handler': 'parent_ai.py::suggest_parent_activities',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'FEAT-081 Rev20; published/shared catalog first, bounded AI fallback, persisted set',
+    'responses': (
+        {'status': '200', 'description': 'Activity suggestion set persisted for adult selection',
+         'media_type': 'application/json', 'schema_name': 'ParentActivitySuggestionSetV1'},
+        {'status': '422', 'description': 'The request does not match the API contract',
+         'media_type': 'application/json', 'schema_name': 'HTTPValidationError'},
+    ),
+}
+MOUNTED_OPERATIONS[('post', '/api/parent/v1/ai/story-runs/{run_id}/activity-selection')] = {
+    'purpose': 'Persist the Parent primary-activity choice from the latest suggestion set.',
+    'request_inputs': 'path `run_id*`: uuid; header `Idempotency-Key*`: string; '
+                      'application/json (required): ParentActivitySelectionRequestV1',
+    'surface': 'Parent / topic and activity selection',
+    'tag': 'Parent StoryRuns',
+    'handler': 'parent_ai.py::select_parent_activity',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'FEAT-081 Rev20; immutable activity-selection receipt precedes story generation',
+    'responses': (
+        {'status': '200', 'description': 'Primary activity selection persisted',
+         'media_type': 'application/json', 'schema_name': 'ParentActivitySelectionReceiptV1'},
+        {'status': '422', 'description': 'The request does not match the API contract',
+         'media_type': 'application/json', 'schema_name': 'HTTPValidationError'},
+    ),
+}
+
 IDEMPOTENCY_MISMATCH_OPERATION_KEYS: Final[tuple[tuple[str, str], ...]] = (
     ("post", "/api/lesson-library/v1/me/lesson-invitations/{access_grant_id}/accept"),
     ("post", "/api/lesson-library/v1/me/lesson-invitations/{access_grant_id}/decline"),
@@ -11277,6 +11379,8 @@ IDEMPOTENCY_MISMATCH_OPERATION_KEYS: Final[tuple[tuple[str, str], ...]] = (
     ("delete", "/api/lesson-library/v1/upload-sessions/{upload_session_id}"),
     # FEAT-066 M9-B (SRS §21.4): the first Teacher assignment command.
     ("post", "/api/be1/v1/classes/{class_id}/assignments"),
+    ("post", "/api/parent/v1/ai/story-runs/{run_id}/activity-suggestions"),
+    ("post", "/api/parent/v1/ai/story-runs/{run_id}/activity-selection"),
 )
 
 _IDEMPOTENCY_MISMATCH_RESPONSE: Final[ResponseMetadata] = {

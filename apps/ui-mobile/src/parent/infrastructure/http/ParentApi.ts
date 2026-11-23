@@ -4,6 +4,7 @@ import type { ParentCapabilityId } from '../../application/ports/ParentCapabilit
 import type {
   AuthTokenPort,
   ActivitySuggestionResult,
+  ActivitySelectionReceipt,
   ParentActionIdentity,
   ParentApiPort,
   ParentDrawingMediaType,
@@ -32,10 +33,13 @@ import type {
   ParentRunLifecycleReceipt,
   ParentStoryRunLifecycleEnvelopeV1,
   ParentStoryRunResultV1,
+  ParentStoryRunCancelEnvelopeV1,
   ParentActiveStoryRunEnvelopeV1,
   ParentStoryRunHistoryPage,
   ParentTranscriptConfirmation,
   ParentVideoQuota,
+  ParentVideoCandidateEnvelopeV1,
+  ParentCurrentVideoCandidateEnvelopeV1,
   ParentStoryContextConfirmationV1,
   ParentStoryRevisionResultV1,
   ParentStoryRunCreateV1,
@@ -43,8 +47,12 @@ import type {
   ParentStoryRunV1,
   ParentStoryScriptConfirmationV1,
   ParentStorySubjectConfirmationV1,
+  ParentTopicSuggestionSetV1,
+  ParentDrawingSubjectSuggestionSetV1,
+  ParentCustomSubjectValidationV1,
   StoryRun,
 } from '../../domain/types';
+import type { SvgTopicStrokeGuideDraftV1 } from '../../domain/svgGuide';
 
 export class ParentApiError extends ParentApplicationError {
   constructor(code: string, requestId: string, status?: number, metadata: ParentApplicationErrorMetadata = {}) {
@@ -250,9 +258,17 @@ export class ParentApi implements ParentApiPort {
     return this.request<ParentStoryRunHistoryPage>(`/v1/story-runs?${query.toString()}`, 'GET', undefined, 30_000);
   }
 
-  cancelStoryRun(runId: string) {
-    void runId;
-    return this.unavailable<ParentRunLifecycleReceipt>('run-history');
+  async cancelStoryRun(runId: string): Promise<ParentStoryRunLifecycleEnvelopeV1> {
+    const latest = await this.getStoryRunV1(runId);
+    if ('lifecycle' in latest) {
+      if (latest.lifecycle.run_id === runId && latest.lifecycle.run_state === 'DELETE_PENDING') return latest;
+      throw new ParentApiError('PARENT_STORY_REVISION_INVALID', latest.request_id, 409);
+    }
+    const expectedRevision = latest.story_run.run_revision;
+    if (typeof expectedRevision !== 'number' || !Number.isInteger(expectedRevision) || expectedRevision < 1) {
+      throw new ParentApiError('PARENT_STORY_REVISION_INVALID', latest.request_id ?? 'local-invalid', 502);
+    }
+    return this.cancelStoryRunV1(runId, expectedRevision, createIdempotencyKey());
   }
 
   deleteStoryRun(runId: string) {
@@ -338,16 +354,39 @@ export class ParentApi implements ParentApiPort {
     return this.request<LessonDetail>(`/api/lesson-library/v1/me/lessons/${encodeURIComponent(lessonId)}`, 'GET');
   }
 
-  generateSketchGuide(topic: string) {
-    return this.request<{
-      request_id: string;
-      modal_call_id?: string;
-      status: string;
-      review_required: true;
-      model?: { id: string; revision: string };
-      image_base64: string;
-      asset?: Record<string, unknown>;
-    }>('/api/parent/v1/ai/sketch-guides', 'POST', { topic, difficulty: 'beginner', step_count: 3 }, 910_000);
+  listTopicSuggestions(draftId: string, excludedSetIds: string[]) {
+    const query = new URLSearchParams({ draft_id: draftId });
+    excludedSetIds.forEach((setId) => query.append('exclude_set_ids', setId));
+    return this.request<ParentTopicSuggestionSetV1>(`/api/parent/v1/topics/suggestions?${query.toString()}`, 'GET');
+  }
+
+  listDrawingSubjectSuggestions(input: {
+    draftId: string; topicId: string; topic: string; excludedSetIds: string[]; excludedSubjects?: string[];
+  }) {
+    const query = new URLSearchParams({ draft_id: input.draftId, topic: input.topic });
+    input.excludedSetIds.forEach((setId) => query.append('exclude_set_ids', setId));
+    (input.excludedSubjects ?? []).forEach((subject) => query.append('exclude_subjects', subject));
+    return this.request<ParentDrawingSubjectSuggestionSetV1>(
+      `/api/parent/v1/topics/${encodeURIComponent(input.topicId)}/drawing-subject-suggestions?${query.toString()}`,
+      'GET',
+    );
+  }
+
+  validateCustomSubject(input: { topicId: string; topic: string; subject: string }) {
+    return this.request<ParentCustomSubjectValidationV1>(
+      '/api/parent/v1/topics/custom-subject-validation',
+      'POST',
+      { topic_id: input.topicId, topic: input.topic, subject: input.subject },
+    );
+  }
+
+  generateSketchGuide(topic: string, intendedSubject: string) {
+    return this.request<SvgTopicStrokeGuideDraftV1>(
+      '/api/parent/v1/ai/sketch-guides',
+      'POST',
+      { contract: 'SvgTopicStrokeGuideRequestV1', topic, intended_subject: intendedSubject, difficulty: 'beginner' },
+      60_000,
+    );
   }
 
   createStoryRun(input: {
@@ -385,10 +424,36 @@ export class ParentApi implements ParentApiPort {
     return this.unavailable<{ request_id: string; story_run_id: string; understanding_revision: number; decision: string }>('story-creation');
   }
 
-  suggestActivities(storyRunId: string, revision: number) {
-    void storyRunId;
-    void revision;
-    return this.unavailable<ActivitySuggestionResult>('story-creation');
+  suggestActivities(storyRunId: string, revision: number, actionIdentity: ParentActionIdentity) {
+    assertIdempotencyKey(actionIdentity, 200);
+    return this.request<ActivitySuggestionResult>(
+      `/api/parent/v1/ai/story-runs/${encodeURIComponent(storyRunId)}/activity-suggestions`,
+      'POST',
+      { expected_understanding_revision: revision },
+      1_850_000,
+      { 'Idempotency-Key': actionIdentity },
+    );
+  }
+
+  selectActivity(input: {
+    storyRunId: string;
+    suggestionSetId: string;
+    revision: number;
+    activityIndex: number;
+    actionIdentity: ParentActionIdentity;
+  }) {
+    assertIdempotencyKey(input.actionIdentity, 200);
+    return this.request<ActivitySelectionReceipt>(
+      `/api/parent/v1/ai/story-runs/${encodeURIComponent(input.storyRunId)}/activity-selection`,
+      'POST',
+      {
+        suggestion_set_id: input.suggestionSetId,
+        expected_understanding_revision: input.revision,
+        activity_index: input.activityIndex,
+      },
+      30_000,
+      { 'Idempotency-Key': input.actionIdentity },
+    );
   }
 
   generateStory(storyRunId: string, revision: number, rewriteInstruction?: string) {
@@ -472,6 +537,56 @@ export class ParentApi implements ParentApiPort {
 
   getVideoQuota() {
     return this.unavailable<ParentVideoQuota>('quota');
+  }
+
+  requestVideoCandidate(
+    runId: string,
+    storyRevision: number,
+    storySha256: string,
+    actionIdentity: ParentActionIdentity,
+  ) {
+    assertVisibleAsciiKey(actionIdentity);
+    if (!runId.trim() || !Number.isInteger(storyRevision) || storyRevision < 1 || !/^[a-f0-9]{64}$/.test(storySha256)) {
+      return Promise.reject(new ParentApiError('VIDEO_CANDIDATE_REQUEST_INVALID', 'local-request', 400));
+    }
+    return this.request<ParentVideoCandidateEnvelopeV1>(
+      `/v1/story-runs/${encodeURIComponent(runId)}/video-generations`,
+      'POST',
+      { expected_story_revision: storyRevision, expected_story_sha256: storySha256 },
+      60_000,
+      { 'Idempotency-Key': actionIdentity },
+    );
+  }
+
+  getCurrentVideoCandidate(runId: string) {
+    if (!runId.trim()) return Promise.reject(new ParentApiError('PARENT_STORY_RUN_REQUIRED', 'local-request', 400));
+    return this.request<ParentCurrentVideoCandidateEnvelopeV1>(
+      `/v1/story-runs/${encodeURIComponent(runId)}/video-generations/current`,
+      'GET',
+    );
+  }
+
+  getVideoCandidate(runId: string, candidateId: string) {
+    if (!runId.trim() || !candidateId.trim()) {
+      return Promise.reject(new ParentApiError('VIDEO_CANDIDATE_REQUIRED', 'local-request', 400));
+    }
+    return this.request<ParentVideoCandidateEnvelopeV1>(
+      `/v1/story-runs/${encodeURIComponent(runId)}/video-generations/${encodeURIComponent(candidateId)}`,
+      'GET',
+    );
+  }
+
+  async getVideoCandidatePreviewSource(runId: string, candidateId: string) {
+    if (!runId.trim() || !candidateId.trim()) {
+      throw new ParentApiError('VIDEO_CANDIDATE_REQUIRED', 'local-request', 400);
+    }
+    const baseUrl = this.apiBaseUrl.replace(/\/+$/, '');
+    if (!baseUrl) throw new ParentApiError('MOBILE_API_URL_MISSING', 'local-request', 503);
+    const token = await this.auth.getIdToken();
+    return {
+      uri: `${baseUrl}/v1/story-runs/${encodeURIComponent(runId)}/video-generations/${encodeURIComponent(candidateId)}/preview`,
+      headers: { Authorization: `Bearer ${token}` },
+    };
   }
 
   private async request<T>(

@@ -51,11 +51,20 @@ class StoryRevisionDraftV1(StrictAiModel):
             for value in self.story.values()
         ):
             raise ValueError("story must contain non-empty opening, middle, and ending sections")
+        _validate_display_text(self.title)
+        for value in self.story.values():
+            _validate_display_text(value, complete_sentence=True)
         total = 0
         cursor = 0
         for expected_index, scene in enumerate(self.scenes, start=1):
             if scene.scene_index != expected_index or scene.start_ms != cursor:
                 raise ValueError("scenes must be sequential and have contiguous timing")
+            _validate_display_text(scene.title)
+            _validate_display_text(scene.action, complete_sentence=True)
+            _validate_display_text(scene.narration, complete_sentence=True)
+            _validate_display_text(scene.visual_prompt)
+            for anchor in scene.character_anchors:
+                _validate_display_text(anchor)
             cursor += scene.duration_ms
             total += scene.duration_ms
         if total != self.duration_ms or not 30_000 <= total <= 90_000:
@@ -114,6 +123,42 @@ def validate_butterfly_lifecycle_v1(story: StoryRevisionDraftV1, *, confirmed_su
 def _fold(value: str) -> str:
     normalized = unicodedata.normalize("NFKD", value.casefold())
     return "".join(character for character in normalized if not unicodedata.combining(character))
+
+
+_INCOMPLETE_VI_SENTENCE_ENDINGS = frozenset(
+    {
+        "bị", "và", "hoặc", "nếu", "khi", "vì", "để", "với", "của",
+        "trong", "trên", "dưới", "cho", "bằng", "từ", "đến", "là", "có",
+        "đang", "mà", "nhưng", "rằng", "được",
+    }
+)
+
+
+def _has_non_latin_letter(value: str) -> bool:
+    return any(
+        character.isalpha()
+        and "LATIN" not in unicodedata.name(character, "")
+        for character in value
+    )
+
+
+def _sentence_is_complete(value: str) -> bool:
+    stripped = value.rstrip().rstrip("\"'”’»)]}")
+    if not stripped or stripped[-1] not in ".!?…":
+        return False
+    normalized = unicodedata.normalize("NFC", stripped.casefold())
+    for sentence in re.split(r"[.!?…]+", normalized):
+        words = re.findall(r"[^\W\d_]+", sentence, flags=re.UNICODE)
+        if words and words[-1] in _INCOMPLETE_VI_SENTENCE_ENDINGS:
+            return False
+    return True
+
+
+def _validate_display_text(value: str, *, complete_sentence: bool = False) -> None:
+    if _has_non_latin_letter(value):
+        raise ValueError("STORY_TEXT_NON_LATIN_SCRIPT")
+    if complete_sentence and not _sentence_is_complete(value):
+        raise ValueError("STORY_TEXT_INCOMPLETE")
 
 
 __all__ = [

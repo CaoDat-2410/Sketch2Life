@@ -1,0 +1,130 @@
+<local-machine-path> DeprecationWarning: 'asyncio.WindowsSelectorEventLoopPolicy' is deprecated and slated for removal in Python 3.16
+  asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+<local-machine-path> DeprecationWarning: 'asyncio.set_event_loop_policy' is deprecated and slated for removal in Python 3.16
+  asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_started","workload":"parent.activity.suggest","job_ref":"ea3769e038362514","generation_ref":"16a0da1b1dcd002a","attempt_ref":"45654a17464455f2","stage":"worker_entrypoint","timestamp_utc":"2026-11-20T00:40:21.684391+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"parent.activity.suggest","job_ref":"ea3769e038362514","generation_ref":"16a0da1b1dcd002a","attempt_ref":"45654a17464455f2","stage":"input_envelope","timestamp_utc":"2026-11-20T00:40:21.684534+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"parent.activity.suggest","job_ref":"ea3769e038362514","generation_ref":"16a0da1b1dcd002a","attempt_ref":"45654a17464455f2","stage":"input_envelope","timestamp_utc":"2026-11-20T00:40:21.684601+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":0}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"parent.activity.suggest","job_ref":"ea3769e038362514","generation_ref":"16a0da1b1dcd002a","attempt_ref":"45654a17464455f2","stage":"workload_gate","timestamp_utc":"2026-11-20T00:40:21.684630+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"parent.activity.suggest","job_ref":"ea3769e038362514","generation_ref":"16a0da1b1dcd002a","attempt_ref":"45654a17464455f2","stage":"workload_gate","timestamp_utc":"2026-11-20T00:40:21.684659+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":0}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"parent.activity.suggest","job_ref":"ea3769e038362514","generation_ref":"16a0da1b1dcd002a","attempt_ref":"45654a17464455f2","stage":"scratch_volume_reload","timestamp_utc":"2026-11-20T00:40:21.684681+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"parent.activity.suggest","job_ref":"ea3769e038362514","generation_ref":"16a0da1b1dcd002a","attempt_ref":"45654a17464455f2","stage":"scratch_volume_reload","timestamp_utc":"2026-11-20T00:40:21.803918+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":119}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"parent.activity.suggest","job_ref":"ea3769e038362514","generation_ref":"16a0da1b1dcd002a","attempt_ref":"45654a17464455f2","stage":"input_manifest_read","timestamp_utc":"2026-11-20T00:40:21.804057+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"parent.activity.suggest","job_ref":"ea3769e038362514","generation_ref":"16a0da1b1dcd002a","attempt_ref":"45654a17464455f2","stage":"input_manifest_read","timestamp_utc":"2026-11-20T00:40:21.936236+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":132}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"parent.activity.suggest","job_ref":"ea3769e038362514","generation_ref":"16a0da1b1dcd002a","attempt_ref":"45654a17464455f2","stage":"parent_activity_request_validation","timestamp_utc":"2026-11-20T00:40:21.936357+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"parent.activity.suggest","job_ref":"ea3769e038362514","generation_ref":"16a0da1b1dcd002a","attempt_ref":"45654a17464455f2","stage":"parent_activity_request_validation","timestamp_utc":"2026-11-20T00:40:21.936590+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":0}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"parent.activity.suggest","job_ref":"ea3769e038362514","generation_ref":"16a0da1b1dcd002a","attempt_ref":"45654a17464455f2","stage":"checkpoint_verification","timestamp_utc":"2026-11-20T00:40:21.936629+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"parent.activity.suggest","job_ref":"ea3769e038362514","generation_ref":"16a0da1b1dcd002a","attempt_ref":"45654a17464455f2","stage":"checkpoint_verification","timestamp_utc":"2026-11-20T00:40:21.991417+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":55}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"parent.activity.suggest","job_ref":"ea3769e038362514","generation_ref":"16a0da1b1dcd002a","attempt_ref":"45654a17464455f2","stage":"model_load","timestamp_utc":"2026-11-20T00:40:21.991540+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_runtime_verified","workload":"parent.activity.suggest","job_ref":"ea3769e038362514","generation_ref":"16a0da1b1dcd002a","attempt_ref":"45654a17464455f2","stage":"model_load","timestamp_utc":"2026-11-20T00:40:31.319111+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","torch_version":"2.7.1+cu126","torch_cuda_version":"12.6","fla_version":"0.6.0","causal_conv1d_version":"1.7.0","triton_version":"3.3.1","gpu_capability":"8.6"}
+
+[1A
+Loading weights:   0%|          | 0/427 [00:00<?, ?it/s]
+[1A
+Loading weights:   0%|          | 1/427 [00:01<09:57,  1.40s/it]
+[1A
+Loading weights:   3%|▎         | 13/427 [00:01<00:35, 11.51it/s]
+[1A
+Loading weights:   6%|▌         | 25/427 [00:01<00:16, 23.84it/s]
+[1A
+Loading weights:   8%|▊         | 34/427 [00:01<00:11, 33.11it/s]
+[1A
+Loading weights:  10%|█         | 43/427 [00:01<00:10, 38.16it/s]
+[1A
+Loading weights:  12%|█▏        | 51/427 [00:02<00:08, 44.26it/s]
+[1A
+Loading weights:  14%|█▍        | 61/427 [00:02<00:06, 53.24it/s]
+[1A
+Loading weights:  16%|█▌        | 69/427 [00:02<00:06, 57.61it/s]
+[1A
+Loading weights:  19%|█▉        | 81/427 [00:02<00:05, 69.09it/s]
+[1A
+Loading weights:  22%|██▏       | 93/427 [00:02<00:04, 78.31it/s]
+[1A
+Loading weights:  24%|██▍       | 102/427 [00:02<00:04, 69.94it/s]
+[1A
+Loading weights:  28%|██▊       | 118/427 [00:02<00:03, 88.57it/s]
+[1A
+Loading weights:  30%|███       | 130/427 [00:02<00:03, 92.01it/s]
+[1A
+Loading weights:  33%|███▎      | 142/427 [00:02<00:03, 93.48it/s]
+[1A
+Loading weights:  36%|███▌      | 152/427 [00:03<00:03, 85.38it/s]
+[1A
+Loading weights:  38%|███▊      | 161/427 [00:03<00:03, 83.37it/s]
+[1A
+Loading weights:  41%|████      | 174/427 [00:03<00:02, 86.36it/s]
+[1A
+Loading weights:  44%|████▍     | 188/427 [00:03<00:02, 90.11it/s]
+[1A
+Loading weights:  47%|████▋     | 201/427 [00:03<00:02, 94.01it/s]
+[1A
+Loading weights:  49%|████▉     | 211/427 [00:03<00:02, 89.39it/s]
+[1A
+Loading weights:  53%|█████▎    | 226/427 [00:03<00:02, 99.09it/s]
+[1A
+Loading weights:  56%|█████▌    | 239/427 [00:04<00:01, 102.63it/s]
+[1A
+Loading weights:  59%|█████▊    | 250/427 [00:04<00:01, 97.41it/s] 
+[1A
+Loading weights:  61%|██████    | 260/427 [00:04<00:02, 79.86it/s]
+[1A
+Loading weights:  65%|██████▌   | 279/427 [00:04<00:01, 102.14it/s]
+[1A
+Loading weights:  68%|██████▊   | 291/427 [00:04<00:01, 103.96it/s]
+[1A
+Loading weights:  71%|███████   | 302/427 [00:04<00:01, 104.25it/s]
+[1A
+Loading weights:  73%|███████▎  | 313/427 [00:04<00:01, 83.63it/s] 
+[1A
+Loading weights:  78%|███████▊  | 331/427 [00:04<00:00, 104.28it/s]
+[1A
+Loading weights:  80%|████████  | 343/427 [00:05<00:00, 103.54it/s]
+[1A
+Loading weights:  83%|████████▎ | 355/427 [00:05<00:00, 101.17it/s]
+[1A
+Loading weights:  86%|████████▌ | 366/427 [00:05<00:00, 84.59it/s] 
+[1A
+Loading weights:  90%|████████▉ | 384/427 [00:05<00:00, 106.13it/s]
+[1A
+Loading weights:  93%|█████████▎| 396/427 [00:05<00:00, 105.38it/s]
+[1A
+Loading weights:  96%|█████████▌| 409/427 [00:05<00:00, 108.62it/s]
+[1A
+Loading weights:  99%|█████████▊| 421/427 [00:05<00:00, 94.99it/s] 
+Loading weights: 100%|██████████| 427/427 [00:05<00:00, 72.06it/s]
+{"attention_implementation": "sdpa", "device_map_module_counts": {"cpu": 0, "cuda": 0, "disk": 0, "other": 0}, "event": "qwen_text_model_placement", "gpu_allocated_memory_mib": 17078, "gpu_name": "NVIDIA A10", "gpu_reserved_memory_mib": 17094, "gpu_total_memory_mib": 22587, "model_class": "Qwen3_5ForCausalLM", "use_cache": true}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"parent.activity.suggest","job_ref":"ea3769e038362514","generation_ref":"16a0da1b1dcd002a","attempt_ref":"45654a17464455f2","stage":"model_load","timestamp_utc":"2026-11-20T00:40:38.877371+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":16886}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"parent.activity.suggest","job_ref":"ea3769e038362514","generation_ref":"16a0da1b1dcd002a","attempt_ref":"45654a17464455f2","stage":"prompt_encoding","timestamp_utc":"2026-11-20T00:40:38.877456+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"parent.activity.suggest","job_ref":"ea3769e038362514","generation_ref":"16a0da1b1dcd002a","attempt_ref":"45654a17464455f2","stage":"prompt_encoding","timestamp_utc":"2026-11-20T00:40:38.934984+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":58}
+{"event": "parent_activity_prompt_encoded", "input_token_count": 1001, "max_new_tokens": 1000}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"parent.activity.suggest","job_ref":"ea3769e038362514","generation_ref":"16a0da1b1dcd002a","attempt_ref":"45654a17464455f2","stage":"constrained_decoder_setup","timestamp_utc":"2026-11-20T00:40:38.935140+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"parent.activity.suggest","job_ref":"ea3769e038362514","generation_ref":"16a0da1b1dcd002a","attempt_ref":"45654a17464455f2","stage":"constrained_decoder_setup","timestamp_utc":"2026-11-20T00:40:42.739523+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":3804}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"parent.activity.suggest","job_ref":"ea3769e038362514","generation_ref":"16a0da1b1dcd002a","attempt_ref":"45654a17464455f2","stage":"model_inference","timestamp_utc":"2026-11-20T00:40:42.739689+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"model_generation_progress","workload":"parent.activity.suggest","job_ref":"ea3769e038362514","generation_ref":"16a0da1b1dcd002a","attempt_ref":"45654a17464455f2","stage":"model_inference","timestamp_utc":"2026-11-20T00:40:42.739788+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","progress_kind":"started","generated_token_count":0,"max_new_tokens":1000,"elapsed_ms":0,"tokens_per_second":0.0}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"model_generation_progress","workload":"parent.activity.suggest","job_ref":"ea3769e038362514","generation_ref":"16a0da1b1dcd002a","attempt_ref":"45654a17464455f2","stage":"model_inference","timestamp_utc":"2026-11-20T00:40:42.741287+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","progress_kind":"failed","generated_token_count":0,"max_new_tokens":1000,"elapsed_ms":2,"tokens_per_second":0.0}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_failed","workload":"parent.activity.suggest","job_ref":"ea3769e038362514","generation_ref":"16a0da1b1dcd002a","attempt_ref":"45654a17464455f2","stage":"model_inference","timestamp_utc":"2026-11-20T00:40:42.741525+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":2,"error_code":"WORKER_VALUE_ERROR","error_type":"ValueError"}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_failed","workload":"parent.activity.suggest","job_ref":"ea3769e038362514","generation_ref":"16a0da1b1dcd002a","attempt_ref":"45654a17464455f2","stage":"model_inference","timestamp_utc":"2026-11-20T00:40:42.741568+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":21057,"error_code":"WORKER_VALUE_ERROR","error_type":"ValueError"}
+Traceback (most recent call last):
+  File "/pkg/modal/_runtime/container_io_manager.py", line 987, in handle_input_exception
+    yield
+  File "/pkg/modal/_container_entrypoint.py", line 189, in run_input_sync
+    values = io_context.call_function_sync()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/pkg/modal/_runtime/container_io_manager.py", line 266, in call_function_sync
+    expected_value_or_values = self.finalized_function.callable(*args, **kwargs)
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/worker_observability.py", line 458, in wrapped
+    result = function(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/language_audio_app.py", line 1120, in suggest_parent_activities
+    generated = model.generate(
+                ^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/torch/utils/_contextlib.py", line 116, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/transformers/generation/utils.py", line 2797, in generate
+    self._validate_model_kwargs(model_kwargs.copy())
+  File "/usr/local/lib/python3.11/site-packages/transformers/generation/utils.py", line 1957, in _validate_model_kwargs
+    raise ValueError(
+ValueError: The following `model_kwargs` are not used by the model: ['mm_token_type_ids'] (note: typos in the generate arguments will also show up in this list)

@@ -50,6 +50,7 @@ const activityScreenSource = readFileSync(new URL('../src/parent/presentation/sc
 const storyScreenSource = readFileSync(new URL('../src/parent/presentation/screens/StoryScreen.tsx', import.meta.url), 'utf8');
 const handoffScreenSource = readFileSync(new URL('../src/parent/presentation/screens/HandoffScreen.tsx', import.meta.url), 'utf8');
 const storyHistoryScreenSource = readFileSync(new URL('../src/parent/presentation/screens/StoryHistoryScreen.tsx', import.meta.url), 'utf8');
+const aiLoadingStateSource = readFileSync(new URL('../src/parent/presentation/components/ParentAiLoadingState.tsx', import.meta.url), 'utf8');
 const lessonHistoryScreenSource = readFileSync(new URL('../src/parent/presentation/screens/LessonHistoryScreen.tsx', import.meta.url), 'utf8');
 const quotaScreenSource = readFileSync(new URL('../src/parent/presentation/screens/QuotaScreen.tsx', import.meta.url), 'utf8');
 const notificationsScreenSource = readFileSync(new URL('../src/parent/presentation/screens/NotificationsScreen.tsx', import.meta.url), 'utf8');
@@ -195,7 +196,8 @@ describe('L1 Vietnamese copy and paper presentation contracts', () => {
     expect(authScreenSource).not.toContain('<AuthIllustration');
     expect(accountScreenSource).toContain('Mật khẩu đã được cập nhật.');
     expect(accountScreenSource).not.toContain('Mật khẩu đã được cập nhật trên Firebase Authentication.');
-    expect(googleSignInButtonSource).toContain('Đăng nhập bằng Google hiện chưa khả dụng. Bạn có thể dùng email để tiếp tục.');
+    expect(googleSignInButtonSource).toContain('Google.useIdTokenAuthRequest');
+    expect(googleSignInButtonSource).toContain('Google chưa được cấu hình cho ứng dụng này. Bạn có thể dùng email để tiếp tục.');
     expect(googleSignInButtonSource).toContain('Chưa thể hoàn tất đăng nhập bằng Google. Hãy thử lại hoặc dùng email.');
     expect(googleSignInButtonSource).not.toContain('response.params.error_description');
     expect(googleSignInButtonSource).not.toContain('Google Sign-In chưa cấu hình.');
@@ -263,7 +265,8 @@ describe('L1 Vietnamese copy and paper presentation contracts', () => {
     expect(homeScreenSource).toContain('Chụp tranh ngay');
     expect(homeScreenSource).toContain('Chọn ảnh từ thư viện');
     expect(homeScreenSource).toContain('const compact = width < 420;');
-    expect(homeScreenSource).toContain('visibleRun = activeRun && !terminalRunStates.has(activeRun.run_state)');
+    expect(homeScreenSource).toContain('isRecoverableStoryOutputFailure(activeRun)');
+    expect(parentExpoAppSource).toContain('isRecoverableStoryOutputFailure(parent.activeRun)');
     expect(homeScreenSource).toContain('function runProgressState(run: ParentStoryRunV1)');
     expect(homeScreenSource).not.toContain('home-creative-duo.png');
     expect(homeScreenSource).not.toContain('percent:');
@@ -417,9 +420,12 @@ describe('R1 account and profile boundaries', () => {
     expect(profileControllerSource).not.toContain('getConsentPolicy');
     expect(profileControllerSource).not.toMatch(/application\.profiles\.(grantAuthorization|revokeAuthorization)/);
     expect(profileControllerSource).not.toMatch(/child_gender|childGender/);
-    // FEAT-081 C3b: only the run-history list and the two FR-C-08 lifecycle commands are live.
+    // FEAT-081: run history plus the local synthetic video-candidate API are wired.
     expect(new Set(Array.from(platformControllerSource.matchAll(/application\.platform\.(\w+)/g), (match) => match[1])))
-      .toEqual(new Set(['listRuns', 'cancelRunV1', 'deleteRunV1']));
+      .toEqual(new Set([
+        'listRuns', 'cancelRunV1', 'deleteRunV1', 'getCurrentVideoCandidate',
+        'requestVideoCandidate', 'getVideoCandidatePreviewSource',
+      ]));
     expect(authScreenSource).not.toContain('cause.message');
     expect(profileControllerSource).not.toContain('cause.message');
     expect(platformControllerSource).not.toContain('cause.message');
@@ -440,7 +446,6 @@ describe('R2 backend route boundary', () => {
       { capability: 'profiles', request: () => api.archiveProfile('synthetic-profile') },
       { capability: 'story-creation', request: () => api.getActiveStoryRun() },
       { capability: 'story-creation', request: () => api.getStoryRun('synthetic-run') },
-      { capability: 'run-history', request: () => api.cancelStoryRun('synthetic-run') },
       { capability: 'run-history', request: () => api.deleteStoryRun('synthetic-run') },
       { capability: 'story-creation', request: () => api.createStoryRun({ parent_profile_id: 'synthetic-profile', expected_profile_revision_id: 'synthetic-revision', consent_policy_version: 'synthetic-v1', topic: 'synthetic topic', adult_confirmed_idea: 'synthetic idea', context_confirmed: true }) },
       { capability: 'story-creation', request: () => api.confirmSubject('synthetic-run', 1, 'synthetic subject') },
@@ -484,7 +489,7 @@ describe('R2 backend route boundary', () => {
     expect(ideaScreenSource).toContain('Bài học tham khảo');
     expect(ideaScreenSource).toContain('Có thể ghim một bài học từ thư viện.');
     expect(profileControllerSource).toContain('Chuyển giọng nói thành chữ chưa khả dụng.');
-    expect(topicScreenSource).toContain('onPress={() => props.onTopic(option.title)}');
+    expect(topicScreenSource).toContain('onPress={() => props.onSelect(card)}');
     expect(ideaScreenSource).toContain('Tiếp tục đến bức tranh');
     expect(lessonGallerySource).not.toContain('Có thể tiếp tục không cần bài giảng');
     expect(lessonGallerySource).not.toContain('Tiếp tục không dùng bài giảng');
@@ -501,15 +506,15 @@ describe('R2 backend route boundary', () => {
   });
 
   it('keeps L2 screens on paper cards and gates the synthetic preview outside normal app flow', () => {
-    expect(ideaScreenSource).toContain('Gợi ý nét vẽ do trí tuệ nhân tạo tạo');
+    expect(ideaScreenSource).toContain('>Gợi ý nét vẽ</Text>');
     expect(ideaScreenSource).not.toContain('Gợi ý nét vẽ do AI tạo');
     expect(ideaScreenSource).not.toContain('Gợi ý line sketch được tạo bởi AI');
     expect(lessonGallerySource).toContain('catalogCard: {');
     expect(lessonGallerySource).toContain('activityItem: {');
     expect(lessonPickerSource).toContain('lessonCard: {');
-    expect(ideaScreenSource).toContain('guideImage: { backgroundColor: palette.white');
+    expect(ideaScreenSource).toContain('guideCard: { backgroundColor: palette.white');
     expect(drawingGuideScreenSource).toContain('title="Gợi ý vẽ (tùy chọn)"');
-    expect(drawingGuideScreenSource).toContain('<PrimaryButton label="Bỏ qua hướng dẫn" onPress={props.onContinue} />');
+    expect(drawingGuideScreenSource).toContain('<PrimaryButton variant="creative" label="Bỏ qua hướng dẫn" onPress={props.onContinue} />');
     expect(drawingGuideScreenSource).toContain('currentStep: { color: palette.ink');
     expect(captureScreenSource).toContain('aspectRatio: 1.42, minHeight: 176');
     expect(captureScreenSource).toContain('<Text style={styles.requiredBadge}>BẮT BUỘC</Text>');
@@ -554,7 +559,7 @@ describe('R2 backend route boundary', () => {
     expect(previewHarnessSource).toContain('guideBase64=""');
     expect(previewHarnessSource).toContain('transcript={previewTranscript}');
     expect(previewHarnessSource).toContain('const previewTranscript: ParentAudioTranscription | null = null;');
-    expect(transcriptReviewSource).toContain('{props.transcript ? <Card style={styles.transcriptCard}>');
+    expect(transcriptReviewSource).toContain('{props.transcript ? <Card variant="creative" style={styles.transcriptCard}>');
     expect(previewHarnessSource).toContain('<LessonGalleryScreen');
     expect(previewHarnessSource).toContain('<LessonPickerScreen');
     expect(previewHarnessSource).toContain('<AuthScreen');
@@ -594,16 +599,45 @@ describe('M3 concept surfaces and truthful capability states', () => {
     expect(activityScreenSource).toContain('Chọn một hoạt động chính trước khi tạo câu chuyện.');
     expect(activityScreenSource).toContain('onSuggest');
     expect(activityScreenSource).toContain('source_lesson_title');
-    expect(activityScreenSource).toContain('Lựa chọn chưa được lưu, nên chưa thể tạo câu chuyện.');
+    expect(activityScreenSource).toContain('Chưa tìm thấy hoạt động phù hợp trong thư viện. Đây là gợi ý AI để người lớn xem lại.');
+    expect(activityScreenSource).toContain("activity.source !== 'AI_GENERATED_DRAFT' && activity.match_reason");
+    expect(activityScreenSource).not.toContain('candidate_activities');
+    expect(activityScreenSource).toContain('Đã lưu lựa chọn cho buổi học này.');
+    expect(activityScreenSource).toContain('selectionPersisted');
+    expect(activityScreenSource).toContain('selectionBusy');
     expect(parentExpoAppSource).toContain('suggestions={parent.activitySuggestions}');
     expect(parentExpoAppSource).toContain('storyBlockedReason');
+    expect(parentExpoAppSource).toContain('storyServerPending');
+    expect(parentExpoAppSource).toContain('storyReconciliationRequired');
+    expect(parentExpoAppSource).toContain('isRecoverableStoryOutputFailure(parent.contextRun)');
+    expect(parentExpoAppSource).toContain('isActiveOrUnreconciledStoryRun(parent.contextRun)');
+    expect(parentExpoAppSource).toContain("parent.contextRun.run_state === 'SCRIPT_GENERATING'");
     expect(parentExpoAppSource).toContain("onContinue={() => parent.setStep('story')}");
     expect(storyScreenSource).toContain('title="Câu chuyện của bé"');
     expect(storyScreenSource).toContain('disabled={!props.storyReady}');
-    expect(storyScreenSource).toContain('disabled={!props.storyReady || props.busy}');
-    expect(storyScreenSource).toContain('editable={props.storyReady && !props.busy}');
-    expect(storyScreenSource).toContain('disabled={!props.storyReady || !props.rewriteInstruction.trim() || props.busy}');
-    expect(storyScreenSource).toContain('!props.storyReady || !props.canConfirm');
+    expect(storyScreenSource).toContain('serverPending?: boolean');
+    expect(storyScreenSource).toContain('reconciliationRequired?: boolean');
+    expect(storyScreenSource).toContain('failedGeneration?: boolean');
+    expect(storyScreenSource).toContain('const requestPending = props.busy || serverPending');
+    expect(storyScreenSource).toContain('onOpenHistory?: () => void');
+    expect(storyScreenSource).toContain('label="Mở lịch sử để kiểm tra buổi đang xử lý"');
+    expect(storyScreenSource).toContain('prominent={requestPending && !reconciliationRequired}');
+    expect(storyScreenSource).toContain('statusLabel={storyBusyStatusLabel(props.busyOperation, serverPending, reconciliationRequired)}');
+    expect(storyScreenSource).toContain('Máy chủ chưa xác nhận Modal đã nhận yêu cầu hay chưa. Ứng dụng đã dừng chờ và sẽ không tự gửi lại.');
+    expect(storyScreenSource).toContain("mode={reconciliationRequired ? 'reconciliation' : 'processing'}");
+    expect(storyScreenSource).toContain('showElapsed={!serverPending}');
+    expect(aiLoadingStateSource).toContain("mode?: 'processing' | 'reconciliation'");
+    expect(aiLoadingStateSource).toContain('reconciliationRequired && styles.panelReconciliation');
+    expect(aiLoadingStateSource).toContain('{showElapsed && !reconciliationRequired ?');
+    expect(storyScreenSource).toContain('Gửi gợi ý để viết lại');
+    expect(storyScreenSource).not.toContain('Gửi lại cùng yêu cầu');
+    expect(storyScreenSource).toContain('Bản trước chưa đạt kiểm tra nội dung.');
+    expect(profileControllerSource).toContain('newAdultRewriteAfterFailure');
+    expect(profileControllerSource).toContain('isRecoverableStoryOutputFailure(latest)');
+    expect(storyScreenSource).toContain('editable={props.storyReady && storyCurrent && !props.busy}');
+    expect(storyScreenSource).toContain('!storyCurrent || !props.rewriteInstruction.trim() || requestPending');
+    expect(storyScreenSource).toContain('!props.storyReady || !storyCurrent || !props.canConfirm');
+    expect(storyScreenSource).toContain('props.story && storyCurrent && props.confirmed');
     expect(storyScreenSource).toContain('storyLanguageLabel(props.story.language)');
     expect(storyScreenSource).toContain('Viết lại câu chuyện');
     expect(storyScreenSource).toContain('props.rewriteCount < 3');
@@ -618,6 +652,10 @@ describe('M3 concept surfaces and truthful capability states', () => {
     expect(handoffScreenSource).not.toContain('event.durationMs');
     expect(storyHistoryScreenSource).toContain('runCard: {');
     expect(storyHistoryScreenSource).toContain("return labels[value] ?? 'Trạng thái chưa xác định'");
+    expect(storyHistoryScreenSource).toContain('const canCancel = run.can_cancel && !run.deleting');
+    expect(aiLoadingStateSource).toContain('panelProminent: {');
+    expect(aiLoadingStateSource).toContain("backgroundColor: palette.creativePrimary");
+    expect(aiLoadingStateSource).toContain('statusLabel = \'Đang xử lý\'');
     expect(lessonHistoryScreenSource).toContain('title="Bài giáo viên đã dạy"');
     expect(lessonHistoryScreenSource).toContain('deliveryCard: {');
     expect(quotaScreenSource).toContain('Số lượt sử dụng');
@@ -625,7 +663,7 @@ describe('M3 concept surfaces and truthful capability states', () => {
     expect(notificationsScreenSource).toContain('Thông tin dành riêng cho tài khoản phụ huynh.');
     expect(notificationsScreenSource).toContain('Đánh dấu đã đọc');
     expect(notificationsScreenSource).toContain('styles.notificationCard, unread ? styles.unreadCard : styles.readCard');
-    expect(transcriptReviewSource).toContain('<SectionTitle>Nội dung nhận dạng</SectionTitle>');
+    expect(transcriptReviewSource).toContain('<SectionTitle variant="creative">Nội dung nhận dạng</SectionTitle>');
     expect(transcriptReviewSource).not.toContain('Whisper · tiếng Việt');
     expect(transcriptReviewSource).toContain('ScreenFrame title="Rà soát bản chép lời"');
     expect(transcriptReviewSource).toContain('transcriptCard: { backgroundColor: palette.white, gap: 12, minWidth: 0 }');
@@ -665,6 +703,19 @@ describe('M3 concept surfaces and truthful capability states', () => {
 });
 
 describe('R3 story workflow safety boundaries', () => {
+  it('resumes server-pending story work to its status screen and exposes only server-authorized lifecycle recovery', () => {
+    const resumeBlock = profileControllerSource.slice(
+      profileControllerSource.indexOf('function adoptServerUnderstanding'),
+      profileControllerSource.indexOf('async function confirmContext'),
+    );
+    expect(resumeBlock.indexOf('const storyPending = isActiveOrUnreconciledStoryRun(run)')).toBeGreaterThan(-1);
+    expect(resumeBlock.indexOf('if (storyPending)')).toBeLessThan(resumeBlock.indexOf('run.story_revision_id'));
+    expect(resumeBlock).toContain("setStep('story')");
+    expect(profileControllerSource).toContain('if (isActiveOrUnreconciledStoryRun(latest)');
+    expect(parentExpoAppSource).toContain("() => openHistory('home')");
+    expect(parentExpoAppSource).toContain('onBack={storyServerPending ? undefined');
+  });
+
   it('keeps camera and gallery alternatives, pre-upload limits, and one artwork per run', () => {
     expect(captureScreenSource).toContain('requestCameraPermissionsAsync');
     expect(captureScreenSource).toContain('requestMediaLibraryPermissionsAsync');
@@ -682,9 +733,10 @@ describe('R3 story workflow safety boundaries', () => {
     expect(profileControllerSource).toContain('if (latest.current_input_revision !== 1)');
     expect(profileControllerSource).toContain('createRunAfterPhotoV1');
     expect(profileControllerSource).not.toContain('createRunBeforeDrawingV1(');
-    expect(profileControllerSource).not.toContain('application.learning.generateSketchGuide(');
-    expect(profileControllerSource).toContain('Gợi ý nét vẽ tự động 4–8 bước chưa khả dụng.');
-    expect(parentApiSource).toContain('image_base64: string');
+    expect(profileControllerSource).toContain('application.learning.generateSketchGuide(');
+    expect(profileControllerSource).toContain('draft.guide.stages.length < 4');
+    expect(profileControllerSource).toContain('draft.guide.stages.length > 8');
+    expect(parentApiSource).toContain('image_base64: imageBase64');
     expect(parentApiSource).not.toMatch(/generateSketchGuide\([\s\S]*?ordered_steps/);
     expect(profileControllerSource).toContain('drawingAnalysisAttemptedRunId.current === runId');
     expect(profileControllerSource).toContain('Không gửi lại ảnh; hãy kiểm tra trạng thái buổi học sau.');
@@ -703,14 +755,15 @@ describe('R3 story workflow safety boundaries', () => {
     expect(profileControllerSource).not.toContain('readRunPinnedLessonActivities');
     expect(profileControllerSource).toMatch(/application\.learning\.suggestActivities\(/);
     expect(profileControllerSource).toContain("'activity-suggestions'");
-    expect(activityScreenSource).toContain('Lựa chọn chưa được lưu, nên chưa thể tạo câu chuyện.');
-    expect(parentApiSource).not.toContain('activity-suggestions');
+    expect(activityScreenSource).toContain('Chưa lưu được lựa chọn. Hãy chọn lại để thử lưu trước khi tiếp tục.');
+    expect(parentApiSource).toContain('/activity-suggestions');
+    expect(parentApiSource).toContain('/activity-selection');
     expect(parentApiSource).toContain('/context-confirmation');
     expect(parentApiSource).toContain('/script-confirmation');
     expect(storyScreenSource).not.toContain('mainActivityConfirmed');
     expect(parentExpoAppSource).not.toContain("onSkip={() => parent.setStep('story')}");
     expect(parentExpoAppSource).toContain('storyReady={storyReady}');
-    expect(parentExpoAppSource).toContain('Boolean(\n    parent.contextRun?.run_id\n    && parent.contextConfirmed\n    && parent.subjectConfirmed');
+    expect(parentExpoAppSource).toContain('|| isRecoverableStoryOutputFailure(parent.contextRun)');
   });
 
   it('requires GET reconciliation, exact story revision/hash pins, and no activity or media fields in story requests', () => {
@@ -757,25 +810,31 @@ describe('R3 story workflow safety boundaries', () => {
     expect(storyRequestSource).not.toContain('activityAttempted');
     expect(storyRequestSource).toContain('selectedActivityIndex');
     expect(storyRequestSource).toContain('!activitySelectionPersisted');
+    expect(storyRequestSource).toContain('setContextRun(latest);\n          setActiveRun(latest);');
+    expect(storyRequestSource).toContain("latest.run_state === 'SCRIPT_REVIEW'");
     expect(analysisSource).not.toContain('PARENT_CONTEXT_NOT_CONFIRMED');
   });
 });
 
 describe('R4 absent delivery and lifecycle contracts', () => {
-  it('keeps video and job operations typed unavailable without dispatching an adapter call', () => {
+  it('wires Parent video candidates while keeping unimplemented product actions unavailable', () => {
     expect(platformControllerSource).toContain("jobStatus: createUnavailableCapabilityState('job-status', unavailableReason)");
-    expect(platformControllerSource).toContain("video: createUnavailableCapabilityState('video', unavailableReason)");
-    expect(platformControllerSource).toContain("{ state: 'unavailable', stage: 'unavailable' }");
+    expect(platformControllerSource).toContain("video: parentConfig.apiBaseUrl");
+    expect(platformControllerSource).toContain("createUnavailableCapabilityState('video', 'capability-not-configured')");
     expect(platformControllerSource).toContain('requestVideo');
     expect(platformControllerSource).toContain('markVideoUnsuitable');
     expect(platformControllerSource).toContain('regenerateVideo');
     expect(platformControllerSource).toContain('completeRun');
     expect(new Set(Array.from(platformControllerSource.matchAll(/application\.platform\.(\w+)/g), (match) => match[1])))
-      .toEqual(new Set(['listRuns', 'cancelRunV1', 'deleteRunV1']));
-    expect(platformControllerSource).toContain('videoOperationState: unavailableShareOperation');
+      .toEqual(new Set([
+        'listRuns', 'cancelRunV1', 'deleteRunV1', 'getCurrentVideoCandidate',
+        'requestVideoCandidate', 'getVideoCandidatePreviewSource',
+      ]));
+    expect(platformControllerSource).toContain('videoRequestAttemptedRunId === activeRunId');
     expect(jobStageHasNoPercent).toBe(false);
     expect(storyScreenSource).toContain('videoCapability.state === \'unavailable\'');
     expect(storyScreenSource).toContain('jobStageMessage(props.jobStage)');
+    expect(storyScreenSource).toContain('onOpenVideo');
     expect(storyScreenSource).not.toMatch(/<(?:Video|VideoPlayer|VideoView)\b/);
   });
 
