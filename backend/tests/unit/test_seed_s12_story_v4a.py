@@ -154,6 +154,9 @@ def test_run_s12_returns_expected_counts_and_is_idempotent(
         def __exit__(self, *_args: object) -> None:
             return None
 
+        def scalar(self, _statement: object) -> str:
+            return "PREPARATION_REVIEW"
+
     monkeypatch.setattr(s12_story_v4a, "_require_prerequisites", lambda _conn: None)
     monkeypatch.setattr(s12_story_v4a, "count_s12_rows", lambda _conn: counts_seq.pop(0))
     monkeypatch.setattr(s12_story_v4a, "_seed_static_rows", lambda _engine: None)

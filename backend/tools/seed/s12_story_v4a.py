@@ -16,7 +16,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any, cast
 
-from sqlalchemy import Connection, Engine, func, select
+from sqlalchemy import Connection, Engine, func, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
@@ -179,8 +179,8 @@ def count_s12_rows(connection: Connection) -> dict[str, int]:
         ),
         "story_command_receipts": _table_count(
             connection,
-            story_tables.command_receipts.c.receipt_id,
-            story_tables.command_receipts.c.resource_ref.in_(run_ids),
+            story_tables.story_command_receipts.c.receipt_id,
+            story_tables.story_command_receipts.c.resource_ref.in_(run_ids),
         ),
     }
 
@@ -214,7 +214,13 @@ def _require_prerequisites(connection: Connection) -> None:
 
 def _insert_ignore(connection: Connection, target: Any, rows: list[dict[str, Any]]) -> None:
     if rows:
-        connection.execute(pg_insert(target).values(rows).on_conflict_do_nothing())
+        # A multi-row VALUES needs the same keys in every row, and an absent key must keep its
+        # column default, so rows with different key sets go in separate statements.
+        groups: dict[frozenset[str], list[dict[str, Any]]] = {}
+        for row in rows:
+            groups.setdefault(frozenset(row), []).append(row)
+        for group in groups.values():
+            connection.execute(pg_insert(target).values(group).on_conflict_do_nothing())
 
 
 def _seed_static_rows(engine: Engine) -> None:
@@ -302,10 +308,21 @@ def _seed_static_rows(engine: Engine) -> None:
                 }
             ],
         )
-        _insert_ignore(connection, story_tables.story_runs, bundle["runs"])
+        # runs.current_video_generation_id and video_generations.story_run_id reference each
+        # other, so runs go in without the pointer and it is set after the generations exist.
+        current_video_ids = {
+            row["run_id"]: row["current_video_generation_id"]
+            for row in bundle["runs"]
+            if row.get("current_video_generation_id")
+        }
+        _insert_ignore(
+            connection,
+            story_tables.story_runs,
+            [{**row, "current_video_generation_id": None} for row in bundle["runs"]],
+        )
         _insert_ignore(connection, story_tables.run_inputs, bundle["run_inputs"])
         _insert_ignore(connection, story_tables.understanding_revisions, bundle["understandings"])
-        _insert_ignore(connection, story_tables.command_receipts, bundle["receipts"])
+        _insert_ignore(connection, story_tables.story_command_receipts, bundle["receipts"])
         _insert_ignore(connection, story_tables.review_decisions, bundle["review_decisions"])
         _insert_ignore(connection, story_tables.activity_selections, bundle["activity_selections"])
         _insert_ignore(connection, story_tables.story_revisions, bundle["story_revisions"])
@@ -317,6 +334,15 @@ def _seed_static_rows(engine: Engine) -> None:
         _insert_ignore(
             connection, story_tables.video_generation_scenes, bundle["video_generation_scenes"]
         )
+        for run_id, video_generation_id in current_video_ids.items():
+            connection.execute(
+                update(story_tables.story_runs)
+                .where(
+                    story_tables.story_runs.c.run_id == run_id,
+                    story_tables.story_runs.c.current_video_generation_id.is_(None),
+                )
+                .values(current_video_generation_id=video_generation_id)
+            )
 
 
 def _drive_started_parent_run(
@@ -333,19 +359,27 @@ def _drive_started_parent_run(
 
     with session_factory() as session:
         repo = run_repo_factory(session)
-        view = repo.get_run(principal=principal, run_id=started_run_id)
+        run_state = session.scalar(
+            select(story_tables.story_runs.c.run_state).where(
+                story_tables.story_runs.c.run_id == started_run_id
+            )
+        )
+        if run_state != "PREPARATION_REVIEW":
+            return  # already driven: the context was confirmed and the story has started
         selection_service = selection_factory(session)
+        # The seeded run starts at revision 1 and each selection adds 1, so a rerun before the
+        # confirmation replays both selections with the same fingerprint.
         view = selection_service.select_activity(
             principal=principal,
             run_id=started_run_id,
-            expected_revision=view.run_revision,
+            expected_revision=1,
             activity_ref=s12_story_v4a_data.activity_ref(0),
             idempotency_key=s12_story_v4a_data.SELECT_STARTED_KEY_1,
         )
         view = selection_service.select_activity(
             principal=principal,
             run_id=started_run_id,
-            expected_revision=view.run_revision,
+            expected_revision=2,
             activity_ref=s12_story_v4a_data.activity_ref(1),
             idempotency_key=s12_story_v4a_data.SELECT_STARTED_KEY_2,
         )
