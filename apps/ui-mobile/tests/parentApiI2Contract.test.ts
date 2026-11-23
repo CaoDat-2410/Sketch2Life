@@ -218,6 +218,32 @@ describe('ParentApi I2 contract', () => {
     expect(requestBody(calls[3])).toEqual(contextBody);
   });
 
+  it('only serializes Parent create fields even if a caller supplies Teacher fields at runtime', async () => {
+    const { api, calls } = createApi([{ status: 201, body: runEnvelope }]);
+    const input = {
+      parent_profile_id: 'synthetic-profile', topic: 'clouds', adult_confirmed_idea: 'kite',
+      occurrence_id: 'teacher-occurrence', selection_id: 'teacher-selection', plan_revision: 2,
+      lesson_version: { lesson_id: 'lesson-1', version_id: 'v1', content_sha256: 'hash', selection_id: 'hidden' },
+    };
+    expect(await api.createStoryRunV1(input, 'parent-action')).toEqual(runEnvelope);
+    expect(new URL(calls[0].url).pathname).toBe('/v1/story-runs');
+    expect(header(calls[0], 'Idempotency-Key')).toBe('parent-action');
+    expect(requestBody(calls[0])).toEqual({
+      parent_profile_id: 'synthetic-profile', topic: 'clouds', adult_confirmed_idea: 'kite',
+      lesson_version: { lesson_id: 'lesson-1', version_id: 'v1', content_sha256: 'hash' },
+    });
+  });
+
+  it('keeps an omitted lesson pin omitted and an explicit null pin null in the create body', async () => {
+    const { api, calls } = createApi([{ status: 201, body: runEnvelope }, { status: 201, body: runEnvelope }]);
+    const base = { parent_profile_id: 'synthetic-profile', topic: 'clouds', adult_confirmed_idea: 'kite' };
+    await api.createStoryRunV1(base, 'parent-action-1');
+    await api.createStoryRunV1({ ...base, lesson_version: null }, 'parent-action-2');
+    expect(String(calls[0].init.body)).not.toContain('lesson_version');
+    expect(requestBody(calls[0])).toEqual(base);
+    expect(requestBody(calls[1])).toEqual({ ...base, lesson_version: null });
+  });
+
   it('uses the versioned active/read/subject/script/revision routes and explicit action keys', async () => {
     const { api, calls } = createApi([
       { status: 200, body: { request_id: 'active-request', story_run: null } },
@@ -248,6 +274,54 @@ describe('ParentApi I2 contract', () => {
     expect(requestBody(calls[2])).toEqual({ expected_understanding_revision: 2, confirmed_subject: 'một chiếc diều' });
     expect(requestBody(calls[3])).toEqual({ expected_revision: 3, story_sha256: 'story-hash' });
     expect(requestBody(calls[4])).toEqual({ expected_understanding_revision: 2, rewrite_instruction: 'thêm đám mây' });
+  });
+
+  it('pins Phase A activity list and selection routes, headers, body, and safe error codes', async () => {
+    const activityRef = { lesson_id: 'lesson-a', version_id: 'version-a', content_sha256: 'a'.repeat(64), activity_index: 2 };
+    const activity = {
+      activity_ref: activityRef, title: 'Mô phỏng hoạt động', objective: 'Mô phỏng mục tiêu',
+      materials_text: 'Giấy', preparation_text: 'Chuẩn bị giấy', instructions_text: 'Cùng quan sát',
+      observation_notes: 'Để bé kể', safety_notes: 'Người lớn ở cạnh', activity_kind: 'indoor',
+      source: 'PINNED_LESSON', lesson_title: 'Khu vườn', lesson_topic: 'Cây cối',
+    };
+    const selectedRun = { ...runEnvelope.story_run, run_state: 'PREPARATION_REVIEW', run_revision: 4 };
+    const { api, calls } = createApi([
+      { status: 200, body: { request_id: 'activity-list', items: [activity], basis: { age_band: '72-107', pinned_lesson: true, no_candidate: false } } },
+      { status: 200, body: { request_id: 'activity-selection', story_run: selectedRun } },
+    ]);
+
+    await api.listActivitiesV1('synthetic-run');
+    await api.selectActivityV1('synthetic-run', { expected_revision: 3, activity: activityRef }, 'select-action-1');
+
+    const listUrl = new URL(calls[0].url);
+    expect(`${calls[0].init.method} ${listUrl.pathname}`).toBe('GET /v1/activities');
+    expect(listUrl.searchParams.get('story_run_id')).toBe('synthetic-run');
+    expect(header(calls[0], 'Idempotency-Key')).toBeNull();
+    expect(header(calls[0], 'If-Match')).toBeNull();
+    expect(`${calls[1].init.method} ${new URL(calls[1].url).pathname}`).toBe('POST /v1/story-runs/synthetic-run/activity-selection');
+    expect(header(calls[1], 'Idempotency-Key')).toBe('select-action-1');
+    expect(header(calls[1], 'If-Match')).toBeNull();
+    expect(requestBody(calls[1])).toEqual({ expected_revision: 3, activity: activityRef });
+
+    const failed = createApi([
+      { status: 503, body: { code: 'DEPENDENCY_UNAVAILABLE', message: 'private dependency detail' } },
+      { status: 409, body: { code: 'STALE_REVISION', message: 'private conflict detail', current_version: 9 } },
+      { status: 409, body: { code: 'INVALID_STATE_TRANSITION', message: 'private state detail' } },
+    ]);
+    const listError = await failed.api.listActivitiesV1('synthetic-run').catch((value: unknown) => value);
+    const selectError = await failed.api.selectActivityV1('synthetic-run', { expected_revision: 3, activity: activityRef }, 'select-action-2').catch((value: unknown) => value);
+    expect(listError).toMatchObject({ code: 'DEPENDENCY_UNAVAILABLE', status: 503 });
+    expect((listError as Error).message).not.toContain('private dependency detail');
+    expect(selectError).toMatchObject({ code: 'STALE_REVISION', currentVersion: 9 });
+    expect((selectError as Error).message).not.toContain('private conflict detail');
+    const transitionError = await failed.api.selectActivityV1('synthetic-run', { expected_revision: 3, activity: activityRef }, 'select-action-3').catch((value: unknown) => value);
+    expect(transitionError).toMatchObject({ code: 'INVALID_STATE_TRANSITION', status: 409 });
+    expect((transitionError as Error).message).not.toContain('private state detail');
+    const unknown = createApi([{ status: 503, body: { code: 'PRIVATE_INTERNAL_CODE', message: 'private internals' } }]);
+    const unknownError = await unknown.api.listActivitiesV1('synthetic-run').catch((value: unknown) => value);
+    expect(unknownError).toMatchObject({ code: 'HTTP_503', status: 503 });
+    expect((unknownError as Error).message).not.toContain('PRIVATE_INTERNAL_CODE');
+    expect((unknownError as Error).message).not.toContain('private internals');
   });
 
   it('retains safe top-level and defensive nested error metadata without exposing server messages', async () => {
@@ -292,13 +366,12 @@ describe('ParentApi I2 contract', () => {
     expect((nested as Error).message).not.toContain('nested secret');
   });
 
-  it('does not add an idempotency key to drawing-understandings or call activity-suggestions', async () => {
+  it('does not add an idempotency key to drawing-understandings', async () => {
     const { api, calls, fetcher } = createApi([{ status: 200, body: { request_id: 'drawing-request' } }]);
     await api.analyzeDrawing('synthetic-run', 'synthetic-image-data', 'image/png');
 
     expect(new URL(calls[0].url).pathname).toBe('/api/parent/v1/ai/drawing-understandings');
     expect(header(calls[0], 'Idempotency-Key')).toBeNull();
-    await expect(api.suggestActivities('synthetic-run', 1)).rejects.toBeInstanceOf(ParentApiError);
     expect(fetcher).toHaveBeenCalledTimes(1);
     expect(calls.some((call) => call.url.includes('activity-suggestions'))).toBe(false);
   });

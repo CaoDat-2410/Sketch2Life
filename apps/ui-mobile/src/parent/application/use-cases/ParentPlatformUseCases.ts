@@ -65,13 +65,17 @@ export class ParentPlatformUseCases {
     return this.api.submitLessonFeedback(occurrenceId, profileId, value);
   }
 
-  listNotifications(cursor?: string | null) {
-    return this.api.listNotifications(cursor);
+  listNotifications(cursor?: string | null, limit?: number) {
+    return this.api.listNotifications(cursor, limit);
   }
 
-  markNotificationRead(notificationId: string) {
+  markNotificationRead(notificationId: string, actionIdentity: string) {
     this.requireId(notificationId, 'NOTIFICATION_REQUIRED');
-    return this.api.markNotificationRead(notificationId);
+    return this.api.markNotificationRead(notificationId, actionIdentity);
+  }
+
+  markAllNotificationsRead(actionIdentity: string) {
+    return this.api.markAllNotificationsRead(actionIdentity);
   }
 
   getVideoQuota() {

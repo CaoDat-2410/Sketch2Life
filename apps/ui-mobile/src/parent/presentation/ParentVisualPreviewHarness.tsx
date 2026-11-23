@@ -6,14 +6,14 @@ import type {
   LessonDetail,
   LessonInvitation,
   LessonSummary,
-  ParentAudioTranscription,
+  ParentRunTranscriptV1,
   ParentDrawingCandidateV1,
   ParentGroupInvitation,
   ParentNotification,
   ParentProfileViewV1,
   ParentStoryRunV1,
+  ParentActivityListV1,
   ParentUser,
-  SuggestedActivity,
   StoryDraft,
 } from '../domain/types';
 import type { ParentCapabilityState } from '../application/ports/ParentCapabilityPorts';
@@ -91,15 +91,23 @@ const previewActivity: Activity = {
   activity_kind: 'indoor',
 };
 
-const previewSuggestedActivity: SuggestedActivity = {
-  ...previewActivity,
-  source: 'PINNED_LESSON',
-  source_lesson_id: 'preview-lesson-01',
-  source_lesson_title: 'Mô phỏng · khu vườn nhỏ',
-  source_lesson_version_id: 'Mô phỏng · phiên bản 01',
-  source_content_sha256: 'Mô phỏng · không phải mã băm thật',
-  source_activity_index: 0,
-  match_reason: 'Mô phỏng · minh họa hoạt động chỉ đọc.',
+const previewActivityList: ParentActivityListV1 = {
+  request_id: 'preview-only',
+  items: [{
+    activity_ref: { lesson_id: 'preview-lesson-01', version_id: 'preview-v1', content_sha256: 'a'.repeat(64), activity_index: 0 },
+    title: previewActivity.title,
+    objective: previewActivity.objective,
+    materials_text: previewActivity.materials_text,
+    preparation_text: previewActivity.preparation_text,
+    instructions_text: previewActivity.instructions_text,
+    observation_notes: previewActivity.observation_notes,
+    safety_notes: previewActivity.safety_notes,
+    activity_kind: previewActivity.activity_kind,
+    source: 'PINNED_LESSON',
+    lesson_title: 'Mô phỏng · khu vườn nhỏ',
+    lesson_topic: 'Mô phỏng · cây cối',
+  }],
+  basis: { age_band: '36-71', pinned_lesson: true, no_candidate: false },
 };
 
 const previewLessonSummary: LessonSummary = {
@@ -263,7 +271,7 @@ const previewStory: StoryDraft = {
   ],
 };
 
-const previewTranscript: ParentAudioTranscription | null = null;
+const previewTranscript: ParentRunTranscriptV1 | null = null;
 
 function previewNotificationDate(daysAgo: number, hour: number): string {
   const date = new Date();
@@ -274,44 +282,44 @@ function previewNotificationDate(daysAgo: number, hour: number): string {
 
 const previewNotifications: ParentNotification[] = [
   {
-    contract: 'NotificationInboxItemV1',
-    notification_id: 'preview-notification-share-invitation',
-    kind: 'PROFILE_SHARE_INVITATION',
-    title: 'Có lời mời chia sẻ hồ sơ của bé',
-    resource_kind: null,
-    resource_ref: null,
+    contract: 'NotificationV1',
+    inbox_item_id: 'preview-notification-01',
+    notification_type: 'PROFILE_SHARE_INVITATION',
+    template_version: 1,
+    safe_parameters: {},
     created_at: previewNotificationDate(0, 10),
     read_at: null,
+    expires_at: null,
   },
   {
-    contract: 'NotificationInboxItemV1',
-    notification_id: 'preview-notification-lesson-reply',
-    kind: 'LESSON_REPLY',
-    title: 'Có phản hồi mới về bài học “Khu vườn màu sắc”',
-    resource_kind: null,
-    resource_ref: null,
+    contract: 'NotificationV1',
+    inbox_item_id: 'preview-notification-02',
+    notification_type: 'LESSON_REPLY',
+    template_version: 1,
+    safe_parameters: {},
     created_at: previewNotificationDate(0, 9),
     read_at: previewNotificationDate(0, 9),
+    expires_at: null,
   },
   {
-    contract: 'NotificationInboxItemV1',
-    notification_id: 'preview-notification-lesson-feedback',
-    kind: 'LESSON_FEEDBACK',
-    title: 'Bài học “Vẽ khu vườn nhiều màu sắc” vừa có phản hồi mới từ giáo viên',
-    resource_kind: null,
-    resource_ref: null,
+    contract: 'NotificationV1',
+    inbox_item_id: 'preview-notification-03',
+    notification_type: 'LESSON_FEEDBACK',
+    template_version: 1,
+    safe_parameters: { count: 1 },
     created_at: previewNotificationDate(1, 15),
     read_at: null,
+    expires_at: null,
   },
   {
-    contract: 'NotificationInboxItemV1',
-    notification_id: 'preview-notification-share-accepted',
-    kind: 'PROFILE_SHARE_ACCEPTED',
-    title: 'Lời mời chia sẻ hồ sơ đã được chấp nhận',
-    resource_kind: null,
-    resource_ref: null,
+    contract: 'NotificationV1',
+    inbox_item_id: 'preview-notification-04',
+    notification_type: 'PROFILE_SHARE_ACCEPTED',
+    template_version: 1,
+    safe_parameters: {},
     created_at: previewNotificationDate(4, 11),
     read_at: previewNotificationDate(4, 11),
+    expires_at: null,
   },
 ];
 
@@ -531,14 +539,12 @@ export function ParentVisualPreviewHarness(): React.JSX.Element {
     capture: <CapturePreviewScreen state="empty" />,
     'capture-denied': <CapturePreviewScreen state="camera-denied" />,
     'capture-selected': <CapturePreviewScreen state="photo-selected" />,
-    transcript: <TranscriptReviewScreen stepLabel="5 / 8" transcript={previewTranscript} text="" busy={false} error="" onText={ignoreAction} onConfirm={ignoreAction} onContinueWithoutAudio={ignoreAction} onBack={ignoreAction} />,
+    transcript: <TranscriptReviewScreen stepLabel="5 / 8" transcript={previewTranscript} waiting={false} text="" edited={false} busy={false} error="" onText={ignoreAction} onConfirm={ignoreAction} onRefresh={ignoreAction} onBack={ignoreAction} />,
     understanding: <UnderstandingScreen candidate={previewCandidate} stepLabel="5 / 8" subject="Mô phỏng · một con bướm" busy={false} error="" onSubject={ignoreAction} onConfirm={ignoreAction} onBack={ignoreAction} />,
     'context-before': <ContextScreen profile={previewProfile} contextRun={null} stepLabel="6 / 8" busy={false} confirmed={false} error="" onRetryCreate={ignoreAction} onConfirm={ignoreAction} onContinue={ignoreAction} onBack={ignoreAction} />,
     'context-after': <ContextScreen profile={previewProfile} contextRun={previewContextRun} stepLabel="6 / 8" busy={false} confirmed={false} error="" onRetryCreate={ignoreAction} onConfirm={ignoreAction} onContinue={ignoreAction} onBack={ignoreAction} />,
-    activity: <ActivityScreen stepLabel="7 / 8" topic="Khu vườn" subject="Một chú bướm" suggestions={null} selectedIndex={null} loading={false} attempted={false} error="" onSuggest={ignoreAction} onSelect={ignoreAction} onContinue={ignoreAction} onBack={ignoreAction} />,
+    activity: <ActivityScreen stepLabel="7 / 8" topic="Khu vườn" subject="Một chú bướm" activities={previewActivityList} selectedIndex={0} loading={false} saving={false} attempted={false} error="" onRetry={ignoreAction} onSelect={ignoreAction} onContinue={ignoreAction} onCancel={ignoreAction} onBack={ignoreAction} />,
     story: <StoryScreen
-      videoCapability={unavailable('video')}
-      jobStage={{ state: 'idle', stage: 'idle' }}
       stepLabel="8 / 8"
       story={previewStory}
       storyReady
@@ -550,20 +556,27 @@ export function ParentVisualPreviewHarness(): React.JSX.Element {
       canConfirm={false}
       error=""
       confirmed={false}
+      rewriting={false}
+      rewriteNotice=""
+      rewriteAfterVideo={false}
+      confirmationRequired={false}
+      onlyCancel={false}
+      rewritesLeft={3}
+      onOpenVideo={ignoreAction}
       onRewriteInstruction={ignoreAction}
-      onGenerate={ignoreAction}
-      onRetry={ignoreAction}
       onRewrite={ignoreAction}
       onConfirm={ignoreAction}
+      onRefresh={ignoreAction}
+      onOpenHistory={ignoreAction}
       onBack={ignoreAction}
     />,
     handoff: <HandoffScreen storyTitle="Mô phỏng · kịch bản đã xác nhận" events={[]} videoCapability={unavailable('video')} jobStage={{ state: 'unavailable', stage: 'unavailable' }} onResumeActiveRun={ignoreAction} />,
-    history: <StoryHistoryScreen capability={unavailable('run-history')} runs={[]} loading={false} error="" hasMore={false} onLoad={ignoreAction} onLoadMore={ignoreAction} onCancel={ignoreAction} onDelete={ignoreAction} onBack={ignoreAction} />,
+    history: <StoryHistoryScreen capability={unavailable('run-history')} runs={[]} loading={false} error="" hasMore={false} onLoad={ignoreAction} onLoadMore={ignoreAction} onCancel={ignoreAction} onDelete={ignoreAction} onWatch={ignoreAction} onBack={ignoreAction} />,
     'lesson-history': <LessonHistoryScreen capability={unavailable('lesson-history')} deliveries={[]} loading={false} error="" hasMore={false} onLoad={ignoreAction} onLoadMore={ignoreAction} onSubmitFeedback={pendingPreviewAsync} onBack={ignoreAction} />,
     quota: <QuotaScreen capability={unavailable('quota')} quota={null} loading={false} error="" onLoad={ignoreAction} onBack={ignoreAction} />,
-    notifications: <NotificationsScreen capability={unavailable('notifications')} items={[]} loading={false} error="" hasMore={false} onLoad={ignoreAction} onLoadMore={ignoreAction} onMarkRead={ignoreAction} onBack={ignoreAction} />,
-    'notifications-empty': <NotificationsScreen capability={available('notifications')} items={[]} loading={false} error="" hasMore={false} onLoad={ignoreAction} onLoadMore={ignoreAction} onMarkRead={ignoreAction} onBack={ignoreAction} />,
-    'notifications-list': <NotificationsScreen capability={available('notifications')} items={previewNotifications} loading={false} error="" hasMore onLoad={ignoreAction} onLoadMore={ignoreAction} onMarkRead={ignoreAction} onBack={ignoreAction} />,
+    notifications: <NotificationsScreen capability={unavailable('notifications')} items={[]} unreadCount={null} loading={false} error="" hasMore={false} onLoad={ignoreAction} onLoadMore={ignoreAction} onMarkRead={ignoreAction} onMarkAllRead={ignoreAction} onBack={ignoreAction} />,
+    'notifications-empty': <NotificationsScreen capability={available('notifications')} items={[]} unreadCount={0} loading={false} error="" hasMore={false} onLoad={ignoreAction} onLoadMore={ignoreAction} onMarkRead={ignoreAction} onMarkAllRead={ignoreAction} onBack={ignoreAction} />,
+    'notifications-list': <NotificationsScreen capability={available('notifications')} items={previewNotifications} unreadCount={2} loading={false} error="" hasMore onLoad={ignoreAction} onLoadMore={ignoreAction} onMarkRead={ignoreAction} onMarkAllRead={ignoreAction} onBack={ignoreAction} />,
     'bottom-bar': <View style={styles.bottomBarPreview}><ParentBottomBar activeTab="home" onNavigate={ignoreAction} onStart={ignoreAction} startLabel="Bắt đầu" /></View>,
   };
 

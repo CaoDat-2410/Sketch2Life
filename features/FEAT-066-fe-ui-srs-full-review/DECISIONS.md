@@ -811,3 +811,15 @@ Draft 4 fixes the round-3 findings and was not re-reviewed, by owner choice.
 - Source: owner-approved Goal v4 Phase A web wiring plan revision 52 and the final Teacher contract.
 - When the visible Teacher gates appear complete but the run remains in `PREPARATION_REVIEW` with no start signal, the UI shows a waiting hint and does not resend `context-confirmation`.
 - Reason: the contract says an unfulfilled hidden gate leaves the run unchanged, and the UI has no reliable signal to distinguish that state from an accepted command still settling.
+
+## D-066-88 - Goal v4 Phase A Parent Android integration order (2026-11-23)
+
+**Source:** the owner-launched Phase A task prompt and `tmp/phase-v4/PHASE_A_FINAL_ROUTE_LIST_20261123.md`, sections 1, 2.3-2.10, 3.1-3.5 and 4. The task plan hash is recorded in the Phase A entry in `approvals/TASK_APPROVAL.md`.
+
+- Parent confirms the subject, loads and selects an activity, then confirms context. Whichever of activity selection or context confirmation succeeds last starts the first story.
+- First-story start is implicit in those gates; the Parent flow does not call legacy `story-revisions` for it.
+- `story_confirmation_required` is authoritative when present. The app re-confirms the same story revision after a spent video review, and only then offers another video request.
+- Current safety blocks route through `SCRIPT_REVIEW` plus video/job fields. The `SAFETY_BLOCKED` run state remains accepted for legacy rows.
+- `post_video_activities: null` is normal. A completed run may be read and played again through a fresh playback grant.
+
+This records the implementation contract for this task only. It does not sign off FEAT-063 SRS v2.7-draft or approve a tech-stack decision.

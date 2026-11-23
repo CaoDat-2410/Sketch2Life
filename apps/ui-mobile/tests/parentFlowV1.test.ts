@@ -417,20 +417,37 @@ describe('parentFlowV1 pure flow decisions', () => {
       .toBe('Hồ sơ đã thay đổi trạng thái. Hãy kiểm tra lại trước khi tiếp tục.');
     expect(safeParentFlowErrorMessage({ code: 'UNKNOWN', message: 'private child detail' }))
       .not.toContain('private child detail');
+    for (const code of [
+      'PARENT_ACTIVITY_SELECTION_REQUIRED', 'PARENT_ACTIVITY_RUN_INVALID', 'PARENT_ACTIVITY_LIST_INVALID', 'PARENT_ACTIVITY_SELECTION_INVALID',
+      'DEPENDENCY_UNAVAILABLE', 'PARENT_STORY_RUN_STORE_UNAVAILABLE', 'SUBJECT_NOT_CONFIRMED',
+      'STALE_REVISION', 'INVALID_STATE_TRANSITION', 'VIDEO_REGENERATION_LIMIT_REACHED', 'VIDEO_SAFETY_BLOCKED',
+      'STORAGE_UNAVAILABLE', 'PROVIDER_UNAVAILABLE',
+    ]) {
+      expect(safeParentFlowErrorMessage({ code, message: `private ${code}` })).not.toContain(code);
+      expect(safeParentFlowErrorMessage({ code, message: `private ${code}` })).not.toContain(`private ${code}`);
+    }
   });
 
   it('maps recovery groups to safe Parent review or unavailable actions', () => {
     const recoveryCases = [
       ['AUTH_REQUIRED', 'authentication'],
       ['RESOURCE_NOT_FOUND', 'resource-refresh'],
+      ['PARENT_ACTIVITY_SELECTION_REQUIRED', 'activity-review'],
+      ['PARENT_ACTIVITY_RUN_INVALID', 'activity-review'],
+      ['PARENT_ACTIVITY_LIST_INVALID', 'activity-review'],
+      ['PARENT_ACTIVITY_SELECTION_INVALID', 'activity-review'],
+      ['DEPENDENCY_UNAVAILABLE', 'activity-review'],
+      ['PARENT_STORY_RUN_STORE_UNAVAILABLE', 'provider-hold'],
       ['ACTION_NOT_ALLOWED', 'action-denied'],
       ['ACTIVE_RUN_EXISTS', 'resume-active-run'],
       ['MULTI_CHILD_NOT_SUPPORTED', 'teacher-only'],
       ['STALE_REVISION', 'review-current-state'],
+      ['INVALID_STATE_TRANSITION', 'review-current-state'],
       ['TRANSCRIPT_NOT_CONFIRMED', 'transcript-review'],
       ['SUBJECT_NOT_CONFIRMED', 'subject-review'],
       ['PROFILE_CONTEXT_NOT_CONFIRMED', 'context-review'],
       ['PARENT_STORY_REWRITE_LIMIT', 'story-review'],
+      ['VIDEO_REGENERATION_LIMIT_REACHED', 'story-review'],
       ['VIDEO_QUOTA_EXCEEDED', 'quota-summary'],
       ['MODAL_AI_NOT_ENABLED', 'provider-hold'],
       ['MODAL_OUTCOME_UNKNOWN', 'reconciliation'],

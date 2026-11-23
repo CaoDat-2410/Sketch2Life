@@ -712,3 +712,16 @@ The canonical working SRS `features/FEAT-063-system-architecture-rearchitecture/
 - **Open repository gate:** `validate_harness.py` fails on missing `apps/mobile/package.json` and FEAT-072 paths outside this task.
 - **Evidence:** `evidence/notes/EV-066-059_V4A_WEB_WIRING_20261123.md`.
 - **Delivery:** no stage, commit, or push; working tree left for owner review.
+
+## Goal v4 Phase A Parent Android wiring — 2026-11-23
+
+- Status: IN_PROGRESS under the task-specific approval appended to approvals/TASK_APPROVAL.md.
+- Scope: apps/ui-mobile plus this task's required FEAT-066 plan and evidence records; no backend or obsolete apps/mobile.
+
+## Goal v4 Phase A Parent Android wiring completion - 2026-11-23
+
+- Status: IMPLEMENTED AND VERIFIED; all six requested gates exited 0.
+- App tests: 18 files passed, 228 tests passed, and UI_COPY_AND_RECOVERY_VALID printed.
+- Evidence: evidence/notes/PHASE_A_PARENT_ANDROID_WIRING_EVIDENCE_20261123.md.
+- Limitations: no lint script or native Android test suite exists in apps/ui-mobile; optional Gradle assembly was not run.
+- Working tree: changes remain unstaged and uncommitted for owner review. No push was made.

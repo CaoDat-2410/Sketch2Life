@@ -45,10 +45,22 @@ export interface ParentApplicationModule {
     | 'createRunAfterPhotoV1'
     | 'confirmRunContextV1'
     | 'confirmSubjectV1'
-    | 'suggestActivities'
+    | 'listActivitiesV1'
+    | 'selectActivityV1'
     | 'confirmScriptV1'
     | 'createStoryRevisionV1'
-    | 'understandDrawing'> & {
+    | 'understandDrawing'
+    | 'attachDrawingV1'
+    | 'submitVoiceIdeaV1'
+    | 'submitTextIdeaV1'
+    | 'getTranscriptV1'
+    | 'correctTranscriptV1'
+    | 'confirmTranscriptV1'
+    | 'rewriteStoryV1'
+    | 'requestVideoV1'
+    | 'markVideoUnsuitableV1'
+    | 'completeRunV1'
+    | 'openPlaybackV1'> & {
       getActiveRunV1(): Promise<ParentActiveStoryRunEnvelopeV1>;
     };
   platform: Pick<ParentPlatformUseCases,
@@ -64,5 +76,6 @@ export interface ParentApplicationModule {
     | 'submitFeedback'
     | 'listNotifications'
     | 'markNotificationRead'
+    | 'markAllNotificationsRead'
     | 'getVideoQuota'>;
 }

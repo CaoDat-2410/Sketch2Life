@@ -1,43 +1,39 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Defs, Ellipse, LinearGradient as SvgGradient, Path, Rect, Stop } from 'react-native-svg';
 import type { ParentCapabilityState } from '../../application/ports/ParentCapabilityPorts';
+import { classifyNotificationInbox, notificationUnreadCountLabel } from '../../application/parentNotifications';
 import type { ParentNotification } from '../../domain/types';
 import { ScreenScrollView } from '../components/ui';
 
 type Props = {
   capability: ParentCapabilityState;
   items: ParentNotification[];
+  unreadCount: number | null;
   loading: boolean;
   error: string;
   hasMore: boolean;
   onLoad: () => void;
   onLoadMore: () => void;
   onMarkRead: (notificationId: string) => void;
+  onMarkAllRead: () => void;
   onBack: () => void;
 };
 
-type NotificationFilter = 'all' | 'system' | 'lessons' | 'stories' | 'other';
 type NotificationGroup = { key: string; label: string; items: ParentNotification[] };
 
-const filters: { id: NotificationFilter; label: string }[] = [
-  { id: 'all', label: 'Tất cả' },
-  { id: 'system', label: 'Hệ thống' },
-  { id: 'lessons', label: 'Bài học' },
-  { id: 'stories', label: 'Câu chuyện' },
-  { id: 'other', label: 'Khác' },
-];
-
 export function NotificationsScreen(props: Props): React.JSX.Element {
-  const [activeFilter, setActiveFilter] = useState<NotificationFilter>('all');
-  const notifications = useMemo(() => {
-    const ordered = [...props.items].sort((a, b) => dateValue(b.created_at) - dateValue(a.created_at));
-    return activeFilter === 'all' ? ordered : ordered.filter((item) => categoryFor(item) === activeFilter);
-  }, [activeFilter, props.items]);
+  const notifications = useMemo(() => [...props.items].sort((a, b) => dateValue(b.created_at) - dateValue(a.created_at)), [props.items]);
   const groups = useMemo(() => groupByDay(notifications), [notifications]);
+  const viewState = classifyNotificationInbox({
+    available: props.capability.state === 'available',
+    loading: props.loading,
+    hasError: Boolean(props.error),
+    itemCount: props.items.length,
+  });
 
   return (
     <LinearGradient colors={['#FFFAF6', '#FCF8FF', '#FFFAF6']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.screen}>
@@ -69,10 +65,24 @@ export function NotificationsScreen(props: Props): React.JSX.Element {
             </View>
           ) : (
             <>
-              <FilterBar activeFilter={activeFilter} onSelect={setActiveFilter} />
               {props.error ? <ErrorState message={props.error} onRetry={props.onLoad} loading={props.loading} /> : null}
-              {props.loading && !props.items.length ? <LoadingState /> : null}
-              {!props.loading && !props.error && !props.items.length ? <EmptyInbox /> : null}
+              {viewState === 'loading' ? <LoadingState /> : null}
+              {viewState === 'empty' ? <EmptyInbox /> : null}
+              {props.unreadCount !== null && props.unreadCount > 0 ? (
+                <View style={styles.inboxActions}>
+                  <Text style={styles.unreadCount}>Chưa đọc {notificationUnreadCountLabel(props.unreadCount)}</Text>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="Đánh dấu tất cả đã đọc"
+                    accessibilityState={{ busy: props.loading, disabled: props.loading }}
+                    disabled={props.loading}
+                    onPress={props.onMarkAllRead}
+                    style={({ pressed }) => [styles.markAllButton, pressed && styles.markReadPressed]}
+                  >
+                    <Text style={styles.markReadText}>Đánh dấu tất cả đã đọc</Text>
+                  </Pressable>
+                </View>
+              ) : null}
               {notifications.length ? (
                 <View style={styles.groups}>
                   {groups.map((group) => (
@@ -82,18 +92,10 @@ export function NotificationsScreen(props: Props): React.JSX.Element {
                         <Text style={styles.groupCount}>{group.items.length} tin</Text>
                       </View>
                       {group.items.map((item) => (
-                        <NotificationCard key={item.notification_id} item={item} loading={props.loading} onMarkRead={props.onMarkRead} />
+                        <NotificationCard key={item.inbox_item_id} item={item} loading={props.loading} onMarkRead={props.onMarkRead} />
                       ))}
                     </View>
                   ))}
-                </View>
-              ) : null}
-              {props.items.length > 0 && !notifications.length ? (
-                <View style={styles.filteredEmpty}>
-                  <View style={styles.filteredEmptyIcon}>
-                    <Ionicons name="notifications-off-outline" size={22} color="#7435D5" accessible={false} />
-                  </View>
-                  <Text style={styles.filteredEmptyText}>Chưa có thông báo trong mục này.</Text>
                 </View>
               ) : null}
               {props.loading && props.items.length ? <LoadingFooter /> : null}
@@ -103,34 +105,6 @@ export function NotificationsScreen(props: Props): React.JSX.Element {
         </ScreenScrollView>
       </SafeAreaView>
     </LinearGradient>
-  );
-}
-
-function FilterBar({ activeFilter, onSelect }: { activeFilter: NotificationFilter; onSelect: (filter: NotificationFilter) => void }): React.JSX.Element {
-  return (
-    <ScreenScrollView
-      horizontal
-      accessibilityRole="tablist"
-      style={styles.filterScroll}
-      contentContainerStyle={styles.filterRow}
-      showsHorizontalScrollIndicator={false}
-    >
-      {filters.map((filter) => {
-        const selected = activeFilter === filter.id;
-        return (
-          <Pressable
-            key={filter.id}
-            accessibilityRole="tab"
-            accessibilityLabel={filter.label}
-            accessibilityState={{ selected }}
-            onPress={() => onSelect(filter.id)}
-            style={({ pressed }) => [styles.filterChip, selected && styles.filterChipSelected, pressed && styles.filterChipPressed]}
-          >
-            <Text style={[styles.filterText, selected && styles.filterTextSelected]}>{filter.label}</Text>
-          </Pressable>
-        );
-      })}
-    </ScreenScrollView>
   );
 }
 
@@ -223,32 +197,29 @@ function EmptyInboxIllustration(): React.JSX.Element {
 }
 
 function NotificationCard({ item, loading, onMarkRead }: { item: ParentNotification; loading: boolean; onMarkRead: (id: string) => void }): React.JSX.Element {
-  const meta = metadataFor(item);
   const unread = !item.read_at;
 
   return (
     <View style={[styles.notificationCard, unread ? styles.unreadCard : styles.readCard]}>
-      <View style={[styles.notificationIcon, { backgroundColor: meta.iconBackground }]}>
-        <Ionicons name={meta.icon} size={21} color={meta.iconColor} accessible={false} />
+      <View style={styles.notificationIcon}>
+        <Ionicons name="notifications-outline" size={21} color="#7041B7" accessible={false} />
       </View>
       <View style={styles.notificationCopy}>
         <View style={styles.notificationMeta}>
-          <View style={[styles.categoryTag, { backgroundColor: meta.tagBackground }]}>
-            <Text style={[styles.categoryText, { color: meta.iconColor }]}>{meta.category}</Text>
-          </View>
+          <Text style={styles.notificationKind}>{unread ? 'Thông báo mới' : 'Thông báo'}</Text>
           <View style={styles.timeAndUnread}>
             <Text style={styles.notificationTime}>{formatTime(item.created_at)}</Text>
             {unread ? <View accessibilityLabel="Chưa đọc" style={styles.unreadDot} /> : null}
           </View>
         </View>
-        <Text style={styles.notificationTitle}>{item.title}</Text>
+        <Text style={styles.notificationTitle}>Bạn có một cập nhật mới trong ứng dụng.</Text>
         {unread ? (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={`Đánh dấu đã đọc: ${item.title}`}
+            accessibilityLabel="Đánh dấu đã đọc"
             accessibilityState={{ disabled: loading }}
             disabled={loading}
-            onPress={() => onMarkRead(item.notification_id)}
+            onPress={() => onMarkRead(item.inbox_item_id)}
             style={({ pressed }) => [styles.markReadButton, pressed && styles.markReadPressed]}
           >
             <Ionicons name="checkmark-circle-outline" size={16} color="#7435D5" accessible={false} />
@@ -299,30 +270,6 @@ function LoadMoreButton({ loading, onPress }: { loading: boolean; onPress: () =>
   );
 }
 
-function categoryFor(item: ParentNotification): NotificationFilter {
-  switch (item.kind) {
-    case 'LESSON_FEEDBACK':
-    case 'LESSON_REPLY':
-      return 'lessons';
-    case 'PROFILE_SHARE_INVITATION':
-    case 'PROFILE_SHARE_ACCEPTED':
-      return 'other';
-  }
-}
-
-function metadataFor(item: ParentNotification): { category: string; icon: React.ComponentProps<typeof Ionicons>['name']; iconColor: string; iconBackground: string; tagBackground: string } {
-  switch (item.kind) {
-    case 'LESSON_FEEDBACK':
-      return { category: 'Bài học', icon: 'school-outline', iconColor: '#7041B7', iconBackground: '#EEE4FF', tagBackground: '#F2EAFF' };
-    case 'LESSON_REPLY':
-      return { category: 'Bài học', icon: 'chatbubble-ellipses-outline', iconColor: '#7041B7', iconBackground: '#EEE4FF', tagBackground: '#F2EAFF' };
-    case 'PROFILE_SHARE_INVITATION':
-      return { category: 'Khác', icon: 'person-add-outline', iconColor: '#278A84', iconBackground: '#DDF5EF', tagBackground: '#E8F8F3' };
-    case 'PROFILE_SHARE_ACCEPTED':
-      return { category: 'Khác', icon: 'people-outline', iconColor: '#278A84', iconBackground: '#DDF5EF', tagBackground: '#E8F8F3' };
-  }
-}
-
 function groupByDay(items: ParentNotification[]): NotificationGroup[] {
   const byDay = new Map<string, NotificationGroup>();
   items.forEach((item) => {
@@ -368,13 +315,9 @@ const styles = StyleSheet.create({
   scroll: { flex: 1, minHeight: 0 },
   content: { width: '100%', maxWidth: 560, alignSelf: 'center', paddingHorizontal: 16, paddingTop: 7, paddingBottom: 22, gap: 16, flexGrow: 1 },
   centeredState: { flexGrow: 1, minHeight: 280, justifyContent: 'center', paddingVertical: 16 },
-  filterScroll: { flexGrow: 0, marginHorizontal: -16 },
-  filterRow: { paddingHorizontal: 16, gap: 8, alignItems: 'center' },
-  filterChip: { minHeight: 44, paddingHorizontal: 15, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F1E7FF', borderWidth: 1, borderColor: '#E9DDF5' },
-  filterChipSelected: { backgroundColor: '#7435D5', borderColor: '#7435D5' },
-  filterChipPressed: { opacity: 0.82 },
-  filterText: { color: '#542A82', fontSize: 13, lineHeight: 18, fontWeight: '700' },
-  filterTextSelected: { color: '#FFFFFF', fontWeight: '800' },
+  inboxActions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, minHeight: 44 },
+  unreadCount: { color: '#5B2B89', fontSize: 13, lineHeight: 18, fontWeight: '800' },
+  markAllButton: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 8, borderRadius: 12 },
   groups: { gap: 17 },
   group: { gap: 9 },
   groupHeading: { minHeight: 25, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 2 },
@@ -383,11 +326,10 @@ const styles = StyleSheet.create({
   notificationCard: { flexDirection: 'row', alignItems: 'flex-start', gap: 11, padding: 13, borderRadius: 20, borderWidth: 1, shadowColor: '#4A2B68', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.055, shadowRadius: 9, elevation: 1 },
   readCard: { backgroundColor: '#FFFEFF', borderColor: '#F0E8F5' },
   unreadCard: { backgroundColor: '#F7F1FF', borderColor: '#E8D9F8' },
-  notificationIcon: { width: 42, height: 42, borderRadius: 15, alignItems: 'center', justifyContent: 'center', marginTop: 1 },
+  notificationIcon: { width: 42, height: 42, borderRadius: 15, backgroundColor: '#EEE4FF', alignItems: 'center', justifyContent: 'center', marginTop: 1 },
   notificationCopy: { flex: 1, minWidth: 0 },
   notificationMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, minWidth: 0 },
-  categoryTag: { minHeight: 22, paddingHorizontal: 8, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
-  categoryText: { fontSize: 10, lineHeight: 14, fontWeight: '800' },
+  notificationKind: { color: '#7041B7', fontSize: 11, lineHeight: 15, fontWeight: '800' },
   timeAndUnread: { flexDirection: 'row', alignItems: 'center', gap: 7, flexShrink: 0 },
   notificationTime: { color: '#8A7D95', fontSize: 11, lineHeight: 15, fontWeight: '600' },
   unreadDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#8B3FE8' },
@@ -403,9 +345,6 @@ const styles = StyleSheet.create({
   unavailableHintText: { flex: 1, color: '#5C4374', fontSize: 12, lineHeight: 17, flexShrink: 1 },
   emptyState: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14, paddingTop: 6, paddingBottom: 18 },
   illustrationFrame: { width: '100%', maxWidth: 280, height: 190, marginBottom: 7 },
-  filteredEmpty: { minHeight: 132, alignItems: 'center', justifyContent: 'center', gap: 10, padding: 18, borderRadius: 20, backgroundColor: '#FFFEFF', borderWidth: 1, borderColor: '#F0E8F5' },
-  filteredEmptyIcon: { width: 42, height: 42, borderRadius: 15, backgroundColor: '#F1E7FF', alignItems: 'center', justifyContent: 'center' },
-  filteredEmptyText: { color: '#74677D', fontSize: 13, lineHeight: 19, textAlign: 'center' },
   errorCard: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, padding: 13, borderRadius: 18, backgroundColor: '#FFF1F5', borderWidth: 1, borderColor: '#F1D6E0' },
   errorIcon: { width: 30, height: 30, borderRadius: 10, backgroundColor: '#FFE3EC', alignItems: 'center', justifyContent: 'center' },
   errorCopy: { flex: 1, minWidth: 0, gap: 3 },

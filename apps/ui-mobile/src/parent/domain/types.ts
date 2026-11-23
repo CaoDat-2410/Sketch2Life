@@ -203,32 +203,6 @@ export type ParentRunLifecycleReceipt = {
   created_at: string;
 };
 
-export type ParentAudioTranscription = {
-  contract: 'ParentAudioTranscriptionV1';
-  request_id: string;
-  story_run_id: string;
-  audio_input_id: string;
-  transcript_revision_id: string;
-  transcript_revision_no: number;
-  transcript_raw: string;
-  language: 'vi';
-  language_probability: number;
-  state: 'DRAFT' | 'CONFIRMED' | 'SUPERSEDED';
-  review_required: true;
-  created_at: string;
-};
-
-export type ParentTranscriptConfirmation = {
-  contract: 'ParentTranscriptConfirmationV1';
-  request_id: string;
-  story_run_id: string;
-  transcript_revision_id: string;
-  transcript_revision_no: number;
-  transcript_text: string;
-  run_input_revision: number;
-  context_revision: number;
-};
-
 export type ParentProfileShareGrant = {
   contract: 'ParentProfileShareGrantV1';
   grant_id: string;
@@ -249,20 +223,26 @@ export type ParentProfileSharePage = {
 };
 
 export type ParentNotification = {
-  contract: 'NotificationInboxItemV1';
-  notification_id: string;
-  kind: 'PROFILE_SHARE_INVITATION' | 'PROFILE_SHARE_ACCEPTED' | 'LESSON_FEEDBACK' | 'LESSON_REPLY';
-  title: string;
-  resource_kind: string | null;
-  resource_ref: string | null;
+  contract: 'NotificationV1';
+  inbox_item_id: string;
+  notification_type: string;
+  template_version: number;
+  safe_parameters: Record<string, boolean | number | string>;
   created_at: string;
   read_at: string | null;
+  expires_at: string | null;
 };
 
 export type ParentNotificationPage = {
-  contract: 'NotificationInboxPageV1';
+  contract: 'NotificationPageV1';
   items: ParentNotification[];
   next_cursor: string | null;
+  unread_count: number;
+};
+
+export type ParentNotificationReadAllV1 = {
+  contract: 'NotificationReadAllV1';
+  marked_count: number;
 };
 
 export type ParentVideoQuota = {
@@ -396,6 +376,7 @@ export type ParentLessonPinSnapshotV1 = ParentLessonVersionPinV1 & {
   activities: Activity[];
 };
 
+/** The frozen M2 projection states (the parity test pins this list). */
 export type ParentStoryRunStateV1 =
   | 'INPUT_PROCESSING'
   | 'SUBJECT_REVIEW'
@@ -407,6 +388,19 @@ export type ParentStoryRunStateV1 =
   | 'DELETE_PENDING'
   | 'FAILED'
   | 'COMPLETED';
+
+/** Goal v3 Phase B states the server can now answer (SRS l.394); additive to the frozen list. */
+export type ParentStoryRunPhaseBStateV1 =
+  | 'DRAFT'
+  | 'INPUT_REVIEW'
+  | 'STORY_GENERATING'
+  | 'VIDEO_QUEUED'
+  | 'VIDEO_GENERATING'
+  | 'VIDEO_SAFETY_VALIDATING'
+  | 'VIDEO_READY'
+  | 'SAFETY_BLOCKED'
+  | 'ABANDONED'
+  | 'DELETED';
 
 export type ParentStoryStatusV1 =
   | 'GENERATING'
@@ -422,6 +416,51 @@ export type ParentStoryJobStateV1 =
   | 'SUCCEEDED'
   | 'FAILED'
   | 'AWAITING_RECONCILIATION';
+
+export type ParentActivityRefV1 = {
+  lesson_id: string;
+  version_id: string;
+  content_sha256: string;
+  activity_index: number;
+};
+
+export type ParentActivityV1 = {
+  activity_ref: ParentActivityRefV1;
+  title: string;
+  objective: string;
+  materials_text: string;
+  preparation_text: string;
+  instructions_text: string;
+  observation_notes: string;
+  safety_notes: string;
+  activity_kind: 'outdoor' | 'indoor' | 'mixed';
+  source: 'PINNED_LESSON' | 'PUBLIC' | 'SHARED';
+  lesson_title: string;
+  lesson_topic: string;
+};
+
+export type ParentActivityListV1 = {
+  request_id: string;
+  items: ParentActivityV1[];
+  basis: {
+    age_band: '36-71' | '72-107' | '108-120';
+    pinned_lesson: boolean;
+    no_candidate: boolean;
+  };
+};
+
+/** Phase D can add the suggestion-round variant without changing this method's callers. */
+export type ParentActivitySelectionRequestV1 =
+  | { expected_revision: number; activity: ParentActivityRefV1 }
+  | { expected_revision: number; round_id: string; draft_index: number };
+
+export type ParentMainActivityV1 = {
+  state: 'NOT_SELECTED' | 'SELECTED';
+  selected: ParentActivityV1 | null;
+  selected_at: string | null;
+};
+
+export type ParentPostVideoActivityV1 = ParentActivityV1 & { is_main: boolean };
 
 export type ParentDrawingCandidateDecisionV1 =
   | 'REVIEW_REQUIRED'
@@ -455,7 +494,7 @@ export type ParentStoryDisplayV1 = {
 export type ParentStoryRunV1 = {
   run_id: string;
   run_revision: number;
-  run_state: ParentStoryRunStateV1;
+  run_state: ParentStoryRunStateV1 | ParentStoryRunPhaseBStateV1;
   parent_profile_id: string;
   profile_revision_ref: string;
   context_revision: number;
@@ -473,10 +512,17 @@ export type ParentStoryRunV1 = {
   story_sha256: string | null;
   story: ParentStoryDisplayV1 | null;
   job_state: ParentStoryJobStateV1 | null;
+  main_activity?: ParentMainActivityV1 | null;
+  post_video_activities?: ParentPostVideoActivityV1[] | null;
+  story_confirmation_required?: boolean;
   retryable: boolean;
   error_code: string | null;
   created_at: string;
   updated_at: string;
+  /** StoryRunDetailV1 additions (T-1c, SRS l.1811); absent on older servers, so always optional. */
+  video?: ParentStoryRunVideoV1 | null;
+  quota?: ParentStoryQuotaSummaryV1;
+  timeline?: ParentStoryTimelineEventV1[];
 };
 
 export type ParentStoryRunCreateV1 = {
@@ -527,4 +573,181 @@ export type ParentStoryRevisionResultV1 = {
   story?: unknown;
   story_sha256?: string;
   story_run?: ParentStoryRunV1;
+};
+
+// ---------------------------------------------------------------------------------------------
+// Goal v3 Phase B Parent contracts (backend `bb73e958..00d5ee60`; SRS l.1664-1676, l.1811).
+// Plain TypeScript shapes; every reader in `application/parentPhaseB.ts` validates at runtime.
+// ---------------------------------------------------------------------------------------------
+
+export type ParentAnalysisStateV1 = 'QUEUED' | 'RUNNING' | 'SUCCEEDED' | 'FAILED' | 'AWAITING_RECONCILIATION';
+
+/** 202 of `POST /v1/story-runs/{id}/assets` (T-2b). No job reference exists (Q-J). */
+export type ParentRunAssetAcceptedV1 = {
+  request_id: string;
+  story_run_id: string;
+  asset_ref: string;
+  asset_kind: 'DRAWING';
+  asset_state: 'READY';
+  input_revision: number;
+  run_revision: number;
+  run_state: string;
+  analysis_state: ParentAnalysisStateV1;
+};
+
+export type ParentIdeaSourceV1 = 'TEXT' | 'VOICE' | 'TEXT_AND_VOICE';
+export type ParentTranscriptStateV1 = 'NONE' | 'PENDING' | 'NEEDS_CONFIRMATION' | 'CONFIRMED' | 'FAILED';
+
+/** Body of `POST /v1/story-runs/{id}/idea`: text and/or audio, or one transcript correction (T-2c). */
+export type ParentRunIdeaRequestV1 =
+  | { expected_run_revision: number; text?: string; audio_ref?: string }
+  | { expected_run_revision: number; transcript_correction: { base_revision: number; text: string } };
+
+export type ParentRunIdeaAcceptedV1 = {
+  request_id: string;
+  story_run_id: string;
+  input_revision: number;
+  run_revision: number;
+  run_state: string;
+  idea_source: ParentIdeaSourceV1 | null;
+  transcript: { transcript_revision: number; state: ParentTranscriptStateV1 } | null;
+};
+
+/** The adult's read of the current transcript; a child's words, never cached or logged. */
+export type ParentRunTranscriptV1 = {
+  story_run_id: string;
+  transcript_revision: number | null;
+  state: ParentTranscriptStateV1;
+  origin: 'ASR' | 'ADULT_CORRECTION' | null;
+  text: string | null;
+  transcript_sha256: string | null;
+  language: string | null;
+  error_code: string | null;
+  run_revision: number;
+};
+
+export type ParentTranscriptConfirmedV1 = {
+  request_id: string;
+  story_run_id: string;
+  transcript_revision: number;
+  state: 'CONFIRMED';
+  run_revision: number;
+  run_state: string;
+};
+
+/** 202 of `POST /v1/story-runs/{id}/story-rewrites` (T-2d). No job reference exists (Q-J). */
+export type ParentStoryRewriteAcceptedV1 = {
+  request_id: string;
+  story_run_id: string;
+  story_revision_no: number;
+  run_revision: number;
+  run_state: 'SCRIPT_GENERATING';
+};
+
+export type ParentStoryRewriteRequestV1 = {
+  expected_story_revision: number;
+  expected_story_sha256?: string;
+  hint?: string;
+};
+
+export type ParentVideoReasonCodeV1 = 'QUALITY_LOW' | 'NOT_MATCHING_STORY' | 'CONTENT_CONCERN' | 'OTHER';
+
+export type ParentVideoGenerationStateV1 =
+  | 'ADMISSION_PENDING'
+  | 'ADMISSION_REJECTED'
+  | 'ACCEPTED'
+  | 'QUEUED'
+  | 'GENERATING'
+  | 'TECHNICAL_VALIDATING'
+  | 'SAFETY_VALIDATING'
+  | 'READY'
+  | 'SAFETY_BLOCKED'
+  | 'FAILED'
+  | 'REJECTED_BY_ADULT'
+  | 'SUPERSEDED';
+
+export type ParentVideoRequestV1 = {
+  expected_revision: number;
+  story_sha256: string;
+  quality_reason_code?: ParentVideoReasonCodeV1;
+};
+
+export type ParentVideoUnsuitableRequestV1 = {
+  expected_revision: number;
+  generation_id: string;
+  reason_code: ParentVideoReasonCodeV1;
+};
+
+export type ParentVideoGenerationAcceptedV1 = {
+  request_id: string;
+  video_generation: {
+    generation_id: string;
+    state: ParentVideoGenerationStateV1;
+    generation_no: number | null;
+    kind: 'INITIAL' | 'QUALITY_REGEN';
+    job_id: string | null;
+    run_state: string;
+    run_revision: number;
+  };
+};
+
+export type ParentVideoSceneStateV1 = { scene_index: number; state: 'QUEUED' | 'GENERATING' | 'READY' | 'FAILED' };
+
+export type ParentStoryRunVideoV1 = {
+  current_generation_id: string;
+  generation_no: number | null;
+  kind: 'INITIAL' | 'QUALITY_REGEN';
+  state: ParentVideoGenerationStateV1;
+  job: {
+    job_id: string;
+    state: 'queued' | 'running' | 'succeeded' | 'failed_exhausted' | 'blocked_unsafe';
+    stage: string | null;
+    retryable: boolean;
+    error_code: string | null;
+  } | null;
+  scenes: ParentVideoSceneStateV1[];
+  playback: { state: 'AVAILABLE' | 'HIDDEN' | 'UNAVAILABLE'; asset_ref: string | null; token_route: string | null };
+  /** The three-request run cap of FR-AI-07 (l.573), not the monthly quota. */
+  video_requests_used: number;
+  video_requests_remaining: number;
+  admission_pending: boolean;
+  history: Array<{
+    generation_id: string;
+    generation_no: number;
+    kind: 'INITIAL' | 'QUALITY_REGEN';
+    state: ParentVideoGenerationStateV1;
+  }>;
+};
+
+/** Constant `UNAVAILABLE` marker until a Billing reader exists (TD-22); figures are null, never zero. */
+export type ParentStoryQuotaSummaryV1 = {
+  state: 'UNAVAILABLE';
+  granted: number | null;
+  used: number | null;
+  available: number | null;
+  month: string | null;
+};
+
+export type ParentStoryTimelineEventV1 = { event: string; at: string };
+
+/** 200 of `POST /v1/story-runs/{id}/playback-token` (T-1c). The token is a bearer secret. */
+export type ParentPlaybackGrantV1 = {
+  token: string;
+  expires_at: string;
+  stream_path: string;
+  media_type: 'video/mp4';
+  asset_ref: string;
+};
+
+export type ParentPlaybackTokenResponseV1 = {
+  request_id: string;
+  playback: ParentPlaybackGrantV1;
+};
+
+/** What a native player needs: the stream address and the two headers (never a token in a URL). */
+export type ParentPlaybackSourceV1 = {
+  uri: string;
+  headers: Record<string, string>;
+  /** Epoch milliseconds when the grant stops working. */
+  expiresAtMs: number;
 };

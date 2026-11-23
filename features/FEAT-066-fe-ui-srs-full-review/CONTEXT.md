@@ -495,3 +495,12 @@ CONV-1 applied the D-066-68 conventions to the BE1, Lesson Library, Platform Adm
 - Security and architecture validators passed. `git diff --check` exited 0. Harness validation is blocked by pre-existing missing `apps/mobile/package.json` and FEAT-072 harness paths; see `evidence/notes/EV-066-059_V4A_WEB_WIRING_20261123.md`.
 - The BE checkout tip is `db7e3920`; supplied final `930da61e` is an ancestor. No Teacher contract contradiction was found in the reviewed code.
 - No commit, push, stage, stash, or branch switch occurred.
+## Goal v4 Phase A Parent Android wiring - 2026-11-23
+
+The owner launched the task in the prompt and the task-specific plan and approval were recorded before implementation. Scope stayed in `apps/ui-mobile`; this worktree remains uncommitted and unstaged. The adopted Phase A route list and prompt set the Parent integration contract. FEAT-063 SRS v2.7-draft remains unsigned.
+
+Implementation covers activity list and selection, implicit first-story start from the last successful activity/context gate, run confirmation fields, safe re-confirmation and safety-block recovery, completed playback from history, and nullable post-video activities. First story creation does not call the legacy `story-revisions` route. Resuming `PREPARATION_REVIEW` reloads the activity list as needed; `SCRIPT_GENERATING` uses the first-story wait reader.
+
+The task text has one sequencing conflict: work item 3 says load activities after both subject and context confirmation, while the final R3 text says activity selection is expected first and context confirmation last. The implementation follows the explicit final order and still handles either gate as the last successful gate. No other conflict with the supplied final route list was found during this task.
+
+Verification: all six requested gates passed. Vitest: 18 files, 228 tests, and `UI_COPY_AND_RECOVERY_VALID`. `evidence/notes/PHASE_A_PARENT_ANDROID_WIRING_EVIDENCE_20261123.md` records the gate outputs. No lint script or native Android test suite is present in `apps/ui-mobile`; optional Gradle assembly was not run.

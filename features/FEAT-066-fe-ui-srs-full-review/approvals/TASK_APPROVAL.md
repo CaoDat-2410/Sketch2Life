@@ -763,3 +763,13 @@ Scope amendment, 2026-11-18 (CONV-1 fixtures): the owner approved in chat ("Cho 
 - **Decision:** if visible gates are met but the run remains in `PREPARATION_REVIEW`, show a waiting hint and do not resend context confirmation.
 - **Boundaries:** no Parent/mobile, backend, route/contract changes, credentials, `.env`, `debug.keystore`, model weights, stage/stash/branch switch, commit, or push. Run logs stay in `E:\AI_LOG\CODEX\fe-v4a-web\`.
 - This task-specific approval supersedes earlier FEAT-066 Teacher exclusions only for the scope above. It does not authorize backend changes, a commit, or a push.
+
+Mobile Phase D approval, 2026-11-22: The owner approved the goal v3 Phase D Android Parent wiring for `apps/ui-mobile` (task: check the Phase D backend range `5d1af59b..c47cd6d8`, squash `8c1cf931`, against every route the Parent app calls and wire only Parent-visible changes). Scope: `apps/ui-mobile`, the Phase D plan and the evidence note of this feature folder; no backend, `apps/web`, `apps/mobile`, records or Teacher flows. Result: no Parent-visible backend change was found; the only code change is the explicit serialisation of the Parent create body with its tests. Commit range: `dafe6e0d..` the Phase D commit on `feature/fe-mobile-remediation` (Phase B `c657aa66`, Phase C `dafe6e0d`). Independent audit: Sonnet 5.5 (high), one round, ACCEPT WITH NOTES, no P1/P2. Evidence: `evidence/notes/PHASE_D_MOBILE_WIRING_EVIDENCE_20261122.md`. This entry is appended after implementation because the plan file recorded the owner launch instruction; it does not approve any other task.
+
+## Goal v4 Phase A — Parent Android wiring (2026-11-23)
+
+- **Status:** APPROVED_FOR_IMPLEMENTATION by the owner's explicit launch in the current task prompt (launch word is GIVEN; running this prompt IS the launch).
+- **Plan:** plan/PHASE_A_PARENT_ANDROID_WIRING_PLAN_20261123.md, SHA-256 2102F420F267C4EA5C271FCE1DCA8B51128B84605E508C8A2C527BFBBB60FFF9.
+- **Scope:** apps/ui-mobile on feature/fe-mobile-remediation; this task's FEAT-066 plan, approval, context/decision/status and evidence records. No backend, apps/mobile, credentials/signing files, .env, commit, stage, stash, branch switch or push.
+- **Contract:** final Phase A route list 2026-11-23 and user's task prompt; FEAT-063 SRS remains a draft and is not signed off.
+- This entry approves only Goal v4 Phase A Parent Android wiring and does not alter other FEAT-066 approvals or scopes.

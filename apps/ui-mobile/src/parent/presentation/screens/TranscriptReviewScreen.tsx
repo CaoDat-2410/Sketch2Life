@@ -1,39 +1,54 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import type { ParentAudioTranscription } from '../../domain/types';
+import { StyleSheet, Text } from 'react-native';
+import type { ParentRunTranscriptV1 } from '../../domain/types';
 import { Card, Field, Notice, PrimaryButton, ScreenFrame, SecondaryButton, SectionTitle, palette } from '../components/ui';
 
 type Props = {
   stepLabel: string;
-  transcript: ParentAudioTranscription | null;
+  transcript: ParentRunTranscriptV1 | null;
+  /** The server is still turning the recording into text (state PENDING). */
+  waiting: boolean;
   text: string;
+  /** True when the adult changed the text: it is sent as a correction before the confirmation. */
+  edited: boolean;
   busy: boolean;
   error: string;
   onText: (value: string) => void;
   onConfirm: () => void;
-  onContinueWithoutAudio: () => void;
+  onRefresh: () => void;
   onBack: () => void;
 };
 
+/**
+ * Transcript review (SRS l.512, l.1665, TD-04): the adult reads what the system heard, may correct it,
+ * and confirms exactly that revision. The story is not created from the recording before this.
+ */
 export function TranscriptReviewScreen(props: Props): React.JSX.Element {
+  const failed = props.transcript?.state === 'FAILED';
+  const reviewing = props.transcript?.state === 'NEEDS_CONFIRMATION';
   return (
     <ScreenFrame title="Rà soát bản chép lời" subtitle="Sửa lại trước khi xác nhận." step={props.stepLabel} onBack={props.onBack} backDisabled={props.busy}>
       {props.error ? <Notice text={props.error} tone="error" /> : null}
-      {props.transcript ? <Card style={styles.transcriptCard}>
-        <Notice text="CẦN XÁC NHẬN" tone="warning" />
+      {props.transcript && !props.waiting ? <Card style={styles.transcriptCard}>
+        <Notice text={failed ? 'CHƯA NHẬN DẠNG ĐƯỢC' : 'CẦN XÁC NHẬN'} tone="warning" />
         <SectionTitle>Nội dung nhận dạng</SectionTitle>
-        <View style={styles.confidenceBadge}><Text style={styles.confidenceText}>Độ tin cậy ngôn ngữ: {Math.round(props.transcript.language_probability * 100)}%</Text></View>
+        {failed ? <Text style={styles.emptyText}>Chưa chuyển được giọng nói thành chữ. Bạn có thể gõ lại ý tưởng bên dưới.</Text> : null}
         <Field label="Chỉnh sửa ý tưởng" value={props.text} onChangeText={props.onText} multiline maxLength={500} placeholder="Sửa lại nội dung nếu cần" />
-        <PrimaryButton label="Xác nhận bản chép lời đã sửa" busy={props.busy} disabled={!props.text.trim()} onPress={props.onConfirm} />
+        <PrimaryButton
+          label={failed ? 'Dùng ý tưởng này' : props.edited ? 'Lưu chỗ sửa và xác nhận' : 'Xác nhận bản chép lời'}
+          busy={props.busy}
+          disabled={!props.text.trim() || (!reviewing && !failed)}
+          onPress={props.onConfirm}
+        />
       </Card> : <Card style={styles.emptyCard}>
-        <SectionTitle>Chưa có bản chép lời</SectionTitle>
-        {props.busy
-          ? <Text style={styles.emptyText}>Đang xử lý bản ghi âm. Nội dung chỉ được dùng sau khi người lớn xem lại.</Text>
+        <SectionTitle>{props.waiting ? 'Đang chuyển giọng nói thành chữ' : 'Chưa có bản chép lời'}</SectionTitle>
+        {props.waiting
+          ? <Text style={styles.emptyText}>Việc này có thể mất một lúc. Nội dung chỉ được dùng sau khi người lớn xem lại.</Text>
           : <Text style={styles.emptyText}>{props.error
-            ? 'Bạn vẫn có thể tiếp tục bằng ý tưởng đã nhập hoặc bức tranh.'
-            : 'Chuyển giọng nói thành chữ chưa khả dụng. Bạn có thể tiếp tục bằng ý tưởng hoặc bức tranh.'}</Text>}
+            ? 'Bạn có thể thử tải lại bản chép lời.'
+            : 'Chưa có bản ghi âm nào cho buổi học này.'}</Text>}
+        <SecondaryButton label="Tải lại" disabled={props.busy} onPress={props.onRefresh} />
       </Card>}
-      <SecondaryButton label="Tiếp tục bằng ý tưởng đã nhập" disabled={props.busy} onPress={props.onContinueWithoutAudio} />
     </ScreenFrame>
   );
 }
@@ -42,6 +57,4 @@ const styles = StyleSheet.create({
   transcriptCard: { backgroundColor: palette.white, gap: 12, minWidth: 0 },
   emptyCard: { backgroundColor: palette.white, gap: 12, minWidth: 0 },
   emptyText: { color: palette.muted, fontSize: 13, lineHeight: 19, minWidth: 0, flexShrink: 1 },
-  confidenceBadge: { alignSelf: 'flex-start', minHeight: 24, justifyContent: 'center', paddingHorizontal: 8, paddingVertical: 5, borderRadius: 12, borderWidth: 1.3, borderColor: palette.outline, backgroundColor: palette.butter },
-  confidenceText: { color: palette.ink, fontSize: 9, lineHeight: 13, minWidth: 0, flexShrink: 1 },
 });

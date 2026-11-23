@@ -66,12 +66,56 @@ describe('Phase B error and state degradation', () => {
     expect((error as ParentApiError).status).toBe(404);
     expect(safeParentFlowErrorMessage(error)).toBe('Không tìm thấy nội dung hoặc bạn không thể truy cập nội dung này.');
     expect(parentRecoveryGroupForError(error)).toBe('resource-refresh');
-    for (const code of ['PROFILE_NOT_FOUND', 'VIDEO_TECHNICAL_FAILURE', 'VIDEO_DEADLINE_EXCEEDED', 'INVALID_REQUEST']) {
+    for (const code of ['PROFILE_NOT_FOUND', 'INVALID_REQUEST', 'SOME_FUTURE_CODE']) {
       const message = safeParentFlowErrorMessage({ code });
       expect(message).toBe('Chưa thể hoàn tất thao tác. Vui lòng kiểm tra lại sau.');
       expect(message).not.toContain(code);
     }
-    expect(parentRecoveryGroupForError({ code: 'VIDEO_TECHNICAL_FAILURE' })).toBe('unknown');
+    // The two video failure codes of T-1c now have calm Vietnamese copy and lead back to the story review.
+    for (const code of ['VIDEO_TECHNICAL_FAILURE', 'VIDEO_DEADLINE_EXCEEDED']) {
+      const message = safeParentFlowErrorMessage({ code });
+      expect(message).toContain('Lượt này vẫn được tính');
+      expect(message).not.toContain(code);
+      expect(parentRecoveryGroupForError({ code })).toBe('story-review');
+    }
+    for (const code of [
+      'PARENT_ACTIVITY_SELECTION_REQUIRED', 'DEPENDENCY_UNAVAILABLE', 'PARENT_STORY_RUN_STORE_UNAVAILABLE',
+      'SUBJECT_NOT_CONFIRMED', 'STALE_REVISION', 'INVALID_STATE_TRANSITION', 'VIDEO_REGENERATION_LIMIT_REACHED',
+      'VIDEO_SAFETY_BLOCKED', 'STORAGE_UNAVAILABLE', 'PROVIDER_UNAVAILABLE',
+    ]) {
+      const message = safeParentFlowErrorMessage({ code, message: `private ${code}` });
+      expect(message).not.toContain(code);
+      expect(message).not.toContain(`private ${code}`);
+    }
+  });
+
+  it('routes a completed history row into a fresh run read and playback grant', () => {
+    const historyScreen = readFileSync('src/parent/presentation/screens/StoryHistoryScreen.tsx', 'utf8');
+    const controller = readFileSync('src/parent/presentation/navigation/useParentController.ts', 'utf8');
+    expect(historyScreen).toContain("run.run_state === 'COMPLETED'");
+    expect(historyScreen).toContain('props.onWatch(run.run_id)');
+    const start = controller.indexOf('async function watchHistoryRun');
+    const end = controller.indexOf('function onPlaybackError', start);
+    const watch = controller.slice(start, end);
+    expect(watch).toContain('readLiveRun(runId)');
+    expect(watch).toContain("run.run_state !== 'COMPLETED'");
+    expect(watch).toContain("run.video?.state !== 'READY'");
+    expect(watch).toContain('application.learning.openPlaybackV1(runId)');
+  });
+
+  it('re-confirms only the same spent story revision after a fresh run read', () => {
+    const controller = readFileSync('src/parent/presentation/navigation/useParentController.ts', 'utf8');
+    const start = controller.indexOf('async function confirmStory');
+    const end = controller.indexOf('async function resumeActiveRun', start);
+    const confirm = controller.slice(start, end);
+    expect(confirm).toContain('getLatestRun(runId)');
+    expect(confirm).toContain("latest.story_confirmation_required === true");
+    expect(confirm).toContain("latest.story_status === 'CONFIRMED'");
+    expect(confirm).toContain('latest.story_revision_no !== revisionNo');
+    expect(confirm).toContain('latest.story_sha256 !== revisionSha256');
+    expect(confirm).toContain('retainedActionIdentity(scriptConfirmationAction, signature)');
+    expect(confirm).toContain('scriptConfirmationAction.current = null');
+    expect(confirm).toContain('application.learning.confirmScriptV1(runId, revisionNo, revisionSha256, actionIdentity)');
   });
 
   it('words the pending subject rerun and routes it to the subject review', () => {
@@ -88,7 +132,9 @@ describe('Phase B error and state degradation', () => {
     for (const state of ['VIDEO_QUEUED', 'VIDEO_READY', 'SAFETY_BLOCKED', 'DELETED', 'NOT_A_STATE']) {
       expect(() => runHistoryStateLabel(run(state))).not.toThrow();
     }
-    expect(runHistoryStateLabel(run('VIDEO_QUEUED'))).toBe('Trạng thái chưa xác định');
+    expect(runHistoryStateLabel(run('VIDEO_QUEUED'))).toBe('Video đang chờ xử lý');
+    expect(runHistoryStateLabel(run('VIDEO_READY'))).toBe('Video đã sẵn sàng');
+    expect(runHistoryStateLabel(run('NOT_A_STATE'))).toBe('Trạng thái chưa xác định');
     for (const file of ['HomeScreen', 'StoryHistoryScreen']) {
       expect(readFileSync(`src/parent/presentation/screens/${file}.tsx`, 'utf8')).toContain('Chờ xem lại ảnh và ý tưởng');
     }

@@ -6,10 +6,13 @@ import { ParentPlatformUseCases } from './application/use-cases/ParentPlatformUs
 import { ParentAuth } from './infrastructure/auth/ParentAuth';
 import { parentConfig } from './infrastructure/config';
 import { ParentApi } from './infrastructure/http/ParentApi';
+import { GenericUploadSessionsApi } from './infrastructure/http/GenericUploadSessionsApi';
+import { ExpoBinaryDigest, readLocalFileBytes } from './infrastructure/device/ParentMediaDevice';
 import type { ParentApplicationModule } from './application/ports/ParentApplicationModule';
 
 const identity = new ParentAuth();
 const api = new ParentApi(identity);
+const uploadSessions = new GenericUploadSessionsApi(identity);
 
 export const parentModule: ParentApplicationModule = Object.freeze({
   publicSettings: Object.freeze({
@@ -19,6 +22,10 @@ export const parentModule: ParentApplicationModule = Object.freeze({
   account: new ParentAccountUseCases(identity),
   profiles: new ParentProfileUseCases(api),
   lessons: new ParentLessonUseCases(api),
-  learning: new ParentLearningUseCases(api),
+  learning: new ParentLearningUseCases(api, {
+    sessions: uploadSessions,
+    digest: new ExpoBinaryDigest(),
+    readFileBytes: readLocalFileBytes,
+  }),
   platform: new ParentPlatformUseCases(api),
 });
