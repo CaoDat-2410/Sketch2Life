@@ -1,0 +1,184 @@
+/* School directory: clear type, restrained violet and semantic status colors. */
+html[data-portal="platform"] .pa-organizations { gap: 24px; max-width: 1440px; }
+html[data-portal="platform"] .pa-organizations .pa-heading h1 {
+  font-size: clamp(28px,2.2vw,34px); font-weight: 750; color: var(--pa-ink-strong); letter-spacing: -.035em;
+}
+html[data-portal="platform"] .pa-organizations .pa-heading p { color: var(--pa-muted-strong); font-size: 14px; }
+html[data-portal="platform"] .pa-organizations .pa-org-search-panel {
+  position: relative; overflow: hidden; padding: 10px 12px;
+  background: var(--s2l-ui-neutral-50); border: 1px solid var(--s2l-ui-primary-400); border-radius: 12px;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--s2l-ui-primary-800) 5%, transparent);
+}
+html[data-portal="platform"] .s2l-app-shell .pa-organizations .pa-search-form {
+  display: grid; grid-template-columns: minmax(0,1fr) minmax(180px,220px) 120px;
+  align-items: center; gap: 10px; width: 100%;
+}
+html[data-portal="platform"] .s2l-app-shell .pa-organizations .pa-org-state-filter { min-width: 0; }
+html[data-portal="platform"] .pa-organizations .pa-org-state-filter .s2l-select-trigger {
+  width: 100%; min-height: 44px; border-color: var(--s2l-ui-primary-500); background: var(--s2l-ui-neutral-50); color: var(--s2l-ui-primary-900); font-weight: 600;
+}
+html[data-portal="platform"] .pa-organizations .pa-org-stats {
+  display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 16px;
+}
+html[data-portal="platform"] .pa-organizations .pa-org-stat {
+  display: grid; grid-template-columns: 42px minmax(0,1fr); column-gap: 12px;
+  align-items: center; min-width: 0; min-height: 106px; padding: 18px;
+  background: var(--s2l-ui-neutral-50); border: 1px solid var(--s2l-ui-primary-300); border-top: 3px solid var(--s2l-ui-primary-600); border-radius: 12px;
+  box-shadow: 0 3px 12px color-mix(in srgb, var(--s2l-ui-primary-900) 5%, transparent);
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+html[data-portal="platform"] .pa-organizations .pa-org-stat:hover {
+  border-color: var(--s2l-ui-primary-400); box-shadow: 0 7px 18px color-mix(in srgb, var(--s2l-ui-primary-900) 8%, transparent); transform: translateY(-1px);
+}
+html[data-portal="platform"] .pa-organizations .pa-org-stat-icon {
+  grid-row: span 2; display: grid; place-items: center; width: 42px; height: 42px;
+  border-radius: 10px; color: var(--s2l-ui-primary-700); background: var(--s2l-ui-primary-200);
+}
+html[data-portal="platform"] .pa-organizations .pa-org-stat-label {
+  color: var(--s2l-ui-sky-600); font-size: 13px; font-weight: 600; line-height: 1.4;
+}
+html[data-portal="platform"] .pa-organizations .pa-org-stat strong {
+  color: var(--s2l-ui-primary-900); font-size: 25px; line-height: 1.2; font-weight: 700; font-variant-numeric: tabular-nums;
+}
+html[data-portal="platform"] .pa-organizations .pa-org-stat.is-total {
+  border-color: var(--s2l-ui-primary-300); border-top-color: var(--s2l-ui-primary-700); background: var(--s2l-ui-neutral-50);
+  box-shadow: 0 3px 12px color-mix(in srgb, var(--s2l-ui-primary-900) 5%, transparent);
+}
+html[data-portal="platform"] .pa-organizations .pa-org-stat.is-total .pa-org-stat-icon {
+  color: var(--s2l-ui-primary-700); background: var(--s2l-ui-primary-200);
+}
+html[data-portal="platform"] .pa-organizations .pa-org-stat.is-total .pa-org-stat-label { color: var(--s2l-ui-sky-600); }
+html[data-portal="platform"] .pa-organizations .pa-org-stat.is-total strong { color: var(--s2l-ui-primary-900); }
+html[data-portal="platform"] .pa-organizations .pa-org-stat.is-active { border-top-color: var(--s2l-ui-mint-500); }
+html[data-portal="platform"] .pa-organizations .pa-org-stat.is-paused { border-top-color: var(--s2l-ui-butter-500); }
+html[data-portal="platform"] .pa-organizations .pa-org-stat.is-disabled { border-top-color: var(--s2l-ui-neutral-500); }
+html[data-portal="platform"] .pa-organizations .pa-org-stat.is-active .pa-org-stat-icon { color: var(--s2l-ui-mint-600); background: var(--s2l-ui-mint-100); }
+html[data-portal="platform"] .pa-organizations .pa-org-stat.is-paused .pa-org-stat-icon { color: var(--s2l-ui-butter-600); background: var(--s2l-ui-butter-100); }
+html[data-portal="platform"] .pa-organizations .pa-org-stat.is-disabled .pa-org-stat-icon { color: var(--s2l-ui-neutral-600); background: var(--s2l-ui-sky-100); }
+html[data-portal="platform"] .pa-organizations .pa-org-stats-error { grid-column: 1/-1; margin: -4px 0 0; color: var(--s2l-ui-coral-600); font-size: 13px; }
+html[data-portal="platform"] .pa-organizations .pa-org-stats-note { grid-column: 1/-1; margin: -4px 0 0; color: var(--s2l-ui-neutral-600); font-size: 12px; }
+html[data-portal="platform"] .pa-organizations .pa-org-stats-error button { border: 0; background: none; color: var(--s2l-ui-primary-700); font: inherit; font-weight: 650; cursor: pointer; }
+html[data-portal="platform"] .s2l-app-shell .pa-organizations .pa-search-form .pa-button {
+  width: 120px; min-width: 120px;
+  min-height: 44px; padding-inline: 24px; background: var(--s2l-ui-primary-700); border-color: var(--s2l-ui-primary-700); color: var(--s2l-ui-neutral-50);
+  box-shadow: 0 5px 12px color-mix(in srgb, var(--s2l-ui-primary-700) 16%, transparent); transition: background 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+html[data-portal="platform"] .s2l-app-shell .pa-organizations .pa-search-form .pa-button:hover { background: var(--s2l-ui-primary-hover); border-color: var(--s2l-ui-primary-hover); box-shadow: 0 7px 16px color-mix(in srgb, var(--s2l-ui-primary-700) 22%, transparent); }
+html[data-portal="platform"] .s2l-app-shell .pa-organizations .pa-search-form .pa-button:active { transform: translateY(1px); box-shadow: 0 3px 8px color-mix(in srgb, var(--s2l-ui-primary-700) 15%, transparent); }
+html[data-portal="platform"] .pa-organizations .pa-org-active-filter {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 12px 4px 0; margin-top: 12px; border-top: 1px solid var(--pa-border); color: var(--pa-muted-strong); font-size: 13px;
+}
+html[data-portal="platform"] .pa-organizations .pa-org-active-filter > span { min-width: 0; overflow-wrap: anywhere; }
+html[data-portal="platform"] .pa-organizations .pa-org-active-filter strong { color: var(--pa-primary-hover); font-weight: 650; }
+html[data-portal="platform"] .pa-organizations .pa-org-list-heading {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 24px; border-bottom: 1px solid var(--pa-border);
+}
+html[data-portal="platform"] .pa-organizations .pa-org-list-title,
+html[data-portal="platform"] .pa-organizations .pa-org-create-heading { display: flex; align-items: center; gap: 14px; }
+html[data-portal="platform"] .pa-organizations :is(.pa-org-list-title,.pa-org-create-heading) > span {
+  display: grid; place-items: center; width: 44px; height: 44px; flex: 0 0 44px;
+  border-radius: 12px; background: var(--pa-primary-soft); color: var(--pa-primary);
+}
+html[data-portal="platform"] .pa-organizations :is(.pa-org-list-heading,.pa-org-create-heading) h2 { margin: 0; color: var(--pa-ink-strong); font-size: 18px; font-weight: 700; }
+html[data-portal="platform"] .pa-organizations :is(.pa-org-list-heading,.pa-org-create-heading) p { margin: 5px 0 0; color: var(--pa-muted-strong); font-size: 13px; }
+html[data-portal="platform"] .pa-organizations .pa-org-result-count {
+  background: var(--pa-primary-soft); color: var(--pa-primary-hover); padding: 7px 12px;
+  border-radius: 8px; white-space: nowrap; font-size: 13px; font-weight: 650; font-variant-numeric: tabular-nums;
+}
+html[data-portal="platform"] .pa-organizations .pa-table { min-width: 680px; }
+html[data-portal="platform"] .pa-organizations .pa-table th { padding: 15px 24px; font-size: 13px; font-weight: 700; color: var(--s2l-ui-primary-800); background: var(--s2l-ui-primary-100); }
+html[data-portal="platform"] .pa-organizations .pa-table td { padding: 14px 24px; height: 68px; color: var(--pa-ink-strong); font-size: 14px; }
+html[data-portal="platform"] .pa-organizations .pa-table tbody tr:hover { background: var(--s2l-ui-primary-50); }
+html[data-portal="platform"] .pa-organizations .pa-person { gap: 12px; }
+html[data-portal="platform"] .pa-organizations .pa-person strong { color: var(--pa-ink-strong); font-weight: 600; font-size: 15px; }
+html[data-portal="platform"] .pa-organizations .pa-avatar {
+  width: 40px; height: 40px; flex-basis: 40px; border: 0; border-radius: 11px;
+  color: var(--pa-primary); background: var(--pa-primary-soft); font-size: 13px; font-weight: 700;
+}
+html[data-portal="platform"] .pa-organizations tr:nth-child(2n) .pa-avatar { color: var(--pa-success); background: var(--pa-success-soft); }
+html[data-portal="platform"] .pa-organizations .pa-org-code { font-size: 12px; color: var(--pa-muted-strong); font-variant-numeric: tabular-nums; }
+html[data-portal="platform"] .pa-organizations .pa-status { padding: 6px 11px; font-size: 12px; font-weight: 650; border-radius: 999px; }
+html[data-portal="platform"] .pa-organizations :is(.pa-status-paused,.pa-status-suspended) { background: var(--s2l-ui-butter-100); color: var(--s2l-ui-butter-600); }
+html[data-portal="platform"] .pa-organizations :is(.pa-status-disabled,.pa-status-inactive) { background: var(--s2l-ui-sky-100); color: var(--s2l-ui-neutral-600); }
+html[data-portal="platform"] .pa-organizations .pa-organization-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; min-width: 230px; }
+html[data-portal="platform"] .pa-organizations .pa-org-edit-button {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 36px; padding: 0 11px;
+  border: 1px solid var(--s2l-ui-primary-400); border-radius: 9px; background: var(--s2l-ui-primary-50); color: var(--s2l-ui-primary-800);
+  font: inherit; font-size: 12px; font-weight: 650; white-space: nowrap; cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+html[data-portal="platform"] .pa-organizations .pa-org-edit-button:hover { background: var(--s2l-ui-primary-200); border-color: var(--s2l-ui-primary-500); }
+html[data-portal="platform"] .pa-organizations .pa-org-edit-button:focus-visible { outline: 3px solid color-mix(in srgb, var(--s2l-ui-primary-700) 26%, transparent); outline-offset: 2px; }
+html[data-portal="platform"] .pa-organizations .pa-org-feedback-link {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 40px; white-space: nowrap;
+  color: var(--pa-primary); font-size: 13px; font-weight: 650; text-decoration: none; padding: 6px 10px; border-radius: 7px;
+}
+html[data-portal="platform"] .pa-organizations .pa-org-feedback-link:hover { background: var(--pa-primary-soft); }
+html[data-portal="platform"] .pa-organizations .pa-org-feedback-link:focus-visible { outline: 2px solid var(--s2l-ui-primary-700); outline-offset: 2px; }
+html[data-portal="platform"] .pa-organizations .pa-pager {
+  padding: 18px 24px; color: var(--pa-muted-strong); font-size: 13px; background: var(--pa-canvas);
+}
+html[data-portal="platform"] .pa-organizations .pa-organization-create { border-top: 3px solid var(--pa-primary); }
+html[data-portal="platform"] .pa-organizations .pa-organization-create .pa-form { margin-top: 24px; max-width: 640px; }
+html[data-portal="platform"] .pa-organizations .pa-organization-edit .pa-org-create-heading { padding-bottom: 18px; border-bottom: 1px solid var(--pa-border); }
+html[data-portal="platform"] .pa-organizations .pa-organization-edit .pa-form {
+  display: grid; grid-template-columns: minmax(220px,1.5fr) minmax(210px,1fr) auto; align-items: end; gap: 16px;
+  max-width: none; margin-top: 18px;
+}
+html[data-portal="platform"] .pa-organizations .pa-organization-edit .pa-actions { flex-wrap: nowrap; }
+html[data-portal="platform"] .pa-organizations .pa-org-edit-note { margin: 16px 0 0; padding-top: 13px; border-top: 1px solid var(--pa-border); color: var(--s2l-ui-sky-600); font-size: 12px; }
+html[data-portal="platform"] .pa-organizations .pa-organization-edit .pa-alert,
+html[data-portal="platform"] .pa-organizations .pa-organization-edit .pa-notice { margin: 14px 0 0; }
+/* Keep the web directory usable when the browser viewport narrows. */
+@media (max-width: 980px) {
+  html[data-portal="platform"] .pa-organizations .pa-org-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 620px) {
+  html[data-portal="platform"] .pa-organizations { gap: 18px; }
+  html[data-portal="platform"] .pa-organizations .pa-heading { align-items: flex-start; gap: 16px; }
+  html[data-portal="platform"] .pa-organizations .pa-heading > .pa-actions { width: 100%; flex-wrap: wrap; justify-content: flex-start; }
+  html[data-portal="platform"] .pa-organizations .pa-org-search-panel { padding: 10px; }
+  html[data-portal="platform"] .s2l-app-shell .pa-organizations .pa-search-form {
+    grid-template-columns: minmax(0, 1fr) 120px; gap: 9px;
+  }
+  html[data-portal="platform"] .s2l-app-shell .pa-organizations .pa-search-form .pa-search-control { grid-column: 1 / -1; }
+  html[data-portal="platform"] .s2l-app-shell .pa-organizations .pa-search-form .pa-org-state-filter { grid-column: 1; }
+  html[data-portal="platform"] .s2l-app-shell .pa-organizations .pa-search-form .pa-button { grid-column: 2; width: 120px; min-width: 120px; padding-inline: 12px; }
+  html[data-portal="platform"] .pa-organizations .pa-org-active-filter { align-items: flex-start; flex-direction: column; }
+  html[data-portal="platform"] .pa-organizations .pa-org-list-heading { align-items: flex-start; flex-direction: column; padding: 18px; }
+  html[data-portal="platform"] .pa-organizations .pa-pager { flex-wrap: wrap; gap: 12px; padding: 16px 18px; }
+}
+@media (max-width: 800px) {
+  html[data-portal="platform"] .pa-organizations .pa-organization-edit .pa-form { grid-template-columns: 1fr; }
+  html[data-portal="platform"] .pa-organizations .pa-organization-edit .pa-actions { flex-wrap: wrap; }
+}
+@media (max-width: 460px) {
+  html[data-portal="platform"] .pa-organizations .pa-org-stats { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  html[data-portal="platform"] .pa-organizations .pa-org-stat { min-height: 86px; padding: 14px 16px; }
+  html[data-portal="platform"] .pa-organizations .pa-organizations-table-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  html[data-portal="platform"] .pa-organizations .pa-organization-actions {
+    min-width: 184px;
+    align-items: stretch;
+    flex-direction: column;
+    gap: 6px;
+  }
+  html[data-portal="platform"] .pa-organizations .pa-organization-actions :is(.pa-org-edit-button, .pa-org-feedback-link) {
+    width: 100%;
+    min-height: 36px;
+    justify-content: flex-start;
+    padding-inline: 10px;
+  }
+  html[data-portal="platform"] .pa-organizations .pa-org-list-title { align-items: flex-start; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-portal="platform"] .pa-organizations .pa-org-stat,
+  html[data-portal="platform"] .pa-organizations .pa-search-form .pa-button { transition: none; }
+  html[data-portal="platform"] .pa-organizations .pa-org-stat:hover { transform: none; }
+}

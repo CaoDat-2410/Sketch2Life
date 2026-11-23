@@ -1,0 +1,96 @@
+/* Platform Admin aliases keep legacy layout selectors on the shared mobile palette tokens. */
+html[data-portal="platform"] {
+  --pa-chart-ai: var(--s2l-ui-chart-violet);
+  --pa-chart-email: var(--s2l-ui-chart-coral);
+  --pa-chart-event: var(--s2l-ui-chart-butter);
+  --pa-chart-lifecycle: var(--s2l-ui-chart-sky);
+  --pa-border: var(--s2l-ui-rule);
+  --pa-canvas: var(--s2l-ui-cream);
+  --pa-danger: var(--s2l-ui-danger-ink);
+  --pa-danger-soft: var(--s2l-ui-danger-soft);
+  --pa-ink: var(--s2l-ui-ink);
+  --pa-ink-strong: var(--s2l-ui-ink);
+  --pa-muted: var(--s2l-ui-ink-soft);
+  --pa-muted-strong: var(--s2l-ui-ink-soft);
+  --pa-primary: var(--s2l-ui-primary);
+  --pa-primary-hover: var(--s2l-ui-primary-ink);
+  --pa-primary-action-hover: var(--s2l-ui-primary-hover);
+  --pa-primary-soft: var(--s2l-ui-primary-soft);
+  --pa-radius-control: 18px;
+  --pa-radius-panel: 22px;
+  --pa-control-height: 44px;
+  --pa-font-body: 14px;
+  --pa-font-label: 13px;
+  --pa-font-meta: 12px;
+  --pa-page-gutter: 20px;
+  --pa-sidebar: var(--s2l-ui-sidebar);
+  --pa-success: var(--s2l-ui-success-ink);
+  --pa-success-soft: var(--s2l-ui-success-soft);
+  --pa-warning: var(--s2l-ui-warn-ink);
+  --pa-warning-soft: var(--s2l-ui-warn-soft);
+  --pa-surface: var(--s2l-ui-paper);
+  --pa-surface-soft: var(--s2l-ui-paper);
+}
+
+/* Legacy role aliases use honest accent names and resolve only in the Platform portal scope. */
+html[data-portal="platform"],
+html[data-portal="platform"] .s2l-app-shell,
+html[data-portal="platform"] .platform-accounts {
+  --bg: var(--pa-canvas);
+  --ink: var(--pa-ink);
+  --color-focus: var(--pa-primary);
+  --surface: var(--pa-surface);
+  --surface-2: var(--pa-sidebar);
+  --line: var(--pa-border);
+  --color-paper: var(--pa-canvas);
+  --color-paper-2: var(--pa-sidebar);
+  --color-sheet: var(--pa-surface-soft);
+  --color-ink: var(--pa-ink);
+  --color-ink-2: var(--s2l-ui-neutral-700);
+  --color-muted: var(--pa-muted);
+  --color-rule: var(--pa-border);
+  --color-rule-2: var(--pa-border);
+  --color-accent: var(--pa-primary);
+  --color-accent-strong: var(--s2l-ui-primary-hover);
+  --color-accent-soft: var(--pa-primary-soft);
+  --color-success: var(--s2l-ui-mint-700);
+  --color-success-soft: var(--s2l-ui-mint-soft);
+  --color-danger: var(--s2l-ui-danger-base);
+
+  --admin-paper: var(--pa-canvas);
+  --admin-sheet: var(--pa-surface-soft);
+  --admin-board: var(--pa-sidebar);
+  --admin-ink: var(--pa-ink);
+  --admin-muted: var(--pa-muted);
+  --admin-soft-muted: var(--s2l-ui-neutral-600);
+  --admin-rule: var(--pa-border);
+  --admin-rule-strong: var(--s2l-ui-neutral-300);
+  --admin-primary: var(--pa-primary);
+  --admin-primary-deep: var(--pa-primary-hover);
+  --admin-primary-soft: var(--pa-primary-soft);
+  --admin-danger: var(--pa-danger);
+  --admin-clay: var(--s2l-ui-coral-700);
+  --admin-gold: var(--s2l-ui-butter-700);
+  --admin-radius: 22px;
+
+  --account-paper: var(--pa-canvas);
+  --account-sheet: var(--pa-surface-soft);
+  --account-raised: var(--pa-sidebar);
+  --account-ink: var(--pa-ink);
+  --account-muted: var(--pa-muted);
+  --account-line: var(--pa-border);
+  --account-line-strong: var(--s2l-ui-neutral-300);
+  --account-primary: var(--pa-primary);
+  --account-primary-deep: var(--pa-primary-hover);
+  --account-primary-soft: var(--pa-primary-soft);
+  --account-mint: var(--s2l-ui-mint-700);
+  --account-mint-soft: var(--s2l-ui-mint-soft);
+  --account-gold: var(--s2l-ui-butter-700);
+  --account-gold-soft: var(--s2l-ui-butter-soft);
+  --account-red: var(--s2l-ui-danger-ink);
+  --account-red-soft: var(--s2l-ui-danger-soft);
+
+  --s2l-canvas: var(--pa-canvas);
+  --s2l-paper: var(--pa-surface-soft);
+  --s2l-ink: var(--pa-ink);
+}

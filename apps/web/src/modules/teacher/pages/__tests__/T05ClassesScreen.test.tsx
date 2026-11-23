@@ -76,6 +76,17 @@ describe("Teacher class page scope (T-7a2)", () => {
     expect(await screen.findByText(/Consent chưa thể xác minh/)).toBeTruthy();
     expect(screen.queryByText("Synthetic a")).toBeNull();
   });
+
+  it("shows a calm locked notice for consent-not-effective", async () => {
+    mockApis({ profiles: new TeacherRosterApiError("", "CONSENT_NOT_EFFECTIVE", 403, "corr-locked") });
+    renderDetail();
+    await screen.findByText("Danh sách hồ sơ tạm khóa đến khi có consent hiệu lực");
+    const lockedNotice = screen.getByRole("status");
+    expect(lockedNotice.textContent).toContain("Danh sách hồ sơ tạm khóa đến khi có consent hiệu lực");
+    expect(lockedNotice.textContent).toContain("Consent chưa được xác minh nên dữ liệu trẻ đang bị khóa.");
+    expect(lockedNotice.textContent).toContain("Mã yêu cầu: corr-locked");
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
 });
 
 describe("Teacher read-only suspended class (T-7b)", () => {
@@ -139,11 +150,14 @@ describe("Teacher enrollment move (T-7d)", () => {
   it("offers only other active classes of the same Teacher and sends both revisions", async () => {
     mockApis({ classes: [klass("k1", "active", 3), klass("k2", "active", 7), klass("k3", "suspended", 2), klass("k4", "active", 5)], teacherClassIds: ["k1", "k2", "k3"] });
     const move = vi.spyOn(teacherRosterApi, "moveProfile").mockResolvedValue({ contract: "Be1ProfileMoveV1", child_id: "a", from_class_id: "k1", to_class_id: "k2", enrollment_id: "e", from_class_revision: 4, to_class_revision: 8 });
-    renderDetail();
+    const { container } = renderDetail();
     fireEvent.click(await screen.findByRole("button", { name: "Chuyển lớp" }));
-    const select = screen.getByLabelText("Lớp đích") as HTMLSelectElement;
-    expect(Array.from(select.options).map((option) => option.value)).toEqual(["", "k2"]);
-    fireEvent.change(select, { target: { value: "k2" } });
+    const select = screen.getByRole("combobox", { name: "Lớp đích" });
+    const hiddenSelect = container.querySelector("select.s2l-select-native") as HTMLSelectElement;
+    expect(Array.from(hiddenSelect.options).map((option) => option.value)).toEqual(["", "k2"]);
+    fireEvent.click(select);
+    fireEvent.click(screen.getByRole("option", { name: "Lớp k2" }));
+    expect(hiddenSelect.value).toBe("k2");
     fireEvent.click(screen.getByRole("button", { name: "Xác nhận chuyển lớp" }));
     await waitFor(() => expect(move).toHaveBeenCalledTimes(1));
     expect(move.mock.calls[0].slice(0, 4)).toEqual(["k1", 3, "a", { classId: "k2", revision: 7 }]);
@@ -155,7 +169,8 @@ describe("Teacher enrollment move (T-7d)", () => {
     vi.spyOn(teacherRosterApi, "moveProfile").mockRejectedValue(new TeacherRosterApiError("Thông tin đã thay đổi. Vui lòng tải lại và thử lại.", "STALE_REVISION", 409));
     renderDetail();
     fireEvent.click(await screen.findByRole("button", { name: "Chuyển lớp" }));
-    fireEvent.change(screen.getByLabelText("Lớp đích"), { target: { value: "k2" } });
+    fireEvent.click(screen.getByRole("combobox", { name: "Lớp đích" }));
+    fireEvent.click(screen.getByRole("option", { name: "Lớp k2" }));
     fireEvent.click(screen.getByRole("button", { name: "Xác nhận chuyển lớp" }));
     expect(await screen.findByText(/hãy kiểm tra rồi xác nhận lại/)).toBeTruthy();
     await waitFor(() => expect(classes.mock.calls.length).toBeGreaterThanOrEqual(2));

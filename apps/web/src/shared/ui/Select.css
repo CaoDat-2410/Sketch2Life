@@ -1,0 +1,90 @@
+html[data-cozy="1"] .s2l-select-native {
+  position: absolute !important;
+  width: 1px !important;
+  min-width: 0 !important;
+  height: 1px !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  clip-path: inset(50%) !important;
+  overflow: hidden !important;
+}
+
+html[data-cozy="1"] button.s2l-select-trigger {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 13px;
+  border: 1px solid color-mix(in srgb, var(--s2l-ui-ink) 18%, var(--s2l-ui-rule));
+  border-radius: 12px;
+  background: var(--s2l-ui-paper);
+  color: var(--s2l-ui-ink);
+  font-family: var(--s2l-ui-font, ui-sans-serif, sans-serif);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  text-align: left;
+  cursor: pointer;
+}
+
+html[data-cozy="1"] button.s2l-select-trigger > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+html[data-cozy="1"] button.s2l-select-trigger > svg { flex: none; color: var(--s2l-ui-ink-soft); }
+html[data-cozy="1"] button.s2l-select-trigger:hover:not(:disabled) { border-color: var(--s2l-ui-primary); }
+html[data-cozy="1"] button.s2l-select-trigger:focus-visible,
+html[data-cozy="1"] button.s2l-select-trigger[aria-expanded="true"] {
+  outline: 2px solid var(--s2l-ui-focus);
+  outline-offset: 2px;
+}
+html[data-cozy="1"] button.s2l-select-trigger:disabled { cursor: not-allowed; opacity: .55; }
+
+html[data-cozy="1"] .s2l-select-menu {
+  position: fixed;
+  z-index: 1100;
+  box-sizing: border-box;
+  overflow: auto;
+  padding: 6px;
+  border: 1px solid var(--s2l-ui-rule);
+  border-radius: 12px;
+  background: var(--s2l-ui-paper);
+  color: var(--s2l-ui-ink);
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--s2l-ui-primary) 18%, transparent), 0 2px 8px rgb(40 20 81 / 8%);
+  font-family: var(--s2l-ui-font, ui-sans-serif, sans-serif);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+html[data-cozy="1"] .s2l-select-option {
+  display: flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: var(--s2l-ui-ink);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+html[data-cozy="1"] .s2l-select-option[aria-selected="true"] {
+  color: var(--s2l-ui-primary-hover);
+  font-weight: 650;
+}
+
+html[data-cozy="1"] .s2l-select-option.is-highlighted {
+  background: var(--s2l-ui-primary-soft);
+  color: var(--s2l-ui-primary-hover);
+}
+
+html[data-cozy="1"] .s2l-select-option[aria-disabled="true"] { cursor: not-allowed; opacity: .55; }

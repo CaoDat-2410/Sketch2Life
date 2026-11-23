@@ -66,6 +66,27 @@ SRS_V22_INCLUDED_OPERATIONS: frozenset[tuple[str, str]] = frozenset(
         ("post", "/v1/notifications/read-all"),
         ("get", "/api/be1/v1/organizations/{organization_id}"),
         ("get", "/api/be1/v1/organizations/{organization_id}/me"),
+        ("get", "/api/be1/v1/billing/video-quota/payment-settings"),
+        ("get", "/api/be1/v1/billing/video-quota/products"),
+        ("get", "/api/be1/v1/billing/video-quota"),
+        ("get", "/api/be1/v1/billing/video-quota/invoices"),
+        ("post", "/api/be1/v1/billing/video-quota/checkout"),
+        ("post", "/api/be1/v1/billing/video-quota/invoices/{invoice_id}/reconcile"),
+        ("post", "/api/be1/v1/billing/video-quota/invoices/{invoice_id}/cancel"),
+        ("get", "/api/be1/v1/organizations/{organization_id}/video-quota"),
+        ("get", "/api/be1/v1/organizations/{organization_id}/video-quota/products"),
+        ("get", "/api/be1/v1/organizations/{organization_id}/video-quota/payment-settings"),
+        ("get", "/api/be1/v1/organizations/{organization_id}/video-quota/teachers"),
+        ("get", "/api/be1/v1/organizations/{organization_id}/video-quota/invoices"),
+        (
+            "post",
+            "/api/be1/v1/organizations/{organization_id}/video-quota/invoices/{invoice_id}/reconcile",
+        ),
+        ("post", "/api/be1/v1/organizations/{organization_id}/video-quota/checkout"),
+        ("get", "/api/be1/v1/organizations/{organization_id}/video-quota/allocations"),
+        ("post", "/api/be1/v1/organizations/{organization_id}/video-quota/allocations"),
+        ("post", "/api/be1/v1/organizations/{organization_id}/video-quota/allocations/reclaim"),
+        ("get", "/api/be1/v1/organizations/{organization_id}/video-quota/me"),
         ("post", "/api/be1/v1/classes/{class_id}/assignments"),
         # FEAT-066 T-7b (SRS l.1709): School Manager class archive and manual suspend.
         ("post", "/api/be1/v1/classes/{class_id}/suspend"),
@@ -148,6 +169,13 @@ SRS_V22_OPERATION_TAGS: dict[tuple[str, str], str] = {
     for key in SRS_V22_INCLUDED_OPERATIONS
     if key[1].startswith("/api/be1/v1/")
 }
+SRS_V22_OPERATION_TAGS.update(
+    {
+        key: "Video Quota & Billing"
+        for key in SRS_V22_INCLUDED_OPERATIONS
+        if "/video-quota" in key[1]
+    }
+)
 SRS_V22_OPERATION_TAGS.update(
     {
         key: "Parent Profiles"
@@ -268,16 +296,20 @@ SRS_V22_TAGS: list[dict[str, str]] = [
         "name": "Notifications",
         "description": "Own notification inbox: cursor page and mark-read.",
     },
+    {
+        "name": "Video Quota & Billing",
+        "description": "Scoped quota, checkout, invoices, and Teacher allocations.",
+    },
 ]
 
 SRS_V22_OPENAPI_DESCRIPTION = "\n\n".join(
     (
         "Implemented FE APIs cover Parent profiles, a proposed Parent StoryRun slice, "
-        "organization/class management, consent, and Teacher lesson preparation.",
-        "Authentication and role/resource access are checked per operation.",
-        "Parent activity catalog, Teacher occurrence, Sketch Deck, sample video, jobs/playback, "
-        "quota/payment, and notification push endpoints are unavailable.",
-        "Proposed Parent confirmations and draft SRS status remain subject to approval.",
+        "organization/class management, consent, Teacher lesson preparation, and scoped video quota commerce.",
+        "Authentication and access are checked.",
+        "Activity catalog, Teacher occurrence, Sketch Deck, sample video, jobs/playback, "
+        "and notifications are unavailable; provider callbacks are excluded.",
+        "Parent confirmations and the draft SRS remain subject to approval.",
     )
 )
 

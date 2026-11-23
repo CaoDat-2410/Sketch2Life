@@ -12,6 +12,7 @@ import {
 import { AdminBe1Error } from "../services/be1Client";
 import { PageHeading } from "../../../../shared/components/FeatureAvailability";
 import { createIdempotencyKey } from "../../../../shared/api/backendApi";
+import { Alert, Button, FormField, Select } from "../../../../shared/ui";
 
 export function ClassesPage() {
   const [classes, setClasses] = useState<Be1Class[]>([]);
@@ -21,6 +22,7 @@ export function ClassesPage() {
   const [retryName, setRetryName] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState("");
   const [error, setError] = useState("");
+  const [stateError, setStateError] = useState("");
   const [notice, setNotice] = useState("");
   const actionKeys = useRef(new Map<string, string>());
   // T-7b: the list filter (default every state) and one key per exact suspend/archive command.
@@ -87,7 +89,7 @@ export function ClassesPage() {
     const signature = JSON.stringify([target.class_id, command, revision]);
     const key = stateKeys.current.get(signature) ?? createIdempotencyKey();
     stateKeys.current.set(signature, key);
-    setChangingState(true); setError(""); setNotice("");
+    setChangingState(true); setStateError(""); setNotice("");
     try {
       const result = await classService.changeClassState(target.class_id, command, revision, key);
       stateKeys.current.delete(signature);
@@ -102,7 +104,7 @@ export function ClassesPage() {
       if (!outcome.keepKey) stateKeys.current.delete(signature);
       // The reload clears the page error, so the refusal text is set after it.
       if (outcome.reload) { setPendingCommand(null); await refresh(); }
-      setError(outcome.text);
+      setStateError(outcome.text);
     } finally { setChangingState(false); }
   };
 
@@ -117,35 +119,49 @@ export function ClassesPage() {
         action={<button type="button" className="manager-business-button" onClick={() => void refresh()} disabled={loading || changingState}><RefreshCw size={16} aria-hidden="true" />Làm mới từ BE1</button>}
       />
 
-      <section className="manager-business-card manager-business-create-class" aria-labelledby="create-class-heading">
+      <section className="manager-business-card cozy-form-card cozy-form-card--wide manager-business-create-class" aria-labelledby="create-class-heading">
         <div>
           <h2 id="create-class-heading">Tạo lớp</h2>
           <p className="manager-business-subtle">Nhập tên lớp. Nếu kết quả gửi chưa rõ, hãy gửi lại cùng yêu cầu để tránh tạo trùng.</p>
         </div>
-        <form onSubmit={(event) => { event.preventDefault(); void createClass(); }}>
-          <label htmlFor="manager-class-name">Tên lớp</label>
-          <input id="manager-class-name" value={displayName} onChange={(event) => setDisplayName(event.target.value)} maxLength={200} required disabled={creating} />
-          <button type="submit" className="manager-business-button is-primary" disabled={creating || !displayName.trim()}>
-            {creating ? "Đang tạo…" : retryName !== null && retryName === displayName.trim() ? "Gửi lại cùng yêu cầu" : "Tạo lớp"}
-          </button>
+        <form className="cozy-form-stack" onSubmit={(event) => { event.preventDefault(); void createClass(); }}>
+          {error && <Alert role="alert" tone="danger">{error}</Alert>}
+          <div className="cozy-form-grid">
+            <FormField
+              className="cozy-span-4"
+              label="Tên lớp"
+              htmlFor="manager-class-name"
+              required
+              help="API tạo lớp hiện chưa kiểm tra giới hạn sức chứa (SRS FR-T-03); hãy tự kiểm tra sức chứa trước khi tạo lớp."
+            >
+              <input id="manager-class-name" className="cozy-input" value={displayName} onChange={(event) => setDisplayName(event.target.value)} maxLength={200} required disabled={creating} />
+            </FormField>
+            <div className="cozy-form-actions cozy-span-2 cozy-form-inline-action" style={{ marginTop: 0 }}>
+              <Button type="submit" variant="primary" loading={creating} disabled={creating || !displayName.trim()}>
+                {creating ? "Đang tạo…" : retryName !== null && retryName === displayName.trim() ? "Gửi lại cùng yêu cầu" : "Tạo lớp"}
+              </Button>
+            </div>
+          </div>
+          {!creating && !displayName.trim() && (
+            <p className="cozy-form-disabled-hint">Nhập tên lớp để bật nút tạo lớp.</p>
+          )}
         </form>
-        <p className="manager-business-subtle">API tạo lớp hiện chưa kiểm tra giới hạn sức chứa (SRS FR-T-03); hãy tự kiểm tra sức chứa trước khi tạo lớp.</p>
       </section>
-      {error && <div role="alert" className="manager-business-alert">{error}</div>}
       {notice && <div role="status" className="manager-business-subtle">{notice}</div>}
 
       <section className="s2l-data-grid" aria-label="Lớp học trong phạm vi được cấp quyền">
-        <div className="s2l-data-card">
-          <h2>Danh sách lớp</h2>
-          <label className="manager-business-filter">
-            Trạng thái lớp
-            <select value={filter} disabled={loading || changingState} onChange={(event) => { const next = event.target.value as Be1ClassFilter; setFilter(next); setPendingCommand(null); void refresh(next); }}>
-              <option value="all">Tất cả</option>
-              <option value="active">Đang hoạt động</option>
-              <option value="suspended">Tạm ngưng</option>
-              <option value="archived">Đã lưu trữ</option>
-            </select>
-          </label>
+        <div className="s2l-data-card cozy-form-stack">
+          <div className="manager-business-card-head-row">
+            <h2>Danh sách lớp</h2>
+            <FormField label="Trạng thái lớp" htmlFor="manager-class-filter" className="manager-business-filter-inline">
+              <Select id="manager-class-filter" aria-label="Trạng thái lớp" value={filter} disabled={loading || changingState} onChange={(event) => { const next = event.target.value as Be1ClassFilter; setFilter(next); setPendingCommand(null); void refresh(next); }}>
+                <option value="all">Tất cả</option>
+                <option value="active">Đang hoạt động</option>
+                <option value="suspended">Tạm ngưng</option>
+                <option value="archived">Đã lưu trữ</option>
+              </Select>
+            </FormField>
+          </div>
           {loading ? <p role="status">Đang tải danh sách lớp…</p> : classes.length === 0 ? <p className="s2l-note">BE1 chưa trả lớp nào cho tài khoản này.</p> : (
             <ul className="s2l-class-list">
               {classes.map((item) => (
@@ -176,21 +192,27 @@ export function ClassesPage() {
               {selected.class_revision === undefined ? (
                 <p className="manager-business-subtle">Máy chủ chưa trả phiên bản lớp; tạm thời chưa thể đổi trạng thái lớp.</p>
               ) : pendingCommand ? (
-                <div role="group" aria-labelledby="class-state-confirm">
-                  <p id="class-state-confirm" className="manager-business-subtle">
+                <div className="cozy-form-section cozy-form-stack" role="group" aria-labelledby="class-state-confirm">
+                  <p id="class-state-confirm" className="manager-business-subtle" style={{ marginTop: 0 }}>
                     {pendingCommand === "suspend"
                       ? `Tạm ngưng lớp “${selected.display_name}”? Lớp tạm ngưng chỉ đọc, mọi dữ liệu vẫn được giữ.`
                       : `Lưu trữ lớp “${selected.display_name}”? Lưu trữ là bước cuối: Teacher không còn thấy lớp, dữ liệu vẫn được giữ và không có thao tác khôi phục.`}
                   </p>
-                  <button type="button" className="manager-business-button is-primary" onClick={() => void changeState(pendingCommand)} disabled={changingState}>
-                    {changingState ? "Đang gửi…" : pendingCommand === "suspend" ? "Xác nhận tạm ngưng" : "Xác nhận lưu trữ"}
-                  </button>
-                  <button type="button" className="manager-business-button" onClick={() => setPendingCommand(null)} disabled={changingState}>Hủy</button>
+                  {stateError && <Alert role="alert" tone="danger">{stateError}</Alert>}
+                  <div className="cozy-form-actions" style={{ marginTop: 0 }}>
+                    <Button type="button" variant="secondary" onClick={() => { setPendingCommand(null); setStateError(""); }} disabled={changingState}>Hủy</Button>
+                    <Button type="button" variant={pendingCommand === "archive" ? "danger" : "primary"} loading={changingState} onClick={() => void changeState(pendingCommand)} disabled={changingState}>
+                      {changingState ? "Đang gửi…" : pendingCommand === "suspend" ? "Xác nhận tạm ngưng" : "Xác nhận lưu trữ"}
+                    </Button>
+                  </div>
                 </div>
               ) : (
-                <div>
-                  {commands.includes("suspend") && <button type="button" className="manager-business-button" onClick={() => setPendingCommand("suspend")} disabled={changingState || loading}>Tạm ngưng lớp</button>}
-                  {commands.includes("archive") && <button type="button" className="manager-business-button" onClick={() => setPendingCommand("archive")} disabled={changingState || loading}>Lưu trữ lớp</button>}
+                <div className="cozy-form-stack">
+                  {stateError && <Alert role="alert" tone="danger">{stateError}</Alert>}
+                  <div className="cozy-form-actions" style={{ marginTop: 0 }}>
+                    {commands.includes("archive") && <Button type="button" variant="danger" className="cozy-form-action-danger" onClick={() => { setPendingCommand("archive"); setStateError(""); }} disabled={changingState || loading}>Lưu trữ lớp</Button>}
+                    {commands.includes("suspend") && <Button type="button" variant="secondary" onClick={() => { setPendingCommand("suspend"); setStateError(""); }} disabled={changingState || loading}>Tạm ngưng lớp</Button>}
+                  </div>
                 </div>
               )}
             </div>

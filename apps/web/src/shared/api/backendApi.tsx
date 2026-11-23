@@ -5,7 +5,7 @@ import { CURSOR_PAGE_LIMIT, collectCursorPages } from "./cursorPages";
 
 export type PortalRole = "parent" | "teacher" | "school_manager" | "platform_admin";
 export type PlatformAccountRole = PortalRole;
-export type PlatformAccountState = "active" | "disabled";
+export type PlatformAccountState = "active" | "disabled" | "pending_verification";
 
 export interface PlatformManagedAccount {
   account_id: string;
@@ -20,7 +20,6 @@ interface PlatformAccountPage {
   items: PlatformManagedAccount[];
   total: number;
   limit: number;
-  offset: number;
   /** FEAT-066 C5 (SRS 21.1): opaque cursor of the next page; null at the end. */
   next_cursor: string | null;
 }
@@ -507,6 +506,31 @@ export const backendApi = {
     const suffix = query.toString();
     return backendRequest<PlatformAccountPage>(`/api/platform-admin/v1/accounts${suffix ? `?${suffix}` : ""}`);
   },
+  listAllPlatformAccounts: async (filters: {
+    role?: PlatformAccountRole;
+    state?: PlatformAccountState;
+    search?: string;
+  } = {}) => {
+    const items: PlatformManagedAccount[] = [];
+    const seen = new Set<string>();
+    let cursor: string | undefined;
+    let total = 0;
+    do {
+      const params = new URLSearchParams();
+      for (const [key, value] of Object.entries({ ...filters, limit: 100, cursor })) {
+        if (value !== undefined && value !== "") params.set(key, String(value));
+      }
+      const page = await backendRequest<PlatformAccountPage>(
+        `/api/platform-admin/v1/accounts?${params.toString()}`,
+      );
+      items.push(...page.items);
+      total = page.total;
+      cursor = page.next_cursor ?? undefined;
+      if (cursor && seen.has(cursor)) throw new Error("Tài khoản trả về cursor phân trang bị lặp.");
+      if (cursor) seen.add(cursor);
+    } while (cursor);
+    return { items, total };
+  },
   // FEAT-066 C5 (SRS 21.4): account create and update send an Idempotency-Key; the caller keeps
   // the key for a retry of the same command.
   createPlatformAccount: (payload: {
@@ -522,10 +546,11 @@ export const backendApi = {
   updatePlatformAccount: (
     accountId: string,
     payload: { role?: PlatformAccountRole; state?: PlatformAccountState; organization_id?: string },
-    idempotencyKey = createRequestId(),
+    idempotencyKey: string,
+    revision: number,
   ) => backendRequest<PlatformManagedAccount>(`/api/platform-admin/v1/accounts/${encodeURIComponent(accountId)}`, {
     method: "PATCH",
-    headers: { "Idempotency-Key": idempotencyKey },
+    headers: { "Idempotency-Key": idempotencyKey, "If-Match": `"${revision}"` },
     body: JSON.stringify(payload),
   }),
 };
@@ -580,10 +605,10 @@ export function BackendNotice({
   tone?: "info" | "warn" | "error" | "success";
 }) {
   const palette = {
-    info: { background: "#E8EAFF", border: "#C7CCFF", color: "#192477" },
-    warn: { background: "#fffbeb", border: "#fde68a", color: "#78350f" },
-    error: { background: "#fef2f2", border: "#fecaca", color: "#7f1d1d" },
-    success: { background: "#ecfdf5", border: "#a7f3d0", color: "#064e3b" },
+    info: { background: "var(--s2l-ui-primary-soft, #f1e7ff)", border: "var(--s2l-ui-primary-300, #e9d9ff)", color: "var(--s2l-ui-primary-hover, #54239a)" },
+    warn: { background: "var(--s2l-ui-warn-soft, #fff3d1)", border: "var(--s2l-ui-butter-300, #ffe29a)", color: "var(--s2l-ui-warn-ink, #5a4100)" },
+    error: { background: "var(--s2l-ui-danger-soft, #fce8e2)", border: "var(--s2l-ui-coral-300, #ffaa99)", color: "var(--s2l-ui-danger-ink, #5b211a)" },
+    success: { background: "var(--s2l-ui-success-soft, #e6f4e1)", border: "var(--s2l-ui-mint-300, #b8e2a7)", color: "var(--s2l-ui-success-ink, #193b20)" },
   }[tone];
   return (
     <section role="status" style={{ margin: "14px 0", padding: "12px 16px", border: `1px solid ${palette.border}`, borderRadius: 14, background: palette.background, color: palette.color }}>

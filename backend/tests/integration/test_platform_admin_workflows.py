@@ -64,7 +64,7 @@ def admin_api(monkeypatch):
     monkeypatch.setattr(
         admin_routes,
         "get_settings",
-        lambda: SimpleNamespace(env="test", billing_sandbox_enabled=True),
+        lambda: SimpleNamespace(env="test", billing_sandbox_enabled=True, redis_url=None),
     )
     app.include_router(router)
     app.include_router(accounts_router)
@@ -859,3 +859,73 @@ def test_sandbox_configuration_lists_use_filter_bound_keyset_cursors(admin_api):
         BASE + f"/organizations/{other_org}/capacity-classes",
         params={"limit": 1, "cursor": classes["next_cursor"]},
     ).status_code == 422
+
+
+def test_teacher_exit_returns_allocation_with_runtime_session(admin_api):
+    from sqlalchemy import select
+
+    from sketch2life.infrastructure.billing.quota_commerce import QuotaCommerceService
+    from sketch2life.infrastructure.persistence.be1_models import (
+        OrganizationAssignmentModel, OrganizationModel,
+    )
+    from sketch2life.infrastructure.persistence.billing_models import (
+        BillingQuotaAllocationEventModel, BillingQuotaAllocationModel,
+    )
+    from sketch2life.infrastructure.persistence.database import create_core_session_factory
+    from sketch2life.interfaces.http.routers.platform_admin_accounts import _revoke_assignments
+
+    _, _, teacher, _, engine = admin_api
+    org, allocation, assignment = (str(uuid4()) for _ in range(3))
+    factory = create_core_session_factory(engine)
+    with factory() as db:
+        assert not db.autoflush
+        db.add(OrganizationModel(organization_id=org, display_name="Exit regression"))
+        db.flush()
+        db.add(OrganizationAssignmentModel(assignment_id=assignment, organization_id=org,
+                                           subject=teacher, role="teacher", active=True))
+        db.add(BillingQuotaAllocationModel(allocation_id=allocation, organization_ref=org,
+                                          teacher_ref=teacher, active=True, revision=1))
+        db.add(BillingQuotaAllocationEventModel(event_id=str(uuid4()), allocation_id=allocation,
+            organization_ref=org, teacher_ref=teacher, event_kind="ALLOCATED", units=7,
+            actor_ref=teacher, operation_key="initial"))
+        db.commit()
+        _revoke_assignments(db, subject=teacher)
+        db.commit()
+        events = list(db.scalars(select(BillingQuotaAllocationEventModel).where(
+            BillingQuotaAllocationEventModel.allocation_id == allocation,
+            BillingQuotaAllocationEventModel.event_kind == "RETURNED")))
+        assert len(events) == 1 and events[0].units == 7
+        assert not db.get(BillingQuotaAllocationModel, allocation).active
+        service = object.__new__(QuotaCommerceService)
+        service.db = db
+        assert service._allocation_net(allocation) == 0
+
+
+def test_school_allocation_and_reclaim_with_runtime_session(admin_api):
+    from sketch2life.infrastructure.billing.quota_commerce import QuotaCommerceService
+    from sketch2life.infrastructure.persistence.be1_models import (
+        OrganizationAssignmentModel, OrganizationModel,
+    )
+    from sketch2life.infrastructure.persistence.billing_models import VideoQuotaGrantModel
+    from sketch2life.infrastructure.persistence.database import create_core_session_factory
+
+    _, _, teacher, _, engine = admin_api
+    org = str(uuid4())
+    with create_core_session_factory(engine)() as db:
+        db.get(AdultIdentityModel, teacher).account_role = "teacher"
+        db.add(OrganizationModel(organization_id=org, display_name="Allocation regression"))
+        db.flush()
+        db.add(OrganizationAssignmentModel(assignment_id=str(uuid4()), organization_id=org,
+                                           subject=teacher, role="teacher", active=True))
+        db.add(VideoQuotaGrantModel(grant_id=str(uuid4()), owner_kind="ORGANIZATION",
+                                    owner_ref=org, kind="TOP_UP", units=10))
+        db.commit()
+        service = QuotaCommerceService(db, "manager", SimpleNamespace())
+        allocated = service.allocate(org, teacher, 7, "allocate")
+        assert allocated["available_units"] == 7
+        assert service.quota_summary("ORGANIZATION", org)["available_units"] == 3
+        assert service.allocate(org, teacher, 7, "allocate") == allocated
+        reclaimed = service.reclaim(org, teacher, 4, allocated["revision"], "reclaim")
+        assert reclaimed["available_units"] == 3
+        assert service.quota_summary("ORGANIZATION", org)["available_units"] == 7
+        assert service.reclaim(org, teacher, 4, allocated["revision"], "reclaim") == reclaimed

@@ -244,7 +244,7 @@ html[data-portal] .tw-nav-item.is-on, html[data-portal] .mg-nav-item.is-active, 
 }
 html[data-portal] .tw-nav-item.is-on svg, html[data-portal] .mg-nav-item.is-active .mg-nav-ico { color: var(--color-accent) !important; }
 html[data-portal] .tw-side .tw-nav-item:hover, html[data-portal] .tw-side .tw-nav-group-btn:hover, html[data-portal] .mg-nav-item:hover { background: var(--color-paper-2) !important; color: var(--color-ink) !important; }
-html[data-portal] .tw-card, html[data-portal] .mg-card, html[data-portal] .mg-panel, html[data-portal] .tw-kpi, html[data-portal] .mg-profile, html[data-portal] .tw-modal, html[data-portal] .mg-modal, html[data-portal] .mg-item {
+html[data-portal] .tw-card:not(.cozy-form-card), html[data-portal] .mg-card, html[data-portal] .mg-panel, html[data-portal] .tw-kpi, html[data-portal] .mg-profile, html[data-portal] .tw-modal, html[data-portal] .mg-modal, html[data-portal] .mg-item {
   background: var(--color-sheet) !important;
   color: var(--color-ink) !important;
   border-color: var(--color-rule) !important;
@@ -272,7 +272,7 @@ html[data-portal] .mg-input, html[data-portal] .mg-textarea, html[data-portal] .
   border-color: var(--color-rule) !important;
   color: var(--color-ink);
 }
-html[data-portal] .mg-input:focus, html[data-portal] .mg-textarea:focus, html[data-portal] .tw-input:focus, html[data-portal] input:focus, html[data-portal] select:focus, html[data-portal] textarea:focus {
+html[data-portal] .mg-input:focus, html[data-portal] .mg-textarea:focus, html[data-portal] .tw-input:focus, html[data-portal] input:not(.pa-search-input):focus, html[data-portal] select:focus, html[data-portal] textarea:focus {
   border-color: var(--color-focus) !important;
   box-shadow: 0 0 0 3px var(--color-accent-soft) !important;
 }

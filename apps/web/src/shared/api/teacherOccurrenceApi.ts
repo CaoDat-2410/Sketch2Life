@@ -3,8 +3,11 @@
 // `AiJobStatusV1` contracts. They are deliberately separate from the lesson-library DTOs
 // (`/api/lesson-library/...`, `upload_session_id`, `Content-Range`): the two wire contracts differ.
 // The client only handles opaque ids and refs; it never reads or logs a storage location or token.
-import { BackendApiError, apiBaseUrl, createIdempotencyKey } from "./backendApi";
-import { parseApiError } from "./errorEnvelope";
+import { BackendApiError, createIdempotencyKey } from "./backendApi";
+import { data, enc, ifNoneMatch, request, write } from "./teacherHttp";
+import type { ConditionalResult } from "./teacherHttp";
+export { NOT_FOUND_OR_NO_ACCESS, OccurrenceApiError } from "./teacherHttp";
+export type { ConditionalResult, FieldIssue } from "./teacherHttp";
 
 export type OccurrenceState = "DRAFT" | "DOCUMENT_REVIEW" | "PLAN_REVIEW" | "APPROVED" | "SAMPLE_AVAILABLE" | "SAMPLE_USED" | "ARCHIVED";
 export type UploadState = "OPEN" | "COMPLETED" | "ABORTED" | "EXPIRED" | "FAILED";
@@ -48,7 +51,7 @@ export interface AcceptedDocument {
   contract: "LessonSourceDocumentAcceptedV1"; source_document_id: string; document_revision_no: 1;
   job: { job_id: string; target_kind: "LESSON_SOURCE_DOCUMENT"; state: "succeeded" };
 }
-export interface PlanActivity { order: number; kind: "LESSON" | "CUSTOM" | "CATALOG"; lesson_activity_id: string | null; title: string | null; description: string | null; snapshot_hash: string | null; checklist_required: boolean; checklist_version: string | null; confirmed: boolean }
+export interface PlanActivity { plan_activity_id?: string | null; order: number; kind: "LESSON" | "CUSTOM" | "CATALOG"; lesson_activity_id: string | null; title: string | null; description: string | null; snapshot_hash: string | null; checklist_required: boolean; checklist_version: string | null; confirmed: boolean }
 export interface PlanRevision {
   contract: "LessonPlanRevisionV1"; occurrence_id: string; revision_no: number; state: "DRAFT" | "APPROVED" | "SUPERSEDED";
   content_hash: string; document_revision_ref: { document_id: string; revision_no: number } | null;
@@ -72,21 +75,6 @@ export interface JobStatus {
   result_refs: Array<{ artifact_ref: string; sha256: string }>; poll_after_ms: number | null;
 }
 
-export interface FieldIssue { field: string; code: string }
-/** A backend error that keeps the safe `field_errors` of a 400 (field path and code only, never a raw body). */
-export class OccurrenceApiError extends BackendApiError {
-  readonly fieldErrors: FieldIssue[];
-  constructor(message: string, code: string, status: number, requestId: string | undefined, fieldErrors: FieldIssue[]) {
-    super(message, code, status, requestId);
-    this.name = "BackendApiError";
-    this.fieldErrors = fieldErrors;
-  }
-}
-const SAFE_FIELD = /^[A-Za-z0-9_.[\]-]{1,80}$/;
-const SAFE_CODE = /^[A-Z][A-Z0-9_]{0,63}$/;
-const safeFieldErrors = (items: FieldIssue[]) => items.filter((item) => SAFE_FIELD.test(item.field) && SAFE_CODE.test(item.code)).slice(0, 20);
-
-export interface ConditionalResult<T> { data: T | null; etag: string | null; notModified: boolean }
 /** One key per upload step so a retry of the same user action replays instead of repeating it. */
 export interface OccurrenceUploadKeys { create: string; complete: string }
 export interface UploadOptions {
@@ -109,80 +97,16 @@ export const PLAN_LIMITS = { objectives: 12, objectiveChars: 1000, directionChar
 export const JOB_POLL_MAX_TRANSIENT_FAILURES = 3;
 
 export const TERMINAL_JOB_STATES: ReadonlySet<JobState> = new Set<JobState>(["succeeded", "failed_exhausted", "blocked_unsafe", "cancelled"]);
-const visibleAscii = /^[\x21-\x7E]{1,128}$/;
-
-// Vietnamese copy for codes the shared table does not cover. Everything else uses the shared envelope message.
-const CODE_MESSAGES: Record<string, string> = {
-  TEACHER_ASSIGNMENT_REQUIRED: "Bạn cần được phân công vào lớp trước khi tạo buổi dạy.",
-  OCR_NOT_SUPPORTED: "Tài liệu đã tải lên chưa được hỗ trợ trích xuất.",
-  ENCRYPTED_DOCUMENT_UNSUPPORTED: "Tài liệu được bảo vệ và không thể trích xuất.",
-  UPLOAD_CHECKSUM_MISMATCH: "Dữ liệu tải lên không khớp mã kiểm tra. Hãy thử tải lại.",
-  UPLOAD_CONTENT_MISMATCH: "Nội dung tệp không khớp định dạng đã chọn. Hãy chọn tệp khác.",
-  MALWARE_DETECTED: "Tệp không được chấp nhận. Hãy chọn tệp khác.",
-  STORAGE_UNAVAILABLE: "Dịch vụ lưu trữ tạm thời chưa sẵn sàng. Hãy thử lại sau.",
-};
-export const NOT_FOUND_OR_NO_ACCESS = "Không tìm thấy nội dung hoặc bạn không có quyền truy cập. Hãy làm mới danh sách.";
-
-function messageFor(status: number, code: string, parsedMessage: string): string {
-  // A wrong-scope 404 and a missing id look the same on purpose (SRS 9.8): never reveal which one it was.
-  if (status === 404 || code === "RESOURCE_NOT_FOUND") return NOT_FOUND_OR_NO_ACCESS;
-  return CODE_MESSAGES[code] ?? parsedMessage;
-}
-
-async function request<T>(path: string, init: RequestInit = {}, conditional = false): Promise<ConditionalResult<T>> {
-  const headers = new Headers(init.headers);
-  headers.set("Accept", "application/json");
-  const requestId = headers.get("X-Request-ID") ?? createIdempotencyKey();
-  headers.set("X-Request-ID", requestId);
-  const token = await window.sketch2lifeAuth?.getIdToken().catch(() => null);
-  if (!token) throw new BackendApiError("Phiên đăng nhập chưa sẵn sàng.", "AUTHENTICATION_REQUIRED", 401, requestId);
-  headers.set("Authorization", `Bearer ${token}`);
-  if (init.body && !(init.body instanceof Blob) && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
-  let response: Response;
-  try { response = await fetch(`${apiBaseUrl()}${path}`, { ...init, headers }); }
-  catch (cause) {
-    if (cause instanceof Error && cause.name === "AbortError") throw cause;
-    throw new BackendApiError("Không kết nối được dịch vụ.", "NETWORK_ERROR", 0, requestId);
-  }
-  const etag = response.headers.get("ETag");
-  if (conditional && response.status === 304) return { data: null, etag, notModified: true };
-  const text = await response.text();
-  let body: unknown = null;
-  if (text) {
-    try { body = JSON.parse(text) as unknown; }
-    catch { throw new BackendApiError("Dịch vụ trả về dữ liệu không hợp lệ.", "INVALID_RESPONSE", response.status, response.headers.get("X-Request-ID") ?? requestId); }
-  }
-  if (!response.ok) {
-    const parsed = parseApiError(body, response.status, response.headers.get("X-Request-ID") ?? requestId);
-    throw new OccurrenceApiError(messageFor(response.status, parsed.code, parsed.message), parsed.code, response.status, parsed.requestId, safeFieldErrors(parsed.fieldErrors));
-  }
-  return { data: body as T, etag, notModified: false };
-}
-
-const data = <T>(result: ConditionalResult<T>): T => result.data as T;
-const enc = encodeURIComponent;
 const occurrencePath = (id: string) => `/v1/lesson-occurrences/${enc(id)}`;
 const docPath = (occurrenceId: string, documentId?: string) => `${occurrencePath(occurrenceId)}/documents${documentId ? `/${enc(documentId)}` : ""}`;
 const plansPath = (occurrenceId: string, revisionNo?: number) => `${occurrencePath(occurrenceId)}/plan-revisions${revisionNo ? `/${revisionNo}` : ""}`;
 const uploadPath = (id: string) => `/v1/upload-sessions/${enc(id)}`;
-const ifNoneMatch = (etag?: string): HeadersInit => (etag ? { "If-None-Match": etag } : {});
 const pageQuery = (extra: Record<string, string | undefined> = {}, cursor?: string) => {
   const query = new URLSearchParams({ limit: String(LIST_PAGE_LIMIT) });
   for (const [name, value] of Object.entries(extra)) if (value) query.set(name, value);
   if (cursor) query.set("cursor", cursor);
   return `?${query}`;
 };
-function keyed(key: string, extra: HeadersInit = {}): Record<string, string> {
-  if (!visibleAscii.test(key)) throw new BackendApiError("Khóa yêu cầu không hợp lệ.", "INVALID_IDEMPOTENCY_KEY", 400);
-  return { ...Object.fromEntries(new Headers(extra)), "Idempotency-Key": key };
-}
-
-/** A keyed write: the key is validated inside the promise, so a bad key rejects instead of throwing synchronously. */
-async function write<T>(path: string, method: "POST" | "DELETE", key: string, body?: unknown, extra: HeadersInit = {}): Promise<T> {
-  const result = await request<T>(path, { method, headers: keyed(key, extra), body: body === undefined ? undefined : JSON.stringify(body) });
-  return data(result);
-}
-
 export async function sha256Hex(bytes: ArrayBuffer): Promise<string> {
   const subtle = globalThis.crypto?.subtle;
   if (!subtle) throw new BackendApiError("Trình duyệt không hỗ trợ kiểm tra toàn vẹn tệp.", "CRYPTO_UNAVAILABLE", 0);
@@ -205,7 +129,7 @@ export const teacherOccurrenceApi = {
   get: (id: string, etag?: string) => request<Occurrence>(occurrencePath(id), { headers: ifNoneMatch(etag) }, true),
 
   // Generic upload sessions (T-2a). Parts are raw bytes, each with its own SHA-256; there is no Content-Range.
-  createUpload: (input: { purpose: "OCCURRENCE_DOCUMENT"; target_ref: string; media_type: string; expected_size_bytes: number; expected_sha256: string; file_name: string }, key = createIdempotencyKey()) =>
+  createUpload: (input: { purpose: "OCCURRENCE_DOCUMENT" | "RUN_ARTWORK" | "RUN_AUDIO"; target_ref: string; media_type: string; expected_size_bytes: number; expected_sha256: string; file_name?: string }, key = createIdempotencyKey()) =>
     write<UploadSession>("/v1/upload-sessions", "POST", key, input),
   getUpload: (id: string) => request<UploadSession>(uploadPath(id)).then(data),
   putPart: (id: string, partNo: number, bytes: Blob, sha256: string, signal?: AbortSignal) =>
@@ -255,17 +179,25 @@ export const teacherOccurrenceApi = {
 
   /** Upload a PDF/DOCX/PPTX in parts of at most 4 MiB and return the opaque asset ref. Parts the session already holds are skipped. */
   async uploadOccurrenceFile(file: File, occurrenceId: string, options: UploadOptions = {}): Promise<string> {
-    const keys = options.keys ?? { create: createIdempotencyKey(), complete: createIdempotencyKey() };
     if (file.size < 1 || file.size > MAX_DOCUMENT_BYTES || !/\.(pdf|docx|pptx)$/i.test(file.name)) {
       throw new BackendApiError("Chọn tệp PDF, DOCX hoặc PPTX có kích thước tối đa 25 MB.", "INVALID_FILE", 400);
     }
+    return uploadFileForPurpose(file, occurrenceId, "OCCURRENCE_DOCUMENT", mediaTypeFor(file), options);
+  },
+};
+
+/** Shared resumable upload; callers validate file type and size before invoking it. */
+export async function uploadFileForPurpose(file: File, targetRef: string, purpose: "OCCURRENCE_DOCUMENT" | "RUN_ARTWORK" | "RUN_AUDIO", mediaType: string, options: UploadOptions = {}): Promise<string> {
+    const keys = options.keys ?? { create: createIdempotencyKey(), complete: createIdempotencyKey() };
     const bytes = await file.arrayBuffer();
     const fullHash = await sha256Hex(bytes);
-    const created = await teacherOccurrenceApi.createUpload({ purpose: "OCCURRENCE_DOCUMENT", target_ref: occurrenceId, media_type: mediaTypeFor(file), expected_size_bytes: file.size, expected_sha256: fullHash, file_name: file.name }, keys.create);
+    const created = await teacherOccurrenceApi.createUpload({ purpose, target_ref: targetRef, media_type: mediaType, expected_size_bytes: file.size, expected_sha256: fullHash, ...(purpose === "OCCURRENCE_DOCUMENT" ? { file_name: file.name } : {}) }, keys.create);
     options.onSession?.(created);
+    if (options.signal?.aborted) throw new DOMException("Upload stopped", "AbortError");
     // Creating again with the same key replays the first answer (always OPEN, no parts), so the live state is read back:
     // it tells a resumed upload which parts exist and a finished one its asset ref.
     const session = await teacherOccurrenceApi.getUpload(created.upload_id);
+    if (options.signal?.aborted) throw new DOMException("Upload stopped", "AbortError");
     if (session.state === "COMPLETED" && session.asset_ref) return session.asset_ref;
     if (session.state !== "OPEN") throw new BackendApiError("Phiên tải lên không còn mở. Hãy chọn tệp và tải lại.", "UPLOAD_SESSION_NOT_OPEN", 409);
     const partSize = session.part_size_bytes;
@@ -276,18 +208,21 @@ export const teacherOccurrenceApi = {
       if (options.signal?.aborted) throw new DOMException("Upload stopped", "AbortError");
       const chunk = bytes.slice(offset, Math.min(offset + partSize, file.size));
       if (!accepted.has(partNo)) await teacherOccurrenceApi.putPart(session.upload_id, partNo, new Blob([chunk], { type: "application/octet-stream" }), await sha256Hex(chunk), options.signal);
+      if (options.signal?.aborted) throw new DOMException("Upload stopped", "AbortError");
       done += chunk.byteLength;
       options.onProgress?.(done, file.size);
     }
     const complete = await teacherOccurrenceApi.completeUpload(session.upload_id, { expected_size_bytes: file.size, expected_sha256: fullHash }, keys.complete);
+    if (options.signal?.aborted) throw new DOMException("Upload stopped", "AbortError");
     if (complete.state !== "COMPLETED" || !complete.asset_ref) throw new BackendApiError("Tệp chưa sẵn sàng để đính kèm.", "ASSET_NOT_READY", 409);
     return complete.asset_ref;
-  },
-};
+}
 
 export interface PollOptions {
   wait?: (ms: number, signal: AbortSignal) => Promise<void>;
   get?: (id: string, etag?: string, signal?: AbortSignal) => Promise<ConditionalResult<JobStatus>>;
+  pauseWhenHidden?: boolean;
+  maxElapsedMs?: number;
 }
 
 /**
@@ -302,7 +237,13 @@ export async function pollJob(jobId: string, onUpdate: (job: JobStatus) => void,
   let current: JobStatus | null = null;
   let delay = JOB_POLL_MIN_MS;
   let failures = 0;
+  const started = Date.now();
   while (!signal.aborted) {
+    if (options.maxElapsedMs !== undefined && Date.now() - started >= options.maxElapsedMs) {
+      if (current) return current;
+      throw new DOMException("Polling stopped", "AbortError");
+    }
+    if (options.pauseWhenHidden && document.hidden) { await wait(delay, signal); continue; }
     let result: ConditionalResult<JobStatus>;
     try { result = await get(jobId, etag, signal); failures = 0; }
     catch (cause) {

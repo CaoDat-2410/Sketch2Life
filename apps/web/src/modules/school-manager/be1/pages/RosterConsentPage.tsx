@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { RefreshCw, Users } from "lucide-react";
 import { PageHeading } from "../../../../shared/components/FeatureAvailability";
+import { Alert, EmptyState, FormField, Select, StatCard, StatusBadge, type StatusTone } from "../../../../shared/ui";
 import { classService, classStateLabel, type Be1Class } from "../services/classService";
 import { AdminBe1Error } from "../services/be1Client";
 import { TeacherAssignmentCard } from "./TeacherAssignmentCard";
@@ -29,6 +30,14 @@ function consentStateLabel(state: string) {
   if (key === "PENDING") return "Đang chờ xác nhận";
   if (key === "REVOKED") return "Đã thu hồi";
   return state;
+}
+
+function consentStateTone(state: string): StatusTone {
+  const key = state.toUpperCase();
+  if (key === "ACTIVE" || key === "EFFECTIVE") return "success";
+  if (key === "PENDING") return "warn";
+  if (key === "REVOKED") return "danger";
+  return "neutral";
 }
 
 export function RosterConsentPage() {
@@ -120,6 +129,9 @@ export function RosterConsentPage() {
   }, [reloadCount, selectedClassId]);
 
   const selectedClass = classes.find((item) => item.class_id === selectedClassId);
+  const recordedConsentCount = consents.filter((item) => ["ACTIVE", "EFFECTIVE"].includes(item.state.toUpperCase())).length;
+  const pendingConsentCount = consents.filter((item) => item.state.toUpperCase() === "PENDING").length;
+  const revokedConsentCount = consents.filter((item) => item.state.toUpperCase() === "REVOKED").length;
   const changeSelectedClass = (classId: string) => {
     selectedClassIdRef.current = classId;
     setSelectedClassId(classId);
@@ -160,39 +172,53 @@ export function RosterConsentPage() {
         }
       />
 
-      {classError && <p className="manager-business-alert" role="alert">{classError}</p>}
+      {classError && <Alert role="alert" tone="danger">{classError}</Alert>}
 
-      <section className="manager-business-card manager-business-class-picker">
-        <label htmlFor="manager-roster-class">Lớp đang xem</label>
+      <section className="manager-business-card cozy-form-card cozy-form-card--wide cozy-form-stack">
         {classState === "loading" ? (
-          <p className="manager-business-state" role="status">Đang tải lớp được cấp quyền…</p>
+          <Alert role="status">Đang tải lớp được cấp quyền…</Alert>
         ) : classState === "error" ? (
-          <p className="manager-business-state" role="status">Không thể chọn lớp khi danh sách BE1 chưa tải được.</p>
+          <Alert role="status" tone="warning">Không thể chọn lớp khi danh sách BE1 chưa tải được.</Alert>
         ) : classes.length === 0 ? (
-          <p className="manager-business-state" role="status">
-            Organization chưa có lớp được cấp quyền. Roster và consent chỉ tải sau khi chọn một lớp.
-          </p>
+          <EmptyState title="Organization chưa có lớp được cấp quyền. Roster và consent chỉ tải sau khi chọn một lớp." />
         ) : (
-          <select
-            id="manager-roster-class"
-            value={selectedClassId}
-            onChange={(event) => changeSelectedClass(event.target.value)}
-          >
-            {classes.map((item) => (
-              <option value={item.class_id} key={item.class_id}>{item.display_name}</option>
-            ))}
-          </select>
-        )}
-        {selectedClass && (
-          <p className="manager-business-subtle">
-            Trạng thái lớp từ BE1: {classStateLabel(selectedClass.state)}
-            {selectedClass.state === "suspended" ? " · Lớp tạm ngưng chỉ đọc, mọi dữ liệu vẫn được giữ." : ""}
-            {selectedClass.state === "archived" ? " · Lớp đã lưu trữ; chỉ School Manager còn xem được." : ""}
-          </p>
+          <div className="cozy-form-grid">
+            <FormField
+              className="cozy-span-3"
+              label="Lớp đang xem"
+              htmlFor="manager-roster-class"
+            >
+              <Select
+                id="manager-roster-class"
+                value={selectedClassId}
+                onChange={(event) => changeSelectedClass(event.target.value)}
+              >
+                {classes.map((item) => (
+                  <option value={item.class_id} key={item.class_id}>{item.display_name}</option>
+                ))}
+              </Select>
+            </FormField>
+            {selectedClass && (
+              <div className="cozy-span-3 cozy-form-field" style={{ alignSelf: "end" }}>
+                <p className="s2l-note" style={{ margin: 0 }}>
+                  Trạng thái lớp từ BE1: {classStateLabel(selectedClass.state)}
+                  {selectedClass.state === "suspended" ? " · Lớp tạm ngưng chỉ đọc, mọi dữ liệu vẫn được giữ." : ""}
+                  {selectedClass.state === "archived" ? " · Lớp đã lưu trữ; chỉ School Manager còn xem được." : ""}
+                </p>
+              </div>
+            )}
+          </div>
         )}
       </section>
 
-      {selectedClassId && (
+      {selectedClassId && <>
+        <section className="manager-business-stats manager-business-roster-stats" aria-label="Thống kê hồ sơ và consent">
+          <StatCard label="Hồ sơ đang hoạt động" value={profileCount ?? "—"} accent="primary" loading={profileState === "loading"} />
+          <StatCard label="Đã ghi nhận" value={consentState === "loaded" ? recordedConsentCount : "—"} accent="mint" loading={consentState === "loading"} />
+          <StatCard label="Đang chờ xác nhận" value={consentState === "loaded" ? pendingConsentCount : "—"} accent="butter" loading={consentState === "loading"} />
+          <StatCard label="Đã thu hồi" value={consentState === "loaded" ? revokedConsentCount : "—"} accent="coral" loading={consentState === "loading"} />
+        </section>
+
         <section className="manager-business-grid manager-business-grid-two" aria-label="Dữ liệu lớp">
           <article className="manager-business-card">
             <div className="manager-business-card-heading">
@@ -202,9 +228,9 @@ export function RosterConsentPage() {
               </div>
             </div>
             {profileState === "loading" ? (
-              <p className="manager-business-state" role="status">Đang kiểm tra quyền và tải tóm tắt roster…</p>
+              <Alert role="status">Đang kiểm tra quyền và tải tóm tắt roster…</Alert>
             ) : profileState === "error" ? (
-              <p className="manager-business-alert" role="alert">{profileError}</p>
+              <Alert role="alert" tone="danger">{profileError}</Alert>
             ) : profileState === "loaded" && profileCount !== null ? (
               <p className="manager-business-roster-count">
                 <strong>{profileCount}</strong> hồ sơ đang hoạt động trong lớp
@@ -224,11 +250,11 @@ export function RosterConsentPage() {
               {consentState === "loaded" && <span className="manager-business-chip">{consents.length} bản ghi</span>}
             </div>
             {consentState === "loading" ? (
-              <p className="manager-business-state" role="status">Đang tải trạng thái consent…</p>
+              <Alert role="status">Đang tải trạng thái consent…</Alert>
             ) : consentState === "error" ? (
-              <p className="manager-business-alert" role="alert">{consentError}</p>
+              <Alert role="alert" tone="danger">{consentError}</Alert>
             ) : consentState === "loaded" && consents.length === 0 ? (
-              <p className="manager-business-state">BE1 chưa trả bản ghi consent cho lớp này.</p>
+              <EmptyState title="BE1 chưa trả bản ghi consent cho lớp này." />
             ) : consentState === "loaded" ? (
               <div className="manager-business-table-wrap">
                 <table className="manager-business-table">
@@ -239,8 +265,8 @@ export function RosterConsentPage() {
                     {consents.map((consent, index) => (
                       <tr key={consent.consent_id}>
                         <td>Bản ghi {index + 1}</td>
-                        <td>{consentStateLabel(consent.state)}</td>
-                        <td>{consent.effective ? "Có" : "Không"}</td>
+                        <td><StatusBadge tone={consentStateTone(consent.state)} size="sm">{consentStateLabel(consent.state)}</StatusBadge></td>
+                        <td><StatusBadge tone={consent.effective ? "success" : "neutral"} size="sm">{consent.effective ? "Có" : "Không"}</StatusBadge></td>
                       </tr>
                     ))}
                   </tbody>
@@ -252,7 +278,7 @@ export function RosterConsentPage() {
             <p className="manager-business-subtle">Màn này chỉ đọc; yêu cầu cấp hoặc thu hồi consent vẫn chờ policy phù hợp.</p>
           </article>
         </section>
-      )}
+      </>}
 
       <TeacherAssignmentCard
         key={selectedClass?.class_id ?? "none"}

@@ -7,6 +7,8 @@ import "./shared/styles/portal-ui.css";
 import "./shared/styles/ui-primitives.css";
 import "./shared/styles/role-crayon-theme.css";
 import "./shared/styles/web-app.css";
+import "./shared/styles/sketch2life-theme.css";
+import "./shared/styles/cozy-shell.css";
 
 window.sketch2lifeAuth = {
   signIn: async (email, password) => {

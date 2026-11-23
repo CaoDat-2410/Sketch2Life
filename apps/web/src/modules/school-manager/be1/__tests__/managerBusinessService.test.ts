@@ -94,4 +94,21 @@ describe("School Manager business API adapter", () => {
       },
     );
   });
+
+  it("reads feedback with encoded paths and server-default pagination", async () => {
+    mocks.adminApiRequest.mockResolvedValueOnce({ items: [], next_cursor: null });
+    await managerBusinessService.feedbackThreads("next page");
+    expect(mocks.adminApiRequest).toHaveBeenLastCalledWith("/lesson-library/v1/organizations/org%20%2Fqa/feedback?cursor=next%20page", {});
+    mocks.adminApiRequest.mockResolvedValueOnce({ thread_id: "t/1", revision: 3, items: [], next_cursor: null });
+    await managerBusinessService.feedbackThread("t/1", "c /2");
+    expect(mocks.adminApiRequest).toHaveBeenLastCalledWith("/lesson-library/v1/organizations/org%20%2Fqa/feedback/t%2F1?cursor=c%20%2F2", {});
+  });
+
+  it("sends the exact reply precondition and rejects malformed responses", async () => {
+    mocks.adminApiRequest.mockResolvedValueOnce({ thread_id: "t/1", revision: 4 });
+    await managerBusinessService.replyFeedback("t/1", "Hello", 3, "key");
+    expect(mocks.adminApiRequest).toHaveBeenLastCalledWith("/lesson-library/v1/organizations/org%20%2Fqa/feedback/t%2F1/replies", { method: "POST", headers: { "If-Match": '"3"', "Idempotency-Key": "key" }, body: '{"body":"Hello"}' });
+    mocks.adminApiRequest.mockResolvedValueOnce({ items: [{}], next_cursor: null });
+    await expect(managerBusinessService.feedbackThreads()).rejects.toThrow();
+  });
 });

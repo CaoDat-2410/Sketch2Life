@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { backendApi, BackendApiError } from "../api/backendApi";
 
 export type WebPortalRole = "TEACHER" | "MANAGER" | "ADMIN";
 export type SessionToastKind = "ok" | "info" | "warn" | "err";
@@ -80,6 +81,41 @@ export function PortalSessionProvider({ children }: { children: React.ReactNode 
     if (signOut) void signOut().catch(() => undefined);
     showToast("Đã đăng xuất.", "info");
   }, [showToast]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    let active = true;
+    let checking = false;
+    const expectedRole = currentRole === "ADMIN" ? "platform_admin" : currentRole === "MANAGER" ? "school_manager" : "teacher";
+    const expireSession = () => {
+      logout();
+      showToast("Phiên đăng nhập hoặc quyền truy cập đã thay đổi. Vui lòng đăng nhập lại.", "warn");
+    };
+    const verify = async () => {
+      if (checking || document.visibilityState === "hidden") return;
+      checking = true;
+      try {
+        const account = await backendApi.accountRole();
+        if (active && account.role !== expectedRole) expireSession();
+      } catch (cause) {
+        // A network outage does not prove that a session has been revoked.
+        if (active && cause instanceof BackendApiError && (cause.status === 401 || cause.status === 403)) expireSession();
+      } finally {
+        checking = false;
+      }
+    };
+    void verify();
+    const onFocus = () => { void verify(); };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
+    const interval = window.setInterval(onFocus, 60_000);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
+    };
+  }, [isAuthenticated, currentRole, logout, showToast]);
 
   const value = useMemo(() => ({
     currentRole,

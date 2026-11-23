@@ -1,0 +1,9 @@
+﻿import { describe, expect, it } from "vitest";
+import { cleanIdea, inputActions, runFileMediaType } from "../teacherRunInputs";
+describe("teacher input rules", () => {
+ it("uses image extensions rather than the reported media type", () => { expect(runFileMediaType(new File(["x"],"image.JPEG",{type:"application/pdf"}),"RUN_ARTWORK")).toBe("image/jpeg"); expect(runFileMediaType(new File(["x"],"image.webp"),"RUN_ARTWORK")).toBe("image/webp"); });
+ it("uses the supported audio extensions", () => { expect(runFileMediaType(new File(["x"],"voice.wav"),"RUN_AUDIO")).toBe("audio/wav"); expect(runFileMediaType(new File(["x"],"voice.m4a"),"RUN_AUDIO")).toBe("audio/mp4"); });
+ it("refuses unsupported types and oversize files", () => { expect(() => runFileMediaType(new File(["x"],"drawing.pdf"),"RUN_ARTWORK")).toThrow(); expect(() => runFileMediaType(new File([new Uint8Array(20_000_001)],"sound.wav"),"RUN_AUDIO")).toThrow(); expect(() => runFileMediaType(new File([new Uint8Array(20*1024*1024+1)],"drawing.png"),"RUN_ARTWORK")).toThrow(); });
+ it("trims and counts code points including emoji and combining marks", () => { expect(cleanIdea("   ")).toBeNull(); expect(cleanIdea(" 😀 ")).toBe("😀"); expect(cleanIdea("😀".repeat(500))).not.toBeNull(); expect(cleanIdea("😀".repeat(501))).toBeNull(); expect(cleanIdea("e\u0301".repeat(250))).not.toBeNull(); expect(cleanIdea("e\u0301".repeat(251))).toBeNull(); });
+ it("gates input, context, and subject actions by state", () => { const base={run_state:"INPUT_PROCESSING",context_confirmed:false,context_snapshot_sha256:"hash",understanding_revision:1,candidate:{}}; expect(inputActions(base)).toEqual({artwork:true,idea:true,transcript:true,context:true,subject:false}); expect(inputActions({...base,run_state:"SUBJECT_REVIEW"}).subject).toBe(true); expect(inputActions({...base,run_state:"COMPLETED"})).toEqual({artwork:false,idea:false,transcript:false,context:false,subject:false}); });
+});

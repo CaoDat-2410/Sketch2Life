@@ -502,3 +502,31 @@
 - **SRS:** Repository authority remains FEAT-063 v2.7-draft Rev60, unsigned. The owner-supplied Rev69 copy was checked for the applicable Manager scope; no SRS or policy changes are part of this task.
 - **Exclusions:** No API/backend/database/role-policy/child-media/mobile changes, generated assets, dependencies, app test-suite run, commit, push, PR or deployment.
 - **Approval basis:** The owner directly requested implementation; this record is the required pre-source-change approval for the bounded UI task.
+
+## FEAT-066 Round 9 — Shared Select, Manager structure, Teacher consent notice
+
+- **Status:** APPROVED_FOR_IMPLEMENTATION for the exact local web UI scope in the Round 9 prompt.
+- **Approver:** Project owner, direct instruction in the current conversation on 2026-11-22 to resume and execute `D:\GitHub\Sketch2Life\tmp\admin-ui-cozy\CODEX_PROMPT_COZY_ROUND9_SELECT_MANAGER_CONSENT.md`.
+- **Prompt SHA-256:** `E7A5347B54AAA423B0868791A8AE3B6DBDF6E333233F83BD2D79867E3649897C`.
+- **Scope:** Promote Platform Admin's custom Select to the shared UI primitive and replace all Teacher/School Manager native selects; structure School Manager assignment and roster/consent presentation; show `CONSENT_NOT_EFFECTIVE` as a calm Teacher class notice; update requested component tests and local screenshots.
+- **Acceptance criteria:** Round 9 prompt sections A–C, including the 12-control Select migration, Manager before/after screenshots, consent-locked screenshots at 1440 px and 390 px, and `npm run check` passing.
+- **Exclusions:** No new packages/network, API/backend/service/type changes, Vietnamese copy changes outside permitted stat labels, port 5173/5199 actions, git writes, or edits to `features/`, `docs/`, `tools/`, `.codex/`, `.claude/`, or other excluded areas.
+- **Record note:** This approval record was appended during resumed-task closeout; the owner's direct instruction to execute the prompt preceded the implementation.
+
+## FEAT-066 Round 10 - Teacher and School Manager account settings
+
+- Status: APPROVED_FOR_IMPLEMENTATION for the exact local web UI scope in the Round 10 prompt.
+- Approver: Project owner, direct instruction on 2026-11-22 to resume and execute `D:\GitHub\Sketch2Life\tmp\admin-ui-cozy\CODEX_PROMPT_COZY_ROUND10_SETTINGS_WIRING.md`.
+- Prompt SHA-256: `05BE9F9C602890C2A81359BA076959BBF5354CEC3FBEE86C77C23FE47000C703`.
+- Scope and acceptance criteria: the prompt's sections 2, 2b, and 2c, including shared account-preferences API/page for Teacher and School Manager, live routes/navigation, conflict/error behavior, occurrence diagnostics/reset and create-form/consent refinements, requested tests, local screenshots, and the web check passing.
+- Exclusions: no backend/service/type or Platform Admin page changes, new packages/network, secret or live-account use, ports 5173/5199, git writes, or edits to `.claude/`, `.codex/`, `AGENTS.md`, `features/`, `docs/`, `tools/`, `apps/api`, or `apps/ui-mobile`.
+- Approval basis: the owner directly instructed execution of the exact prompt. Its acceptance criteria were already supplied before this work; the repo feature-plan location is explicitly excluded by the task prompt.
+- Record note: appended during resumed-task closeout because the prior run's source changes were already present; the owner's direct execution instruction preceded them.
+
+## FEAT-066 Round 11 - Web form layout fixes (Teacher, School Manager, shared web)
+
+- Status: APPROVED_FOR_IMPLEMENTATION for the exact local web UI scope below.
+- Approver: Project owner, direct instruction in the current conversation on 2026-11-22.
+- Scope: presentation-only form layout fixes listed in `FORM_FIX_LIST_WEB_20261122.md` (steps 1-3): a shared `FormField` component and cozy form classes, shared `Button`/`Select` usage in forms, the 7 HIGH and the MED/LOW form findings for Teacher, School Manager, login, account settings and the change-password dialog.
+- Acceptance criteria: `npm run check` passes in `apps/web`; existing tests updated or added for the new shared pieces; Vietnamese copy unchanged.
+- Exclusions: no backend/API/service/type changes, no new packages or network, no Parent/mobile, no Platform Admin pages, no ports 5173/5199, no git writes by the implementer.

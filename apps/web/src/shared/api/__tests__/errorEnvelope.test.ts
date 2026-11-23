@@ -31,6 +31,12 @@ describe("API error envelope parsing", () => {
     expect(error.retryAfterSeconds).toBe(30);
   });
 
+  it.each([5, 2])("keeps integer current_version %s from a story-run conflict", version => {
+    const error = parseApiError({ ...conv1Body, code: "STALE_REVISION", current_version: version }, 409);
+    expect(error.currentVersion).toBe(version);
+    expect(parseApiError({ ...conv1Body, current_version: 2.5 }, 409).currentVersion).toBeUndefined();
+  });
+
   it("never shows the English message of a detail-wrapped body", () => {
     const error = parseApiError(
       { detail: { code: "INVALID_IDEMPOTENCY_KEY", message: "Idempotency-Key was already used for another request" } },

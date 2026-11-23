@@ -307,6 +307,10 @@ The owner approved the existing safe Admin API scope. FEAT-063 v2.7-draft Rev60 
 The owner requested that BE run in Docker, its APIs be probed, and FE remain available for manual testing. Plan Rev33 (SHA-256 0AB2F79A26EDCBA27871C559016A8A6A56466DA82867519E2FB147995C8380F0) and approval are recorded before service startup. PostgreSQL and the API container are healthy; `GET /health` returns 200. Auth/account GETs return expected 401 without a credential. The generated OpenAPI document is FE-projected and omits these route families; source route registration and 401 behavior confirm their guard is reached.
 
 Full Compose startup is partial: Quay denied the MinIO image with HTTP 401, the renderer's ignored dist-demo artifact was absent, and pnpm stopped on its offline supply-chain metadata check. A local API image omitting only the optional static renderer copy was used; MinIO, ClamAV and Redis are not running. Direct CORS is absent, so an ignored same-origin Vite proxy was started at 127.0.0.1:5174; the pre-existing 5173 server was preserved. EV-039 has exact statuses and limits. No account data, credentials, mutations, app tests, commit or push were used.
+
+## Revision 33 rerun preflight - 2026-11-19
+
+The owner asked to start the backend again for FE testing. The existing Rev33 approval covers the no-volume-reset Compose startup and read-only API checks. In this session, Docker Desktop's named pipes returned `permission denied`, `wsl --status` returned `Wsl/E_ACCESSDENIED`, and no PostgreSQL listener was available. The host Uvicorn fallback exited because the existing venv lacks the Dockerfile's pinned `av==18.1.0` image-admission dependency. No service was left running and no probes or data operations were performed. See EV-058; the 2026-11-17 Rev33 success above is historical and does not describe the current runtime.
 ## Revision 34 — Platform Admin test account — 2026-11-17
 
 The owner requested a test account for the active Admin FE/API task. Plan Rev34 (SHA-256 3EBDE69AFFA105F09DFB04901DA5539EE555361EBCBC3F8D035831A5291A9EBE) and root approval cover one QA identity in the verified nonproduction `sketch2life-dev` project. The empty local Docker database received only the `be1_core` and `lesson_library` migration branches needed for identity/role persistence. The supported bootstrap created the Platform Admin identity; password sign-in succeeded, `/api/auth/v1/me` returned role `platform_admin`, and account-list GET returned HTTP 200 with total 1. FE port 5174 received the dev Firebase config and same-origin API base; original port 5173 remains available. Credentials and bearer token are excluded from repository records and are delivered privately in the owner-facing reply. No production project, email, Content Admin capability, child media, app suite, source edit, commit or push.
@@ -473,6 +477,24 @@ CONV-1 applied the D-066-68 conventions to the BE1, Lesson Library, Platform Adm
 
 **Next in the BE queue:** FR-C-08 (FEAT-063), then SEED-1. Billing is frozen by the owner.
 
+## Goal v4 Phase A web wiring - Teacher (2026-11-23)
+
+- Current task: implement the approved Goal v4 Phase A Teacher wiring in `apps/web`, using the final Teacher route list and launch-prompt contract. This task is separate from the historical FEAT-066 School Manager and MGR work.
+- Canonical requirements remain the unsigned FEAT-063 SRS v2.7-draft at the path in `docs/context/SRS_AUTHORITY.md`; the final Phase A contract controls route behavior for this integration.
+- Approved plan: `plan/PLAN_V4A_FE_WEB_WIRING_20261123.md` revision 52; approval and SHA-256 are in `approvals/TASK_APPROVAL.md`.
+- Worktree/branch: `D:\GitHub\Sketch2Life\.worktrees\ui`, `codex/fe-ui-web-remediation`.
+- Scope includes Teacher API, services, components, pages, copy, named tests, and FEAT-066 records/evidence. Parent/mobile and backend are excluded.
+- Selected behavior: if visible gates are met but the run remains in `PREPARATION_REVIEW`, show a waiting hint; do not resend context confirmation.
+- No commit, push, stage, stash, branch switch, `.env`, `debug.keystore`, credentials, or model weights. Run logs stay in `E:\AI_LOG\CODEX\fe-v4a-web\`.
+- Preflight found the BE worktree at `db7e3920` with final Phase A commit `930da61e` as an ancestor and additional committed/dirty BE work. This job will not edit that worktree and will report the tip difference.
+
+## 2026-11-23 — Goal v4 Phase A Teacher implementation review
+
+- Implementation is complete for owner review. API, UI, tests, plan, approval, decision, status, and feature evidence are recorded under FEAT-066.
+- `npm --prefix apps/web run check`: exit 0; build passed; lint exited 0 with unrelated warnings; 67 test files and 684 tests passed.
+- Security and architecture validators passed. `git diff --check` exited 0. Harness validation is blocked by pre-existing missing `apps/mobile/package.json` and FEAT-072 harness paths; see `evidence/notes/EV-066-059_V4A_WEB_WIRING_20261123.md`.
+- The BE checkout tip is `db7e3920`; supplied final `930da61e` is an ancestor. No Teacher contract contradiction was found in the reviewed code.
+- No commit, push, stage, stash, or branch switch occurred.
 ## Goal v4 Phase A Parent Android wiring - 2026-11-23
 
 The owner launched the task in the prompt and the task-specific plan and approval were recorded before implementation. Scope stayed in `apps/ui-mobile`; this worktree remains uncommitted and unstaged. The adopted Phase A route list and prompt set the Parent integration contract. FEAT-063 SRS v2.7-draft remains unsigned.

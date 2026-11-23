@@ -1,0 +1,162 @@
+/* UI UX Pro Max: shared desktop control, text and feedback rules. */
+html[data-portal="platform"] :is(.pa-page, .platform-accounts) {
+  color: var(--pa-ink);
+  font-size: var(--pa-font-body);
+  line-height: 1.55;
+}
+html[data-portal="platform"] :is(.pa-page, .platform-accounts) :is(button,input,select,textarea) { font-family: inherit; }
+html[data-portal="platform"] .pa-page .pa-button,
+html[data-portal="platform"] .platform-accounts .accounts-button {
+  min-height: var(--pa-control-height); padding: 10px 15px;
+  font-size: var(--pa-font-label); border-radius: var(--pa-radius-control);
+  font-weight: 600; line-height: 1.35;
+}
+html[data-portal="platform"] .pa-page .pa-button:not(.is-primary) {
+  background: var(--pa-surface); border-color: var(--pa-border); color: var(--pa-ink);
+}
+html[data-portal="platform"] .pa-page .pa-button.is-primary,
+html[data-portal="platform"] .platform-accounts .accounts-button-primary {
+  background: var(--pa-primary); border-color: var(--pa-primary); color: var(--s2l-ui-on-primary);
+}
+html[data-portal="platform"] :is(.pa-button.is-primary,.accounts-button-primary):hover:not(:disabled) {
+  background: var(--pa-primary-action-hover); border-color: var(--pa-primary-action-hover);
+}
+html[data-portal="platform"] :is(.pa-button:not(.is-primary),.accounts-button-outline):hover:not(:disabled) {
+  background: var(--pa-primary-soft); border-color: var(--pa-primary);
+}
+html[data-portal="platform"] .platform-accounts {
+  --account-mint: var(--pa-success); --account-mint-soft: var(--pa-success-soft);
+  --account-gold: var(--pa-warning); --account-gold-soft: var(--pa-warning-soft);
+  --account-red-soft: var(--pa-danger-soft);
+}
+html[data-portal="platform"] .pa-page .pa-button.is-danger {
+  background: var(--s2l-ui-danger-base); border-color: var(--s2l-ui-danger-base); color: var(--s2l-ui-on-primary);
+}
+/* Shared Tailwind buttons have no legacy .pa-button class; keep their semantic text color above legacy control rules. */
+html[data-portal="platform"] .pa-page :is(button.bg-primary, button.bg-danger-base) {
+  color: var(--s2l-ui-on-primary);
+}
+html[data-portal="platform"] .pa-page button.bg-primary:disabled {
+  border-color: var(--s2l-ui-primary-600);
+  background: var(--s2l-ui-primary-600);
+  color: var(--s2l-ui-on-primary);
+  opacity: 1;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+html[data-portal="platform"] .pa-page button.bg-danger-base:disabled {
+  border-color: var(--s2l-ui-coral-600);
+  background: var(--s2l-ui-coral-600);
+  color: var(--s2l-ui-on-primary);
+  opacity: 1;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+html[data-portal="platform"] .pa-page button.bg-paper:disabled {
+  border-color: var(--s2l-ui-rule);
+  background: var(--s2l-ui-primary-soft);
+  color: var(--s2l-ui-ink-soft);
+  opacity: 1;
+  cursor: not-allowed;
+}
+html[data-portal="platform"] .pa-page button.bg-transparent:disabled {
+  border-color: var(--s2l-ui-neutral-soft);
+  background: var(--s2l-ui-neutral-soft);
+  color: var(--s2l-ui-neutral-ink);
+  opacity: 1;
+  cursor: not-allowed;
+}
+html[data-portal="platform"] .s2l-password-form label { color: var(--s2l-ui-ink-soft); }
+html[data-portal="platform"] .s2l-password-form input {
+  border-color: var(--s2l-ui-rule);
+  background: var(--s2l-ui-paper);
+  color: var(--s2l-ui-ink);
+}
+html[data-portal="platform"] .s2l-password-form input:focus {
+  border-color: var(--s2l-ui-primary);
+  outline: 3px solid color-mix(in srgb, var(--s2l-ui-primary) 16%, transparent);
+}
+html[data-portal="platform"] .s2l-password-form button {
+  border-color: var(--s2l-ui-primary);
+  border-radius: var(--pa-radius-control);
+  background: var(--s2l-ui-primary);
+  color: var(--s2l-ui-on-primary);
+}
+html[data-portal="platform"] .s2l-password-form button:hover:not(:disabled) {
+  border-color: var(--s2l-ui-primary-hover);
+  background: var(--s2l-ui-primary-hover);
+}
+html[data-portal="platform"] .s2l-password-form button:disabled {
+  border-color: var(--s2l-ui-primary-hover);
+  background: var(--s2l-ui-primary-hover);
+  color: var(--s2l-ui-on-primary);
+  opacity: 1;
+}
+html[data-portal="platform"] .pa-page :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea),
+html[data-portal="platform"] .platform-accounts :is(input,select,textarea) {
+  min-height: var(--pa-control-height);
+  border-radius: var(--pa-radius-control);
+  border-color: var(--s2l-ui-primary-500);
+  background: var(--pa-surface); color: var(--pa-ink);
+  font-size: var(--pa-font-body);
+}
+html[data-portal="platform"] :is(.pa-page,.platform-accounts) :is(input,textarea)::placeholder { color: var(--pa-muted-strong); opacity: 1; }
+html[data-portal="platform"] .pa-page .pa-field { font-size: var(--pa-font-label); color: var(--pa-ink); }
+html[data-portal="platform"] :is(.pa-page,.platform-accounts) :focus-visible,
+html[data-portal="platform"] .pa-school-actions summary:focus-visible {
+  outline: 3px solid var(--pa-primary); outline-offset: 3px;
+}
+html[data-portal="platform"] :is(.pa-page,.platform-accounts) [aria-invalid="true"] { border-color: var(--pa-danger); }
+html[data-portal="platform"] .pa-page .pa-table th,
+html[data-portal="platform"] .platform-accounts .accounts-table th {
+  font-size: var(--pa-font-meta); color: var(--pa-muted-strong);
+  font-weight: 600; background: var(--pa-canvas);
+}
+html[data-portal="platform"] .pa-page .pa-table td,
+html[data-portal="platform"] .platform-accounts .accounts-table td {
+  font-size: var(--pa-font-body); color: var(--pa-ink); font-variant-numeric: tabular-nums;
+}
+html[data-portal="platform"] :is(.pa-table,.accounts-table) tbody tr:hover { background: var(--pa-sidebar); }
+html[data-portal="platform"] .pa-page .pa-table small,
+html[data-portal="platform"] .accounts-person-copy > span { font-size: var(--pa-font-meta); color: var(--pa-muted-strong); }
+html[data-portal="platform"] :is(.pa-panel,.accounts-panel) { border-radius: var(--pa-radius-panel); }
+html[data-portal="platform"] .pa-page .pa-status { font-size: var(--pa-font-meta); padding: 5px 9px; line-height: 1.4; white-space: normal; }
+html[data-portal="platform"] :is(.pa-status-active,.pa-status-paid,.pa-status-public,.pa-status-published,.pa-status-approved,.pa-status-sent) {
+  background: var(--pa-success-soft); color: var(--pa-success);
+}
+html[data-portal="platform"] :is(.pa-status-pending,.pa-status-pending_review,.pa-status-submitted,.pa-status-pending_verification,.pa-status-grace) {
+  background: var(--pa-warning-soft); color: var(--pa-warning);
+}
+html[data-portal="platform"] :is(.pa-status-paused,.pa-status-suspended,.pa-status-running,.pa-status-requested,.pa-status-awaiting_external_purge,.pa-status-cancel_at_period_end) {
+  background: var(--pa-warning-soft); color: var(--pa-warning);
+}
+html[data-portal="platform"] :is(.pa-status-failed,.pa-status-disabled,.pa-status-recalled,.pa-status-restricted,.pa-status-hidden,.pa-status-exception,.pa-status-rejected) {
+  background: var(--pa-danger-soft); color: var(--pa-danger);
+}
+html[data-portal="platform"] :is(.pa-status-inactive,.pa-status-canceled,.pa-status-cancelled,.pa-status-archived) {
+  background: var(--s2l-ui-primary-200); color: var(--pa-muted-strong);
+}
+html[data-portal="platform"] .pa-page .pa-alert { background: var(--pa-danger-soft); color: var(--pa-danger); }
+html[data-portal="platform"] .pa-page .pa-notice { background: var(--pa-success-soft); color: var(--pa-success); }
+html[data-portal="platform"] .pa-page :is(.pa-content-item strong,.pa-reading,.pa-notification strong) { font-size: var(--pa-font-body); }
+html[data-portal="platform"] .pa-page .pa-content-item small { font-size: var(--pa-font-meta); }
+html[data-portal="platform"] .platform-accounts .accounts-person-copy strong { font-size: var(--pa-font-body); color: var(--pa-ink); }
+html[data-portal="platform"] .pa-page :is(button,summary,a) { touch-action: manipulation; }
+@media (max-width: 600px) {
+  html[data-portal="platform"] :is(.pa-page,.platform-accounts) :is(input,select,textarea) { font-size: 16px; }
+}
+
+html[data-portal="platform"] .pa-page :is(.pa-status-public,.pa-status-published) {
+  color: var(--s2l-ui-mint-700); background: var(--s2l-ui-mint-100);
+}
+html[data-portal="platform"] .pa-page .pa-status-draft {
+  color: var(--s2l-ui-sky-600); background: var(--s2l-ui-primary-200);
+}
+html[data-portal="platform"] .pa-lessons .pa-lesson-editor { overflow: visible; }
+html[data-portal="platform"] .pa-lesson-editor .pa-form > .pa-actions {
+  position: sticky; bottom: 0; z-index: 1; padding-block: 10px;
+  background: var(--pa-surface); border-top: 1px solid var(--pa-border);
+}
+html[data-portal="platform"] .pa-audit-retention > summary {
+  padding: 14px 20px; cursor: pointer; font-weight: 650;
+}

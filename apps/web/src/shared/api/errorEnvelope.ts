@@ -15,6 +15,7 @@ export interface ParsedApiError {
   requestId?: string;
   retryable: boolean;
   retryAfterSeconds?: number;
+  currentVersion?: number;
   fieldErrors: FieldError[];
   conv1: boolean;
 }
@@ -24,6 +25,20 @@ const RETRYABLE_STATUSES = [429, 502, 503, 504];
 const MAX_SERVER_MESSAGE_LENGTH = 500;
 
 const CODE_MESSAGES: Record<string, string> = {
+  EMAIL_VERIFICATION_REQUIRED: "Vui lòng mở email thiết lập tài khoản và xác minh email trước khi đăng nhập.",
+  CONTENT_PERMISSION_REQUIRED: "Bạn chưa được cấp quyền duyệt nội dung.",
+  SELF_PERMISSION_CHANGE_DENIED: "Bạn không thể tự thay đổi quyền duyệt nội dung của mình.",
+  INDEPENDENT_REVIEW_REQUIRED: "Nội dung cần được một quản trị viên khác duyệt.",
+  REVIEW_PERMISSION_REVOKED: "Quyền của người duyệt đã thay đổi. Nội dung cần được duyệt lại.",
+  IDEMPOTENCY_CONFLICT: "Yêu cầu trùng mã nhưng khác nội dung. Vui lòng tải lại và thử lại.",
+  SELF_DISABLE_DENIED: "Bạn không thể tự khóa tài khoản đang đăng nhập.",
+  SELF_ROLE_CHANGE_DENIED: "Bạn không thể tự gỡ quyền Quản trị nền tảng.",
+  LAST_PLATFORM_ADMIN: "Hệ thống cần ít nhất một Quản trị nền tảng đang hoạt động.",
+  ORGANIZATION_UNAVAILABLE: "Trường không tồn tại hoặc đã ngừng hoạt động.",
+  ORGANIZATION_REQUIRED: "Vui lòng chọn trường cho tài khoản Quản lý trường.",
+  ACCOUNT_SETUP_UNAVAILABLE: "Không thể tạo tài khoản với thông tin này. Kiểm tra email rồi thử lại.",
+  ACCOUNT_NOT_FOUND: "Tài khoản không còn tồn tại. Vui lòng tải lại danh sách.",
+  INVALID_CURSOR: "Trang dữ liệu không hợp lệ. Vui lòng tìm kiếm lại.",
   AUTH_REQUIRED: "Vui lòng đăng nhập để tiếp tục.",
   INVALID_TOKEN: "Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.",
   TOKEN_EXPIRED: "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
@@ -109,12 +124,14 @@ export function parseApiError(
         ? source.correlation_id
         : headerRequestId ?? undefined;
   const retryAfter = source.retry_after_seconds;
+  const currentVersion = source.current_version;
   return {
     code,
     message: conv1 ? (record.message as string) : fallbackMessage(code, status),
     requestId,
     retryable: conv1 ? record.retryable === true : RETRYABLE_STATUSES.includes(status),
     retryAfterSeconds: typeof retryAfter === "number" && Number.isFinite(retryAfter) && retryAfter >= 0 ? retryAfter : undefined,
+    currentVersion: typeof currentVersion === "number" && Number.isInteger(currentVersion) ? currentVersion : undefined,
     fieldErrors: fieldErrorsOf(source.field_errors),
     conv1,
   };

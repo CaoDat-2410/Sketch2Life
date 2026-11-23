@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { ArrowLeft, ArrowRight, Plus, RefreshCw } from "lucide-react";
 import { PageHeading } from "../../../../shared/components/FeatureAvailability";
+import { Alert, Button, FormField } from "../../../../shared/ui";
 import { AdminBe1Error } from "../services/be1Client";
 import { managerBusinessService, type ParentGroup } from "../services/managerBusinessService";
 
@@ -128,47 +129,56 @@ export function ParentGroupsPage() {
         }
       />
 
-      {listError && <p className="manager-business-alert" role="alert">{listError}</p>}
-      {creationError && <p className="manager-business-alert" role="alert">{creationError}</p>}
-      {creationSuccess && <p className="manager-business-success" role="status">{creationSuccess}</p>}
+      {listError && <Alert className="manager-business-alert" tone="danger" role="alert">{listError}</Alert>}
 
-      <section className="manager-business-card">
-        <div className="manager-business-card-heading">
-          <div>
-            <p className="manager-business-eyebrow">POST · Idempotency-Key</p>
-            <h2>Tạo nhóm trong trường</h2>
+      <div className="manager-business-split">
+        <section className="manager-business-card cozy-form-card cozy-form-card--wide cozy-form-stack">
+          <div className="manager-business-card-heading">
+            <div>
+              <p className="manager-business-eyebrow">POST · Idempotency-Key</p>
+              <h2>Tạo nhóm trong trường</h2>
+            </div>
+            <span className="manager-business-chip">school_admin</span>
           </div>
-          <span className="manager-business-chip">school_admin</span>
-        </div>
-        <form className="manager-business-create-form" onSubmit={(event) => void createGroup(event)}>
-          <label htmlFor="parent-group-name">Tên nhóm phụ huynh</label>
-          <div className="manager-business-create-row">
-            <input
-              id="parent-group-name"
-              value={displayName}
-              onChange={(event) => setDisplayName(event.target.value)}
-              minLength={1}
-              maxLength={120}
+          <form className="manager-business-create-form cozy-form-stack" onSubmit={(event) => void createGroup(event)}>
+            <FormField
+              label="Tên nhóm phụ huynh"
+              htmlFor="parent-group-name"
               required
-              disabled={creating || requestOutcomeUnknown}
-              placeholder="Ví dụ: Phụ huynh lớp Lá 1"
-            />
-            <button
-              type="submit"
-              className="manager-business-button is-primary"
-              disabled={creating || !displayName.trim()}
+              help="Nếu mạng ngắt và kết quả chưa rõ, gửi lại sẽ dùng cùng mã yêu cầu để tránh tạo trùng."
             >
-              <Plus size={16} aria-hidden="true" />
-              {creating ? "Đang gửi…" : requestOutcomeUnknown ? "Gửi lại cùng yêu cầu" : "Tạo nhóm"}
-            </button>
-          </div>
-          <p className="manager-business-subtle">
-            Nếu mạng ngắt và kết quả chưa rõ, gửi lại sẽ dùng cùng mã yêu cầu để tránh tạo trùng.
-          </p>
-        </form>
-      </section>
+              <input
+                id="parent-group-name"
+                className="cozy-input"
+                value={displayName}
+                onChange={(event) => setDisplayName(event.target.value)}
+                minLength={1}
+                maxLength={120}
+                required
+                disabled={creating || requestOutcomeUnknown}
+                placeholder="Ví dụ: Phụ huynh lớp Lá 1"
+              />
+            </FormField>
+            {creationError && <Alert role="alert" tone="danger">{creationError}</Alert>}
+            {creationSuccess && <Alert role="status" tone="success">{creationSuccess}</Alert>}
+            {!creating && !displayName.trim() && (
+              <p className="cozy-form-disabled-hint">Nhập tên nhóm phụ huynh để bật nút tạo nhóm.</p>
+            )}
+            <div className="cozy-form-actions" style={{ marginTop: 0 }}>
+              <Button
+                type="submit"
+                variant="primary"
+                loading={creating}
+                disabled={creating || !displayName.trim()}
+                iconLeft={<Plus size={16} aria-hidden="true" />}
+              >
+                {creating ? "Đang gửi…" : requestOutcomeUnknown ? "Gửi lại cùng yêu cầu" : "Tạo nhóm"}
+              </Button>
+            </div>
+          </form>
+        </section>
 
-      <section className="manager-business-card">
+        <section className="manager-business-card">
         <div className="manager-business-card-heading">
           <div>
             <p className="manager-business-eyebrow">GET · Lesson Library</p>
@@ -224,6 +234,7 @@ export function ParentGroupsPage() {
           </div>
         </div>
       </section>
+      </div>
 
       <section className="manager-business-card manager-business-limitation">
         <div>

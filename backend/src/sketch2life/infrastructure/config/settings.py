@@ -5,8 +5,10 @@ from __future__ import annotations
 import hmac
 import secrets
 from functools import lru_cache
+from ipaddress import ip_address
 from pathlib import Path
 from typing import Literal, Self
+from urllib.parse import urlsplit
 
 from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -83,6 +85,22 @@ class Settings(BaseSettings):
     smtp_username: str | None = None
     smtp_password: SecretStr | None = None
     billing_sandbox_enabled: bool = False
+    billing_real_payments_enabled: bool = False
+    momo_partner_code: str = ""
+    momo_access_key: SecretStr | None = None
+    momo_secret_key: SecretStr | None = None
+    momo_partner_name: str = "Sketch2Life"
+    momo_endpoint: str = "https://test-payment.momo.vn/v2/gateway/api/create"
+    momo_return_url: str = ""
+    momo_ipn_url: str = ""
+    vnpay_tmn_code: str = ""
+    vnpay_hash_secret: SecretStr | None = None
+    vnpay_payment_url: str = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
+    vnpay_query_url: str = "https://sandbox.vnpayment.vn/merchant_webapi/api/transaction"
+    vnpay_server_ip: str = ""
+    vnpay_return_url: str = ""
+    vnpay_ipn_url: str = ""
+    billing_provider_timeout_seconds: int = Field(default=35, ge=30, le=60)
     storage_example_enabled: bool = False
     storage_example_max_upload_bytes: int = Field(
         default=10 * 1024 * 1024, ge=1, le=50 * 1024 * 1024
@@ -191,6 +209,67 @@ class Settings(BaseSettings):
         if isinstance(value, SecretStr) and not value.get_secret_value().strip():
             return None
         return value
+    @property
+    def momo_payment_configured(self) -> bool:
+        momo_endpoint = urlsplit(self.momo_endpoint)
+        return bool(
+            self.momo_partner_code
+            and self.momo_access_key
+            and self.momo_access_key.get_secret_value()
+            and self.momo_secret_key
+            and self.momo_secret_key.get_secret_value()
+            and self.momo_return_url
+            and self.momo_ipn_url
+            and self._payment_callback_url_configured(self.momo_return_url)
+            and self._payment_callback_url_configured(self.momo_ipn_url)
+            and momo_endpoint.scheme == "https"
+            and momo_endpoint.hostname in {"test-payment.momo.vn", "payment.momo.vn"}
+            and momo_endpoint.path == "/v2/gateway/api/create"
+        )
+
+    @property
+    def momo_sandbox_enabled(self) -> bool:
+        return urlsplit(self.momo_endpoint).hostname == "test-payment.momo.vn"
+
+    @property
+    def vnpay_payment_configured(self) -> bool:
+        payment_endpoint = urlsplit(self.vnpay_payment_url)
+        query_endpoint = urlsplit(self.vnpay_query_url)
+        try:
+            query_server_ip = ip_address(self.vnpay_server_ip)
+            query_server_ip_configured = query_server_ip.version == 4 and query_server_ip.is_global
+        except ValueError:
+            query_server_ip_configured = False
+        return bool(
+            self.vnpay_tmn_code
+            and self.vnpay_hash_secret
+            and self.vnpay_hash_secret.get_secret_value()
+            and self.vnpay_return_url
+            and self.vnpay_ipn_url
+            and self._payment_callback_url_configured(self.vnpay_return_url)
+            and self._payment_callback_url_configured(self.vnpay_ipn_url)
+            and payment_endpoint.scheme == "https"
+            and payment_endpoint.hostname in {"sandbox.vnpayment.vn", "pay.vnpay.vn"}
+            and payment_endpoint.path == "/paymentv2/vpcpay.html"
+            and query_endpoint.scheme == "https"
+            and query_endpoint.hostname in {"sandbox.vnpayment.vn", "merchant.vnpay.vn"}
+            and query_endpoint.path == "/merchant_webapi/api/transaction"
+            and query_server_ip_configured
+        )
+
+    @property
+    def vnpay_sandbox_enabled(self) -> bool:
+        return urlsplit(self.vnpay_payment_url).hostname == "sandbox.vnpayment.vn"
+
+    def _payment_callback_url_configured(self, url: str) -> bool:
+        parsed = urlsplit(url)
+        if parsed.scheme == "https" and parsed.netloc:
+            return True
+        return (
+            self.env in {"local", "test"}
+            and parsed.scheme == "http"
+            and parsed.hostname in {"localhost", "127.0.0.1", "::1"}
+        )
 
     @model_validator(mode="after")
     def enforce_deployment_provider_policy(self) -> Self:

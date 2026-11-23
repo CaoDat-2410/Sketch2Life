@@ -5,7 +5,7 @@
   border: 1px solid var(--manager-rule);
   border-radius: var(--manager-radius);
   background: var(--manager-sheet);
-  box-shadow: 0 3px 12px rgb(50 43 33 / 3%);
+  box-shadow: 0 3px 12px color-mix(in srgb, var(--s2l-ui-shadow-tint) 3%, transparent);
 }
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-card-heading {
   display: flex;
@@ -46,7 +46,7 @@
 }
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-chip.is-pending {
   background: var(--manager-gold-soft);
-  color: #6f571f;
+  color: var(--s2l-ui-butter-ink);
 }
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-grid {
   display: grid;
@@ -99,20 +99,17 @@
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-success {
   margin: 0;
   padding: 11px 13px;
-  border: 1px solid #e6b9ae;
+  border: 1px solid var(--s2l-ui-coral-300);
   border-radius: 12px;
   background: var(--manager-clay-soft);
   color: var(--manager-danger);
   line-height: 1.45;
 }
-:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-success { border-color: #c6d6bd; background: var(--manager-green-soft); color: var(--manager-green); }
-:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-limitation { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; background: #fffdf7; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-success { border-color: var(--s2l-ui-mint-ink); background: var(--manager-green-soft); color: var(--manager-green); }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-limitation { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; background: var(--s2l-ui-paper); }
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-limitation h2 { margin: 5px 0; color: var(--manager-ink); font-size: 16px; }
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-limitation p:not(.manager-business-eyebrow) { max-width: 760px; margin: 0; color: var(--manager-muted); font-size: 13px; line-height: 1.55; }
-:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-class-picker { display: grid; grid-template-columns: minmax(145px, .5fr) minmax(220px, 1fr); align-items: center; gap: 10px 18px; }
-:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-class-picker label,
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-form label { color: var(--manager-ink); font-size: 13px; font-weight: 700; }
-:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-class-picker select,
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-form input {
   width: 100%;
   min-width: 0;
@@ -120,18 +117,16 @@
   padding: 9px 12px;
   border: 1px solid var(--manager-rule-strong);
   border-radius: 11px;
-  background: #fffefa;
+  background: var(--s2l-ui-paper);
   color: var(--manager-ink);
   font: inherit;
 }
-:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-class-picker select:focus-visible,
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-form input:focus-visible,
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-button:focus-visible { outline: 3px solid var(--manager-focus); outline-offset: 2px; }
-:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-class-picker .manager-business-subtle { grid-column: 2; margin: 0; }
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-profile-list,
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-group-list { display: grid; gap: 8px; margin: 15px 0 0; padding: 0; list-style: none; }
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-profile-list li,
-:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-group-list li { display: flex; min-width: 0; align-items: center; gap: 10px; padding: 10px; border: 1px solid var(--manager-rule); border-radius: 12px; background: #fffdf8; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-group-list li { display: flex; min-width: 0; align-items: center; gap: 10px; padding: 10px; border: 1px solid var(--manager-rule); border-radius: 12px; background: var(--s2l-ui-paper); }
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-profile-list li > span:last-child,
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-group-copy { display: grid; min-width: 0; gap: 3px; }
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-profile-list strong,
@@ -145,59 +140,53 @@
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-table td { padding: 10px 8px; border-bottom: 1px solid var(--manager-rule); font-size: 12px; vertical-align: top; }
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-table th { color: var(--manager-soft-muted); font-size: 10px; letter-spacing: .04em; }
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-form { display: grid; gap: 8px; margin-top: 14px; }
-:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-row { display: flex; min-width: 0; gap: 9px; }
-:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-row input { flex: 1 1 auto; }
-:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-button { display: inline-flex; min-height: 42px; align-items: center; justify-content: center; gap: 7px; padding: 8px 12px; border: 1px solid var(--manager-rule-strong); border-radius: 11px; background: #fffefa; color: var(--manager-blue-deep); cursor: pointer; font: inherit; font-size: 12px; font-weight: 750; }
-:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-button.is-primary { border-color: var(--manager-blue-deep); background: var(--manager-blue-deep); color: #fff; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-button { display: inline-flex; min-height: 42px; align-items: center; justify-content: center; gap: 7px; padding: 8px 12px; border: 1px solid var(--manager-rule-strong); border-radius: 11px; background: var(--s2l-ui-paper); color: var(--manager-blue-deep); cursor: pointer; font: inherit; font-size: 12px; font-weight: 750; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-button.is-primary { border-color: var(--manager-blue-deep); background: var(--manager-blue-deep); color: var(--s2l-ui-on-primary); }
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-button:disabled { opacity: .56; cursor: not-allowed; }
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-pagination { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; padding-top: 13px; border-top: 1px solid var(--manager-rule); color: var(--manager-muted); font-size: 12px; }
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-pagination > div { display: flex; flex-wrap: wrap; gap: 8px; }
-:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-class { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, .85fr); gap: 12px 24px; align-items: center; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-class { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; }
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-class h2 { margin: 0; color: var(--manager-ink); font-size: 18px; }
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-class p { margin: 7px 0 0; }
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-class form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: end; }
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-class label { grid-column: 1 / -1; color: var(--manager-ink); font-size: 13px; font-weight: 700; }
-:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-class input { min-width: 0; min-height: 42px; padding: 8px 11px; border: 1px solid var(--manager-rule-strong); border-radius: 10px; background: #fffefa; color: var(--manager-ink); font: inherit; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-class input { min-width: 0; min-height: 42px; padding: 8px 11px; border: 1px solid var(--manager-rule-strong); border-radius: 10px; background: var(--s2l-ui-paper); color: var(--manager-ink); font: inherit; }
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-class > .manager-business-subtle { grid-column: 1 / -1; margin-top: 0; }
 @media (max-width: 820px) {
   :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-grid { grid-template-columns: minmax(0, 1fr); }
-  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-class-picker { grid-template-columns: minmax(0, 1fr); }
-  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-class-picker .manager-business-subtle { grid-column: 1; }
   :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-organization { grid-template-columns: minmax(0, 1fr); }
   :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-class { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 560px) {
   :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-card { padding: 14px; }
-  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-row { align-items: stretch; flex-direction: column; }
-  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-create-row button { width: 100%; }
   :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-limitation { flex-direction: column; }
   :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-pagination { align-items: flex-start; flex-direction: column; }
 }
 
 /* REV46_MANAGER_NAVIGATION — align the live BE1 shell with the Manager paper system. */
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) {
-  --manager-focus: #285f97;
+  --manager-focus: var(--s2l-ui-focus);
 }
 
 :is(html[data-portal="school-preview"][data-theme="dark"], html[data-portal="school-be1"][data-theme="dark"]) {
-  --manager-paper: #25241f;
-  --manager-board: #302e28;
-  --manager-sheet: #302e28;
-  --manager-ink: #fff9f0;
-  --manager-muted: #d0c7b7;
-  --manager-soft-muted: #b8af9f;
-  --manager-rule: #514b3f;
-  --manager-rule-strong: #706551;
-  --manager-blue: #93bfe9;
-  --manager-blue-deep: #c3ddf7;
-  --manager-blue-soft: #37424c;
-  --manager-gold: #efcf7c;
-  --manager-gold-soft: #51452b;
-  --manager-green: #a7d2a5;
-  --manager-green-soft: #304232;
-  --manager-clay: #e7a18b;
-  --manager-clay-soft: #4b302a;
-  --manager-danger: #f0b0a0;
+  --manager-paper: var(--s2l-ui-cream);
+  --manager-board: var(--s2l-ui-paper-muted);
+  --manager-sheet: var(--s2l-ui-paper);
+  --manager-ink: var(--s2l-ui-ink);
+  --manager-muted: var(--s2l-ui-ink-soft);
+  --manager-soft-muted: var(--s2l-ui-ink-soft);
+  --manager-rule: var(--s2l-ui-rule);
+  --manager-rule-strong: var(--s2l-ui-rule);
+  --manager-blue: var(--s2l-ui-primary);
+  --manager-blue-deep: var(--s2l-ui-primary-hover);
+  --manager-blue-soft: var(--s2l-ui-primary-soft);
+  --manager-gold: var(--s2l-ui-butter);
+  --manager-gold-soft: var(--s2l-ui-butter-soft);
+  --manager-green: var(--s2l-ui-mint);
+  --manager-green-soft: var(--s2l-ui-mint-soft);
+  --manager-clay: var(--s2l-ui-danger-soft);
+  --manager-clay-soft: var(--s2l-ui-coral);
+  --manager-danger: var(--s2l-ui-coral);
 }
 
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager {
@@ -221,7 +210,7 @@
   padding: 20px 13px 14px;
   border-right-color: var(--manager-rule);
   background: var(--manager-sheet);
-  box-shadow: 5px 0 24px rgb(50 43 33 / 4%);
+  box-shadow: 5px 0 24px color-mix(in srgb, var(--s2l-ui-shadow-tint) 4%, transparent);
 }
 
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-brand-lockup {
@@ -349,7 +338,7 @@
     transition: transform 200ms ease, box-shadow 200ms ease;
   }
   :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager.is-menu-open .s2l-sidebar {
-    transform: translateX(0); box-shadow: 16px 0 34px rgb(39 43 35 / 18%);
+    transform: translateX(0); box-shadow: 16px 0 34px color-mix(in srgb, var(--s2l-ui-shadow-tint) 18%, transparent);
   }
   :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager .s2l-workspace { margin-left: 0; }
   :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .s2l-app-shell.is-school-manager :is(.s2l-menu-button, .s2l-close-menu) {
@@ -370,7 +359,496 @@
 /* Goal v3 Phase B (T-7a/T-7b): roster count and class state controls. */
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-roster-count { margin: 4px 0 0; color: var(--manager-ink); font-size: 15px; }
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-roster-count strong { font-size: 28px; margin-right: 6px; }
-:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-filter { display: grid; gap: 4px; margin: 0 0 10px; color: var(--manager-ink); font-size: 13px; font-weight: 700; }
-:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-filter select { min-height: 38px; padding: 6px 10px; border: 1px solid var(--manager-rule-strong); border-radius: 10px; background: #fffefa; color: var(--manager-ink); font: inherit; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-filter { margin: 0 0 10px; }
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-lifecycle > div { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-lifecycle [role="group"] > p { flex-basis: 100%; margin: 0; }
+.manager-feedback-list { display: grid; gap: 0.75rem; padding-left: 1.5rem; }
+.manager-feedback-list p { white-space: pre-wrap; overflow-wrap: anywhere; }
+.manager-feedback-form { display: grid; gap: 0.5rem; margin-top: 1rem; }
+.manager-feedback-form textarea { min-height: 7rem; width: 100%; }
+
+/* Round 8: align School Manager legacy pages with the authenticated cozy palette. */
+html[data-cozy="1"][data-portal="school-be1"] {
+  --manager-paper: var(--s2l-ui-cream);
+  --manager-board: var(--s2l-ui-paper-muted);
+  --manager-sheet: var(--s2l-ui-paper);
+  --manager-ink: var(--s2l-ui-ink);
+  --manager-muted: var(--s2l-ui-ink-soft);
+  --manager-soft-muted: var(--s2l-ui-ink-soft);
+  --manager-rule: var(--s2l-ui-rule);
+  --manager-rule-strong: var(--s2l-ui-input-focus);
+  --manager-focus: var(--s2l-ui-focus);
+  --manager-blue: var(--s2l-ui-primary);
+  --manager-blue-deep: var(--s2l-ui-primary-hover);
+  --manager-blue-soft: var(--s2l-ui-primary-soft);
+  --manager-gold: var(--s2l-ui-butter-ink);
+  --manager-gold-soft: var(--s2l-ui-butter-soft);
+  --manager-green: var(--s2l-ui-mint-ink);
+  --manager-green-soft: var(--s2l-ui-mint-soft);
+  --manager-clay: var(--s2l-ui-danger-ink);
+  --manager-clay-soft: var(--s2l-ui-danger-soft);
+  --manager-danger: var(--s2l-ui-danger-ink);
+  --manager-radius: 22px;
+  --mg-canvas: var(--s2l-ui-cream);
+  --mg-surface: var(--s2l-ui-paper);
+  --mg-raised: var(--s2l-ui-paper);
+  --mg-ink: var(--s2l-ui-ink);
+  --mg-muted: var(--s2l-ui-ink-soft);
+  --mg-subtle: var(--s2l-ui-ink-soft);
+  --mg-line: var(--s2l-ui-rule);
+  --mg-accent: var(--s2l-ui-primary);
+  --mg-accent-strong: var(--s2l-ui-primary-hover);
+  --mg-accent-soft: var(--s2l-ui-primary-soft);
+  --mg-on-accent: var(--s2l-ui-on-primary);
+  --mg-sun: var(--s2l-ui-butter);
+  --mg-sun-soft: var(--s2l-ui-butter-soft);
+  --mg-clay: var(--s2l-ui-coral);
+  --mg-clay-soft: var(--s2l-ui-danger-soft);
+  --mg-neutral-soft: var(--s2l-ui-neutral-soft);
+  --mg-focus: var(--s2l-ui-focus);
+  --radius-card: 22px;
+  --radius-inner: 14px;
+  --radius-pill: 18px;
+}
+
+html[data-cozy="1"][data-portal="school-be1"] :is(.s2l-data-card, .manager-business-card, .manager-section-card, .manager-blocked-card) {
+  border-color: var(--s2l-ui-rule);
+  border-radius: 22px;
+  background: var(--s2l-ui-paper);
+  box-shadow: var(--s2l-ui-shadow);
+  color: var(--s2l-ui-ink);
+}
+
+html[data-cozy="1"][data-portal="school-be1"] :is(.s2l-note, .manager-inline-boundary, .manager-privacy-note) {
+  border: 1px solid var(--s2l-ui-primary-300);
+  border-radius: 14px;
+  background: var(--s2l-ui-primary-soft);
+  color: var(--s2l-ui-primary-hover);
+}
+
+html[data-cozy="1"][data-portal="school-be1"] :is(.s2l-alert, .manager-business-alert, .manager-status-panel.is-error, .manager-toast.is-err) {
+  border-color: var(--s2l-ui-danger-ink);
+  background: var(--s2l-ui-danger-soft);
+  color: var(--s2l-ui-danger-ink);
+}
+
+html[data-cozy="1"][data-portal="school-be1"] :is(.manager-business-success, .manager-toast.is-ok) {
+  border-color: var(--s2l-ui-success-base);
+  background: var(--s2l-ui-success-soft);
+  color: var(--s2l-ui-success-ink);
+}
+
+html[data-cozy="1"][data-portal="school-be1"] :is(.manager-business-chip, .manager-status-tag.is-approved) {
+  border-color: var(--s2l-ui-success-soft);
+  background: var(--s2l-ui-success-soft);
+  color: var(--s2l-ui-success-ink);
+}
+
+html[data-cozy="1"][data-portal="school-be1"] :is(.manager-business-chip.is-pending, .manager-status-tag.is-pending, .manager-count-tag, .manager-mode-label.is-preview) {
+  border-color: var(--s2l-ui-butter-300);
+  background: var(--s2l-ui-butter-soft);
+  color: var(--s2l-ui-butter-ink);
+}
+
+html[data-cozy="1"][data-portal="school-be1"] :is(.manager-status-tag.is-changes, .manager-count-dot.is-changes) {
+  border-color: var(--s2l-ui-danger-soft);
+  background: var(--s2l-ui-danger-soft);
+  color: var(--s2l-ui-danger-ink);
+}
+
+html[data-cozy="1"][data-portal="school-be1"] :is(.manager-count-dot.is-pending, .manager-count-dot.is-approved) {
+  border-color: transparent;
+  background: var(--s2l-ui-success-base);
+}
+
+html[data-cozy="1"][data-portal="school-be1"] :is(.manager-business-icon, .manager-review-item-icon, .manager-nav-icon) {
+  border-color: var(--s2l-ui-primary-300);
+  background: var(--s2l-ui-primary-soft);
+  color: var(--s2l-ui-primary-hover);
+}
+
+html[data-cozy="1"][data-portal="school-be1"] :is(.manager-business-button, .manager-button, .s2l-button) {
+  min-height: 44px;
+  border: 1px solid var(--s2l-ui-rule);
+  border-radius: 18px;
+  background: var(--s2l-ui-paper);
+  color: var(--s2l-ui-primary-hover);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.35;
+  box-shadow: none;
+}
+
+html[data-cozy="1"][data-portal="school-be1"] :is(.manager-business-button.is-primary, .manager-button.is-primary, .s2l-button.is-primary) {
+  border-color: transparent;
+  background: var(--s2l-ui-primary-gradient);
+  color: var(--s2l-ui-on-primary);
+  box-shadow: var(--s2l-ui-shadow);
+}
+
+html[data-cozy="1"][data-portal="school-be1"] :is(.manager-business-button:hover:not(:disabled), .manager-button.is-outline:hover:not(:disabled), .s2l-button:hover:not(:disabled)) {
+  border-color: var(--s2l-ui-input-focus);
+  background: var(--s2l-ui-primary-soft);
+  color: var(--s2l-ui-primary-hover);
+}
+
+html[data-cozy="1"][data-portal="school-be1"] :is(.manager-business-button.is-primary:hover:not(:disabled), .manager-button.is-primary:hover:not(:disabled), .s2l-button.is-primary:hover:not(:disabled)) {
+  border-color: transparent;
+  background: var(--s2l-ui-primary-hover-gradient);
+  color: var(--s2l-ui-on-primary);
+}
+
+html[data-cozy="1"][data-portal="school-be1"] :is(.manager-business-button:disabled, .manager-button:disabled, .s2l-button:disabled) {
+  border-color: var(--s2l-ui-rule);
+  background: var(--s2l-ui-primary-disabled);
+  color: var(--s2l-ui-primary-disabled-ink);
+  box-shadow: none;
+  opacity: 1;
+  cursor: not-allowed;
+}
+
+html[data-cozy="1"][data-portal="school-be1"] :is(.manager-business-create-class input, .manager-business-create-form input, .manager-review-decision textarea, .manager-feedback-form textarea, .manager-roster-picker select, .s2l-input, .s2l-select, .s2l-textarea) {
+  min-height: 44px;
+  border: 1px solid color-mix(in srgb, var(--s2l-ui-ink) 18%, var(--s2l-ui-rule));
+  border-radius: 14px;
+  background: var(--s2l-ui-paper);
+  color: var(--s2l-ui-ink);
+  font-size: 14px;
+}
+
+html[data-cozy="1"][data-portal="school-be1"] :is(button, input, select, textarea, a):focus-visible {
+  outline: 3px solid var(--s2l-ui-focus);
+  outline-offset: 2px;
+}
+
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-page { gap: 20px; }
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-card { padding: 20px; }
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-eyebrow,
+html[data-cozy="1"][data-portal="school-be1"] .manager-eyebrow { color: var(--s2l-ui-primary-hover); font-size: 11px; }
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-chip { font-size: 11px; }
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-card-heading h2 { font-size: 18px; }
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-subtle,
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-state { color: var(--s2l-ui-ink-soft); font-size: 13px; }
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-subtle[role="status"] {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border: 1px solid var(--s2l-ui-mint-300);
+  border-radius: 14px;
+  background: var(--s2l-ui-success-soft);
+  color: var(--s2l-ui-success-ink);
+  line-height: 1.5;
+}
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-limitation { background: var(--s2l-ui-paper-muted); }
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-table-wrap { max-width: 100%; overflow-x: auto; }
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-table { min-width: 520px; }
+
+html[data-cozy="1"][data-portal="school-be1"] :is(.manager-page, .s2l-page) { min-width: 0; }
+html[data-cozy="1"][data-portal="school-be1"] .manager-page { gap: 20px; }
+html[data-cozy="1"][data-portal="school-be1"] .manager-page-heading { gap: 12px; }
+html[data-cozy="1"][data-portal="school-be1"] .manager-page-heading-row { align-items: flex-end; gap: 18px; }
+html[data-cozy="1"][data-portal="school-be1"] .manager-page-heading h1 { color: var(--s2l-ui-ink); font-size: clamp(26px, 2.5vw, 34px); }
+html[data-cozy="1"][data-portal="school-be1"] .manager-page-heading p:not(.manager-eyebrow) { color: var(--s2l-ui-ink-soft); font-size: 14px; }
+html[data-cozy="1"][data-portal="school-be1"] .manager-status-panel { border-color: var(--s2l-ui-primary-300); border-radius: 16px; background: var(--s2l-ui-primary-soft); color: var(--s2l-ui-primary-hover); font-size: 14px; }
+html[data-cozy="1"][data-portal="school-be1"] .manager-status-panel.is-warning { border-color: var(--s2l-ui-butter-300); background: var(--s2l-ui-butter-soft); color: var(--s2l-ui-butter-ink); }
+html[data-cozy="1"][data-portal="school-be1"] :is(.manager-status-panel.is-loading, .manager-status-panel.is-empty) { border-color: var(--s2l-ui-rule); background: var(--s2l-ui-paper-muted); color: var(--s2l-ui-ink); }
+html[data-cozy="1"][data-portal="school-be1"] .manager-status-panel h2 { font-size: 16px; }
+html[data-cozy="1"][data-portal="school-be1"] .manager-status-copy > div { font-size: 13px; line-height: 1.55; }
+html[data-cozy="1"][data-portal="school-be1"] .manager-section-card { padding: 20px; }
+html[data-cozy="1"][data-portal="school-be1"] .manager-review-counts strong { font-size: 14px; }
+html[data-cozy="1"][data-portal="school-be1"] .manager-review-counts span:last-child { font-size: 12px; }
+html[data-cozy="1"][data-portal="school-be1"] .manager-review-item-copy strong { font-size: 13px; }
+html[data-cozy="1"][data-portal="school-be1"] .manager-review-item-copy span,
+html[data-cozy="1"][data-portal="school-be1"] .manager-review-meta span,
+html[data-cozy="1"][data-portal="school-be1"] .manager-review-meta strong { font-size: 12px; }
+html[data-cozy="1"][data-portal="school-be1"] .manager-status-tag { min-height: 28px; padding: 4px 9px; font-size: 11px; }
+html[data-cozy="1"][data-portal="school-be1"] .manager-content-block,
+html[data-cozy="1"][data-portal="school-be1"] .manager-activity-block { border-color: var(--s2l-ui-rule); border-radius: 14px; }
+html[data-cozy="1"][data-portal="school-be1"] .manager-content-block > span { color: var(--s2l-ui-primary-hover); font-size: 12px; }
+html[data-cozy="1"][data-portal="school-be1"] .manager-content-block p,
+html[data-cozy="1"][data-portal="school-be1"] .manager-content-block li,
+html[data-cozy="1"][data-portal="school-be1"] .manager-activity-block p { color: var(--s2l-ui-ink); font-size: 13px; }
+html[data-cozy="1"][data-portal="school-be1"] .manager-activity-block h3 { color: var(--s2l-ui-ink); font-size: 14px; }
+html[data-cozy="1"][data-portal="school-be1"] .manager-content-block,
+html[data-cozy="1"][data-portal="school-be1"] .manager-activity-block {
+  padding: 10px 0;
+  border: 0;
+  border-top: 1px solid var(--s2l-ui-rule);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+html[data-cozy="1"][data-portal="school-be1"] .manager-content-block:first-child { border-top: 0; }
+html[data-cozy="1"][data-portal="school-be1"] .manager-confirm-row { min-height: 44px; border-color: var(--s2l-ui-rule); background: var(--s2l-ui-paper); color: var(--s2l-ui-ink); font-size: 13px; }
+html[data-cozy="1"][data-portal="school-be1"] .manager-confirm-row:has(input:checked) { border-color: var(--s2l-ui-mint-300); background: var(--s2l-ui-mint-soft); color: var(--s2l-ui-mint-ink); }
+html[data-cozy="1"][data-portal="school-be1"] .manager-review-decision textarea { min-height: 96px; padding: 10px 12px; font-size: 14px; }
+html[data-cozy="1"][data-portal="school-be1"] .manager-counter-boundary { color: var(--s2l-ui-ink-soft); font-size: 12px; }
+
+@media (max-width: 820px) {
+  html[data-cozy="1"][data-portal="school-be1"] .manager-review-grid { grid-template-columns: minmax(0, 1fr); }
+  html[data-cozy="1"][data-portal="school-be1"] .manager-review-queue { position: static; }
+}
+
+@media (max-width: 620px) {
+  html[data-cozy="1"][data-portal="school-be1"] .manager-page-heading-row { align-items: flex-start; flex-direction: column; gap: 12px; }
+  html[data-cozy="1"][data-portal="school-be1"] .manager-page-actions { display: flex; width: 100%; flex-wrap: wrap; gap: 8px; }
+  html[data-cozy="1"][data-portal="school-be1"] .manager-page-actions > * { flex: 1 1 auto; }
+  html[data-cozy="1"][data-portal="school-be1"] .manager-business-card,
+  html[data-cozy="1"][data-portal="school-be1"] .manager-section-card { padding: 16px; }
+  html[data-cozy="1"][data-portal="school-be1"] .manager-business-create-class form { grid-template-columns: minmax(0, 1fr); }
+  html[data-cozy="1"][data-portal="school-be1"] .manager-business-create-class form button { width: 100%; white-space: normal; }
+  html[data-cozy="1"][data-portal="school-be1"] .manager-review-counts { grid-template-columns: minmax(0, 1fr); }
+  html[data-cozy="1"][data-portal="school-be1"] .manager-review-meta { grid-template-columns: minmax(0, 1fr); }
+  html[data-cozy="1"][data-portal="school-be1"] .manager-decision-actions { align-items: stretch; flex-direction: column-reverse; }
+  html[data-cozy="1"][data-portal="school-be1"] .manager-decision-actions .manager-button { width: 100%; min-height: 44px; }
+  html[data-cozy="1"][data-portal="school-be1"] .manager-review-item { flex-wrap: wrap; }
+  html[data-cozy="1"][data-portal="school-be1"] .manager-review-item-copy { min-width: calc(100% - 58px); }
+  html[data-cozy="1"][data-portal="school-be1"] .manager-status-tag { margin-left: 44px; }
+}
+
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  min-width: 0;
+}
+
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-roster-stats {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-assignment-list {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-assignment-list li {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--s2l-ui-rule);
+  border-radius: 12px;
+  background: var(--s2l-ui-paper);
+  transition: background-color 140ms ease, border-color 140ms ease;
+}
+
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-assignment-list li.is-selected {
+  border-color: var(--s2l-ui-primary-300);
+  background: var(--s2l-ui-row-selected);
+  box-shadow: inset 3px 0 var(--s2l-ui-primary);
+}
+
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-assignment-list li > strong {
+  min-width: 0;
+  color: var(--s2l-ui-ink);
+  overflow-wrap: anywhere;
+}
+
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-assignment-badges {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-card[aria-labelledby="teacher-assignment-title"] h2 { margin: 0; }
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-card[aria-labelledby="teacher-assignment-title"] .manager-business-subtle { margin: 0; }
+
+@media (max-width: 820px) {
+  html[data-cozy="1"][data-portal="school-be1"] .manager-business-roster-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 620px) {
+  html[data-cozy="1"][data-portal="school-be1"] .manager-business-stats,
+  html[data-cozy="1"][data-portal="school-be1"] .manager-business-roster-stats { grid-template-columns: minmax(0, 1fr); }
+  html[data-cozy="1"][data-portal="school-be1"] .manager-business-assignment-list li {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  html[data-cozy="1"][data-portal="school-be1"] .manager-business-assignment-badges { justify-content: flex-start; }
+  html[data-cozy="1"][data-portal="school-be1"] .manager-business-page .manager-business-table {
+    min-width: 0;
+    table-layout: fixed;
+  }
+  html[data-cozy="1"][data-portal="school-be1"] .manager-business-page .manager-business-table th,
+  html[data-cozy="1"][data-portal="school-be1"] .manager-business-page .manager-business-table td {
+    padding: 8px 4px;
+    overflow-wrap: anywhere;
+  }
+  html[data-cozy="1"][data-portal="school-be1"] .manager-business-page .manager-business-table .s2l-status-badge {
+    width: 100%;
+    justify-content: center;
+    white-space: normal;
+    text-align: center;
+  }
+  html[data-cozy="1"][data-portal="school-be1"] .manager-business-page .manager-business-table .s2l-status-badge > span:last-child {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
+
+/* BE1 school quota and real billing workspace. */
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-page { gap: 15px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-tabs {
+  display: flex; width: fit-content; max-width: 100%; gap: 5px; padding: 4px;
+  border: 1px solid var(--manager-rule); border-radius: 13px; background: var(--manager-board);
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-tabs a {
+  display: inline-flex; min-height: 39px; align-items: center; gap: 8px; padding: 0 13px;
+  border-radius: 10px; color: var(--manager-muted); font-size: 12px; font-weight: 750; text-decoration: none;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-tabs a:hover { background: var(--manager-sheet); color: var(--manager-ink); }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-tabs a.is-active { background: var(--manager-sheet); color: var(--manager-blue-deep); box-shadow: 0 1px 3px rgb(25 40 61 / 9%); }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-stats {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-stats article {
+  display: grid; min-width: 0; grid-template-columns: 1fr auto; align-items: end; gap: 4px 10px;
+  padding: 15px 17px; border: 1px solid var(--manager-rule); border-radius: 15px;
+  background: var(--manager-sheet); box-shadow: 0 2px 8px rgb(28 39 52 / 3%);
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-stats article span { grid-column: 1 / -1; color: var(--manager-muted); font-size: 12px; font-weight: 700; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-stats article strong { color: var(--manager-ink); font-size: 27px; font-variant-numeric: tabular-nums; line-height: 1.1; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-stats article small { color: var(--manager-muted); font-size: 11px; text-align: right; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-section { display: grid; gap: 16px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-section .manager-business-card-heading { padding-bottom: 14px; border-bottom: 1px solid var(--manager-rule); }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-section .manager-business-card-heading h2 { font-size: 17px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-inline-link,
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-continue {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; color: var(--manager-blue-deep);
+  font-size: 12px; font-weight: 750; text-decoration: none;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-no-checkout {
+  display: inline-flex; align-items: center; padding: 5px 8px; border-radius: 999px;
+  background: var(--manager-gold-soft); color: #745410; font-size: 10px; font-weight: 750; white-space: nowrap;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-inline-link:hover,
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-continue:hover { text-decoration: underline; }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-invoice-actions { display: grid; justify-items: start; gap: 5px; min-width: 145px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-invoice-actions > small { color: var(--manager-muted); font-size: 10px; line-height: 1.35; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-reconcile {
+  display: inline-flex; min-height: 30px; align-items: center; gap: 6px; padding: 5px 8px; border: 1px solid var(--manager-rule-strong);
+  border-radius: 8px; background: var(--manager-sheet); color: var(--manager-blue-deep); cursor: pointer; font: inherit; font-size: 11px; font-weight: 750;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-reconcile:hover:not(:disabled) { background: var(--manager-blue-soft); }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-reconcile:disabled { cursor: wait; opacity: .65; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-reconcile .is-spinning { animation: manager-quota-spin .9s linear infinite; }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-hold-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-cancel {
+    display: inline-flex; min-height: 30px; align-items: center; gap: 6px; padding: 5px 8px; border: 1px solid #d9aaa5;
+    border-radius: 8px; background: #fff9f8; color: #9e423d; cursor: pointer; font: inherit; font-size: 11px; font-weight: 750;
+  }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-cancel:hover:not(:disabled) { background: #fff0ed; }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-cancel:disabled { cursor: wait; opacity: .65; }
+@keyframes manager-quota-spin { to { transform: rotate(360deg); } }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-grant-list { display: grid; gap: 8px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-grant-list article {
+  display: flex; min-width: 0; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 12px 14px; border: 1px solid var(--manager-rule); border-radius: 12px; background: var(--manager-board);
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-grant-list article > div:first-child { display: grid; gap: 4px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-grant-list strong { color: var(--manager-ink); font-size: 13px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-grant-list small { color: var(--manager-muted); font-size: 11px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-grant-metrics { display: flex; flex-wrap: wrap; gap: 15px; color: var(--manager-muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-grant-metrics strong { color: var(--manager-blue-deep); }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-empty {
+  padding: 18px; border: 1px dashed var(--manager-rule-strong); border-radius: 12px; background: var(--manager-board);
+  color: var(--manager-muted); font-size: 13px; line-height: 1.5;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-allocation-form {
+  display: grid; grid-template-columns: minmax(220px, 1fr) minmax(130px, 190px) auto; align-items: end; gap: 12px;
+  padding: 14px; border: 1px solid var(--manager-rule); border-radius: 13px; background: var(--manager-board);
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-allocation-form label {
+  display: grid; min-width: 0; gap: 6px; color: var(--manager-ink); font-size: 12px; font-weight: 750;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-allocation-form :is(select, input) {
+  width: 100%; min-height: 42px; padding: 8px 11px; border: 1px solid var(--manager-rule-strong);
+  border-radius: 10px; background: var(--manager-sheet); color: var(--manager-ink); font: inherit; font-size: 13px;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-button.is-primary {
+  border-color: var(--manager-blue-deep); background: var(--manager-blue-deep); color: #fff;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-button:disabled,
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-checkout-actions button:disabled { cursor: not-allowed; opacity: .58; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-table-wrap { width: 100%; overflow-x: auto; border: 1px solid var(--manager-rule); border-radius: 12px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-table { width: 100%; border-collapse: collapse; color: var(--manager-ink); font-size: 12px; text-align: left; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-table th { padding: 11px 13px; background: var(--manager-blue-soft); color: var(--manager-blue-deep); font-size: 11px; font-weight: 800; white-space: nowrap; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-table td { padding: 12px 13px; border-top: 1px solid var(--manager-rule); vertical-align: middle; white-space: nowrap; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-table tbody tr:hover { background: var(--manager-board); }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-table td:first-child { min-width: 160px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-table td strong { display: block; color: var(--manager-ink); font-size: 12px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-table td small { display: block; margin-top: 3px; color: var(--manager-muted); font-size: 10px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-reclaim {
+  min-height: 34px; padding: 6px 9px; border: 1px solid var(--manager-rule-strong); border-radius: 9px;
+  background: var(--manager-sheet); color: var(--manager-blue-deep); cursor: pointer; font: inherit; font-weight: 700;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-reclaim:disabled { color: var(--manager-muted); cursor: not-allowed; opacity: .55; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-policy,
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-provider-note { margin: 0; padding: 11px 13px; border-left: 3px solid var(--manager-blue-deep); background: var(--manager-blue-soft); color: var(--manager-muted); font-size: 11px; line-height: 1.5; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-products { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 13px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-product {
+  display: flex; min-width: 0; flex-direction: column; padding: 16px; border: 1px solid var(--manager-rule);
+  border-radius: 14px; background: linear-gradient(180deg, var(--manager-sheet), var(--manager-board));
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-product-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-product-top > span { padding: 5px 8px; border-radius: 999px; background: var(--manager-blue-soft); color: var(--manager-blue-deep); font-size: 10px; font-weight: 800; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-product-top > span.is-monthly { background: var(--manager-gold-soft); color: #745410; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-product-top small { color: var(--manager-muted); font-size: 10px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-product h3 { margin: 14px 0 7px; color: var(--manager-ink); font-size: 15px; line-height: 1.35; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-product-units { color: var(--manager-blue-deep); font-size: 25px; font-weight: 800; line-height: 1.2; font-variant-numeric: tabular-nums; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-product-units span { color: var(--manager-muted); font-size: 11px; font-weight: 650; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-product-price { margin-top: 13px; color: var(--manager-ink); font-size: 20px; font-variant-numeric: tabular-nums; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-product p { min-height: 39px; margin: 6px 0 15px; color: var(--manager-muted); font-size: 11px; line-height: 1.5; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-checkout-actions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: auto; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-checkout-actions button {
+  min-height: 38px; padding: 7px 10px; border: 1px solid var(--manager-blue-deep); border-radius: 10px;
+  background: var(--manager-blue-deep); color: white; cursor: pointer; font: inherit; font-size: 11px; font-weight: 750;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-checkout-actions button + button { background: var(--manager-sheet); color: var(--manager-blue-deep); }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-status { display: inline-flex; padding: 5px 8px; border-radius: 999px; background: var(--manager-gold-soft); color: #745410; font-size: 10px; font-weight: 750; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-status.is-paid { background: var(--manager-green-soft); color: var(--manager-green); }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-status.is-failed { background: var(--manager-clay-soft); color: var(--manager-clay); }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-status.is-canceled { background: #edf0f4; color: #5f6b7a; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-alert,
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-notice { display: grid; gap: 5px; padding: 13px 15px; border: 1px solid var(--manager-clay); border-radius: 12px; background: var(--manager-clay-soft); color: var(--manager-clay); font-size: 12px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-payment-hold {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 14px 16px;
+  border: 1px solid #e5c98b; border-radius: 12px; background: #fff9e9; color: #765316;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-payment-hold > svg { color: #a36e12; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-payment-hold div { display: grid; gap: 3px; min-width: 0; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-payment-hold strong { color: #60430f; font-size: 13px; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-payment-hold span { font-size: 12px; line-height: 1.5; }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-hold-actions > .manager-quota-reconcile { border-color: #d9bd7f; background: #fffdf7; color: #60430f; }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-hold-actions > .manager-quota-reconcile:hover:not(:disabled) { background: #fff3d0; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-alert button { width: fit-content; padding: 0; border: 0; background: transparent; color: inherit; cursor: pointer; font: inherit; font-weight: 800; text-decoration: underline; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-notice { display: block; border-color: var(--manager-green); background: var(--manager-green-soft); color: var(--manager-green); }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-payment-message {
+  margin: 0; padding: 12px 14px; border: 1px solid var(--manager-rule-strong); border-radius: 11px; background: var(--manager-sheet); color: var(--manager-ink); font-size: 12px; line-height: 1.5;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-payment-message.is-pending { border-color: #e5c98b; background: #fff9e9; color: #765316; }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-payment-message.is-success { border-color: #9bc9b6; background: var(--manager-green-soft); color: var(--manager-green); }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-payment-message.is-failure { border-color: var(--manager-clay); background: var(--manager-clay-soft); color: var(--manager-clay); }
+@media (prefers-reduced-motion: reduce) {
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-reconcile .is-spinning { animation-duration: 2.5s; }
+}
+@media (max-width: 1050px) {
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-products { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-allocation-form { grid-template-columns: 1fr; }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-products { grid-template-columns: 1fr; }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-grant-list article { align-items: flex-start; flex-direction: column; }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-payment-hold { grid-template-columns: auto minmax(0, 1fr); }
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-quota-hold-actions { grid-column: 2; justify-content: flex-start; }
+}

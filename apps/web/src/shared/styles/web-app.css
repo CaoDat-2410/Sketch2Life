@@ -30,6 +30,7 @@
 .s2l-sidebar-caption { margin: 17px 9px 23px; color: var(--s2l-muted); font-size: 12px; line-height: 1.45; }
 .s2l-nav { overflow: auto; flex: 1; padding: 0 1px 12px; scrollbar-width: thin; }
 .s2l-nav-group { display: grid; gap: 4px; margin: 0 0 24px; }
+.s2l-nav-group-items { display: grid; gap: 4px; }
 .s2l-nav-group h2 { margin: 0 9px 7px; color: #84918d; font-size: 10px; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
 .s2l-nav-link { display: flex; min-height: 43px; align-items: center; gap: 11px; padding: 0 10px; border: 1px solid transparent; border-radius: 10px; color: #50615d; font-size: 13px; font-weight: 600; text-decoration: none; transition: color .16s ease, background .16s ease, border-color .16s ease; }
 .s2l-nav-link:hover { background: #f4f6f1; color: var(--s2l-ink); }
@@ -48,10 +49,6 @@
 .s2l-password-button { display: flex; min-height: 42px; align-items: center; gap: 10px; padding: 0 10px; border: 0; border-radius: 9px; background: transparent; color: #52625e; cursor: pointer; font: inherit; font-size: 13px; font-weight: 650; text-align: left; }
 .s2l-password-button:hover { background: #eef5f0; color: var(--s2l-teal-dark); }
 .s2l-password-button:focus-visible { outline: 3px solid #77b8a7; outline-offset: 2px; }
-.s2l-login-recovery { display: grid; justify-items: end; gap: 8px; margin-top: 13px; }
-.s2l-login-recovery button { border: 0; background: transparent; color: var(--s2l-teal-dark); cursor: pointer; font: inherit; font-size: 11px; font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
-.s2l-login-recovery button:disabled { cursor: wait; opacity: .65; }
-.s2l-login-recovery p { margin: 0; color: var(--s2l-muted); font-size: 11px; line-height: 1.5; text-align: right; }
 .s2l-password-dialog { width: min(100% - 32px, 440px); }
 .s2l-password-form { display: grid; gap: 14px; }
 .s2l-password-form h2 { margin: 0; color: var(--s2l-ink); font-size: 20px; }
@@ -59,8 +56,8 @@
 .s2l-password-form input { width: 100%; min-height: 42px; padding: 0 11px; border: 1px solid #d4dcd5; border-radius: 8px; background: #fff; color: var(--s2l-ink); font: inherit; font-size: 13px; }
 .s2l-password-form input:focus { border-color: #5e9a87; outline: 3px solid rgba(94, 154, 135, .17); }
 .s2l-password-form p { margin: 0; color: var(--s2l-muted); font-size: 12px; }
-.s2l-password-form button { min-height: 42px; justify-self: end; padding: 0 17px; border: 1px solid var(--s2l-teal); border-radius: 8px; background: var(--s2l-teal); color: #fff; cursor: pointer; font: inherit; font-size: 12px; font-weight: 750; }
-.s2l-password-form button:disabled { cursor: wait; opacity: .7; }
+.s2l-password-form button:where(:not(.s2l-ui-button)) { min-height: 42px; justify-self: end; padding: 0 17px; border: 1px solid var(--s2l-teal); border-radius: 8px; background: var(--s2l-teal); color: #fff; cursor: pointer; font: inherit; font-size: 12px; font-weight: 750; }
+.s2l-password-form button:where(:not(.s2l-ui-button)):disabled { cursor: wait; opacity: .7; }
 .s2l-workspace { min-height: 100dvh; margin-left: 264px; }
 .s2l-topbar { position: sticky; top: 0; z-index: 20; display: flex; min-height: 78px; align-items: center; justify-content: space-between; gap: 18px; padding: 12px clamp(22px, 4vw, 58px); border-bottom: 1px solid rgba(220, 226, 219, .85); background: rgba(255, 254, 250, .92); backdrop-filter: blur(14px); }
 .s2l-topbar-title { display: flex; min-width: 0; align-items: center; gap: 13px; }
@@ -135,33 +132,10 @@
 .s2l-class-state.is-active { background: #e5f2e9; color: #32674d; }
 .s2l-create-form { display: flex; align-items: end; gap: 10px; padding: 17px; border: 1px solid var(--s2l-line); border-radius: 12px; background: var(--s2l-paper); }
 .s2l-field { display: grid; min-width: 0; flex: 1; gap: 7px; color: #50615b; font-size: 11px; font-weight: 700; }
-.s2l-field input, .s2l-login-field input { width: 100%; min-height: 43px; padding: 0 12px; border: 1px solid #d4dcd5; border-radius: 8px; background: #fff; color: var(--s2l-ink); font: inherit; font-size: 13px; }
-.s2l-field input:focus, .s2l-login-field input:focus { border-color: #5e9a87; outline: 3px solid rgba(94, 154, 135, .17); }
+.s2l-field input { width: 100%; min-height: 43px; padding: 0 12px; border: 1px solid #d4dcd5; border-radius: 8px; background: #fff; color: var(--s2l-ink); font: inherit; font-size: 13px; }
+.s2l-field input:focus { border-color: #5e9a87; outline: 3px solid rgba(94, 154, 135, .17); }
 .s2l-alert { padding: 12px 15px; border: 1px solid #edc7bc; border-radius: 10px; background: #fff6f2; color: #813a2b; font-size: 12px; line-height: 1.5; }
 .s2l-note { padding: 12px 14px; border: 1px solid #e8dfce; border-radius: 10px; background: #fbf8ee; color: #6f6049; font-size: 11px; line-height: 1.5; }
-.s2l-login-shell { display: grid; min-height: 100dvh; place-items: center; padding: 28px; background: radial-gradient(ellipse at 15% 85%, rgba(234, 210, 179, .37), transparent 36%), radial-gradient(ellipse at 89% 7%, rgba(194, 220, 208, .39), transparent 35%), var(--s2l-canvas); color: var(--s2l-ink); font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-.s2l-login-card { display: grid; width: min(100%, 980px); grid-template-columns: minmax(0, 1fr) minmax(340px, .83fr); overflow: hidden; border: 1px solid rgba(211, 219, 211, .9); border-radius: 20px; background: var(--s2l-paper); box-shadow: 0 25px 80px rgba(45, 62, 53, .11); }
-.s2l-login-intro { display: flex; min-height: 580px; flex-direction: column; justify-content: space-between; padding: 36px 42px; background: linear-gradient(155deg, #f8f2e7 0%, #edf2e9 100%); }
-.s2l-login-brand { display: flex; align-items: center; gap: 12px; }
-.s2l-login-brand .s2l-wordmark { display: inline-flex; width: 46px; height: 46px; overflow: hidden; align-items: center; justify-content: center; border: 1px solid #e4d9c8; border-radius: 14px; background: #fffefa; }
-.s2l-login-brand .s2l-brandmark { width: 46px; height: 46px; object-fit: cover; }
-.s2l-login-brand strong { display: block; font-size: 15px; }
-.s2l-login-brand span { display: block; margin-top: 3px; color: var(--s2l-muted); font-size: 11px; }
-.s2l-login-message { max-width: 440px; margin: 46px 0; }
-.s2l-login-eyebrow { margin: 0 0 14px; color: var(--s2l-teal); font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
-.s2l-login-message h1 { max-width: 420px; margin: 0; font-size: clamp(29px, 4vw, 40px); font-weight: 730; letter-spacing: -.05em; line-height: 1.08; }
-.s2l-login-message p { max-width: 390px; margin: 17px 0 0; color: #596a63; font-size: 14px; line-height: 1.65; }
-.s2l-login-note { display: flex; align-items: flex-start; gap: 9px; max-width: 440px; color: #63716a; font-size: 11px; line-height: 1.55; }
-.s2l-login-note svg { flex: 0 0 auto; margin-top: 1px; color: var(--s2l-teal); }
-.s2l-login-form-panel { display: flex; flex-direction: column; justify-content: center; padding: 42px clamp(28px, 5vw, 50px); }
-.s2l-login-form-panel h2 { margin: 0; font-size: 25px; letter-spacing: -.04em; }
-.s2l-login-form-panel > p { margin: 8px 0 26px; color: var(--s2l-muted); font-size: 12px; line-height: 1.5; }
-.s2l-login-form { display: grid; gap: 16px; }
-.s2l-login-field { display: grid; gap: 7px; color: #50615b; font-size: 11px; font-weight: 700; }
-html[data-portal] .s2l-login-submit { display: flex; min-height: 46px; align-items: center; justify-content: center; gap: 8px; margin-top: 5px; border: 1px solid var(--s2l-teal); border-radius: 9px; background: var(--s2l-teal); color: white; cursor: pointer; font: inherit; font-size: 12px; font-weight: 750; }
-.s2l-login-submit:hover { border-color: var(--s2l-teal-dark); background: var(--s2l-teal-dark); }
-.s2l-login-submit:disabled { cursor: wait; opacity: .7; }
-.s2l-login-footer { margin-top: 23px; padding-top: 17px; border-top: 1px solid var(--s2l-line); color: var(--s2l-muted); font-size: 10px; line-height: 1.55; }
 .s2l-review-wrap { margin-top: 22px; }
 @media (max-width: 1050px) {
   .s2l-sidebar { width: 238px; padding-right: 13px; padding-left: 13px; }
@@ -200,43 +174,19 @@ html[data-portal] .s2l-login-submit { display: flex; min-height: 46px; align-ite
   .s2l-create-form { align-items: stretch; flex-direction: column; padding: 14px; }
   .s2l-create-form .s2l-button { width: 100%; }
   .s2l-class-state { display: none; }
-  .s2l-login-shell { padding: 0; }
-  .s2l-login-card { min-height: 100dvh; grid-template-columns: 1fr; border: 0; border-radius: 0; }
-  .s2l-login-intro { min-height: 0; gap: 18px; padding: 23px 23px 21px; }
-  .s2l-login-message { margin: 22px 0 4px; }
-  .s2l-login-message h1 { font-size: 29px; }
-  .s2l-login-message p { margin-top: 10px; font-size: 12px; }
-  .s2l-login-note { font-size: 10px; }
-  .s2l-login-form-panel { padding: 28px 23px 35px; }
-  .s2l-login-form-panel h2 { font-size: 22px; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
-.s2l-login-role { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 19px; color: var(--s2l-teal-dark); font-size: 11px; font-weight: 750; }
-.s2l-login-role-switch { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 0 0 18px; }
-.s2l-login-role-link { display: flex; min-height: 44px; align-items: center; justify-content: center; gap: 6px; padding: 5px; border: 1px solid var(--s2l-line); border-radius: 8px; background: transparent; color: #5d6d67; cursor: pointer; font: inherit; font-size: 11px; font-weight: 650; text-align: center; }
-.s2l-login-role-link:hover:not(:disabled) { border-color: #b8d3c7; background: #f5f8f4; }
-.s2l-login-role-link:focus-visible { outline: 3px solid #77b8a7; outline-offset: 2px; }
-.s2l-login-role-link:disabled { cursor: wait; opacity: .65; }
-.s2l-login-role-link.is-current { border-color: #bddbcf; background: #eff7f2; color: var(--s2l-teal-dark); }
-.s2l-login-footer { display: flex; align-items: flex-start; gap: 7px; margin: 18px 0 0; color: var(--s2l-muted); font-size: 10px; line-height: 1.5; }
-.s2l-login-footer a { color: var(--s2l-teal-dark); font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
-.s2l-password-input { position: relative; display: block; }
-.s2l-password-input input { padding-right: 45px; }
-.s2l-password-toggle { position: absolute; top: 1px; right: 1px; display: grid; width: 44px; height: 44px; place-items: center; border: 0; border-radius: 7px; background: transparent; color: #677871; cursor: pointer; }
-.s2l-password-toggle:hover { background: #eef2ed; color: var(--s2l-ink); }
 .s2l-class-details { display: grid; gap: 13px; margin: 0; }
 .s2l-class-details div { display: grid; gap: 5px; }
 .s2l-class-details dt { color: #77837c; font-size: 10px; font-weight: 750; letter-spacing: .06em; text-transform: uppercase; }
 .s2l-class-details dd { margin: 0; color: var(--s2l-ink); font-size: 13px; font-weight: 650; }
 .s2l-class-details dd.is-mono { overflow-wrap: anywhere; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 11px; }
-@media (max-width: 620px) {
-  .s2l-login-role-link { flex-direction: column; gap: 4px; font-size: 9px; }
-}
 .s2l-dashboard-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px; margin-top: 17px; }
 .s2l-dashboard-grid-secondary { align-items: start; }
 .s2l-dashboard-card { display: flex; min-height: 235px; flex-direction: column; }
+
 .s2l-dashboard-card-title { display: flex; align-items: center; gap: 11px; }
 .s2l-dashboard-card-title > div { display: grid; gap: 4px; }
 .s2l-dashboard-card-title h2 { margin: 0; font-size: 14px; }
@@ -273,7 +223,6 @@ html[data-portal] .s2l-login-submit { display: flex; min-height: 46px; align-ite
 .s2l-close-menu { width: 44px; }
 .s2l-button { min-height: 44px; }
 .s2l-password-toggle { width: 44px; height: 44px; }
-.s2l-login-brand { color: inherit; text-decoration: none; }
 @media (max-width: 620px) {
   .s2l-dashboard-card { min-height: 180px; }
   .s2l-dashboard-card .s2l-empty-copy { margin: 13px 0; }

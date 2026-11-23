@@ -26,12 +26,15 @@ from sketch2life.contracts.schemas.platform_admin import (
     PlatformLessonWrite,
     PreferenceInput,
     PublicationAction,
+    QuotaProductInput,
+    QuotaProductStateInput,
     SandboxConsumeInput,
     SandboxPaymentInput,
     SubscriptionConfigInput,
 )
 from sketch2life.domain.platform_admin import AdminError
 from sketch2life.infrastructure.config.settings import get_settings
+from sketch2life.infrastructure.billing.quota_commerce import QuotaCommerceService
 from sketch2life.infrastructure.learning_content.admin_catalog import AdminCatalogService
 from sketch2life.infrastructure.lesson_library.feedback import LessonFeedbackService
 from sketch2life.infrastructure.lesson_library.platform_publication import PlatformLessonService
@@ -324,6 +327,130 @@ def billing(svc):
     return SandboxBillingService(svc.db, svc.principal.subject, get_settings())
 
 
+def quota_commerce(svc):
+    svc.identity()
+    return QuotaCommerceService(svc.db, svc.principal.subject, get_settings())
+
+
+@router.get("/billing/quota-products")
+def quota_products(
+    owner_kind: str | None = Query(None, pattern="^(ORGANIZATION|PARENT_ACCOUNT)$"),
+    include_inactive: bool = False,
+    svc=Depends(service),
+):
+    return run(lambda: quota_commerce(svc).products(owner_kind, include_inactive))
+
+
+@router.post("/billing/quota-products", status_code=201)
+def create_quota_product(payload: QuotaProductInput, key: Key, svc=Depends(service)):
+    return run(lambda: quota_commerce(svc).save_product(payload.model_dump(), key))
+
+
+@router.put("/billing/quota-products/{product_id}")
+def version_quota_product(
+    product_id: str,
+    payload: QuotaProductInput,
+    key: Key,
+    expected: int = Depends(revision),
+    svc=Depends(service),
+):
+    return run(lambda: quota_commerce(svc).save_product(
+        {**payload.model_dump(), "product_id": product_id}, key, expected
+    ))
+
+
+@router.post("/billing/quota-products/{product_id}/state")
+def quota_product_state(
+    product_id: str,
+    payload: QuotaProductStateInput,
+    key: Key,
+    expected: int = Depends(revision),
+    svc=Depends(service),
+):
+    return run(lambda: quota_commerce(svc).set_product_active(
+        product_id, payload.active, expected, key
+    ))
+
+
+@router.get("/billing/quota-invoices")
+def quota_invoices(
+    state: str | None = Query(None, pattern="^(PENDING|PAID|FAILED|CANCELED)$"),
+    owner_kind: str | None = Query(None, pattern="^(ORGANIZATION|PARENT_ACCOUNT)$"),
+    owner_ref: str | None = Query(None, max_length=128),
+    limit: int = Query(50, ge=1, le=100),
+    svc=Depends(service),
+):
+    def execute():
+        svc.identity()
+        if owner_kind and owner_ref:
+            svc.require_billing_scope(owner_kind, owner_ref)
+        elif owner_kind or owner_ref:
+            raise AdminError("BILLING_SCOPE_REQUIRED", 422)
+        return quota_commerce(svc).invoices(owner_kind, owner_ref, state, limit)
+
+    return run(execute)
+
+
+@router.post("/billing/quota-invoices/{invoice_id}/reconcile")
+def reconcile_quota_invoice(invoice_id: str, key: Key, svc=Depends(service)):
+    def execute():
+        svc.identity()
+        result = quota_commerce(svc).reconcile_invoice(invoice_id)
+        svc.audit(
+            "billing.quota_payment.reconcile",
+            "quota_invoice",
+            invoice_id,
+        )
+        return result
+
+    return run(
+        lambda: svc.command(
+            "billing.quota_payment.reconcile",
+            key,
+            {"invoice_id": invoice_id},
+            execute,
+        )
+    )
+
+
+@router.get("/billing/quota")
+def quota_summary(
+    owner_kind: str = Query(pattern="^(ORGANIZATION|PARENT_ACCOUNT)$"),
+    owner_ref: str = Query(min_length=1, max_length=128),
+    svc=Depends(service),
+):
+    def execute():
+        svc.require_billing_scope(owner_kind, owner_ref)
+        return quota_commerce(svc).quota_summary(owner_kind, owner_ref)
+
+    return run(execute)
+
+
+@router.get("/billing/quota-payment-events")
+def quota_payment_events(
+    limit: int = Query(100, ge=1, le=500),
+    svc=Depends(service),
+):
+    def execute():
+        svc.identity()
+        return quota_commerce(svc).payment_events(limit)
+
+    return run(execute)
+
+
+@router.get("/billing/quota-products/{product_id}/events")
+def quota_product_events(
+    product_id: str,
+    limit: int = Query(100, ge=1, le=500),
+    svc=Depends(service),
+):
+    def execute():
+        svc.identity()
+        return quota_commerce(svc).product_events(product_id, limit)
+
+    return run(execute)
+
+
 @router.get("/billing/sandbox/offers")
 def billing_offers(
     limit: int = Query(25, ge=1, le=100),
@@ -458,9 +585,17 @@ def runtime_settings(svc=Depends(service)):
     def execute():
         svc.identity()
         settings = get_settings()
+        momo_ready = settings.momo_payment_configured
+        vnpay_ready = settings.vnpay_payment_configured
         return {
             "environment": settings.env,
-            "real_payments_enabled": False,
+            "real_payments_enabled": settings.billing_real_payments_enabled
+            and (momo_ready or vnpay_ready),
+            "momo_checkout_enabled": settings.billing_real_payments_enabled and momo_ready,
+            "momo_sandbox_enabled": settings.momo_sandbox_enabled,
+            "vnpay_checkout_enabled": settings.billing_real_payments_enabled and vnpay_ready,
+            "vnpay_sandbox_enabled": settings.vnpay_sandbox_enabled,
+            "monthly_auto_renew_enabled": False,
             "billing_sandbox_enabled": settings.env in {"local", "test"}
             and settings.billing_sandbox_enabled,
             "smtp_configured": bool(settings.smtp_host),

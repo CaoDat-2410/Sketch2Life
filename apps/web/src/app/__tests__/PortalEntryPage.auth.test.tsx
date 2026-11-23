@@ -13,13 +13,14 @@ function jsonResponse(body: unknown, status = 200) {
   })
 }
 
-function renderLogin() {
+function renderLogin(state?: unknown) {
   return render(
     <PortalSessionProvider>
-      <MemoryRouter initialEntries={['/login?role=manager']}>
+      <MemoryRouter initialEntries={[{ pathname: '/login', search: '?role=manager', state }]}>
         <Routes>
           <Route path="/login" element={<PortalEntryPage />} />
           <Route path="/school" element={<main>Manager portal</main>} />
+          <Route path="/school/classes" element={<main>Manager classes</main>} />
         </Routes>
       </MemoryRouter>
     </PortalSessionProvider>,
@@ -113,12 +114,21 @@ describe('School Manager login auth API flow', () => {
     expect(requests.map((request) => request.path)).toEqual([
       '/api/auth/v1/me',
       '/api/be1/v1/organizations/org-manager-test/me',
+      '/api/auth/v1/me',
     ])
     expect(fetchMock.mock.calls.map(([input]) => new URL(String(input)).origin)).toEqual([
       'https://api.example.test',
       'https://api.example.test',
+      'https://api.example.test',
     ])
     expect(requests.every((request) => request.authorization === 'Bearer unit-test-id-token')).toBe(true)
+  })
+
+  it('returns to the requested Manager page after login', async () => {
+    renderLogin({ from: { pathname: '/school/classes', search: '?view=active' } })
+    submitManagerCredentials()
+
+    expect(await screen.findByText('Manager classes')).toBeTruthy()
   })
 
   it('rejects a non-Manager backend role and signs Firebase back out', async () => {

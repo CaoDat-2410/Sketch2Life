@@ -1,0 +1,43 @@
+/* Component-level palette styling. Token values live in admin-color-tokens.css. */
+html[data-portal="platform"] body,
+html[data-portal="platform"] .s2l-workspace { background: var(--pa-canvas); color: var(--pa-ink); }
+html[data-portal="platform"] .s2l-sidebar { background: var(--pa-sidebar); border-color: var(--pa-border); }
+html[data-portal="platform"] .s2l-topbar { background: var(--pa-surface-soft); }
+html[data-portal="platform"] .s2l-nav-link.is-active {
+  background: var(--pa-primary-soft); color: var(--pa-primary-hover); border-color: var(--s2l-ui-primary-400);
+  box-shadow: inset 3px 0 0 var(--pa-primary);
+}
+html[data-portal="platform"] .s2l-nav-link.is-active svg { color: var(--pa-primary); }
+html[data-portal="platform"] :is(.pa-button.is-primary,.accounts-button-primary) { background: var(--pa-primary); color: var(--s2l-ui-on-primary); border-color: var(--pa-primary); }
+html[data-portal="platform"] .pa-dashboard :is(.pa-shortcut strong,.pa-notification strong,.pa-calm-empty h3) { color: var(--pa-ink); }
+html[data-portal="platform"] .pa-dashboard .pa-metrics > a strong { color: var(--pa-primary-hover); }
+html[data-portal="platform"] .s2l-sidebar :focus-visible { outline-color: var(--pa-primary); }
+html[data-portal="platform"] .pa-account-popover .pa-account-logout { color: var(--pa-danger); }
+
+/* Dashboard accents use the same primary and secondary palette families. */
+html[data-portal="platform"] .pa-dashboard .pa-metrics > a {
+  background: var(--pa-primary-soft); border-color: var(--s2l-ui-primary-300);
+}
+html[data-portal="platform"] .pa-dashboard .pa-metrics > a:nth-child(2) {
+  background: var(--s2l-ui-sky-soft); border-color: var(--s2l-ui-sky-300);
+}
+html[data-portal="platform"] .pa-dashboard .pa-metrics > a:nth-child(4) {
+  background: var(--s2l-ui-coral-soft); border-color: var(--s2l-ui-coral-200);
+}
+html[data-portal="platform"] .pa-dashboard .pa-metrics > a:hover { border-color: var(--pa-primary); }
+html[data-portal="platform"] .pa-dashboard .pa-metrics > a .pa-metric-icon {
+  background: var(--pa-primary-soft); color: var(--pa-primary-hover);
+}
+html[data-portal="platform"] .pa-dashboard .pa-metrics > a:nth-child(2) .pa-metric-icon {
+  background: var(--s2l-ui-sky-soft); color: var(--s2l-ui-sky-ink);
+}
+html[data-portal="platform"] .pa-dashboard .pa-metrics > a:nth-child(4) .pa-metric-icon {
+  background: var(--s2l-ui-coral-soft); color: var(--s2l-ui-coral-ink);
+}
+html[data-portal="platform"] .pa-dashboard .pa-metrics > a:nth-child(4) strong { color: var(--s2l-ui-coral-ink); }
+html[data-portal="platform"] .pa-dashboard .pa-panel { background: var(--pa-surface-soft); border-color: var(--pa-border); }
+html[data-portal="platform"] .pa-dashboard .pa-shortcut:hover { background: var(--pa-primary-soft); }
+html[data-portal="platform"] .pa-brand-symbol { color: var(--pa-primary); background: var(--pa-primary-soft); }
+html[data-portal="platform"] .pa-button:not(.is-primary):not(.is-danger) {
+  background: var(--pa-surface); border-color: var(--pa-border); color: var(--pa-ink);
+}

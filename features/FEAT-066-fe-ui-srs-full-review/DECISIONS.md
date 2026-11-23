@@ -806,6 +806,11 @@ Draft 4 fixes the round-3 findings and was not re-reviewed, by owner choice.
 **Source:** SRS section 21.4 (line 1697): state-changing commands carry an idempotency key; SRS section 9.8 (line 904): "AI dùng job/semantic request receipt"; SRS lines 800, 816 and 818: the Parent drawing-guide route and the idempotency/concurrency contract of new resources are not frozen and are reconciled in M0.
 
 **Decision:** requests `154`, `155` and `157` to `159` follow their routers and send no `Idempotency-Key`. Under line 904, AI generation is deduplicated by job or semantic request receipt, not by a client key, so the missing key is not recorded as an SRS violation for the draft-generating routes (`155`, `157` to `159`). Request `154` also attaches artwork to a StoryRun (a state change); whether the route dedupes by a semantic receipt is **not verified here** and stays an open backend check (owner of the check: BE). Request `156` already requires a key. No request-side key is invented.
+## D-066-80 (web) - Wait instead of resending context confirmation (2026-11-23)
+
+- Source: owner-approved Goal v4 Phase A web wiring plan revision 52 and the final Teacher contract.
+- When the visible Teacher gates appear complete but the run remains in `PREPARATION_REVIEW` with no start signal, the UI shows a waiting hint and does not resend `context-confirmation`.
+- Reason: the contract says an unfulfilled hidden gate leaves the run unchanged, and the UI has no reliable signal to distinguish that state from an accepted command still settling.
 
 ## D-066-88 - Goal v4 Phase A Parent Android integration order (2026-11-23)
 

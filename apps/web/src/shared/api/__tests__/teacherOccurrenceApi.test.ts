@@ -29,6 +29,7 @@ const call = (fetcher: ReturnType<typeof setup>, index = 0) => {
   const [url, init] = fetcher.mock.calls[index];
   return { url, init, headers: new Headers(init.headers), body: init.body };
 };
+const parseUrl = (url: string) => new URL(url, "http://localhost");
 
 const session = (overrides: Partial<UploadSession> = {}): UploadSession => ({
   contract: "GenericUploadSessionV1", upload_id: "upl-1", purpose: "OCCURRENCE_DOCUMENT", target_ref: "occ-1", state: "OPEN",
@@ -50,8 +51,8 @@ describe("Teacher occurrence API: occurrences", () => {
     await teacherOccurrenceApi.list("class-1", { state: "DRAFT", cursor: "cur-1" });
     const { url, init } = call(fetcher);
     expect(init.method).toBeUndefined();
-    const query = new URL(url).searchParams;
-    expect(new URL(url).pathname).toBe("/v1/lesson-occurrences");
+    const query = parseUrl(url).searchParams;
+    expect(parseUrl(url).pathname).toBe("/v1/lesson-occurrences");
     expect(Object.fromEntries(query)).toEqual({ class_id: "class-1", limit: "100", state: "DRAFT", cursor: "cur-1" });
   });
 
@@ -138,7 +139,7 @@ describe("Teacher occurrence API: generic upload sessions", () => {
     const fetcher = setup([response(201, session(), '"1"')]);
     const created = await teacherOccurrenceApi.createUpload({ purpose: "OCCURRENCE_DOCUMENT", target_ref: "occ-1", media_type: "application/pdf", expected_size_bytes: 10, expected_sha256: "c".repeat(64), file_name: "a.pdf" }, "up-create-1");
     const { url, init, headers } = call(fetcher);
-    expect(new URL(url).pathname).toBe("/v1/upload-sessions");
+    expect(parseUrl(url).pathname).toBe("/v1/upload-sessions");
     expect(init.method).toBe("POST");
     expect(headers.get("Idempotency-Key")).toBe("up-create-1");
     expect(JSON.parse(String(init.body))).toMatchObject({ purpose: "OCCURRENCE_DOCUMENT", target_ref: "occ-1", file_name: "a.pdf" });
@@ -149,9 +150,9 @@ describe("Teacher occurrence API: generic upload sessions", () => {
     const fetcher = setup([response(200, session()), response(200, { contract: "GenericUploadPartReceiptV1", accepted: true })]);
     await teacherOccurrenceApi.getUpload("upl 1");
     await teacherOccurrenceApi.putPart("upl-1", 3, new Blob([new Uint8Array([1, 2])]), "b".repeat(64));
-    expect(new URL(call(fetcher, 0).url).pathname).toBe("/v1/upload-sessions/upl%201");
+    expect(parseUrl(call(fetcher, 0).url).pathname).toBe("/v1/upload-sessions/upl%201");
     const part = call(fetcher, 1);
-    expect(new URL(part.url).pathname).toBe("/v1/upload-sessions/upl-1/parts/3");
+    expect(parseUrl(part.url).pathname).toBe("/v1/upload-sessions/upl-1/parts/3");
     expect(part.init.method).toBe("PUT");
     expect(part.headers.get("Content-Type")).toBe("application/octet-stream");
     expect(part.headers.get("Content-Range")).toBeNull();
@@ -163,7 +164,7 @@ describe("Teacher occurrence API: generic upload sessions", () => {
     const fetcher = setup([response(202, session({ contract: "GenericUploadCompletionV1", state: "COMPLETED", asset_ref: "upl_upl-1", asset_state: "READY" }), '"3"')]);
     const done = await teacherOccurrenceApi.completeUpload("upl-1", { expected_size_bytes: 10, expected_sha256: "c".repeat(64) }, "up-complete-1");
     const { url, headers, init } = call(fetcher);
-    expect(new URL(url).pathname).toBe("/v1/upload-sessions/upl-1/complete");
+    expect(parseUrl(url).pathname).toBe("/v1/upload-sessions/upl-1/complete");
     expect(headers.get("Idempotency-Key")).toBe("up-complete-1");
     expect(JSON.parse(String(init.body))).toEqual({ expected_size_bytes: 10, expected_sha256: "c".repeat(64) });
     expect(done.asset_ref).toBe("upl_upl-1");
@@ -299,7 +300,7 @@ describe("Teacher occurrence API: documents", () => {
     const fetcher = setup([response(202, { contract: "LessonSourceDocumentAcceptedV1", source_document_id: "doc-1", job: { job_id: "job-1" } })]);
     await teacherOccurrenceApi.attachDocument("occ-1", "upl_upl-1", "attach-key-1");
     const { url, init, headers } = call(fetcher);
-    expect(new URL(url).pathname).toBe("/v1/lesson-occurrences/occ-1/documents");
+    expect(parseUrl(url).pathname).toBe("/v1/lesson-occurrences/occ-1/documents");
     expect(headers.get("Idempotency-Key")).toBe("attach-key-1");
     expect(JSON.parse(String(init.body))).toEqual({ asset_ref: "upl_upl-1" });
   });
@@ -313,10 +314,10 @@ describe("Teacher occurrence API: documents", () => {
     await teacherOccurrenceApi.listDocumentRevisions("occ-1", "doc-1", "cursor-1");
     const revision = await teacherOccurrenceApi.getDocumentRevision("occ-1", "doc-1", 2, '"hash.NEEDS_REVIEW"');
     await teacherOccurrenceApi.getDocument("occ-1", "doc-1", '"d1"');
-    expect(new URL(call(fetcher, 0).url).search).toBe("?limit=100");
-    expect(new URL(call(fetcher, 1).url).pathname).toBe("/v1/lesson-occurrences/occ-1/documents/doc-1/revisions");
-    expect(new URL(call(fetcher, 1).url).searchParams.get("cursor")).toBe("cursor-1");
-    expect(new URL(call(fetcher, 2).url).pathname).toBe("/v1/lesson-occurrences/occ-1/documents/doc-1/revisions/2");
+    expect(parseUrl(call(fetcher, 0).url).search).toBe("?limit=100");
+    expect(parseUrl(call(fetcher, 1).url).pathname).toBe("/v1/lesson-occurrences/occ-1/documents/doc-1/revisions");
+    expect(parseUrl(call(fetcher, 1).url).searchParams.get("cursor")).toBe("cursor-1");
+    expect(parseUrl(call(fetcher, 2).url).pathname).toBe("/v1/lesson-occurrences/occ-1/documents/doc-1/revisions/2");
     expect(call(fetcher, 2).headers.get("If-None-Match")).toBe('"hash.NEEDS_REVIEW"');
     expect(revision.notModified).toBe(true);
     expect(call(fetcher, 3).headers.get("If-None-Match")).toBe('"d1"');
@@ -345,7 +346,7 @@ describe("Teacher occurrence API: plan revisions", () => {
     const input = { expected_head_revision_no: 1, document_revision_ref: { document_id: "doc-1", revision_no: 2 }, objectives: ["Vẽ"], teacher_direction: "Hướng dẫn", safety_notes: null, activities: [{ kind: "LESSON" as const, lesson_activity_id: "act-1" }] };
     await teacherOccurrenceApi.createPlan("occ-1", input, "plan-key-1");
     const { url, init, headers } = call(fetcher);
-    expect(new URL(url).pathname).toBe("/v1/lesson-occurrences/occ-1/plan-revisions");
+    expect(parseUrl(url).pathname).toBe("/v1/lesson-occurrences/occ-1/plan-revisions");
     expect(headers.get("Idempotency-Key")).toBe("plan-key-1");
     expect(JSON.parse(String(init.body))).toEqual(input);
   });
@@ -354,7 +355,7 @@ describe("Teacher occurrence API: plan revisions", () => {
     const fetcher = setup([response(200, { items: [], next_cursor: null }), response(304, undefined, '"h.DRAFT"')]);
     await teacherOccurrenceApi.listPlans("occ-1");
     const result = await teacherOccurrenceApi.getPlan("occ-1", 4, '"h.DRAFT"');
-    expect(new URL(call(fetcher, 1).url).pathname).toBe("/v1/lesson-occurrences/occ-1/plan-revisions/4");
+    expect(parseUrl(call(fetcher, 1).url).pathname).toBe("/v1/lesson-occurrences/occ-1/plan-revisions/4");
     expect(call(fetcher, 1).headers.get("If-None-Match")).toBe('"h.DRAFT"');
     expect(result.notModified).toBe(true);
   });
@@ -363,7 +364,7 @@ describe("Teacher occurrence API: plan revisions", () => {
     const fetcher = setup([response(200, { contract: "LessonPlanRevisionV1", state: "APPROVED" })]);
     await teacherOccurrenceApi.confirmPlan("occ-1", 4, "d".repeat(64), "confirm-key-1");
     const { url, init, headers } = call(fetcher);
-    expect(new URL(url).pathname).toBe("/v1/lesson-occurrences/occ-1/plan-revisions/4/confirm");
+    expect(parseUrl(url).pathname).toBe("/v1/lesson-occurrences/occ-1/plan-revisions/4/confirm");
     expect(headers.get("Idempotency-Key")).toBe("confirm-key-1");
     expect(JSON.parse(String(init.body))).toEqual({ expected_plan_hash: "d".repeat(64), checklist: [] });
   });
@@ -373,7 +374,7 @@ describe("Job status poller", () => {
   it("reads one job conditionally", async () => {
     const fetcher = setup([response(200, job("queued"), '"1"')]);
     const result = await teacherOccurrenceApi.getJob("job/1", '"0"');
-    expect(new URL(call(fetcher).url).pathname).toBe("/v1/jobs/job%2F1");
+    expect(parseUrl(call(fetcher).url).pathname).toBe("/v1/jobs/job%2F1");
     expect(call(fetcher).headers.get("If-None-Match")).toBe('"0"');
     expect(result.etag).toBe('"1"');
   });

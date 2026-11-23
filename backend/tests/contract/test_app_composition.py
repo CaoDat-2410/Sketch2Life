@@ -21,6 +21,7 @@ from sketch2life.infrastructure.vision_analysis.pilot_composition import (
     PilotVisionComposition,
 )
 from sketch2life.interfaces.http.admin_contract import ADMIN_OPERATIONS
+from sketch2life.interfaces.http.quota_contract import QUOTA_OPERATIONS
 from sketch2life.interfaces.http.app import (
     create_app,
     create_classroom_app,
@@ -173,6 +174,8 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
         "/v1/parent/profiles",
         "/v1/parent/profiles/{profile_id}",
     } | set(lesson_library_methods) | {path for _, path in ADMIN_OPERATIONS} | {
+        path for _, path in QUOTA_OPERATIONS
+    } | {
         "/api/auth/v1/registrations",
         "/api/auth/v1/me",
         # FEAT-066 T0.4: live job poll route (runtime-only).

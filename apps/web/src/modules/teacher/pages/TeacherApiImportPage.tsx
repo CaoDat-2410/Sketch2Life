@@ -16,6 +16,7 @@ import {
 import { usePortalSession } from "../../../shared/auth/PortalSessionContext";
 import { Icon } from "../components/Icon";
 import { PageHeading } from "../../../shared/components/FeatureAvailability";
+import { Button, FormField, Select } from "../../../shared/ui";
 import { abortUploadWithRevision } from "../services/uploadAbort";
 
 const MIME_BY_EXTENSION: Record<string, string> = {
@@ -385,46 +386,78 @@ export function TeacherApiImportPage() {
     <div className="tw-page">
       <PageHeading eyebrow="Teacher · Học liệu" title="Nhập tài liệu" description="Tải PDF, DOCX hoặc PPTX; rà soát bản trích xuất trước khi đưa nội dung vào giáo án." />
       <BackendModeNotice roleLabel="Giáo viên" />
-      {error && <BackendNotice title="Không hoàn tất được quy trình nhập" tone="error">{error}</BackendNotice>}
       {loading && <BackendNotice title="Đang tải giáo án">Đang xác nhận role Teacher và tải danh sách lesson ACTIVE.</BackendNotice>}
       {!loading && lessons.length === 0 && <BackendNotice title="Cần có giáo án trước">Tạo giáo án trong màn Quản lý giáo án, sau đó quay lại để đính kèm tài liệu nguồn.</BackendNotice>}
 
-      <section className="tw-card" style={{ maxWidth: 860 }}>
+      <section className="tw-card cozy-form-card cozy-form-card--wide cozy-form-stack">
         <h2 className="tw-h2">Tệp nguồn</h2>
-        <label className="tw-label">Giáo án đích
-          <select className="tw-input" value={lessonId} disabled={uploading || Boolean(resume) || lessons.length === 0} onChange={(event) => { setLessonId(event.target.value); setSourceDocument(null); setRevision(null); }}>
-            {lessons.map((item) => <option key={item.lesson_id} value={item.lesson_id}>{item.title} · {item.topic} · bản {item.current_version_no}</option>)}
-          </select>
-        </label>
-        {lessonListError && <BackendNotice title="Không tải được giáo án tiếp theo" tone="error">{lessonListError}</BackendNotice>}
-        {lessonNextCursor && <button type="button" className="tw-btn is-ghost is-sm" style={{ marginTop: 8 }} disabled={loadingMoreLessons || loading || Boolean(resume)} onClick={() => void loadMoreLessons()}>{loadingMoreLessons ? "Đang tải…" : "Tải thêm giáo án"}</button>}
+        <div className="cozy-form-grid">
+          <div className="cozy-span-3 cozy-form-stack">
+            <FormField label="Giáo án đích" htmlFor="teacher-import-lesson" required>
+              <Select id="teacher-import-lesson" aria-label="Giáo án đích" value={lessonId} disabled={uploading || Boolean(resume) || lessons.length === 0} onChange={(event) => { setLessonId(event.target.value); setSourceDocument(null); setRevision(null); }}>
+                {lessons.map((item) => <option key={item.lesson_id} value={item.lesson_id}>{item.title} · {item.topic} · bản {item.current_version_no}</option>)}
+              </Select>
+            </FormField>
+            {lessonListError && <BackendNotice title="Không tải được giáo án tiếp theo" tone="error">{lessonListError}</BackendNotice>}
+            {lessonNextCursor && (
+              <div>
+                <Button type="button" variant="secondary" size="sm" loading={loadingMoreLessons} disabled={loadingMoreLessons || loading || Boolean(resume)} onClick={() => void loadMoreLessons()}>
+                  {loadingMoreLessons ? "Đang tải…" : "Tải thêm giáo án"}
+                </Button>
+              </div>
+            )}
+          </div>
+          <div className="teacher-file-field cozy-span-3">
+            <span id="teacher-source-file-label" className="cozy-form-label">
+              {resume ? "Chọn lại đúng tệp đã bắt đầu" : "Tệp nguồn · PDF, DOCX hoặc PPTX"}{" "}
+              <span className="cozy-form-required" aria-hidden="true">*</span>
+            </span>
+            <label className="teacher-file-picker" htmlFor="teacher-source-file">
+              <span className="teacher-file-picker-button"><Icon name="upload" size={17} /> Chọn tệp</span>
+              <span className="teacher-file-picker-name">{file?.name ?? "Chưa chọn tệp"}</span>
+              <input id="teacher-source-file" className="teacher-file-picker-input" type="file" accept=".pdf,.docx,.pptx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.presentationml.presentation" aria-labelledby="teacher-source-file-label" aria-describedby="teacher-file-help" aria-required="true" disabled={uploading} onChange={(event) => { setFile(event.target.files?.[0] ?? null); setError(null); }} />
+            </label>
+            <p className="teacher-file-help" id="teacher-file-help">Tối đa 25 MB. Trình duyệt tính SHA-256 để đối chiếu phiên upload khi tiếp tục.</p>
+          </div>
+        </div>
         {resume && <BackendNotice title="Đã lưu metadata phiên upload trong tab này" tone="warn">Chọn lại tệp đã bắt đầu cho giáo án {resume.lessonId}. Chỉ kích thước, thời điểm sửa, hash, session ID và khóa retry được lưu; tên/nội dung tệp và credential không được lưu trong trình duyệt.</BackendNotice>}
         {sessionLoading && <BackendNotice title="Đang kiểm tra phiên upload">Đang đọc trạng thái server trước khi cho tiếp tục.</BackendNotice>}
-        <div className="teacher-file-field" style={{ marginTop: 14 }}>
-          <label className="tw-label" htmlFor="teacher-source-file">{resume ? "Chọn lại đúng tệp đã bắt đầu" : "Tệp nguồn · PDF, DOCX hoặc PPTX"}</label>
-          <label className="teacher-file-picker" htmlFor="teacher-source-file">
-            <span className="teacher-file-picker-button"><Icon name="upload" size={17} /> Chọn tệp</span>
-            <span className="teacher-file-picker-name">{file?.name ?? "Chưa chọn tệp"}</span>
-            <input id="teacher-source-file" className="teacher-file-picker-input" type="file" accept=".pdf,.docx,.pptx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.presentationml.presentation" aria-describedby="teacher-file-help" disabled={uploading} onChange={(event) => { setFile(event.target.files?.[0] ?? null); setError(null); }} />
-          </label>
-          <p className="teacher-file-help" id="teacher-file-help">Tối đa 25 MB. Trình duyệt tính SHA-256 để đối chiếu phiên upload khi tiếp tục.</p>
-        </div>
-        {file && <div className="tw-item tw-row tw-between tw-wrap" style={{ marginTop: 12 }}><span>{file.name}</span><span className="tw-meta">{(file.size / (1024 * 1024)).toFixed(2)} MB · SHA-256 sẽ được tính trong trình duyệt</span></div>}
+        {file && <div className="tw-item tw-row tw-between tw-wrap"><span>{file.name}</span><span className="tw-meta">{(file.size / (1024 * 1024)).toFixed(2)} MB · SHA-256 sẽ được tính trong trình duyệt</span></div>}
         {resume && file && !resumeFileMatches && <BackendNotice title="Tệp được chọn không trùng metadata phiên" tone="error">Kích thước hoặc thời điểm sửa đổi khác phiên đã lưu. Chưa gửi thêm phần nào.</BackendNotice>}
         {session?.state === "OPEN" && <BackendNotice title="Phiên upload đang mở trên server" tone="warn">Đã nhận {session.accepted_part_numbers.length}/{session.expected_parts} phần. Sau khi xác minh lại SHA-256, chỉ các phần còn thiếu mới được gửi.</BackendNotice>}
         {resume?.uploadSessionId && session && session.state !== "OPEN" && <BackendNotice title="Phiên upload không còn mở" tone="warn">Server báo {session.state}. API status chưa trả source_document_id để nối tiếp kết quả đã đóng; không gửi lại tệp.</BackendNotice>}
-        {!resume && <button type="button" className="tw-btn" disabled={uploading || loading || !file || !lessonId} onClick={() => void upload()}><Icon name="upload" size={16} />{uploading ? "Đang tải…" : "Tải tài liệu lên"}</button>}
-        {resume && !resume.uploadSessionId && <button type="button" className="tw-btn" disabled={uploading || loading || !resumeFileMatches || !lessonId} onClick={() => void upload()}><Icon name="upload" size={16} />{uploading ? "Đang kết nối…" : "Thử lại tạo phiên upload"}</button>}
-        {resume?.uploadSessionId && <div className="tw-row tw-wrap">
-          <button type="button" className="tw-btn" disabled={uploading || loading || sessionLoading || !resumeFileMatches || session?.state !== "OPEN"} onClick={() => void upload()}><Icon name="upload" size={16} />{uploading ? "Đang tải…" : "Tiếp tục phần còn thiếu"}</button>
-          {session?.state === "OPEN" && <button type="button" className="tw-btn is-ghost" disabled={uploading} onClick={() => void cancelUpload()}>Hủy phiên upload</button>}
-          <button type="button" className="tw-btn is-ghost" disabled={uploading || sessionLoading} onClick={() => void refreshUploadStatus()}>Kiểm tra trạng thái phiên</button>
-        </div>}
-        {(uploading || progress > 0) && <div style={{ marginTop: 12 }}><div className="tw-row tw-between"><span className="tw-meta">Tiến trình upload</span><span className="tw-meta" style={{ fontVariantNumeric: "tabular-nums" }}>{progress}%</span></div><progress value={progress} max={100} style={{ width: "100%" }} /></div>}
+        {error && <BackendNotice title="Không hoàn tất được quy trình nhập" tone="error">{error}</BackendNotice>}
+        {!resume && !uploading && !loading && (!file || !lessonId) && (
+          <p className="cozy-form-disabled-hint">Chọn tệp nguồn ở trên để bật nút tải tài liệu lên.</p>
+        )}
+        {!resume && (
+          <div className="cozy-form-actions" style={{ marginTop: 0 }}>
+            <Button type="button" variant="primary" loading={uploading} disabled={uploading || loading || !file || !lessonId} iconLeft={<Icon name="upload" size={16} />} onClick={() => void upload()}>
+              {uploading ? "Đang tải…" : "Tải tài liệu lên"}
+            </Button>
+          </div>
+        )}
+        {resume && !resume.uploadSessionId && (
+          <div className="cozy-form-actions">
+            <Button type="button" variant="primary" loading={uploading} disabled={uploading || loading || !resumeFileMatches || !lessonId} iconLeft={<Icon name="upload" size={16} />} onClick={() => void upload()}>
+              {uploading ? "Đang kết nối…" : "Thử lại tạo phiên upload"}
+            </Button>
+          </div>
+        )}
+        {resume?.uploadSessionId && (
+          <div className="cozy-form-actions">
+            <Button type="button" variant="secondary" disabled={uploading || sessionLoading} onClick={() => void refreshUploadStatus()}>Kiểm tra trạng thái phiên</Button>
+            {session?.state === "OPEN" && <Button type="button" variant="secondary" disabled={uploading} onClick={() => void cancelUpload()}>Hủy phiên upload</Button>}
+            <Button type="button" variant="primary" loading={uploading} disabled={uploading || loading || sessionLoading || !resumeFileMatches || session?.state !== "OPEN"} iconLeft={<Icon name="upload" size={16} />} onClick={() => void upload()}>
+              {uploading ? "Đang tải…" : "Tiếp tục phần còn thiếu"}
+            </Button>
+          </div>
+        )}
+        {(uploading || progress > 0) && <div className="cozy-form-field"><div className="tw-row tw-between"><span className="tw-meta">Tiến trình upload</span><span className="tw-meta" style={{ fontVariantNumeric: "tabular-nums" }}>{progress}%</span></div><progress className="cozy-progress" value={progress} max={100} /></div>}
       </section>
 
-      {sourceDocument && <section className="tw-card" style={{ maxWidth: 860, marginTop: 16 }}>
-        <div className="tw-row tw-between tw-wrap"><h2 className="tw-h2">Kết quả xử lý tài liệu</h2><button type="button" className="tw-btn is-ghost is-sm" disabled={uploading} onClick={() => void refreshStatus()}>Tải lại trạng thái</button></div>
+      {sourceDocument && <section className="tw-card cozy-form-card cozy-form-card--wide cozy-form-stack">
+        <div className="tw-row tw-between tw-wrap"><h2 className="tw-h2">Kết quả xử lý tài liệu</h2><Button type="button" variant="secondary" size="sm" disabled={uploading} onClick={() => void refreshStatus()}>Tải lại trạng thái</Button></div>
         <div className="tw-grid-2"><div className="tw-item"><span className="tw-meta">Trạng thái</span><strong style={{ display: "block" }}>{sourceDocument.state}</strong></div><div className="tw-item"><span className="tw-meta">Tệp an toàn</span><strong style={{ display: "block" }}>{sourceDocument.safe_file_name}</strong></div><div className="tw-item"><span className="tw-meta">Số trang / slide</span><strong style={{ display: "block" }}>{sourceDocument.page_or_slide_count ?? "Chưa có"}</strong></div><div className="tw-item"><span className="tw-meta">Parser</span><strong style={{ display: "block" }}>{sourceDocument.parser_version ?? "Chưa có"}</strong></div></div>
         {sourceDocument.warnings.length > 0 && <BackendNotice title="Cảnh báo parser" tone="warn">{sourceDocument.warnings.join(" · ")}</BackendNotice>}
         {revision && <>

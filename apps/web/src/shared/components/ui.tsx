@@ -7,6 +7,7 @@ type AccessibleDialogProps = {
   onOpenChange: (open: boolean) => void;
   title: string;
   description?: string;
+  showTitle?: boolean;
   className?: string;
   showClose?: boolean;
   container?: HTMLElement | null;
@@ -18,6 +19,7 @@ export function AccessibleDialog({
   onOpenChange,
   title,
   description,
+  showTitle = false,
   className = "",
   showClose = true,
   container,
@@ -28,7 +30,7 @@ export function AccessibleDialog({
       <DialogPrimitive.Portal container={container ?? undefined}>
         <DialogPrimitive.Overlay className={`s2l-dialog-overlay ${className.includes("is-sheet") ? "is-sheet" : ""}`.trim()} />
         <DialogPrimitive.Content className={`s2l-dialog-content ${className}`.trim()}>
-          <DialogPrimitive.Title className="s2l-sr-only">{title}</DialogPrimitive.Title>
+          <DialogPrimitive.Title className={showTitle ? "s2l-dialog-title" : "s2l-sr-only"}>{title}</DialogPrimitive.Title>
           {description && <DialogPrimitive.Description className="s2l-sr-only">{description}</DialogPrimitive.Description>}
           {showClose && (
             <DialogPrimitive.Close className="s2l-dialog-close" aria-label="Đóng">

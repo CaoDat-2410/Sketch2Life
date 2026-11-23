@@ -1,0 +1,386 @@
+/* P2: adapt the Teacher's existing legacy controls to the shared cozy token system. */
+html[data-cozy="1"][data-portal="teacher"] {
+  --color-paper: var(--s2l-ui-cream);
+  --color-paper-2: var(--s2l-ui-paper-muted);
+  --color-paper-3: var(--s2l-ui-rule);
+  --color-sheet: var(--s2l-ui-paper);
+  --color-ink: var(--s2l-ui-ink);
+  --color-ink-2: var(--s2l-ui-neutral-800);
+  --color-muted: var(--s2l-ui-ink-soft);
+  --color-rule: var(--s2l-ui-rule);
+  --color-rule-2: var(--s2l-ui-input-focus);
+  --color-accent: var(--s2l-ui-primary);
+  --color-accent-strong: var(--s2l-ui-primary-hover);
+  --color-accent-soft: var(--s2l-ui-primary-soft);
+  --color-accent-ink: var(--s2l-ui-on-primary);
+  --color-focus: var(--s2l-ui-focus);
+  --color-success: var(--s2l-ui-success-ink);
+  --color-success-soft: var(--s2l-ui-success-soft);
+  --color-warn: var(--s2l-ui-warn-ink);
+  --color-warn-soft: var(--s2l-ui-warn-soft);
+  --color-danger: var(--s2l-ui-danger-ink);
+  --color-danger-soft: var(--s2l-ui-danger-soft);
+  --font-display: var(--s2l-ui-font);
+  --font-body: var(--s2l-ui-font);
+  --radius-card: 22px;
+  --radius-inner: 14px;
+  --shadow-card: var(--s2l-ui-shadow);
+  --shadow-lift: var(--s2l-ui-shadow-hover);
+  --teacher-paper: var(--s2l-ui-cream);
+  --teacher-board: var(--s2l-ui-paper-muted);
+  --teacher-sheet: var(--s2l-ui-paper);
+  --teacher-ink: var(--s2l-ui-ink);
+  --teacher-muted: var(--s2l-ui-ink-soft);
+  --teacher-rule: var(--s2l-ui-rule);
+  --teacher-rule-strong: var(--s2l-ui-input-focus);
+  --teacher-blue: var(--s2l-ui-primary);
+  --teacher-blue-deep: var(--s2l-ui-primary-hover);
+  --teacher-blue-soft: var(--s2l-ui-primary-soft);
+  --teacher-gold: var(--s2l-ui-butter-ink);
+  --teacher-coral: var(--s2l-ui-coral-ink);
+  --teacher-green: var(--s2l-ui-mint-ink);
+  --teacher-danger: var(--s2l-ui-danger-ink);
+  --tw-ink: var(--s2l-ui-ink);
+  --tw-ink-2: var(--s2l-ui-neutral-800);
+  --tw-sub-ink: var(--s2l-ui-ink-soft);
+  --tw-surface: var(--s2l-ui-paper);
+  --tw-surface-alt: var(--s2l-ui-paper-muted);
+  --tw-border: var(--s2l-ui-rule);
+  --tw-mint-ink: var(--s2l-ui-mint-ink);
+  --tw-amber-ink: var(--s2l-ui-butter-ink);
+  --tw-rose-ink: var(--s2l-ui-danger-ink);
+  --tw-sky-ink: var(--s2l-ui-info-ink);
+  /* Tailwind's existing blue/slate/status utility names resolve to the cozy palette. */
+  --color-blue-50: var(--s2l-ui-primary-50);
+  --color-blue-100: var(--s2l-ui-primary-100);
+  --color-blue-200: var(--s2l-ui-primary-200);
+  --color-blue-300: var(--s2l-ui-primary-300);
+  --color-blue-400: var(--s2l-ui-primary-400);
+  --color-blue-500: var(--s2l-ui-primary-500);
+  --color-blue-600: var(--s2l-ui-primary-600);
+  --color-blue-700: var(--s2l-ui-primary-700);
+  --color-blue-800: var(--s2l-ui-primary-800);
+  --color-blue-900: var(--s2l-ui-primary-900);
+  --color-violet-50: var(--s2l-ui-primary-50);
+  --color-violet-100: var(--s2l-ui-primary-100);
+  --color-violet-200: var(--s2l-ui-primary-200);
+  --color-violet-300: var(--s2l-ui-primary-300);
+  --color-violet-400: var(--s2l-ui-primary-400);
+  --color-violet-500: var(--s2l-ui-primary-500);
+  --color-violet-600: var(--s2l-ui-primary-600);
+  --color-violet-700: var(--s2l-ui-primary-700);
+  --color-violet-800: var(--s2l-ui-primary-800);
+  --color-violet-900: var(--s2l-ui-primary-900);
+  --color-slate-50: var(--s2l-ui-neutral-50);
+  --color-slate-100: var(--s2l-ui-neutral-100);
+  --color-slate-200: var(--s2l-ui-neutral-200);
+  --color-slate-300: var(--s2l-ui-neutral-300);
+  --color-slate-400: var(--s2l-ui-neutral-400);
+  --color-slate-500: var(--s2l-ui-neutral-500);
+  --color-slate-600: var(--s2l-ui-neutral-600);
+  --color-slate-700: var(--s2l-ui-neutral-700);
+  --color-slate-800: var(--s2l-ui-neutral-800);
+  --color-slate-900: var(--s2l-ui-neutral-900);
+  --color-slate-950: var(--s2l-ui-neutral-900);
+  --color-emerald-50: var(--s2l-ui-mint-50);
+  --color-emerald-100: var(--s2l-ui-mint-100);
+  --color-emerald-200: var(--s2l-ui-mint-200);
+  --color-emerald-300: var(--s2l-ui-mint-300);
+  --color-emerald-400: var(--s2l-ui-mint-400);
+  --color-emerald-500: var(--s2l-ui-mint-500);
+  --color-emerald-600: var(--s2l-ui-mint-600);
+  --color-emerald-700: var(--s2l-ui-mint-700);
+  --color-emerald-800: var(--s2l-ui-mint-800);
+  --color-emerald-900: var(--s2l-ui-mint-900);
+  --color-amber-50: var(--s2l-ui-butter-50);
+  --color-amber-100: var(--s2l-ui-butter-100);
+  --color-amber-200: var(--s2l-ui-butter-200);
+  --color-amber-300: var(--s2l-ui-butter-300);
+  --color-amber-400: var(--s2l-ui-butter-400);
+  --color-amber-500: var(--s2l-ui-butter-500);
+  --color-amber-600: var(--s2l-ui-butter-600);
+  --color-amber-700: var(--s2l-ui-butter-700);
+  --color-amber-800: var(--s2l-ui-butter-800);
+  --color-amber-900: var(--s2l-ui-butter-900);
+  --color-red-50: var(--s2l-ui-coral-50);
+  --color-red-100: var(--s2l-ui-coral-100);
+  --color-red-200: var(--s2l-ui-coral-200);
+  --color-red-300: var(--s2l-ui-coral-300);
+  --color-red-400: var(--s2l-ui-coral-400);
+  --color-red-500: var(--s2l-ui-coral-500);
+  --color-red-600: var(--s2l-ui-coral-600);
+  --color-red-700: var(--s2l-ui-coral-700);
+  --color-red-800: var(--s2l-ui-coral-800);
+  --color-red-900: var(--s2l-ui-coral-900);
+}
+
+html[data-cozy="1"][data-portal="teacher"] body,
+html[data-cozy="1"][data-portal="teacher"] .s2l-main { background: var(--s2l-ui-cream); color: var(--s2l-ui-ink); font-family: var(--s2l-ui-font); }
+html[data-cozy="1"][data-portal="teacher"] .tw-page { display: grid; width: 100%; max-width: none; gap: 18px; color: var(--s2l-ui-ink); }
+
+html[data-cozy="1"][data-portal="teacher"] :is(.tw-card:not(.cozy-form-card), .tw-kpi, .tw-modal, .teacher-occurrence-sidebar, .teacher-occurrence-main > .s2l-data-card:not(.cozy-form-card)) {
+  min-width: 0; border: 1px solid var(--s2l-ui-rule) !important; border-radius: 20px !important;
+  background: var(--s2l-ui-paper) !important; box-shadow: var(--s2l-ui-shadow) !important; color: var(--s2l-ui-ink) !important;
+}
+html[data-cozy="1"][data-portal="teacher"] :is(.tw-card.cozy-form-card, .s2l-data-card.cozy-form-card, form.tw-card.cozy-form-card):not(.cozy-form-card--wide) {
+  min-width: 0; width: 100%; max-width: 40rem; border: 1px solid var(--s2l-ui-rule); border-radius: 20px;
+  background: var(--s2l-ui-paper-muted); box-shadow: var(--s2l-ui-shadow); color: var(--s2l-ui-ink);
+}
+html[data-cozy="1"][data-portal="teacher"] :is(.tw-card.cozy-form-card, .s2l-data-card.cozy-form-card, form.tw-card.cozy-form-card).cozy-form-card--wide {
+  min-width: 0; width: 100%; max-width: none; border: 1px solid var(--s2l-ui-rule); border-radius: 20px;
+  background: var(--s2l-ui-paper-muted); box-shadow: var(--s2l-ui-shadow); color: var(--s2l-ui-ink);
+}
+html[data-cozy="1"][data-portal="teacher"] .tw-card:not(.cozy-form-card) { padding: 20px; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-activities {
+  display: grid; gap: var(--s2l-form-section-gap); padding: 0; border: 0; background: transparent; box-shadow: none;
+}
+html[data-cozy="1"][data-portal="teacher"] .tw-h2,
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-page h2,
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-page h3 { color: var(--s2l-ui-ink); }
+html[data-cozy="1"][data-portal="teacher"] .tw-meta,
+html[data-cozy="1"][data-portal="teacher"] .tw-sub { color: var(--s2l-ui-ink-soft); }
+html[data-cozy="1"][data-portal="teacher"] .tw-label,
+html[data-cozy="1"][data-portal="teacher"] .teacher-roster-create label,
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-page label { color: var(--s2l-ui-ink); }
+
+html[data-cozy="1"][data-portal="teacher"] .tw-input,
+html[data-cozy="1"][data-portal="teacher"] .teacher-roster-create input,
+html[data-cozy="1"][data-portal="teacher"] .teacher-roster-move select,
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-page :is(input:not([type="file"]):not([type="checkbox"]), select, textarea) {
+  min-height: 44px; border: 1px solid color-mix(in srgb, var(--s2l-ui-ink) 18%, var(--s2l-ui-rule)) !important; border-radius: 13px !important;
+  background: var(--s2l-ui-paper) !important; color: var(--s2l-ui-ink) !important; box-shadow: none !important;
+}
+html[data-cozy="1"][data-portal="teacher"] .tw-input:focus,
+html[data-cozy="1"][data-portal="teacher"] .teacher-roster-create input:focus,
+html[data-cozy="1"][data-portal="teacher"] .teacher-roster-move select:focus,
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-page :is(input, select, textarea):focus {
+  border-color: var(--s2l-ui-input-focus) !important; outline: 3px solid color-mix(in srgb, var(--s2l-ui-focus) 20%, transparent); outline-offset: 1px;
+}
+
+html[data-cozy="1"][data-portal="teacher"] .tw-btn {
+  min-height: 44px; border: 1px solid var(--s2l-ui-primary) !important; border-radius: 14px !important;
+  background: var(--s2l-ui-primary-gradient) !important; color: var(--s2l-ui-on-primary) !important;
+  box-shadow: 0 3px 9px color-mix(in srgb, var(--s2l-ui-shadow-tint) 14%, transparent) !important; font-weight: 700;
+}
+html[data-cozy="1"][data-portal="teacher"] .tw-btn:not(.is-ghost):not(.is-amber):not(.is-danger):not(.is-mint):not(:disabled) {
+  color: var(--s2l-ui-on-primary) !important;
+}
+html[data-cozy="1"][data-portal="teacher"] .tw-btn:hover:not(:disabled) { border-color: var(--s2l-ui-primary-hover) !important; background: var(--s2l-ui-primary-hover-gradient) !important; }
+html[data-cozy="1"][data-portal="teacher"] .tw-btn.is-ghost { border-color: var(--s2l-ui-rule) !important; background: var(--s2l-ui-paper) !important; color: var(--s2l-ui-primary-hover) !important; box-shadow: none !important; }
+html[data-cozy="1"][data-portal="teacher"] .tw-btn.is-ghost:hover:not(:disabled) { border-color: var(--s2l-ui-primary-400) !important; background: var(--s2l-ui-primary-soft) !important; }
+html[data-cozy="1"][data-portal="teacher"] .tw-btn.is-amber { border-color: var(--s2l-ui-butter-300) !important; background: var(--s2l-ui-butter-soft) !important; color: var(--s2l-ui-butter-ink) !important; box-shadow: none !important; }
+html[data-cozy="1"][data-portal="teacher"] .tw-btn.is-mint { border-color: var(--s2l-ui-mint-700) !important; background: var(--s2l-ui-mint-700) !important; color: var(--s2l-ui-on-primary) !important; box-shadow: none !important; }
+html[data-cozy="1"][data-portal="teacher"] .tw-btn.is-danger { border-color: var(--s2l-ui-coral-300) !important; background: var(--s2l-ui-danger-soft) !important; color: var(--s2l-ui-danger-ink) !important; }
+html[data-cozy="1"][data-portal="teacher"] .tw-btn:disabled { border-color: var(--s2l-ui-primary-disabled) !important; background: var(--s2l-ui-primary-disabled) !important; color: var(--s2l-ui-primary-disabled-ink) !important; box-shadow: none !important; cursor: not-allowed; opacity: 1; }
+
+html[data-cozy="1"][data-portal="teacher"] .tw-chip,
+html[data-cozy="1"][data-portal="teacher"] .teacher-status-pill { border: 1px solid var(--s2l-ui-primary-300); border-radius: 999px; background: var(--s2l-ui-primary-soft); color: var(--s2l-ui-primary-hover); }
+html[data-cozy="1"][data-portal="teacher"] .tw-chip.is-mint { border-color: var(--s2l-ui-mint-300); background: var(--s2l-ui-mint-soft); color: var(--s2l-ui-mint-ink); }
+html[data-cozy="1"][data-portal="teacher"] .tw-chip.is-amber { border-color: var(--s2l-ui-butter-300); background: var(--s2l-ui-butter-soft); color: var(--s2l-ui-butter-ink); }
+html[data-cozy="1"][data-portal="teacher"] .tw-chip.is-rose { border-color: var(--s2l-ui-coral-300); background: var(--s2l-ui-danger-soft); color: var(--s2l-ui-danger-ink); }
+html[data-cozy="1"][data-portal="teacher"] .tw-chip.is-gray { border-color: var(--s2l-ui-rule); background: var(--s2l-ui-neutral-soft); color: var(--s2l-ui-neutral-700); }
+
+html[data-cozy="1"][data-portal="teacher"] .teacher-file-picker {
+  display: flex;
+  align-items: center;
+  gap: var(--s2l-form-control-gap);
+  min-height: 44px;
+  padding: 4px 10px;
+  border-color: color-mix(in srgb, var(--s2l-ui-ink) 22%, var(--s2l-ui-rule));
+  border-radius: 13px;
+  background: var(--s2l-ui-paper);
+}
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-upload { border-color: var(--s2l-ui-input-focus); border-radius: 16px; background: var(--s2l-ui-paper-muted); }
+html[data-cozy="1"][data-portal="teacher"] .teacher-file-picker-button { min-height: 34px; border-radius: 10px; background: var(--s2l-ui-primary); color: var(--s2l-ui-on-primary); }
+html[data-cozy="1"][data-portal="teacher"] .teacher-file-picker-name,
+html[data-cozy="1"][data-portal="teacher"] .teacher-file-help { color: var(--s2l-ui-ink-soft); }
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-list button[aria-current="true"],
+html[data-cozy="1"][data-portal="teacher"] .tw-item.is-selected { border-color: var(--s2l-ui-primary-400) !important; background: var(--s2l-ui-row-selected) !important; color: var(--s2l-ui-ink) !important; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-list button:hover,
+html[data-cozy="1"][data-portal="teacher"] .tw-item.is-lift:hover { border-color: var(--s2l-ui-primary-300) !important; background: var(--s2l-ui-row-hover) !important; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-heading,
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-section-title { border-color: var(--s2l-ui-rule); }
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-eyebrow { color: var(--s2l-ui-primary-hover); }
+html[data-cozy="1"][data-portal="teacher"] .teacher-roster-move {
+  grid-column: 1 / -1; width: 100%; box-sizing: border-box; gap: 8px; padding: 14px 16px;
+  border: 1px solid var(--s2l-ui-rule); border-radius: 16px; background: var(--s2l-ui-paper-muted);
+}
+html[data-cozy="1"][data-portal="teacher"] .s2l-roster-avatar { border-color: var(--s2l-ui-primary-300); background: var(--s2l-ui-primary-soft); color: var(--s2l-ui-primary-hover); }
+html[data-cozy="1"][data-portal="teacher"] .s2l-consent-list li { border-color: var(--s2l-ui-rule); }
+
+/* Keep the Teacher's legacy data screens aligned with the shared content primitives. */
+html[data-cozy="1"][data-portal="teacher"] .s2l-page { display: grid; gap: 18px; min-width: 0; color: var(--s2l-ui-ink); }
+html[data-cozy="1"][data-portal="teacher"] .s2l-page-heading { margin-bottom: 0; }
+html[data-cozy="1"][data-portal="teacher"] .s2l-data-card { padding: 20px; border-color: var(--s2l-ui-rule); border-radius: 22px; background: var(--s2l-ui-paper); box-shadow: var(--s2l-ui-shadow); color: var(--s2l-ui-ink); }
+html[data-cozy="1"][data-portal="teacher"] .s2l-page > .s2l-data-card[role="status"] { color: var(--s2l-ui-ink-soft); }
+html[data-cozy="1"][data-portal="teacher"] .s2l-dashboard-grid { align-items: stretch; }
+html[data-cozy="1"][data-portal="teacher"] .s2l-dashboard-card { min-height: 100%; }
+html[data-cozy="1"][data-portal="teacher"] .s2l-class-row {
+  display: grid; width: 100%; min-width: 0; grid-template-columns: 42px minmax(0, 1fr) auto; align-items: center; gap: 12px;
+  padding: 16px; border: 1px solid var(--s2l-ui-rule); border-radius: 18px; background: var(--s2l-ui-paper); color: var(--s2l-ui-ink); text-align: left;
+  box-shadow: var(--s2l-ui-shadow); cursor: pointer;
+}
+html[data-cozy="1"][data-portal="teacher"] .s2l-class-row:hover { border-color: var(--s2l-ui-primary-400); background: var(--s2l-ui-row-hover); }
+html[data-cozy="1"][data-portal="teacher"] .s2l-class-copy { display: grid; min-width: 0; gap: 4px; }
+html[data-cozy="1"][data-portal="teacher"] .s2l-class-copy strong { overflow-wrap: anywhere; color: var(--s2l-ui-ink); font-size: 14px; }
+html[data-cozy="1"][data-portal="teacher"] .s2l-class-copy small { color: var(--s2l-ui-ink-soft); font-size: 11px; }
+html[data-cozy="1"][data-portal="teacher"] .s2l-class-open { display: inline-flex; align-items: center; gap: 6px; color: var(--s2l-ui-link); font-size: 11px; font-weight: 750; white-space: nowrap; }
+html[data-cozy="1"][data-portal="teacher"] .s2l-roster-list { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+html[data-cozy="1"][data-portal="teacher"] .s2l-roster-list > li { display: grid; min-width: 0; grid-template-columns: 40px minmax(0, 1fr) auto auto; align-items: center; gap: 10px; padding: 12px; border: 1px solid var(--s2l-ui-rule); border-radius: 17px; background: var(--s2l-ui-paper); }
+html[data-cozy="1"][data-portal="teacher"] .s2l-roster-avatar { display: grid; width: 38px; height: 38px; place-items: center; border: 1px solid var(--s2l-ui-primary-300); border-radius: 14px; background: var(--s2l-ui-primary-soft); color: var(--s2l-ui-primary-hover); font-weight: 800; }
+html[data-cozy="1"][data-portal="teacher"] .s2l-consent-list { display: grid; gap: 8px; margin: 12px 0 0; padding: 0; list-style: none; }
+html[data-cozy="1"][data-portal="teacher"] .s2l-consent-list li { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 13px; border: 1px solid var(--s2l-ui-rule); border-radius: 14px; background: var(--s2l-ui-paper-muted); color: var(--s2l-ui-ink); font-size: 12px; }
+html[data-cozy="1"][data-portal="teacher"] .s2l-button { border: 1px solid var(--s2l-ui-primary) !important; border-radius: 14px !important; background: var(--s2l-ui-primary-gradient) !important; color: var(--s2l-ui-on-primary) !important; box-shadow: 0 3px 9px color-mix(in srgb, var(--s2l-ui-shadow-tint) 14%, transparent); }
+html[data-cozy="1"][data-portal="teacher"] .s2l-button:hover:not(:disabled) { border-color: var(--s2l-ui-primary-hover) !important; background: var(--s2l-ui-primary-hover-gradient) !important; color: var(--s2l-ui-on-primary) !important; }
+html[data-cozy="1"][data-portal="teacher"] .s2l-button:disabled { border-color: var(--s2l-ui-primary-disabled) !important; background: var(--s2l-ui-primary-disabled) !important; color: var(--s2l-ui-primary-disabled-ink) !important; box-shadow: none; opacity: 1; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-layout { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-top { display: grid; grid-template-columns: minmax(240px, 290px) minmax(0, 1fr); align-items: stretch; gap: 16px; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-sidebar { grid-template-columns: minmax(0, 1fr); align-content: start; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-main { gap: 14px; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-document-grid,
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-plan-layout { grid-template-columns: minmax(220px, 260px) minmax(0, 1fr); }
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-page :is(.teacher-occurrence-create, .teacher-occurrence-plan-form, .teacher-occurrence-revisions) { gap: 12px; padding: 16px; border-color: var(--s2l-ui-rule); border-radius: 18px; background: var(--s2l-ui-paper-muted); }
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-page .cozy-textarea { min-height: 72px; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-form .cozy-textarea[rows="2"] { min-height: 68px; }
+@media (min-width: 800px) {
+  html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-plan-form .cozy-form-grid > .cozy-form-field:nth-child(-n+2) > .cozy-form-label-group { min-height: 2.85em; }
+}
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-page :is(.teacher-occurrence-create, .teacher-occurrence-plan-form) :is(label, legend) { color: var(--s2l-ui-ink); font-weight: 700; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-page .teacher-occurrence-plan-detail { border-color: var(--s2l-ui-rule); border-radius: 15px; background: var(--s2l-ui-paper-muted); color: var(--s2l-ui-ink); }
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-page .teacher-occurrence-empty { background: var(--s2l-ui-paper); }
+html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-activities fieldset.cozy-form-section { border: 1px solid var(--s2l-ui-rule); border-radius: 16px; background: var(--s2l-ui-paper); padding: var(--s2l-form-section-padding); }
+html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-activities legend { color: var(--s2l-ui-ink); }
+html[data-cozy="1"][data-portal="teacher"] .tw-card :is(fieldset, legend) { color: var(--s2l-ui-ink); }
+html[data-cozy="1"][data-portal="teacher"] :is(.tw-table-wrap, .s2l-table-wrap) { max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-ai-workflow > header { margin-bottom: 2px; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-ai-workflow > header > p { color: var(--s2l-ui-primary-hover); }
+html[data-cozy="1"][data-portal="teacher"] .teacher-ai-workflow [role="alert"]:not(.cozy-form-error) { border-color: var(--s2l-ui-coral-300); background: var(--s2l-ui-danger-soft); color: var(--s2l-ui-danger-ink); }
+html[data-cozy="1"][data-portal="teacher"] .teacher-ai-workflow [role="status"] { border-color: var(--s2l-ui-mint-300); background: var(--s2l-ui-success-soft); color: var(--s2l-ui-success-ink); }
+
+html[data-cozy="1"][data-portal="teacher"] .teacher-ai-workflow {
+  width: min(100%, 1120px); max-width: 1120px; gap: 18px; padding: 0; color: var(--s2l-ui-ink);
+}
+html[data-cozy="1"][data-portal="teacher"] .teacher-ai-workflow h1,
+html[data-cozy="1"][data-portal="teacher"] .teacher-ai-workflow h2,
+html[data-cozy="1"][data-portal="teacher"] .teacher-ai-workflow label { color: var(--s2l-ui-ink); }
+html[data-cozy="1"][data-portal="teacher"] .teacher-ai-workflow :is(input:not([type="checkbox"]), select, textarea) {
+  min-height: 44px; border-color: color-mix(in srgb, var(--s2l-ui-ink) 18%, var(--s2l-ui-rule)); border-radius: 13px; background: var(--s2l-ui-paper); color: var(--s2l-ui-ink);
+}
+html[data-cozy="1"][data-portal="teacher"] .teacher-ai-workflow :is(input, select, textarea):focus { border-color: var(--s2l-ui-input-focus); outline: 3px solid color-mix(in srgb, var(--s2l-ui-focus) 20%, transparent); outline-offset: 1px; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-ai-workflow .cozy-form-section { border: 1px solid var(--s2l-ui-rule); border-radius: 16px; background: var(--s2l-ui-paper); padding: var(--s2l-form-section-padding); }
+html[data-cozy="1"][data-portal="teacher"] .teacher-ai-workflow .bg-white { background: var(--s2l-ui-paper); }
+html[data-cozy="1"][data-portal="teacher"] .teacher-ai-workflow section.rounded-2xl,
+html[data-cozy="1"][data-portal="teacher"] .teacher-ai-workflow section.rounded-xl { border-color: var(--s2l-ui-rule); border-radius: 20px; box-shadow: var(--s2l-ui-shadow); }
+html[data-cozy="1"][data-portal="teacher"] .teacher-ai-workflow section.cozy-form-card { border-color: var(--s2l-ui-rule); border-radius: 20px; background: var(--s2l-ui-paper-muted); box-shadow: var(--s2l-ui-shadow); }
+
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation {
+  position: fixed !important; inset: 0 !important; z-index: 100 !important; box-sizing: border-box; width: auto; height: auto;
+  min-width: 0; min-height: 0; overflow: auto; background: var(--s2l-ui-neutral-900); color: var(--s2l-ui-cream);
+}
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > header,
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > footer,
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > main { color: var(--s2l-ui-neutral-50); }
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > main > section {
+  border: 1px solid var(--s2l-ui-rule); border-radius: 22px; background: var(--s2l-ui-paper); color: var(--s2l-ui-neutral-900);
+  box-shadow: 0 16px 38px color-mix(in srgb, var(--s2l-ui-shadow-tint) 22%, transparent);
+}
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > main > section :is(h1, h2, p, li, span) { color: inherit; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > main > section [class*="text-blue-"] { color: var(--s2l-ui-primary-hover); }
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation :is(button, a):focus-visible { outline: 3px solid var(--s2l-ui-focus); outline-offset: 2px; }
+
+@media (max-width: 900px) {
+  html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-layout,
+  html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-top,
+  html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-document-grid,
+  html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-plan-layout { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
+  html[data-cozy="1"][data-portal="teacher"] .teacher-file-picker {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--s2l-form-control-gap);
+  }
+}
+@media (max-width: 620px) {
+  html[data-cozy="1"][data-portal="teacher"] .tw-page { gap: 14px; }
+  html[data-cozy="1"][data-portal="teacher"] .tw-card { padding: 16px; }
+  html[data-cozy="1"][data-portal="teacher"] .tw-row.tw-between { align-items: flex-start; flex-wrap: wrap; }
+  html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-upload { padding: 14px; }
+  html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-create,
+  html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-plan-form { grid-template-columns: minmax(0, 1fr); }
+  html[data-cozy="1"][data-portal="teacher"] .teacher-ai-workflow :is(button, input, select, textarea) { max-width: 100%; }
+  html[data-cozy="1"][data-portal="teacher"] .teacher-ai-workflow > section { padding: 16px; }
+  html[data-cozy="1"][data-portal="teacher"] .s2l-page { gap: 14px; }
+  html[data-cozy="1"][data-portal="teacher"] .s2l-data-card { padding: 16px; }
+  html[data-cozy="1"][data-portal="teacher"] .s2l-class-row { grid-template-columns: 38px minmax(0, 1fr); gap: 9px; padding: 13px; }
+  html[data-cozy="1"][data-portal="teacher"] .s2l-class-open { grid-column: 2; }
+  html[data-cozy="1"][data-portal="teacher"] .s2l-roster-list > li { grid-template-columns: 36px minmax(0, 1fr) auto; gap: 8px; padding: 10px; }
+  html[data-cozy="1"][data-portal="teacher"] .s2l-roster-list .s2l-status-tag { grid-column: 2; justify-self: start; }
+  html[data-cozy="1"][data-portal="teacher"] .s2l-roster-list .s2l-button { grid-column: 3; grid-row: 1 / span 2; padding-inline: 9px; }
+  html[data-cozy="1"][data-portal="teacher"] .teacher-roster-move { grid-column: 1 / -1; }
+}
+
+/* Keep the classroom deck comfortable even when Tailwind preflight is disabled. */
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation {
+  display: flex; flex-direction: column; overflow: hidden; padding: clamp(12px, 2vw, 24px);
+  background: var(--s2l-ui-neutral-900); color: var(--s2l-ui-neutral-50); font-family: var(--s2l-ui-font);
+}
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > header,
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > footer {
+  display: flex; width: min(100%, 1440px); flex: 0 0 auto; align-items: center; justify-content: space-between;
+  gap: 12px; margin-inline: auto; color: var(--s2l-ui-neutral-50);
+}
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > header { padding-bottom: 12px; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > header > div { min-width: 0; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > header > div > p:first-child { margin: 0; color: var(--s2l-ui-neutral-200); font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > header > div > p:last-child { margin: 4px 0 0; color: var(--s2l-ui-butter-200); font-size: 13px; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > header button { min-height: 42px; border: 1px solid var(--s2l-ui-neutral-500); border-radius: 14px; background: transparent; padding: 9px 15px; color: var(--s2l-ui-neutral-50); font-size: 14px; font-weight: 700; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > header button:hover { background: var(--s2l-ui-neutral-800); }
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > main {
+  display: flex; width: 100%; min-height: 0; flex: 1 1 auto; flex-direction: column; align-items: center;
+  justify-content: center; gap: 12px; margin-inline: auto; color: var(--s2l-ui-neutral-50);
+}
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > main > div:first-child {
+  display: flex; width: min(100%, calc((100dvh - 17rem) * 16 / 9)); flex: 0 0 auto; align-items: center;
+  justify-content: space-between; gap: 12px; color: var(--s2l-ui-neutral-200); font-size: 13px;
+}
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > main > section {
+  width: min(100%, calc((100dvh - 17rem) * 16 / 9)); max-height: calc(100dvh - 17rem); flex: 0 1 auto;
+  overflow: hidden; border: 1px solid var(--s2l-ui-rule); border-radius: 22px; background: var(--s2l-ui-paper);
+  color: var(--s2l-ui-ink); box-shadow: 0 16px 38px color-mix(in srgb, var(--s2l-ui-shadow-tint) 22%, transparent);
+}
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > main > section > div { display: flex; height: 100%; min-height: 0; flex-direction: column; padding: clamp(18px, 3.2vw, 48px); }
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > main > section > div > div:first-child { display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > main > section > div > div:first-child > p { margin: 0; color: var(--s2l-ui-primary-hover); font-size: clamp(11px, 1.2vw, 15px); font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > main > section > div > div:first-child > span { border: 1px solid var(--s2l-ui-butter-300); border-radius: 999px; background: var(--s2l-ui-butter-soft); padding: 6px 12px; color: var(--s2l-ui-butter-ink); font-size: 12px; font-weight: 800; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > main > section h1 { margin: 0; color: var(--s2l-ui-ink); font-size: clamp(26px, 3.1vw, 46px); font-weight: 800; line-height: 1.12; letter-spacing: -.025em; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > main > section > div > div:nth-child(3) { min-height: 0; flex: 1 1 auto; overflow: hidden; margin-top: 18px; color: var(--s2l-ui-ink); font-size: clamp(17px, 1.55vw, 22px); line-height: 1.55; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > main > section > div > div:nth-child(3) > div > div { width: 100%; max-width: 850px; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > main > section ul { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > main > section li { display: flex; align-items: flex-start; gap: 12px; color: var(--s2l-ui-ink); }
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > main > section li > span:first-child { width: 9px; height: 9px; flex: 0 0 auto; margin-top: .65em; border-radius: 50%; background: var(--s2l-ui-primary); }
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > main > section h2 { color: var(--s2l-ui-primary-hover); }
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > main > section > div > footer { display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; border-top: 1px solid var(--s2l-ui-rule); padding-top: 12px; color: var(--s2l-ui-ink-soft); font-size: 12px; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > main > nav { display: flex; max-width: 100%; flex: 0 0 auto; align-items: center; gap: 8px; overflow-x: auto; padding: 4px 0; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > main > nav button { max-width: 192px; overflow: hidden; border: 1px solid var(--s2l-ui-primary-300); border-radius: 13px; background: var(--s2l-ui-primary); padding: 9px 13px; color: var(--s2l-ui-on-primary); font-size: 12px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > main > nav button:not([aria-current="page"]) { border-color: var(--s2l-ui-neutral-600); background: transparent; color: var(--s2l-ui-neutral-100); }
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > footer { padding-top: 12px; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > footer button { min-height: 42px; border: 1px solid var(--s2l-ui-primary-300); border-radius: 14px; background: var(--s2l-ui-primary); padding: 9px 16px; color: var(--s2l-ui-on-primary); font-size: 14px; font-weight: 700; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > footer button:first-child { border-color: var(--s2l-ui-neutral-500); background: transparent; color: var(--s2l-ui-neutral-100); }
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation button:disabled { border-color: var(--s2l-ui-neutral-700) !important; background: var(--s2l-ui-neutral-700) !important; color: var(--s2l-ui-neutral-300) !important; cursor: not-allowed; opacity: 1; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation :is(button, a):focus-visible { outline: 3px solid var(--s2l-ui-focus); outline-offset: 2px; }
+@media (max-width: 760px) {
+  html[data-cozy="1"][data-portal="teacher"] .teacher-file-picker {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--s2l-form-control-gap);
+  }
+}
+@media (max-width: 620px) {
+  html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation { padding: 10px; }
+  html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > main > section { border-radius: 16px; }
+  html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > main > section > div { padding: 16px; }
+  html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > main > section > div > div:nth-child(3) { margin-top: 10px; font-size: 15px; }
+  html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > main > section > div > footer { margin-top: 10px; padding-top: 8px; font-size: 10px; }
+  html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation > footer > div { display: none; }
+}

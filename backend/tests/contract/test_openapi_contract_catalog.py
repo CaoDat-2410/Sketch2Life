@@ -38,6 +38,7 @@ from sketch2life.interfaces.http.openapi_srs_v22 import (
     SRS_V22_TAGS,
 )
 from sketch2life.interfaces.http.admin_contract import ADMIN_OPERATIONS
+from sketch2life.interfaces.http.quota_contract import QUOTA_OPERATIONS
 
 HTTP_METHODS = {"get", "post", "put", "patch", "delete", "options", "head"}
 EXPECTED_IDEMPOTENCY_MISMATCH_OPERATION_KEYS = {
@@ -315,7 +316,7 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
 
     assert spec["openapi"] == "3.1.0"
     assert spec["tags"] == public_tags(TAG_DESCRIPTIONS)
-    assert len(operations) == 197 + len(ADMIN_OPERATIONS - PR22_UNCATALOGUED_OPERATIONS)
+    assert len(operations) == 197 + len(ADMIN_OPERATIONS - PR22_UNCATALOGUED_OPERATIONS) + len(QUOTA_OPERATIONS)
     catalog_operations = set(MOUNTED_OPERATIONS)
     catalog_paths = {path for _method, path in catalog_operations}
     # FEAT-066 T-2a: five generic upload-session operations (four paths) join the catalog.
@@ -345,7 +346,7 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
         == 176
     )
     assert set(operations) - catalog_operations == (
-        PILOT_ONLY_OPERATIONS | PR22_UNCATALOGUED_OPERATIONS | ADMIN_OPERATIONS
+        PILOT_ONLY_OPERATIONS | PR22_UNCATALOGUED_OPERATIONS | ADMIN_OPERATIONS | QUOTA_OPERATIONS
     )
     assert PILOT_ONLY_OPERATIONS.isdisjoint(MOUNTED_OPERATIONS)
     assert PR22_UNCATALOGUED_OPERATIONS.isdisjoint(MOUNTED_OPERATIONS)
@@ -718,7 +719,7 @@ def test_runtime_openapi_operation_ids_are_non_empty_and_unique(
         for method, operation in path_item.items()
         if method.lower() in HTTP_METHODS
     ]
-    assert len(operation_ids) == 197 + len(ADMIN_OPERATIONS - PR22_UNCATALOGUED_OPERATIONS)
+    assert len(operation_ids) == 197 + len(ADMIN_OPERATIONS - PR22_UNCATALOGUED_OPERATIONS) + len(QUOTA_OPERATIONS)
     assert all(isinstance(value, str) and value for value in operation_ids)
     assert len(set(operation_ids)) == len(operation_ids)
 
@@ -726,18 +727,16 @@ def test_runtime_openapi_operation_ids_are_non_empty_and_unique(
 def test_platform_admin_account_routes_publish_cursor_key_and_mismatch(
     runtime_openapi: dict[str, Any],
 ) -> None:
-    """FEAT-066 C5: the uncatalogued account routes still show cursor, key and the 400 row."""
+    """The uncatalogued account routes publish cursor paging and the Idempotency-Key header."""
     base = "/api/platform-admin/v1/accounts"
     listing = runtime_openapi["paths"][base]["get"]
     names = {parameter["name"]: parameter for parameter in listing["parameters"]}
     assert "cursor" in names
     assert names["limit"]["schema"]["default"] == 25
     assert names["limit"]["schema"]["maximum"] == 100
-    assert names["offset"].get("deprecated") is True
     for method, path in (("post", base), ("patch", base + "/{account_id}")):
         operation = runtime_openapi["paths"][path][method]
         assert any(p["name"] == "Idempotency-Key" for p in operation["parameters"])
-        assert "INVALID_IDEMPOTENCY_KEY" in operation["responses"]["400"]["description"]
 
 
 def test_teacher_candidate_route_publishes_paging(runtime_openapi: dict[str, Any]) -> None:

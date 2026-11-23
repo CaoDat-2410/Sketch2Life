@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { MgIcon } from "../components/MgIcon";
+import { Alert, Button, FormField } from "../../../shared/ui";
 import {
   BackendApiError,
   backendApi,
@@ -61,6 +62,7 @@ function ManagerApiReviewPage({ showToast }: { showToast: Toast }) {
   const [lessonLoading, setLessonLoading] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [decisionError, setDecisionError] = useState<string | null>(null);
   const [lessonError, setLessonError] = useState<string | null>(null);
   const [pageError, setPageError] = useState<string | null>(null);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
@@ -117,6 +119,7 @@ function ManagerApiReviewPage({ showToast }: { showToast: Toast }) {
     let active = true;
     setLesson(null);
     setLessonError(null);
+    setDecisionError(null);
     setReviewConfirmed(false);
     setReason("");
     if (!selected || loadState !== "ready") {
@@ -171,14 +174,14 @@ function ManagerApiReviewPage({ showToast }: { showToast: Toast }) {
       decisionKeys.current.set(signature, idempotencyKey);
     }
     setBusy(true);
-    setError(null);
+    setDecisionError(null);
     try {
       await backendApi.decideAccessGrant(organizationId, selected, decision, normalizedReason || undefined, idempotencyKey);
       decisionKeys.current.delete(signature);
       showToast(decision === "APPROVE" ? "API đã nhận quyết định duyệt grant PUBLIC." : "API đã nhận yêu cầu chỉnh sửa cho grant PUBLIC.", "ok");
       setReload((value) => value + 1);
     } catch (cause) {
-      setError(backendMessage(cause));
+      setDecisionError(backendMessage(cause));
       showToast("API chưa xác nhận quyết định. Kiểm tra trạng thái trước khi gửi lại.", "err");
     } finally {
       setBusy(false);
@@ -231,7 +234,7 @@ function ManagerApiReviewPage({ showToast }: { showToast: Toast }) {
             {nextCursor && <button type="button" className="manager-button is-outline is-full" disabled={loadingMore || busy} onClick={() => void loadMore()}>{loadingMore ? "Đang tải…" : "Tải thêm yêu cầu"}</button>}
           </section>
 
-          {selected && <section className="manager-section-card manager-review-detail" aria-labelledby="manager-review-detail-title">
+          {selected && <section className="manager-section-card cozy-form-card manager-review-detail" aria-labelledby="manager-review-detail-title">
             <div className="manager-section-heading manager-review-detail-heading">
               <div><p className="manager-eyebrow"><span aria-hidden="true" />CHI TIẾT GRANT</p><h2 id="manager-review-detail-title">{content?.title ?? `Giáo án ${selected.lesson_id}`}</h2></div>
               <span className="manager-status-tag is-pending">PUBLIC · {selected.state}</span>
@@ -253,19 +256,36 @@ function ManagerApiReviewPage({ showToast }: { showToast: Toast }) {
               {content.activities.map((activity, index) => <article className="manager-activity-block" key={`${index}-${activity.title}`}><h3>Hoạt động {index + 1}: {activity.title}</h3><p><strong>Mục tiêu:</strong> {activity.objective}</p><p className="manager-preserve-lines"><strong>Hướng dẫn:</strong> {activity.instructions_text}</p>{activity.materials_text && <p><strong>Chuẩn bị:</strong> {activity.materials_text}</p>}{activity.safety_notes && <p className="manager-preserve-lines"><strong>An toàn:</strong> {activity.safety_notes}</p>}</article>)}
             </div>}
 
-            <div className="manager-review-decision">
-              <label className={`manager-confirm-row${!canReview ? " is-disabled" : ""}`}>
-                <input type="checkbox" checked={reviewConfirmed} disabled={!canReview || busy} onChange={(event) => setReviewConfirmed(event.target.checked)} />
-                <span>Tôi đã rà đúng nội dung của phiên bản trong grant.</span>
-              </label>
-              <label className="manager-reason-label" htmlFor="manager-change-reason">Lý do yêu cầu chỉnh sửa <span>(bắt buộc khi trả về)</span></label>
-              <textarea id="manager-change-reason" maxLength={1000} disabled={!canReview || busy} value={reason} onChange={(event) => setReason(event.target.value)} placeholder="Nêu rõ phần cần chỉnh sửa" />
-              <div className="manager-decision-actions">
-                <button type="button" className="manager-button is-outline" disabled={busy || !canReview || !reason.trim()} onClick={() => void decide("REQUEST_CHANGES")}><MgIcon name="pencil" size={17} variant="navigation" /> Yêu cầu chỉnh sửa</button>
-                <button type="button" className="manager-button is-primary" disabled={busy || !canReview || !reviewConfirmed} onClick={() => void decide("APPROVE")}><MgIcon name="check" size={17} variant="navigation" /> Duyệt công khai</button>
+            <form className="manager-review-decision cozy-form-stack" onSubmit={(event) => event.preventDefault()}>
+              <div className="cozy-form-field">
+                <label className={`manager-confirm-row${!canReview ? " is-disabled" : ""}`}>
+                  <input type="checkbox" checked={reviewConfirmed} disabled={!canReview || busy} onChange={(event) => setReviewConfirmed(event.target.checked)} />
+                  <span>Tôi đã rà đúng nội dung của phiên bản trong grant.</span>
+                </label>
+                {canReview && !reviewConfirmed && (
+                  <p className="cozy-form-hint" style={{ marginTop: 0 }}>
+                    Đánh dấu xác nhận để bật nút Duyệt công khai.
+                  </p>
+                )}
+              </div>
+              <FormField
+                label={<>Lý do yêu cầu chỉnh sửa <span>(bắt buộc khi trả về)</span></>}
+                htmlFor="manager-change-reason"
+                help={canReview && !reason.trim() ? "Nhập lý do để bật nút Yêu cầu chỉnh sửa." : undefined}
+              >
+                <textarea id="manager-change-reason" className="cozy-textarea" rows={2} maxLength={1000} disabled={!canReview || busy} value={reason} onChange={(event) => setReason(event.target.value)} placeholder="Nêu rõ phần cần chỉnh sửa" />
+              </FormField>
+              {decisionError && <Alert role="alert" tone="danger">{decisionError}</Alert>}
+              <div className="cozy-form-actions manager-decision-actions" style={{ marginTop: 0 }}>
+                <Button type="button" variant="secondary" loading={busy} disabled={busy || !canReview || !reason.trim()} iconLeft={<MgIcon name="pencil" size={17} variant="navigation" />} onClick={() => void decide("REQUEST_CHANGES")}>
+                  Yêu cầu chỉnh sửa
+                </Button>
+                <Button type="button" variant="primary" loading={busy} disabled={busy || !canReview || !reviewConfirmed} iconLeft={<MgIcon name="check" size={17} variant="navigation" />} onClick={() => void decide("APPROVE")}>
+                  Duyệt công khai
+                </Button>
               </div>
               <p className="manager-counter-boundary">Danh sách API hiện chỉ cung cấp grant đang chờ. Bộ đếm lịch sử “Đã duyệt” và “Yêu cầu chỉnh sửa” không được suy ra từ hàng đợi này.</p>
-            </div>
+            </form>
           </section>}
         </div>
       )}

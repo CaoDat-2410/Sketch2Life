@@ -3,6 +3,7 @@ import "../styles/tokens.css";
 import "../styles/mg-manage.css";
 import "../styles/manager-rebuild.css";
 import "../styles/manager-business.css";
+import "../../../shared/styles/tailwind-utilities.css";
 import { useEffect, useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { WebAppShell, SCHOOL_MANAGER_NAVIGATION } from "../../../shared/navigation/WebAppShell";
@@ -13,10 +14,16 @@ import { SchoolOverviewPage } from "./pages/SchoolOverviewPage";
 import { ClassesPage } from "./pages/ClassesPage";
 import { RosterConsentPage } from "./pages/RosterConsentPage";
 import { ParentGroupsPage } from "./pages/ParentGroupsPage";
+import { TeacherAssignmentsPage } from "./pages/TeacherAssignmentsPage";
+import { FeedbackPage } from "./pages/FeedbackPage";
+import { SchoolBillingPage, SchoolQuotaPage } from "./pages/QuotaBillingPages";
 import { authService } from "./services/authService";
 import { classService } from "./services/classService";
+import { InboxPage } from "../../../shared/notifications/InboxPage";
+import { AccountSettingsPage } from "../../../shared/settings/AccountSettingsPage";
 
 function AdminAccessGate({ children }: { children: ReactNode }) {
+  const location = useLocation();
   const [state, setState] = useState<"loading" | "signed-out" | "authorized" | "forbidden" | "error">("loading");
   const [message, setMessage] = useState("");
 
@@ -35,7 +42,7 @@ function AdminAccessGate({ children }: { children: ReactNode }) {
   }), []);
 
   if (state === "loading") return <main className="s2l-main"><div className="s2l-data-card" role="status">Đang xác minh quyền school_admin qua BE1…</div></main>;
-  if (state === "signed-out") return <Navigate to="/login?role=manager" replace />;
+  if (state === "signed-out") return <Navigate to="/login?role=manager" replace state={{ from: location }} />;
   if (state === "forbidden" || state === "error") return <AccessError message={message || "Tài khoản này chưa có phân công school_admin cấp trường trong BE1."} />;
   return <>{children}</>;
 }
@@ -59,6 +66,7 @@ function SchoolManagerFrame({ children }: { children: ReactNode }) {
   const { toast } = usePortalSession();
   return (
     <WebAppShell
+      portal="manager"
       roleLabel="School Manager"
       roleSubtitle="Quản lý trường trong organization được xác minh"
       navigation={SCHOOL_MANAGER_NAVIGATION}
@@ -73,21 +81,6 @@ function SchoolManagerFrame({ children }: { children: ReactNode }) {
 }
 
 const UNAVAILABLE: Record<string, { title: string; requirement: string; dependencies: string[] }> = {
-  "teacher-assignments": {
-    title: "Phân công giáo viên",
-    requirement: "SRS yêu cầu một giáo viên phụ trách mỗi lớp trong đúng organization.",
-    dependencies: ["API tra cứu ứng viên giáo viên theo organization.", "API phân công có revision, kiểm tra xung đột và audit."],
-  },
-  "teacher-groups": {
-    title: "Nhóm giáo viên",
-    requirement: "School Manager quản lý nhóm giáo viên trong phạm vi trường.",
-    dependencies: ["API nhóm giáo viên có tenant scope.", "API đọc và quản lý thành viên nhóm có revision và audit."],
-  },
-  feedback: {
-    title: "Phản hồi trong trường",
-    requirement: "Teacher/Manager trả lời feedback trong phạm vi organization liên quan; đây không phải chat tổng quát.",
-    dependencies: ["API danh sách và chi tiết feedback theo trường.", "API trả lời thread có kiểm tra scope, thứ tự và audit."],
-  },
   capacity: {
     title: "Sức chứa",
     requirement: "SRS yêu cầu xem giới hạn lớp và capacity hiện hành của trường.",
@@ -102,11 +95,6 @@ const UNAVAILABLE: Record<string, { title: string; requirement: string; dependen
     title: "Hạn mức",
     requirement: "SRS yêu cầu quota theo organization và hiển thị usage/reconciliation có nguồn.",
     dependencies: ["API quota summary và grant history.", "Policy revision và audit trail.", "Trạng thái reconciliation từ backend."],
-  },
-  inbox: {
-    title: "Hộp thư",
-    requirement: "Thông báo cần scope theo organization và đồng bộ trạng thái đã đọc.",
-    dependencies: ["API inbox phân trang.", "API read state và unread state.", "Không làm lộ notification ngoài phạm vi."],
   },
 };
 
@@ -134,8 +122,15 @@ export function SchoolManagerBe1App() {
   if (location.pathname === "/school" || location.pathname === "/school/") page = <SchoolOverviewPage />;
   else if (location.pathname === "/school/classes") page = <ClassesPage />;
   else if (location.pathname === "/school/teachers") page = <RosterConsentPage />;
+  else if (location.pathname === "/school/teacher-assignments") page = <TeacherAssignmentsPage />;
+  else if (location.pathname === "/school/feedback") page = <FeedbackPage />;
+  else if (location.pathname === "/school/teacher-groups") return <Navigate to="/school" replace />;
   else if (location.pathname === "/school/parent-groups") page = <ParentGroupsPage />;
+  else if (location.pathname === "/school/quota") page = <SchoolQuotaPage />;
+  else if (location.pathname === "/school/billing") page = <SchoolBillingPage />;
   else if (location.pathname === "/school/review-content") page = <SchoolReviewPage />;
+  else if (location.pathname === "/school/inbox") page = <InboxPage />;
+  else if (location.pathname === "/school/settings") page = <AccountSettingsPage role="School Manager" />;
   else if (/^\/school\/[^/]+$/.test(location.pathname)) page = <SchoolUnavailablePage />;
   else return <Navigate to="/school" replace />;
 

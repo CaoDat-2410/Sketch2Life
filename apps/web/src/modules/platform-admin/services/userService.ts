@@ -1,7 +1,7 @@
 import { backendApi, createIdempotencyKey } from '../../../shared/api/backendApi'
 
 export type AccountRole = 'parent' | 'teacher' | 'school_manager' | 'platform_admin'
-export type AccountState = 'active' | 'disabled'
+export type AccountState = 'active' | 'disabled' | 'pending_verification'
 
 export interface ManagedAccount {
   account_id: string
@@ -30,7 +30,8 @@ export const userService = {
     accountId: string,
     payload: { role?: AccountRole; state?: AccountState; organization_id?: string },
     idempotencyKey: string,
-  ) => backendApi.updatePlatformAccount(accountId, payload, idempotencyKey),
+    revision: number,
+  ) => backendApi.updatePlatformAccount(accountId, payload, idempotencyKey, revision),
 }
 
 // FEAT-066 C5 (SRS 21.1, 21.4): one key per exact command, reused only for a retry of that command.

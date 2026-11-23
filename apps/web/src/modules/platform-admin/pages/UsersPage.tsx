@@ -1,11 +1,16 @@
+import { AdminSelect } from '../components/AdminSelect'
+import { Mail } from 'lucide-react'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import '../../../shared/styles/tailwind-utilities.css'
 import { BackendApiError, hasFirebaseAuthBridge } from '../../../shared/api/backendApi'
 import { usePortalSession } from '../../../shared/auth/PortalSessionContext'
 import { MgIcon } from '../components/MgIcon'
-import '../styles/accounts-page.css'
-import { authService } from '../../school-manager/be1/services/authService'
+import { Heading } from '../components/AdminUI'
+import { useAdminQuery } from '../components/adminHooks'
+import { AdminSearchInput } from '../components/AdminSearchInput'
+import { AccessibleDialog } from '../../../shared/components/ui'
+
+import { readAllPages, commandClient, type Organization } from '../services/adminService'
 import { keyForSignature, userService, type AccountRole, type AccountState, type ManagedAccount } from '../services/userService'
 
 const ROLE_LABELS: Record<AccountRole, string> = { parent: 'Phụ huynh', teacher: 'Giáo viên', school_manager: 'Quản lý trường', platform_admin: 'Quản trị nền tảng' }
@@ -28,6 +33,13 @@ function toLoadFailure(cause: unknown): LoadFailure {
 
 const messageFrom = (cause: unknown, fallback: string) => cause instanceof Error ? cause.message : fallback
 
+function accountDisplayName(account: ManagedAccount): string | null {
+  const name = account.display_name?.trim()
+  if (!name || !account.role || !name.startsWith('[TEST] ')) return name || null
+  const roleSuffix = ` · ${ROLE_LABELS[account.role]}`
+  return name.endsWith(roleSuffix) ? name.slice(0, -roleSuffix.length) : name
+}
+
 export function UsersPage() {
   const navigate = useNavigate()
   const { logout } = usePortalSession()
@@ -41,6 +53,7 @@ export function UsersPage() {
   const [pageStarts, setPageStarts] = useState<(string | null)[]>([null])
   const [nextCursor, setNextCursor] = useState<string | null>(null)
   const mutationKeys = useRef(new Map<string, string>())
+  const loadSequence = useRef(0)
   const [roleEdits, setRoleEdits] = useState<Record<string, AccountRole | ''>>({})
   const [organizationEdits, setOrganizationEdits] = useState<Record<string, string>>({})
   const [loadState, setLoadState] = useState<LoadState>('loading')
@@ -53,8 +66,16 @@ export function UsersPage() {
   const [mutating, setMutating] = useState(false)
   const [actionError, setActionError] = useState('')
   const [notice, setNotice] = useState('')
+  const [stateTarget, setStateTarget] = useState<ManagedAccount | null>(null)
+  const [emailTarget, setEmailTarget] = useState<ManagedAccount | null>(null)
+  const [sendCommand] = useState(commandClient)
+  const emailSending = useRef(false)
+  const needsSchools = (creating && newRole === 'school_manager') || accounts.some(a => roleEdits[a.account_id] === 'school_manager' && a.role !== 'school_manager')
+  const schools = useAdminQuery(() => needsSchools ? readAllPages<Organization>('/organizations') : Promise.resolve({items: [] as Organization[], total: 0}), String(needsSchools))
+
 
   const loadAccounts = async (starts: (string | null)[] = pageStarts, filters: Filters = { search, role: roleFilter, state: stateFilter }) => {
+    const sequence = ++loadSequence.current
     setLoadState('loading')
     setLoadFailure(null)
     setPageStarts(starts)
@@ -68,6 +89,7 @@ export function UsersPage() {
     try {
       const start = starts[starts.length - 1] ?? undefined
       const page = await userService.listUsers({ search: filters.search.trim() || undefined, role: filters.role || undefined, state: filters.state || undefined, limit: PAGE_SIZE, cursor: start })
+      if (sequence !== loadSequence.current) return
       setAccounts(page.items)
       setTotal(page.total)
       setNextCursor(page.next_cursor ?? null)
@@ -75,6 +97,7 @@ export function UsersPage() {
       setOrganizationEdits({})
       setLoadState('ready')
     } catch (cause) {
+      if (sequence !== loadSequence.current) return
       setAccounts([]); setTotal(0)
       setLoadFailure(toLoadFailure(cause))
       setLoadState('error')
@@ -99,7 +122,7 @@ export function UsersPage() {
 
   const createAccount = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (loadState !== 'ready' || !hasFirebaseAuthBridge()) return
+    if (mutating || loadState !== 'ready' || !hasFirebaseAuthBridge()) return
     const submittedEmail = email.trim()
     setMutating(true); setActionError(''); setNotice('')
     const payload = { email: submittedEmail, display_name: displayName.trim(), role: newRole, ...(newRole === 'school_manager' ? { organization_id: organizationId.trim() } : {}) }
@@ -108,9 +131,7 @@ export function UsersPage() {
       await userService.createAccount(payload, keyForSignature(mutationKeys.current, signature))
       mutationKeys.current.delete(signature)
       setEmail(''); setDisplayName(''); setOrganizationId(''); setCreating(false)
-      let sent = true
-      try { await authService.resetPassword(submittedEmail) } catch { sent = false }
-      setNotice(sent ? 'Đã tạo tài khoản và yêu cầu Firebase gửi email đặt mật khẩu.' : 'Đã tạo tài khoản nhưng chưa gửi được email đặt mật khẩu. Người dùng có thể chọn “Quên mật khẩu” ở màn đăng nhập.')
+      setNotice('Đã tạo tài khoản. Email thiết lập mật khẩu đã được đưa vào hàng đợi gửi.')
       setSearch(''); setRoleFilter(''); setStateFilter(''); setHasAppliedFilters(false)
       await loadAccounts([null], { search: '', role: '', state: '' })
     } catch (cause) { setActionError(messageFrom(cause, 'Không tạo được tài khoản.')) }
@@ -119,14 +140,14 @@ export function UsersPage() {
 
   const saveRole = async (account: ManagedAccount) => {
     const role = roleEdits[account.account_id]
-    if (!role || role === account.role || loadState !== 'ready' || !hasFirebaseAuthBridge()) return
+    if (mutating || !role || role === account.role || loadState !== 'ready' || !hasFirebaseAuthBridge()) return
     const org = role === 'school_manager' ? organizationEdits[account.account_id]?.trim() : undefined
     if (role === 'school_manager' && !org) { setActionError('Nhập mã tổ chức trước khi gán vai trò Quản lý trường.'); return }
     setMutating(true); setActionError(''); setNotice('')
     const payload = { role, ...(org ? { organization_id: org } : {}) }
     const signature = JSON.stringify(['update-account', account.account_id, account.revision, payload])
     try {
-      await userService.updateAccount(account.account_id, payload, keyForSignature(mutationKeys.current, signature))
+      await userService.updateAccount(account.account_id, payload, keyForSignature(mutationKeys.current, signature), account.revision)
       mutationKeys.current.delete(signature)
       setNotice('Đã cập nhật vai trò. Quyền truy cập lớp vẫn cần phân công riêng bởi School Manager.')
       await loadAccounts()
@@ -135,20 +156,32 @@ export function UsersPage() {
   }
 
   const toggleState = async (account: ManagedAccount) => {
-    if (loadState !== 'ready' || !hasFirebaseAuthBridge()) return
+    if (mutating || loadState !== 'ready' || !hasFirebaseAuthBridge()) return
     setMutating(true); setActionError(''); setNotice('')
-    const payload = { state: account.state === 'active' ? 'disabled' as const : 'active' as const }
+    const payload = { state: account.state === 'disabled' ? 'active' as const : 'disabled' as const }
     const signature = JSON.stringify(['update-account', account.account_id, account.revision, payload])
     try {
-      await userService.updateAccount(account.account_id, payload, keyForSignature(mutationKeys.current, signature))
+      await userService.updateAccount(account.account_id, payload, keyForSignature(mutationKeys.current, signature), account.revision)
       mutationKeys.current.delete(signature)
-      setNotice(account.state === 'active' ? 'Đã khóa tài khoản và thu hồi refresh token.' : 'Đã mở lại tài khoản.')
+      setStateTarget(null)
+      setNotice(account.state === 'disabled' ? 'Đã mở lại tài khoản. Tài khoản mới vẫn cần xác minh email.' : 'Đã khóa tài khoản và thu hồi phiên đăng nhập.')
       await loadAccounts()
     } catch (cause) { setActionError(messageFrom(cause, 'Không đổi được trạng thái tài khoản.')) }
     finally { setMutating(false) }
   }
 
   const loginAgain = () => { logout(); navigate('/login?role=admin', { replace: true }) }
+  const resendSetupEmail = async () => {
+    if (!emailTarget || emailSending.current || mutating) return
+    emailSending.current = true
+    setMutating(true); setActionError(''); setNotice('')
+    try {
+      await sendCommand('/accounts/' + encodeURIComponent(emailTarget.account_id) + '/setup-email')
+      setEmailTarget(null)
+      setNotice('Đã đưa email thiết lập mật khẩu vào hàng đợi. Theo dõi kết quả trong Cài đặt & email.')
+    } catch (cause) { setActionError(messageFrom(cause, 'Không gửi được yêu cầu email.')) }
+    finally { emailSending.current = false; setMutating(false) }
+  }
   const filtersDisabled = loadState !== 'ready' || mutating
   const canManage = loadState === 'ready' && !mutating
   const pages = total ? Math.ceil(total / PAGE_SIZE) : 0
@@ -158,19 +191,10 @@ export function UsersPage() {
   const rangeEnd = Math.min(pageStartIndex + accounts.length, total)
 
   return (
-    <section className='platform-accounts' aria-labelledby='accounts-title'>
-      <header className='accounts-heading'>
-        <div className='accounts-heading-copy'>
-          <p className='accounts-kicker'><MgIcon name='users' size={18} /> Quản trị nền tảng</p>
-          <h1 id='accounts-title'>Tài khoản và vai trò</h1>
-          <p className='accounts-description'>Quản lý danh tính và trạng thái truy cập trên Sketch2Life.</p>
-          <p className='accounts-scope-note'><span className='accounts-scope-icon' aria-hidden='true'><MgIcon name='shield' size={17} /></span>Vai trò được backend kiểm tra theo từng phạm vi. Teacher cần được phân công lớp; Platform Admin không mặc định xem hồ sơ hay media trẻ.</p>
-        </div>
-        <div className='accounts-heading-side'>
-          <div className='accounts-count-card' aria-live='polite'><span>Kết quả</span><strong>{loadState === 'ready' ? total.toLocaleString('vi-VN') : '—'}</strong><small>{loadState === 'ready' ? 'theo bộ lọc hiện tại' : loadState === 'loading' ? 'đang tải dữ liệu' : 'chưa tải được dữ liệu'}</small></div>
-          <button type='button' className='accounts-button accounts-button-primary' disabled={!canManage} onClick={() => { setCreating((value) => !value); setActionError('') }}><MgIcon name={creating ? 'close' : 'plus'} size={18} />{creating ? 'Đóng biểu mẫu' : 'Tạo tài khoản'}</button>
-        </div>
-      </header>
+    <section className='platform-accounts' aria-label='Tài khoản và vai trò'>
+      <Heading title='Tài khoản và vai trò'>
+        <button type='button' className='accounts-button accounts-button-primary' disabled={!canManage} onClick={() => { setCreating((value) => !value); setActionError('') }}><MgIcon name={creating ? 'close' : 'plus'} size={18} />{creating ? 'Đóng biểu mẫu' : 'Tạo tài khoản'}</button>
+      </Heading>
 
       {notice && <div className='accounts-feedback is-success' role='status'><span aria-hidden='true'><MgIcon name='check' size={18} /></span><p>{notice}</p></div>}
       {actionError && <div className='accounts-feedback is-error' role='alert'><span aria-hidden='true'><MgIcon name='alert' size={18} /></span><p>{actionError}</p></div>}
@@ -181,52 +205,72 @@ export function UsersPage() {
         <div className='accounts-error-actions'><button type='button' className='accounts-button accounts-button-secondary' onClick={() => void loadAccounts()} disabled={loadState === 'loading'}><MgIcon name='refresh' size={17} />Thử tải lại</button>{loadFailure.auth && <button type='button' className='accounts-button accounts-button-primary' onClick={loginAgain}>Đăng nhập lại</button>}</div>
       </section>}
 
-      {creating && canManage && <form className='accounts-panel accounts-create-form' onSubmit={(event) => void createAccount(event)} aria-busy={mutating}>
+      {creating && loadState === 'ready' && <form className='accounts-panel accounts-create-form' onSubmit={(event) => void createAccount(event)} aria-busy={mutating}>
         <div className='accounts-panel-heading'><div><p className='accounts-eyebrow'>Danh tính mới</p><h2>Tạo tài khoản</h2></div><span className='accounts-panel-mark' aria-hidden='true'><MgIcon name='userplus' size={21} /></span></div>
         <div className='accounts-form-grid'>
           <label className='accounts-field'><span>Email tài khoản</span><input required type='email' autoComplete='email' value={email} onChange={(event) => setEmail(event.target.value)} disabled={mutating} /></label>
           <label className='accounts-field'><span>Tên hiển thị</span><input required maxLength={200} autoComplete='name' value={displayName} onChange={(event) => setDisplayName(event.target.value)} disabled={mutating} /></label>
-          <label className='accounts-field'><span>Vai trò sản phẩm</span><select value={newRole} onChange={(event) => setNewRole(event.target.value as AccountRole)} disabled={mutating}>{ROLE_OPTIONS.map((role) => <option key={role} value={role}>{ROLE_LABELS[role]}</option>)}</select></label>
-          {newRole === 'school_manager' && <label className='accounts-field'><span>Mã tổ chức</span><input required value={organizationId} onChange={(event) => setOrganizationId(event.target.value)} disabled={mutating} /></label>}
+          <label className='accounts-field'><span>Vai trò sản phẩm</span><AdminSelect aria-label='Vai trò sản phẩm' value={newRole} onChange={(event) => setNewRole(event.target.value as AccountRole)} disabled={mutating}>{ROLE_OPTIONS.map((role) => <option key={role} value={role}>{ROLE_LABELS[role]}</option>)}</AdminSelect></label>
+          {newRole === 'school_manager' && <label className='accounts-field'><span>Trường học</span><AdminSelect required aria-label='Trường học cho tài khoản mới' value={organizationId} onChange={(event) => setOrganizationId(event.target.value)} disabled={mutating || schools.loading}><option value=''>Chọn trường học</option>{schools.data?.items.map(o => <option key={o.organization_id} value={o.organization_id}>{o.display_name}</option>)}</AdminSelect></label>}
         </div>
-        <p className='accounts-form-hint'>Tài khoản không có mật khẩu mặc định. Firebase sẽ gửi email đặt mật khẩu; tài khoản Teacher vẫn cần School Manager phân công vào lớp.</p>
+        <p className='accounts-form-hint'>Email hướng dẫn đặt mật khẩu; giáo viên cần được phân công lớp.</p>
         <div className='accounts-form-actions'><button type='button' className='accounts-button accounts-button-secondary' onClick={() => setCreating(false)} disabled={mutating}>Hủy</button><button type='submit' className='accounts-button accounts-button-primary' disabled={mutating}><MgIcon name={mutating ? 'refresh' : 'plus'} size={18} />{mutating ? 'Đang tạo tài khoản…' : 'Tạo tài khoản'}</button></div>
       </form>}
 
       <form className='accounts-filters accounts-panel' onSubmit={submitFilters} aria-label='Lọc danh sách tài khoản'>
-        <label className='accounts-search-field'><span className='accounts-visually-hidden'>Tìm tài khoản theo email hoặc tên hiển thị</span><MgIcon name='search' size={19} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder='Email hoặc tên hiển thị' disabled={filtersDisabled} /></label>
-        <label className='accounts-select-field'><span className='accounts-visually-hidden'>Lọc theo vai trò</span><select value={roleFilter} onChange={(event) => setRoleFilter(event.target.value as AccountRole | '')} disabled={filtersDisabled}><option value=''>Tất cả vai trò</option>{ROLE_OPTIONS.map((role) => <option key={role} value={role}>{ROLE_LABELS[role]}</option>)}</select></label>
-        <label className='accounts-select-field'><span className='accounts-visually-hidden'>Lọc theo trạng thái tài khoản</span><select value={stateFilter} onChange={(event) => setStateFilter(event.target.value as AccountState | '')} disabled={filtersDisabled}><option value=''>Tất cả trạng thái</option><option value='active'>Đang hoạt động</option><option value='disabled'>Đã khóa</option></select></label>
+        <AdminSearchInput className='accounts-search-slot' label='Tìm tài khoản theo email hoặc tên hiển thị' value={search} onValueChange={setSearch} placeholder='Email hoặc tên hiển thị' disabled={filtersDisabled} />
+        <label className='accounts-select-field'><span className='accounts-visually-hidden'>Lọc theo vai trò</span><AdminSelect aria-label='Lọc theo vai trò' value={roleFilter} onChange={(event) => setRoleFilter(event.target.value as AccountRole | '')} disabled={filtersDisabled}><option value=''>Tất cả vai trò</option>{ROLE_OPTIONS.map((role) => <option key={role} value={role}>{ROLE_LABELS[role]}</option>)}</AdminSelect></label>
+        <label className='accounts-select-field'><span className='accounts-visually-hidden'>Lọc theo trạng thái tài khoản</span><AdminSelect aria-label='Lọc theo trạng thái tài khoản' value={stateFilter} onChange={(event) => setStateFilter(event.target.value as AccountState | '')} disabled={filtersDisabled}><option value=''>Tất cả trạng thái</option><option value='active'>Đang hoạt động</option><option value='disabled'>Đã khóa</option><option value='pending_verification'>Chờ xác minh email</option></AdminSelect></label>
         <button type='submit' className='accounts-button accounts-button-secondary' disabled={filtersDisabled}>Tìm tài khoản</button>
       </form>
 
-      <section className='accounts-panel accounts-list-panel' aria-labelledby='accounts-list-title' aria-busy={loadState === 'loading'}>
-        <div className='accounts-list-heading'><div><p className='accounts-eyebrow'>Danh sách</p><h2 id='accounts-list-title'>Tài khoản người dùng</h2></div>{loadState === 'ready' && <span className='accounts-result-pill'>{total.toLocaleString('vi-VN')} kết quả</span>}</div>
+      {loadState !== 'error' && <section className='accounts-panel accounts-list-panel' aria-labelledby='accounts-list-title' aria-busy={loadState === 'loading'}>
+        <div className='accounts-list-heading'><div className='accounts-directory-title'><span className='accounts-directory-icon' aria-hidden='true'><MgIcon name='users' size={22} /></span><h2 id='accounts-list-title'>Tài khoản người dùng</h2></div>{loadState === 'ready' && <span className='accounts-result-pill' aria-live='polite'>{total.toLocaleString('vi-VN')} tài khoản</span>}</div>
         {loadState === 'loading' && <div className='accounts-list-state' role='status' aria-live='polite'><span className='accounts-spinner' aria-hidden='true' /><p>Đang tải danh sách tài khoản…</p></div>}
-        {loadState === 'error' && <div className='accounts-list-state is-error-state'><p>Danh sách đang được ẩn đến khi backend xác nhận dữ liệu.</p></div>}
-        {loadState === 'ready' && accounts.length === 0 && <div className='accounts-list-state is-empty-state'><span className='accounts-empty-icon' aria-hidden='true'><MgIcon name={hasAppliedFilters ? 'search' : 'users'} size={25} /></span><h3>{hasAppliedFilters ? 'Không tìm thấy tài khoản phù hợp' : 'Chưa có tài khoản'}</h3><p>{hasAppliedFilters ? 'Thử đổi từ khóa hoặc bộ lọc để tìm tài khoản.' : 'Tài khoản sẽ xuất hiện ở đây sau khi được tạo trong hệ thống.'}</p>{hasAppliedFilters ? <button type='button' className='accounts-button accounts-button-secondary' onClick={clearFilters}>Xóa bộ lọc</button> : <button type='button' className='accounts-button accounts-button-secondary' onClick={() => setCreating(true)} disabled={!canManage}><MgIcon name='plus' size={17} />Tạo tài khoản đầu tiên</button>}</div>}
+        {loadState === 'ready' && accounts.length === 0 && <div className='accounts-list-state is-empty-state'><span className='accounts-empty-icon' aria-hidden='true'><MgIcon name={hasAppliedFilters ? 'search' : 'users'} size={25} /></span><h3>{hasAppliedFilters ? 'Không tìm thấy tài khoản phù hợp' : 'Chưa có tài khoản'}</h3><p>{hasAppliedFilters ? 'Thử từ khóa hoặc bộ lọc khác.' : 'Tạo tài khoản đầu tiên để bắt đầu.'}</p>{hasAppliedFilters ? <button type='button' className='accounts-button accounts-button-secondary' onClick={clearFilters}>Xóa bộ lọc</button> : <button type='button' className='accounts-button accounts-button-secondary' onClick={() => setCreating(true)} disabled={!canManage}><MgIcon name='plus' size={17} />Tạo tài khoản đầu tiên</button>}</div>}
 
-        {loadState === 'ready' && accounts.length > 0 && <div className='accounts-table-wrap'><table className='accounts-table'><thead><tr><th scope='col'>Tài khoản</th><th scope='col'>Vai trò</th><th scope='col'>Trạng thái</th><th scope='col'>Revision</th><th scope='col'>Thao tác</th></tr></thead><tbody>
+        {loadState === 'ready' && accounts.length > 0 && <div className='accounts-table-wrap'><table className='accounts-table'><thead><tr><th scope='col'>Tài khoản</th><th scope='col'>Vai trò</th><th scope='col'>Trạng thái</th><th scope='col'>Thao tác</th></tr></thead><tbody>
           {accounts.map((account) => {
             const role = roleEdits[account.account_id] ?? account.role ?? ''
             const changed = Boolean(role && role !== account.role)
             const needsOrganization = role === 'school_manager' && changed
             const orgValue = organizationEdits[account.account_id] ?? ''
             const label = account.email ?? account.account_id
-            return <tr key={account.account_id}>
-              <td data-label='Tài khoản'><div className='accounts-person'><span className='accounts-avatar' aria-hidden='true'>{(account.display_name || account.email || '?').trim().slice(0, 1).toLocaleUpperCase('vi-VN')}</span><span className='accounts-person-copy'><strong>{account.display_name || 'Chưa có tên'}</strong><span>{account.email || 'Chưa có email'}</span></span></div></td>
-              <td data-label='Vai trò'><div className='accounts-role-editor'><label className='accounts-visually-hidden' htmlFor={`account-role-${account.account_id}`}>Vai trò của {label}</label><select id={`account-role-${account.account_id}`} value={role} onChange={(event) => setRoleEdits((current) => ({ ...current, [account.account_id]: event.target.value as AccountRole | '' }))} disabled={!canManage}><option value=''>Chưa gán vai trò</option>{ROLE_OPTIONS.map((item) => <option key={item} value={item}>{ROLE_LABELS[item]}</option>)}</select>{needsOrganization && <label className='accounts-inline-organization'><span>Mã tổ chức</span><input required aria-label={`Mã tổ chức cho ${label}`} value={orgValue} onChange={(event) => setOrganizationEdits((current) => ({ ...current, [account.account_id]: event.target.value }))} disabled={!canManage} /></label>}</div></td>
-              <td data-label='Trạng thái'><span className={`accounts-status ${account.state === 'active' ? 'is-active' : 'is-disabled'}`}><span aria-hidden='true' />{account.state === 'active' ? 'Đang hoạt động' : 'Đã khóa'}</span></td>
-              <td data-label='Revision'><span className='accounts-revision'>{account.revision}</span></td>
-              <td data-label='Thao tác'><div className='accounts-row-actions'><button type='button' className='accounts-button accounts-button-small accounts-button-outline' disabled={!canManage || !changed || (needsOrganization && !orgValue.trim())} onClick={() => void saveRole(account)}>Lưu vai trò</button><button type='button' className={`accounts-button accounts-button-small ${account.state === 'active' ? 'accounts-button-danger' : 'accounts-button-outline'}`} disabled={!canManage} onClick={() => void toggleState(account)}>{account.state === 'active' ? 'Khóa tài khoản' : 'Mở lại'}</button></div></td>
+            const displayName = accountDisplayName(account)
+            return <tr key={account.account_id} data-account-role={account.role ?? 'unassigned'} data-role-edited={changed || undefined}>
+              <td data-label='Tài khoản'><div className='accounts-person'><span className='accounts-avatar' aria-hidden='true'>{(displayName || account.email || '?').replace(/^\[TEST\]\s*/, '').trim().slice(0, 1).toLocaleUpperCase('vi-VN')}</span><span className='accounts-person-copy'><strong>{displayName || 'Chưa có tên'}</strong><span>{account.email || 'Chưa có email'}</span></span></div></td>
+              <td data-label='Vai trò'><div className='accounts-role-editor'><label className='accounts-visually-hidden' htmlFor={`account-role-${account.account_id}`}>Vai trò của {label}</label><AdminSelect id={`account-role-${account.account_id}`} value={role} onChange={(event) => setRoleEdits((current) => ({ ...current, [account.account_id]: event.target.value as AccountRole | '' }))} disabled={!canManage}><option value=''>Chưa gán vai trò</option>{ROLE_OPTIONS.map((item) => <option key={item} value={item}>{ROLE_LABELS[item]}</option>)}</AdminSelect>{needsOrganization && <label className='accounts-inline-organization'><span>Trường học</span><AdminSelect required aria-label={`Trường học cho ${label}`} value={orgValue} onChange={(event) => setOrganizationEdits((current) => ({ ...current, [account.account_id]: event.target.value }))} disabled={!canManage || schools.loading}><option value=''>Chọn trường học</option>{schools.data?.items.map(o => <option key={o.organization_id} value={o.organization_id}>{o.display_name}</option>)}</AdminSelect></label>}</div></td>
+              <td data-label='Trạng thái'><span className={`accounts-status ${account.state === 'active' ? 'is-active' : account.state === 'pending_verification' ? 'is-pending' : 'is-disabled'}`}><span aria-hidden='true' />{account.state === 'active' ? 'Đang hoạt động' : account.state === 'pending_verification' ? 'Chờ xác minh email' : 'Đã khóa'}</span></td>
+<td data-label='Thao tác'><div className='accounts-row-actions'>{account.state !== 'disabled' && account.email && <button type='button' className='accounts-button accounts-button-small accounts-button-secondary' disabled={!canManage} onClick={() => { setActionError(''); setEmailTarget(account) }}>Gửi email thiết lập</button>}{changed && <button type='button' className='accounts-button accounts-button-small accounts-button-primary' disabled={!canManage || !changed || (needsOrganization && !orgValue.trim())} onClick={() => void saveRole(account)}>Lưu vai trò</button>}<button type='button' className={`accounts-button accounts-button-small ${account.state === 'disabled' ? 'accounts-button-outline' : 'accounts-button-danger'}`} disabled={!canManage} onClick={() => { setActionError(''); setStateTarget(account) }}>{account.state === 'disabled' ? 'Mở lại' : 'Khóa tài khoản'}</button></div></td>
             </tr>
           })}
         </tbody></table></div>}
 
         {loadState === 'ready' && accounts.length > 0 && <footer className='accounts-pagination'><p>Đang hiển thị {rangeStart.toLocaleString('vi-VN')}–{rangeEnd.toLocaleString('vi-VN')} trên {total.toLocaleString('vi-VN')} tài khoản.</p><div className='accounts-pagination-controls'><span>Trang {currentPage} / {pages}</span><button type='button' className='accounts-button accounts-button-secondary' disabled={mutating || pageStarts.length <= 1} onClick={() => void loadAccounts(pageStarts.slice(0, -1))}><MgIcon name='arrow-left' size={17} />Trước</button><button type='button' className='accounts-button accounts-button-secondary' disabled={mutating || !nextCursor} onClick={() => { if (nextCursor) void loadAccounts([...pageStarts, nextCursor]) }}>Tiếp<MgIcon name='arrow-right' size={17} /></button></div></footer>}
-      </section>
+      </section>}
 
-      <p className='accounts-audit-note'><MgIcon name='info' size={17} /><span>Role và trạng thái được quản lý bằng API có xác thực. Quyền nội dung là capability riêng; màn này chưa cấp capability và không mở quyền xem hồ sơ hoặc media trẻ.</span></p>
+      {needsSchools && schools.error && <p role='alert' className='pa-alert'>{schools.error} <button type='button' onClick={schools.reload}>Tải lại danh sách trường</button></p>}
+      <AccessibleDialog className="platform-accounts accounts-email-dialog" open={Boolean(stateTarget)} onOpenChange={(open) => { if (!open && !mutating) setStateTarget(null) }} title="Đổi trạng thái tài khoản" description={stateTarget?.email || stateTarget?.account_id || ''} showClose={!mutating}>
+        <h2>{stateTarget?.state === 'disabled' ? 'Mở lại tài khoản?' : 'Khóa tài khoản?'}</h2>
+        <strong>{stateTarget?.email || stateTarget?.account_id}</strong>
+        {stateTarget && stateTarget.state !== 'disabled' && <p>Người dùng sẽ bị đăng xuất.</p>}
+        {actionError && <p role="alert">{actionError}</p>}
+        <div className="accounts-row-actions">
+          <button className="accounts-button" disabled={mutating} onClick={() => setStateTarget(null)}>Hủy</button>
+          <button className="accounts-button accounts-button-primary" disabled={!stateTarget || mutating} onClick={() => stateTarget && void toggleState(stateTarget)}>Xác nhận</button>
+        </div>
+      </AccessibleDialog>
+      <AccessibleDialog className='platform-accounts accounts-email-dialog' open={Boolean(emailTarget)} onOpenChange={(open) => { if (!open && !mutating) setEmailTarget(null) }} title='Gửi email thiết lập mật khẩu' description='Người nhận sẽ nhận liên kết để tự đặt mật khẩu. Không có mật khẩu nào được hiển thị cho quản trị viên.' showClose={!mutating}>
+        <span className='accounts-email-icon' aria-hidden='true'><Mail size={24} /></span>
+        <h2>Gửi email thiết lập mật khẩu</h2>
+        <div className='accounts-email-recipient'><span>Người nhận</span><strong>{emailTarget ? accountDisplayName(emailTarget) || 'Tài khoản người dùng' : 'Tài khoản người dùng'}</strong><span>{emailTarget?.email}</span></div>
+        <p className='accounts-email-hint'>Dùng liên kết trong email mới nhất. Gửi lại email không đổi mật khẩu hiện tại.</p>
+        {actionError && <p role='alert'>{actionError}</p>}
+        <div className='accounts-row-actions'>
+          <button type='button' className='accounts-button accounts-button-secondary' disabled={mutating} onClick={() => setEmailTarget(null)}>Hủy</button>
+          <button type='button' className='accounts-button accounts-button-primary' disabled={mutating} onClick={() => void resendSetupEmail()}>{mutating ? 'Đang gửi yêu cầu…' : 'Xác nhận gửi'}</button>
+        </div>
+      </AccessibleDialog>
     </section>
   )
 }
