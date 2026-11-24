@@ -30,7 +30,10 @@ _NAME_PHRASE = re.compile(
     r"\b(?:con|bé|em|mình|tôi)\s+(?:có\s+)?(?:tên|tên gọi)\s+(?:là|:)\s*[^,.!?;]{1,60}",
     re.IGNORECASE,
 )
-_CASUAL_NAME_PHRASE = re.compile(r"\b(?:bé|con|em)\s+[A-ZÀ-ỸĐ][a-zà-ỹđ]{1,24}\b")
+_CASUAL_NAME_PHRASE = re.compile(
+    r"\b(?i:bé|con|em)\s+[A-ZÀÁẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬĐÈÉẺẼẸÊẾỀỂỄỆÌÍỈĨỊÒÓỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÙÚỦŨỤƯỨỪỬỮỰÝỲỶỸỴ]"
+    r"[a-zà-ỹđ]{1,24}\b"
+)
 _STOP_WORDS = {
     "va", "la", "cua", "cho", "voi", "nhung", "mot", "cac", "nhieu", "tren",
     "duoi", "trong", "ngoai", "con", "be", "em", "minh", "toi", "thich", "muon",
