@@ -316,7 +316,7 @@ def test_drawing_understanding_refuses_a_purged_run_with_409(
 def test_story_revision_replay_of_a_purged_run_returns_the_lifecycle_envelope(
     harness: tuple[TestClient, _Service],
 ) -> None:
-    client, _service = harness
+    client, service = harness
     response = client.post(
         f"/api/parent/v1/ai/story-runs/{_RUN_ID}/story-revisions",
         json={"expected_understanding_revision": 1},
@@ -324,6 +324,8 @@ def test_story_revision_replay_of_a_purged_run_returns_the_lifecycle_envelope(
     )
     _assert_lifecycle(response, 200, "DELETED")
     assert response.headers["Idempotency-Replayed"] == "true"
+    reserve_call = next(call for call in service.calls if call[0] == "reserve_story_revision")
+    assert reserve_call[1]["account_id"] == "account-1"
 
 
 @pytest.mark.parametrize(

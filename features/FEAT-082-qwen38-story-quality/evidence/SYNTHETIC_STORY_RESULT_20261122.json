@@ -1,0 +1,37 @@
+{
+  "schema_version": "sketch2life.feat082.synthetic-story-evidence.v1",
+  "status": "FAILED",
+  "started_at_utc": "2026-11-22T12:58:00.221504+07:00",
+  "input_mode": "synthetic metadata only; no drawing bytes, child account, or profile",
+  "model_id": "Qwen/Qwen3.8-27B-FP8",
+  "model_revision": "c3a462cc3d38cf351f3b26cbd763469eeb74ef81",
+  "worker_input": {
+    "schema_version": "sketch2life.story-generation-input.v2",
+    "role": "PARENT",
+    "language": "vi",
+    "confirmed_subject": "rùa",
+    "understanding_revision": 1,
+    "drawing_sha256": "8a95a25eb6c21e32724b29a3b829aad2dc0843325aafd1d49a890b97604361c6",
+    "visible_features": [
+      "mai xanh có các mảng hình lục giác",
+      "đầu nhỏ hướng sang phải",
+      "bốn chân ngắn",
+      "chiếc lá vàng nằm bên phải"
+    ],
+    "child_age_months": 60,
+    "context_revision": 1,
+    "adult_confirmed_idea": "Rùa muốn đến gần chiếc lá vàng để khám phá.",
+    "rewrite_instruction": null,
+    "lesson_direction": null,
+    "topic": "Động vật",
+    "lesson_subject_learning_notes": "Mai rùa là lớp vỏ cứng giúp bảo vệ cơ thể."
+  },
+  "completed_at_utc": "2026-11-22T12:59:47.543629+07:00",
+  "duration_seconds": 107.322,
+  "error_type": "ModalFunctionExecutionFailed",
+  "error_code": "STORY_WORKER_FAILED_TERMINAL",
+  "modal_call_id": "fc-01M80XAQY7PWQVRNVH2EHV2QBH",
+  "failure_stage": "model_inference / fine-grained FP8 kernel initialization",
+  "worker_log_error": "ValueError: Kernel repository 'kernels-community/finegrained-fp8' could not verify publisher trust status; the Hugging Face publisher-overview lookup failed.",
+  "output_tokens_generated": 0
+}

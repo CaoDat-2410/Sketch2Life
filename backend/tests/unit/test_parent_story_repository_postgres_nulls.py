@@ -64,7 +64,15 @@ class _Session:
 
 
 def _table_name(statement: Any) -> str:
-    return str(getattr(getattr(statement, "table", None), "name", ""))
+    table = getattr(statement, "table", None)
+    if table is not None:
+        return str(getattr(table, "name", ""))
+    get_final_froms = getattr(statement, "get_final_froms", None)
+    if callable(get_final_froms):
+        froms = get_final_froms()
+        if len(froms) == 1:
+            return str(getattr(froms[0], "name", ""))
+    return ""
 
 
 def _bound_parameters(statement: Any) -> tuple[dict[str, Any], str]:
@@ -76,6 +84,80 @@ def _bound_parameters(statement: Any) -> tuple[dict[str, Any], str]:
 def _repository() -> tuple[SqlParentStoryRunRepository, _Session]:
     session = _Session()
     return SqlParentStoryRunRepository(session), session  # type: ignore[arg-type]
+
+
+class _ReplayMappings:
+    def __init__(self, row: dict[str, Any]) -> None:
+        self._row = row
+
+    def mappings(self) -> _ReplayMappings:
+        return self
+
+    def one_or_none(self) -> dict[str, Any]:
+        return self._row
+
+
+class _ActivitySelectionReplaySession(_Session):
+    def __init__(self, row: dict[str, Any]) -> None:
+        super().__init__()
+        self._row = row
+
+    def execute(self, statement: Any, *_args: Any, **_kwargs: Any) -> _ReplayMappings:
+        self.events.append(("execute", statement))
+        assert _table_name(statement) == "parent_activity_selections"
+        return _ReplayMappings(self._row)
+
+
+def test_activity_selection_idempotent_replay_survives_later_run_state(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    selection_id = "44444444-4444-4444-8444-444444444444"
+    row = {
+        "run_id": _RUN_ID,
+        "activity_selection_id": selection_id,
+        "suggestion_set_id": "55555555-5555-4555-8555-555555555555",
+        "selection_revision": 1,
+        "understanding_revision": 1,
+        "activity_index": 0,
+        "activity_snapshot": {"title": "Quan sát lá"},
+        "activity_snapshot_sha256": _HASH,
+        "created_at": datetime.now(UTC),
+    }
+    session = _ActivitySelectionReplaySession(row)
+    repository = SqlParentStoryRunRepository(session)  # type: ignore[arg-type]
+    monkeypatch.setattr(
+        repository,
+        "_owned_run",
+        lambda *_args, **_kwargs: {"run_id": _RUN_ID, "run_state": "SCRIPT_REVIEW"},
+    )
+    monkeypatch.setattr(repository, "_lock_idempotency", lambda **_kwargs: None)
+    monkeypatch.setattr(
+        repository,
+        "_find_idempotency_receipt",
+        lambda **_kwargs: {
+            "state": "FINAL",
+            "response_body": {"activity_selection_id": selection_id},
+        },
+    )
+    monkeypatch.setattr(
+        repository,
+        "_activity_context",
+        lambda **_kwargs: pytest.fail("exact idempotent replay must precede state validation"),
+    )
+
+    selection = repository.select_activity(
+        principal=_PRINCIPAL,
+        run_id=_RUN_ID,
+        suggestion_set_id="55555555-5555-4555-8555-555555555555",
+        expected_understanding_revision=1,
+        activity_index=0,
+        idempotency_key="select-activity-1",
+        activity_selection_id="66666666-6666-4666-8666-666666666666",
+    )
+
+    assert selection.activity_selection_id == selection_id
+    assert selection.activity_snapshot == {"title": "Quan sát lá"}
+    assert [kind for kind, _payload in session.events] == ["execute", "commit"]
 
 
 def _create(monkeypatch: pytest.MonkeyPatch, lesson_pin: dict[str, Any] | None) -> Any:

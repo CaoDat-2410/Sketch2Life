@@ -1,0 +1,28 @@
+**********************
+PowerShell transcript start
+Start time: 20261119162120
+Username: DESKTOP-F5OEM2B\docao
+RunAs User: DESKTOP-F5OEM2B\docao
+Configuration Name: 
+Machine: DESKTOP-F5OEM2B (Microsoft Windows NT 10.0.26200.0)
+Host Application: <local-machine-path> -Command try { [Console]::OutputEncoding=[System.Text.Encoding]::UTF8 } catch {}
+$env:PYTHONIOENCODING='utf-8'; & '.\features\FEAT-081-parent-ui-mobile-port\evidence\ANDROID_E2E_REV20B_20261119\stop_rev20b.ps1'; if ($LASTEXITCODE -ne 0) { throw "stop_rev20b.ps1 returned $LASTEXITCODE" }
+Process ID: 30292
+PSVersion: 7.6.9
+PSEdition: Core
+GitCommitId: 7.6.9
+OS: Microsoft Windows 10.0.26200
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.4
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+
+
+
+
+**********************
+PowerShell transcript end
+End time: 20261119162131
+**********************

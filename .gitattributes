@@ -131,3 +131,7 @@ features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_MGR4_PARENT_GROUP_INVITATION_M
 features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_MGR5_CONSENT_POLICY_CONTRACT_DRAFT1_20261117.md whitespace=-blank-at-eol,-blank-at-eof
 features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_MGR6_IMMUTABLE_LESSON_VERSION_REVIEW_CONTRACT_DRAFT1_20261117.md whitespace=-blank-at-eol,-blank-at-eof
 features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_MGR7_BE_IMPLEMENTATION_APPROVAL_PACKAGE_DRAFT1_20261118.md whitespace=-blank-at-eol,-blank-at-eof
+
+# Preserve byte-level hashes of FEAT-081 Wave R plans pinned by SHA-256 in the FEAT-081 decisions, approvals and reports (CRLF and trailing blank line as approved).
+features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_5.md -text whitespace=cr-at-eol,-blank-at-eof
+features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_7.md -text whitespace=cr-at-eol,-blank-at-eof

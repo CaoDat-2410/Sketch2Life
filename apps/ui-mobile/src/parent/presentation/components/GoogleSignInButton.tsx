@@ -20,13 +20,10 @@ type Props = {
 export function GoogleSignInButton({ variant = 'default', busy, googleAndroidClientId, googleWebClientId, onIdToken, onError }: Props): React.JSX.Element {
   const configured = Boolean(googleAndroidClientId && googleWebClientId);
   if (!configured) {
-    if (variant === 'auth') {
-      return <GoogleActionButton variant="auth" busy={busy} disabled onPress={() => undefined} />;
-    }
     return (
       <View style={styles.unavailableGroup}>
         <GoogleActionButton variant={variant} busy={busy} disabled onPress={() => undefined} />
-        <Notice text="Đăng nhập bằng Google hiện chưa khả dụng. Bạn có thể dùng email để tiếp tục." tone="warning" />
+        <Notice text="Google chưa được cấu hình cho ứng dụng này. Bạn có thể dùng email để tiếp tục." tone="warning" />
       </View>
     );
   }
@@ -69,7 +66,12 @@ function ConfiguredGoogleSignInButton({ variant = 'default', busy, googleAndroid
     onError('Chưa thể hoàn tất đăng nhập bằng Google. Hãy thử lại hoặc dùng email.');
   }, [onError, response]);
 
-  return <GoogleActionButton variant={variant} busy={busy} disabled={!request} onPress={() => void promptAsync()} />;
+  return <GoogleActionButton
+    variant={variant}
+    busy={busy}
+    disabled={!request}
+    onPress={() => { void promptAsync().catch(() => onError('Chưa thể mở đăng nhập Google. Hãy thử lại hoặc dùng email.')); }}
+  />;
 }
 
 function GoogleActionButton({ variant = 'default', busy, disabled = false, onPress }: { variant?: 'default' | 'auth'; busy: boolean; disabled?: boolean; onPress: () => void }): React.JSX.Element {

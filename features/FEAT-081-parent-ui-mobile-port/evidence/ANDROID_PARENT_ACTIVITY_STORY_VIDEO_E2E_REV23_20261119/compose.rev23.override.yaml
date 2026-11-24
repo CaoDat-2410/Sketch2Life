@@ -1,0 +1,27 @@
+services:
+  postgres:
+    ports: !override
+      - "127.0.0.1:55440:5432"
+  minio:
+    ports: !override
+      - "127.0.0.1:59025:9000"
+      - "127.0.0.1:59026:9001"
+  clamav:
+    ports: !override
+      - "127.0.0.1:53314:3310"
+  redis:
+    ports: !override
+      - "127.0.0.1:56391:6379"
+  api:
+    ports: !override
+      - "127.0.0.1:58100:8000"
+    environment:
+      SKETCH2LIFE_SYNTHETIC_PILOT_ENABLED: "true"
+
+volumes:
+  sketch2life-postgres:
+    external: true
+    name: s2l-feat081-rev20_sketch2life-postgres
+  sketch2life-minio:
+    external: true
+    name: s2l-feat081-rev20_sketch2life-minio

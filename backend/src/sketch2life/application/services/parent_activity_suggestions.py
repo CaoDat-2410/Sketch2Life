@@ -85,6 +85,16 @@ _MONTESSORI_EXPLORATION_MARKERS = (
 )
 _SAFETY_MARKERS = ("khong", "tranh", "an toan", "giam sat", "dam bao")
 _SENTENCE_ENDINGS = (".", "!", "?", "…", "。", "！", "？")
+_INCOMPLETE_VI_SENTENCE_TAIL_WORDS = frozenset(
+    {
+        "từ", "tự", "nếu", "khi", "và", "hoặc", "nhưng", "để", "với", "của",
+        "trong", "ở", "cho", "bằng", "do", "theo", "đang", "là", "có",
+    }
+)
+_INCOMPLETE_VI_SENTENCE_TAIL_PHRASES = frozenset(
+    {"hình lục", "hoặc hình", "để trẻ", "hoặc có", "nếu có", "và có"}
+)
+_VIETNAMESE_CONSONANTS = frozenset("bcdfghjklmnpqrstvwxz")
 
 
 class ParentActivitySuggestionError(ValueError):
@@ -94,12 +104,27 @@ class ParentActivitySuggestionError(ValueError):
         super().__init__(code)
 
 
+def classify_parent_activity_worker_failure(
+    worker_error_code: str,
+) -> tuple[str, str | None]:
+    """Map only the known worker text-quality rejection to the Parent contract."""
+
+    if worker_error_code == "MODAL_MODEL_OUTPUT_INCOMPLETE_TEXT":
+        return "PARENT_ACTIVITY_QUALITY_GATE_REJECTED", "ACTIVITY_TEXT_INCOMPLETE"
+    return worker_error_code, None
+
+
 @dataclass(frozen=True)
 class PreparedParentActivitySuggestion:
     worker_input: dict[str, Any]
     candidates_by_ref: Mapping[str, _EligibleCandidate]
     context_terms: frozenset[str]
+    accessible_lesson_count: int
+    age_access_eligible_lesson_count: int
+    age_access_eligible_activity_count: int
+    relevance_matched_activity_count: int
     candidate_count: int
+    truncated_catalog_context_field_count: int
 
 
 @dataclass(frozen=True)
@@ -128,6 +153,33 @@ def _tokens(value: str) -> set[str]:
         for token in re.findall(r"[a-z0-9]+", _fold(value))
         if len(token) > 1 and token not in _STOP_WORDS
     }
+
+
+def _has_incomplete_vietnamese_sentence_tail(value: str) -> bool:
+    """Reject obvious clipped Vietnamese clause endings without exposing text."""
+
+    for sentence in re.split(r"[.!?…。！？]+", value):
+        normalized = unicodedata.normalize("NFC", sentence.casefold())
+        words = re.findall(r"[^\W\d_]+", normalized, flags=re.UNICODE)
+        if not words:
+            continue
+        last_word = words[-1]
+        if last_word in _INCOMPLETE_VI_SENTENCE_TAIL_WORDS:
+            return True
+        decomposed = unicodedata.normalize("NFD", last_word)
+        consonant_form = "".join(
+            character
+            for character in decomposed
+            if unicodedata.category(character) != "Mn"
+        ).replace("đ", "d")
+        if len(consonant_form) <= 2 and set(consonant_form) <= _VIETNAMESE_CONSONANTS:
+            return True
+        if (
+            len(words) >= 2
+            and " ".join(words[-2:]) in _INCOMPLETE_VI_SENTENCE_TAIL_PHRASES
+        ):
+            return True
+    return False
 
 
 def _contains_non_latin_letter(value: str) -> bool:
@@ -233,8 +285,7 @@ def _is_renderable_activity(activity: Mapping[str, Any]) -> dict[str, Any] | Non
     return parsed.model_dump(mode="json")
 
 
-def _bounded_worker_activity(activity: Mapping[str, Any]) -> dict[str, str]:
-    field_limits = {
+_WORKER_ACTIVITY_FIELD_LIMITS = {
         "title": 160,
         "objective": 400,
         "materials_text": 300,
@@ -242,11 +293,35 @@ def _bounded_worker_activity(activity: Mapping[str, Any]) -> dict[str, str]:
         "instructions_text": 700,
         "observation_notes": 300,
         "safety_notes": 300,
-    }
-    return {
-        key: str(activity.get(key, "")).strip()[:limit]
-        for key, limit in field_limits.items()
-    } | {"activity_kind": "outdoor"}
+}
+
+
+def _bounded_worker_context_text(value: str, *, limit: int) -> tuple[str, bool]:
+    if not isinstance(value, str):
+        raise ParentActivitySuggestionError("PARENT_ACTIVITY_CATALOG_CONTEXT_INVALID")
+    normalized = " ".join(value.split())
+    if len(normalized) <= limit:
+        return normalized, False
+    boundary = normalized.rfind(" ", 0, limit)
+    if boundary <= 0:
+        return "", True
+    return normalized[:boundary].rstrip(" ,;:-") + "…", True
+
+
+def _bounded_worker_activity(activity: Mapping[str, Any]) -> tuple[dict[str, str], int]:
+    bounded: dict[str, str] = {}
+    truncated_field_count = 0
+    for key, limit in _WORKER_ACTIVITY_FIELD_LIMITS.items():
+        value, was_truncated = _bounded_worker_context_text(
+            activity.get(key), limit=limit
+        )
+        bounded[key] = value
+        truncated_field_count += int(was_truncated)
+    bounded["activity_kind"] = "outdoor"
+    return bounded, truncated_field_count
+
+
+_WORKER_CANDIDATE_LABEL_LIMITS = {"lesson_topic": 120, "drawing_subject": 160}
 
 
 def _lesson_from_pin(pin: Mapping[str, Any]) -> ParentActivityLesson:
@@ -291,6 +366,7 @@ class ParentActivitySuggestionService:
         subject_label: str,
         visible_features: Sequence[str],
         pinned_lesson_snapshot: Mapping[str, Any] | None,
+        exclude_activity_keys: Sequence[str] = (),
     ) -> PreparedParentActivitySuggestion:
         age_months = context_snapshot.get("age_months")
         if isinstance(age_months, bool) or not isinstance(age_months, int):
@@ -355,6 +431,9 @@ class ParentActivitySuggestionService:
             )
         )
         eligible: list[tuple[int, _EligibleCandidate, dict[str, Any]]] = []
+        age_access_eligible_lesson_count = 0
+        age_access_eligible_activity_count = 0
+        relevance_matched_activity_count = 0
         for lesson in lessons:
             age_range = _age_range(
                 lesson.target_age_band_ref, lesson.target_age_band_version
@@ -363,10 +442,18 @@ class ParentActivitySuggestionService:
                 continue
             if lesson.access_source not in {"PINNED_LESSON", "PUBLIC", "SHARED"}:
                 continue
+            age_access_eligible_lesson_count += 1
             for activity_index, raw_activity in enumerate(lesson.activities):
                 activity = _is_renderable_activity(raw_activity)
                 if activity is None:
                     continue
+                activity_key = (
+                    f"{lesson.lesson_id}:{lesson.version_id}:"
+                    f"{lesson.content_sha256}:{activity_index}"
+                )
+                if activity_key in exclude_activity_keys:
+                    continue
+                age_access_eligible_activity_count += 1
                 searchable = " ".join(
                     (
                         lesson.topic,
@@ -382,6 +469,7 @@ class ParentActivitySuggestionService:
                 overlap = len(context_terms.intersection(activity_terms))
                 if overlap == 0:
                     continue
+                relevance_matched_activity_count += 1
                 score = overlap
                 if _tokens(topic).intersection(_tokens(lesson.topic)):
                     score += 4
@@ -412,6 +500,7 @@ class ParentActivitySuggestionService:
         chosen = eligible[:_MAX_CANDIDATES]
         candidates_by_ref: dict[str, _EligibleCandidate] = {}
         worker_candidates: list[dict[str, Any]] = []
+        truncated_catalog_context_field_count = 0
         for index, (_, candidate, activity) in enumerate(chosen, start=1):
             candidate_ref = f"C{index:03d}"
             bound = _EligibleCandidate(
@@ -427,13 +516,24 @@ class ParentActivitySuggestionService:
                 source=candidate.source,
             )
             candidates_by_ref[candidate_ref] = bound
+            activity_context, activity_truncation_count = _bounded_worker_activity(activity)
+            topic_excerpt, topic_truncated = _bounded_worker_context_text(
+                candidate.lesson_topic, limit=_WORKER_CANDIDATE_LABEL_LIMITS["lesson_topic"]
+            )
+            subject_excerpt, subject_truncated = _bounded_worker_context_text(
+                candidate.lesson_drawing_subject,
+                limit=_WORKER_CANDIDATE_LABEL_LIMITS["drawing_subject"],
+            )
+            truncated_catalog_context_field_count += (
+                activity_truncation_count + int(topic_truncated) + int(subject_truncated)
+            )
             worker_candidates.append(
                 {
                     "candidate_ref": candidate_ref,
-                    "lesson_topic": candidate.lesson_topic[:120],
-                    "drawing_subject": candidate.lesson_drawing_subject[:160],
+                    "lesson_topic": topic_excerpt,
+                    "drawing_subject": subject_excerpt,
                     "age_band_months": age_band,
-                    "activity": _bounded_worker_activity(activity),
+                    "activity": activity_context,
                 }
             )
 
@@ -453,7 +553,12 @@ class ParentActivitySuggestionService:
             worker_input=worker_input,
             candidates_by_ref=candidates_by_ref,
             context_terms=frozenset(context_terms),
+            accessible_lesson_count=len(lessons),
+            age_access_eligible_lesson_count=age_access_eligible_lesson_count,
+            age_access_eligible_activity_count=age_access_eligible_activity_count,
+            relevance_matched_activity_count=relevance_matched_activity_count,
             candidate_count=len(worker_candidates),
+            truncated_catalog_context_field_count=truncated_catalog_context_field_count,
         )
 
     def resolve(
@@ -465,6 +570,7 @@ class ParentActivitySuggestionService:
         story_run_id: str,
         understanding_revision: int,
         modal_call_id: str | None,
+        excluded_activities: Sequence[Mapping[str, Any]] = (),
     ) -> dict[str, Any]:
         try:
             result = ParentActivitySuggestionWorkerResponseV2.model_validate(raw_result)
@@ -504,6 +610,7 @@ class ParentActivitySuggestionService:
                 age_band=prepared.worker_input["age_band_months"],
                 context_terms=prepared.context_terms,
                 candidates=prepared.candidates_by_ref.values(),
+                excluded_activities=excluded_activities,
             )
             activities = [
                 ParentSuggestedActivityV2(
@@ -533,12 +640,74 @@ class ParentActivitySuggestionService:
         }
 
     @staticmethod
+    def pinned_lesson_response(
+        *,
+        pinned_lesson_snapshot: Mapping[str, Any],
+        age_months: int,
+        request_id: str,
+        story_run_id: str,
+        understanding_revision: int,
+    ) -> dict[str, Any]:
+        """Return every activity from the exact pinned lesson without invoking AI."""
+        from sketch2life.contracts.schemas.modal_ai import (
+            ParentActivitySuggestionItemV1,
+            ParentSuggestedActivityV2,
+        )
+
+        lesson = _lesson_from_pin(pinned_lesson_snapshot)
+        age_range = _age_range(lesson.target_age_band_ref, lesson.target_age_band_version)
+        if age_range is None or not age_range[0] <= age_months <= age_range[1]:
+            raise ParentActivitySuggestionError("PARENT_PINNED_LESSON_AGE_MISMATCH")
+        if not 1 <= len(lesson.activities) <= 24:
+            raise ParentActivitySuggestionError("PARENT_PIN_SNAPSHOT_INVALID")
+
+        activities: list[dict[str, Any]] = []
+        for activity_index, raw_activity in enumerate(lesson.activities):
+            try:
+                activity = ParentActivitySuggestionItemV1.model_validate(dict(raw_activity))
+            except (TypeError, ValidationError):
+                raise ParentActivitySuggestionError("PARENT_PINNED_ACTIVITY_INVALID") from None
+            activity_text = " ".join(activity.model_dump(mode="json").values())
+            if (
+                _contains_unsafe_action(activity_text)
+                or _PII_EMAIL.search(activity_text)
+                or _PII_PHONE.search(activity_text)
+                or _PII_URL.search(activity_text)
+            ):
+                raise ParentActivitySuggestionError("PARENT_PINNED_ACTIVITY_REVIEW_REQUIRED")
+            activities.append(
+                ParentSuggestedActivityV2(
+                    **activity.model_dump(mode="json"),
+                    source="PINNED_LESSON",
+                    source_lesson_id=lesson.lesson_id,
+                    source_lesson_title=lesson.title,
+                    source_lesson_version_id=lesson.version_id,
+                    source_content_sha256=lesson.content_sha256,
+                    source_activity_index=activity_index,
+                    match_reason="Hoạt động thuộc đúng phiên bản bài học đã chọn.",
+                ).model_dump(mode="json")
+            )
+
+        return {
+            "contract": "ParentActivitySuggestionResponseV2",
+            "request_id": request_id,
+            "story_run_id": story_run_id,
+            "understanding_revision": understanding_revision,
+            "selection_mode": "CATALOG_SELECTION",
+            "catalog_candidate_count": len(activities),
+            "review_required": True,
+            "modal_call_id": None,
+            "activities": activities,
+        }
+
+    @staticmethod
     def _quality_gate(
         *,
         activities: Sequence[Any],
         age_band: str,
         context_terms: frozenset[str],
         candidates: Sequence[_EligibleCandidate],
+        excluded_activities: Sequence[Mapping[str, Any]] = (),
     ) -> None:
         def reject(reason: str) -> None:
             raise ParentActivitySuggestionError(
@@ -553,6 +722,10 @@ class ParentActivitySuggestionService:
         candidate_texts = [
             _fold(" ".join(candidate.activity.values()))
             for candidate in candidates
+        ]
+        excluded_texts = [
+            _fold(" ".join(str(value) for value in activity.values()))
+            for activity in excluded_activities
         ]
         for activity in activities:
             text = " ".join(
@@ -585,7 +758,11 @@ class ParentActivitySuggestionService:
             safety = _fold(activity.safety_notes)
             title_key = " ".join(sorted(_tokens(activity.title)))
             if any(
-                value.strip() and not value.strip().endswith(_SENTENCE_ENDINGS)
+                value.strip()
+                and (
+                    not value.strip().endswith(_SENTENCE_ENDINGS)
+                    or _has_incomplete_vietnamese_sentence_tail(value)
+                )
                 for value in (
                     activity.objective,
                     activity.preparation_text,
@@ -629,7 +806,7 @@ class ParentActivitySuggestionService:
                 reject("ACTIVITIES_TOO_SIMILAR")
             if any(
                 SequenceMatcher(None, folded, prior).ratio() >= 0.82
-                for prior in candidate_texts
+                for prior in (*candidate_texts, *excluded_texts)
             ):
                 reject("DUPLICATES_CATALOG_ACTIVITY")
             normalized_titles.add(title_key)

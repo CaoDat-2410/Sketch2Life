@@ -1,5 +1,9 @@
 # Sketch2Life Modal scaffold for SRS v2.3
 
+## Qwen3.8 shared text candidate — 2026-11-22
+
+FEAT-082 pins the Modal `dev` language/audio text workloads to `Qwen/Qwen3.8-27B-FP8@c3a462cc3d38cf351f3b26cbd763469eeb74ef81` on L40S. Drawing analysis remains on Qwen3.5. This is an owner-approved development candidate, not a production model decision and not an amendment to the unsigned FEAT-063 SRS. Parent story input v3 contains bounded topic, exact pinned lesson subject-learning notes, permitted script direction, and existing approved run/selection fields; profile interests and identity are excluded. See [ADR-0024](../../../docs/adr/ADR-0024-qwen38-fp8-development-story-candidate.md) and FEAT-082 evidence for live verification status.
+
 This folder contains the **dev-only Modal deployment** for the current SRS v2.3 AI workloads. Product dispatch, auth, quota, storage transfer, safety acceptance, and playback remain backend-owned; every `workloads.json` entry stays disabled. The original generic L4/L40S scaffold remains contract-only. Separate private apps implement bounded synthetic POCs for drawing VLM, story/audio, FLUX images, and Wan video feasibility; none is a production model selection.
 
 ## Current dev deployment ? 2026-11-05

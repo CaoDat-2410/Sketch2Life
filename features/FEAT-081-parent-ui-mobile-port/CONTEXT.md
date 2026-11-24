@@ -147,3 +147,164 @@ Addendum 8 changed `TASK_APPROVAL.md` from its 30,117-byte / `3123895D0E3122500E
 - **Scope:** Add a bounded timeout and normalize network-layer failures, including fetch status `0`, into readable localized app errors. Preserve meaningful HTTP status handling and avoid automatic retries for non-idempotent commands.
 - **Acceptance criteria:** Network rejection, timeout, and status `0` no longer produce a raw red error box; HTTP errors remain distinguishable; messages omit raw response bodies, credentials, tokens, and implementation diagnostics; write actions are not silently retried.
 - **Test plan:** Fake-fetch tests for network rejection/status `0`, timeout/abort, representative HTTP 4xx/5xx responses, safe message mapping, and proof that a write is not auto-retried.
+
+## 2026-11-19 — Rev20 real Parent Android E2E checkpoint
+
+- Evidence: `evidence/IMPLEMENTATION_REPORT_REV20_E2E_CHECKPOINT_20261119.md`; screenshot index and privacy note: `evidence/ANDROID_E2E_REV20_20261119/README.md`.
+- The actual Expo app authenticated a synthetic Parent, created/selected a synthetic profile, exercised topic/object suggestions and custom-subject validation, rendered the catalog SVG guide through six steps, selected generated synthetic artwork, and created StoryRun `f9b29982-5472-4456-b2e8-2f44dc900382`.
+- One live Modal drawing-understanding request failed after about 76 seconds. Worker logs show Qwen3.5-9B generated 512/512 tokens and terminated with invalid JSON (unterminated string at character 146); API returned generic 504 `MODAL_OUTCOME_UNKNOWN` because the terminal `RuntimeError` was misclassified.
+- Corrected worker EOS/constrained-decoder alignment and added content-free truncation diagnostics; corrected backend terminal error classification/logging and Parent recovery copy. Offline tests passed, but no second live inference was sent, so the remote fix remains unverified.
+- Activity/story/video were not produced; no fixture result or fake subject was inserted. M1–M3 have partial real-runtime evidence; M4–M5 are blocked at the VLM result; M6 video remains outside the verified path; M7 support screens are not fully verified. M8 evidence is partial, not acceptance-complete.
+- Verification: backend focused suite 68 passed; Modal contract suite 29 passed; mobile suite 8 files / 94 passed. Mobile typecheck still fails with 594 diagnostics overall (247 in Parent paths). API health and route registration passed before task-local services were stopped.
+- Task-local Compose project and drawing Modal app were stopped. The pre-existing video Modal app was untouched. Evidence was scanned and sensitive login/gallery captures were removed.
+- No commit or push. Overall Plan Rev20 remains IN_PROGRESS; this checkpoint does not satisfy its E2E acceptance criteria.
+
+## 2026-11-19 — Rev20B real Parent E2E result
+
+- Evidence and sanitized diagnostics: `evidence/ANDROID_E2E_REV20B_20261119/README.md`; emulator captures are stored alongside it. The actual Android app used a synthetic Parent/profile and generated turtle artwork, not fixtures or the visual-preview harness.
+- Profile, topic cards, object cards, custom-subject validation, catalog SVG guide (six steps), StoryRun create/read, and image selection worked. A task-local synthetic-pilot override was needed because the first profile create returned 409; the override was confined to the disposable task API container.
+- One Qwen3.5-9B `drawing.analyze` Modal call returned terminal `MODAL_MODEL_OUTPUT_INVALID` in 30,197 ms. Output ended with EOS after 125 tokens, below the 512-token cap, while sanitized diagnostics showed incomplete JSON (`json_error_position=224`) and a decoder state that still allowed EOS. Backend surfaced HTTP 502 `DRAWING_OUTPUT_INVALID`; this was not a cold-start timeout.
+- No valid drawing subject was available, so activity suggestion/persistence and story/revision were not called. No video/quota/payment call and no inference retry occurred.
+- Old StoryRun `f9b29982-5472-4456-b2e8-2f44dc900382`: one authenticated GET using the local seed token returned 401; no cancellation was attempted and no database edit occurred. The UI client still has `cancelStoryRun` unavailable.
+- Task-local Docker, Metro, Modal drawing, and Modal language/audio were stopped. The existing Modal video app remains deployed and untouched. No commit/push.
+- Rev20B is **PARTIAL / BLOCKED**, not a completed E2E acceptance. Next work is decoder prefix/EOS contract diagnosis; any new live call needs a new bounded approval.
+
+## 2026-11-19 — Post-parser one-shot rerun
+
+- Real Parent Android flow reached one live Qwen3.5-9B drawing-understanding call after parser regression tests passed (33 passed, 2 warnings). Topic suggestions, `Động vật` subject suggestions, synthetic turtle image attachment, and StoryRun create/read succeeded.
+- Modal call `fc-01M7SHBPCAKZDBDQ695P6NJ3EW` completed successfully in about 26 seconds after worker start; inference itself was 7.9 seconds. Parent API returned HTTP 502 `MODAL_OUTPUT_CONTRACT_INVALID` because the completed worker result omitted required numeric `confidence`. The Modal schema/parser only permits `candidate_subject` and `visible_features`, while SRS AT-14 requires candidate/confidence for adult review. This is a deterministic schema mismatch, not timeout/parser failure.
+- No activity/story/video/quota/payment call was made; no retry. Screenshots and timing are in `evidence/ANDROID_E2E_REV20B_20261119/README.md` and its `screenshots/` folder.
+- Compose and the exact task Metro process tree are stopped. No commit/push. Another live inference requires a new bounded approval.
+
+## 2026-11-19 — Parent drawing confidence contract source fix
+
+- Owner approved the narrow worker-contract fix with “fix cái đó đi”; Plan Revision 21 and TASK_APPROVAL Addendum 38 record the scope.
+- `drawing_vlm_app.py` now requests confidence, requires it in the constrained drawing JSON, validates its numeric finite `[0,1]` range, and includes it in the returned result. The existing backend schema remains unchanged; SRS AT-14 requires confidence for adult review, and the backend already validates it.
+- The score is an advisory, uncalibrated model estimate based only on the drawing. Adult confirmation remains mandatory. No threshold, auto-confirmation, child/profile input, or confidence fallback was added.
+- Source review only. Tests, typecheck, Modal deploy/inference, Docker, database and migration were not run. Runtime status remains unverified; no commit/push. Evidence: `evidence/DRAWING_CONFIDENCE_CONTRACT_FIX_20261119.md`.
+
+## 2026-11-19 — Rev22 drawing-confidence UI result
+
+One approved, real Parent Android drawing-understanding request passed through the task API and Modal Qwen3.5-9B using generated synthetic turtle artwork. The backend returned HTTP 200; the UI showed `con rùa`, 95% advisory confidence, visible features, and adult confirmation. Worker result was `worker_succeeded` (30,301 ms); API/UI elapsed was 45.785 s. No retry or subsequent activity/story/video/quota call. Focused parser regression: 4 passed. The Modal app, task Docker stack, task Metro, and Parent app were stopped. Evidence: `evidence/ANDROID_DRAWING_CONFIDENCE_UI_REV22_20261119/README.md`. A short API log tail initially missed the terminal worker log; later retrieval by the same Modal Call ID confirmed success, so the remaining issue is log-tail timing. No commit/push.
+
+## 2026-11-19 — Rev23 Parent E2E scope
+
+Plan Revision 23 / TASK_APPROVAL Addendum 41 is approved from the owner's direct request to continue the real Parent Android flow through activity selection and video while ignoring quota. Continue from the existing synthetic turtle run at adult subject review; do not repeat drawing understanding or use a fixture. Preserve adult subject, activity-selection, script-confirmation and automated safety gates. The product target remains LTX-2.5 on Modal; no Wan or legacy session route substitution. Any no-quota admission is local-only, synthetic-only, server guarded and default off. First compare current served OpenAPI/runtime to the FEAT-063 Rev67 SRS; the previous source-only finding is that Parent video UI/API are unavailable and Modal video is an unconfigured scaffold. No Rev23 inference has been sent yet.
+
+## 2026-11-20 — Rev41 Parent UI refresh and video flow
+
+Plan Revision 41 / TASK_APPROVAL Addendum 67 is approved by the owner's direct request to refresh Parent screens still using the old visual tone and add the real Parent video path. Current product authority is the FEAT-063 v2.7-draft working SRS; the approved implementation keeps the server-owned adult story confirmation, real quota/compute admission, LTX-2.5 on Modal, silent output, fail-closed technical/consistency/safety checks, and private playback. No quota bypass or self-confirmation is authorized. M1 source changes and offline checks are complete. The authenticated app returned to sign-in after reload, so post-reload visual verification of the changed workflow screens remains incomplete. At the initial FEAT-081 check, its live API had no Parent video routes, so Parent video was not end to end in that worktree. The initial statement that the system-wide Modal LTX worker remained fail-closed was incorrect; a follow-up audit confirmed a deployed Modal worker and real candidates in FEAT-067. Parent product admission/dispatch/safety/playback remains incomplete. No new AI/video request, migration, quota change, deploy, commit or push was made. Details: `evidence/PARENT_UI_VIDEO_REV41_20261120/REV41_M1_IMPLEMENTATION_AND_VIDEO_BLOCKERS.md`.
+
+## 2026-11-20 — Rev41 correction: existing Modal LTX worker
+
+The owner pointed out that the video worker had already been implemented on Modal. Rechecking the `dev` Modal app confirmed `sketch2life-srs23-dev-video` deployed with `generate-silent-story-video` and `generate-video-scene` L40S functions. The separate FEAT-067 worktree has the corresponding LTX-2.5 source and recorded real candidate outputs: attempt 12 passed technical media validation; attempt 14 generated a technically valid candidate but failed visual review. The app currently has zero live tasks.
+
+The boundary is integration: FEAT-067 has Parent request/status routes, but the service currently fails closed with `VIDEO_ADMISSION_DEPENDENCIES_UNAVAILABLE` and does not dispatch to Modal. The successful Modal candidate was requested directly after a synthetic Parent story was confirmed, bypassing product quota/admission; safety, private asset promotion and playback were not run. FEAT-081's mobile client has no video-generation request/status operations, and its current local `video_app.py` is only a scaffold. Therefore, reuse the existing Modal worker; continue the remaining Parent product integration and quality/safety gates. No GPU request or deploy was made during this audit.
+
+## 2026-11-20 — Rev42 Parent Modal candidate connection
+
+Plan Revision 42/Addendum 69 authorizes a local/test, synthetic-only technical candidate path that reuses the existing `sketch2life-srs23-dev-video` / `generate-silent-story-video` deployment. FEAT-081 now has authenticated Parent request/current/detail/preview routes, an idempotent durable candidate service and Modal adapter, an additive migration, and Expo request/progress/resume/technical-preview wiring. The path is default-off, quota-free only under explicit local/test synthetic gates, and never returns product `VIDEO_READY`; candidate metadata keeps safety `NOT_RUN` and product playback false.
+
+Offline verification: backend focused tests **19 passed**; mobile typecheck passed; mobile suite **126 passed across 15 files**; Ruff and `git diff --check` passed. Migration `20261120_parent_video_candidate` is present as an Alembic head but was not applied. No Modal inference, deployment, emulator E2E, database mutation, `.env`/secret access, commit, or push occurred. Consequently, the UI→API→Modal→preview flow is connected in source but not yet proven at runtime. A real request still requires an eligible confirmed synthetic story. The current visual manifest also lacks general story-prop mapping, so visual fidelity is not guaranteed. Full evidence: `evidence/PARENT_MODAL_VIDEO_CANDIDATE_REV42_20261120/IMPLEMENTATION_REPORT.md`.
+
+## 2026-11-20 — Rev43 Parent E2E runtime checkpoint
+
+The real Android emulator (`emulator-5554`) was at Parent sign-in. Only the task API in Compose project `s2l-feat081-rev23` was rebuilt from this worktree; `/health` returned 200 and OpenAPI exposed all four candidate routes. The additive `20261120_parent_video_candidate` migration was applied to that task-local Postgres and the candidate table is present. Unauthenticated request correctly returned 401.
+
+The run stopped before account creation or AI: the task API reports `auth_provider=development`, no Firebase project/Admin credential, and no Modal token ID/secret. The host Modal CLI still lists the existing LTX app as deployed, but the API container cannot authenticate to dispatch it. No Firebase account was created, no AI/Modal request was sent, and no quota was accessed. Evidence and exact root `.env` keys needed to resume: `evidence/PARENT_VIDEO_CANDIDATE_E2E_REV43_20261120/RUN_REPORT.md`. The task services and Modal app remain running; no commit/push.
+
+## Rev43 live E2E update — 2026-11-20
+
+The earlier Rev43 auth/config checkpoint was superseded after the owner clarified that the single project-root .env was already present. Compose was restarted with that root file via the explicitly approved path; credential presence was reported only as booleans.
+
+The real Expo app registered and logged in one synthetic Parent account, created a synthetic 60-month profile, loaded catalog topic/subject choices, and selected Đại dương → Rùa biển. The optional curated SVG guide lookup returned 404 because no source guide was found for that subject; the guide was disabled. A fresh synthetic turtle drawing was attached through the Android photo picker. Modal Qwen3.5-9B recognized “con rùa” at 90% in 42.34 seconds; the adult confirmed the subject and context.
+
+Activity suggestions followed catalog-first behavior. The catalog had zero accessible/age-eligible candidates, so the UI invoked the Qwen fallback once. Modal raised NotFoundError before a call ID was created; API returned 504. The current dev Modal inventory has the drawing and video apps but lacks sketch2life-srs23-language-audio-dev, which serves this workload. No retry was made, and story/video were not called. No quota was read or changed. Evidence and exact IDs are in evidence/PARENT_VIDEO_CANDIDATE_E2E_REV43_20261120/RUN_REPORT.md.
+
+## 2026-11-20 — Rev45 live continuation
+
+Addenda 72–74 authorized deployment of the missing `sketch2life-srs23-language-audio-dev` app and resumption of the same synthetic Parent run. Deployment succeeded after a single terminal UTF-8 correction. Through the real emulator UI, the one allowed activity request succeeded, “Phân loại thẻ rùa” was persisted, one Qwen3.5 story request succeeded, and the adult confirmed the five-scene story. Read-only DB verification shows run `16002cde-42b1-4198-a7d0-a04de85fea9b` in `SCRIPT_REVIEW`, job `SUCCEEDED`, revision 1 `CONFIRMED`, with no video candidate yet. The story content is aligned with the selected activity.
+
+The active Metro bundle includes the real video candidate screen and API route. During UI diagnostics, the Expo process was restarted to ensure it loaded the bundle from this worktree; it returned to sign-in. Manual sign-in is pending before resuming that same server-side run and making the single authorized silent LTX candidate request. No quota access/mutation, video attempt, retry, source fix, secret edit, commit, or push has occurred. See `evidence/PARENT_VIDEO_CANDIDATE_E2E_REV43_20261120/RUN_REPORT.md` and `logs/run-events.md` for timings/correlation.
+
+## 2026-11-20 — Rev46 real Parent E2E checkpoint
+
+The real Android Parent UI reused the synthetic account, created/read back one 60-month synthetic profile, selected `Đại dương → Rùa biển`, and created StoryRun `ff1021f5-e9e6-4343-9da3-ced08ad9de69`. Drawing understanding passed through Modal Qwen3.5-9B (90% “con rùa”, 40.498 s); catalog-first activity lookup found no eligible catalog entries, so the single approved AI fallback produced three suggestions (134.546 s), and the UI persisted “Vận động mô phỏng rùa”. Story generation returned HTTP 200 through Qwen3.5-9B (134.394 s), but adult review found mixed Japanese/Chinese text (`các動作`) and unnatural age phrasing. Story was not confirmed; no video request was sent under the approval’s confirmation gate. No quota/payment access, retry, second account, fixture, commit, or push. Evidence: `evidence/PARENT_VIDEO_CANDIDATE_E2E_REV43_20261120/RUN_REPORT.md`, `logs/run-events.md`, and `screenshots/rev46-story-review-mixed-language.png`.
+
+## 2026-11-20 — Rev49 video loading UI and blocked candidate dispatch
+
+Implemented the Parent video loading experience using the candidate API's actual states: four progress phases without fake percentages, separate initial status lookup and request dispatch copy, polling interval guidance, and explicit no-resubmit/reconciliation messaging. Failed or uncertain outcomes do not display a normal progress track.
+
+Mobile typecheck passed; 133 tests across 16 files passed, including the new state-mapping tests; UI copy validation and `git diff --check` passed. The task API remained healthy (`/health` 200) and its local synthetic video-candidate flag remained `false`.
+
+The real Android app was at sign-in. The two pre-existing synthetic credential sets from the earlier E2E session were rejected by Firebase with the app's generic invalid-credential response. No account was created; no more login attempts were made. The exact approved StoryRun could not be opened or confirmed, so no Parent video API or Modal LTX call was dispatched. No quota, environment, secret, or Modal app state was changed. Full sanitized checkpoint: `evidence/PARENT_VIDEO_LOADING_REV49_20261120/RUN_REPORT.md`.
+
+## 2026-11-21 — Parent activity backend quality-gate defect
+
+The real Android flow passed drawing recognition and subject/context confirmation, then called the catalog-first activity endpoint. No accessible published/shared lesson activities matched; the one authorized Modal fallback returned three Vietnamese drafts with incomplete sentence tails. The backend persisted and returned these drafts, so the defect is in the worker parser and backend quality gate as well as the visible UI payload. The flow stopped before selection/story/video and did not access quota. Backend and Modal source now reject the observed incomplete Vietnamese tails, and offline regressions pass. This source fix is not deployed or live-verified: Addendum 88 permits offline verification only and forbids another Modal activity inference. Full run, IDs, timings, test results, and evidence are in `evidence/PARENT_BACKEND_FRONTEND_FIX_E2E_20261121/RUN_REPORT.md`.
+
+## 2026-11-21 — Rev55 lifecycle outbox blocker
+
+After the approved migration, the existing synthetic Parent run was canceled through the real UI (HTTP 202). Read-only verification shows DELETE_PENDING, revision 9, and its active-owner lock released. Its sole cancellation outbox event remains pending because task Compose has no lifecycle worker. The worker's normal effect would purge this run's story content/assets; Addendum 91 requires those data to be preserved. No worker was started, no purge or new run occurred. Detailed evidence and passing test results: vidence/PARENT_LOADING_E2E_REV53_20261121/RUN_REPORT.md and screenshot 59-current-after-cancel.png. Await owner decision before lifecycle processing.
+
+## 2026-11-21 — Rev55 lifecycle resolution and real Parent E2E checkpoint
+
+Addendum 102 approved processing only the cancellation event for StoryRun `08657e31-ebd7-4a07-8f9b-5929b4dff23b`. The one-shot lifecycle consumer processed its single pending event; the run reached `DELETED`, its event was delivered, and the lifecycle receipt completed. No account, profile, seed data, or unrelated event was changed.
+
+A new real Android run (`b05c2b46-e760-4643-824b-b30b5387453f`) passed topic selection, optional six-step SVG guide, synthetic image attachment, Qwen3.5 drawing understanding, adult subject/context confirmation, catalog-first activity lookup, one AI fallback (catalog had zero eligible rows), and persisted activity selection. Its one story inference failed the existing prose quality gate: JSON was complete, but `story.opening`, `middle`, scene actions, and narrations ended incomplete. Modal call `fc-01M7Y9SCQQP9RCJXARXQBDX25G` used 77.185 seconds inference / 102.295 seconds total worker time; API returned HTTP 502 `STORY_OUTPUT_INVALID`, not a timeout. No retry, video, quota/payment request, or gate bypass occurred. See `evidence/PARENT_LOADING_E2E_REV53_20261121/RUN_REPORT.md` and screenshots `82-story-inference-started.png` / `83-story-failure.png`.
+
+The purple loading card and elapsed timer were visible; stage-by-stage progress is absent, and the terminal screen exposes a “Gửi lại cùng yêu cầu” button. It was not pressed under the one-story-inference cap. The task-used Modal language/audio and drawing apps were stopped at 12:47 +07 with zero tasks; the unrelated video app remains deployed and untouched. This is a partial E2E, not completion. Any further inference needs a new bounded approval after a worker fix and focused verification. No commit/push.
+
+## Rev56 read-only eligibility result (2026-11-21)
+
+- The exact Rev55 synthetic run is `FAILED` / `STORY_OUTPUT_INVALID`, revision 1 is `FAILED`, and one activity selection remains persisted.
+- The backend does not accept a new story revision from `FAILED`; it permits reservation only from `PREPARATION_REVIEW` or `SCRIPT_REVIEW`. The canonical SRS also treats `FAILED` as terminal while BR-13 allows rewrites without specifying this failure case.
+- The Parent Home/history UI does not expose a route back to the failed run. Screenshots 85–86 are in `evidence/PARENT_LOADING_E2E_REV53_20261121/screenshots/`.
+- No rewrite request, Modal deploy, video, quota/payment call, or run mutation was made. API health is 200; task language/audio and drawing apps remain stopped.
+- Plan Rev57 / Addendum 104 awaits an explicit decision on the narrow state-transition exception. Do not implement or infer until approved.
+
+## 2026-11-21 — Rev57 approved rewrite outcome
+
+- Plan Rev57/Addendum 104 were approved and implemented. Backend focused checks (21), mobile typecheck, 142 mobile tests, UI-copy validation, focused Ruff, and `git diff --check` passed.
+- One same-run rewrite was submitted from the real Android UI after exact read-only eligibility checks. API returned 504 with `STORY_OUTCOME_UNKNOWN`, `modal_call_id=None`; Modal showed no worker logs and zero tasks. Do not retry this request.
+- Run is now `SCRIPT_GENERATION_UNKNOWN`, job/revision 2 `AWAITING_RECONCILIATION`, retryable false, with the active-owner lock held. No confirmed story exists; no video or quota request was sent.
+- The task-used Modal language/audio app v15 was stopped at 16:18:23 +07 after confirming zero tasks. Drawing remains deployed and video was untouched.
+- Security validator still reports pre-existing findings in older FEAT-081 records; no commit/push. Full details: `evidence/PARENT_LOADING_E2E_REV53_20261121/RUN_REPORT.md`.
+
+## 2026-11-21 — Rev58 Parent-to-video continuation
+
+The owner authorized continued fixes and diagnosis-guided testing until a video runs. Plan Rev58/Addendum 106 is the approved plan pin. Read-only M0 verification found the old unknown story request still has no provider call ID, no Modal worker logs were returned, and its active-owner lock remains held; no request replay or run mutation occurred. The task video-candidate flag is disabled, FEAT-081’s Modal video worker is a scaffold, no video app is deployed, and the pinned LTX checkpoint is missing from the configured Volume path. A separate FEAT-067 worktree contains the pinned LTX-2.5 worker and historical synthetic candidate evidence. The goal is a real synthetic Parent Android UI path to a private authenticated silent MP4 candidate, not a production-ready video claim. Evidence: `evidence/PARENT_SILENT_VIDEO_E2E_REV58_20261121/M0_DIAGNOSTICS.md`. No new inference has been sent.
+
+## 2026-11-21 — Rev58 Firebase setup fixed; candidate owner mismatch
+
+The owner then directed continuation with the current login. Its open `SyntheticTurtleRev22` run was opened through the real UI and remains `SCRIPT_GENERATION_UNKNOWN` / `AWAITING_RECONCILIATION`, non-retryable, without a provider job ID, and holds the Parent account's active-run lock. The UI prohibits resending and remained pending on status-only polling. No new request or state change was made. Evidence: `M5_ACCOUNT_SCOPE_CHECK.md` (`61`–`63`).
+
+The emulator was rechecked after the owner said the account was already logged in: Home showed `SyntheticRev58Turtle`, and the real `Câu chuyện` tab showed “Chưa có buổi nào”. The redacted `.env` comparison remains mismatched, so the current session cannot access the saved video candidate. Evidence: `evidence/PARENT_SILENT_VIDEO_E2E_REV58_20261121/M5_ACCOUNT_SCOPE_CHECK.md` (`59_current_ui.png`, `60_story_tab.png`).
+
+After the owner selected the existing-account path, a redacted comparison confirmed the Parent email currently configured in root `.env` still resolves to a different Firebase Auth user than the owner of the saved video candidate. Both credential fields are present; no sign-in attempt or credential disclosure occurred.
+
+The task API was recreated with the root `.env` explicitly loaded. Firebase Admin and Modal dev configuration now initialize; API health is 200; Android sign-in with the existing seed Parent succeeds. A read-only owner check found the saved silent-video candidate belongs to a different Firebase principal/profile than this seed account. The target profile's UI history is empty, so recovery was not called. A follow-up Firebase Admin read confirmed the target owner still has an enabled email/password Auth account; no account identifier or credential was recorded. A separate pending `SyntheticTurtleRev22` run was left unchanged. No new account/run, inference, quota call, or database write occurred. Evidence: `evidence/PARENT_SILENT_VIDEO_E2E_REV58_20261121/M5_ACCOUNT_SCOPE_CHECK.md`. Resume after the existing owner account is made available in the root seed configuration, or with a separately approved new run/video inference.
+
+## 2026-11-22 — Parent AI parser audit checkpoint
+
+Rev117 activity/topic parser and catalog-context repairs are implemented and deployed to the task API/language Modal app. Offline suites passed (184 Modal, 278 backend); API health is ok; CPU readiness is ready for GPU-worker validation, with no active Modal tasks. The repaired activity output has not had a second live inference. Silent-video input-manifest duplicate-key hardening remains outside the approved file allowlist. See evidence/PARENT_AI_PARSER_AUDIT_REV117_20261122/PARSER_AUDIT_REPORT.md.
+
+## 2026-11-22 — Local synthetic video route enabled
+
+The owner asked to enable the video capability in the running system. The two local-only gates were added to the root CAPSTONE .env and only the API container was recreated. Runtime values and API health passed; Modal LTX-2.5 checkpoint is staged, with no GPU model loaded. No inference was sent. This is only a synthetic technical-preview route. Evidence: evidence/PARENT_VIDEO_LOCAL_ENABLE_REV117_20261122/CONFIGURATION_CHECK.md.
+
+## 2026-11-22 — Rev59 video status response repair
+
+An existing synthetic video candidate was already `CANDIDATE_READY`, but Parent status polling returned HTTP 500 because internal integrity fields (`output_sha256`, `output_size_bytes`, `output_manifest_sha256`) were passed to the strict public metadata schema. The mapper now projects the public contract fields before validation. Fourteen focused tests passed; only the API service was rebuilt; `/health` is `ok`; Android now shows the ready state and opens the existing private preview. No new inference or database mutation occurred. The candidate remains a technical preview with safety/consistency `NOT_RUN` and `product_playable=false`. See `evidence/PARENT_VIDEO_CANDIDATE_RESPONSE_FIX_REV59_20261122/RUN_REPORT.md`.
+
+## 2026-11-22 — Rev60 Parent video player and copy
+
+The video preview screen now has explicit Play/Pause/Replay controls, playback status and elapsed time, a visible safe error/reload path, and shorter user-facing copy. Mobile typecheck passed. The existing preview endpoint returned 200 and rendered a frame before the change, while native Play remained at `00:00`. Post-change playback is not yet verified: bundle reload cleared the in-memory Parent session; reauthentication resumed at activity selection, and history does not expose an action to reopen the stored candidate. No AI activity inference or video request was sent. See `evidence/PARENT_VIDEO_PLAYER_UI_REV60_20261122/RUN_REPORT.md`.
+
+## Rev61 — bounded AI and video-player verification
+
+The existing synthetic run already had an AI-generated activity set, selected activity, confirmed five-scene story, and a ready 30.209-second video candidate. On Android, one retry of activity suggestions returned HTTP 409 because the persisted run is already `SCRIPT_REVIEW`; no Modal inference was dispatched. After fresh login, the resume card returned to Activity instead of adopting the saved story/video. Source inspection indicates `adoptServerUnderstanding` treats the fresh client revision `0` as a server revision change and skips saved-story adoption; video candidate hydration on resume also needs verification. The updated Play/Pause controls remain unverified. All existing Modal `dev` apps were idle with zero tasks and were left untouched. No product code, DB state, quota, or safety gate was changed. Details: `evidence/PARENT_AI_VIDEO_PLAYBACK_REV61_20261122/RUN_REPORT.md`.
+
+## 2026-11-22 — Rev62 cold-resume and candidate hydration completed
+
+The owner approved Rev62 (“chạy fix đi”). A fresh Android controller now adopts the persisted confirmed story instead of treating its initial local revision as a stale server update. Opening video loads the current candidate first and shares the in-flight request with the screen's mount refresh. Mobile typecheck passed. On Android, cold login resumed the confirmed story, current-candidate and authenticated preview GETs returned HTTP 200, and Play/Pause/Resume worked against the existing synthetic candidate. API logs contained no generation POST; all three existing Modal dev apps remained deployed with zero tasks. The candidate is still only a technical preview, with safety/consistency not run and `product_playable=false`. The Story screen still shows an activity-selection warning because that prior selection is absent from the current run response; this remains a separate contract/UI follow-up. Full sanitized evidence: `evidence/PARENT_AI_VIDEO_PLAYBACK_REV62_20261122/RUN_REPORT.md`.

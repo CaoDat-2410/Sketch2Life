@@ -1,0 +1,39 @@
+**********************
+PowerShell transcript start
+Start time: 20261119154444
+Username: DESKTOP-F5OEM2B\docao
+RunAs User: DESKTOP-F5OEM2B\docao
+Configuration Name: 
+Machine: DESKTOP-F5OEM2B (Microsoft Windows NT 10.0.26200.0)
+Host Application: <local-machine-path> -Command try { [Console]::OutputEncoding=[System.Text.Encoding]::UTF8 } catch {}
+& '<local-machine-path>'
+Process ID: 56076
+PSVersion: 7.6.9
+PSEdition: Core
+GitCommitId: 7.6.9
+OS: Microsoft Windows 10.0.26200
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.4
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+== 1/5 mobile tests + typecheck
+
+
+== 2/5 deploy Modal non-video apps (scale-to-zero, no call)
+
+
+
+== 3/5 rebuild + start task-local backend
+
+== 4/5 wait for API health
+PS>TerminatingError(Invoke-WebRequest): "The response ended prematurely. (ResponseEnded)"
+Host and container API health OK on port 58100: {"status":"ok","service":"sketch2life-api"}
+== 5/5 start Metro for the Android dev client (separate window)
+Forwarded public Firebase/API settings to Metro; provider credentials cleared from the Metro environment.
+DONE - open the Sketch2Life dev app on the emulator.
+**********************
+PowerShell transcript end
+End time: 20261119154521
+**********************

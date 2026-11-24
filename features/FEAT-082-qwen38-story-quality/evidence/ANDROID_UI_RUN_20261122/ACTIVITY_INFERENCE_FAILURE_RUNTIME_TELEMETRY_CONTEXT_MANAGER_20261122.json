@@ -1,0 +1,42 @@
+{
+  "schema_version": "sketch2life.evidence.ai-failure.v1",
+  "recorded_at": "2026-11-22",
+  "stage": "parent.activity.suggest",
+  "source": "real_parent_android_ui",
+  "story_run_id": "d8f8e127-a601-4676-b885-81373b239bfe",
+  "backend_request_id": "86506fff-f49d-475a-bb23-6db461764ab4",
+  "modal_call_id": "fc-01M822DBTYEVS0Q7RGZ3BM6HYE",
+  "modal_job_ref": "e72ef12793066f58",
+  "modal_attempt_ref": "432a285315a9e1fa",
+  "model_id": "Qwen/Qwen3.8-27B-FP8",
+  "model_revision": "c3a462cc3d38cf351f3b26cbd763469eeb74ef81",
+  "gpu_class": "L40S",
+  "runtime": {
+    "torch": "2.8.0+cu128",
+    "torch_cuda": "12.8",
+    "triton": "3.4.0",
+    "gpu_capability": "8.9",
+    "tensor_descriptor": "ready"
+  },
+  "timing_ms": {
+    "backend_scratch_upload": 1287,
+    "model_load": 5043,
+    "allowlisted_fp8_kernel_load": 1826,
+    "worker_total": 10291
+  },
+  "last_completed_stage": "fp8_kernel_allowlisted_load",
+  "generation_started": false,
+  "output_tokens": 0,
+  "failure": {
+    "code": "UNCLASSIFIED_FAILURE",
+    "type": "TypeError",
+    "safe_message": "NoneType object does not support the context manager protocol",
+    "root_cause": "worker_runtime_verified is a telemetry emitter returning None but was used as a context manager in _load_text_model"
+  },
+  "privacy": {
+    "raw_prompt_saved": false,
+    "image_saved": false,
+    "credential_values_saved": false,
+    "child_real_data": false
+  }
+}

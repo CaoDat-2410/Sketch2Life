@@ -53,8 +53,11 @@ features/FEAT-003-multimodal-understanding/evidence/notes/*
 __pycache__/
 *.py[cod]
 .pytest_cache/
+# Explicit pytest basetemp directories are disposable local model fixtures.
+.pytest-temp*/
 # Explicit pytest --basetemp outputs are disposable local fixtures, not publishable source.
 /backend/.pytest-tmp-*/
+deployment/features/FEAT-082-qwen38-story-quality/evidence/ANDROID_UI_RUN_20261122/pytest-*/
 .mypy_cache/
 .ruff_cache/
 .venv/

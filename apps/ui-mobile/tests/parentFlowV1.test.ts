@@ -301,6 +301,9 @@ describe('parentFlowV1 pure flow decisions', () => {
       candidate: { candidate_subject: 'synthetic kite', visible_features: [], confidence: 0.8, adult_confirmation_required: true, decision: 'REVIEW_REQUIRED' },
     }, 'synthetic kite')).toBe(false);
     expect(isActiveOrUnreconciledStoryRun({ story_status: 'GENERATING', job_state: 'RUNNING' })).toBe(true);
+    expect(isActiveOrUnreconciledStoryRun({ run_state: 'SCRIPT_GENERATING', story_status: null, job_state: null })).toBe(true);
+    expect(isActiveOrUnreconciledStoryRun({ run_state: 'SCRIPT_GENERATION_UNKNOWN', story_status: null, job_state: null })).toBe(true);
+    expect(isActiveOrUnreconciledStoryRun({ story_status: 'AWAITING_RECONCILIATION', job_state: 'AWAITING_RECONCILIATION' })).toBe(true);
     expect(isActiveOrUnreconciledStoryRun({ story_status: 'DRAFT', job_state: 'SUCCEEDED' })).toBe(false);
   });
 
@@ -364,7 +367,7 @@ describe('parentFlowV1 pure flow decisions', () => {
   it('allows at most three rewrites and blocks revision requests after confirmation', () => {
     const base = {
       runId: 'synthetic-run', understandingRevision: 1, storyPresent: true,
-      storyAttempted: true, rewriteCount: 2, rewriteInstruction: 'thêm một đám mây', storyConfirmed: false,
+      storyAttempted: true, failedGeneration: false, rewriteCount: 2, rewriteInstruction: 'thêm một đám mây', storyConfirmed: false,
       subjectConfirmed: true, allowSameActionRetry: false,
     };
     expect(canRequestStoryRevision(base)).toBe(true);
@@ -376,6 +379,17 @@ describe('parentFlowV1 pure flow decisions', () => {
     expect(canRequestStoryRevision({
       ...base, storyPresent: false, rewriteInstruction: '', storyAttempted: true, allowSameActionRetry: true,
     })).toBe(true);
+    expect(canRequestStoryRevision({
+      ...base, storyPresent: false, failedGeneration: true, rewriteInstruction: 'viết câu ngắn, đầy đủ',
+      rewriteCount: 0,
+    })).toBe(true);
+    expect(canRequestStoryRevision({
+      ...base, storyPresent: false, failedGeneration: false, rewriteInstruction: 'viết câu ngắn, đầy đủ',
+      rewriteCount: 0,
+    })).toBe(false);
+    expect(canRequestStoryRevision({
+      ...base, storyPresent: false, failedGeneration: true, rewriteInstruction: 'viết lại', rewriteCount: 3,
+    })).toBe(false);
   });
 
   it('confirms only the displayed story with the exact validated run, revision and hash', () => {
@@ -415,6 +429,12 @@ describe('parentFlowV1 pure flow decisions', () => {
       .toBe('Hồ sơ đã thay đổi. Hãy kiểm tra thông tin mới nhất rồi lưu lại.');
     expect(safeParentFlowErrorMessage({ code: 'INVALID_STATE_TRANSITION' }))
       .toBe('Hồ sơ đã thay đổi trạng thái. Hãy kiểm tra lại trước khi tiếp tục.');
+    expect(safeParentFlowErrorMessage({ code: 'DRAWING_OUTPUT_TRUNCATED', message: 'private model output' }))
+      .toBe('Kết quả đọc tranh chưa hoàn tất. Hãy thử lại sau.');
+    expect(safeParentFlowErrorMessage({ code: 'DRAWING_OUTCOME_UNKNOWN' }))
+      .toBe('Chưa xác nhận được kết quả đọc tranh. Hãy kiểm tra trạng thái trước khi gửi lại.');
+    expect(safeParentFlowErrorMessage({ code: 'PARENT_ACTIVITY_QUALITY_GATE_REJECTED' }))
+      .toBe('Gợi ý hoạt động chưa đạt kiểm tra chất lượng. Máy chủ đã loại bỏ và chưa lưu gợi ý để chọn.');
     expect(safeParentFlowErrorMessage({ code: 'UNKNOWN', message: 'private child detail' }))
       .not.toContain('private child detail');
     for (const code of [
@@ -451,6 +471,9 @@ describe('parentFlowV1 pure flow decisions', () => {
       ['VIDEO_QUOTA_EXCEEDED', 'quota-summary'],
       ['MODAL_AI_NOT_ENABLED', 'provider-hold'],
       ['MODAL_OUTCOME_UNKNOWN', 'reconciliation'],
+      ['DRAWING_OUTCOME_UNKNOWN', 'reconciliation'],
+      ['DRAWING_OUTPUT_TRUNCATED', 'provider-hold'],
+      ['DRAWING_WORKER_FAILED_TERMINAL', 'provider-hold'],
       ['RATE_LIMITED', 'wait-retry-after'],
       ['DELETE_PENDING', 'lifecycle-pending'],
       ['CAPABILITY_UNAVAILABLE', 'unavailable'],

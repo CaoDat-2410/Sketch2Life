@@ -323,6 +323,7 @@ def create_parent_story_run(
         idempotency_key=key,
         topic=payload.topic,
         adult_confirmed_idea=payload.adult_confirmed_idea,
+        intended_drawing_subject=payload.intended_drawing_subject,
         lesson_version_ref=lesson_version_ref,
     )
     if replay is not None:
@@ -372,6 +373,7 @@ def create_parent_story_run(
         idempotency_key=key,
         topic=payload.topic,
         adult_confirmed_idea=payload.adult_confirmed_idea,
+        intended_drawing_subject=payload.intended_drawing_subject,
         lesson_version_ref=lesson_version_ref,
         lesson_pin_snapshot=lesson_pin_snapshot,
     )

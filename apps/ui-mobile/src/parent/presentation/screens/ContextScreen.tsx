@@ -31,16 +31,17 @@ export function ContextScreen(props: Props): React.JSX.Element {
       subtitle="Chỉ xem dữ liệu cần cho buổi học này."
       step={props.stepLabel}
       onBack={props.onBack}
+      visualTone="creative"
     >
-      {props.profile ? <Card style={styles.profileCard}>
-        <SectionTitle>Hồ sơ được chọn</SectionTitle>
+      {props.profile ? <Card variant="creative" style={styles.profileCard}>
+        <SectionTitle variant="creative">Hồ sơ được chọn</SectionTitle>
         <Text style={styles.profileText}>
           {props.profile.display_name}
         </Text>
       </Card> : null}
 
-      <Card style={styles.snapshotCard}>
-        <SectionTitle>Hồ sơ và bản nội dung</SectionTitle>
+      <Card variant="creative" style={styles.snapshotCard}>
+        <SectionTitle variant="creative">Hồ sơ và bản nội dung</SectionTitle>
         {snapshot ? <>
           {props.contextRun?.profile_revision_ref ? <View style={styles.snapshotRow}>
             <Text style={styles.snapshotLabel}>Bản hồ sơ</Text>
@@ -71,25 +72,29 @@ export function ContextScreen(props: Props): React.JSX.Element {
       </Card>
 
       {props.contextRun && !subjectConfirmed ? <Notice
+        variant="creative"
         text="Hãy xem và xác nhận chủ thể của tranh trước khi xác nhận ngữ cảnh."
         tone="warning"
       /> : null}
-      {props.error ? <Notice text={props.error} tone="error" /> : null}
+      {props.error ? <Notice variant="creative" text={props.error} tone="error" /> : null}
       {props.confirmed ? <>
-        <Notice text="Ngữ cảnh đã được xác nhận." tone="success" />
-        <SecondaryButton label="Tiếp tục" disabled={props.busy} onPress={props.onContinue} />
+        <Notice variant="creative" text="Ngữ cảnh đã được xác nhận." tone="success" />
+        <SecondaryButton variant="creative" label="Tiếp tục" disabled={props.busy} onPress={props.onContinue} />
       </> : props.contextRun ? <PrimaryButton
         label="Xác nhận ngữ cảnh"
         busy={props.busy}
         disabled={props.busy || !subjectConfirmed}
         onPress={props.onConfirm}
+        variant="creative"
       /> : <PrimaryButton
         label={props.error ? 'Thử lại' : 'Tạo buổi học'}
         busy={props.busy}
         disabled={props.busy}
         onPress={props.onRetryCreate}
+        variant="creative"
       />}
       {awaitingDrawing ? <SecondaryButton
+        variant="creative"
         label="Quay lại xem tranh"
         disabled={props.busy}
         onPress={props.onContinue}

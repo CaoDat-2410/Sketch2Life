@@ -1,0 +1,114 @@
+{
+  "schema_version": "sketch2life.feat082.parent-e2e-summary.v1",
+  "test_date_local": "2026-11-23",
+  "execution": {
+    "mode": "real_android_ui_to_backend_to_modal",
+    "synthetic_only": true,
+    "fixture_used": false,
+    "direct_worker_call_used": false,
+    "database_mutation_used": false,
+    "quota_or_safety_bypass_used": false,
+    "android_device": "emulator-5562",
+    "app_package": "com.sketch2life.parentexpo.qwen38test",
+    "api_stack": "s2l-feat081-rev23"
+  },
+  "story_run_id": "d8f8e127-a601-4676-b885-81373b239bfe",
+  "steps": [
+    {
+      "name": "drawing_understanding",
+      "status": "passed",
+      "modal_call_id": "fc-01M81KK87X5J1C6GJKVE9YGCWY",
+      "model": "Qwen/Qwen3.5-9B",
+      "elapsed_ms": 37499,
+      "outcome": "Adult confirmed the recognized turtle-and-leaf subject."
+    },
+    {
+      "name": "activity_suggestion_and_selection",
+      "status": "passed",
+      "backend_request_id": "8564847d-ee0c-4f1b-a7de-bacb35ed9268",
+      "modal_call_id": "fc-01M822XW6J5CGC3P7059649GT5",
+      "model": "Qwen/Qwen3.8-27B-FP8",
+      "gpu": "L40S",
+      "elapsed_ms": 275668,
+      "generation_elapsed_ms": 161400,
+      "catalog_candidates": 0,
+      "ai_fallback_candidates": 3,
+      "outcome": "Schema-valid fallback list returned; adult selected and persisted one activity through the UI."
+    },
+    {
+      "name": "story_revision_1",
+      "status": "generated_but_rewritten_by_adult",
+      "backend_request_id": "3975c22c-bd85-4134-922d-fd46fc9ad065",
+      "modal_call_id": "fc-01M823AZ27P4YEGKVA04NG4G0X",
+      "model": "Qwen/Qwen3.8-27B-FP8",
+      "scene_count": 5,
+      "elapsed_ms": 314938,
+      "issue": "Draft introduced unsupported water/raft content and was not accepted as-is."
+    },
+    {
+      "name": "story_revision_2_and_adult_confirmation",
+      "status": "passed",
+      "backend_request_id": "3cad6c03-ea1e-4a05-b676-44598d73ef3d",
+      "modal_call_id": "fc-01M823Y9Q1JCM8PCXJRN47XFM5",
+      "model": "Qwen/Qwen3.8-27B-FP8",
+      "scene_count": 5,
+      "elapsed_ms": 326440,
+      "outcome": "Adult used the UI rewrite action once; parser/business checks passed and the adult confirmed revision 2."
+    },
+    {
+      "name": "silent_video_candidate_and_playback",
+      "status": "worker_succeeded_and_played_to_end",
+      "modal_call_id": "fc-01M824GGG880MHYPXCWQ3Y757V",
+      "model": "Lightricks/LTX-2.5",
+      "model_revision": "49b093a39c19169a8a81721dcc541e07e945232f",
+      "gpu": "L40S",
+      "worker_elapsed_ms": 450330,
+      "duration_seconds": 30,
+      "scene_count": 5,
+      "audio": false,
+      "technical_media_validation": "passed",
+      "android_playback": "reached 0:30",
+      "safety_validation": "not_checked; UI labels this a development preview",
+      "visual_review": [
+        "Turtle/leaf artwork, colors, and crayon-like texture remain recognizable.",
+        "Transient text-like artifact appears in an early scene.",
+        "Turtle/leaf relative position drifts and overlaps in middle scenes."
+      ]
+    }
+  ],
+  "focused_modal_tests": {
+    "status": "passed",
+    "passed": 82
+  },
+  "cleanup": {
+    "emulator_stopped": true,
+    "worktree_expo_stopped": true,
+    "test_compose_project": "s2l-feat081-rev23",
+    "test_compose_containers_stopped": [
+      "s2l-feat081-rev23-api-1",
+      "s2l-feat081-rev23-postgres-1",
+      "s2l-feat081-rev23-minio-1",
+      "s2l-feat081-rev23-clamav-1"
+    ],
+    "modal_apps_stopped": [
+      "sketch2life-srs23-dev-video",
+      "sketch2life-srs23-language-audio-dev",
+      "sketch2life-srs23-drawing-vlm-dev"
+    ],
+    "persistent_volumes_or_data_deleted": false,
+    "unrelated_docker_stacks_stopped": false
+  },
+  "evidence_directory": "ANDROID_UI_RUN_20261122",
+  "key_screenshots": [
+    "65-story-rewrite-request.png",
+    "66-story-rewrite-result.png",
+    "68-story-adult-confirmation.png",
+    "70-video-request-sent.png",
+    "74-video-progress.png",
+    "76-video-playing-start.png",
+    "77-video-playing-mid.png",
+    "78-video-playing-late.png",
+    "79-video-end.png"
+  ],
+  "release_boundary": "Technical development E2E passed. This evidence does not prove the SRS automatic video safety gate or production narration/subtitle requirements."
+}

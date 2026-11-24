@@ -51,11 +51,14 @@ class ParentStoryRunService:
         idempotency_key: str,
         topic: str,
         adult_confirmed_idea: str,
+        intended_drawing_subject: str | None = None,
         lesson_version_ref: dict[str, str] | None = None,
         lesson_pin_snapshot: dict[str, object] | None = None,
     ) -> ParentStoryRunView:
-        normalized_topic, normalized_idea = self._normalize_create_values(
-            topic=topic, adult_confirmed_idea=adult_confirmed_idea
+        normalized_topic, normalized_idea, normalized_subject = self._normalize_create_values(
+            topic=topic,
+            adult_confirmed_idea=adult_confirmed_idea,
+            intended_drawing_subject=intended_drawing_subject,
         )
         profile = self._profile_for_run(principal=principal, profile_id=parent_profile_id)
         return self._repository.create_run(
@@ -66,6 +69,7 @@ class ParentStoryRunService:
             run_id=str(uuid.uuid4()),
             topic=normalized_topic,
             adult_confirmed_idea=normalized_idea,
+            intended_drawing_subject=normalized_subject,
             lesson_version_ref=lesson_version_ref,
             lesson_pin_snapshot=lesson_pin_snapshot,
         )
@@ -79,10 +83,13 @@ class ParentStoryRunService:
         idempotency_key: str,
         topic: str,
         adult_confirmed_idea: str,
+        intended_drawing_subject: str | None = None,
         lesson_version_ref: dict[str, str] | None = None,
     ) -> ParentStoryRunView | None:
-        normalized_topic, normalized_idea = self._normalize_create_values(
-            topic=topic, adult_confirmed_idea=adult_confirmed_idea
+        normalized_topic, normalized_idea, normalized_subject = self._normalize_create_values(
+            topic=topic,
+            adult_confirmed_idea=adult_confirmed_idea,
+            intended_drawing_subject=intended_drawing_subject,
         )
         return self._repository.replay_create_run(
             principal=principal,
@@ -91,11 +98,14 @@ class ParentStoryRunService:
             idempotency_key=idempotency_key,
             topic=normalized_topic,
             adult_confirmed_idea=normalized_idea,
+            intended_drawing_subject=normalized_subject,
             lesson_version_ref=lesson_version_ref,
         )
 
     @staticmethod
-    def _normalize_create_values(*, topic: str, adult_confirmed_idea: str) -> tuple[str, str]:
+    def _normalize_create_values(
+        *, topic: str, adult_confirmed_idea: str, intended_drawing_subject: str | None
+    ) -> tuple[str, str, str | None]:
         normalized_topic = topic.strip()
         normalized_idea = adult_confirmed_idea.strip()
         if (normalized_topic and not _SAFE_TOPIC.search(normalized_topic)) or len(
@@ -104,7 +114,10 @@ class ParentStoryRunService:
             raise ParentStoryRunServiceError(422, "PARENT_STORY_TOPIC_INVALID")
         if len(normalized_idea) > 500:
             raise ParentStoryRunServiceError(422, "PARENT_STORY_IDEA_TOO_LONG")
-        return normalized_topic, normalized_idea
+        normalized_subject = " ".join((intended_drawing_subject or "").split()) or None
+        if normalized_subject is not None and len(normalized_subject) > 160:
+            raise ParentStoryRunServiceError(422, "PARENT_DRAWING_SUBJECT_TOO_LONG")
+        return normalized_topic, normalized_idea, normalized_subject
 
     def get_run(self, *, principal: VerifiedPrincipal, run_id: str) -> ParentStoryRunView:
         return self._repository.get_run(principal=principal, run_id=run_id)
@@ -189,6 +202,7 @@ class ParentStoryRunService:
         self,
         *,
         principal: VerifiedPrincipal,
+        account_id: str,
         run_id: str,
         expected_understanding_revision: int,
         rewrite_instruction: str | None,
@@ -203,6 +217,7 @@ class ParentStoryRunService:
             raise ParentStoryRunServiceError(422, "PARENT_REWRITE_INSTRUCTION_INVALID")
         return self._repository.reserve_story_revision(
             principal=principal,
+            account_id=account_id,
             run_id=run_id,
             expected_understanding_revision=expected_understanding_revision,
             rewrite_instruction=instruction,

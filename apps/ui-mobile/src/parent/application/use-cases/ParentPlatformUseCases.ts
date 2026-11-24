@@ -1,4 +1,5 @@
 import type { ParentApiPort } from '../ports/ParentPorts';
+import type { ParentActionIdentity } from '../ports/ParentPorts';
 import { ParentApplicationError } from '../ParentApplicationError';
 
 /** Application actions for Parent history, sharing, notifications and quota. */
@@ -80,6 +81,36 @@ export class ParentPlatformUseCases {
 
   getVideoQuota() {
     return this.api.getVideoQuota();
+  }
+
+  requestVideoCandidate(
+    runId: string,
+    storyRevision: number,
+    storySha256: string,
+    actionIdentity: ParentActionIdentity,
+  ) {
+    this.requireId(runId, 'PARENT_STORY_RUN_REQUIRED');
+    if (!Number.isInteger(storyRevision) || storyRevision < 1 || !/^[a-f0-9]{64}$/.test(storySha256)) {
+      throw new ParentApplicationError('VIDEO_CANDIDATE_REQUEST_INVALID', 'Câu chuyện đã thay đổi. Hãy tải lại trước khi tạo video.');
+    }
+    return this.api.requestVideoCandidate(runId, storyRevision, storySha256, actionIdentity);
+  }
+
+  getCurrentVideoCandidate(runId: string) {
+    this.requireId(runId, 'PARENT_STORY_RUN_REQUIRED');
+    return this.api.getCurrentVideoCandidate(runId);
+  }
+
+  getVideoCandidate(runId: string, candidateId: string) {
+    this.requireId(runId, 'PARENT_STORY_RUN_REQUIRED');
+    this.requireId(candidateId, 'VIDEO_CANDIDATE_REQUIRED');
+    return this.api.getVideoCandidate(runId, candidateId);
+  }
+
+  getVideoCandidatePreviewSource(runId: string, candidateId: string) {
+    this.requireId(runId, 'PARENT_STORY_RUN_REQUIRED');
+    this.requireId(candidateId, 'VIDEO_CANDIDATE_REQUIRED');
+    return this.api.getVideoCandidatePreviewSource(runId, candidateId);
   }
 
   private requireId(value: string, code: string): void {

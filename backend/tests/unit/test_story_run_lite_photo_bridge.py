@@ -15,6 +15,7 @@ from sketch2life.infrastructure.ai.modal_function_client import (
     MODEL_ID,
     MODEL_REVISION,
     ModalDrawingFunctionClient,
+    ModalFunctionExecutionFailed,
     ModalFunctionOutcomeUnknown,
     ModalFunctionResult,
     prepare_drawing_input,
@@ -453,6 +454,151 @@ def test_modal_function_timeout_keeps_scratch_input_for_pending_worker():
     assert error.value.call_id == "fc-synthetic-pending"
     assert volume.removed is False
     function.spawn.assert_called_once()
+
+
+def test_modal_function_spawn_failure_logs_stage_and_exception_type_without_sdk_text(capsys):
+    _source, prepared = _prepared_input()
+
+    class Batch:
+        def put_file(self, _stream, _path):
+            return None
+
+    class Volume:
+        @contextmanager
+        def batch_upload(self):
+            yield Batch()
+
+        def remove_file(self, _path, *, recursive):
+            raise AssertionError("ambiguous dispatch must retain scratch input")
+
+    function = Mock()
+    function.spawn.side_effect = RuntimeError("sensitive SDK diagnostic")
+
+    with pytest.raises(ModalFunctionOutcomeUnknown) as error:
+        ModalDrawingFunctionClient(volume=Volume(), function=function).invoke(prepared)
+
+    assert error.value.call_id is None
+    logged = capsys.readouterr().out
+    assert "modal_worker_call_failed" in logged
+    assert "stage=function_spawn" in logged
+    assert "exception_type=RuntimeError" in logged
+    assert "sensitive SDK diagnostic" not in logged
+    function.spawn.assert_called_once_with(prepared.payload)
+
+
+def test_modal_function_not_found_at_spawn_is_terminal_and_cleans_scratch(capsys):
+    _source, prepared = _prepared_input()
+
+    class Batch:
+        def put_file(self, _stream, _path):
+            return None
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return None
+
+    class Volume:
+        removed = None
+
+        def batch_upload(self):
+            return Batch()
+
+        def remove_file(self, path, *, recursive):
+            self.removed = (path, recursive)
+
+    NotFoundError = type("NotFoundError", (RuntimeError,), {"__module__": "modal.exception"})
+    function = Mock()
+    function.spawn.side_effect = NotFoundError("function deployment not found")
+    volume = Volume()
+
+    with pytest.raises(ModalFunctionExecutionFailed) as error:
+        ModalDrawingFunctionClient(volume=volume, function=function).invoke(prepared)
+
+    assert error.value.code == "MODAL_FUNCTION_UNAVAILABLE"
+    assert volume.removed == (f"{prepared.attempt_prefix}input", True)
+    logged = capsys.readouterr().out
+    assert "modal_worker_dispatch_rejected" in logged
+    assert "error_code=MODAL_FUNCTION_UNAVAILABLE" in logged
+    assert "function deployment not found" not in logged
+
+
+def test_modal_drawing_terminal_worker_truncation_is_classified_and_cleaned(capsys):
+    _source, prepared = _prepared_input()
+
+    class Batch:
+        def put_file(self, _stream, _path):
+            return None
+
+    class Volume:
+        removed: tuple[str, bool] | None = None
+
+        @contextmanager
+        def batch_upload(self):
+            yield Batch()
+
+        def remove_file(self, path, *, recursive):
+            self.removed = (path, recursive)
+
+    terminal = {
+        "schema_version": "sketch2life.modal.worker-event.v1",
+        "event": "worker_failed",
+        "workload": "drawing.analyze",
+        "stage": "output_parse_and_contract_validation",
+        "duration_ms": 64_000,
+        "error_code": "MODAL_MODEL_OUTPUT_TRUNCATED",
+        "error_type": "RuntimeError",
+    }
+    diagnostic = {
+        "event": "drawing_output_truncated",
+        "reason_code": "MODAL_MODEL_OUTPUT_TRUNCATED",
+        "workload": "drawing.analyze",
+        "generated_token_count": 512,
+        "max_output_units": 512,
+        "token_limit_reached": True,
+        "ended_with_model_eos": False,
+        "json_complete": False,
+        "json_error_type": "UnterminatedString",
+        "json_error_position": 146,
+        "decoded_character_count": 512,
+        "model_eos_token_ids": [248044, 248045],
+        "callback_calls": 512,
+        "last_parser_can_end": True,
+        "last_model_eos_allowed": True,
+        "last_parser_state_class": "StringParser",
+        "generated_text": "private output must not reach logs",
+    }
+
+    class Logs:
+        def tail(self, *, entries):
+            assert entries == 500
+            return [
+                SimpleNamespace(
+                    message="\n".join(json.dumps(item) for item in (terminal, diagnostic))
+                )
+            ]
+
+    handle = Mock()
+    handle.object_id = "fc-drawing-terminal"
+    handle.get.side_effect = RuntimeError("provider text that must not be logged")
+    handle.logs = Logs()
+    function = Mock()
+    function.spawn.return_value = handle
+    volume = Volume()
+
+    with pytest.raises(ModalFunctionExecutionFailed) as error:
+        ModalDrawingFunctionClient(volume=volume, function=function).invoke(prepared)
+
+    assert error.value.code == "DRAWING_OUTPUT_TRUNCATED"
+    assert volume.removed == (f"{prepared.attempt_prefix}input", True)
+    logged = capsys.readouterr().out
+    assert "worker_terminal_event=worker_failed" in logged
+    assert "worker_error_code=MODAL_MODEL_OUTPUT_TRUNCATED" in logged
+    assert "worker_diagnostic_code=MODAL_MODEL_OUTPUT_TRUNCATED" in logged
+    assert "provider text that must not be logged" not in logged
+    assert "private output must not reach logs" not in logged
+    assert "UnterminatedString" in logged
 
 
 def test_modal_function_composition_requires_only_pinned_synthetic_run(

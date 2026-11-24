@@ -30,6 +30,12 @@ const authMessages: Record<string, string> = {
   WEAK_PASSWORD: 'Mật khẩu cần có ít nhất 6 ký tự.',
   TOO_MANY_ATTEMPTS_TRY_LATER: 'Thử lại sau ít phút.',
   ACCOUNT_ROLE_MISMATCH: 'Tài khoản này không có quyền Phụ huynh.',
+  ACCOUNT_SETUP_UNAVAILABLE: 'Chưa thể đồng bộ tài khoản với máy chủ. Hãy kiểm tra kết nối rồi thử lại.',
+  DATABASE_UNAVAILABLE: 'Máy chủ dữ liệu đang khởi động. Tài khoản chưa được tạo; hãy thử lại sau.',
+  IDENTITY_PROVIDER_UNAVAILABLE: 'Firebase Auth đang tạm thời không phản hồi. Hãy thử lại sau.',
+  FIREBASE_API_KEY_MISSING: 'Ứng dụng chưa nhận cấu hình Firebase. Hãy khởi động lại app sau khi cấu hình .env gốc.',
+  MOBILE_API_URL_MISSING: 'Ứng dụng chưa nhận địa chỉ backend. Hãy khởi động lại app sau khi cấu hình .env gốc.',
+  REGISTRATION_CREATED_SIGNIN_FAILED: 'Tài khoản đã được tạo nhưng chưa đăng nhập được. Hãy chọn Đăng nhập để tiếp tục; đừng tạo tài khoản mới.',
 };
 
 export class ParentAuthError extends ParentApplicationError {
@@ -54,7 +60,7 @@ export class ParentAuth implements ParentIdentityPort {
     );
     this.session = this.toSession(payload);
     try {
-      await this.requireParentRole();
+      await this.ensureParentScope();
       return this.session.user;
     } catch (error) {
       await this.signOut();
@@ -65,21 +71,25 @@ export class ParentAuth implements ParentIdentityPort {
   async signUp(email: string, password: string): Promise<ParentUser> {
     const apiBaseUrl = this.apiUrl();
     const registrationUrl = `${apiBaseUrl}/api/auth/v1/registrations`;
-    const response = await fetch(registrationUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ email: email.trim(), password }),
-    }).catch((error: unknown) => {
+    let response: Response;
+    try {
+      response = await fetch(registrationUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ email: email.trim(), password }),
+      });
+    } catch (error: unknown) {
       if (__DEV__) {
         console.info('parent_registration_network_failed', {
           origin: new URL(registrationUrl).origin,
           path: '/api/auth/v1/registrations',
           errorName: error instanceof Error ? error.name : 'UnknownError',
-          errorMessage: error instanceof Error ? error.message : String(error),
         });
       }
+      const recovered = await this.tryRecoverParentSession(email, password);
+      if (recovered) return recovered;
       throw new ParentAuthError('REGISTRATION_NETWORK_ERROR', 'Không kết nối được máy chủ đăng ký.');
-    });
+    }
     if (__DEV__) {
       console.info('parent_registration_response_received', {
         origin: new URL(registrationUrl).origin,
@@ -95,9 +105,20 @@ export class ParentAuth implements ParentIdentityPort {
     };
     if (!response.ok || result.status !== 'IDENTITY_CREATED' || result.role !== 'parent') {
       const code = result.code ?? result.detail?.code ?? `REGISTRATION_HTTP_${response.status}`;
+      if ([409, 503].includes(response.status)) {
+        const recovered = await this.tryRecoverParentSession(email, password);
+        if (recovered) return recovered;
+      }
       throw new ParentAuthError(code, authMessages[code] ?? 'Không thể tạo tài khoản lúc này.');
     }
-    return this.signIn(email, password);
+    try {
+      return await this.signIn(email, password);
+    } catch (error) {
+      if (error instanceof ParentAuthError && error.code !== 'ACCOUNT_ROLE_MISMATCH') {
+        throw new ParentAuthError('REGISTRATION_CREATED_SIGNIN_FAILED', authMessages.REGISTRATION_CREATED_SIGNIN_FAILED);
+      }
+      throw error;
+    }
   }
 
   async signInWithGoogle(googleIdToken: string): Promise<ParentUser> {
@@ -115,7 +136,7 @@ export class ParentAuth implements ParentIdentityPort {
     );
     this.session = this.toSession(body);
     try {
-      await this.requireParentRole();
+      await this.ensureParentScope();
       return this.session.user;
     } catch (error) {
       await this.signOut();
@@ -202,6 +223,54 @@ export class ParentAuth implements ParentIdentityPort {
     }
   }
 
+  private async ensureParentScope(): Promise<void> {
+    try {
+      await this.requireParentRole();
+    } catch (error) {
+      if (!(error instanceof ParentAuthError) || error.code !== 'ACCOUNT_SETUP_UNAVAILABLE') {
+        throw error;
+      }
+      await this.completeParentRegistration();
+      await this.requireParentRole();
+    }
+  }
+
+  private async completeParentRegistration(): Promise<void> {
+    const url = `${this.apiUrl()}/api/auth/v1/registrations/complete`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${await this.getIdToken()}`,
+        Accept: 'application/json',
+      },
+    }).catch(() => {
+      throw new ParentAuthError('AUTH_API_UNAVAILABLE', 'Không kết nối được máy chủ tài khoản.');
+    });
+    const body = await response.json().catch(() => ({})) as {
+      role?: string;
+      state?: string;
+      code?: string;
+      detail?: { code?: string };
+    };
+    if (!response.ok) {
+      const code = body.code ?? body.detail?.code ?? `AUTH_API_HTTP_${response.status}`;
+      throw new ParentAuthError(code, authMessages[code] ?? 'Chưa thể đồng bộ tài khoản với máy chủ.');
+    }
+    if (body.role !== 'parent' || body.state !== 'active') {
+      throw new ParentAuthError('ACCOUNT_SETUP_UNAVAILABLE', authMessages.ACCOUNT_SETUP_UNAVAILABLE);
+    }
+  }
+
+  private async tryRecoverParentSession(email: string, password: string): Promise<ParentUser | null> {
+    try {
+      return await this.signIn(email, password);
+    } catch {
+      // Keep the original registration response. The login attempt only recovers a
+      // Firebase identity whose backend commit succeeded or can now be completed.
+      return null;
+    }
+  }
+
   private async refresh(active: Session): Promise<string> {
     const response = await fetch(`${SECURE_TOKEN}?key=${encodeURIComponent(this.apiKey())}`, {
       method: 'POST',
@@ -214,12 +283,16 @@ export class ParentAuth implements ParentIdentityPort {
   }
 
   private apiKey(): string {
-    if (!parentConfig.firebaseApiKey) throw new Error('Thiếu Firebase API key trong .env gốc.');
+    if (!parentConfig.firebaseApiKey) {
+      throw new ParentAuthError('FIREBASE_API_KEY_MISSING', authMessages.FIREBASE_API_KEY_MISSING);
+    }
     return parentConfig.firebaseApiKey;
   }
 
   private apiUrl(): string {
-    if (!parentConfig.apiBaseUrl) throw new Error('Thiếu API URL trong .env gốc.');
+    if (!parentConfig.apiBaseUrl) {
+      throw new ParentAuthError('MOBILE_API_URL_MISSING', authMessages.MOBILE_API_URL_MISSING);
+    }
     return parentConfig.apiBaseUrl;
   }
 
@@ -240,7 +313,17 @@ export class ParentAuth implements ParentIdentityPort {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
-    }).catch(() => { throw new ParentAuthError('AUTH_NETWORK_ERROR', 'Không kết nối được Firebase Auth.'); });
+    }).catch((error: unknown) => {
+      if (__DEV__) {
+        const requestUrl = new URL(url);
+        console.info('parent_firebase_auth_network_failed', {
+          host: requestUrl.host,
+          path: requestUrl.pathname,
+          errorName: error instanceof Error ? error.name : 'UnknownError',
+        });
+      }
+      throw new ParentAuthError('AUTH_NETWORK_ERROR', 'Không kết nối được Firebase Auth.');
+    });
     return this.readFirebase(response);
   }
 

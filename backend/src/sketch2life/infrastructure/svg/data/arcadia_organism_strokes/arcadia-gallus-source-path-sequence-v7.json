@@ -1,0 +1,96 @@
+{
+  "schema_version": "ArcadiaSourcePathSequenceGuideV7",
+  "source": {
+    "asset_id": "arcadia-gallus-gallus-tricolorstroke-v1",
+    "dataset_name": "Arcadia Science Free Organism Illustration Library",
+    "dataset_revision": "1.0",
+    "dataset_doi": "10.5281/zenodo.17203578",
+    "source_sha256": "4f6397d5d32ff7ea58451cb5e5725c87501be155c0eb64f85c5821dfe99cb1ed",
+    "license_id": "CC0-1.0",
+    "license_uri": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "source_path_count": 77,
+    "contains_stroke_order": false
+  },
+  "supported_topics": [
+    "gà",
+    "con gà",
+    "gà mái",
+    "con gà mái",
+    "gà trống",
+    "con gà trống",
+    "chicken",
+    "rooster"
+  ],
+  "derivation": {
+    "engine_id": "arcadia-source-svg-path-sequence",
+    "engine_revision": "7.0.0",
+    "method": "EXACT_SOURCE_PATH_SEQUENCE_V7"
+  },
+  "title_vi": "Vẽ con gà theo hình mẫu",
+  "stages": [
+    {
+      "step_index": 1,
+      "part_id": "main_silhouette",
+      "label_vi": "Đường bao thân gà",
+      "instruction_vi": "Bắt đầu bằng đường bao lớn của thân và cổ gà.",
+      "path_ids": ["source-path-001"],
+      "depends_on": []
+    },
+    {
+      "step_index": 2,
+      "part_id": "head_details",
+      "label_vi": "Mào, mỏ và mặt",
+      "instruction_vi": "Thêm mào, mỏ, yếm và các nét trên mặt.",
+      "path_ids": ["source-path-002", "source-path-003", "source-path-004", "source-path-009", "source-path-010", "source-path-011", "source-path-012", "source-path-013"],
+      "depends_on": ["main_silhouette"]
+    },
+    {
+      "step_index": 3,
+      "part_id": "legs_and_feet",
+      "label_vi": "Hai chân và bàn chân",
+      "instruction_vi": "Vẽ hai chân cùng dáng bàn chân đứng vững.",
+      "path_ids": ["source-path-005", "source-path-006"],
+      "depends_on": ["main_silhouette"]
+    },
+    {
+      "step_index": 4,
+      "part_id": "wing_and_tail_masses",
+      "label_vi": "Cánh và đuôi",
+      "instruction_vi": "Thêm phần cánh và chiếc đuôi vươn lên phía sau.",
+      "path_ids": ["source-path-007", "source-path-008"],
+      "depends_on": ["main_silhouette"]
+    },
+    {
+      "step_index": 5,
+      "part_id": "lower_body_feathers",
+      "label_vi": "Nét lông ở thân dưới",
+      "instruction_vi": "Vẽ các nét lông cong ở phần thân dưới.",
+      "path_ids": ["source-path-014", "source-path-015", "source-path-016", "source-path-017", "source-path-018", "source-path-019", "source-path-020", "source-path-021", "source-path-022"],
+      "depends_on": ["wing_and_tail_masses"]
+    },
+    {
+      "step_index": 6,
+      "part_id": "neck_and_breast_feathers",
+      "label_vi": "Nét lông cổ và ngực",
+      "instruction_vi": "Hoàn thiện các nét lông trên cổ và ngực.",
+      "path_ids": ["source-path-023", "source-path-024", "source-path-025", "source-path-026", "source-path-027", "source-path-028", "source-path-029", "source-path-030", "source-path-031", "source-path-032", "source-path-033", "source-path-034", "source-path-035", "source-path-036", "source-path-037", "source-path-038", "source-path-039", "source-path-040", "source-path-041", "source-path-042", "source-path-043"],
+      "depends_on": ["main_silhouette"]
+    },
+    {
+      "step_index": 7,
+      "part_id": "tail_feather_details",
+      "label_vi": "Lông đuôi xếp lớp",
+      "instruction_vi": "Thêm các nét cong tạo thành nhiều lớp lông đuôi.",
+      "path_ids": ["source-path-044", "source-path-045", "source-path-046", "source-path-047", "source-path-048", "source-path-049", "source-path-050", "source-path-051", "source-path-052", "source-path-053", "source-path-054", "source-path-055", "source-path-056", "source-path-057", "source-path-058", "source-path-059", "source-path-060", "source-path-061", "source-path-062"],
+      "depends_on": ["wing_and_tail_masses"]
+    },
+    {
+      "step_index": 8,
+      "part_id": "wing_back_feathers",
+      "label_vi": "Lông cánh và lưng",
+      "instruction_vi": "Cuối cùng, thêm các nét lông trên cánh và lưng.",
+      "path_ids": ["source-path-063", "source-path-064", "source-path-065", "source-path-066", "source-path-067", "source-path-068", "source-path-069", "source-path-070", "source-path-071", "source-path-072", "source-path-073", "source-path-074", "source-path-075", "source-path-076", "source-path-077"],
+      "depends_on": ["wing_and_tail_masses"]
+    }
+  ]
+}

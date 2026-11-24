@@ -16,6 +16,10 @@ export type SelectedPhoto = {
   mediaType: 'image/jpeg' | 'image/png';
   fileSizeBytes?: number;
   analysisError?: string;
+  /** The run behind this photo reached a terminal FAILED state; only closing it is valid. */
+  analysisTerminal?: boolean;
+  /** A typed backend error proves drawing analysis stopped before Modal dispatch. */
+  analysisRetryable?: boolean;
 };
 
 export type SelectedAudio = {
@@ -93,7 +97,9 @@ export type AppStep =
   | 'profile-sharing'
   | 'lesson-history'
   | 'lesson-library'
+  | 'entry'
   | 'topic'
+  | 'subject'
   | 'idea'
   | 'drawing-guide'
   | 'lessons'
@@ -223,6 +229,17 @@ export function safeParentIdentityErrorMessage(error: unknown): string {
       return 'Email hoặc mật khẩu chưa đúng. Hãy kiểm tra rồi thử lại.';
     }
     if (code === 'EMAIL_EXISTS') return 'Email này đã có tài khoản. Hãy đăng nhập hoặc dùng email khác.';
+    if (code === 'FIREBASE_API_KEY_MISSING' || code === 'MOBILE_API_URL_MISSING') {
+      return typeof (error as { message?: unknown }).message === 'string'
+        ? (error as { message: string }).message
+        : 'Ứng dụng thiếu cấu hình kết nối. Hãy khởi động lại app sau khi cập nhật .env gốc.';
+    }
+    if (code === 'REGISTRATION_CREATED_SIGNIN_FAILED') {
+      return 'Tài khoản đã được tạo nhưng chưa đăng nhập được. Hãy chọn Đăng nhập để tiếp tục; đừng tạo tài khoản mới.';
+    }
+    if (code === 'DATABASE_UNAVAILABLE') return 'Máy chủ dữ liệu đang khởi động. Tài khoản chưa được tạo; hãy thử lại sau.';
+    if (code === 'IDENTITY_PROVIDER_UNAVAILABLE') return 'Firebase Auth đang tạm thời không phản hồi. Hãy thử lại sau.';
+    if (code === 'ACCOUNT_SETUP_UNAVAILABLE') return 'Chưa thể đồng bộ tài khoản với máy chủ. Hãy kiểm tra kết nối rồi thử lại.';
     if (code === 'WEAK_PASSWORD') return 'Mật khẩu chưa đủ mạnh. Hãy chọn mật khẩu khác.';
     if (code === 'INVALID_EMAIL') return 'Email chưa đúng định dạng.';
     if (code === 'MISSING_PASSWORD') return 'Hãy nhập mật khẩu để tiếp tục.';

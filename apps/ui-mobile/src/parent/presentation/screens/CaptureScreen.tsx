@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
@@ -8,17 +8,21 @@ import Svg, { Circle, Path, Rect } from 'react-native-svg';
 import type { SelectedPhoto } from '../navigation/workflowTypes';
 import { isWithinOfflinePhotoLimit } from '../navigation/parentFlowV1';
 import { Card, Notice, PrimaryButton, SecondaryButton, ScreenFrame, palette } from '../components/ui';
+import { ParentAiLoadingState } from '../components/ParentAiLoadingState';
 
 type Props = {
   photo: SelectedPhoto | null;
   stepLabel: string;
   canAnalyze: boolean;
   analysisBusy?: boolean;
+  closingRun?: boolean;
+  flowError?: string;
   runExists?: boolean;
   initialCaptureSource?: 'camera' | 'gallery' | null;
   onCaptureIntentHandled?: () => void;
   onPhoto: (photo: SelectedPhoto) => void;
   onContinue: () => void;
+  onCloseUnresolvedRun?: () => void;
   onBack: () => void;
 };
 
@@ -35,11 +39,14 @@ export function CaptureScreen({
   stepLabel,
   canAnalyze,
   analysisBusy = false,
+  closingRun = false,
+  flowError = '',
   runExists = false,
   initialCaptureSource = null,
   onCaptureIntentHandled,
   onPhoto,
   onContinue,
+  onCloseUnresolvedRun,
   onBack,
 }: Props): React.JSX.Element {
   const [busy, setBusy] = useState(false);
@@ -151,21 +158,46 @@ export function CaptureScreen({
         <View style={styles.imageFrame}>
           {photo ? <Image source={{ uri: photo.uri }} resizeMode="contain" style={styles.selectedImage} /> : <CaptureIllustration />}
         </View>
+        {analysisBusy ? <ParentAiLoadingState
+          testID="parent-drawing-ai-loading"
+          title="Đang phân tích bức vẽ"
+          description="AI đang nhận diện chủ thể và các chi tiết nhìn thấy trong ảnh. Người lớn sẽ xem lại kết quả sau bước này."
+          note="Giữ nguyên ảnh đã chọn. Không gửi lại yêu cầu đang xử lý."
+        /> : null}
         {!photo ? <Text style={styles.emptyText}>Ảnh chỉ được gửi sau khi bạn chọn “Nhận diện tranh”.</Text> : null}
         <PrimaryButton variant="creative" label={photoLocked ? 'Ảnh đã gắn với buổi học' : photo ? 'Chụp lại' : 'Mở camera'} busy={busy} disabled={photoLocked || analysisBusy} onPress={() => void chooseImage('camera')} />
         <SecondaryButton variant="creative" label="Chọn từ thư viện ảnh" disabled={busy || photoLocked || analysisBusy} onPress={() => void chooseImage('gallery')} />
         {photoLocked ? <Notice variant="creative" text="Ảnh đã được gắn với buổi học này và không thể thay đổi." tone="info" /> : null}
         {error ? <Notice variant="creative" text={error} tone="error" /> : null}
-        {photo?.analysisError ? <Notice variant="creative" text={photo.analysisError} tone="warning" /> : null}
+        {photo?.analysisError ? <Notice variant="creative" text={photo.analysisError} tone={photo.analysisTerminal ? 'error' : 'warning'} /> : null}
+        {photo?.analysisError && !photo.analysisTerminal && runExists && onCloseUnresolvedRun ? <SecondaryButton
+          variant="creative"
+          label={closingRun ? 'Đang đóng buổi…' : 'Đóng buổi chưa có kết quả'}
+          disabled={closingRun || analysisBusy}
+          onPress={() => Alert.alert(
+            'Đóng buổi chưa có kết quả?',
+            'Buổi cũ sẽ được giữ để hệ thống dọn dẹp. Nếu yêu cầu đã tới dịch vụ AI, thao tác này không thu hồi được yêu cầu đó.',
+            [
+              { text: 'Quay lại', style: 'cancel' },
+              { text: 'Đóng buổi', style: 'destructive', onPress: onCloseUnresolvedRun },
+            ],
+          )}
+        /> : null}
       </Card>
+      {flowError ? <Notice variant="creative" text={flowError} tone="info" /> : null}
       <Notice variant="creative" text="Bước này sẽ tạo buổi học cho ảnh đã chọn rồi gửi tranh để nhận diện." />
-      <PrimaryButton
+      {!analysisBusy && photo?.analysisTerminal && runExists && onCloseUnresolvedRun ? <PrimaryButton
         variant="creative"
-        label={analysisBusy ? 'Đang nhận diện tranh…' : photo?.analysisError ? 'Kiểm tra trạng thái buổi học' : runExists ? 'Nhận diện tranh' : 'Tạo buổi và nhận diện tranh'}
-        busy={analysisBusy}
+        label={closingRun ? 'Đang đóng buổi…' : 'Đóng buổi và bắt đầu lại'}
+        busy={closingRun}
+        disabled={closingRun || busy || analysisBusy}
+        onPress={onCloseUnresolvedRun}
+      /> : !analysisBusy ? <PrimaryButton
+        variant="creative"
+        label={photo?.analysisRetryable ? 'Thử lại nhận diện tranh' : photo?.analysisError ? 'Kiểm tra trạng thái buổi học' : runExists ? 'Nhận diện tranh' : 'Tạo buổi và nhận diện tranh'}
         disabled={!photo || !canAnalyze || busy || analysisBusy}
         onPress={onContinue}
-      />
+      /> : null}
     </ScreenFrame>
   );
 }

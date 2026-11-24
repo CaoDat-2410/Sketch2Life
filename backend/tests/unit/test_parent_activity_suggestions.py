@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import unicodedata
 from dataclasses import replace
 
 import pytest
@@ -9,6 +10,8 @@ from sketch2life.application.services.parent_activity_suggestions import (
     ParentActivitySuggestionError,
     ParentActivitySuggestionService,
     _contains_unsafe_action,
+    _has_incomplete_vietnamese_sentence_tail,
+    classify_parent_activity_worker_failure,
 )
 
 
@@ -26,6 +29,39 @@ def _activity(title: str, *, kind: str = "outdoor") -> dict[str, str]:
         "safety_notes": "Không chạm hoặc bắt côn trùng; luôn có người lớn giám sát.",
         "activity_kind": kind,
     }
+
+
+def test_incomplete_worker_text_maps_to_safe_parent_quality_rejection() -> None:
+    assert classify_parent_activity_worker_failure(
+        "MODAL_MODEL_OUTPUT_INCOMPLETE_TEXT"
+    ) == ("PARENT_ACTIVITY_QUALITY_GATE_REJECTED", "ACTIVITY_TEXT_INCOMPLETE")
+
+
+def test_other_terminal_worker_errors_remain_distinguishable() -> None:
+    assert classify_parent_activity_worker_failure(
+        "MODAL_GPU_UNAVAILABLE"
+    ) == ("MODAL_GPU_UNAVAILABLE", None)
+
+
+@pytest.mark.parametrize("subject_word", ["lá", "chó", "voi", "đó"])
+def test_sentence_tail_gate_accepts_vietnamese_nouns_with_tone_marks(
+    subject_word: str,
+) -> None:
+    sentence = f"Trẻ quan sát {subject_word}."
+
+    assert not _has_incomplete_vietnamese_sentence_tail(sentence)
+    assert not _has_incomplete_vietnamese_sentence_tail(
+        unicodedata.normalize("NFD", sentence)
+    )
+
+
+@pytest.mark.parametrize("dangling_word", ["là", "cho", "với", "do"])
+def test_sentence_tail_gate_still_rejects_vietnamese_connective_endings(
+    dangling_word: str,
+) -> None:
+    assert _has_incomplete_vietnamese_sentence_tail(
+        f"Trẻ quan sát {dangling_word}."
+    )
 
 
 def _lesson(
@@ -77,6 +113,28 @@ def _prepare(
         pinned_lesson_snapshot=None,
     )
     return service, prepared
+
+
+def test_catalog_context_excerpt_stops_at_word_boundary_without_mutating_lesson() -> None:
+    source_activity = _activity("Quan sát bướm trong vườn")
+    source_activity["instructions_text"] = (
+        "Trẻ cùng người lớn quan sát bướm trong khu vườn "
+        + "và mô tả điều trẻ nhìn thấy " * 40
+    )
+    lesson = _lesson(activity=source_activity)
+
+    _service, prepared = _prepare((lesson,))
+
+    context_activity = prepared.worker_input["candidate_activities"][0]["activity"]
+    bounded_instructions = context_activity["instructions_text"]
+    normalized_source = " ".join(source_activity["instructions_text"].split())
+    assert len(bounded_instructions) <= 700
+    assert bounded_instructions.endswith("…")
+    assert normalized_source.startswith(bounded_instructions[:-1])
+    assert normalized_source[len(bounded_instructions) - 1].isspace()
+    assert source_activity["instructions_text"].endswith("và mô tả điều trẻ nhìn thấy " * 1)
+    assert len(source_activity["instructions_text"]) > len(bounded_instructions)
+    assert prepared.truncated_catalog_context_field_count == 1
 
 
 def _fallbacks() -> list[dict[str, str]]:
@@ -165,6 +223,10 @@ def test_prepare_sends_minimized_context_and_only_exact_age_public_shared_candid
     )
 
     assert prepared.candidate_count == 2
+    assert prepared.accessible_lesson_count == 7
+    assert prepared.age_access_eligible_lesson_count == 4
+    assert prepared.age_access_eligible_activity_count == 2
+    assert prepared.relevance_matched_activity_count == 2
     assert set(prepared.candidates_by_ref) == {"C001", "C002"}
     assert prepared.worker_input["age_band_months"] == "72-107"
     assert prepared.worker_input["adult_confirmed_idea"] == (
@@ -176,6 +238,38 @@ def test_prepare_sends_minimized_context_and_only_exact_age_public_shared_candid
     assert "image" not in prepared.worker_input
     assert "parent_principal_ref" not in prepared.worker_input
     assert "linh@example.test" not in str(prepared.worker_input)
+
+
+def test_prepare_reports_relevance_matches_before_top_twelve_worker_cap():
+    lessons = tuple(
+        replace(
+            _lesson(),
+            lesson_id=f"lesson-{index}",
+            version_id=f"version-{index}",
+            activities=(_activity(f"Quan sát bướm trong vườn {index}"),),
+        )
+        for index in range(15)
+    )
+
+    _, prepared = _prepare(lessons)
+
+    assert prepared.accessible_lesson_count == 15
+    assert prepared.age_access_eligible_lesson_count == 15
+    assert prepared.age_access_eligible_activity_count == 15
+    assert prepared.relevance_matched_activity_count == 15
+    assert prepared.candidate_count == 12
+    assert len(prepared.worker_input["candidate_activities"]) == 12
+
+
+def test_prepare_reports_empty_catalog_counts_for_ai_fallback_path():
+    _, prepared = _prepare(())
+
+    assert prepared.accessible_lesson_count == 0
+    assert prepared.age_access_eligible_lesson_count == 0
+    assert prepared.age_access_eligible_activity_count == 0
+    assert prepared.relevance_matched_activity_count == 0
+    assert prepared.candidate_count == 0
+    assert prepared.worker_input["candidate_activities"] == []
 
 
 def test_prepare_sends_only_sanitized_adult_confirmed_idea_to_worker():
@@ -295,6 +389,28 @@ def test_fallback_requires_three_distinct_safe_outdoor_child_led_drafts():
     assert len(response["activities"]) == 3
     assert {item["source"] for item in response["activities"]} == {"AI_GENERATED_DRAFT"}
     assert all(item["source_lesson_version_id"] is None for item in response["activities"])
+
+
+def test_fallback_gate_accepts_valid_topic_noun_at_sentence_end():
+    service, prepared = _prepare(())
+    activities = _fallbacks()
+    activities[0]["objective"] = "Trẻ so sánh cánh bướm với chiếc lá."
+    raw = _worker_result(
+        decision="NO_MATCH",
+        reason="Không có hoạt động catalog phù hợp.",
+        activities=activities,
+    )
+
+    response = service.resolve(
+        prepared=prepared,
+        raw_result=raw,
+        request_id="00000000-0000-0000-0000-000000000001",
+        story_run_id="00000000-0000-0000-0000-000000000002",
+        understanding_revision=1,
+        modal_call_id=None,
+    )
+
+    assert response["selection_mode"] == "AI_GENERATED_FALLBACK"
 
 
 def test_fallback_allows_concise_materials_and_observation_fragments():
@@ -444,6 +560,49 @@ def test_fallback_gate_rejects_truncated_text_with_safe_diagnostic():
             modal_call_id=None,
         )
 
+    assert caught.value.diagnostic_code == "ACTIVITY_TEXT_INCOMPLETE"
+
+
+@pytest.mark.parametrize(
+    ("field", "replacement"),
+    [
+        ("objective", "Trẻ quan sát con r."),
+        ("objective", "Trẻ quan sát môi trường tự."),
+        ("preparation_text", "Người lớn chuẩn bị thẻ để trẻ."),
+        (
+            "instructions_text",
+            "Ở ngoài trời, trẻ tự quan sát vỏ rùa hình lục. Người lớn hỗ trợ khi cần.",
+        ),
+        (
+            "instructions_text",
+            "Trẻ phân loại thẻ theo màu sắc hoặc hình. Người lớn ở cạnh.",
+        ),
+        ("safety_notes", "Giữ khoảng cách nếu con rùa di chuyển hoặc có."),
+    ],
+)
+def test_fallback_gate_rejects_punctuated_but_incomplete_vietnamese_tails(
+    field: str, replacement: str
+):
+    service, prepared = _prepare(())
+    activities = _fallbacks()
+    activities[0][field] = replacement
+    raw = _worker_result(
+        decision="NO_MATCH",
+        reason="Không có hoạt động phù hợp.",
+        activities=activities,
+    )
+
+    with pytest.raises(ParentActivitySuggestionError) as caught:
+        service.resolve(
+            prepared=prepared,
+            raw_result=raw,
+            request_id="00000000-0000-0000-0000-000000000001",
+            story_run_id="00000000-0000-0000-0000-000000000002",
+            understanding_revision=1,
+            modal_call_id=None,
+        )
+
+    assert caught.value.code == "PARENT_ACTIVITY_QUALITY_GATE_REJECTED"
     assert caught.value.diagnostic_code == "ACTIVITY_TEXT_INCOMPLETE"
 
 

@@ -20,8 +20,8 @@ from sketch2life.contracts.schemas.modal_ai import (
 )
 from sketch2life.infrastructure.ai.modal_function_client import (
     FLUX_MODEL_PROVENANCE,
-    MODEL_ID,
-    MODEL_REVISION,
+    QWEN_TEXT_MODEL_ID,
+    QWEN_TEXT_MODEL_REVISION,
     ModalFunctionExecutionFailed,
     ModalFunctionOutcomeUnknown,
     ModalJsonFunctionClient,
@@ -123,7 +123,10 @@ def suggest_lesson_plan(
             exc, request_id=request_id, workload="lesson.plan.suggest"
         ) from None
     output = result.output
-    if output.get("model") != {"id": MODEL_ID, "revision": MODEL_REVISION}:
+    if output.get("model") != {
+        "id": QWEN_TEXT_MODEL_ID,
+        "revision": QWEN_TEXT_MODEL_REVISION,
+    }:
         raise HTTPException(status_code=502, detail={"code": "MODAL_MODEL_REVISION_MISMATCH"})
     model_result = output.get("result")
     content = model_result.get("content") if isinstance(model_result, dict) else None
@@ -139,7 +142,10 @@ def suggest_lesson_plan(
     return {
         "request_id": request_id,
         "modal_call_id": result.call_id,
-        "model": {"id": MODEL_ID, "revision": MODEL_REVISION},
+        "model": {
+            "id": QWEN_TEXT_MODEL_ID,
+            "revision": QWEN_TEXT_MODEL_REVISION,
+        },
         "status": "DRAFT",
         "review_required": True,
         "suggestion": content,
@@ -203,7 +209,8 @@ def generate_sketch_deck(
         ) from None
     deck = result.output.get("result")
     if (
-        result.output.get("model") != {"id": MODEL_ID, "revision": MODEL_REVISION}
+        result.output.get("model")
+        != {"id": QWEN_TEXT_MODEL_ID, "revision": QWEN_TEXT_MODEL_REVISION}
         or not isinstance(deck, dict)
         or deck.get("review_required") is not True
     ):
@@ -218,7 +225,10 @@ def generate_sketch_deck(
     return {
         "request_id": request_id,
         "modal_call_id": result.call_id,
-        "model": {"id": MODEL_ID, "revision": MODEL_REVISION},
+        "model": {
+            "id": QWEN_TEXT_MODEL_ID,
+            "revision": QWEN_TEXT_MODEL_REVISION,
+        },
         "status": "DRAFT",
         "deck": deck,
     }

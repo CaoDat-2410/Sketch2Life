@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import sys
+import time
 from pathlib import Path
 
 import pytest
@@ -9,9 +10,11 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from worker_observability import (  # noqa: E402
+    GenerationProgress,
     _error_code,
     observed_worker,
     refresh_worker_volume,
+    worker_runtime_verified,
     worker_phase,
 )
 
@@ -192,3 +195,38 @@ def test_refresh_worker_volume_failure_has_safe_code(capsys) -> None:
     assert records[-1]["stage"] == "scratch_volume_reload"
     assert records[-1]["error_code"] == "MODAL_SCRATCH_VOLUME_RELOAD_FAILED"
     assert "provider detail" not in json.dumps(records)
+
+
+def test_generation_progress_and_runtime_events_contain_only_allowlisted_metadata(
+    capsys,
+) -> None:
+    @observed_worker(workload="parent.activity.suggest")
+    def run(_payload):
+        worker_runtime_verified(
+            torch_version="2.7.1",
+            torch_cuda_version="12.6",
+            fla_version="0.6.0",
+            causal_conv1d_version="1.7.0",
+            triton_version="3.3.1",
+            gpu_capability="8.9",
+            prompt="must not be logged",
+        )
+        with GenerationProgress(max_new_tokens=20, heartbeat_seconds=0.01) as progress:
+            progress.update(3)
+            time.sleep(0.025)
+            progress.update(8)
+
+    run({"prompt": "private request"})
+    records = _records(capsys.readouterr().out)
+    progress = [record for record in records if record["event"] == "model_generation_progress"]
+    runtime = next(record for record in records if record["event"] == "worker_runtime_verified")
+
+    assert [record["progress_kind"] for record in progress][0] == "started"
+    assert "heartbeat" in {record["progress_kind"] for record in progress}
+    assert progress[-1]["progress_kind"] == "completed"
+    assert progress[-1]["generated_token_count"] == 8
+    assert progress[-1]["max_new_tokens"] == 20
+    assert runtime["fla_version"] == "0.6.0"
+    assert "prompt" not in runtime
+    assert "private request" not in json.dumps(records)
+    assert "must not be logged" not in json.dumps(records)

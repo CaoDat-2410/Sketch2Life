@@ -75,17 +75,50 @@ def test_story_revision_requires_ordered_scenes_and_total_duration_between_30_an
         StoryRevisionDraftV1.model_validate(invalid)
 
 
-def test_story_contract_accepts_schema_valid_text_without_terminal_punctuation() -> None:
+def test_public_story_contract_keeps_prose_as_strings_not_worker_sentence_objects() -> None:
     payload = _story()
-    payload["story"] = {key: value.rstrip(".") for key, value in payload["story"].items()}
-    for scene in payload["scenes"]:
-        for field in ("action", "visual_prompt", "narration"):
-            scene[field] = scene[field].rstrip(".")
+    validated = StoryRevisionDraftV1.model_validate(payload)
+    assert isinstance(validated.story["opening"], str)
+    assert isinstance(validated.scenes[0].action, str)
+    assert isinstance(validated.scenes[0].narration, str)
+
+    internal_worker_shape = _story()
+    internal_worker_shape["story"]["opening"] = {
+        "body": "Trên chiếc lá có một chấm trứng nhỏ",
+        "terminator": ".",
+    }
+    with pytest.raises(ValidationError):
+        StoryRevisionDraftV1.model_validate(internal_worker_shape)
+
+
+def test_story_contract_rejects_unfinished_paragraph_and_mixed_script() -> None:
+    payload = _story()
+    payload["story"]["middle"] = payload["story"]["middle"].rstrip(".")
+
+    with pytest.raises(ValidationError, match="STORY_TEXT_INCOMPLETE"):
+        StoryRevisionDraftV1.model_validate(payload)
+
+    payload = _story()
+    payload["story"]["opening"] = "Bé quan sát con rùa 完."
+    with pytest.raises(ValidationError, match="STORY_TEXT_NON_LATIN_SCRIPT"):
+        StoryRevisionDraftV1.model_validate(payload)
+
+
+def test_story_contract_rejects_dangling_sentence_even_with_punctuation() -> None:
+    payload = _story()
+    payload["story"]["middle"] = "Bé đặt thẻ xuống đất để không bị."
+
+    with pytest.raises(ValidationError, match="STORY_TEXT_INCOMPLETE"):
+        StoryRevisionDraftV1.model_validate(payload)
+
+
+def test_story_contract_allows_unpunctuated_english_visual_prompt() -> None:
+    payload = _story()
+    payload["scenes"][0]["visual_prompt"] = "A turtle card beside a child's drawing"
 
     parsed = StoryRevisionDraftV1.model_validate(payload)
 
-    assert not parsed.story["opening"].endswith(".")
-    assert not parsed.scenes[0].visual_prompt.endswith(".")
+    assert parsed.scenes[0].visual_prompt == payload["scenes"][0]["visual_prompt"]
 
 
 def test_butterfly_fact_guard_accepts_lifecycle_and_rejects_prior_errors() -> None:

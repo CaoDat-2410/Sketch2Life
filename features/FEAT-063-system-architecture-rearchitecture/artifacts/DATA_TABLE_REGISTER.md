@@ -1,11 +1,11 @@
 # Sketch2Life — Danh mục bảng dữ liệu
 
-**Revision note:** v2.7-draft / Rev57 (2026-11-09). This remains an unsigned target data register. It preserves 38 retained/refactored + 54 new = 92 active, plus 48 legacy/read-only = 140 projected mappings. Rev43's 41-table local snapshot is not a production or target count.
+**Revision note:** v2.7-draft / Rev72 (2026-11-19). This remains an unsigned target data register. The current source-derived crosswalk is 38 retained/refactored + 59 new = 97 active, plus 48 legacy/read-only = 145 projected mappings. Rev43's 41-table local snapshot is not a production or target count.
 
 **Tính năng:** FEAT-063 — Thiết kế lại kiến trúc toàn repository  
-**Trạng thái tài liệu:** Bản nháp v2.7 đồng bộ package SRS; Rev56 đồng bộ mười nhóm readiness diagram, không thay đổi target data model/DDL; ghi nhận snapshot DB local Rev43; chưa sign-off
+**Trạng thái tài liệu:** Bản nháp v2.7 đồng bộ package SRS; Rev56 readiness diagram, Rev71 bổ sung hai bảng Story cho activity suggestion/selection, Rev72 đối chiếu ba bảng SVG catalog; ghi nhận snapshot DB local Rev43; chưa sign-off
 **Phiên bản:** 2.7-draft
-**Cập nhật:** 2026-11-08
+**Cập nhật:** 2026-11-19
 **SRS đi kèm:** [SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md](SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md)  
 **Điều kiện tạo diagram/PDF:** Chỉ tạo diagram khái niệm, logic và PDF sau khi chủ sở hữu phê duyệt cả hai tài liệu Markdown.
 
@@ -32,15 +32,15 @@ Danh mục này đếm các mapping SQLAlchemy/Core production đã khai báo v�
 
 | Phân loại | Số lượng | Cách xử lý |
 |---|---:|---|
-| Bảng production hiện tại đã khai báo | 89 | Đối chiếu từ danh mục mapping hiện có trong repository | Rev31 adds three Lesson support mappings.
+| Bảng production hiện tại đã khai báo | 94 | Đối chiếu từ danh mục mapping hiện có trong repository | Rev31 adds three Lesson support mappings; Rev71 adds two Story support mappings; Rev72 adds three SVG catalog mappings.
 | Bảng fixture chỉ dùng cho kiểm thử hiện tại | 5 | Loại khỏi số lượng production và bảng đích |
 | Bảng hiện tại được giữ/tái cấu trúc để tiếp tục hoạt động | 38 | Giữ chủ sở hữu module hiện tại; tối giản các ledger/registry trùng vòng đời |
-| Bảng đích chuẩn hóa mới | 54 | Gồm Parent/profile sharing, lesson library/visibility/delivery/feedback, school audience groups, Story, Billing/quota, Core asset/upload và AI job |
-| Tổng số bảng đích active | **92** | 38 + 54 |
+| Bảng đích chuẩn hóa mới | 59 | Gồm Parent/profile sharing, lesson library/visibility/delivery/feedback, school audience groups, Story activity suggestion/selection, SVG catalog, Billing/quota, Core asset/upload và AI job |
+| Tổng số bảng đích active | **97** | 38 + 59 |
 | Bảng hiện tại được đánh dấu legacy/chỉ đọc | 48 | Giữ nguyên bảng vật lý và các hàng; không đưa vào ERD đích |
-| Tổng số bảng production vật lý sau chuyển đổi schema đích | **140** | 92 bảng active + 48 bảng legacy được giữ lại |
+| Tổng số bảng production vật lý sau chuyển đổi schema đích | **145** | 97 bảng active + 48 bảng legacy được giữ lại |
 
-Current source-declared mappings after Rev31: 38 retained/refactored + 48 legacy + 3 new Lesson support tables = 89. The target model is 38 retained/refactored + 54 new = 92 active; plus 48 legacy/read-only = 140 projected physical mappings. Five fixture tables are excluded. These counts are source-derived and do not describe a live database.
+Rev31 historical source crosswalk: 38 retained/refactored + 48 legacy + 3 new Lesson support tables = 89. Rev71 adds two Story-owned activity suggestion/selection tables, bringing source-declared mappings to 91. Rev72 adds three Core-owned SVG catalog tables, bringing them to 94. The target model is 38 retained/refactored + 59 new = 97 active, plus 48 legacy/read-only = 145 projected physical mappings. Five fixture tables are excluded. These counts are source-derived and do not describe a live database.
 
 **Tinh gọn AI Policy:** 12 bảng registry bản sao provider được chuyển sang legacy/read-only; flow synthetic V1 theo dõi transfer và dọn scratch trên `ai_jobs.attempt`/`ai_jobs.job_events` cùng provenance của Core Asset. `ai_policy.resource_receipt` cũng trở thành legacy/read-only; với lệnh mới, `ai_policy.resource_event` mang idempotency key, fingerprint và snapshot kết quả cùng event/outbox metadata. Như vậy không có bảng ghi kép receipt/event và không có registry 12 bảng chỉ cần khi xử lý dữ liệu thật. Kích hoạt real-child-data/provider transfer vẫn bị chặn cho tới khi có review riêng về retention/ủy quyền; trước gate này phải duyệt lại việc cần tái lập registry provider.
 
@@ -299,9 +299,9 @@ Khóa chính tổng hợp hiện tại của `ai_jobs.command_receipt` cần chu
 
 ## 5. Từ điển bảng đích mới
 
-Từ điển hiện hành có 51 mapping logic tại §5 và 3 bảng support Lesson bổ sung của Rev31 tại §14.4, tổng cộng 54 mapping mới trong target. “40 baseline tables” là nhãn lịch sử của v2.2, không phải số lượng hiện tại. Target toàn danh mục tiếp tục là 92 active + 48 legacy/read-only = 140 projected mappings; các con số 89/137 của v2.3 và 41 bảng local Rev43 giữ nguyên phạm vi lịch sử/as-built riêng.
+Từ điển hiện hành có 51 mapping logic tại §5, 3 bảng support Lesson bổ sung của Rev31 tại §14.4, 2 bảng support Story bổ sung của Rev71 tại §14.9 và 3 bảng SVG catalog bổ sung của Rev72 tại §14.10, tổng cộng 59 mapping mới trong target. “40 baseline tables” là nhãn lịch sử của v2.2, không phải số lượng hiện tại. Target toàn danh mục là 97 active + 48 legacy/read-only = 145 projected mappings; các con số 89/137 của v2.3, 92/140 của Rev31, 94/142 của Rev71 và 41 bảng local Rev43 giữ nguyên phạm vi lịch sử/as-built riêng.
 
-Baseline lịch sử v2.2 có 40 mapping mới; 11 mapping platform tại §14.1 nâng từ điển trong §5 lên 51 mapping logic. Rev31 bổ sung thêm ba bảng support tại §14.4, đưa tổng target lên 54 mapping mới. Từ điển nêu chủ sở hữu, kiểu khóa/tham chiếu, dữ liệu chính, ràng buộc và lifecycle. Tên trường là tên thiết kế logic, không phải DDL có thể thực thi. Mọi ID đều opaque. Mỗi revision bất biến ghi nhận actor và timestamp. Mọi bảng chứa nội dung nằm trong lifecycle xóa của module sở hữu bảng đó.
+Baseline lịch sử v2.2 có 40 mapping mới; 11 mapping platform tại §14.1 nâng từ điển trong §5 lên 51 mapping logic. Rev31 bổ sung ba bảng Lesson; Rev71 bổ sung hai bảng Story activity; Rev72 bổ sung ba bảng SVG catalog, đưa tổng target lên 59 mapping mới. Từ điển nêu chủ sở hữu, kiểu khóa/tham chiếu, dữ liệu chính, ràng buộc và lifecycle. Tên trường là tên thiết kế logic, không phải DDL có thể thực thi. Mọi ID đều opaque. Mỗi revision bất biến ghi nhận actor và timestamp. Mọi bảng chứa nội dung nằm trong lifecycle xóa của module sở hữu bảng đó.
 
 ### 5.1 Asset lineage và upload-resume Core (3)
 
@@ -366,7 +366,7 @@ Parent và Teacher dùng chủ sở hữu vật lý riêng để giữ ranh gi�
 | lesson.delivery_feedback | PK feedback_id; FK nội bộ delivery_recipient_id | author_parent_ref, feedback_kind, bounded_text, state, created_at, updated_at | Parent feedback về lesson/delivery; không nhận file/image/video. Chỉ actor có active profile share hoặc school role phù hợp mới đọc. |
 | lesson.feedback_replies | PK reply_id; FK nội bộ feedback_id | author_actor_ref, author_role, bounded_text, organization_ref, created_at, visibility_state | Reply thuộc feedback item, không phải direct chat. Teacher/Manager/Admin trả lời trong school scope; Platform Admin reply chỉ hiển thị trong organization liên quan. |
 
-### 5.6 Story run, input/context, rà soát và video (9)
+### 5.6 Story run, input/context, rà soát và video (11)
 
 | Bảng | Khóa và tham chiếu | Trường logic | Ràng buộc và mục đích |
 |---|---|---|---|
@@ -374,9 +374,11 @@ Parent và Teacher dùng chủ sở hữu vật lý riêng để giữ ranh gi�
 | story.run_inputs | PK run_input_id; FK nội bộ story_run_id; unique `(story_run_id, input_revision)` | input_revision, drawing_asset_ref/version, typed_idea, voice_asset_ref/version, idea_source, source_profile_revision_ref, context_schema_version, approved_context_snapshot_jsonb_bounded, context_snapshot_hash, input_confirmed_by, input_confirmed_at, created_at | Một revision bất biến gom các đầu vào được gắn với cùng lần lập story: tranh, ý tưởng/transcript đã xác nhận, profile revision và context tối thiểu đã được người lớn duyệt. JSONB chỉ chứa danh sách nhỏ đã validate, allowlist, có version/hash/giới hạn; không phải kho profile hay run history. App history được đọc từ Story; context nhập tay vẫn thuộc Parent/BE1 profile-context entries. Hash/loại media/kích thước byte canonical trong Core Asset. Audio tối đa 2 phút/20 MB; không batch. |
 | story.transcript_revisions | PK transcript_revision_id; FK nội bộ run_input_id | revision_no, raw_transcript, adult_corrected_text, language, ASR_profile_ref, model_revision, config_hash, segment_timing_optional, state, reviewed_by, reviewed_at | Lưu Whisper gốc và bản người lớn sửa theo revision của đúng input. Bắt buộc người lớn xác nhận trước khi lập story. Xóa cùng lifecycle run. |
 | story.understanding_revisions | PK understanding_revision_id; FK nội bộ run_input_id | revision_no, source_asset_ref/version, VLM_profile_ref, model_revision, config_hash, structured_subjects, entities, setting, visual_anchors, uncertainty, state, created_at, confirmed_by, confirmed_at | Kết quả VLM được kiểm tra schema và gắn với chính xác version asset input bất biến. Hash asset canonical trong Core Asset. Người dùng sửa thì tạo revision VLM mới; không sửa kết quả cũ. |
-| story.story_revisions | PK story_revision_id; FK nội bộ run_input_id | revision_no, rewrite_index, story_title, story_arc_json, target_duration_seconds, locale, prompt_template_version, model_profile_ref, model_revision, content_hash, state, created_at | Một story ban đầu và tối đa ba lần viết lại. Scene count/nội dung canonical trong `story_scenes`; không sao chép mảng scene hoặc số lượng tại đây. Kiểm tra 5–15 scene và thời lượng hệ thống 30–90 giây. Bất biến; revision cũ ẩn khỏi UI thông thường. |
+| story.story_revisions | PK story_revision_id; FK nội bộ run_input_id; FK tùy chọn activity_selection_id tới `story.parent_activity_selections` | revision_no, rewrite_index, story_title, story_arc_json, target_duration_seconds, locale, prompt_template_version, model_profile_ref, model_revision, content_hash, selected_activity_ref/hash, state, created_at | Một story ban đầu và tối đa ba lần viết lại. Parent revision phải ghi lại đúng activity-selection receipt và snapshot hash đã dùng làm nội dung định hướng; rewrite tiếp tục ghim selection đó cho tới khi Parent chọn lại trước revision mới. Scene count/nội dung canonical trong `story_scenes`; không sao chép mảng scene hoặc số lượng tại đây. Kiểm tra 5–15 scene và thời lượng hệ thống 30–90 giây. Bất biến; revision cũ ẩn khỏi UI thông thường. |
 | story.story_scenes | PK scene_id; FK nội bộ story_revision_id; unique `(story_revision_id, scene_id)` | scene_index, duration_seconds, action_summary, validated_generation_prompt_ref, narration_segment, character_anchor_ref, state, created_at | Các hàng scene/storyboard canonical, unique theo revision/scene_index và composite key revision/scene. Lưu cấu trúc scene có giới hạn; không sao chép payload prompt gửi provider vào log. Hồ sơ trẻ vẫn là tham chiếu scalar trên run. |
 | story.review_decisions | PK decision_id; FK nội bộ `story_run_id`; XOR FK nội bộ `target_run_input_id`/`target_story_revision_id` | stage, decision, actor_ref, actor_role, target_run_input_id_optional, target_story_revision_id_optional, target_hash, safe_reason_code, suggestion_ref_optional, created_at, idempotency_key | Stage gồm transcript, subject, hoạt động/context và xác nhận kịch bản. Xác nhận kịch bản là cổng duyệt rõ ràng duy nhất trước khi tạo video. Không có trạng thái video-approved. Mỗi quyết định trỏ đúng revision input/story và hash đã được xem. |
+| story.parent_activity_suggestion_sets | PK suggestion_set_id; FK nội bộ story_run_id; unique `(run_id, set_revision)` | understanding_revision, input_revision, context_revision, selection_mode, catalog_candidate_count, exact activities snapshot/hash, provider_call_id_optional, created_at | Lưu bất biến từng tập gợi ý; catalog đã publish/shared và lesson pin chính xác được ưu tiên. Qwen fallback chỉ được lưu sau khi qua schema, relevance, dedupe và safety gates. Không lưu thêm hồ sơ trẻ; chỉ giữ snapshot hoạt động cần cho review/replay. |
+| story.parent_activity_selections | PK activity_selection_id; FK nội bộ story_run_id và suggestion_set_id | selection_revision, understanding_revision, activity_index, exact activity snapshot/hash, actor_scope_ref, created_at | Mỗi lần chọn/đổi hoạt động là receipt bất biến nối tới suggestion set. Idempotent retry trả đúng receipt đã ghi kể cả khi run đã qua bước chọn. Story generation bị chặn nếu chưa có selection hiện hành thuộc đúng understanding revision. |
 | story.video_generations | PK video_generation_id; FK nội bộ story_run_id và story_revision_id; unique `(video_generation_id, story_revision_id)` | generation_no (null until accepted), generation_kind (INITIAL or QUALITY_REGEN), state (ADMISSION_PENDING, ADMISSION_REJECTED, ACCEPTED, QUEUED, GENERATING, TECHNICAL_VALIDATING, SAFETY_VALIDATING, READY, SAFETY_BLOCKED, FAILED, REJECTED_BY_ADULT, SUPERSEDED), request_idempotency_key_hash, target_script_hash, compute_reservation_ref opaque, billing_quota_usage_ref opaque, output_asset_ref/version, video_profile_ref, model_revision, config_hash, technical_validation_state, consistency_validation_state, safety_validation_state, safety_policy_version, safety_finding_codes, admission_started_at/accepted_at/rejected_at, started_at, completed_at, safe_failure_code | Mỗi hàng là intent/request. Chỉ ADMISSION_PENDING sau cả hai receipt compute-budget AI Policy và quota Billing mới thành ACCEPTED; chỉ accepted rows chiếm một trong ba request/run, có generation number, AI jobs/outbox và đúng một Billing usage row. Budget/quota rejection để lại ADMISSION_REJECTED metadata nhưng không chiếm request cap/quota và không dispatch. Admission mơ hồ được đối soát bằng request idempotency key; reservation chưa gắn với Billing usage được release/expire, reservation accepted được giữ đến settle/job completion. Mỗi accepted request tiêu thụ quota kể cả lỗi kỹ thuật/provider/an toàn. Mỗi request cần kịch bản đã xác nhận trước dispatch. Retry scene không tạo usage mới. Hash/metadata media output nằm trong Core Asset. Chỉ output đầu tiên qua kiểm tra an toàn và có thể phát mới claim slot occurrence; claim không mở lại khi quality regeneration lỗi/hết lượt. Không duyệt video cuối bởi người. |
 | story.video_generation_scenes | PK generation_scene_id; FK `(video_generation_id, story_revision_id)` tới `(video_generation_id, story_revision_id)` của `video_generations`; FK `(story_revision_id, story_scene_id)` tới `(story_revision_id, scene_id)` của `story_scenes`; unique (video_generation_id, story_scene_id) | story_revision_id (constraint key, immutable), state, clip_asset_ref/version, source_job_ref, consistency_result_code_optional, safe_failure_code, started_at, completed_at | Hai composite FK buộc storyboard scene thuộc đúng revision đã pin trên generation. `story_revision_id` lặp có chủ đích làm khóa integrity, không phải source có thể sửa độc lập. `source_job_ref` trỏ job target `VIDEO_GENERATION_SCENE` theo contract, và job output về scene được Story owner xác minh. Không tạo asset-result/helper table, bộ đếm attempt hoặc metadata media trùng; `ai_jobs.attempt` là retry ledger duy nhất, Core Asset sở hữu hash/type/byte. |
 
@@ -406,9 +408,9 @@ Quy tắc Billing: subscription tổ chức trả phí có 10 slot lớp cơ b�
 
 ## 6. Quan hệ, liên kết và quyền sở hữu dữ liệu
 
-Relationship catalogue này bao phủ toàn bộ 92 bảng active đích. FK/unique được dùng cho quan hệ trong cùng owner/schema; tham chiếu liên owner dùng typed ref có contract version và application port. Không dùng opaque ref để né một quan hệ cùng schema có thể được kiểm tra bằng FK. Mọi bảng active phải nối vào aggregate, ledger hoặc operational root của owner.
+Relationship catalogue này bao phủ toàn bộ 97 bảng active đích; ba quan hệ SVG bổ sung được ghi tại §14.10. FK/unique được dùng cho quan hệ trong cùng owner/schema; tham chiếu liên owner dùng typed ref có contract version và application port. Không dùng opaque ref để né một quan hệ cùng schema có thể được kiểm tra bằng FK. Mọi bảng active phải nối vào aggregate, ledger hoặc operational root của owner.
 
-### 6.1 Quan hệ của 54 bảng mới
+### 6.1 Quan hệ của 59 bảng mới
 
 | Entity | Quan hệ trong cùng owner | Ref liên owner và lý do tồn tại |
 |---|---|---|
@@ -449,7 +451,9 @@ Relationship catalogue này bao phủ toàn bộ 92 bảng active đích. FK/uni
 | story.run_inputs | FK story_run_id; unique (story_run_id, input_revision); run trỏ current input | Core artwork/audio refs và Parent/BE1 profile revision ref; bounded context snapshot nằm cùng input revision |
 | story.transcript_revisions | FK run_input_id; unique (run_input_id, revision_no) | ASR profile/model version là typed model registry ref; transcript thuộc Story lifecycle |
 | story.understanding_revisions | FK run_input_id; unique (run_input_id, revision_no) | Source image tới Core Asset; VLM profile có version; không lặp media hash |
-| story.story_revisions | FK run_input_id; unique (run_input_id, revision_no); run trỏ current story | Model/prompt version là typed registry ref; input/context hash gắn đúng revision |
+| story.story_revisions | FK run_input_id; FK activity_selection_id tùy chọn tới Parent selection receipt; unique (run_input_id, revision_no); run trỏ current story | Model/prompt version là typed registry ref; input/context/activity snapshot hash gắn đúng revision. Parent application bắt buộc gắn selection receipt trước khi dispatch story; nullable chỉ để tương thích lịch sử và luồng không thuộc Parent |
+| story.parent_activity_suggestion_sets | FK story_run_id; unique (run_id, set_revision) và (run_id, suggestion_set_id) | Chứa đúng snapshot kết quả catalog-first/Qwen fallback, version input/context và idempotent response; không lưu hồ sơ trẻ |
+| story.parent_activity_selections | FK story_run_id; composite FK (run_id, suggestion_set_id) tới đúng suggestion set | Append-only receipt cho một lựa chọn chính; activity snapshot/hash bất biến; cùng selection có thể được nhiều revision story tham chiếu |
 | story.story_scenes | FK story_revision_id; unique (story_revision_id, scene_index) và (story_revision_id, story_scene_id) | 5–15 scene là danh sách canonical; character anchor/prompt refs thuộc revision |
 | story.review_decisions | FK story_run_id; target XOR FK run_input_id hoặc story_revision_id; idempotency unique theo run | Actor principal có kiểu; quyết định gắn revision/hash cụ thể đã xem |
 | story.video_generations | FK story_run_id và story_revision_id; unique (video_generation_id, story_revision_id) và generation number khi accepted | Compute reservation/Billing usage/AI job/Core asset là typed refs qua contract; generation state canonical, run state là projection; không FK chéo schema |
@@ -466,6 +470,9 @@ Relationship catalogue này bao phủ toàn bộ 92 bảng active đích. FK/uni
 | notifications.inbox_items | Gốc thông báo; unique recipient/dedupe key | Billing/Story event ref có kiểu; recipient là Parent/Teacher/admin principal |
 | notifications.delivery_attempts | FK inbox_item_id; FK push_endpoint_id tùy chọn; unique (inbox_item_id, channel, attempt_no) | Email destination là opaque identity-adapter ref; push endpoint nối về `notifications.push_endpoints`; retry không đổi inbox |
 | notifications.push_endpoints | Unique endpoint fingerprint theo provider/principal; index principal/state | Principal ref tới identity adapter; raw token mã hóa, không FK cross-owner |
+| core.svg_catalog_assets | Composite FK source/canonical asset version tới `core_asset_metadata`; unique `catalog_entry_id` | Asset hash, license, sanitizer, topic/readiness metadata và visibility scope; source bytes không nằm trong DB |
+| core.svg_catalog_guide_revisions | FK composite tới catalog asset; unique `(guide_ref, guide_revision)` | Immutable `SketchStrokeGuideV3` JSON, source/guide hashes và scope snapshot; giới hạn payload 256 KiB |
+| core.svg_catalog_reviews | FK composite tới catalog asset; FK tùy chọn guide revision | Append-only educator/curator decisions gắn đúng source/guide hash; grouping chỉ cho curator approve |
 
 ### 6.2 Quan hệ của 38 bảng nguồn active được giữ
 
@@ -589,18 +596,20 @@ Kế hoạch migration khi triển khai phải cung cấp bằng chứng cho t�
 
 | Hạng mục đếm | Nguồn / phép tính |
 |---|---|
-| 89 source-declared mappings after Rev31 hiện tại | Source Register và danh mục table factory/module hiện tại; không phải số lượng database đang chạy |
+| 89 source-declared mappings tại Rev31 | Lịch sử Source Register/danh mục factory trước Rev71; không phải số lượng database đang chạy |
+| 91 source-declared mappings tại Rev71 | Rev31 crosswalk 89 + hai Story support tables từ Rev71; lịch sử source count, không phải live database count |
+| 94 source-declared mappings tại Rev72 | Rev71 source count 91 + ba SVG catalog tables; source count, không phải live database count |
 | 5 mapping fixture được loại trừ | Danh mục fixture kiểm thử owner_fence_fixture.py |
 | 38 mapping active hiện có | Core 5 + BE1 8 + AI jobs 7 + AI policy 12 + Learning Content 6 |
-| 54 mapping mới | Core 3 + AI jobs 1 + Parent 6 + BE1 5 + Lesson 18 + Story 9 + Billing 9 + Notifications 3 |
-| 92 active target mappings | 38 retained/refactored + 54 new |
+| 59 mapping mới | Core 3 + AI jobs 1 + Parent 6 + BE1 5 + Lesson 18 + Story 11 + SVG catalog 3 + Billing 9 + Notifications 3 |
+| 97 active target mappings | 38 retained/refactored + 59 new |
 | 48 mapping legacy chỉ đọc | Core 3 + BE1 14 + AI Policy 13 + Knowledge Video 2 + Video Review 6 + Video Failure 3 + Activity Execution 5 + Preset Automation 2 |
-| 140 projected physical mappings | 92 active + 48 legacy retained |
-| Reconciliation | Pre-Rev31 86 = 38 retained/refactored + 48 legacy; Rev31 adds 3 Lesson support tables; target 92 = 38 retained/refactored + 54 new; 140 = 92 + 48 |
+| 145 projected physical mappings | 97 active + 48 legacy retained |
+| Reconciliation | Pre-Rev31 86 = 38 retained/refactored + 48 legacy; Rev31 adds 3 Lesson support tables; Rev71 adds 2 Story activity tables; Rev72 adds 3 SVG catalog tables; current target 97 = 38 retained/refactored + 59 new; 145 = 97 + 48 |
 
 ## 12. Quyết định đã chốt và cổng kỹ thuật còn mở
 
-Q01-Q146 form the historical product baseline; Q147-Q195 extend it. Preserve the Parent/Teacher flows and video pipeline. The v2.3-draft adds 11 platform tables for a baseline of 89 active/137 physical; Rev31 adds three Lesson support tables, giving a 92-active/140-physical implementation crosswalk. SRS/Data Table Register remain unsigned drafts; open product/data questions remain in section 14.
+Q01-Q146 form the historical product baseline; Q147-Q195 extend it. Preserve the Parent/Teacher flows and video pipeline. The v2.3-draft adds 11 platform tables for a baseline of 89 active/137 physical; Rev31 adds three Lesson support tables, giving 92-active/140-physical at that revision. Rev71 adds two Story activity tables (94/142); Rev72 adds three SVG catalog tables, giving the current source-derived crosswalk of 97 active/145 projected physical mappings. SRS/Data Table Register remain unsigned drafts; open product/data questions remain in section 14.
 
 | Quyết định | Quy tắc đã chốt | Ánh xạ dữ liệu đích |
 |---|---|---|
@@ -711,7 +720,7 @@ Không chạy migration, không truy cập database đang hoạt động, không
 | 04 Plan Supersession | M-10; lesson occurrences/plan revisions/deck refs and Story/AI Job opaque refs | PARTIAL / OPEN-OWNER | Keep the exact version/hash pin and stale fence; decide effects by accepted/queued/running/ready and playable-output point on deck, approval, claim, quota, projection and stale output. No inferred table/state. |
 | 05 Parent without Lesson Preset | R-04; learning_content is catalog owner, optional source only | PARTIAL / OPEN-OWNER | Whether queried and, if approved, filter/access/order/cardinality, exact version/hash pin and response snapshot, empty result, revoke/unpublish behavior. Do not add a table by inference. |
 | 06 Remaining business policies | Q-02–Q-12; D-04/D-08/D-14; OI-06; §§5.7/8/14.3 | OPEN-OWNER / OPEN-TECHNICAL by item | School quota allocation/pricing, Parent personal copy, lesson publication/AI visual review, age bands, Parent history 30/60 days, script-following, legacy 121–155-month behavior and audit retention; owner/status per source records. |
-| 07 Physical Database & ERD | D-01–D-04/D-16; OI-11; 38 retained/refactored + 54 new active mappings; 48 legacy | OPEN-TECHNICAL | Approve Physical Data Dictionary/DDL: SQL type, NULL/DEFAULT, PK/FK, UNIQUE/CHECK, indexes/partial predicates and FK actions; approve source-field/backfill/migration mapping; distinguish target from code/schema-evidenced as-built. |
+| 07 Physical Database & ERD | D-01–D-04/D-16; OI-11; 38 retained/refactored + 59 new active mappings; 48 legacy | OPEN-TECHNICAL | Approve Physical Data Dictionary/DDL: SQL type, NULL/DEFAULT, PK/FK, UNIQUE/CHECK, indexes/partial predicates and FK actions; approve source-field/backfill/migration mapping; distinguish target from code/schema-evidenced as-built. |
 | 08 State Machine & Activity | D-10/D-11; M-08–M-10/M-16; SRS §§6/22–23 | OPEN-OWNER / OPEN-TECHNICAL | Exhaustive transition matrix by aggregate/source state: event, actor, guard, effect, target state, timeout, retry, revoke, cancel and exception for all registered states. |
 | 09 API & Sequence | D-18/R-02/Q-02; SRS §21 and API Rev37 catalog | OPEN-TECHNICAL | Method/endpoint, request-response schema, errors, authorization, version, idempotency, event/outbox, async timeline, timeout, reconciliation and compensation; separate proposed contracts from mounted source evidence. |
 | 10 Screen Flow, Class & Package | D-17/D-19/D-20/OI-17; learning_content/ai_jobs/ai_policy owners | OPEN-DESIGN / OPEN-TECHNICAL | Screen IDs/navigation edges/back/cancel/resume/UI states; class attributes/methods/interfaces/ports; package ownership/dependency rules and current source import/cycle verification remain incomplete. No source-compliance claim from target layering alone. |
@@ -719,7 +728,7 @@ Không chạy migration, không truy cập database đang hoạt động, không
 These rows are trace links to existing readiness/question IDs, not new schema or policy decisions. See SRS §31.10 and DIAGRAM_INPUT_CATALOG_V27_REV56_20261108.md.
 ### 14.4 Rev31 backend implementation support tables (additive)
 
-The v2.3 product-design baseline at 89 active tables remains a draft. Rev31 implementation source adds three Lesson-owned persistence tables required to keep reusable-library uploads separate from occurrence-owned documents and to provide durable idempotent command receipts. The current implementation crosswalk is 38 retained/refactored + 54 new = 92 active, plus 48 legacy/read-only = 140 projected physical mappings. These counts are source-derived; at the time of Rev31 (2026-10-28), no live database was inspected and no migration was applied. The later local snapshot is recorded separately in §14.5. This crosswalk does not sign off the SRS content.
+The v2.3 product-design baseline at 89 active tables remains a draft. Rev31 implementation source adds three Lesson-owned persistence tables required to keep reusable-library uploads separate from occurrence-owned documents and to provide durable idempotent command receipts. At Rev31, the implementation crosswalk was 38 retained/refactored + 54 new = 92 active, plus 48 legacy/read-only = 140 projected physical mappings. Rev71 later adds two Story-owned Parent activity tables (94/142); Rev72 adds three Core-owned SVG catalog tables, bringing the current crosswalk to 97 active + 48 legacy/read-only = 145 projected mappings (§14.10). These counts are source-derived; at the time of Rev31 (2026-10-28), no live database was inspected and no migration was applied. The later local snapshot is recorded separately in §14.5. This crosswalk does not sign off the SRS content.
 
 | Owner | Rev31 table | Key fields and relationships | Purpose and lifecycle |
 |---|---|---|---|
@@ -739,7 +748,7 @@ Read-only inspection of all non-system schemas in the local PostgreSQL database 
 | `lesson` | `access_grants`, `command_receipts`, `library_document_revisions`, `library_items`, `library_source_documents`, `library_versions`, `version_activities` | 7 |
 | **Application tables** |  | **41** |
 
-This local snapshot is not a production inventory and table presence alone does not prove an entity is active or used by a request. Relative to the target mapping in this register, the inspected database has no `ai_jobs`, `ai_policy`, `parent`, `story`, `billing` or `notifications` schemas/tables. Some older BE1/Core tables remain present. The target remains **92 active + 48 legacy/read-only = 140 projected physical mappings**; do not replace that target count with 41 or interpret the gap as a product-scope deletion. Read-only command, API snapshot and interpretation are recorded in `../evidence/EV-063-33_AS_BUILT_SRS_ALIGNMENT_20261106.md`.
+This local snapshot is not a production inventory and table presence alone does not prove an entity is active or used by a request. Relative to the target mapping at the time of this inspection, the database had no `ai_jobs`, `ai_policy`, `parent`, `story`, `billing` or `notifications` schemas/tables. Some older BE1/Core tables remained present. Rev43 recorded 92 active + 48 legacy/read-only = 140 projected physical mappings; Rev71's later target was 94/142, and Rev72's current source crosswalk is 97/145 (§14.10). Do not replace either dated source count with the observed 41 or interpret the gap as a product-scope deletion. Read-only command, API snapshot and interpretation are recorded in `../evidence/EV-063-33_AS_BUILT_SRS_ALIGNMENT_20261106.md`.
 
 ### 14.6 AI-to-database access boundary in the current build
 
@@ -756,7 +765,7 @@ Therefore, the current database inventory supports a precise distinction: there 
 
 ## 14.7 Rev57 diagram-input detail and physical gate
 
-Rev57 adds logical detail to the existing 92-active/48-legacy target without treating logical names as deployed tables. The companion artifact PHYSICAL_DATA_DICTIONARY_DRAFT_REV57_20261109.md enumerates every active target mapping and identifies what can be populated from this Register versus what remains blocked pending approved DDL/schema evidence.
+Rev57 added logical detail to the then-current 92-active/48-legacy target without treating logical names as deployed tables. Rev71's two Story-owned tables and Rev72's three SVG catalog tables are additive source crosswalks, not proof of deployed DDL. The companion artifact PHYSICAL_DATA_DICTIONARY_DRAFT_REV57_20261109.md documents the Rev57 target and is not silently expanded into a physical approval; the current 97-active/48-legacy counts and Rev72 source mapping are recorded in §14.10.
 
 | Concern | Data design contract now explicit | Physical decision/evidence still open |
 |---|---|---|
@@ -767,7 +776,7 @@ Rev57 adds logical detail to the existing 92-active/48-legacy target without tre
 | Parent no-preset activity | If queried, catalog-owned approved/published versions are read after video; no activity is a video input. No catalog table is added. | Whether to query, filters, permission, ordering, cardinality, response and history effects remain SRS §31.10(13)/R-04. |
 | Product and compute quota | Parent and school organization are the product-quota scopes; Teacher uses the occurrence organization; current-month included units precede top-up FIFO. Compute reservation is AI Policy-owned. | Amounts/prices/purchase allocation and the approved multi-owner receipt/migration model remain Q-02/Q-12; never assume a cross-owner atomic SQL transaction. |
 | States and contracts | Owner-scoped state/event/receipt/outbox responsibilities are linked in STATE_TRANSITION_MATRIX_REV57_20261109.md and API_EVENT_CONTRACTS_DRAFT_REV57_20261109.md. | Missing lifecycle fields/states, API mounting, DDL constraints and retention require owner or technical review. |
-| Counts and physical status | Target remains 38 + 54 = 92 active mappings, 48 legacy/read-only, 140 projected mappings. | All SQL type/null/default/key/index/FK-action declarations and migration approval remain physical gates. Rev43 local 41-table snapshot is a dated local observation only. |
+| Counts and physical status | Rev57 baseline was 38 + 54 = 92 active mappings, 48 legacy/read-only, 140 projected mappings. Rev71 source crosswalk was 38 + 56 = 94 active/142 projected (§14.9); Rev72 is 38 + 59 = 97 active/145 projected (§14.10). | All SQL type/null/default/key/index/FK-action declarations and migration approval remain physical gates. Rev43 local 41-table snapshot is a dated local observation only. |
 
 The source-to-target crosswalk in §§3–4.1 is a logical preservation/refactor map. It is not yet a complete migration script: backfill ordering, row-level validation queries, reconciliation tolerances, rollback checkpoints and approval per migration step are not specified for all 38 retained/refactored mappings. New-target mappings are not evidence that tables exist. No migration, DDL, database query or data change was executed for Rev57.
 
@@ -780,3 +789,29 @@ The source-to-target crosswalk in §§3–4.1 is a logical preservation/refactor
 - G06 policy questions are listed individually in Decision Register Rev57 and remain unsigned until recorded owner approval.
 - G08/G09 state and message rows are draft design contracts, not mounted route, persisted state, schema or event-bus evidence.
 - G10 module ownership is target-only. The current source import scan and route-composition observations are in EV-063-62; they do not approve the package diagram.
+
+### 14.9 Rev71 Parent activity selection source crosswalk (additive; 2026-11-19)
+
+Plan Rev20/Addendum 35 adds a durable Parent activity suggestion and selection boundary. The current source declares two new Story-owned tables, so the source-derived crosswalk becomes 38 retained/refactored + 56 new = 94 active mappings, plus 48 legacy/read-only = 142 projected physical mappings. This is a source count only; no database was inspected and no migration was run for this amendment.
+
+| Owner | Table/field | Key and integrity | Purpose and lifecycle |
+|---|---|---|---|
+| story | `story.parent_activity_suggestion_sets` | PK `suggestion_set_id`; FK `run_id`; unique `(run_id, set_revision)` and `(run_id, suggestion_set_id)` | Stores the exact catalog/lesson-pin or validated AI fallback response, relevant input/context/understanding revisions and response hash for retry, selection and review. The snapshot is bounded and does not copy a child profile. |
+| story | `story.parent_activity_selections` | PK `activity_selection_id`; FK `run_id`; composite FK `(run_id, suggestion_set_id)` to the exact suggestion set; unique `(run_id, selection_revision)` | Append-only adult choice receipt, including exact selected activity snapshot/hash, index and actor scope. Re-selecting creates a new revision; same idempotency key returns the original receipt. |
+| story | `story.story_revisions.activity_selection_id` | Nullable FK to `story.parent_activity_selections.activity_selection_id`, `ON DELETE NO ACTION`; index `ix_story_revision_activity_selection` | Existing story revisions and non-Parent flows remain representable. New Parent story revisions are application-gated on a persisted selection and store its receipt ID; worker input carries the exact selected activity and its SHA-256. This prevents silent drift between adult-approved activity and generated story. |
+
+The additive migration source is `backend/alembic/versions/20261114_parent_activity_selection.py`, following the Story context migration in the source graph. A migration file and SQLAlchemy metadata do not establish that any environment has applied it. Historical Rev31/Rev57 counts and the Rev43 local 41-table observation retain their dated scope; this source crosswalk does not sign off the SRS or Physical Data Dictionary.
+
+### 14.10 Rev72 SVG catalog source crosswalk (additive; 2026-11-19)
+
+The FEAT-081 source now declares three Core-owned SVG catalog persistence tables in addition to the Rev71 Story tables. This raises the source-derived target from 94 active/142 projected at Rev71 to 97 active/145 projected: 38 retained/refactored + 59 new active mappings + 48 legacy/read-only. The table names below are the exact default-schema names declared by SQLAlchemy/Alembic; the logical owner remains Core. These are source mappings only. The migration has not been applied or inspected against a live database, and no production table count is implied.
+
+| Owner | Physical source table | Key and integrity | Purpose and lifecycle |
+|---|---|---|---|
+| core | `core_svg_catalog_assets` | Composite PK `(asset_ref, asset_version)`; unique `catalog_entry_id`; composite FKs from source and canonical asset refs/versions to `core_asset_metadata`; scope-owner and readiness/state checks | Stores catalog metadata, exact source/canonical hashes, license/source URI, sanitizer version, topic/readiness facts and platform/organization visibility. SVG bytes remain in the Core asset store; row is immutable per source version except catalog state. |
+| core | `core_svg_catalog_guide_revisions` | PK `guide_revision_id`; unique `(guide_ref, guide_revision)`; composite FK to catalog asset; scope-owner/schema/hash/JSON-size checks | Stores immutable `SketchStrokeGuideV3` guide JSON and the exact source/guide hashes, author, visibility scope and revision. Guide output is bounded to 256 KiB and cannot silently replace its source illustration. |
+| core | `core_svg_catalog_reviews` | PK `review_id`; FK composite to catalog asset; optional FK to exact guide revision; checks bind review subject to nullable guide/hash fields and restrict `grouping_allowed` to an approved curator decision | Append-only educator/curator decisions tied to exact source or guide hashes. Rejection and later re-review append records; review history is not overwritten. |
+
+Relationship notes: catalog assets reference Core-owned source and canonical asset versions; guide revisions reference the exact catalog asset version; review rows reference that same asset and, for guide review, its immutable guide revision. No Parent profile, StoryRun, child image, or consent reference is stored in these catalog tables.
+
+The additive source migration is `backend/alembic/versions/20261113_svg_catalog_review.py`. `alembic/env.py` imports the metadata for migration discovery. This record documents source declarations only: the migration has not been run, no database was changed, and physical SQL types/indexes/constraint behavior still require disposable-database verification and the existing physical-design gate.

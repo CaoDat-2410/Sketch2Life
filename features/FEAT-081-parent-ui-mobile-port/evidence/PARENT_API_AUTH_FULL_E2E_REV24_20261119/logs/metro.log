@@ -1,0 +1,6 @@
+ADB device: emulator-5554 via server port 5037
+ADB reverse is active on emulator-5554: tcp:8081 -> tcp:8081
+Starting project at <local-machine-path>
+Starting Metro Bundler
+Waiting on http://localhost:8081
+Logs for your project will appear below.

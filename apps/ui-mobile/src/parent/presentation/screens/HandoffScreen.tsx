@@ -21,13 +21,13 @@ export function HandoffScreen({ storyTitle, events, videoCapability, jobStage, o
     : jobStage.state === 'confirmed' ? 'success' : 'info';
 
   return (
-    <ScreenFrame title="Trạng thái buổi học" subtitle="Tiến độ được máy chủ ghi nhận.">
-      <Card style={styles.statusCard}>
+    <ScreenFrame title="Trạng thái buổi học" subtitle="Tiến độ được máy chủ ghi nhận." visualTone="creative">
+      <Card variant="creative" style={styles.statusCard}>
         <Text style={styles.handoffStoryTitle}>{storyTitle || 'Kịch bản đã xác nhận'}</Text>
-        <Notice text={videoMessage} tone={videoTone} />
+        <Notice variant="creative" text={videoMessage} tone={videoTone} />
       </Card>
-      {events.length ? <Card style={styles.eventsCard}>
-        <SectionTitle>Các bước xử lý</SectionTitle>
+      {events.length ? <Card variant="creative" style={styles.eventsCard}>
+        <SectionTitle variant="creative">Các bước xử lý</SectionTitle>
         {events.map((event, index) => <View key={`${event.stage}-${index}`} style={[styles.eventRow, { borderBottomWidth: index === events.length - 1 ? 0 : 1.3 }]}>
           <Text style={[styles.eventSymbol, { color: event.status === 'PASS' ? palette.green : palette.red }]}>{event.status === 'PASS' ? '✓' : '!'}</Text>
           <View style={styles.eventCopy}>
@@ -36,7 +36,7 @@ export function HandoffScreen({ storyTitle, events, videoCapability, jobStage, o
           </View>
         </View>)}
       </Card> : null}
-      <PrimaryButton label="Tiếp tục buổi học đang mở" onPress={onResumeActiveRun} />
+      <PrimaryButton variant="creative" label="Tiếp tục buổi học đang mở" onPress={onResumeActiveRun} />
     </ScreenFrame>
   );
 }
