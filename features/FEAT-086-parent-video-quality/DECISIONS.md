@@ -1,0 +1,12 @@
+# FEAT-086 decisions
+
+| ID | Decision | Reason |
+|---|---|---|
+| D1 | Keep `sketch2life.story-revision.v1` and its scene keys; improve the existing `visual_prompt` field and its validated length instead of adding public fields or requiring a database migration. | Avoid breaking Parent story-review/API clients while addressing under-specified scene motion. |
+| D2 | Use action-first, single-shot LTX prompts with a compact opening/action/result sequence and fixed camera. Do not add cinematic style, lighting, or new scenery. | The user requires continuity with the child's source drawing and everyday story actions. |
+| D3 | Remove the second, full-frame SVG-composited mid-scene image guide from this video path. | It is redundant with the actual I2V conditioning frame and risks producing a visible duplicate/inset. Any story-directed prop must be conveyed by the approved scene instruction, not a second copy of the picture. |
+| D4 | Use the existing FEAT-061 synthetic crayon house-and-sun image as safe style-validation data; label it synthetic, not real child art. | Its provenance is explicit and its strokes/paper texture resemble a child's drawing better than the prior clean vector turtle. |
+| D5 | Do not install `LTX-2.5-Agent-Prompt-Skill` into the runtime. Reuse only suitable official LTX prompt principles. | The GitHub skill is an agent-side prompt-writing aid, not a model adapter; its cinematic embellishment conflicts with preserving the source art and adds no worker capability. |
+| D6 | Remove the visible duration/scene-count/silent metadata row below the player; keep playback progress/timing controls and accessibility labels. | The screenshot's text is UI metadata, not a video subtitle. |
+| D7 | Validate with focused offline tests and, if the current local backend/Modal runtime is available, at most one real synthetic video candidate; no retry or gate bypass. | Limit GPU cost while checking the actual video output. |
+| D8 | Expand the internal `visual_prompt` ceiling to 900 (the already-supported backend maximum) and compile each LTX scene into a natural-language 4–8 sentence single-shot paragraph with shot framing, chronological action, camera behavior, prop placement, source-art preservation, and end pose. | The owner asked for clearer, more detailed video directions; official LTX I2V guidance focuses text on motion after the supplied image, and its single-shot guide recommends flowing chronological action. Public story keys/version and backend contract remain unchanged. |

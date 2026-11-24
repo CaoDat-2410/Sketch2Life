@@ -1,0 +1,26 @@
+{
+  "turtle_leaf": {
+    "main": "turtle",
+    "secondary": [
+      "leaf"
+    ],
+    "script": "eat the leaf",
+    "a4_expectation": "sprite in K(i) pixel-identical to the original drawing"
+  },
+  "cat_ball": {
+    "main": "cat",
+    "secondary": [
+      "ball"
+    ],
+    "script": "play with the ball",
+    "a4_expectation": "sprite in K(i) pixel-identical to the original drawing"
+  },
+  "bird_apple": {
+    "main": "bird",
+    "secondary": [
+      "apple"
+    ],
+    "script": "peck the apple",
+    "a4_expectation": "sprite in K(i) pixel-identical to the original drawing"
+  }
+}
