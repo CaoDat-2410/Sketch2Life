@@ -1,16 +1,16 @@
 # Source register and authority boundary
 
 
-## Current FEAT-063 implementation record — Rev68 SRS / Rev61–68 work
+## Current FEAT-063 implementation record — canonical SRS through Rev67
 
-- **Product requirement authority:** `features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md`, the owner-supplied v2.7-draft copy adopted by D-209 on 2026-11-17 (self-described as the Rev57 base with Rev58–Rev69 documentation updates; 701810 bytes / SHA-256 443A3CA37272D2FE96127564BAF400461F394E098724A6BD999D723A4E504021, after the D-219 FR-C-08 wording edit of 2026-11-19 (13 lines, no line moved; before it 701157 bytes / `B9B1F42D…`); header date 2026-11-13 accepted by the owner as stale); unsigned. Rev67 with its D-203 pin and the Rev68 working copy (639948 bytes / SHA-256 69C83FE49CD4689D5D2540656D3319721838CF7343BAD00E24CDE558B8F5E944) remain historical provenance only. The companion Data Table Register is not an alternate SRS.
-- **Execution records:** FEAT-063 plans Rev58–Rev65 and approvals/status/evidence under the same feature folder. EV-063-71–73 cover Firebase account and role flows; EV-063-74 records a partial Parent/Teacher UI-to-Modal run; EV-063-75 records the live Teacher Sketch Deck presentation.
-- **Limits:** no video inference was performed in Rev64–65. Parent story generation was blocked by invalid Qwen JSON; this is recorded as a failure/blocker, not a passing flow. Teacher output remains a draft requiring review.
+- **Product requirement authority:** `features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md`, v2.7-draft on the Rev57 baseline with documented amendments through Rev67; it remains unsigned. §§1–31 are the target requirements and §32 is dated source/runtime evidence. The Data Table Register is a companion, not an alternate SRS.
+- **Execution records:** FEAT-063 plans, decisions, status, and evidence remain feature-local implementation history. Their later revision labels do not change the canonical SRS authority.
+- **Limits:** verify each evidence record's stated scope before using it; a source review, screenshot, or partial workflow result is not proof of an end-to-end pass or a deployed runtime.
 
 
 ## Canonical product SRS — current working baseline
 
-Use `features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` as adopted by D-209 on 2026-11-17 for all current product requirements and target architecture. It remains an unsigned draft pending formal owner sign-off. Its §§1–31 define target requirements; §32 contains dated environment-specific runtime/source observations and does not replace them. Older feature SRS copies and contexts are historical/feature-local and do not override it. The adopted copy does not carry the D-208 reconciliation wording; lifecycle requirements are read from the adopted copy and D-209 records the one open interpretation point; the matching DATA_TABLE_REGISTER.md remains an unchanged companion, not an alternate SRS. The detailed agent reading order and historical-source list are in `docs/context/SRS_AUTHORITY.md`.
+Use `features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` (v2.7-draft, Rev57 baseline, amendments through Rev67) for all current product requirements and target architecture. It remains unsigned pending formal owner sign-off. Its §§1–31 define target requirements; §32 contains dated source/runtime observations. Older SRS copies and later feature-local records are historical or feature-specific and do not supersede it. The matching DATA_TABLE_REGISTER.md is a companion, not an alternate SRS. See `docs/context/SRS_AUTHORITY.md` for the reading order and authority boundary.
 
 ## FEAT-063 Rev53 v2.6 checklist reconciliation — current — 2026-11-07
 
@@ -738,3 +738,9 @@ The canonical working SRS `features/FEAT-063-system-architecture-rearchitecture/
 ## FEAT-082 Qwen3.8 Parent story UI verification — 2026-11-22
 
 The owner approved FEAT-082 Plan Rev1 through Amendment G for a bounded synthetic Parent Android UI run on `feature/fe-mobile-remediation`. The work reuses the existing persisted activity-selection flow, pins shared Modal text workloads to Qwen3.8-27B-FP8 on L40S, and versions the Parent story input with bounded topic and exact pinned lesson knowledge. It excludes free-text profile interests/identity, video inference, fixtures, quota/safety bypass, and commits. Implementation, test results, live inference outcome, screenshots, and app shutdown are recorded only in `features/FEAT-082-qwen38-story-quality/`.
+
+## FEAT-083 — Qwen3.8 content quality and Parent topic rotation (2026-11-23)
+
+- Canonical current product requirements are the FEAT-063 SRS v2.7-draft Rev74 and matching Data Table Register Rev74; both remain unsigned drafts. `docs/context/SRS_AUTHORITY.md` records the canonical SRS size and hash.
+- FEAT-083 applies source changes only: Qwen3.8 pin, richer everyday-life activity/story/video prompts and checks, catalog-backed 18-topic/9-subject Parent cards, and privacy-minimal durable rotation mappings. See `features/FEAT-083-qwen38-everyday-quality-topic-rotation/`.
+- Migration, tests/typecheck, security validation, Modal deployment/inference, API/UI runtime verification were not run. No runtime success is claimed.

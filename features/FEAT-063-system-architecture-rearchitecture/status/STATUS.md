@@ -1,5 +1,7 @@
 # Status
 
+> **SRS authority boundary:** This file is a chronological implementation/evidence ledger. For current product requirements, use only `docs/context/SRS_AUTHORITY.md` and the FEAT-063 v2.7-draft SRS (Rev57 baseline, amendments through Rev67). Later revision labels below are historical or feature-local and do not supersede that canonical, unsigned SRS.
+
 ## Rev78/78A/78B Parent catalog-first activity — published to dev (2026-11-11)
 
 - Implementation status: source changes and exact lesson-pin migration are present on codex/feat063-parent-catalog-20261111. Migration is additive and has not been applied to a database.
@@ -896,3 +898,9 @@ accepted by the owner with recorded debt and committed on local branch `feature/
 ## FEAT-063 FR-C-08 SRS wording edit applied (D-219) — 2026-11-19
 
 The canonical working SRS `features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` now holds 701,810 bytes / SHA-256 `443A3CA37272D2FE96127564BAF400461F394E098724A6BD999D723A4E504021` (before: 701,157 bytes / `B9B1F42D…`, the copy adopted by D-209). The documentation-only FR-C-08 wording edit (program task B4, `features/FEAT-063-system-architecture-rearchitecture/plan/FR_C08_SRS_WORDING_EDIT_DRAFT3_20261119.md`) changed 13 lines with 14 edits: user delete is for runs in COMPLETED, FAILED or ABANDONED; FAILED and ABANDONED are never purged automatically; the retention sites name FAILED; and line 394 records SCRIPT_GENERATING and SCRIPT_GENERATION_UNKNOWN as noted extension values. The header and lines 1-39 were not changed and no line moved, so SRS line citations stay valid. Records pinned to `B9B1F42D…` stay as historical records of the earlier bytes. Contract alignment: `features/FEAT-063-system-architecture-rearchitecture/plan/FR_C08_PARENT_TEACHER_LIFECYCLE_CONTRACT_DRAFT12_20261119.md`. Authority: FEAT-063 D-219. Local commit on its own branch; not pushed or merged.
+
+## FEAT-083 Rev74 source-only update — 2026-11-23
+
+- Canonical SRS is v2.7-draft Rev74 and remains unsigned. Data Table Register Rev74 records 99 active + 48 legacy/read-only = 147 projected mappings; this is a source crosswalk, not a live database inventory.
+- FEAT-083 source changes align active Qwen text/vision pins to Qwen3.8, improve activity/story/video content constraints, and add account-scoped topic/subject rotation mappings and catalog-backed Parent cards.
+- No tests/typecheck, Modal deployment/inference, API/E2E, emulator, repository security validation, or DB migration execution were run. See FEAT-083 status/evidence for limits.

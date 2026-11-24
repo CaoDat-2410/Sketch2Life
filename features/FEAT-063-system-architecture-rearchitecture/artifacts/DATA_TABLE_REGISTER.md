@@ -1,11 +1,11 @@
 # Sketch2Life — Danh mục bảng dữ liệu
 
-**Revision note:** v2.7-draft / Rev72 (2026-11-19). This remains an unsigned target data register. The current source-derived crosswalk is 38 retained/refactored + 59 new = 97 active, plus 48 legacy/read-only = 145 projected mappings. Rev43's 41-table local snapshot is not a production or target count.
+**Revision note:** v2.7-draft / Rev74 (2026-11-23). This remains an unsigned target data register. The current source-derived crosswalk is 38 retained/refactored + 61 new = 99 active, plus 48 legacy/read-only = 147 projected mappings. Rev43's 41-table local snapshot is not a production or target count.
 
 **Tính năng:** FEAT-063 — Thiết kế lại kiến trúc toàn repository  
-**Trạng thái tài liệu:** Bản nháp v2.7 đồng bộ package SRS; Rev56 readiness diagram, Rev71 bổ sung hai bảng Story cho activity suggestion/selection, Rev72 đối chiếu ba bảng SVG catalog; ghi nhận snapshot DB local Rev43; chưa sign-off
+**Trạng thái tài liệu:** Bản nháp v2.7 đồng bộ package SRS; Rev56 readiness diagram, Rev71 bổ sung hai bảng Story cho activity suggestion/selection, Rev72 đối chiếu ba bảng SVG catalog, Rev74 bổ sung hai bảng Parent topic rotation; ghi nhận snapshot DB local Rev43; chưa sign-off
 **Phiên bản:** 2.7-draft
-**Cập nhật:** 2026-11-19
+**Cập nhật:** 2026-11-23
 **SRS đi kèm:** [SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md](SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md)  
 **Điều kiện tạo diagram/PDF:** Chỉ tạo diagram khái niệm, logic và PDF sau khi chủ sở hữu phê duyệt cả hai tài liệu Markdown.
 
@@ -32,15 +32,15 @@ Danh mục này đếm các mapping SQLAlchemy/Core production đã khai báo v�
 
 | Phân loại | Số lượng | Cách xử lý |
 |---|---:|---|
-| Bảng production hiện tại đã khai báo | 94 | Đối chiếu từ danh mục mapping hiện có trong repository | Rev31 adds three Lesson support mappings; Rev71 adds two Story support mappings; Rev72 adds three SVG catalog mappings.
+| Bảng production hiện tại đã khai báo | 96 | Đối chiếu từ danh mục mapping hiện có trong repository | Rev31 adds three Lesson support mappings; Rev71 adds two Story support mappings; Rev72 adds three SVG catalog mappings; Rev74 adds two Parent rotation mappings.
 | Bảng fixture chỉ dùng cho kiểm thử hiện tại | 5 | Loại khỏi số lượng production và bảng đích |
 | Bảng hiện tại được giữ/tái cấu trúc để tiếp tục hoạt động | 38 | Giữ chủ sở hữu module hiện tại; tối giản các ledger/registry trùng vòng đời |
-| Bảng đích chuẩn hóa mới | 59 | Gồm Parent/profile sharing, lesson library/visibility/delivery/feedback, school audience groups, Story activity suggestion/selection, SVG catalog, Billing/quota, Core asset/upload và AI job |
-| Tổng số bảng đích active | **97** | 38 + 59 |
+| Bảng đích chuẩn hóa mới | 61 | Gồm Parent/profile sharing, lesson library/visibility/delivery/feedback, school audience groups, Story activity suggestion/selection, Parent topic rotation, SVG catalog, Billing/quota, Core asset/upload và AI job |
+| Tổng số bảng đích active | **99** | 38 + 61 |
 | Bảng hiện tại được đánh dấu legacy/chỉ đọc | 48 | Giữ nguyên bảng vật lý và các hàng; không đưa vào ERD đích |
-| Tổng số bảng production vật lý sau chuyển đổi schema đích | **145** | 97 bảng active + 48 bảng legacy được giữ lại |
+| Tổng số bảng production vật lý sau chuyển đổi schema đích | **147** | 99 bảng active + 48 bảng legacy được giữ lại |
 
-Rev31 historical source crosswalk: 38 retained/refactored + 48 legacy + 3 new Lesson support tables = 89. Rev71 adds two Story-owned activity suggestion/selection tables, bringing source-declared mappings to 91. Rev72 adds three Core-owned SVG catalog tables, bringing them to 94. The target model is 38 retained/refactored + 59 new = 97 active, plus 48 legacy/read-only = 145 projected physical mappings. Five fixture tables are excluded. These counts are source-derived and do not describe a live database.
+Rev31 historical source crosswalk: 38 retained/refactored + 48 legacy + 3 new Lesson support tables = 89. Rev71 adds two Story-owned activity suggestion/selection tables, bringing source-declared mappings to 91. Rev72 adds three Core-owned SVG catalog tables, bringing them to 94. Rev74 adds two Parent-owned rotation mappings, bringing the source declaration to 96. The current target model is 38 retained/refactored + 61 new = 99 active, plus 48 legacy/read-only = 147 projected physical mappings. Five fixture tables are excluded. These counts are source-derived and do not describe a live database.
 
 **Tinh gọn AI Policy:** 12 bảng registry bản sao provider được chuyển sang legacy/read-only; flow synthetic V1 theo dõi transfer và dọn scratch trên `ai_jobs.attempt`/`ai_jobs.job_events` cùng provenance của Core Asset. `ai_policy.resource_receipt` cũng trở thành legacy/read-only; với lệnh mới, `ai_policy.resource_event` mang idempotency key, fingerprint và snapshot kết quả cùng event/outbox metadata. Như vậy không có bảng ghi kép receipt/event và không có registry 12 bảng chỉ cần khi xử lý dữ liệu thật. Kích hoạt real-child-data/provider transfer vẫn bị chặn cho tới khi có review riêng về retention/ủy quyền; trước gate này phải duyệt lại việc cần tái lập registry provider.
 
@@ -299,9 +299,9 @@ Khóa chính tổng hợp hiện tại của `ai_jobs.command_receipt` cần chu
 
 ## 5. Từ điển bảng đích mới
 
-Từ điển hiện hành có 51 mapping logic tại §5, 3 bảng support Lesson bổ sung của Rev31 tại §14.4, 2 bảng support Story bổ sung của Rev71 tại §14.9 và 3 bảng SVG catalog bổ sung của Rev72 tại §14.10, tổng cộng 59 mapping mới trong target. “40 baseline tables” là nhãn lịch sử của v2.2, không phải số lượng hiện tại. Target toàn danh mục là 97 active + 48 legacy/read-only = 145 projected mappings; các con số 89/137 của v2.3, 92/140 của Rev31, 94/142 của Rev71 và 41 bảng local Rev43 giữ nguyên phạm vi lịch sử/as-built riêng.
+Từ điển hiện hành có 51 mapping logic tại §5, 3 bảng support Lesson bổ sung của Rev31 tại §14.4, 2 bảng support Story bổ sung của Rev71 tại §14.9, 3 bảng SVG catalog bổ sung của Rev72 tại §14.10 và 2 bảng Parent rotation bổ sung của Rev74 tại §14.11, tổng cộng 61 mapping mới trong target. “40 baseline tables” là nhãn lịch sử của v2.2, không phải số lượng hiện tại. Target toàn danh mục là 99 active + 48 legacy/read-only = 147 projected mappings; các con số 89/137 của v2.3, 92/140 của Rev31, 94/142 của Rev71, 97/145 của Rev72 và 41 bảng local Rev43 giữ nguyên phạm vi lịch sử/as-built riêng.
 
-Baseline lịch sử v2.2 có 40 mapping mới; 11 mapping platform tại §14.1 nâng từ điển trong §5 lên 51 mapping logic. Rev31 bổ sung ba bảng Lesson; Rev71 bổ sung hai bảng Story activity; Rev72 bổ sung ba bảng SVG catalog, đưa tổng target lên 59 mapping mới. Từ điển nêu chủ sở hữu, kiểu khóa/tham chiếu, dữ liệu chính, ràng buộc và lifecycle. Tên trường là tên thiết kế logic, không phải DDL có thể thực thi. Mọi ID đều opaque. Mỗi revision bất biến ghi nhận actor và timestamp. Mọi bảng chứa nội dung nằm trong lifecycle xóa của module sở hữu bảng đó.
+Baseline lịch sử v2.2 có 40 mapping mới; 11 mapping platform tại §14.1 nâng từ điển trong §5 lên 51 mapping logic. Rev31 bổ sung ba bảng Lesson; Rev71 bổ sung hai bảng Story activity; Rev72 bổ sung ba bảng SVG catalog; Rev74 bổ sung hai bảng Parent rotation, đưa tổng target hiện tại lên 61 mapping mới. Từ điển nêu chủ sở hữu, kiểu khóa/tham chiếu, dữ liệu chính, ràng buộc và lifecycle. Tên trường là tên thiết kế logic, không phải DDL có thể thực thi. Mọi ID đều opaque. Mỗi revision bất biến ghi nhận actor và timestamp. Mọi bảng chứa nội dung nằm trong lifecycle xóa của module sở hữu bảng đó.
 
 ### 5.1 Asset lineage và upload-resume Core (3)
 
@@ -598,18 +598,19 @@ Kế hoạch migration khi triển khai phải cung cấp bằng chứng cho t�
 |---|---|
 | 89 source-declared mappings tại Rev31 | Lịch sử Source Register/danh mục factory trước Rev71; không phải số lượng database đang chạy |
 | 91 source-declared mappings tại Rev71 | Rev31 crosswalk 89 + hai Story support tables từ Rev71; lịch sử source count, không phải live database count |
-| 94 source-declared mappings tại Rev72 | Rev71 source count 91 + ba SVG catalog tables; source count, không phải live database count |
+| 94 source-declared mappings tại Rev72 | Rev71 source count 91 + ba SVG catalog tables; lịch sử source count, không phải live database count |
+| 96 source-declared mappings tại Rev74 | Rev72 source count 94 + hai Parent topic-rotation tables; source count, không phải live database count |
 | 5 mapping fixture được loại trừ | Danh mục fixture kiểm thử owner_fence_fixture.py |
 | 38 mapping active hiện có | Core 5 + BE1 8 + AI jobs 7 + AI policy 12 + Learning Content 6 |
-| 59 mapping mới | Core 3 + AI jobs 1 + Parent 6 + BE1 5 + Lesson 18 + Story 11 + SVG catalog 3 + Billing 9 + Notifications 3 |
-| 97 active target mappings | 38 retained/refactored + 59 new |
+| 61 mapping mới | Core 3 + AI jobs 1 + Parent 8 + BE1 5 + Lesson 18 + Story 11 + SVG catalog 3 + Billing 9 + Notifications 3 |
+| 99 active target mappings | 38 retained/refactored + 61 new |
 | 48 mapping legacy chỉ đọc | Core 3 + BE1 14 + AI Policy 13 + Knowledge Video 2 + Video Review 6 + Video Failure 3 + Activity Execution 5 + Preset Automation 2 |
-| 145 projected physical mappings | 97 active + 48 legacy retained |
-| Reconciliation | Pre-Rev31 86 = 38 retained/refactored + 48 legacy; Rev31 adds 3 Lesson support tables; Rev71 adds 2 Story activity tables; Rev72 adds 3 SVG catalog tables; current target 97 = 38 retained/refactored + 59 new; 145 = 97 + 48 |
+| 147 projected physical mappings | 99 active + 48 legacy retained |
+| Reconciliation | Pre-Rev31 86 = 38 retained/refactored + 48 legacy; Rev31 adds 3 Lesson support tables; Rev71 adds 2 Story activity tables; Rev72 adds 3 SVG catalog tables; Rev74 adds 2 Parent rotation tables; current target 99 = 38 retained/refactored + 61 new; 147 = 99 + 48 |
 
 ## 12. Quyết định đã chốt và cổng kỹ thuật còn mở
 
-Q01-Q146 form the historical product baseline; Q147-Q195 extend it. Preserve the Parent/Teacher flows and video pipeline. The v2.3-draft adds 11 platform tables for a baseline of 89 active/137 physical; Rev31 adds three Lesson support tables, giving 92-active/140-physical at that revision. Rev71 adds two Story activity tables (94/142); Rev72 adds three SVG catalog tables, giving the current source-derived crosswalk of 97 active/145 projected physical mappings. SRS/Data Table Register remain unsigned drafts; open product/data questions remain in section 14.
+Q01-Q146 form the historical product baseline; Q147-Q195 extend it. Preserve the Parent/Teacher flows and video pipeline. The v2.3-draft adds 11 platform tables for a baseline of 89 active/137 physical; Rev31 adds three Lesson support tables, giving 92-active/140-physical at that revision. Rev71 adds two Story activity tables (94/142); Rev72 adds three SVG catalog tables; Rev74 adds two Parent rotation tables, giving the current source-derived crosswalk of 99 active/147 projected physical mappings. SRS/Data Table Register remain unsigned drafts; open product/data questions remain in section 14.
 
 | Quyết định | Quy tắc đã chốt | Ánh xạ dữ liệu đích |
 |---|---|---|
@@ -720,7 +721,7 @@ Không chạy migration, không truy cập database đang hoạt động, không
 | 04 Plan Supersession | M-10; lesson occurrences/plan revisions/deck refs and Story/AI Job opaque refs | PARTIAL / OPEN-OWNER | Keep the exact version/hash pin and stale fence; decide effects by accepted/queued/running/ready and playable-output point on deck, approval, claim, quota, projection and stale output. No inferred table/state. |
 | 05 Parent without Lesson Preset | R-04; learning_content is catalog owner, optional source only | PARTIAL / OPEN-OWNER | Whether queried and, if approved, filter/access/order/cardinality, exact version/hash pin and response snapshot, empty result, revoke/unpublish behavior. Do not add a table by inference. |
 | 06 Remaining business policies | Q-02–Q-12; D-04/D-08/D-14; OI-06; §§5.7/8/14.3 | OPEN-OWNER / OPEN-TECHNICAL by item | School quota allocation/pricing, Parent personal copy, lesson publication/AI visual review, age bands, Parent history 30/60 days, script-following, legacy 121–155-month behavior and audit retention; owner/status per source records. |
-| 07 Physical Database & ERD | D-01–D-04/D-16; OI-11; 38 retained/refactored + 59 new active mappings; 48 legacy | OPEN-TECHNICAL | Approve Physical Data Dictionary/DDL: SQL type, NULL/DEFAULT, PK/FK, UNIQUE/CHECK, indexes/partial predicates and FK actions; approve source-field/backfill/migration mapping; distinguish target from code/schema-evidenced as-built. |
+| 07 Physical Database & ERD | D-01–D-04/D-16; OI-11; 38 retained/refactored + 61 new active mappings; 48 legacy | OPEN-TECHNICAL | Approve Physical Data Dictionary/DDL: SQL type, NULL/DEFAULT, PK/FK, UNIQUE/CHECK, indexes/partial predicates and FK actions; approve source-field/backfill/migration mapping; distinguish target from code/schema-evidenced as-built. |
 | 08 State Machine & Activity | D-10/D-11; M-08–M-10/M-16; SRS §§6/22–23 | OPEN-OWNER / OPEN-TECHNICAL | Exhaustive transition matrix by aggregate/source state: event, actor, guard, effect, target state, timeout, retry, revoke, cancel and exception for all registered states. |
 | 09 API & Sequence | D-18/R-02/Q-02; SRS §21 and API Rev37 catalog | OPEN-TECHNICAL | Method/endpoint, request-response schema, errors, authorization, version, idempotency, event/outbox, async timeline, timeout, reconciliation and compensation; separate proposed contracts from mounted source evidence. |
 | 10 Screen Flow, Class & Package | D-17/D-19/D-20/OI-17; learning_content/ai_jobs/ai_policy owners | OPEN-DESIGN / OPEN-TECHNICAL | Screen IDs/navigation edges/back/cancel/resume/UI states; class attributes/methods/interfaces/ports; package ownership/dependency rules and current source import/cycle verification remain incomplete. No source-compliance claim from target layering alone. |
@@ -728,7 +729,7 @@ Không chạy migration, không truy cập database đang hoạt động, không
 These rows are trace links to existing readiness/question IDs, not new schema or policy decisions. See SRS §31.10 and DIAGRAM_INPUT_CATALOG_V27_REV56_20261108.md.
 ### 14.4 Rev31 backend implementation support tables (additive)
 
-The v2.3 product-design baseline at 89 active tables remains a draft. Rev31 implementation source adds three Lesson-owned persistence tables required to keep reusable-library uploads separate from occurrence-owned documents and to provide durable idempotent command receipts. At Rev31, the implementation crosswalk was 38 retained/refactored + 54 new = 92 active, plus 48 legacy/read-only = 140 projected physical mappings. Rev71 later adds two Story-owned Parent activity tables (94/142); Rev72 adds three Core-owned SVG catalog tables, bringing the current crosswalk to 97 active + 48 legacy/read-only = 145 projected mappings (§14.10). These counts are source-derived; at the time of Rev31 (2026-10-28), no live database was inspected and no migration was applied. The later local snapshot is recorded separately in §14.5. This crosswalk does not sign off the SRS content.
+The v2.3 product-design baseline at 89 active tables remains a draft. Rev31 implementation source adds three Lesson-owned persistence tables required to keep reusable-library uploads separate from occurrence-owned documents and to provide durable idempotent command receipts. At Rev31, the implementation crosswalk was 38 retained/refactored + 54 new = 92 active, plus 48 legacy/read-only = 140 projected physical mappings. Rev71 later adds two Story-owned Parent activity tables (94/142); Rev72 adds three Core-owned SVG catalog tables; Rev74 adds two Parent topic-rotation tables, bringing the current crosswalk to 99 active + 48 legacy/read-only = 147 projected mappings (§14.11). These counts are source-derived; at the time of Rev31 (2026-10-28), no live database was inspected and no migration was applied. The later local snapshot is recorded separately in §14.5. This crosswalk does not sign off the SRS content.
 
 | Owner | Rev31 table | Key fields and relationships | Purpose and lifecycle |
 |---|---|---|---|
@@ -765,7 +766,7 @@ Therefore, the current database inventory supports a precise distinction: there 
 
 ## 14.7 Rev57 diagram-input detail and physical gate
 
-Rev57 added logical detail to the then-current 92-active/48-legacy target without treating logical names as deployed tables. Rev71's two Story-owned tables and Rev72's three SVG catalog tables are additive source crosswalks, not proof of deployed DDL. The companion artifact PHYSICAL_DATA_DICTIONARY_DRAFT_REV57_20261109.md documents the Rev57 target and is not silently expanded into a physical approval; the current 97-active/48-legacy counts and Rev72 source mapping are recorded in §14.10.
+Rev57 added logical detail to the then-current 92-active/48-legacy target without treating logical names as deployed tables. Rev71's two Story-owned tables and Rev72's three SVG catalog tables are additive source crosswalks, not proof of deployed DDL. The companion artifact PHYSICAL_DATA_DICTIONARY_DRAFT_REV57_20261109.md documents the Rev57 target and is not silently expanded into a physical approval; the current 99-active/48-legacy counts and Rev72/Rev74 source mappings are recorded in §§14.10–14.11.
 
 | Concern | Data design contract now explicit | Physical decision/evidence still open |
 |---|---|---|
@@ -776,7 +777,7 @@ Rev57 added logical detail to the then-current 92-active/48-legacy target withou
 | Parent no-preset activity | If queried, catalog-owned approved/published versions are read after video; no activity is a video input. No catalog table is added. | Whether to query, filters, permission, ordering, cardinality, response and history effects remain SRS §31.10(13)/R-04. |
 | Product and compute quota | Parent and school organization are the product-quota scopes; Teacher uses the occurrence organization; current-month included units precede top-up FIFO. Compute reservation is AI Policy-owned. | Amounts/prices/purchase allocation and the approved multi-owner receipt/migration model remain Q-02/Q-12; never assume a cross-owner atomic SQL transaction. |
 | States and contracts | Owner-scoped state/event/receipt/outbox responsibilities are linked in STATE_TRANSITION_MATRIX_REV57_20261109.md and API_EVENT_CONTRACTS_DRAFT_REV57_20261109.md. | Missing lifecycle fields/states, API mounting, DDL constraints and retention require owner or technical review. |
-| Counts and physical status | Rev57 baseline was 38 + 54 = 92 active mappings, 48 legacy/read-only, 140 projected mappings. Rev71 source crosswalk was 38 + 56 = 94 active/142 projected (§14.9); Rev72 is 38 + 59 = 97 active/145 projected (§14.10). | All SQL type/null/default/key/index/FK-action declarations and migration approval remain physical gates. Rev43 local 41-table snapshot is a dated local observation only. |
+| Counts and physical status | Rev57 baseline was 38 + 54 = 92 active mappings, 48 legacy/read-only, 140 projected mappings. Rev71 source crosswalk was 38 + 56 = 94 active/142 projected (§14.9); Rev72 was 38 + 59 = 97 active/145 projected (§14.10); Rev74 is 38 + 61 = 99 active/147 projected (§14.11). | All SQL type/null/default/key/index/FK-action declarations and migration approval remain physical gates. Rev43 local 41-table snapshot is a dated local observation only. |
 
 The source-to-target crosswalk in §§3–4.1 is a logical preservation/refactor map. It is not yet a complete migration script: backfill ordering, row-level validation queries, reconciliation tolerances, rollback checkpoints and approval per migration step are not specified for all 38 retained/refactored mappings. New-target mappings are not evidence that tables exist. No migration, DDL, database query or data change was executed for Rev57.
 
@@ -815,3 +816,14 @@ The FEAT-081 source now declares three Core-owned SVG catalog persistence tables
 Relationship notes: catalog assets reference Core-owned source and canonical asset versions; guide revisions reference the exact catalog asset version; review rows reference that same asset and, for guide review, its immutable guide revision. No Parent profile, StoryRun, child image, or consent reference is stored in these catalog tables.
 
 The additive source migration is `backend/alembic/versions/20261113_svg_catalog_review.py`. `alembic/env.py` imports the metadata for migration discovery. This record documents source declarations only: the migration has not been run, no database was changed, and physical SQL types/indexes/constraint behavior still require disposable-database verification and the existing physical-design gate.
+
+### 14.11 Rev74 Parent topic-rotation source crosswalk (additive; 2026-11-23)
+
+FEAT-083 adds two Parent-owned source mappings for account-scoped rotation and idempotent replay of the three-card topic/subject batches. This changes the source-derived target from Rev72's 97 active/145 projected mappings to 99 active/147 projected: 38 retained/refactored + 61 new active mappings + 48 legacy/read-only mappings. These are source declarations only; `20261123_parent_topic_rotation.py` has not been applied to a database and no live schema was inspected.
+
+| Owner | Physical source table | Key and integrity | Purpose and lifecycle |
+|---|---|---|---|
+| parent | `parent.topic_rotation_states` | PK `rotation_state_id`; unique `(account_id, catalog_revision, rotation_kind, scope_id)`; `rotation_kind` constrained to `TOPIC`/`SUBJECT`; positive cycle, nonnegative cursor, bounded JSON array of ordered catalog IDs | Persists a randomized, account-scoped catalog-ID order and cursor for one topic or one topic's drawable-subject cycle. It contains no custom text, child/profile data, image, audio, story or video. A cycle is reshuffled only after all catalog candidates are consumed. |
+| parent | `parent.topic_rotation_receipts` | PK `rotation_receipt_id`; unique `(account_id, request_id)`; 32-byte request fingerprint; bounded JSON array of selected IDs | Replays the exact three-card response for an idempotent request and binds it to the draft, catalog revision, rotation scope and cycle. The receipt contains IDs and hashes only, not user-entered topic/subject text or child data. |
+
+The SQLAlchemy mappings are in `backend/src/sketch2life/infrastructure/persistence/parent_models.py`; the migration source is `backend/alembic/versions/20261123_parent_topic_rotation.py`. Its downgrade deliberately refuses automatic deletion because receipts preserve retry behavior. No migration was executed, no database was changed, and no claim is made about the live database's table count. Physical SQL/retry/retention behavior remains subject to the migration and database verification gate. The canonical SRS remains unsigned.

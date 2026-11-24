@@ -1,5 +1,7 @@
 # FEAT-063 — Whole-repository architecture redesign
 
+> **SRS authority boundary:** For current product requirements, use only `docs/context/SRS_AUTHORITY.md` and the canonical FEAT-063 SRS v2.7-draft (Rev57 baseline, amendments through Rev67). Revision labels and requirement claims in this chronological feature context are historical or feature-local records; later entries do not supersede that canonical SRS. The SRS remains unsigned.
+
 ## Rev78 Parent catalog-first activity publication — 2026-11-11
 
 - Feature commit `34b92194867e915040aae1a1178dee0e526a60c3` was pushed to `origin/codex/feat063-parent-catalog-20261111`, fast-forward merged into `dev`, and pushed. Fresh remote verification confirmed both refs at the same SHA; the `dev` update also published the 21 pre-existing local `dev` commits. The remote reported the pull-request-only rule was bypassed for the owner-authorized push; no history was rewritten.
@@ -773,3 +775,10 @@ accepted by the owner with recorded debt and committed on local branch `feature/
 ## FEAT-063 FR-C-08 SRS wording edit applied (D-219) — 2026-11-19
 
 The canonical working SRS `features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` now holds 701,810 bytes / SHA-256 `443A3CA37272D2FE96127564BAF400461F394E098724A6BD999D723A4E504021` (before: 701,157 bytes / `B9B1F42D…`, the copy adopted by D-209). The documentation-only FR-C-08 wording edit (program task B4, `features/FEAT-063-system-architecture-rearchitecture/plan/FR_C08_SRS_WORDING_EDIT_DRAFT3_20261119.md`) changed 13 lines with 14 edits: user delete is for runs in COMPLETED, FAILED or ABANDONED; FAILED and ABANDONED are never purged automatically; the retention sites name FAILED; and line 394 records SCRIPT_GENERATING and SCRIPT_GENERATION_UNKNOWN as noted extension values. The header and lines 1-39 were not changed and no line moved, so SRS line citations stay valid. Records pinned to `B9B1F42D…` stay as historical records of the earlier bytes. Contract alignment: `features/FEAT-063-system-architecture-rearchitecture/plan/FR_C08_PARENT_TEACHER_LIFECYCLE_CONTRACT_DRAFT12_20261119.md`. Authority: FEAT-063 D-219. Local commit on its own branch; not pushed or merged.
+
+## Rev74 — Qwen3.8 and Parent topic rotation source update (2026-11-23)
+
+- The canonical SRS is v2.7-draft Rev74 and remains unsigned. This is the checked-in authority pointer; owner-provided AGENTS wording that named Rev67 is retained as provenance in FEAT-083 records.
+- FEAT-083 adds Qwen3.8 source pins for active Qwen text/vision workers, more grounded activity/story/video prompt contracts, and the Parent 18-topic/nine-subject catalog with account-scoped durable three-card rotation.
+- Two Parent rotation mappings and an additive migration source are present. No migration was applied or live database inspected. No tests, Modal deployment/inference, API/E2E, or emulator verification were run in this source-only task.
+- Detailed implementation scope/status: `features/FEAT-083-qwen38-everyday-quality-topic-rotation/` and SRS §32.41.

@@ -1,5 +1,7 @@
 # FEAT-063 source register
 
+> **SRS authority boundary:** The current product SRS is v2.7-draft, Rev57 baseline with documented amendments through Rev67, as identified by `docs/context/SRS_AUTHORITY.md`. The dated records below preserve feature implementation provenance; later revision labels or product-authority wording inside them do not supersede the canonical SRS. It remains unsigned.
+
 ## Rev65 Teacher Sketch Deck presentation UI — current — 2026-11-10
 
 - Product authority: FEAT-063 SRS v2.7-draft, Rev60 working copy (unsigned), §§6.2.1, FR-T-19, UC-17, BR-43 and NFR-33.
@@ -546,3 +548,10 @@ accepted by the owner with recorded debt and committed on local branch `feature/
 - Product requirement authority: `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md`, 701810 bytes / SHA-256 443A3CA37272D2FE96127564BAF400461F394E098724A6BD999D723A4E504021; unsigned. It is the D-209 copy with the FR-C-08 wording edit of `plan/FR_C08_SRS_WORDING_EDIT_DRAFT3_20261119.md` applied (13 lines, no line moved).
 - The D-209 bytes (701157 bytes / `B9B1F42D…`) remain the pin of the historical records that cite them.
 - Contract alignment: `plan/FR_C08_PARENT_TEACHER_LIFECYCLE_CONTRACT_DRAFT12_20261119.md`. Authority: D-219.
+
+## FEAT-083 source reconciliation — 2026-11-23
+
+- Current product requirements: canonical FEAT-063 SRS v2.7-draft Rev74, still unsigned; matching Data Table Register Rev74 remains a source/target crosswalk, not live DB evidence.
+- FEAT-083 source review is under `features/FEAT-083-qwen38-everyday-quality-topic-rotation/`. Active Qwen text/vision paths use the exact Qwen3.8-27B-FP8 development revision. Historical Qwen3.5 runtime evidence remains historical only.
+- Parent topic/subject cards use the curated 18-topic/9-subject resource and durable account-scoped rotation receipts. Migration source exists but is not applied. Runtime and quality remain unverified.
+- No Modal calls/deployment, tests/typecheck, database migration, API/E2E, or emulator verification occurred for this source update.
