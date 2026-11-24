@@ -1,0 +1,51 @@
+{
+  "revision": "SRS v3.5 / B29 package update",
+  "date": "2026-10-26",
+  "plan_sha256": "bbf1cbaf2e1baf21a260203a21908607eacae7eeb746ad41c11116d166d95f38",
+  "canonical_srs_sha256": "2fa7bcb91c821dabd239a4331e7a68dbc9e4740da25805657cd7fed5e4c89fa7",
+  "synchronized_copy_sha256": "2fa7bcb91c821dabd239a4331e7a68dbc9e4740da25805657cd7fed5e4c89fa7",
+  "canonical_copy_byte_identical": true,
+  "preserved_v3_4_sha256": "07ee7d5bb4ac7fe1a3aa0d35050b60cd6efd3ae09234fcea6205f92a18012090",
+  "v3_4_preservation_matches_registered_hash": true,
+  "expected_b29_text_present": true,
+  "package_entitlements": {
+    "free_trial": {
+      "duration_days": 14,
+      "active_classes": 1,
+      "shared_ai_credits": 3,
+      "payment_method_required": false
+    },
+    "plus": {
+      "monthly_price_vnd": 999000,
+      "price_status": "PROPOSED",
+      "active_classes": 5,
+      "teacher_seats": 10,
+      "shared_ai_credits": 100
+    },
+    "add_ons": {
+      "active_class_monthly_vnd": 99000,
+      "teacher_seat_monthly_vnd": 49000,
+      "price_status": "PROPOSED"
+    },
+    "one_time_shared_ai_packs": [
+      {
+        "credits": 15,
+        "price_vnd": 149000,
+        "price_status": "PROPOSED"
+      },
+      {
+        "credits": 45,
+        "price_vnd": 399000,
+        "price_status": "PROPOSED"
+      },
+      {
+        "credits": 80,
+        "price_vnd": 799000,
+        "price_status": "PROPOSED"
+      }
+    ]
+  },
+  "all_currency_amounts_proposed": true,
+  "billing_implementation_status": "NOT IMPLEMENTED",
+  "no_application_tests_run": true
+}

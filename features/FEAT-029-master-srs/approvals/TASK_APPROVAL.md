@@ -96,3 +96,33 @@ The owner explicitly authorized replacement with the new collaborative creative 
 - Approved trial credit lifecycle: one credit covers a complete adult-approved drawing/story experience and normal off-screen handoff; reserve at session start, debit at successful handoff, release on failure/cancellation, and do not double-charge same-session retries. Monthly paid plans are manually renewed; backend verification precedes entitlement/credit grant.
 - Documentation scope only. No provider, instrument, live transaction, mobile payment credential storage, or commercial-launch claim is authorized. Provider-specific states, expiry/rollover, refunds/chargebacks and taxes remain implementation decisions.
 - SRS baseline updated to v2.0/B35; age range remains `<9` / 0–107 completed months under the prior v1.9 amendment.
+
+## Addendum — Teacher Web billing change request B29 (2026-10-25)
+
+- Status: APPROVED FOR DOCUMENTATION BY DIRECT OWNER REQUEST.
+- The owner requested adding MoMo, VNPay, VietQR, architecture/technology, FR/NFR, exception handling and package options to the documents and Master SRS, asked for reference pricing and stated prices need owner review before adoption.
+- The owner confirmed the purchase surface is Teacher Web and selected Free Trial + Plus subscription + quota top-ups as the proposal structure.
+- Authorized documentation: append a separate proposed B29 change request to the Master SRS, preserving the v3.3/B28 baseline and existing IDs; prepare source-dated price/quota recommendations, current legal/platform/business-rule review, and derived Draw.io billing diagrams; refresh the four local Review 2 DOCX/PDF dossier pairs.
+- Owner-approved product positioning: “Sketch2Life is a collaborative creative learning platform for children aged 3–12, inspired by Montessori, Reggio Emilia, and social constructivist learning.” Use consistently in the Registration derivative, BM01/report summary and SRS overview. In the Registration v1.2 derivative, this supersedes only the opening sentence of existing section 3.2(a) Context; the selected source remains byte-identical and all other form text/table content remains unchanged.
+- B29 is a proposal only. All pricing/quota values, exact plan entitlement and term, purchase/provider contracts, merchant fees, tax/refund/cancellation policy, legal interpretation, Google Play policy applicability, and rollout remain for owner/team/qualified review. No payment integration, merchant setup, real transaction, runtime claim, or compliance certification is authorized.
+- Plan: `plan/PLAN_B29_TEACHER_WEB_BILLING_CHANGE_REQUEST_20261025.md`.
+- No app code, application tests, provider call, migration, deployment, commit/push, tag, or publication is authorized by this addendum.
+
+## Owner clarification — existing portals and school-level billing (2026-10-25)
+
+- The owner clarified that no new role and no standalone billing UI are needed. Reuse Teacher Desktop and Super Admin Portal.
+- Document the proposed `billing:manage` permission on existing Teacher accounts. Authorized Teachers manage their school's billing; other Teachers can view plan and usage read-only. Super Admin manages catalog, add-ons, school subscriptions and transactions through the existing portal.
+- Attach subscriptions, payments, add-ons and shared quota/credit balances to `school_id`, never to an individual Teacher account. The 10-class / 500-credit example in the owner's note is illustrative and needs confirmation.
+- Keep the existing v3.3/B28 baseline intact. B29 remains a proposed scope-change request. Prepare price options for owner approval before exporting final PDFs.
+- Owner price selection — 2026-10-25: use Option B's school-level structure at 999,000 VND/month for the document proposal (up to 10 classes, 500 shared credits). The proposed one-trial-per-school terms and add-on rates (extra class, Teacher seat and AI credits) are still recommendations pending owner review; no billing terms are adopted into the baseline.
+- Owner pricing-status clarification — 2026-10-25: include the complete package and add-on pricing/quota table in B29 and both synchronized SRS copies. Label every Sketch2Life amount and quota PROPOSED. The owner-selected 999,000 VND/month Plus amount is a candidate within the proposal, not adopted baseline pricing or an approval to sell. In the Registration form, mention only that billing/payment is proposed; omit all prices and quota amounts.
+
+## Owner authorization — billing promoted into baseline (2026-10-25)
+
+- Status: APPROVED FOR DOCUMENTATION BY DIRECT OWNER REQUEST.
+- The owner directed that billing/payment be included in the product baseline, with complete FR, NFR, business rules and error/exception handling; the feature is planned for implementation but has not been implemented yet.
+- The owner clarified that only the proposed price amounts retain the `PROPOSED` label. Package structure, entitlement quotas and payment capability are baseline target requirements.
+- Authorized: publish SRS v3.4, synchronize the canonical Master SRS and FEAT-039 copy, preserve v3.3/B28 and registration v1.2, and update related baseline records and Review 2 documents/diagrams.
+- No runtime code, migration, provider onboarding, live payment, release, commit or push is authorized by this amendment.
+- Plan: `plan/PLAN_B29_BILLING_BASELINE_SRS_V3_4_20261025.md`.
+- Owner scope amendment — 2026-10-26: the owner supplied the “School plans and billing” image and requested the pricing/package be updated accordingly. Plan `PLAN_B29_SCHOOL_PACKAGE_UPDATE_SRS_V3_5_20261026.md` (SHA-256 `BBF1CBAF2E1BAF21A260203A21908607EACAE7EEB746AD41C11116D166D95F38`) is approved by this direct request. It authorizes SRS v3.5 with 1-class/3-credit Free Trial, 5-class/10-seat/100-credit Plus and 15/45/80-credit one-time packs, synchronized in FEAT-029 and FEAT-039; all monetary amounts remain PROPOSED. Preserve v3.4, v3.3/B28, historical proposals and Registration v1.2. Billing remains NOT IMPLEMENTED. No runtime code, application tests, provider call, live transaction, commit, push, tag, deployment or publication is authorized.

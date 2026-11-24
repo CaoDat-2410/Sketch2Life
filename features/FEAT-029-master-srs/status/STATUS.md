@@ -1,5 +1,21 @@
 # FEAT-029 status
 
+## Current canonical artifact — v3.5 school package update — 2026-10-26
+
+- Canonical SRS: v3.5; synchronized current FEAT-039 copy is `artifacts/Collaborative_Learning_SRS_v3.5.md` and matches byte-for-byte.
+- B29 baseline entitlements match the owner's latest package direction: Free Trial 14 days/1 class/3 shared AI credits/no payment method; Plus 5 classes/10 Teacher seats/100 shared AI credits; one-time shared top-ups 15/45/80 credits.
+- All monetary amounts remain PROPOSED. Billing/payment remains NOT IMPLEMENTED; no provider or checkout integration is evidenced.
+- SRS v3.4 is preserved byte-for-byte at `artifacts/Sketch2Life_Master_SRS_v3.4_preserved_20261026.md` and FEAT-039 `artifacts/Collaborative_Learning_SRS_v3.4.md`; both have SHA-256 `07ee7d5bb4ac7fe1a3aa0d35050b60cd6efd3ae09234fcea6205f92a18012090`.
+- SRS v3.3/B28 and Registration v1.2 remain unchanged; the registration derivative contains no prices. Plan and approval are `plan/PLAN_B29_SCHOOL_PACKAGE_UPDATE_SRS_V3_5_20261026.md` and `approvals/TASK_APPROVAL.md`.
+
+## Historical canonical artifact — v3.4 billing baseline — 2026-10-25
+
+- Canonical SRS: v3.4, including owner-approved B29 school billing/payment requirements in the product baseline.
+- Billing implementation: NOT IMPLEMENTED. Baseline FR/NFR/BR/errors and package/quota structure are specified; only monetary amounts remain PROPOSED.
+- Canonical bytes match `features/FEAT-039-collaborative-learning-scope/artifacts/Collaborative_Learning_SRS_v3.4.md`.
+- Exact SRS v3.3/B28 and original Registration v1.2 remain preserved; the form is not amended with prices.
+- Plan and direct owner authorization: `plan/PLAN_B29_BILLING_BASELINE_SRS_V3_4_20261025.md`; details in `approvals/TASK_APPROVAL.md`.
+
 ## Current canonical artifact — 2026-10-24
 
 - Canonical SRS: v3.3, replacement collaborative creative learning scope and detailed system foundation, FEAT-039 documentation revision 5; B28 records six owner-confirmed classroom policies.

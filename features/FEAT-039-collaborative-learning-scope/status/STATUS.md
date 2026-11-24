@@ -1,5 +1,21 @@
 # Feature status
 
+## Current SRS amendment — v3.5 / revision 7 — 2026-10-26
+
+- Status: DONE — owner-directed school package/quota update recorded; billing implementation remains NOT IMPLEMENTED.
+- Canonical and current feature copy: FEAT-029 `artifacts/Sketch2Life_Master_SRS.md` and `artifacts/Collaborative_Learning_SRS_v3.5.md`, byte-identical with SHA-256 `2fa7bcb91c821dabd239a4331e7a68dbc9e4740da25805657cd7fed5e4c89fa7`.
+- Free Trial: 14 days, 1 active class, 3 shared AI credits, no payment method. Plus: 5 active classes, 10 Teacher seats, 100 shared credits. Top-ups: 15/45/80 one-time shared credits. Only monetary amounts remain PROPOSED.
+- Exact v3.4, v3.3/B28 and Registration v1.2 remain preserved; no runtime, schema, migration, provider setup or checkout implementation was added.
+- Plan/authorization: `../FEAT-029-master-srs/plan/PLAN_B29_SCHOOL_PACKAGE_UPDATE_SRS_V3_5_20261026.md` and approvals.
+
+## Historical SRS amendment — v3.4 / revision 6 — 2026-10-25
+
+- Status: DONE — owner-approved billing/payment baseline added; implementation remains NOT IMPLEMENTED.
+- Canonical and feature copy: `features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md` and `artifacts/Collaborative_Learning_SRS_v3.4.md`, byte-identical after final SRS edits.
+- B29 includes baseline packages/quotas, FR/NFR/BR/error behavior, existing portal responsibilities, school-level ownership, MoMo/VNPay/VietQR target routes and child/platform/privacy safeguards. Only monetary amounts remain PROPOSED.
+- Exact v3.3/B28, prior B29 proposal, v3.2 and older baselines remain preserved. No runtime, schema, migration, provider setup or checkout implementation was added.
+- Plan/authorization: `plan/PLAN_REV5_SRS_OWNER_DECISIONS_20261024.md` is historical; current billing plan `../FEAT-029-master-srs/plan/PLAN_B29_BILLING_BASELINE_SRS_V3_4_20261025.md`; owner authorization is recorded in approvals.
+
 ## Current SRS amendment — 2026-10-24
 
 - Status: DONE — revision 5 / v3.3, additive documentation amendment authorized by the project owner’s six direct answers.

@@ -10,3 +10,8 @@ Evidence is feature-local. Source inventory, verification commands, outputs, env
 - artifacts/SRS_Clarification_Questions.md: owner questions for scope, authentication/authorization, privacy, workflow, Guide Console, AI, offline behavior, research, and NFR acceptance.
 - evidence/notes/OWNER_CHANGE_STORY_VIDEO_20260928.md: owner-confirmed v1.7 story/video change, supersession analysis, plan/SRS updates, proposed-contract status, and review limitations.
 
+## SRS v3.5 school package update — 2026-10-26
+
+- Plan and direct authorization: `plan/PLAN_B29_SCHOOL_PACKAGE_UPDATE_SRS_V3_5_20261026.md` and `approvals/TASK_APPROVAL.md`.
+- Canonical/FEAT-039 byte equality, updated package values, all-PROPOSED monetary status, NOT IMPLEMENTED boundary, and preserved v3.4 hash: `metrics/SRS_V3_5_PACKAGE_UPDATE_20261026.json`.
+- Exact v3.4 preserved artifact: `artifacts/Sketch2Life_Master_SRS_v3.4_preserved_20261026.md`. No application tests or runtime changes were made.

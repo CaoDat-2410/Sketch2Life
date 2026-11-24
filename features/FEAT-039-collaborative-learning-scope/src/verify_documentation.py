@@ -12,7 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 FEATURE = ROOT / "features/FEAT-039-collaborative-learning-scope"
 CANONICAL = ROOT / "features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md"
-SRS = FEATURE / "artifacts/Collaborative_Learning_SRS_v3.3.md"
+SRS = FEATURE / "artifacts/Collaborative_Learning_SRS_v3.4.md"
 PRESERVED_SRS_V32 = FEATURE / "artifacts/Collaborative_Learning_SRS_v3.2.md"
 EXPECTED_SRS_V32 = "9d7a71cc3fd0ab45b3175823c09780af0eb2e129d21a991d5470693dae25a21d"
 BACKUP = FEATURE / "artifacts/Sketch2Life_Master_SRS_v2.0_preserved_20261010.md"
@@ -53,9 +53,15 @@ def main() -> int:
     for ref in re.findall(r"\bFR\d{3}\b", text):
         if ref not in expected_fr:
             errors.append(f"unknown functional reference {ref}")
-    sections = re.findall(r"^## B(\d+)\.", text, re.M)
+    sections = [
+        number for number in re.findall(r"^## B(\d+)\.", text, re.M)
+        if int(number) <= 28
+    ]
     if sections != [str(i) for i in range(1, 29)]:
         errors.append("B1-B28 section ordering or duplicate mismatch")
+    b29_sections = re.findall(r"^## B29\.(\d+)\b", text, re.M)
+    if b29_sections != [str(i) for i in range(1, 10)]:
+        errors.append("B29 baseline addendum section ordering or coverage mismatch")
     cases = list(re.finditer(r"^### (UC-\d{3}) —", text, re.M))
     expected_uc = {f"UC-{i:03}" for i in range(1, 39)}
     if {m.group(1) for m in cases} != expected_uc or len(cases) != 38:
@@ -179,7 +185,7 @@ def main() -> int:
         "scope": "static documentation coverage/link/provenance checks only",
         "module_rows": len(modules), "source_acceptance_rows": len(acceptance),
         "functional_requirement_rows": len(functional), "local_links_checked": link_count,
-        "srs_version": "3.3", "sections": len(sections),
+        "srs_version": "3.4", "sections": len(sections),
         "detailed_use_cases": len(cases), "detailed_acceptance_criteria": len(defined_at),
         "logical_dtos": len(data_ids), "route_contract_proposals": len(command_ids),
         "screen_specifications": len(screen_ids), "quality_targets": len(quality_ids),

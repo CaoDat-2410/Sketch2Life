@@ -12,7 +12,7 @@
 - E07: [foundation cross-section review](notes/FOUNDATION_REVIEW.md), use-case/data/interface/UI/privacy findings and corrections.
 - E08: [foundation validation](notes/FOUNDATION_VALIDATION.md), current static check metrics and independent review, with separate global repository limitations.
 
-Current consolidated artifact is [SRS v3.3](../artifacts/Collaborative_Learning_SRS_v3.3.md), synchronized with the canonical FEAT-029 document. Exact v3.2 and v3.1 remain preserved; draft fragments are integration inputs, not additional authoritative baselines.
+Current consolidated artifact is [SRS v3.4](../artifacts/Collaborative_Learning_SRS_v3.4.md), synchronized with the canonical FEAT-029 document. Exact v3.3/B28 and v3.2/v3.1 artifacts remain preserved; draft fragments are integration inputs, not additional authoritative baselines.
 
 - `notes/SRS_OWNER_DECISION_AMENDMENT_20261024.md` — authority and trace for the six owner decisions in B28.
 - `metrics/SRS_AMENDMENT_CHECKS_20261024.json` — static validation and synchronized-copy hash receipt for v3.3.
@@ -21,3 +21,9 @@ Current consolidated artifact is [SRS v3.3](../artifacts/Collaborative_Learning_
 Own documentation/harness/security-content checks and architecture validation pass. Global harness/security checks still fail on pre-existing findings; raw logs and interpretation are preserved here. No publication occurred.
 
 Environment: Windows PowerShell, repository workspace, date 2026-10-10 Asia/Saigon. Default shell and Node sandbox launch failed with helper_unknown_error; authorized shell escalation succeeded. This is an environment issue, not an automatic approval rejection.
+
+## SRS v3.5 school package update — 2026-10-26
+
+- Current consolidated artifact: `../artifacts/Collaborative_Learning_SRS_v3.5.md`; byte-identical to FEAT-029 canonical SRS v3.5.
+- Owner authority, exact entitlements, proposed-price labels, preserved v3.4, and synchronization receipt: `../../FEAT-029-master-srs/evidence/metrics/SRS_V3_5_PACKAGE_UPDATE_20261026.json`.
+- Plan and authorization are recorded in FEAT-029 `plan/PLAN_B29_SCHOOL_PACKAGE_UPDATE_SRS_V3_5_20261026.md` and this feature's decisions/approvals. Billing stays NOT IMPLEMENTED.

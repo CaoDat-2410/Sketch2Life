@@ -1,12 +1,13 @@
 # SRS tổng thể Sketch2Life — Học tập sáng tạo cộng tác
 
 - Mã tài liệu: S2L-SRS-MASTER.
-- Phiên bản: 3.3 — v3.2 cộng phụ lục chốt chính sách lớp học B28 ngày 2026-10-24; xem B27–B28 và phân biệt OWNER_CONFIRMED / PROPOSED / OPEN_TBD.
+- Phiên bản: 3.5 — cập nhật hạn mức gói trường học theo chỉ đạo ngày 2026-10-26; chỉ các số tiền còn PROPOSED, implementation NOT IMPLEMENTED.
 - Ngôn ngữ: Tiếng Việt.
-- Trạng thái: mục tiêu sản phẩm và FastAPI/React Native đã xác nhận; chi tiết `PROPOSED`/`TBD` chưa đóng băng.
+- Trạng thái: baseline sản phẩm OWNER_APPROVED; payment/billing thuộc phạm vi mục tiêu nhưng NOT IMPLEMENTED; chỉ các số tiền trong B29 còn PROPOSED; chi tiết vận hành/nhà cung cấp còn TBD.
 - Phạm vi: nền tảng lấy cảm hứng Montessori, Reggio Emilia và học tập kiến tạo xã hội, trẻ 3–12 tuổi.
+- English positioning: Sketch2Life is a collaborative creative learning platform for children aged 3–12, inspired by Montessori, Reggio Emilia, and social constructivist learning.
 - Client đã xác nhận: tablet/điện thoại Android, React Native. Backend đã xác nhận: FastAPI.
-- Feature quản lý: FEAT-039; SRS revision 5 là cập nhật chính sách sản phẩm/tài liệu, phối hợp FEAT-060. Runtime mới cho mã 6 số, stage controller và completion contract chưa được triển khai.
+- Feature quản lý: FEAT-039; SRS v3.5 / revision 7 cập nhật hạn mức B29, phối hợp FEAT-058 cho bộ Review 2. Runtime billing, payment adapters, provider setup, schema và migration chưa được triển khai.
 
 > Đây là yêu cầu cho sản phẩm mục tiêu, không phải chứng nhận implementation. Source hiện vẫn chứa giới hạn dưới 9 tuổi, role Parent/Guide/Admin, flow cá nhân và storage in-memory. Việc sửa SRS không tự sửa runtime hoặc adopt các contract bên dưới. Bản v2.0 nguyên trạng, bao gồm nội dung chưa commit trước task, được giữ trong FEAT-039. Exact SRS v3.1 được bảo toàn tại `Sketch2Life_Master_SRS_v3.1_preserved_20261023.md`; exact v3.2 trước amendment này được giữ nguyên tại `Collaborative_Learning_SRS_v3.2.md` (SHA-256 `9d7a71cc3fd0ab45b3175823c09780af0eb2e129d21a991d5470693dae25a21d`).
 
@@ -2544,7 +2545,199 @@ Các chính sách B28 là `OWNER_CONFIRMED` nhưng **chưa được triển khai
 | Việc nhóm chưa xong | Bắt buộc `save_draft` trước khi lớp advance | OWNER_CONFIRMED; durable group-draft contract chưa có |
 | End early | Category bắt buộc (`time`/`safety`/`technical`/`other`), ghi chú tùy chọn | OWNER_CONFIRMED; completion receipt/schema/guard chưa có |
 
+# B29 — School-level Billing and Payment (Baseline)
+
+**Baseline status: OWNER_APPROVED in SRS v3.5. Implementation status: NOT IMPLEMENTED.** B29 is part of the product target and is planned for implementation. The requirement set below is baseline scope; merchant onboarding, provider credentials, live transactions and release remain deployment gates. Only monetary amounts are **PROPOSED** and are not approved public offers. Package structure and listed quota entitlements are baseline targets.
+
+## B29.1 Product context and boundary
+
+Sketch2Life is a collaborative creative learning platform for children aged 3–12, inspired by Montessori, Reggio Emilia, and social constructivist learning. This is the owner's English product-positioning statement. The registration v1.2 and SRS v3.3/B28 target is 36–155 completed months inclusive. The repository currently contains conflicting backend age guards: `validate_age_months` accepts 36–155, while `supported_child_age_band` caps at 107 months. Full 9–12 implementation support is therefore not claimed; the age-policy mismatch needs cross-feature reconciliation and evidence.
+
+The owner chose to reuse the **existing Teacher Desktop** and **Super Admin Portal**. No new role, separate portal, or standalone UI is added. Teacher Desktop gains a Subscription & Billing section for current plan, upgrade/renewal, add-ons, payment and transaction history. The Super Admin Portal gains Billing Management for plans, add-ons, school subscriptions, transactions and reconciliation views. The baseline `billing:manage` permission lets designated Teachers manage billing for their school; other Teachers can see plan and usage read-only. Supported target payment routes are MoMo, VNPay and VietQR through a participating bank/acquirer or gateway, subject to provider and platform gates. Child Android must not initiate checkout, show a payment button, link to an alternate payment method, or use payment prompts targeted at a child.
+
+**School-level ownership:** Subscription, payment, add-on, entitlement and shared credit balance records attach to `school_id`, not an individual Teacher. A Teacher with `billing:manage` acts for the school; the permission is not a new role. The exact school/membership contract is an implementation decision and must be verified before enabling billing.
+
+**Baseline boundary:** B29 adds the billing target to the B28 product policy baseline. The product scope, package structure, quotas, roles/permissions, payment behavior and safeguards are approved; monetary price amounts alone remain PROPOSED. Provider onboarding, legal/platform review and implementation approval are release gates, not scope-adoption gates.
+
+## B29.2 Baseline packages and proposed monetary amounts
+
+The package structure and included quotas below are baseline requirements. Each currency amount alone is a price candidate and remains **PROPOSED** pending commercial review; the implementation must support versioned, configurable prices rather than hard-code these candidates.
+
+| Item | Price amount | Baseline school entitlement / terms | Price status |
+|---|---|---|---|
+| Free Trial | 0 VND (PROPOSED) | 14 days; one trial per `school_id`; up to 1 active class and 3 shared AI credits; no payment method required | PROPOSED amount |
+| Plus | 999,000 VND/month (PROPOSED) | Up to 5 active classes, 10 Teacher seats and 100 shared AI credits | PROPOSED amount |
+| Additional class | 99,000 VND/month (PROPOSED) | +1 active class for the school; recurring while active | PROPOSED amount |
+| Additional Teacher seat | 49,000 VND/month (PROPOSED) | +1 active Teacher account assigned to the school; `billing:manage` is a permission, not a paid role | PROPOSED amount |
+| AI credit top-up S | 149,000 VND one-time (PROPOSED) | 15 credits shared by eligible Teachers in the school | PROPOSED amount |
+| AI credit top-up M | 399,000 VND one-time (PROPOSED) | 45 credits shared by eligible Teachers in the school | PROPOSED amount |
+| AI credit top-up L | 799,000 VND one-time (PROPOSED) | 80 credits shared by eligible Teachers in the school | PROPOSED amount |
+
+One Teacher seat means one active Teacher account assigned to the school; Super Admin is not a purchased school seat. Class and Teacher add-ons are recurring school entitlements. AI-credit top-ups are one-time school-shared purchases. Mid-cycle proration, add-on expiry, whether monthly credits roll over, renewal/cancellation and school eligibility remain OPEN_TBD. Additional storage/video quota is not priced in this proposal because storage/provider costs and corresponding product limits have not been validated.
+
+Pricing comparison checked 2026-10-25: Klassi lists a free one-class option, a Solo offer around 250,000 VND/month, and an AI offer around 500,000 VND/month; its Solo plan add-on is about 85,000 VND per extra class slot/month (up to three extra slots). eKids lists a monthly content plan at 250,000 VND. The App Store listing for Draw to Life describes USD 9.99/month for 40 credits and USD 3.99 credit packs. These are observed third-party reference prices, not Sketch2Life pricing. The products differ in buyer, channel, AI operation, credit definition and included services; they do not establish Sketch2Life unit economics. The 99,000 VND/class add-on is a proposed candidate near Klassi's public class-slot price; Teacher-seat and AI top-up amounts remain internal proposal hypotheses without a direct comparable. [Klassi pricing](https://klassi.vn/pricing), [Klassi extra class slot](https://klassi.vn/help/vi/giao-vien/25-mua-them-slot-lop), [eKids pricing](https://ekidsvn.edu.vn/pricing), [Draw to Life App Store listing](https://apps.apple.com/vn/app/draw-to-life-ai-art-for-kids/id6752760587?platform=ipad).
+
+### Baseline credit and entitlement rules
+
+The system shall maintain school-scoped monthly and top-up pools with an immutable ledger. A credit is debited only for a successful, owner-authorized billable AI action; provider failure, rejected output, retry, cancellation or duplicate delivery must not create a duplicate debit. The precise billable action and reservation/commit/release/expiry policy require an implementation decision and cost evidence before live charging. No production purchase may be enabled until this policy is configured and shown to the adult purchaser.
+
+## B29.3 Baseline architecture and technology fit
+
+The target flow reuses the existing Teacher Web surface, existing Super Admin Portal, FastAPI application boundary and PostgreSQL persistence family. Domain rules remain independent of payment providers. A payment gateway port normalizes create-payment, status-query, callback, refund and reconciliation outcomes. MoMo and VNPay adapters and a VietQR route through a participating bank/acquirer or gateway are the supported target methods. Exact SDK/library versions, merchant/acquirer, settlement configuration, worker/queue and deployment region are selected and recorded in a later implementation ADR after contracts and security review.
+
+After payment, a provider server callback/IPN is signature/hash-verified, matched to the server's partner account, order, amount and currency, and processed idempotently. An atomic PostgreSQL transaction records the verified payment result and grants the associated Teacher/class entitlement and credit-ledger entry exactly once. Redirect/browser state is informational; it cannot grant quota. A scheduled reconciliation/worker may query pending transactions and resolve missing callbacks under an approved operational profile. Persistence follows the existing PostgreSQL/SQLAlchemy/Alembic family after migration ownership and lineage gates close. No new framework, payment library, queue or storage vendor is selected here.
+
+VietQR is treated as a QR-based payment initiation/confirmation route provided through a participating bank, acquirer or gateway. A static QR image or screenshot of a bank transfer is not proof of payment. The chosen partner must provide a trustworthy transaction notification or reconciliation interface before automatic entitlement grant is designed.
+
+| Layer | Baseline responsibility | Current status |
+|---|---|---|
+| Existing Teacher Desktop | Subscription & Billing section for plan, upgrade/renewal, add-ons, checkout status and history; `billing:manage` gates actions | NOT IMPLEMENTED |
+| Existing Super Admin Portal | Billing Management for plan catalog, add-ons, school subscriptions, transactions and reconciliation views | NOT IMPLEMENTED |
+| FastAPI application | Verify school membership and billing permission; checkout intent, payment status, school entitlement and shared usage/credit ledger | NOT IMPLEMENTED |
+| Payment adapter port | Normalize create/callback/query/refund outcomes without provider leakage into domain rules | NOT IMPLEMENTED |
+| Provider/bank adapters | MoMo, VNPay and participating VietQR bank/acquirer route; verify signatures and reconciliation results | No merchant account, credentials or adapter configured |
+| PostgreSQL ledger | Append-only payment/credit journal; school-keyed subscription/entitlement and shared balances; transactional idempotent grant/reservation/commit/release | No billing schema or migration implemented |
+| Child Android | Consume only entitled, Teacher-approved classroom experiences; no purchase entry point or payment prompts | Payment UI prohibited; no feature implemented |
+
+Billing records should reference `school_id`, authorized adult actor, school membership and order metadata. Every subscription, add-on and shared entitlement/credit balance is school-owned even when a Teacher initiated the transaction. Do not send child names, artwork, audio, prompts, transcripts, age, consent evidence or session content to payment providers. Entitlement and credit history are separate from child session/artwork history and follow a separately approved retention/accounting policy.
+
+### Baseline payment attempt lifecycle
+
+The baseline payment-attempt states are `CREATED → PENDING → PAID_VERIFIED` or a terminal `FAILED`, `CANCELLED`, or `EXPIRED` outcome; unresolved outcomes may enter `RECONCILIATION_REQUIRED`. `PAID_VERIFIED` is a server-side state only, reached after validated provider evidence; the entitlement/credit grant is a separate idempotent ledger effect. Duplicate callback: no second grant. Browser return before callback: remain Pending and poll/query safely. Callback with mismatched signature/order/amount/currency: reject or quarantine for review; never grant. Unknown QR transfer: remain Pending until bank/gateway reconciliation confirms it.
+
+## B29.4 Functional requirements — baseline, implementation pending
+
+All requirements below are in the approved product baseline and are currently `NOT IMPLEMENTED`.
+
+| ID | Baseline requirement | Acceptance evidence expected |
+|---|---|---|
+| FR-B29-01 | Teacher Desktop shall display a school's current plan, active quotas, usage, renewal/expiry status, purchase history and available baseline offers. | School fixture shows correct plan/balance; no child content |
+| FR-B29-02 | The system shall enforce `billing:manage` and verified `school_id` membership on every billing mutation; other Teachers remain read-only. | Deny missing permission, cross-school access and forged school IDs |
+| FR-B29-03 | The system shall create an idempotent school-scoped order and payment attempt from a versioned offer snapshot. | Same idempotency key returns same attempt; changed payload conflicts |
+| FR-B29-04 | Teacher Desktop shall expose configured MoMo, VNPay and participating-bank/acquirer VietQR routes with exact amount, currency and safe instructions. | Disabled routes unavailable; Child Android exposes no route |
+| FR-B29-05 | Backend shall verify provider callback authenticity, merchant/account, order, amount, currency, status, freshness and transaction uniqueness before marking payment verified. | Invalid/replayed/mismatched callback never grants |
+| FR-B29-06 | A verified payment shall grant the corresponding subscription, add-on or credit pack exactly once through the school entitlement ledger. | Duplicate/reordered callbacks and concurrent workers produce one grant |
+| FR-B29-07 | An authorized Teacher shall refresh an attempt and view a safe receipt/status, including Pending and Reconciliation Required. | Browser close/return does not lose server-side state |
+| FR-B29-08 | The system shall apply plan, class and Teacher-seat limits at the school boundary and explain the limit before an authorized adult buys an add-on. | No over-allocation or interruption of in-progress child work |
+| FR-B29-09 | The system shall reserve, commit, release or reverse school-shared credits idempotently according to the configured billable-action policy. | Failures/retries/rejections do not double-charge; no negative balance |
+| FR-B29-10 | Super Admin shall create/version/retire offers and review school subscription/payment/reconciliation records through the existing portal. | Privileged updates are authorized, versioned and audited |
+| FR-B29-11 | The system shall retain transaction, entitlement, credit, cancellation and refund/reversal history with actor, school, offer version and correlation IDs. | Audit trace excludes child media and secrets |
+| FR-B29-12 | Child Android shall contain no checkout, alternate payment link, payment prompt, purchase upsell or purchase-based bypass of safety/review controls. | Review all child-facing routes/navigation |
+| FR-B29-13 | The system shall keep payment methods configurable and shall not show a method as available until initiation and confirmation routes are configured. | Unconfigured route stays hidden/disabled |
+
+## B29.5 Non-functional requirements — baseline, implementation pending
+
+All requirements below are in the approved product baseline and are currently `NOT IMPLEMENTED`. Numeric service thresholds that depend on provider terms and measured load remain TBD for the implementation ADR.
+
+- **NFR-B29-01 Security:** TLS in transit; provider credentials and signing keys only in server-side secret management; validate callbacks using the exact provider-signed canonical input; rotate credentials; restrict callback routes; enforce authorization server-side; protect against replay and request forgery. Never log secrets, full callback signatures or unnecessary payer identifiers.
+- **NFR-B29-02 Integrity/idempotency:** duplicate, delayed, reordered or concurrent callbacks must not double-grant entitlement or credits. Payment state, ledger entry and entitlement change must be atomic or recoverable through an idempotent outbox/worker. Return success to the provider only when its callback acknowledgement contract is satisfied.
+- **NFR-B29-03 Privacy/child safety:** collect the minimum adult purchaser and billing data required; keep child media/session data out of payment requests, receipts, support logs and analytics. No behavioral advertising, child-targeted purchasing prompt, ranking, diagnosis, or purchase-based bypass of age/content/safety gates. Teacher review and child hide/decline controls remain unchanged across every plan.
+- **NFR-B29-04 Transparency and control:** show total price and currency, quota, plan scope, billing period, renewal mode, trial end/expiry, top-up expiry, cancellation/refund rules, and any restrictions before the adult confirms. Provide accessible Vietnamese-first, keyboard/screen-reader-friendly controls and a clear pending state.
+- **NFR-B29-05 Availability/recovery:** a provider timeout or lost redirect must not misstate success/failure; provide a safe Pending state, bounded retries, status query/reconciliation and support reference. Define recovery targets and provider-specific timeouts before implementation.
+- **NFR-B29-06 Audit/retention:** record adult actor, class/organization scope, offer version, order ID, verified status, ledger grant and reconciliation/refund actions; redact IP/device fields as policy requires. Retention, accounting evidence, data subject requests and backup copies remain subject to a documented policy and qualified review.
+- **NFR-B29-07 Performance/cost:** latency, callback acknowledgement, reconciliation interval, uptime, cost ceiling, model-use budget and max concurrent purchases are OPEN_TBD; do not claim measured capacity from the 40-child pilot target.
+
+## B29.6 Business rules and typed error/exception handling
+
+| ID / rule | Required baseline behavior | Implementation status |
+|---|---|---|
+| BR-B29-01 Adult purchaser | Teacher with `billing:manage` only; verify school membership and `school_id` server-side. Other Teachers may view plan/usage but cannot buy or change billing. | NOT IMPLEMENTED |
+| BR-B29-02 School-wide entitlement | Subscription and shared quota belong to one `school_id`; eligible classes in that school draw from its governed balance. | NOT IMPLEMENTED; membership edge cases TBD |
+| BR-B29-03 Super Admin action | Plan catalog, add-ons, subscriptions and reconciliation use the existing Super Admin Portal with separate privileged authorization and audit. | NOT IMPLEMENTED |
+| BR-B29-04 Offer snapshot | Persist offer/price/currency snapshot on the order; callback must match stored order amount | NOT IMPLEMENTED |
+| BR-B29-05 Duplicate checkout request | Idempotency key returns the same order while valid; no second charge intent | NOT IMPLEMENTED |
+| BR-B29-06 Provider timeout / browser closed | Keep `PENDING`; do not grant; query/reconcile server-side and let Teacher refresh status | NOT IMPLEMENTED |
+| BR-B29-07 Invalid signature/hash | Reject callback, keep value ungranted, emit redacted security event and reconciliation alert | NOT IMPLEMENTED |
+| BR-B29-08 Order, amount, currency or merchant mismatch | Quarantine/mark `RECONCILIATION_REQUIRED`; do not grant or silently rewrite the order | NOT IMPLEMENTED |
+| BR-B29-09 Duplicate callback / replay | Return provider-appropriate acknowledgement after idempotent no-op; grant once | NOT IMPLEMENTED |
+| BR-B29-10 Late callback after cancellation/expiry | Reconcile against provider transaction state; do not auto-grant or discard a real captured payment; create operator case | NOT IMPLEMENTED; recovery/refund policy TBD |
+| BR-B29-11 Payment paid but ledger grant failed | Durable retry/outbox or reconciliation repairs the grant once; receipt shows pending fulfillment until repaired | NOT IMPLEMENTED |
+| BR-B29-12 Failed, declined or cancelled payment | No entitlement/credit grant; preserve safe reason category and retry option | NOT IMPLEMENTED |
+| BR-B29-13 QR expired, wrong amount or unmatchable transfer | No screenshot-based credit; remain pending or require manual reconciliation and documented refund path | NOT IMPLEMENTED |
+| BR-B29-14 Refund, reversal or chargeback | Keep payment, refund and consumed-credit entries immutable; apply approved compensation policy; never silently delete history or claw back active child work | NOT IMPLEMENTED; policy TBD |
+| BR-B29-15 Insufficient credits / concurrent use | Reserve/debit under an atomic balance guard; reject safely without partial work or negative balance | NOT IMPLEMENTED |
+| BR-B29-16 School resource limit reached | Block creation/activation beyond the paid class or Teacher-seat limit; show the upgrade/add-on action only to an authorized adult with `billing:manage`. Never block a child's in-progress work solely to prompt an upgrade. | NOT IMPLEMENTED |
+| BR-B29-17 Plan expires or is cancelled | Show entitlement and renewal state to adult Teacher; never interrupt a running child safety/review gate; downgrade timing and access grace are OPEN_TBD | NOT IMPLEMENTED |
+| BR-B29-18 Provider unavailable | Hide/disable only that route; retain offer and other safe options; do not say payment succeeded | NOT IMPLEMENTED |
+| BR-B29-19 Trial eligibility | Enforce one baseline Free Trial per `school_id`, for the baseline duration and included quotas, without requiring a payment method. | NOT IMPLEMENTED |
+| BR-B29-20 Package entitlement | Apply the baseline Free Trial, Plus, class/Teacher-seat add-ons and shared credit-pack entitlements at the school boundary. | NOT IMPLEMENTED |
+| BR-B29-21 Child checkout exclusion | No Child Android purchase prompt, checkout link or child-directed upsell is allowed for any plan/add-on. | NOT IMPLEMENTED |
+| BR-B29-22 Payment data minimization | Do not transmit child names, media, age, prompts, transcripts, consent or session data to payment providers. | NOT IMPLEMENTED |
+| BR-B29-23 Distribution-policy gate | Before activating external Teacher Web purchase for value consumed in Android, record a written review of the exact Google Play/distribution and buyer model. | GATE OPEN |
+
+Typed errors are stable application outcomes. Exact HTTP mappings are defined in the implementation contract; errors must not expose secrets, full signatures or unnecessary payer data.
+
+| Error code | Condition | Required behavior |
+|---|---|---|
+| `BILLING_PERMISSION_DENIED` | Adult authentication or `billing:manage` is missing | Deny mutation; return safe error |
+| `BILLING_SCHOOL_SCOPE_MISMATCH` | Actor/order/school membership do not match | Deny and emit redacted security event |
+| `BILLING_OFFER_UNAVAILABLE` | Offer retired, school ineligible or route unconfigured | No payment attempt; show safe status |
+| `PAYMENT_IDEMPOTENCY_CONFLICT` | Key reused with a different order payload | Reject; do not create a second order |
+| `PAYMENT_PROVIDER_UNAVAILABLE` | Provider create/query timed out or is down | Keep Pending/retry state; never claim paid |
+| `PAYMENT_CALLBACK_INVALID` | Signature, merchant, freshness or replay validation failed | Reject; no entitlement grant; alert safely |
+| `PAYMENT_ORDER_MISMATCH` | Order, amount, currency or status differs from snapshot | Quarantine for reconciliation; no grant |
+| `PAYMENT_ALREADY_FINAL` | Conflicting callback arrives after terminal state | Preserve state; open reconciliation when needed |
+| `PAYMENT_PENDING` | Authoritative confirmation is not yet available | Return Pending and a safe correlation reference |
+| `ENTITLEMENT_GRANT_PENDING` | Payment verified but ledger grant is incomplete | Retry/reconcile idempotently; indicate fulfillment pending |
+| `BILLING_QUOTA_LIMIT_REACHED` | School exceeds class/Teacher-seat entitlement | Deny addition; show authorized adult add-on path |
+| `AI_CREDIT_INSUFFICIENT` | School balance cannot reserve the configured billable action | Do not start billable job; preserve existing child work |
+| `PAYMENT_REFUND_REQUIRES_REVIEW` | Refund/reversal/chargeback cannot be safely automated | Preserve ledger; route to authorized reconciliation |
+
+## B29.7 Child, AI, privacy and platform-policy review gates
+
+This is a source-based issue checklist, not a legal opinion or compliance statement. Before implementation or sale, qualified counsel and platform-policy review must determine whether the service, child-data flows, web checkout, billing model and payment roles trigger specific obligations. The official National Assembly law records list the Vietnam Personal Data Protection Law 91/2025/QH15 (effective 2026-01-01), AI Law 134/2025/QH15 (effective 2026-03-01), and E-commerce Law 122/2025/QH15 (effective 2026-07-01); the National Assembly's consolidated Consumer Protection law text 47/VBHN-VPQH is dated 2026-03-17. Applicability, notices, records, consent, consumer terms, invoicing/tax and dispute duties require qualified review against the complete statutes and actual service model. [PDP Law](https://vanban.chinhphu.vn/?docid=214590&pageid=27160), [AI Law](https://vanban.chinhphu.vn/?classid=1&docid=216334&pageid=27160), [E-commerce Law](https://vanban.chinhphu.vn/?classid=1&docid=216503&orggroupid=1&pageid=27160), [Consumer Protection consolidated text](https://vanban.chinhphu.vn/?classid=2629&docid=217232&pageid=27160).
+
+The UNICEF Guidance on AI and Children v3.0 is non-binding guidance; use it to review child safety, privacy, fairness, transparency/accountability, best interests, development, well-being and inclusion. Payment must not become an incentive to increase AI use, weaken teacher review, collect more child data or target a child's behavior. [UNICEF Guidance v3.0](https://www.unicef.org/innocenti/reports/policy-guidance-ai-children).
+
+Google Play policy says Play-distributed apps generally must use Google Play Billing for in-app digital goods/services, subscriptions and virtual currency unless a stated exception/program applies. Because school-level credits could be consumed in Child Android after an adult Teacher purchases through Teacher Desktop, the team must receive a written platform-policy assessment for the exact app distribution, buyer and consumption model before enabling this design. No payment link or alternate-purchase prompt is to be shown in Child Android while that review is open. [Google Play Payments policy](https://support.google.com/googleplay/android-developer/answer/9858738?hl=en), [Understanding Payments policy](https://support.google.com/googleplay/android-developer/answer/10281818?hl=en).
+
+Provider references establish technical verification duties, not merchant readiness: MoMo's notification guide requires signature validation and recommends matching partner code, order ID and amount against the merchant database; VNPay documentation describes secure-hash/IPN processing; NAPAS describes VietQRPay as a participant-institution service. The team must contract with an approved provider/acquirer, obtain official current integration/fee/refund specs, and perform sandbox reconciliation before selecting an adapter. [MoMo IPN](https://developers.momo.vn/v3/docs/payment/api/result-handling/notification/), [VNPay secure-hash/IPN docs](https://sandbox.vnpayment.vn/apis/docs/chuyen-doi-thuat-toan/changeTypeHash.html), [NAPAS VietQRPay](https://developer.napas.com.vn/vi/product/introduce/viet-qr-pay).
+
+## B29.8 Implementation decisions and release gates
+
+1. Obtain commercial approval for each monetary amount marked PROPOSED before showing it at checkout or offering it publicly.
+2. Confirm the credit billable unit, Teacher-rejected output handling, failed generation, reservation/release, expiry and rollover behavior with synthetic cost evidence.
+3. Confirm the school identity/membership contract and who grants/revokes `billing:manage`, including multi-school Teachers.
+4. Define renewal, cancellation, trial-end, upgrade/downgrade, grace, refund, payment dispute and chargeback policies.
+5. Select merchant/provider/acquirer contracts for MoMo/VNPay/VietQR, including current fees, limits, refunds, settlement/reconciliation and data-processing terms.
+6. Obtain written Google Play/app-distribution assessment for adult web purchases when school-shared credits are consumed in Child Android.
+7. Obtain legal/accounting decisions on data protection, child consent, e-commerce, consumer terms, invoice/tax and support/dispute duties.
+8. Approve data-retention, audit/access, incident response, availability/cost thresholds and production deployment ADR.
+
+## B29.9 Implementation verification and release gates
+
+Before real transaction or production enablement: implement and review versioned API/schema contracts and migration lineage; complete threat/data-flow review; test provider sandboxes and reconciliation; record approval for price amounts marked PROPOSED; close platform/legal/accounting gates; validate recovery, refunds and credit accounting; and obtain separately approved release evidence. Billing is in baseline but is NOT IMPLEMENTED today.
+
+## Change log — SRS v3.5
+
+2026-10-26: Update baseline school entitlements to the owner's latest direction: Free Trial is 14 days with one active class and 3 shared AI credits; Plus has five active classes, ten Teacher seats and 100 shared AI credits; one-time school-shared AI top-ups contain 15, 45 and 80 credits. Keep all monetary amounts PROPOSED. Billing remains NOT IMPLEMENTED. Preserve v3.4 and earlier baselines.
+
+## Change log — SRS v3.4
+
+2026-10-25: Promote B29 school-level billing/payment into the owner-approved product baseline. Add baseline FR/NFR/BR/error requirements, package and entitlement structure, school ownership, existing-portal integration, MoMo/VNPay/VietQR target routes, child-safety/privacy/platform constraints and implementation/release gates. Mark implementation NOT IMPLEMENTED. Only monetary amounts remain PROPOSED. Preserve SRS v3.3/B28 and the earlier B29 proposal as historical artifacts.
+
 ## Change log — SRS v3.3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 2026-10-24: Add B28 from six direct project-owner answers. Resolve pending-at-start disposition, shared room-code security policy and threshold, next-stage/Assistance policy, interim no-rewind rule pending OD07, save-draft disposition for unfinished groups, and early-stop reason category/optional note. Preserve exact v3.2 artifact. Product rules are owner-confirmed; BE1 implementation contracts and migration remain gated.
 

@@ -1,5 +1,9 @@
 # Feature decisions
 
+## SRS v3.4 amendment — 2026-10-25
+
+- D33: Owner approved B29 school-level billing/payment as baseline scope with implementation planned but NOT IMPLEMENTED. Only monetary amounts remain PROPOSED; package structure and quota entitlements are baseline. Preserve existing adult roles, add `billing:manage` as permission, keep school ownership on `school_id`, reuse Teacher Desktop/Super Admin Portal, and retain MoMo/VNPay/VietQR target methods. Full FR/NFR/BR/error, privacy and platform constraints are recorded in v3.4.
+
 ## 2026-10-10
 
 - D01: direct user request authorizes analysis and SRS drafting; record documentation-only approval before creating artifacts.
@@ -52,3 +56,7 @@
 - D30: stage rewind stays disabled until OD07 is resolved. This confirms an interim safe guard and does not resolve the final pedagogical policy in OD07.
 - D31: before advancing past incomplete group work, Teacher must select `save_draft`; retain the draft with its group without claiming completion or blocking other groups.
 - D32: `ended_early` requires category `time`, `safety`, `technical`, or `other`; a short Teacher note is optional. Persisted fields/guards remain BE1 contract decisions.
+
+## SRS v3.5 package update — 2026-10-26
+
+- D34: The owner supplied updated school package quantities. Preserve B29 baseline status and update only the plan entitlements: Free Trial 14 days/1 class/3 shared AI credits/no payment method; Plus 5 active classes/10 Teacher seats/100 shared AI credits; one-time school-shared top-ups 15/45/80 credits. Keep every monetary amount PROPOSED and billing NOT IMPLEMENTED. The synchronized copy remains byte-identical to FEAT-029; exact v3.4 and v3.3/B28 remain preserved. QA receipt: `features/FEAT-029-master-srs/evidence/metrics/SRS_V3_5_PACKAGE_UPDATE_20261026.json`.
