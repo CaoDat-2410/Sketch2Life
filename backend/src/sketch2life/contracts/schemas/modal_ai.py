@@ -12,6 +12,9 @@ class StrictRequest(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
 
+PARENT_ACTIVITY_DETAIL_TEXT_MAX_LENGTH = 480
+
+
 class ParentSketchGuideRequestV1(StrictRequest):
     topic: str = Field(min_length=1, max_length=120)
     difficulty: Literal["beginner", "simple"] = "beginner"
@@ -48,7 +51,7 @@ class ParentActivitySuggestionResponseV1(StrictRequest):
     request_id: UUID
     story_run_id: UUID
     understanding_revision: int = Field(ge=1)
-    source: Literal["PINNED_LESSON", "QWEN3_5_MODAL"]
+    source: Literal["PINNED_LESSON", "QWEN3_8_MODAL"]
     source_lesson_version_id: str | None
     review_required: Literal[True]
     activities: list[ParentActivitySuggestionItemV1] = Field(min_length=1, max_length=24)
@@ -81,13 +84,13 @@ class ParentActivityCandidateSelectionV2(StrictRequest):
 
 
 class ParentActivityFallbackDraftV1(StrictRequest):
-    title: str = Field(min_length=1, max_length=60)
-    objective: str = Field(min_length=1, max_length=80)
-    materials_text: str = Field(max_length=60)
-    preparation_text: str = Field(min_length=1, max_length=85)
-    instructions_text: str = Field(min_length=1, max_length=150)
-    observation_notes: str = Field(max_length=70)
-    safety_notes: str = Field(min_length=1, max_length=80)
+    title: str = Field(min_length=4, max_length=80)
+    objective: str = Field(min_length=1, max_length=240)
+    materials_text: str = Field(max_length=300)
+    preparation_text: str = Field(min_length=1, max_length=PARENT_ACTIVITY_DETAIL_TEXT_MAX_LENGTH)
+    instructions_text: str = Field(min_length=1, max_length=1400)
+    observation_notes: str = Field(max_length=PARENT_ACTIVITY_DETAIL_TEXT_MAX_LENGTH)
+    safety_notes: str = Field(min_length=1, max_length=PARENT_ACTIVITY_DETAIL_TEXT_MAX_LENGTH)
     activity_kind: Literal["outdoor", "indoor", "mixed"]
 
 

@@ -11,6 +11,7 @@ import pytest
 from sketch2life.application.ports.story_run_lite import AssetBinding
 from sketch2life.domain.ai_jobs.completion import canonical_json
 from sketch2life.domain.story_run_lite import OwnerScopeKind
+from sketch2life.infrastructure.ai import modal_function_client as client_module
 from sketch2life.infrastructure.ai.modal_function_client import (
     MODEL_ID,
     MODEL_REVISION,
@@ -599,6 +600,89 @@ def test_modal_drawing_terminal_worker_truncation_is_classified_and_cleaned(caps
     assert "provider text that must not be logged" not in logged
     assert "private output must not reach logs" not in logged
     assert "UnterminatedString" in logged
+
+
+def test_modal_drawing_waits_for_delayed_terminal_log_without_redispatch(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _source, prepared = _prepared_input()
+
+    class Batch:
+        def put_file(self, _stream, _path):
+            return None
+
+    class Volume:
+        removed: tuple[str, bool] | None = None
+
+        @contextmanager
+        def batch_upload(self):
+            yield Batch()
+
+        def remove_file(self, path, *, recursive):
+            self.removed = (path, recursive)
+
+    class Logs:
+        calls = 0
+
+        def tail(self, *, entries):
+            assert entries == 500
+            self.calls += 1
+            events = [
+                {
+                    "schema_version": "sketch2life.modal.worker-event.v1",
+                    "event": "worker_started",
+                    "workload": "drawing.analyze",
+                    "stage": "worker_entrypoint",
+                }
+            ]
+            if self.calls > 1:
+                events.append(
+                    {
+                        "schema_version": "sketch2life.modal.worker-event.v1",
+                        "event": "worker_failed",
+                        "workload": "drawing.analyze",
+                        "stage": "fp8_kernel_runtime_compatibility",
+                        "error_code": "MODAL_MODEL_OUTPUT_INVALID",
+                        "error_type": "RuntimeError",
+                    }
+                )
+            return [SimpleNamespace(message="\n".join(json.dumps(event) for event in events))]
+
+    class Call:
+        object_id = "fc-drawing-delayed-terminal-test"
+        logs = Logs()
+
+        def get(self, *, timeout):
+            assert timeout > 0
+            raise RuntimeError("provider details must not be surfaced")
+
+    class Function:
+        spawn_calls = 0
+
+        def spawn(self, _payload):
+            self.spawn_calls += 1
+            return Call()
+
+    function = Function()
+    volume = Volume()
+    observed_log_waits: list[float] = []
+    original_summarize = client_module.summarize_worker_call_logs
+
+    def summarize(call, **kwargs):
+        observed_log_waits.append(kwargs["max_log_wait_seconds"])
+        return original_summarize(call, **kwargs)
+
+    monkeypatch.setattr(client_module.time, "sleep", lambda _delay: None)
+    monkeypatch.setattr(client_module, "summarize_worker_call_logs", summarize)
+
+    with pytest.raises(ModalFunctionExecutionFailed) as error:
+        ModalDrawingFunctionClient(volume=volume, function=function).invoke(prepared)
+
+    assert error.value.code == "DRAWING_OUTPUT_INVALID"
+    assert Call.logs.calls == 2
+    assert observed_log_waits == [10.0]
+    assert function.spawn_calls == 1
+    assert volume.removed == (f"{prepared.attempt_prefix}input", True)
 
 
 def test_modal_function_composition_requires_only_pinned_synthetic_run(

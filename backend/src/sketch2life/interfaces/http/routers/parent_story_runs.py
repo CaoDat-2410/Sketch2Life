@@ -699,6 +699,11 @@ def confirm_parent_story_subject(
         expected_understanding_revision=payload.expected_understanding_revision,
         confirmed_subject=payload.confirmed_subject,
         idempotency_key=key,
+        subject_roles=(
+            [item.model_dump() for item in payload.subject_roles]
+            if payload.subject_roles is not None
+            else None
+        ),
         rerun_on_edit=rerun,
         on_story_started=started.append,
         generator_supports_role=generator_supports_role(request, actor),

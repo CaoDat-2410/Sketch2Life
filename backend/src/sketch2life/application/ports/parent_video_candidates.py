@@ -27,6 +27,24 @@ class ParentVideoCandidateScene:
 
 
 @dataclass(frozen=True, slots=True)
+class KeyframeSecondary:
+    entity_id: str
+    label: str
+    box: tuple[int, int, int, int]
+
+
+@dataclass(frozen=True, slots=True)
+class KeyframeInputs:
+    """FEAT-087: what the video worker needs to compose keyframes (never shown to the adult)."""
+
+    main_box: tuple[int, int, int, int]
+    facing: str
+    secondaries: tuple[KeyframeSecondary, ...]
+    staging: dict[str, Any] | None
+    staging_issue: str | None
+
+
+@dataclass(frozen=True, slots=True)
 class ParentVideoCandidateSource:
     run_id: str
     profile_id: str
@@ -43,6 +61,7 @@ class ParentVideoCandidateSource:
     activity_selection_id: str
     activity_snapshot_sha256: str
     scenes: tuple[ParentVideoCandidateScene, ...]
+    keyframe_inputs: KeyframeInputs | None = None
 
 
 @dataclass(frozen=True, slots=True)

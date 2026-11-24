@@ -2053,9 +2053,9 @@ class SqlStoryRunLiteRepository:
                     "lesson_direction": None,
                 },
                 "confirmed_subject": confirmed_subject,
-                "model_id": "Qwen/Qwen3.5-9B",
-                "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
-                "prompt_version": "parent-story-v2.2026-11-04",
+                "model_id": "Qwen/Qwen3.8-27B-FP8",
+                "model_revision": "c3a462cc3d38cf351f3b26cbd763469eeb74ef81",
+                "prompt_version": "parent-story-v4.2026-11-23",
             }
             request_bytes = json.dumps(
                 context["worker_input"], ensure_ascii=False, sort_keys=True, separators=(",", ":")

@@ -13,6 +13,7 @@ from typing import Any
 
 from structlog import get_logger
 
+from sketch2life.application.story_staging import secondary_subjects_are_valid
 from sketch2life.domain.ai_jobs.completion import canonical_json
 
 APP_NAME = "sketch2life-srs23-drawing-vlm-dev"
@@ -23,22 +24,14 @@ DRAWING_INPUT_SCHEMA = "sketch2life.modal.drawing-input.v1"
 STORY_INPUT_SCHEMA = "sketch2life.modal.ai-request.v1"
 WORKER_INPUT_SCHEMA = "sketch2life.modal.worker-input.v1"
 WORKER_OUTPUT_SCHEMA = "sketch2life.modal.worker-output.v1"
-MODEL_ID = "Qwen/Qwen3.5-9B"
-MODEL_REVISION = "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
-QWEN_TEXT_MODEL_ID = "Qwen/Qwen3.8-27B-FP8"
-QWEN_TEXT_MODEL_REVISION = "c3a462cc3d38cf351f3b26cbd763469eeb74ef81"
-STORY_MODEL_ID = QWEN_TEXT_MODEL_ID
-STORY_MODEL_REVISION = QWEN_TEXT_MODEL_REVISION
-FLUX_MODEL_PROVENANCE = {
-    "image_generator": {
-        "id": "black-forest-labs/flux-3-image-klein",
-        "revision": "09561231f44e41381c461caf53d5452005a60ac9",
-    },
-    "prompt_upsampler": {
-        "id": "black-forest-labs/flux-3-image-klein-pup",
-        "revision": "a57899549f8f6f64c6c4d88db30827d496ff76d0",
-    },
-}
+QWEN_MODEL_ID = "Qwen/Qwen3.8-27B-FP8"
+QWEN_MODEL_REVISION = "c3a462cc3d38cf351f3b26cbd763469eeb74ef81"
+MODEL_ID = QWEN_MODEL_ID
+MODEL_REVISION = QWEN_MODEL_REVISION
+QWEN_TEXT_MODEL_ID = QWEN_MODEL_ID
+QWEN_TEXT_MODEL_REVISION = QWEN_MODEL_REVISION
+STORY_MODEL_ID = QWEN_MODEL_ID
+STORY_MODEL_REVISION = QWEN_MODEL_REVISION
 MAX_INPUT_BYTES = 48 * 1024 * 1024
 MAX_MANIFEST_BYTES = 64 * 1024
 MAX_IMAGE_PIXELS = 2_000_000
@@ -120,7 +113,8 @@ _SAFE_STORY_FIELD = re.compile(
     r"scenes\[\d{1,2}\](?:\.(?:title|action|visual_prompt|narration))?)\Z"
 )
 _SAFE_PARENT_ACTIVITY_FIELD = re.compile(
-    r"\Afallback_activities\[[0-2]\]\.(?:objective|preparation_text|safety_notes|"
+    r"\Afallback_activities\[[0-2]\]\.(?:objective|preparation_text|observation_notes|"
+    r"safety_notes|steps\[[0-2]\]|"
     r"instructions_text\.(?:first_sentence|second_sentence))\Z"
 )
 _SAFE_ACTIVITY_TEXT_REASONS = {
@@ -135,6 +129,7 @@ _DRAWING_WORKER_ERROR_CODES = {
     "MODAL_MODEL_OUTPUT_TRUNCATED": "DRAWING_OUTPUT_TRUNCATED",
     "MODAL_MODEL_OUTPUT_EMPTY": "DRAWING_OUTPUT_EMPTY",
 }
+DRAWING_TERMINAL_LOG_INDEX_WAIT_SECONDS = 10.0
 
 _LOGGER = get_logger(__name__)
 
@@ -707,7 +702,11 @@ class ModalDrawingFunctionClient:
                 )
                 raise ModalFunctionOutcomeUnknown(call_id) from exc
             except Exception as exc:
-                summary = summarize_worker_call_logs(call)
+                summary = summarize_worker_call_logs(
+                    call,
+                    max_log_wait_seconds=DRAWING_TERMINAL_LOG_INDEX_WAIT_SECONDS,
+                    remote_call_result="failed",
+                )
                 exception_text = str(exc)
                 worker_error_code = summary.get("worker_error_code")
                 if not isinstance(worker_error_code, str):
@@ -886,8 +885,12 @@ class ModalStoryFunctionClient:
             "primary_activity",
             "primary_activity_sha256",
         }
-        if not isinstance(worker_input, dict) or set(worker_input) != expected:
+        if not isinstance(worker_input, dict) or set(worker_input) - {"secondary_subjects"} != expected:
             raise ValueError("Modal story request does not match the approved input contract")
+        if "secondary_subjects" in worker_input and not secondary_subjects_are_valid(
+            worker_input["secondary_subjects"]
+        ):
+            raise ValueError("Modal story request violates Parent role or SRS limits")
         if (
             worker_input.get("schema_version") != "sketch2life.story-generation-input.v3"
             or worker_input.get("role") != "PARENT"
@@ -1187,6 +1190,20 @@ class ModalStoryFunctionClient:
             result = output.get("result")
             if not isinstance(result, dict):
                 raise ModalFunctionExecutionFailed("STORY_OUTPUT_INVALID")
+            # FEAT-087: hidden per-scene staging rides beside the story; the caller pops it.
+            staging = output.get("staging")
+            staging_issue = output.get("staging_issue")
+            if (staging is not None and not isinstance(staging, dict)) or (
+                staging_issue is not None and not isinstance(staging_issue, str)
+            ):
+                raise ModalFunctionExecutionFailed("STORY_OUTPUT_INVALID")
+            result = {
+                **result,
+                "_staging": staging,
+                "_staging_issue": staging_issue
+                if staging is not None or staging_issue is not None
+                else "STAGING_ABSENT",
+            }
             _LOGGER.info(
                 "modal_story_generation_completed",
                 modal_call_id=call_id,
@@ -1259,11 +1276,6 @@ class ModalJsonFunctionResult:
 
 
 _JSON_WORKERS: dict[str, tuple[str, str, int]] = {
-    "parent.topic-subjects.suggest": (
-        "sketch2life-srs23-language-audio-dev",
-        "suggest-parent-topic-subjects",
-        1_800,
-    ),
     "parent.topic-subjects.validate": (
         "sketch2life-srs23-language-audio-dev",
         "validate-parent-topic-subject",
@@ -1277,17 +1289,12 @@ _JSON_WORKERS: dict[str, tuple[str, str, int]] = {
     "parent.activity.suggest": (
         "sketch2life-srs23-language-audio-dev",
         "suggest-parent-activities",
-        450,
+        1_200,
     ),
     "teacher.sketch-deck.generate": (
         "sketch2life-srs23-language-audio-dev",
         "generate-teacher-sketch-deck",
         1_800,
-    ),
-    "lesson.visual.generate": (
-        "sketch2life-srs23-flux-image-dev",
-        "generate-approved-lesson-visual-candidate",
-        900,
     ),
 }
 
@@ -1506,7 +1513,6 @@ __all__ = [
     "FUNCTION_NAME",
     "MODEL_ID",
     "MODEL_REVISION",
-    "FLUX_MODEL_PROVENANCE",
     "ModalDrawingFunctionClient",
     "ModalStoryFunctionClient",
     "ModalJsonFunctionClient",

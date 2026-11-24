@@ -12,6 +12,7 @@ from io import BytesIO
 from typing import Any
 from uuid import uuid4
 
+from sketch2life.application.video_keyframe_plan import build_keyframe_plan
 from sketch2life.application.ports.identity import VerifiedPrincipal
 from sketch2life.application.ports.object_storage import ObjectStorageFailure, ObjectStoragePort
 from sketch2life.application.ports.parent_story_profile_lookup import (
@@ -496,11 +497,11 @@ def _build_input_manifest(source: ParentVideoCandidateSource) -> dict[str, Any]:
             or not 1 <= len(title) <= 100
             or not 1 <= len(action) <= 500
             or not visual_prompt
-            or len(visual_prompt) > 1_200
+            or len(visual_prompt) > 900
         ):
             raise ParentVideoCandidateError(422, "VIDEO_STORY_SCENE_INVALID")
         model_action_instruction = visual_prompt if len(visual_prompt) >= 8 else action
-        if not 8 <= len(model_action_instruction) <= 400:
+        if not 8 <= len(model_action_instruction) <= 900:
             raise ParentVideoCandidateError(422, "VIDEO_STORY_SCENE_INVALID")
         duration_frames = min(
             _MAX_SCENE_FRAMES,
@@ -592,24 +593,61 @@ def _build_input_manifest(source: ParentVideoCandidateSource) -> dict[str, Any]:
             round(float(scene["duration_seconds"]) * _VIDEO_FPS) / _VIDEO_FPS
         )
 
+    keyframe_plan = build_keyframe_plan(source.keyframe_inputs, scene_count=len(scenes))
+    staged = keyframe_plan["render_mode"] == "keyframe"
+    secondary_labels = {
+        item.entity_id: item.label.strip()[:60]
+        for item in (source.keyframe_inputs.secondaries if source.keyframe_inputs else ())
+    }
+    secondary_ids = [item["entity_id"] for item in keyframe_plan["secondaries"]]
     visual_scenes = []
+    previous_states = {entity_id: "unchanged" for entity_id in secondary_ids}
     for index, scene in enumerate(scenes, start=1):
+        staging_scene = keyframe_plan["staging"]["scenes"][index - 1] if staged else None
+        states = (
+            {entry["entity_id"]: entry["state"] for entry in staging_scene["secondary_end"]}
+            if staging_scene
+            else {}
+        )
+        gone_now = [
+            entity_id
+            for entity_id, state in states.items()
+            if state == "gone" and previous_states.get(entity_id) != "gone"
+        ]
+        previous_states.update(states)
+        visible_ids = ["subject-main"] + [
+            entity_id for entity_id in secondary_ids if states.get(entity_id) != "gone"
+        ]
+        if staging_scene:
+            cell = staging_scene["main_end"]["position"].replace("-", " ")
+            facing = staging_scene["main_end"]["facing"]
+            continuity_in = (
+                "Start from the original drawing; preserve its full composition."
+                if index == 1
+                else "Start from the previous scene's end keyframe; the subject is where it ended."
+            )
+            continuity_out = f"The subject ends at the {cell} of the page, facing {facing}"
+            if gone_now:
+                continuity_out += "; " + ", ".join(
+                    f"the child-drawn {secondary_labels[item]} is gone" for item in gone_now
+                )
+        else:
+            continuity_in = (
+                "Start from the original drawing; preserve its full composition."
+                if index == 1
+                else "Continue from the prior final frame; preserve the drawn subject."
+            )
+            continuity_out = "Keep the drawn subject stable and fully in frame for the next scene."
         visual_scenes.append(
             {
                 "scene_id": scene["scene_id"],
                 "approved_action": scene["action"],
                 "duration_seconds": scene["duration_seconds"],
-                "visible_entity_ids": ["subject-main"],
+                "visible_entity_ids": visible_ids,
                 "introduced_entity_ids": [],
-                "removed_entity_ids": [],
-                "continuity_in": (
-                    "Start from the original drawing; preserve its full composition."
-                    if index == 1
-                    else "Continue from the prior final frame; preserve the drawn subject."
-                ),
-                "continuity_out": (
-                    "Keep the drawn subject stable and fully in frame for the next scene."
-                ),
+                "removed_entity_ids": gone_now,
+                "continuity_in": continuity_in,
+                "continuity_out": continuity_out,
                 "spatial_direction": (
                     "Preserve drawing position, scale, silhouette, colors, and texture."
                 ),
@@ -619,21 +657,40 @@ def _build_input_manifest(source: ParentVideoCandidateSource) -> dict[str, Any]:
                 "camera_motion": "locked",
             }
         )
-    visual_plan = {
-        "schema_version": "sketch2life.modal.story-visual-plan.v2",
-        "source_story_sha256": source.story_sha256,
-        "entities": [
+    visual_entities: list[dict[str, Any]] = [
+        {
+            "entity_id": "subject-main",
+            "kind": "subject",
+            "source": "source_drawing",
+            "label": f"child-drawn {source.confirmed_subject[:64]}",
+            "appearance": (
+                "Preserve the exact child drawing: silhouette, proportions, colors, "
+                "linework, texture, and composition. Do not redraw or restyle it."
+            ),
+        }
+    ]
+    if staged:
+        visual_entities.extend(
             {
-                "entity_id": "subject-main",
-                "kind": "subject",
+                "entity_id": entity_id,
+                "kind": "drawn_secondary",
                 "source": "source_drawing",
-                "label": f"child-drawn {source.confirmed_subject[:64]}",
+                "label": f"child-drawn {secondary_labels[entity_id]}",
                 "appearance": (
-                    "Preserve the exact child drawing: silhouette, proportions, colors, "
-                    "linework, texture, and composition. Do not redraw or restyle it."
+                    "Preserve this exact object from the child's drawing: its shape, colors, "
+                    "linework and position on the page."
                 ),
             }
-        ],
+            for entity_id in secondary_ids
+        )
+    visual_plan = {
+        "schema_version": (
+            "sketch2life.modal.story-visual-plan.v3"
+            if staged and secondary_ids
+            else "sketch2life.modal.story-visual-plan.v2"
+        ),
+        "source_story_sha256": source.story_sha256,
+        "entities": visual_entities,
         "scenes": visual_scenes,
     }
     storyboard_payload = {
@@ -653,6 +710,7 @@ def _build_input_manifest(source: ParentVideoCandidateSource) -> dict[str, Any]:
         "target_duration_seconds": float(duration_seconds),
         "scenes": scenes,
         "scene_visual_plan": visual_plan,
+        "keyframe_plan": keyframe_plan,
     }
     return {
         **render_plan_payload,

@@ -17,6 +17,8 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from structlog import get_logger
 
+from sketch2life.application.story_staging import split_story_staging
+from sketch2life.application.parent_subject_roles import normalize_worker_candidate
 from sketch2life.application.ports.identity import VerifiedPrincipal
 from sketch2life.application.ports.lesson_documents import (
     MalwareDetected,
@@ -388,13 +390,14 @@ def analyze_drawing(
             outcome_unknown=False,
         )
         raise HTTPException(status_code=502, detail={"code": "MODAL_OUTPUT_CONTRACT_INVALID", "request_id": request_id})
-    candidate = {
-        "candidate_subject": candidate_subject or None,
-        "visible_features": visible_features,
-        "confidence": float(confidence_value),
-        "adult_confirmation_required": True,
-        "decision": "REVIEW_REQUIRED",
-    }
+    candidate = normalize_worker_candidate(
+        {
+            **raw_candidate,
+            "candidate_subject": candidate_subject or None,
+            "visible_features": visible_features,
+            "confidence": float(confidence_value),
+        }
+    )
     result_snapshot = {"result": candidate}
     try:
         understanding_revision = repository.record_understanding(
@@ -533,6 +536,9 @@ def generate_story_revision(
             request_id=request_id,
             workload="story.generate",
         ) from None
+    raw_story, staging, staging_issue = split_story_staging(
+        raw_story, reservation.worker_input, scene_count=5
+    )
     try:
         # The validation, the fact check, the hash and the store live in the shared service
         # (T-2d), which the story-rewrites runner calls too.
@@ -544,6 +550,8 @@ def generate_story_revision(
             provider_call_id=modal_call_id,
             model_id=STORY_MODEL_ID,
             model_revision=STORY_MODEL_REVISION,
+            staging=staging,
+            staging_issue=staging_issue,
         )
     except StoryOutputInvalid as invalid:
         raise HTTPException(

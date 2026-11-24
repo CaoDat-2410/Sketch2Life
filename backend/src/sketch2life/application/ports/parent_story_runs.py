@@ -480,6 +480,7 @@ class ParentStoryRunRepositoryPort(Protocol):
         expected_understanding_revision: int,
         confirmed_subject: str,
         idempotency_key: str,
+        subject_roles: list[dict[str, str]] | None = None,
         rerun_on_edit: bool = False,
         on_story_started: StoryStartedCallback | None = None,
         generator_supports_role: bool = True,
@@ -540,6 +541,8 @@ class ParentStoryRunRepositoryPort(Protocol):
         provider_call_id: str,
         model_id: str,
         model_revision: str,
+        staging: dict[str, Any] | None = None,
+        staging_issue: str | None = None,
     ) -> ParentStoryRunView: ...
 
     def fail_story_revision(

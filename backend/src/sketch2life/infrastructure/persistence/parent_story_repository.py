@@ -18,6 +18,13 @@ from sqlalchemy.engine import CursorResult, RowMapping
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from sketch2life.application.parent_subject_roles import (
+    SubjectRoleError,
+    apply_subject_roles,
+    approved_subjects,
+    present_candidate,
+    relabel_main_subject,
+)
 from sketch2life.application.ports.identity import VerifiedPrincipal
 from sketch2life.application.ports.lesson_documents import scanner_identity_sha256
 from sketch2life.application.ports.object_storage import ObjectStorageFailure, ObjectStoragePort
@@ -74,6 +81,7 @@ from sketch2life.application.ports.story_task_reaper import (
     REWRITE_ATTEMPTS_PER_SLOT,
 )
 from sketch2life.application.ports.story_video import RunVideoRows
+from sketch2life.application.story_staging import pack_story_content, unpack_sections
 from sketch2life.application.services.story_review_rules import (
     MAX_REVIEW_EPOCH,
     next_review_epoch,
@@ -509,7 +517,7 @@ class SqlParentStoryRunRepository:
             candidate = dict(result) if isinstance(result, dict) else None
         story_content = None
         if latest_story is not None and latest_story["story_content"] is not None:
-            sections = latest_story["story_content"]
+            sections = unpack_sections(latest_story["story_content"])
             scenes = self._session.execute(
                 select(story_tables.story_scenes)
                 .where(
@@ -568,7 +576,7 @@ class SqlParentStoryRunRepository:
                 else None
             ),
             subject_label=run["subject_label"],
-            candidate=candidate,
+            candidate=present_candidate(candidate) if candidate is not None else None,
             story_revision_id=(
                 str(latest_story["story_revision_id"]) if latest_story is not None else None
             ),
@@ -2073,6 +2081,7 @@ class SqlParentStoryRunRepository:
         expected_understanding_revision: int,
         confirmed_subject: str,
         idempotency_key: str,
+        subject_roles: list[dict[str, str]] | None = None,
         rerun_on_edit: bool = False,
         on_story_started: StoryStartedCallback | None = None,
         generator_supports_role: bool = True,
@@ -2097,12 +2106,13 @@ class SqlParentStoryRunRepository:
         )
         operation = "CONFIRM_SUBJECT"
         key_hash = _idempotency_key_hash(idempotency_key)
-        fingerprint = _sha256_json(
-            {
-                "expected_understanding_revision": expected_understanding_revision,
-                "confirmed_subject": confirmed_subject,
-            }
-        )
+        fingerprint_inputs: dict[str, Any] = {
+            "expected_understanding_revision": expected_understanding_revision,
+            "confirmed_subject": confirmed_subject,
+        }
+        if subject_roles is not None:
+            fingerprint_inputs["subject_roles"] = subject_roles
+        fingerprint = _sha256_json(fingerprint_inputs)
         self._lock_idempotency(
             principal=principal,
             operation=operation,
@@ -2181,10 +2191,16 @@ class SqlParentStoryRunRepository:
                 now=now,
             )
         target_revision = expected_understanding_revision
-        if edited:
-            corrected = dict(candidate)
-            corrected["candidate_subject"] = confirmed_subject
-            corrected["decision"] = "CORRECTED_BY_ADULT"
+        if edited or subject_roles is not None:
+            if subject_roles is not None:
+                try:
+                    corrected = apply_subject_roles(candidate, subject_roles)
+                except SubjectRoleError as exc:
+                    raise ParentStoryRunError(422, exc.code) from None
+                if corrected["candidate_subject"] != confirmed_subject:
+                    raise ParentStoryRunError(422, "PARENT_SUBJECT_ROLES_INVALID")
+            else:
+                corrected = relabel_main_subject(candidate, confirmed_subject)
             updated_snapshot = {"result": corrected}
             result_hash = _sha256_json(updated_snapshot)
             target_revision += 1
@@ -2550,7 +2566,7 @@ class SqlParentStoryRunRepository:
             # T-2e-a D9: the legacy first-story route needs the adult's main activity first (only
             # the route asks; repository callers without the flag are unchanged).
             raise ParentStoryRunError(409, "PARENT_ACTIVITY_SELECTION_REQUIRED")
-        _, input_row, idea_text, visible_features = self._story_generation_basis(
+        understanding, input_row, idea_text, visible_features = self._story_generation_basis(
             principal=principal,
             run=run,
             expected_understanding_revision=expected_understanding_revision,
@@ -2587,6 +2603,20 @@ class SqlParentStoryRunRepository:
             "rewrite_instruction": rewrite_instruction,
             "lesson_direction": None,
         }
+        snapshot = understanding["result_snapshot"]
+        candidate = snapshot.get("result") if isinstance(snapshot, dict) else None
+        _main_subject, approved_secondaries = (
+            approved_subjects(candidate) if isinstance(candidate, dict) else ({}, [])
+        )
+        if approved_secondaries:
+            worker_input["secondary_subjects"] = [
+                {
+                    "entity_id": item["entity_id"],
+                    "label": item["label"],
+                    "visible_features": list(item.get("visible_features") or []),
+                }
+                for item in approved_secondaries
+            ]
         request_hash = _sha256_json(worker_input)
         revision_no = int(latest_story["revision_no"]) + 1 if latest_story is not None else 1
         now = datetime.now(UTC)
@@ -2811,7 +2841,7 @@ class SqlParentStoryRunRepository:
                 409, "STALE_REVISION", current_version=int(latest_story["revision_no"])
             )
         understanding_revision = int(run["understanding_revision"] or 0)
-        _, input_row, idea_text, visible_features = self._story_generation_basis(
+        understanding, input_row, idea_text, visible_features = self._story_generation_basis(
             principal=principal,
             run=run,
             expected_understanding_revision=understanding_revision,
@@ -2839,6 +2869,20 @@ class SqlParentStoryRunRepository:
                 teacher_lesson_direction(context) if self._is_teacher else None
             ),
         }
+        snapshot = understanding["result_snapshot"]
+        candidate = snapshot.get("result") if isinstance(snapshot, dict) else None
+        _main_subject, approved_secondaries = (
+            approved_subjects(candidate) if isinstance(candidate, dict) else ({}, [])
+        )
+        if approved_secondaries:
+            worker_input["secondary_subjects"] = [
+                {
+                    "entity_id": item["entity_id"],
+                    "label": item["label"],
+                    "visible_features": list(item.get("visible_features") or []),
+                }
+                for item in approved_secondaries
+            ]
         request_hash = _sha256_json(worker_input)
         revision_no = int(latest_story["revision_no"]) + 1
         now = datetime.now(UTC)
@@ -2966,6 +3010,8 @@ class SqlParentStoryRunRepository:
         provider_call_id: str,
         model_id: str,
         model_revision: str,
+        staging: dict[str, Any] | None = None,
+        staging_issue: str | None = None,
     ) -> ParentStoryRunView:
         run = self._owned_run(principal, reservation.run_id, lock=True, job_side_ok=True)
         if run["run_state"] in PURGE_STATES:
@@ -2999,7 +3045,7 @@ class SqlParentStoryRunRepository:
                     language=story["language"],
                     title=story["title"],
                     duration_ms=story["duration_ms"],
-                    story_content=sections,
+                    story_content=pack_story_content(sections, staging, staging_issue),
                     model_id=model_id,
                     model_revision=model_revision,
                     provider_call_id=provider_call_id,

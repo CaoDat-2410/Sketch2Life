@@ -57,8 +57,14 @@ class _Call:
 
 
 class _Function:
-    def __init__(self, *, terminal_error: Exception | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        terminal_error: Exception | None = None,
+        extra_output: dict[str, Any] | None = None,
+    ) -> None:
         self.terminal_error = terminal_error
+        self.extra_output = extra_output or {}
         self.call: _Call | None = None
 
     def spawn(self, payload: dict[str, Any]) -> _Call:
@@ -77,6 +83,7 @@ class _Function:
                         "revision": client_module.STORY_MODEL_REVISION,
                     },
                     "result": {"fixture": "valid"},
+                    **self.extra_output,
                 }
             )
         return self.call
@@ -167,7 +174,11 @@ def test_story_manifest_uses_generic_modal_ai_request_schema() -> None:
         json.dumps(request["primary_activity"], ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
     ).hexdigest()
     assert call_id == "fc-story-test-0001"
-    assert result == {"fixture": "valid"}
+    assert result == {
+        "fixture": "valid",
+        "_staging": None,
+        "_staging_issue": "STAGING_ABSENT",
+    }
     assert manifest_path.rsplit("/", 1)[0] == request_path.rsplit("/", 1)[0]
     assert volume.removed_paths == [
         manifest_path.lstrip("/").rsplit("input/manifest.json", 1)[0] + "input"
@@ -577,7 +588,7 @@ def test_parent_activity_failure_log_keeps_only_safe_tail_diagnostics() -> None:
                                 "workload": "parent.activity.suggest",
                                 "reason_code": "MODAL_MODEL_OUTPUT_INCOMPLETE_TEXT",
                                 "invalid_text_field_path": (
-                                    "fallback_activities[1].instructions_text.first_sentence"
+                                    "fallback_activities[1].observation_notes"
                                 ),
                                 "invalid_text_character_count": 31,
                                 "incomplete_text_reason": "dangling_word",
@@ -596,7 +607,7 @@ def test_parent_activity_failure_log_keeps_only_safe_tail_diagnostics() -> None:
     assert summary["worker_diagnostic_details"] == {
         "event": "parent_activity_suggestions_output_invalid",
         "invalid_text_field_path": (
-            "fallback_activities[1].instructions_text.first_sentence"
+            "fallback_activities[1].observation_notes"
         ),
         "incomplete_text_reason": "dangling_word",
         "invalid_text_character_count": 31,
@@ -725,7 +736,7 @@ def test_activity_terminal_kernel_error_is_mapped_and_wait_is_bounded() -> None:
         client.invoke("parent.activity.suggest", {"synthetic_probe": True})
 
     assert error.value.code == "MODAL_QWEN_FAST_KERNELS_UNAVAILABLE"
-    assert client_module._JSON_WORKERS["parent.activity.suggest"][2] == 450
+    assert client_module._JSON_WORKERS["parent.activity.suggest"][2] == 1_200
 
 
 def test_activity_terminal_output_quality_error_survives_modal_log_index_delay(
@@ -871,3 +882,68 @@ def test_activity_incomplete_text_diagnostic_survives_unclassified_wrapper_error
 
     assert error.value.code == "MODAL_MODEL_OUTPUT_INCOMPLETE_TEXT"
     assert function.spawn_calls == 1
+
+
+def test_story_client_forwards_approved_secondary_subjects() -> None:
+    volume = _Volume()
+    function = _Function()
+    context = _story_context()
+    secondaries = [{"entity_id": "sec-1", "label": "chiếc lá", "visible_features": ["màu xanh"]}]
+    context["worker_input"]["secondary_subjects"] = secondaries  # type: ignore[index]
+
+    ModalStoryFunctionClient(volume=volume, function=function).generate(context)
+
+    request = json.loads(
+        next(d for p, d in volume.batch.files.items() if p.endswith("input/request.json"))
+    )
+    assert request["secondary_subjects"] == secondaries
+
+
+@pytest.mark.parametrize(
+    "bad",
+    [
+        "chiếc lá",
+        [{"entity_id": "main", "label": "x", "visible_features": []}],
+        [{"entity_id": "sec-1", "label": "", "visible_features": []}],
+        [{"entity_id": "sec-1", "label": "x", "visible_features": [], "box": [1, 2, 3, 4]}],
+        [{"entity_id": f"sec-{i}", "label": f"v{i}", "visible_features": []} for i in range(1, 5)],
+        [
+            {"entity_id": "sec-1", "label": "a", "visible_features": []},
+            {"entity_id": "sec-1", "label": "b", "visible_features": []},
+        ],
+    ],
+)
+def test_story_client_rejects_malformed_secondary_subjects_before_dispatch(bad: object) -> None:
+    volume = _Volume()
+    function = _Function()
+    context = _story_context()
+    context["worker_input"]["secondary_subjects"] = bad  # type: ignore[index]
+
+    with pytest.raises(ValueError):
+        ModalStoryFunctionClient(volume=volume, function=function).generate(context)
+
+    assert function.call is None
+    assert volume.batch.files == {}
+
+
+def test_story_client_hands_back_staging_as_a_reserved_sibling_of_the_result() -> None:
+    staging = {"schema_version": "sketch2life.story-staging.v1", "scenes": []}
+    function = _Function(extra_output={"staging": staging, "staging_issue": None})
+    result, _ = ModalStoryFunctionClient(volume=_Volume(), function=function).generate(
+        _story_context()
+    )
+    assert result["fixture"] == "valid"
+    assert result["_staging"] == staging and result["_staging_issue"] is None
+
+
+def test_story_client_marks_a_worker_without_staging_as_absent() -> None:
+    result, _ = ModalStoryFunctionClient(volume=_Volume(), function=_Function()).generate(
+        _story_context()
+    )
+    assert result["_staging"] is None and result["_staging_issue"] == "STAGING_ABSENT"
+
+
+def test_story_client_rejects_a_non_object_staging_envelope() -> None:
+    function = _Function(extra_output={"staging": "oops", "staging_issue": None})
+    with pytest.raises(ModalFunctionExecutionFailed):
+        ModalStoryFunctionClient(volume=_Volume(), function=function).generate(_story_context())

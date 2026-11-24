@@ -64,6 +64,7 @@ def test_manifest_is_worker_v2_contract_and_frame_aligned() -> None:
         "target_duration_seconds",
         "scenes",
         "scene_visual_plan",
+        "keyframe_plan",
         "source_drawing_ref",
         "scene_count",
     }
@@ -102,6 +103,7 @@ def test_manifest_is_worker_v2_contract_and_frame_aligned() -> None:
                         "target_duration_seconds",
                         "scenes",
                         "scene_visual_plan",
+                        "keyframe_plan",
                     )
                 }
             )
@@ -125,3 +127,24 @@ def test_manifest_rejects_story_and_scene_timeline_mismatch() -> None:
 
     with pytest.raises(ParentVideoCandidateError, match="VIDEO_STORY_TIMELINE_INVALID"):
         _build_input_manifest(mismatched)
+
+
+def test_manifest_accepts_video_direction_at_backend_story_field_limit() -> None:
+    source = _source()
+    detailed_prompt = "A" * 900
+    first_scene = replace(source.scenes[0], visual_prompt=detailed_prompt)
+    source = replace(source, scenes=(first_scene, *source.scenes[1:]))
+
+    manifest = _build_input_manifest(source)
+
+    assert manifest["scenes"][0]["visual_prompt"] == detailed_prompt
+    assert manifest["scene_visual_plan"]["scenes"][0]["model_action_instruction"] == detailed_prompt
+
+
+def test_manifest_rejects_video_direction_over_backend_story_field_limit() -> None:
+    source = _source()
+    first_scene = replace(source.scenes[0], visual_prompt="A" * 901)
+    source = replace(source, scenes=(first_scene, *source.scenes[1:]))
+
+    with pytest.raises(ParentVideoCandidateError, match="VIDEO_STORY_SCENE_INVALID"):
+        _build_input_manifest(source)

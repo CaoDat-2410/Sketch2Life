@@ -11,6 +11,7 @@ from sqlalchemy import insert, select, update
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from sketch2life.application.video_keyframe_plan import keyframe_inputs_from
 from sketch2life.application.ports.identity import VerifiedPrincipal
 from sketch2life.application.ports.parent_video_candidates import (
     ParentVideoCandidateError,
@@ -263,6 +264,12 @@ class SqlParentVideoCandidateRepository(ParentVideoCandidateRepositoryPort):
                 confirmed_subject=str(run["subject_label"]).strip(),
                 activity_selection_id=str(selection_id),
                 activity_snapshot_sha256=activity_hash,
+                keyframe_inputs=keyframe_inputs_from(
+                    (understanding["result_snapshot"] or {}).get("result")
+                    if isinstance(understanding["result_snapshot"], dict)
+                    else None,
+                    latest_story["story_content"],
+                ),
                 scenes=tuple(
                     ParentVideoCandidateScene(
                         scene_index=int(row["scene_index"]),

@@ -74,6 +74,26 @@ class ParentLessonPinSnapshotV1(BaseModel):
     activities: list[LessonActivityInputV1] = Field(min_length=1, max_length=24)
 
 
+class ParentSubjectRoleV1(BaseModel):
+    """FEAT-087: the adult's final role for one object found in the drawing."""
+
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True, strict=True)
+
+    entity_id: Literal["main", "sec-1", "sec-2", "sec-3"]
+    label: str = Field(min_length=1, max_length=100)
+    role: Literal["main", "secondary", "excluded"]
+
+
+class ParentDrawingEntityV1(BaseModel):
+    """FEAT-087: one object the AI found (no box or other model internals)."""
+
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    entity_id: Literal["main", "sec-1", "sec-2", "sec-3"]
+    label: str = Field(min_length=1, max_length=100)
+    suggested_role: Literal["main", "secondary"]
+
+
 class ParentDrawingCandidateV1(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
 
@@ -82,6 +102,9 @@ class ParentDrawingCandidateV1(BaseModel):
     confidence: float = Field(ge=0, le=1)
     adult_confirmation_required: Literal[True]
     decision: Literal["REVIEW_REQUIRED", "CONFIRMED_BY_ADULT", "CORRECTED_BY_ADULT"]
+    # FEAT-087: empty/None for drawings analysed before roles existed.
+    entities: list[ParentDrawingEntityV1] = Field(default_factory=list, max_length=4)
+    subject_roles: list[ParentSubjectRoleV1] | None = None
 
 
 class ParentStorySectionsV1(BaseModel):
@@ -322,6 +345,8 @@ class ParentSubjectConfirmationRequestV1(BaseModel):
 
     expected_understanding_revision: int = Field(ge=1)
     confirmed_subject: str = Field(min_length=1, max_length=160)
+    # FEAT-087, optional: omitted by older clients, in which case no secondary object is used.
+    subject_roles: list[ParentSubjectRoleV1] | None = Field(default=None, min_length=1, max_length=4)
 
 
 class ParentContextConfirmationRequestV1(BaseModel):
@@ -392,6 +417,8 @@ __all__ = [
     "ParentStoryRunLifecycleProjectionV1",
     "ParentStoryRunResponseV1",
     "ParentStoryRunStateV1",
+    "ParentDrawingEntityV1",
+    "ParentSubjectRoleV1",
     "ParentSubjectConfirmationRequestV1",
     "ParentSubjectConfirmationResponseV1",
 ]

@@ -568,12 +568,24 @@ def _validate_modal_drawing_output(
     if model.get("id") != MODEL_ID or model.get("revision") != MODEL_REVISION:
         raise ValueError("Modal drawing model identity is not the approved experiment")
     candidate = output.get("result")
-    if not isinstance(candidate, dict) or set(candidate) != {
+    required_result_keys = {
         "candidate_subject",
         "visible_features",
         "decision",
         "adult_confirmation_required",
-    }:
+    }
+    # FEAT-087: the v2 worker adds the main/secondary subject data next to the legacy keys.
+    optional_result_keys = {
+        "confidence",
+        "understanding_schema",
+        "main_subject",
+        "secondary_subjects",
+    }
+    if (
+        not isinstance(candidate, dict)
+        or not required_result_keys <= set(candidate)
+        or not set(candidate) <= required_result_keys | optional_result_keys
+    ):
         raise ValueError("Modal drawing result is invalid")
     label = candidate.get("candidate_subject")
     features = candidate.get("visible_features")

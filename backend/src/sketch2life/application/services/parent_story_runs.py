@@ -180,6 +180,7 @@ class ParentStoryRunService:
         expected_understanding_revision: int,
         confirmed_subject: str,
         idempotency_key: str,
+        subject_roles: list[dict[str, str]] | None = None,
         rerun_on_edit: bool = False,
         on_story_started: StoryStartedCallback | None = None,
         generator_supports_role: bool = True,
@@ -187,12 +188,17 @@ class ParentStoryRunService:
         subject = confirmed_subject.strip()
         if not subject or len(subject) > 160:
             raise ParentStoryRunServiceError(422, "PARENT_CONFIRMED_SUBJECT_INVALID")
+        if subject_roles is not None:
+            mains = [item for item in subject_roles if item.get("role") == "main"]
+            if len(mains) != 1 or str(mains[0].get("label", "")).strip() != subject:
+                raise ParentStoryRunServiceError(422, "PARENT_SUBJECT_ROLES_INVALID")
         return self._repository.confirm_subject(
             principal=principal,
             run_id=run_id,
             expected_understanding_revision=expected_understanding_revision,
             confirmed_subject=subject,
             idempotency_key=idempotency_key,
+            subject_roles=subject_roles,
             rerun_on_edit=rerun_on_edit,
             on_story_started=on_story_started,
             generator_supports_role=generator_supports_role,
