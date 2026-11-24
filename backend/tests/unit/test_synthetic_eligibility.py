@@ -481,14 +481,22 @@ def test_head_counts_by_both_methods_match_the_derived_expectation() -> None:
     # as the head (heads stay 15 and 10; 51 revisions).
     # FEAT-072 quota commerce: 20261122_quota_commerce, 20261123_vnpay_order_info and
     # 20261123_vnpay_cancel extend the Admin retention head (heads stay 15 and 10; 54 revisions).
-    # SVG catalog extends the Phase A Story head without creating a new branch (+1 revision).
-    assert len(graph) == 55
+    # SVG catalog extends the Phase A Story head without creating a new branch (+1 revision, a
+    # parallel child of 20261123_rv_0001, so it is a head of its own).
+    # FEAT-066 goal v4 T-12a: 20261121_pce_0001 (DDL-D, the Parent context entries) follows
+    # 20261109_m2_parent_profiles and replaces it as the head of the Parent root.
+    # FEAT-066 goal v4 T-12b: 20261121_bpr_0001 (DDL-D, the Teacher profile revisions) is a second
+    # child of 20261123_rv_0001, parallel to 20261113_svg_catalog_review (one more head).
+    # FEAT-066 goal v4 T-12c: 20261121_psn_0001 follows 20261121_pce_0001 and 20261121_psn_0002
+    # follows 20261121_bpr_0001; T-12b-fix: 20261123_ppg_0001 follows psn_0002 (60 revisions;
+    # heads 16 and 11 after the Phase B squash).
+    assert len(graph) == 60
     down_targets = {target for down, _ in graph.values() for target in down}
     dependency_targets = down_targets | {target for _, dep in graph.values() for target in dep}
     heads_down_only = {rev for rev in graph if rev not in down_targets}
     heads_with_depends = {rev for rev in graph if rev not in dependency_targets}
     # Parent is an independent root; the existing BE1 and pilot graph remains unchanged.
-    assert (len(heads_down_only), len(heads_with_depends)) == (15, 10)
+    assert (len(heads_down_only), len(heads_with_depends)) == (16, 11)
     assert "20261101_be1_age_0001" in heads_down_only
     assert "20261102_pv_0001" in heads_down_only
     assert "20261102_pv_0001" not in heads_with_depends

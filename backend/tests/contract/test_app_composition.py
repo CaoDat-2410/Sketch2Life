@@ -159,6 +159,14 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
         "/api/be1/v1/classes/{class_id}/suspend",  # FEAT-066 T-7b
         "/api/be1/v1/classes/{class_id}/archive",  # FEAT-066 T-7b
         "/api/be1/v1/classes/{class_id}/profiles/{child_id}/move",  # FEAT-066 T-7d
+        # FEAT-066 goal v4 T-12b: the Teacher profile edit and the revision history.
+        "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}",
+        "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}/revisions",
+        "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}"
+        "/revisions/{profile_revision_id}",
+        # FEAT-066 goal v4 T-12c: the Teacher encrypted support needs.
+        "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}"
+        "/support-needs",
         # FEAT-066 M9-B: same-organization Teacher candidates for the first assignment.
         "/api/be1/v1/organizations/{organization_id}/teacher-candidates",
         "/api/be1/v1/device-grants/{grant_id}/join-status",
@@ -176,6 +184,10 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
         "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/teacher/assistance-requests/pending",
         "/v1/parent/profiles",
         "/v1/parent/profiles/{profile_id}",
+        # FEAT-066 goal v4 T-12a: the adult-entered context entries of a profile.
+        "/v1/parent/profiles/{profile_id}/context-entries",
+        # FEAT-066 goal v4 T-12c: the Parent encrypted support needs.
+        "/v1/parent/profiles/{profile_id}/support-needs",
     } | set(lesson_library_methods) | {path for _, path in ADMIN_OPERATIONS} | {
         path for _, path in QUOTA_OPERATIONS
     } | added_paths | {

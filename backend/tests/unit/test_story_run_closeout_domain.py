@@ -167,7 +167,8 @@ SRC = Path(__file__).resolve().parents[2] / "src" / "sketch2life"
 # listed one module; T-1d1-fix scans all of them). A new writer or a new site fails this pin until
 # someone has read it: a run write that does not move ``updated_at`` lets the closeout come early.
 WRITER_SITES = {
-    "infrastructure/persistence/parent_story_repository.py": 22,
+    # FEAT-066 goal v4 T-12a: the context confirmation with a selection rebinds the run (23).
+    "infrastructure/persistence/parent_story_repository.py": 23,
     # FEAT-066 goal v4 T-2e-a: the implicit first-story start moves the run to SCRIPT_GENERATING.
     "infrastructure/persistence/story_first_start.py": 1,
     "infrastructure/story_run_lite/repository.py": 12,

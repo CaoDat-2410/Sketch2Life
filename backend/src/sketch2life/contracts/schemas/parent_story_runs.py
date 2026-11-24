@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Literal
+from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from sketch2life.contracts.schemas.lesson_library import LessonActivityInputV1
 from sketch2life.contracts.schemas.story_run_video import (
@@ -51,6 +51,29 @@ class ParentRunContextSnapshotV1(BaseModel):
     interests_summary: str = Field(max_length=2000)
     topic: str = Field(max_length=120)
     adult_confirmed_idea: str = Field(max_length=500)
+
+
+class ParentSelectedContextEntryV1(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    kind: Literal["OBSERVATION", "ACHIEVEMENT", "OUTSIDE_EXPERIENCE"]
+    text: str = Field(min_length=1, max_length=500)
+
+
+class ParentRunContextSnapshotV2(BaseModel):
+    """T-12a (BR-21): the v1 fields plus the entries the adult chose at confirmation."""
+
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    schema_version: Literal["sketch2life.parent-context.v2"]
+    profile_revision_ref: str = Field(
+        pattern=r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+    )
+    age_months: int = Field(ge=36, le=120)
+    interests_summary: str = Field(max_length=2000)
+    topic: str = Field(max_length=120)
+    adult_confirmed_idea: str = Field(max_length=500)
+    selected_entries: list[ParentSelectedContextEntryV1] = Field(max_length=10)
 
 
 class ParentLessonPinSnapshotV1(BaseModel):
@@ -199,7 +222,7 @@ class ParentStoryRunResponseV1(BaseModel):
     profile_revision_ref: UUID
     context_revision: int
     context_confirmed: bool
-    context_snapshot: ParentRunContextSnapshotV1
+    context_snapshot: ParentRunContextSnapshotV1 | ParentRunContextSnapshotV2
     context_snapshot_sha256: str
     lesson_pin_snapshot: ParentLessonPinSnapshotV1 | None = None
     current_input_revision: int | None
@@ -328,6 +351,18 @@ class ParentContextConfirmationRequestV1(BaseModel):
     expected_context_revision: int = Field(ge=1)
     context_snapshot_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     confirmed: Literal[True]
+    # T-12a (BR-21, FR-P-06 l.2349): absent or null keeps the v1 path; a list (even ``[]``) writes
+    # the v2 snapshot of the chosen entries. Unique, at most ten; never for a Teacher run.
+    selected_context_entry_ids: (
+        list[Annotated[UUID, Field(strict=False)]] | None
+    ) = Field(default=None, max_length=10)
+
+    @field_validator("selected_context_entry_ids")
+    @classmethod
+    def selected_context_entry_ids_are_unique(cls, value: list[UUID] | None) -> list[UUID] | None:
+        if value is not None and len(set(value)) != len(value):
+            raise ValueError("selected_context_entry_ids must be unique")
+        return value
 
 
 class ParentSubjectConfirmationResponseV1(BaseModel):
@@ -373,6 +408,8 @@ __all__ = [
     "ParentContextConfirmationRequestV1",
     "ParentLessonVersionRefV1",
     "ParentRunContextSnapshotV1",
+    "ParentRunContextSnapshotV2",
+    "ParentSelectedContextEntryV1",
     "ParentStoryErrorEnvelopeV1",
     "ParentStoryErrorFieldV1",
     "ParentStoryDisplayV1",

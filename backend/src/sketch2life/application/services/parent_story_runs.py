@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 import uuid
+from collections.abc import Sequence
 from datetime import datetime
 from uuid import UUID
 
@@ -17,11 +18,13 @@ from sketch2life.application.ports.parent_story_profile_lookup import (
 from sketch2life.application.ports.parent_story_runs import (
     ParentStoryLifecycleRecord,
     ParentStoryRevisionReservation,
+    ParentStoryRunError,
     ParentStoryRunRepositoryPort,
     ParentStoryRunSummary,
     ParentStoryRunView,
     StoryStartedCallback,
 )
+from sketch2life.domain.parent_profile_context import SelectedContextEntry
 
 _SAFE_TOPIC = re.compile(r"\S")
 
@@ -148,7 +151,26 @@ class ParentStoryRunService:
         idempotency_key: str,
         on_story_started: StoryStartedCallback | None = None,
         generator_supports_role: bool = True,
+        selected_context_entry_ids: Sequence[UUID] | None = None,
     ) -> ParentStoryRunView:
+        selected: tuple[UUID, ...] | None = None
+        resolve = None
+        if selected_context_entry_ids is not None:
+            # T-12a: the service builds the resolver (as the activity selection does), so the Story
+            # repository never imports the Parent context persistence.
+            selected = tuple(selected_context_entry_ids)
+
+            def resolve(profile_id: UUID, wanted: tuple[UUID, ...]) -> list[SelectedContextEntry]:
+                try:
+                    entries = self._profile_lookup.resolve_selected_context_entries(
+                        principal=principal, profile_id=profile_id, entry_ids=wanted
+                    )
+                except ParentStoryProfileLookupUnavailable:
+                    raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE") from None
+                if entries is None:
+                    raise ParentStoryRunError(404, "RESOURCE_NOT_FOUND")
+                return entries
+
         return self._repository.confirm_context(
             principal=principal,
             run_id=run_id,
@@ -157,6 +179,8 @@ class ParentStoryRunService:
             idempotency_key=idempotency_key,
             on_story_started=on_story_started,
             generator_supports_role=generator_supports_role,
+            selected_context_entry_ids=selected,
+            resolve_context_entries=resolve,
         )
 
     def confirm_subject(

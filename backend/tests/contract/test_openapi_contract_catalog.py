@@ -113,6 +113,14 @@ EXPECTED_IDEMPOTENCY_MISMATCH_OPERATION_KEYS = {
     ("post", "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles"),
     # FEAT-066 T-7d (SRS l.1697): the keyed Teacher enrollment move.
     ("post", "/api/be1/v1/classes/{class_id}/profiles/{child_id}/move"),
+    # FEAT-066 goal v4 T-12b (SRS l.1697): the keyed Teacher profile edit.
+    ("patch", "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}"),
+    # FEAT-066 goal v4 T-12c (SRS l.1697): the keyed Teacher support-needs write.
+    (
+        "put",
+        "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}"
+        "/support-needs",
+    ),
 }
 
 
@@ -320,7 +328,7 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
 
     assert spec["openapi"] == "3.1.0"
     assert spec["tags"] == public_tags(TAG_DESCRIPTIONS)
-    assert len(operations) == 212 + len(ADMIN_OPERATIONS - PR22_UNCATALOGUED_OPERATIONS) + len(QUOTA_OPERATIONS)
+    assert len(operations) == 221 + len(ADMIN_OPERATIONS - PR22_UNCATALOGUED_OPERATIONS) + len(QUOTA_OPERATIONS)
     catalog_operations = set(MOUNTED_OPERATIONS)
     catalog_paths = {path for _method, path in catalog_operations}
     # FEAT-066 T-2a: five generic upload-session operations (four paths) join the catalog.
@@ -341,13 +349,19 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
     # FEAT-066 T-4b1: the child selection, its read and its confirmation, three new paths.
     # FEAT-066 T-5a: the class projection confirmation and its token, two new paths.
     # FEAT-066 goal v4 T-2e-a: the activity list and the activity selection, two new paths.
-    assert len(catalog_paths) == 168
+    # FEAT-066 goal v4 T-12a: the context entry list and create, two operations on one new path.
+    # FEAT-066 goal v4 T-12b: the profile revision history, one revision and the profile edit,
+    # three operations on three new paths.
+    # FEAT-066 goal v4 T-12c: the Parent and the Teacher support-needs read and write,
+    # four operations on two new paths (one path per family).
+    # The Phase B squash adds these 6 paths to the 168 of the integration branch.
+    assert len(catalog_paths) == 174
     assert MOUNTED_OPERATION_COUNT == 135
     assert (
         len(catalog_operations)
         == MOUNTED_OPERATION_COUNT
-        + 5 + 3 + 5 + 1 + 4 + 2 + 1 + 1 + 3 + 1 + 1 + 2 + 2 + 3 + 3 + 2 + 2 + 16
-        == 192
+        + 5 + 3 + 5 + 1 + 4 + 2 + 1 + 1 + 3 + 1 + 1 + 2 + 2 + 3 + 3 + 2 + 2 + 16 + 2 + 3 + 4
+        == 201
     )
     assert set(operations) - catalog_operations == (
         PILOT_ONLY_OPERATIONS | PR22_UNCATALOGUED_OPERATIONS | ADMIN_OPERATIONS | QUOTA_OPERATIONS
@@ -659,7 +673,7 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
         assert "Be1Error" in _schema_refs(
             mismatch_response["content"]["application/json"]["schema"]
         )
-    assert len(IDEMPOTENCY_MISMATCH_OPERATION_KEYS) == 35
+    assert len(IDEMPOTENCY_MISMATCH_OPERATION_KEYS) == 37
     assert set(IDEMPOTENCY_MISMATCH_OPERATION_KEYS) == (
         EXPECTED_IDEMPOTENCY_MISMATCH_OPERATION_KEYS
     )
@@ -723,7 +737,7 @@ def test_runtime_openapi_operation_ids_are_non_empty_and_unique(
         for method, operation in path_item.items()
         if method.lower() in HTTP_METHODS
     ]
-    assert len(operation_ids) == 212 + len(ADMIN_OPERATIONS - PR22_UNCATALOGUED_OPERATIONS) + len(QUOTA_OPERATIONS)
+    assert len(operation_ids) == 221 + len(ADMIN_OPERATIONS - PR22_UNCATALOGUED_OPERATIONS) + len(QUOTA_OPERATIONS)
     assert all(isinstance(value, str) and value for value in operation_ids)
     assert len(set(operation_ids)) == len(operation_ids)
 
@@ -757,7 +771,8 @@ def test_teacher_candidate_route_publishes_paging(runtime_openapi: dict[str, Any
 def test_t7a_class_and_consent_lists_publish_paging(runtime_openapi: dict[str, Any]) -> None:
     """T-7a (SRS l.1640): A07 and A10 show limit 25/1/100, an opaque cursor and the 400 row."""
     base = "/api/be1/v1/organizations/{organization_id}/classes"
-    for path in (base, base + "/{class_id}/consents"):
+    # T-7e (D-066-100): the Teacher class roster is paged like the two lists above.
+    for path in (base, base + "/{class_id}/consents", base + "/{class_id}/profiles"):
         operation = runtime_openapi["paths"][path]["get"]
         names = {parameter["name"]: parameter for parameter in operation["parameters"]}
         assert names["limit"]["schema"]["default"] == 25
@@ -795,6 +810,11 @@ def test_t7a_roster_and_consent_reads_publish_both_role_bodies(
         assert len(media["examples"]) == 2
         values = {example["value"]["contract"] for example in media["examples"].values()}
         assert values == {teacher_contract, manager_contract}
+    teacher_schema = runtime_openapi["paths"][base + "/profiles"]["get"]["responses"]["200"][
+        "content"
+    ]["application/json"]["schema"]["oneOf"][0]
+    assert teacher_schema["properties"]["active_profile_count"]["type"] == "integer"
+    assert "active_profile_count" in teacher_schema["required"]
     summary_schema = runtime_openapi["paths"][base + "/profiles"]["get"]["responses"]["200"][
         "content"
     ]["application/json"]["schema"]["oneOf"][1]

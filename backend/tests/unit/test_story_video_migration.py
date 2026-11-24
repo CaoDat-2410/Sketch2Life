@@ -97,7 +97,7 @@ def test_revision_is_a_short_unlabelled_child_of_part_one_and_the_only_one() -> 
     assert graph[_REVISION] == (_PARENT,)
 
 
-def test_the_head_counts_stay_fifteen_and_ten() -> None:
+def test_the_head_counts_are_sixteen_and_eleven() -> None:
     # FEAT-072 adds the Platform Admin branch from 20261110_ar_0001: one more down-only head.
     graph: dict[str, tuple[tuple[str, ...], tuple[str, ...]]] = {}
     for path in sorted(_VERSIONS.glob("*.py")):
@@ -111,15 +111,19 @@ def test_the_head_counts_stay_fifteen_and_ten() -> None:
     dependency_targets = down_targets | {target for _, dep in graph.values() for target in dep}
     heads_down_only = {rev for rev in graph if rev not in down_targets}
     heads_with_depends = {rev for rev in graph if rev not in dependency_targets}
-    assert (len(heads_down_only), len(heads_with_depends)) == (15, 10)
+    assert (len(heads_down_only), len(heads_with_depends)) == (16, 11)
     # T-4b2: ``20261120_b2_0001`` (DDL-B2) follows this revision; T-2e-a: ``20261123_as_0001``
-    # (DDL-B3) follows that one; V4-A T-1b-fix: ``20261123_rv_0001`` (DDL-B1c) follows it and is the
-    # head of the branch now.
+    # (DDL-B3) follows that one; V4-A T-1b-fix: ``20261123_rv_0001`` (DDL-B1c) follows it; V4-B
+    # T-12b: ``20261121_bpr_0001`` (DDL-D) follows that; T-12c: ``20261121_psn_0002`` (DDL-D)
+    # follows it and is the head of the branch now.
     assert _REVISION not in heads_down_only and _PARENT not in heads_down_only
     assert "20261120_b2_0001" not in heads_down_only
     assert "20261123_as_0001" not in heads_down_only
-    assert "20261113_svg_catalog_review" in heads_down_only
+    assert "20261113_svg_catalog_review" in heads_down_only  # AIPORT1 head, parallel to bpr
     assert "20261123_rv_0001" not in heads_down_only
+    assert "20261121_bpr_0001" not in heads_down_only
+    assert "20261123_ppg_0001" in heads_down_only
+    assert "20261121_psn_0002" not in heads_down_only
     assert {rev for rev, (downs, _) in graph.items() if _REVISION in downs} == {"20261120_b2_0001"}
 
 

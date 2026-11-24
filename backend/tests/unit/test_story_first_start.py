@@ -58,6 +58,7 @@ WORKER_KEYS = {
     "adult_confirmed_idea",
     "activity",
     "lesson_direction",
+    "context_entries",
 }
 ACTIVITY_KEYS = {
     "title",
@@ -292,7 +293,7 @@ def test_all_gates_met_reserves_revision_one_without_a_receipt() -> None:
     assert run_values["retryable"] is False and run_values["error_code"] is None
 
 
-def test_the_worker_input_is_the_v2_shape_with_the_bounded_activity() -> None:
+def test_the_worker_input_is_the_v3_shape_with_the_bounded_activity() -> None:
     reservation = _starter(_Session()).start_if_ready(RUN_ID, PRINCIPAL, NOW)
     assert reservation is not None
     worker = reservation.worker_input
@@ -300,9 +301,10 @@ def test_the_worker_input_is_the_v2_shape_with_the_bounded_activity() -> None:
     assert (
         worker["schema_version"]
         == FIRST_STORY_INPUT_SCHEMA
-        == ("sketch2life.story-generation-input.v2")
+        == ("sketch2life.story-generation-input.v3")
     )
     assert worker["role"] == "PARENT" and worker["lesson_direction"] is None
+    assert worker["context_entries"] == []  # a v1 or unversioned context selects none
     assert worker["confirmed_subject"] == "rong"  # trimmed
     assert worker["child_age_months"] == 60 and worker["visible_features"] == ["leaf", "stem"]
     assert worker["adult_confirmed_idea"] == "adult idea"
@@ -400,13 +402,14 @@ def test_a_teacher_run_with_a_complete_pin_reserves_revision_one_without_a_selec
     assert update.compile().params["run_state"] == "SCRIPT_GENERATING"
 
 
-def test_the_teacher_worker_input_is_the_v2_shape_with_the_direction_and_no_activity() -> None:
+def test_the_teacher_worker_input_is_the_v3_shape_with_the_direction_and_no_activity() -> None:
     reservation = _teacher_starter(_teacher_session()).start_if_ready(RUN_ID, PRINCIPAL, NOW)
     assert reservation is not None
     worker = reservation.worker_input
     assert set(worker) == WORKER_KEYS
     assert worker["schema_version"] == FIRST_STORY_INPUT_SCHEMA
     assert worker["role"] == "TEACHER" and worker["activity"] is None
+    assert worker["context_entries"] == []  # a Teacher run never holds Parent entries
     assert worker["lesson_direction"] == {
         "teacher_direction": "Cau chuyen ve chu meo",
         "objectives": ["Nhan biet hinh tron"],
@@ -540,3 +543,37 @@ def test_a_teacher_context_with_no_direction_starts_with_neither_activity_nor_di
     assert reservation is not None
     assert reservation.worker_input["activity"] is None
     assert reservation.worker_input["lesson_direction"] is None
+
+
+def test_a_v2_parent_context_sends_only_the_kind_and_text_of_the_selected_entries() -> None:
+    """T-12a (BR-21): the worker receives ``{kind, text}`` of the chosen entries and nothing else
+    of them (no id, source, date or creator); an empty selection gives ``[]``."""
+
+    def probe_for(selected: list[dict[str, Any]]) -> Any:
+        def probe(_p: Any, _r: Any, _u: Any) -> Any:
+            understanding, input_row, idea, features = _basis()
+            input_row["context_snapshot"] = {
+                "schema_version": "sketch2life.parent-context.v2",
+                "profile_revision_ref": "11111111-1111-4111-8111-111111111111",
+                "age_months": 60,
+                "interests_summary": "",
+                "topic": "",
+                "adult_confirmed_idea": "",
+                "selected_entries": selected,
+            }
+            return understanding, input_row, idea, features
+
+        return probe
+
+    chosen = [
+        {"kind": "OBSERVATION", "text": "thich ve ca"},
+        {"kind": "ACHIEVEMENT", "text": "tu dap xe"},
+    ]
+    reservation = _starter(_Session(), probe=probe_for(chosen)).start_if_ready(
+        RUN_ID, PRINCIPAL, NOW
+    )
+    assert reservation is not None
+    assert reservation.worker_input["context_entries"] == chosen
+    assert set(reservation.worker_input) == WORKER_KEYS
+    empty = _starter(_Session(), probe=probe_for([])).start_if_ready(RUN_ID, PRINCIPAL, NOW)
+    assert empty is not None and empty.worker_input["context_entries"] == []

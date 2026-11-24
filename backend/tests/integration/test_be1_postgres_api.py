@@ -306,14 +306,16 @@ def test_real_http_writes_audits_outbox_and_enforces_assignment_scope(
     be1_paths = [path for path in openapi["paths"] if path.startswith("/api/be1/v1/")]
     # FEAT-066 T-7b: the class suspend and archive commands add two paths and two operations.
     # FEAT-066 T-7d: the enrollment move adds one path and one operation.
-    assert len(be1_paths) == 58
+    # FEAT-066 goal v4 T-12b: the profile edit and the two revision reads add three paths.
+    # FEAT-066 goal v4 T-12c: the Teacher support-needs read and write add one path.
+    assert len(be1_paths) == 80  # 62 of Phase B plus the 18 paths integration added (quota, admin)
     be1_operations = sum(
         1
         for path in be1_paths
         for method in openapi["paths"][path]
         if method in {"get", "post", "put", "patch", "delete"}
     )
-    assert be1_operations == 63
+    assert be1_operations == 87  # 68 of Phase B plus the 19 operations integration added
     assert "HTTPBearer" in openapi["components"]["securitySchemes"]
     error_schema = openapi["components"]["schemas"]["Be1Error"]
     assert set(error_schema["properties"]) == {
@@ -815,9 +817,23 @@ def test_pending_consent_stays_pending_and_blocks_profile_admission_and_canvas(
     assert profile_response.json()["data_origin"] == "SYNTHETIC_DEV"
     assert "consent_state" not in profile_response.json()
 
+    # T-7e (D-066-100): a Teacher always gets 200; the synthetic profile is listed with the count
+    # and no cursor. The consent gates of admission and canvas below are unchanged.
     profile_list = client.get(_url(accepted, f"/classes/{class_id}/profiles"))
-    assert profile_list.status_code == 409
-    assert profile_list.json()["code"] == "CONSENT_NOT_EFFECTIVE"
+    assert profile_list.status_code == 200, profile_list.text
+    assert profile_list.json() == {
+        "contract": "Be1ManagedProfileListV1",
+        "items": [
+            {
+                "child_id": synthetic_child_id,
+                "class_id": class_id,
+                "display_name": "Synthetic Child",
+                "age_months": 36,
+            }
+        ],
+        "next_cursor": None,
+        "active_profile_count": 1,
+    }
 
     # T-7a (SRS l.2586, D-066-75 CM-3, CM-5): the School Manager reads a count only, with no
     # consent gate, no child field and no new audit row.
@@ -831,7 +847,8 @@ def test_pending_consent_stays_pending_and_blocks_profile_admission_and_canvas(
                 CoreAuditEntryModel.action == "profile.list",
             )
         )
-    assert profile_list_audits == 1
+    # T-7e: the roster read no longer writes `profile.list`, so the count is 0 and stays 0.
+    assert profile_list_audits == 0
     manager_roster = client.get(_url(accepted, f"/classes/{class_id}/profiles"))
     assert manager_roster.status_code == 200, manager_roster.text
     assert manager_roster.json() == {

@@ -6,7 +6,7 @@ generate_openapi_contract_metadata.py --contract <catalog.md>``.
 
 # ruff: noqa: E501
 
-from typing import Final, TypedDict
+from typing import Final, TypedDict, cast
 
 CONTRACT_REVISION: Final = "FEAT-063 Rev37"
 SOURCE_FILE_NAME: Final = 'API_CONTRACT_CATALOG_FEAT063_REV37_20261030.md'
@@ -3455,6 +3455,12 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                         'string; '
                                                                                                         'path '
                                                                                                         '`class_id*`: '
+                                                                                                        'string; '
+                                                                                                        'query '
+                                                                                                        '`limit`: '
+                                                                                                        'integer; '
+                                                                                                        'query '
+                                                                                                        '`cursor`: '
                                                                                                         'string; '
                                                                                                         'header '
                                                                                                         '`X-Request-ID`: '
@@ -11080,6 +11086,65 @@ MOUNTED_OPERATIONS[('patch', '/v1/parent/profiles/{profile_id}')] = {
     ),
 }
 
+MOUNTED_OPERATIONS[('get', '/v1/parent/profiles/{profile_id}/context-entries')] = {
+    'purpose': 'List the adult-entered context entries (observations, achievements, out-of-app '
+               'experiences) of an active profile owned by the verified Parent principal, oldest first.',
+    'request_inputs': 'path `profile_id*`: uuid; query `limit`: integer (default 25, maximum 100); '
+                      'query `cursor`: string; header `X-Request-ID`: string',
+    'surface': 'Parent / profile context entries',
+    'tag': 'Parent Profiles',
+    'handler': 'parent_profiles.py::list_parent_profile_context_entries',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'FEAT-066 goal v4 T-12a (SRS l.263-265, l.497-499); owner-scoped keyset list',
+    'responses': (
+        {'status': '200', 'description': 'Context entries of the profile and the next cursor',
+         'media_type': 'application/json', 'schema_name': 'ParentContextEntryListView'},
+        {'status': '400', 'description': 'The request is invalid',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '401', 'description': 'Authentication is required or invalid',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '404', 'description': 'The profile was not found, or the caller is not an active Parent',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '409', 'description': 'The request conflicts with profile state',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '422', 'description': 'The request does not match the API contract',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '503', 'description': 'A required service is unavailable',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+    ),
+}
+MOUNTED_OPERATIONS[('post', '/v1/parent/profiles/{profile_id}/context-entries')] = {
+    'purpose': 'Append one adult-entered context entry (observation, achievement or out-of-app '
+               'experience) to an active profile owned by the verified Parent principal. An entry is '
+               'sent to a story only when the adult selects it at the context confirmation.',
+    'request_inputs': 'path `profile_id*`: uuid; header `Idempotency-Key*`: string; '
+                      'header `X-Request-ID`: string; application/json (required): '
+                      'CreateParentContextEntryRequest {entry_kind*:OBSERVATION|ACHIEVEMENT|OUTSIDE_EXPERIENCE, '
+                      'short_text*:string, source_kind*:string, source_ref:string|null, '
+                      'approximate_date:string|null}',
+    'surface': 'Parent / profile context entries',
+    'tag': 'Parent Profiles',
+    'handler': 'parent_profiles.py::create_parent_profile_context_entry',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'FEAT-066 goal v4 T-12a (SRS l.263-265, l.497-499); append-only, idempotent create',
+    'responses': (
+        {'status': '201', 'description': 'Context entry created, or the stored entry on a replay',
+         'media_type': 'application/json', 'schema_name': 'ParentContextEntryEnvelope'},
+        {'status': '400', 'description': 'The request is invalid',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '401', 'description': 'Authentication is required or invalid',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '404', 'description': 'The profile was not found, or the caller is not an active Parent',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '409', 'description': 'The request conflicts with profile state',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '422', 'description': 'The request does not match the API contract',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '503', 'description': 'A required service is unavailable',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+    ),
+}
+
 MOUNTED_OPERATIONS[('post', '/v1/story-runs')] = {
     'purpose': 'Create a Parent StoryRun from one owned synthetic profile and an optional pinned lesson version. '
                'An active Teacher sends the Teacher body instead: the confirmed child selection, the occurrence, '
@@ -11198,10 +11263,14 @@ MOUNTED_OPERATIONS[('get', '/v1/story-runs/active/current')] = {
     ),
 }
 MOUNTED_OPERATIONS[('post', '/v1/story-runs/{run_id}/context-confirmation')] = {
-    'purpose': 'Confirm the pinned Parent context snapshot before story generation.',
+    'purpose': 'Confirm the pinned Parent context snapshot before story generation. A Parent may send '
+               '`selected_context_entry_ids` (unique, at most ten, `[]` for none) to send the chosen '
+               'context entries (kind and text only) with the story: the answer then holds a '
+               '`sketch2life.parent-context.v2` snapshot. A Teacher may not send the field.',
     'request_inputs': 'path `run_id*`: uuid; header `Idempotency-Key*`: string; '
                       'application/json (required): ParentContextConfirmationRequestV1 '
-                      '{expected_context_revision*:integer, context_snapshot_sha256*:string, confirmed*:true}',
+                      '{expected_context_revision*:integer, context_snapshot_sha256*:string, confirmed*:true, '
+                      'selected_context_entry_ids:array<uuid>|null}',
     'surface': 'Parent / StoryRun integration proposal',
     'tag': 'Parent StoryRuns',
     'handler': 'parent_story_runs.py::confirm_parent_story_context',
@@ -11210,7 +11279,8 @@ MOUNTED_OPERATIONS[('post', '/v1/story-runs/{run_id}/context-confirmation')] = {
     'responses': (
         {'status': '200', 'description': 'Context snapshot confirmation recorded, or the lifecycle projection on a replay of a purged run',
          'media_type': 'application/json', 'schema_name': 'ParentStoryRunEnvelopeV1'},
-        {'status': '400', 'description': 'The idempotency key is invalid',
+        {'status': '400', 'description': 'The request is invalid: the idempotency key, or `selected_context_entry_ids` '
+                                         '(more than ten, duplicate, too large, or sent for a Teacher run)',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
         {'status': '401', 'description': 'Authentication is required', 'media_type': 'application/json',
          'schema_name': 'ParentStoryErrorEnvelopeV1'},
@@ -13359,6 +13429,294 @@ FEAT083_OPERATIONS: dict[tuple[str, str], OperationMetadata] = {
 }
 MOUNTED_OPERATIONS.update(FEAT083_OPERATIONS)
 
+# FEAT-066 goal v4 T-12b (SRS l.496-499, l.829, l.1651, l.1697; FR-C-04 to FR-C-07; DDL-D): the
+# Teacher profile revisions. The history and one revision are reads; the edit is a keyed command
+# that appends one immutable revision and moves the head. All three share one release rule, the
+# one of the Teacher roster (D-066-100): an assigned Teacher of the class and a profile that is
+# synthetic, or real with an effective consent (a write to a real profile stays blocked).
+_PROFILE_REVISION_TAG: Final = "BE1 — Organizations & Classes"
+_PROFILE_REVISION_VERIFICATION: Final = (
+    "SRS l.496-499, l.829, l.832, l.1651, l.1697, l.2586; goal v4 T-12b"
+)
+_PROFILE_REVISION_PATHS: Final = (
+    "path `organization_id*`: string; path `class_id*`: string; path `child_id*`: string"
+)
+_PROFILE_REVISION_ROSTER_KEY: Final = (
+    "get",
+    "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles",
+)
+
+
+_PROFILE_CONFLICT_DESCRIPTION: Final = (
+    "The command conflicts with current state, or an assigned Teacher meets a profile whose "
+    "consent is not effective (`CONSENT_NOT_EFFECTIVE`; a withdrawn grant or a pending deletion "
+    "is the uniform 404 instead)"
+)
+
+
+def _conflict_row(row: ResponseMetadata) -> ResponseMetadata:
+    if row["status"] != "409":
+        return row
+    changed = dict(row)
+    changed["description"] = _PROFILE_CONFLICT_DESCRIPTION
+    return cast(ResponseMetadata, changed)
+
+
+def _profile_revision_responses(success: str, description: str) -> tuple[ResponseMetadata, ...]:
+    rows = MOUNTED_OPERATIONS[_PROFILE_REVISION_ROSTER_KEY]["responses"]
+    return (
+        {
+            "status": "200",
+            "description": description,
+            "media_type": "application/json",
+            "schema_name": success,
+        },
+        *(_conflict_row(row) for row in rows[1:]),
+    )
+
+
+MOUNTED_OPERATIONS[
+    (
+        "get",
+        "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}"
+        "/revisions",
+    )
+] = {
+    "purpose": "List the immutable revisions of one child profile, newest first (25 per page by "
+    "default, at most 100) with an opaque cursor bound to the route, organization, class and "
+    "child. The first item is the head: send its `revision_no` as `expected_revision` when "
+    "editing. A revision holds the display name, the age in months with its versioned age band "
+    "(`null` above 120 months), the structured interests and the revision hash; it never "
+    "returns the author. An assigned Teacher of the class only (a School Manager is 403, any "
+    "other caller outside the class, an unknown or inactive profile, a profile with a pending "
+    "deletion request and a non-synthetic profile whose consent was revoked are the uniform 404). "
+    "A profile that is neither synthetic nor real with an effective consent is 409 "
+    "`CONSENT_NOT_EFFECTIVE` for the assigned Teacher.",
+    "request_inputs": f"{_PROFILE_REVISION_PATHS}; query `limit`: integer; query `cursor`: "
+    "string; header `X-Request-ID`: string",
+    "surface": "BE1 / classroom",
+    "tag": _PROFILE_REVISION_TAG,
+    "handler": "be1_registry.py::list_profile_revisions",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": _PROFILE_REVISION_VERIFICATION,
+    "responses": _profile_revision_responses(
+        "Be1ProfileRevisionPageV1", "A page of profile revisions and the next cursor"
+    ),
+}
+MOUNTED_OPERATIONS[
+    (
+        "get",
+        "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}"
+        "/revisions/{profile_revision_id}",
+    )
+] = {
+    "purpose": "Read one immutable revision of a child profile. The current scope and release "
+    "rule hold for a past revision too (an assignment that ended, or a profile that is no longer "
+    "released, is refused). An unknown revision, or one of another profile, is the uniform 404, "
+    "and so is a profile with a pending deletion request or a non-synthetic profile whose "
+    "consent was revoked; a profile that is neither synthetic nor released is 409 "
+    "`CONSENT_NOT_EFFECTIVE` for the assigned Teacher.",
+    "request_inputs": f"{_PROFILE_REVISION_PATHS}; path `profile_revision_id*`: string; header "
+    "`X-Request-ID`: string",
+    "surface": "BE1 / classroom",
+    "tag": _PROFILE_REVISION_TAG,
+    "handler": "be1_registry.py::get_profile_revision",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": _PROFILE_REVISION_VERIFICATION,
+    "responses": _profile_revision_responses(
+        "Be1ProfileRevisionV1", "One profile revision"
+    ),
+}
+MOUNTED_OPERATIONS[
+    (
+        "patch",
+        "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}",
+    )
+] = {
+    "purpose": "Edit a child profile (an assigned Teacher command): append one immutable "
+    "revision and move the head, with the display name, age and interests projected in the same "
+    "transaction. Send `Idempotency-Key` and the `expected_revision` (the head `revision_no`) "
+    "in the body, with at least one of `display_name` (it must start with `Synthetic `), "
+    "`age_months` (36 to 120) and `structured_interests` (at most 20 labels of at most 80 "
+    "characters, no duplicates; `[]` clears them); an omitted field keeps its value and an "
+    "explicit null is 400. A stale `expected_revision` is 409 `STALE_REVISION` with "
+    "`current_version`; a reused key with another request is 400 `INVALID_IDEMPOTENCY_KEY`; an "
+    "identical replay returns the first answer. A class that is not active and a profile whose "
+    "stored age is above 120 months are 409 `INVALID_STATE_TRANSITION`; a profile that is "
+    "neither synthetic nor released is 409 `CONSENT_NOT_EFFECTIVE` for the assigned Teacher (the "
+    "write to a real profile is blocked); a School Manager is 403 and any other caller outside "
+    "the class, an unknown profile, a profile with a pending deletion request and a "
+    "non-synthetic profile whose consent was revoked are the uniform 404. A free-text interest "
+    "that names a diagnosis is 400 with the field code `DIAGNOSIS_LIKE` (BR-20). The answer holds the new revision's id, number and hash "
+    "(`ETag` is the revision number); the author and the child data are never returned.",
+    "request_inputs": f"{_PROFILE_REVISION_PATHS}; header `X-Request-ID`: string; header "
+    "`Idempotency-Key*`: string; application/json (required): EditProfileRequest "
+    "{expected_revision*:integer, display_name:string, age_months:integer, "
+    "structured_interests:array<string>}",
+    "surface": "BE1 / classroom",
+    "tag": _PROFILE_REVISION_TAG,
+    "handler": "be1_registry.py::edit_profile",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": _PROFILE_REVISION_VERIFICATION,
+    "responses": _profile_revision_responses(
+        "Be1ProfileEditResultV1", "The new revision, or the first answer of a replayed key"
+    ),
+}
+
+# FEAT-066 goal v4 T-12c (SRS l.264 BR-20, l.499 FR-C-07, l.932, l.1922, l.2338; DDL-D): the
+# encrypted support needs of a profile, one Parent pair and one Teacher pair. The record is an
+# adult-entered optional category and note, encrypted at rest, a singleton with its own revision
+# (0 = none yet). A write needs `Idempotency-Key` and `expected_revision`; the answer of a write
+# holds the new revision only. No value is ever part of a receipt, a log, an error or an example.
+_SUPPORT_NEEDS_VERIFICATION: Final = "SRS l.264, l.499, l.932, l.1922, l.2338; goal v4 T-12c"
+_SUPPORT_NEEDS_PURPOSE_COMMON: Final = (
+    "The record is an optional category (at most 80 characters) and a free-text note (at most "
+    "2000 characters) the adult enters; it is not a diagnosis and nothing is inferred. It is "
+    "encrypted at rest and never part of a profile projection, a run snapshot or an AI input. "
+    "Answers carry `Cache-Control: no-store`; `503 SUPPORT_NEEDS_UNAVAILABLE` means no key "
+    "source is configured or a stored record does not authenticate."
+)
+_PARENT_SUPPORT_NEEDS_ERRORS: Final[tuple[ResponseMetadata, ...]] = (
+    {
+        "status": "400",
+        "description": "The request is invalid, or the idempotency key was used for another request",
+        "media_type": "application/json",
+        "schema_name": "ParentErrorResponse",
+    },
+    {
+        "status": "401",
+        "description": "Authentication is required or invalid",
+        "media_type": "application/json",
+        "schema_name": "ParentErrorResponse",
+    },
+    {
+        "status": "404",
+        "description": "The profile was not found, or the caller is not an active Parent",
+        "media_type": "application/json",
+        "schema_name": "ParentErrorResponse",
+    },
+    {
+        "status": "409",
+        "description": "A stale revision (with `current_version`), or a profile that cannot be "
+        "changed in its current state",
+        "media_type": "application/json",
+        "schema_name": "ParentErrorResponse",
+    },
+    {
+        "status": "422",
+        "description": "The request does not match the API contract",
+        "media_type": "application/json",
+        "schema_name": "ParentErrorResponse",
+    },
+    {
+        "status": "503",
+        "description": "Support needs are unavailable: no key source, or a record that does not "
+        "authenticate",
+        "media_type": "application/json",
+        "schema_name": "ParentErrorResponse",
+    },
+)
+MOUNTED_OPERATIONS[("get", "/v1/parent/profiles/{profile_id}/support-needs")] = {
+    "purpose": "Read the decrypted support needs of a profile owned by the verified Parent "
+    "principal (`revision` 0 and null values when none). " + _SUPPORT_NEEDS_PURPOSE_COMMON,
+    "request_inputs": "path `profile_id*`: uuid; header `X-Request-ID`: string",
+    "surface": "Parent / profile support needs",
+    "tag": "Parent Profiles",
+    "handler": "parent_profiles.py::get_parent_profile_support_needs",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": _SUPPORT_NEEDS_VERIFICATION,
+    "responses": (
+        {
+            "status": "200",
+            "description": "The decrypted record, or revision 0 with null values",
+            "media_type": "application/json",
+            "schema_name": "ParentSupportNeedsV1",
+        },
+        *_PARENT_SUPPORT_NEEDS_ERRORS,
+    ),
+}
+MOUNTED_OPERATIONS[("put", "/v1/parent/profiles/{profile_id}/support-needs")] = {
+    "purpose": "Replace the support needs of a profile owned by the verified Parent principal. "
+    "Send `Idempotency-Key` and `expected_revision` (0 when none exists); `category` and `note` "
+    "are both required keys, each a string or null, and at least one must hold text. A stale "
+    "`expected_revision` is 409 `STALE_REVISION` with `current_version`; an identical replay "
+    "returns the first answer; a profile whose deletion is pending is 409 "
+    "`INVALID_STATE_TRANSITION`. " + _SUPPORT_NEEDS_PURPOSE_COMMON,
+    "request_inputs": "path `profile_id*`: uuid; header `Idempotency-Key*`: string; header "
+    "`X-Request-ID`: string; application/json (required): SupportNeedsPutV1 "
+    "{expected_revision*:integer, category*:string|null, note*:string|null}",
+    "surface": "Parent / profile support needs",
+    "tag": "Parent Profiles",
+    "handler": "parent_profiles.py::put_parent_profile_support_needs",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": _SUPPORT_NEEDS_VERIFICATION,
+    "responses": (
+        {
+            "status": "200",
+            "description": "The new revision, or the first answer of a replayed key",
+            "media_type": "application/json",
+            "schema_name": "ParentSupportNeedsWriteV1",
+        },
+        *_PARENT_SUPPORT_NEEDS_ERRORS,
+    ),
+}
+_BE1_SUPPORT_NEEDS_TEACHER: Final = (
+    " An assigned Teacher of the class only, and only with an effective consent and a narrow "
+    "support-needs permission (both are asked for every profile, synthetic ones included; both "
+    "deny until they exist, so a Teacher without the permission is the uniform 404 (no consent "
+    "state is disclosed and no audit row is written) and a Teacher with the permission but "
+    "without an effective consent is 409 `CONSENT_NOT_EFFECTIVE`); a School Manager is 403 and "
+    "any other caller outside the class, an unknown or inactive profile, a profile with a "
+    "pending deletion request and a non-synthetic profile whose consent was revoked are the "
+    "uniform 404."
+)
+MOUNTED_OPERATIONS[
+    (
+        "get",
+        "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}"
+        "/support-needs",
+    )
+] = {
+    "purpose": "Read the decrypted support needs of one managed profile (`revision` 0 and null "
+    "values when none). " + _SUPPORT_NEEDS_PURPOSE_COMMON + _BE1_SUPPORT_NEEDS_TEACHER,
+    "request_inputs": f"{_PROFILE_REVISION_PATHS}; header `X-Request-ID`: string",
+    "surface": "BE1 / classroom",
+    "tag": _PROFILE_REVISION_TAG,
+    "handler": "be1_registry.py::get_profile_support_needs",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": _SUPPORT_NEEDS_VERIFICATION,
+    "responses": _profile_revision_responses(
+        "Be1SupportNeedsV1", "The decrypted record, or revision 0 with null values"
+    ),
+}
+MOUNTED_OPERATIONS[
+    (
+        "put",
+        "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}"
+        "/support-needs",
+    )
+] = {
+    "purpose": "Replace the support needs of one managed profile (an assigned Teacher command). "
+    "Send `Idempotency-Key` and `expected_revision` (0 when none exists); `category` and `note` "
+    "are both required keys, each a string or null, and at least one must hold text. A stale "
+    "`expected_revision` is 409 `STALE_REVISION` with `current_version`; a reused key with "
+    "another request is 400 `INVALID_IDEMPOTENCY_KEY`; an identical replay returns the first "
+    "answer; a class that is not active is 409 `INVALID_STATE_TRANSITION`. "
+    + _SUPPORT_NEEDS_PURPOSE_COMMON
+    + _BE1_SUPPORT_NEEDS_TEACHER,
+    "request_inputs": f"{_PROFILE_REVISION_PATHS}; header `X-Request-ID`: string; header "
+    "`Idempotency-Key*`: string; application/json (required): Be1SupportNeedsPutV1 "
+    "{expected_revision*:integer, category*:string|null, note*:string|null}",
+    "surface": "BE1 / classroom",
+    "tag": _PROFILE_REVISION_TAG,
+    "handler": "be1_registry.py::put_profile_support_needs",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": _SUPPORT_NEEDS_VERIFICATION,
+    "responses": _profile_revision_responses(
+        "Be1SupportNeedsWriteV1", "The new revision, or the first answer of a replayed key"
+    ),
+}
+
 IDEMPOTENCY_MISMATCH_OPERATION_KEYS: Final[tuple[tuple[str, str], ...]] = (
     ("post", "/api/lesson-library/v1/me/lesson-invitations/{access_grant_id}/accept"),
     ("post", "/api/lesson-library/v1/me/lesson-invitations/{access_grant_id}/decline"),
@@ -13391,6 +13749,14 @@ IDEMPOTENCY_MISMATCH_OPERATION_KEYS: Final[tuple[tuple[str, str], ...]] = (
     ("post", "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles"),
     # FEAT-066 T-7d (SRS l.1697): the keyed Teacher enrollment move.
     ("post", "/api/be1/v1/classes/{class_id}/profiles/{child_id}/move"),
+    # FEAT-066 goal v4 T-12b (SRS l.1697): the keyed Teacher profile edit.
+    ("patch", "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}"),
+    # FEAT-066 goal v4 T-12c (SRS l.1697): the keyed Teacher support-needs write.
+    (
+        "put",
+        "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}"
+        "/support-needs",
+    ),
     # FEAT-066 T-2a (SRS l.1697): the keyed generic upload commands.
     ("post", "/v1/upload-sessions"),
     ("post", "/v1/upload-sessions/{upload_id}/complete"),

@@ -51,6 +51,7 @@ def test_expected_counts_and_route_idempotency_keys_are_valid() -> None:
         "be1_classrooms": 4,
         "be1_organization_assignments": 1,
         "be1_managed_profiles": 7,
+        "be1_profile_revisions": 7,
         "be1_enrollments": 8,
         "be1_command_receipts": 7,
         "core_audit_entries": 7,

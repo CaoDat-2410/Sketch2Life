@@ -13,6 +13,13 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
+from sketch2life.domain.be1_profile_revisions import (
+    BAND_VERSION,
+    HASH_VERSION,
+    age_band,
+    baseline_revision_id,
+    revision_hash,
+)
 from sketch2life.domain.lesson_library.model import canonical_content_hash
 from sketch2life.domain.parent_profiles import ProfileSnapshot
 
@@ -340,7 +347,38 @@ def managed_profile_row(
         "data_origin": "SYNTHETIC_DEV",
         "state": "active",
         "created_by": created_by or manager_subject(key),
+        # T-12b: the head of the baseline revision written by `baseline_revision_row`.
+        "current_profile_revision_id": baseline_revision_id(child_id),
+        "profile_revision_no": 1,
     }
+
+
+def baseline_revision_row(profile: dict[str, Any]) -> dict[str, Any]:
+    """Revision 1 of a seeded profile (T-12b): the profile's own name and age, no interests."""
+    band = age_band(int(profile["age_months"]))
+    return {
+        "profile_revision_id": baseline_revision_id(str(profile["child_id"])),
+        "child_id": profile["child_id"],
+        "revision_no": 1,
+        "display_name": profile["display_name"],
+        "age_months": profile["age_months"],
+        "age_band_version": None if band is None else BAND_VERSION,
+        "age_band_code": None if band is None else band[1],
+        "structured_interests": [],
+        "authored_by": profile["created_by"],
+        "revision_hash_version": HASH_VERSION,
+        "revision_hash": revision_hash(
+            child_id=str(profile["child_id"]),
+            revision_no=1,
+            display_name=str(profile["display_name"]),
+            age_months=int(profile["age_months"]),
+            structured_interests=[],
+        ),
+    }
+
+
+def be1_profile_revision_rows() -> list[dict[str, Any]]:
+    return [baseline_revision_row(profile) for profile in managed_profile_rows()]
 
 
 def managed_profile_rows() -> list[dict[str, Any]]:
@@ -1181,6 +1219,7 @@ def expected_counts() -> dict[str, int]:
         "be1_organization_assignments": len(assignment_rows()),
         "be1_classrooms": len(classroom_rows()),
         "be1_managed_profiles": len(managed_profile_rows()),
+        "be1_profile_revisions": len(be1_profile_revision_rows()),
         "be1_enrollments": len(enrollment_rows()),
         "be1_parent_groups": len(parent_group_rows()),
         "be1_parent_group_members": len(parent_group_member_rows()),
@@ -1201,6 +1240,7 @@ EXPECTED_COUNTS: dict[str, int] = {
     "be1_organization_assignments": 19,
     "be1_classrooms": 41,
     "be1_managed_profiles": 52,
+    "be1_profile_revisions": 52,
     "be1_enrollments": 52,
     "be1_parent_groups": 2,
     "be1_parent_group_members": 3,

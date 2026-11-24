@@ -23,6 +23,7 @@ from sketch2life.infrastructure.persistence.be1_models import (
     EnrollmentModel,
     ManagedProfileModel,
     OrganizationAssignmentModel,
+    ProfileRevisionModel,
 )
 from sketch2life.infrastructure.persistence.core_models import (
     CoreAggregateRevisionModel,
@@ -354,6 +355,13 @@ def _ensure_lifecycle_profiles(session_factory: sessionmaker[Session]) -> None:
                     .on_conflict_do_nothing(index_elements=[ManagedProfileModel.child_id])
                 )
                 session.execute(
+                    pg_insert(ProfileRevisionModel)
+                    .values(**data.baseline_revision_row(profile))
+                    .on_conflict_do_nothing(
+                        index_elements=[ProfileRevisionModel.profile_revision_id]
+                    )
+                )
+                session.execute(
                     pg_insert(EnrollmentModel)
                     .values(
                         enrollment_id=stage_enrollment_id(profile["child_id"]),
@@ -510,6 +518,11 @@ def _ensure_profile_create(
                 pg_insert(ManagedProfileModel)
                 .values(**profile)
                 .on_conflict_do_nothing(index_elements=[ManagedProfileModel.child_id])
+            )
+            session.execute(
+                pg_insert(ProfileRevisionModel)
+                .values(**data.baseline_revision_row(profile))
+                .on_conflict_do_nothing(index_elements=[ProfileRevisionModel.profile_revision_id])
             )
             session.execute(
                 pg_insert(EnrollmentModel)
@@ -789,6 +802,13 @@ def count_s9_rows(connection: Connection) -> dict[str, int]:
                 select(func.count())
                 .select_from(ManagedProfileModel)
                 .where(ManagedProfileModel.child_id.in_(profile_ids))
+            ).scalar_one()
+        ),
+        "be1_profile_revisions": int(
+            connection.execute(
+                select(func.count())
+                .select_from(ProfileRevisionModel)
+                .where(ProfileRevisionModel.child_id.in_(profile_ids))
             ).scalar_one()
         ),
         "be1_enrollments": int(

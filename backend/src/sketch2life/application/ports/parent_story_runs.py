@@ -20,6 +20,7 @@ from sketch2life.application.ports.parent_story_inputs import (
     VoiceInput,
 )
 from sketch2life.application.ports.parent_story_profile_lookup import ParentStoryProfileReference
+from sketch2life.domain.parent_profile_context import SelectedContextEntry
 
 
 class ParentStoryRunError(RuntimeError):
@@ -181,6 +182,9 @@ class ParentActivityPin:
 
 
 ActivityResolver = Callable[[ParentActivityContext], ParentActivityPin]
+# T-12a: (profile id of the run, selected entry ids) -> the entries; 404 ``RESOURCE_NOT_FOUND``
+# when any id is not an entry of the run's ACTIVE profile of the caller.
+ContextEntryResolver = Callable[[UUID, tuple[UUID, ...]], list[SelectedContextEntry]]
 StoryStartedCallback = Callable[["ParentStoryRevisionReservation"], None]
 
 
@@ -339,11 +343,18 @@ class ParentStoryRunRepositoryPort(Protocol):
         idempotency_key: str,
         on_story_started: StoryStartedCallback | None = None,
         generator_supports_role: bool = True,
+        selected_context_entry_ids: tuple[UUID, ...] | None = None,
+        resolve_context_entries: ContextEntryResolver | None = None,
     ) -> ParentStoryRunView:
         """T-2e-a: the confirmation may start the first story; the reservation of that start is
         handed to ``on_story_started`` after the commit (never on a replay).
         ``generator_supports_role`` is the route's answer to "may a composed generator take this
-        actor's role" (V4-A OPEN-A D4); ``False`` keeps the run in ``PREPARATION_REVIEW``."""
+        actor's role" (V4-A OPEN-A D4); ``False`` keeps the run in ``PREPARATION_REVIEW``.
+
+        T-12a (BR-21): ``selected_context_entry_ids`` (``None`` is absent, ``()`` is an explicit
+        empty selection) makes the confirmation write the v2 snapshot of the chosen entries as a
+        new confirmed input revision; ``resolve_context_entries`` is called under the run lock.
+        A Teacher run refuses the field (400)."""
         ...
 
     def read_activity_context(
@@ -618,6 +629,7 @@ class ParentStoryRunRepositoryPort(Protocol):
 
 __all__ = [
     "ActivityResolver",
+    "ContextEntryResolver",
     "ParentActivityContext",
     "ParentActivityPin",
     "ParentStoryInputRecord",

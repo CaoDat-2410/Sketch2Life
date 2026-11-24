@@ -33,6 +33,7 @@ from inputs_support import (  # type: ignore[import-not-found]
     story_rows,
     to_script_review,
     to_subject_review,
+    who_headers,
     wire,
 )
 from sqlalchemy import update
@@ -41,7 +42,7 @@ from sketch2life.application.ports.parent_story_inputs import StoryGenerationFai
 from sketch2life.infrastructure.lesson_occurrences.tables import OCCURRENCES
 from sketch2life.infrastructure.persistence.be1_models import ClassroomModel
 
-SCHEMA_V2 = "sketch2life.story-generation-input.v2"
+SCHEMA_V3 = "sketch2life.story-generation-input.v3"
 
 
 def _no_child_name(e: Env, text_body: str) -> None:
@@ -77,7 +78,8 @@ def test_context_then_subject_starts_the_first_story_exactly_once_with_no_seed(e
     assert story["revision_no"] == 1 and story["status"] == "DRAFT"
     assert len(e.generator.inputs) == 1
     worker = e.generator.inputs[0]
-    assert worker["schema_version"] == SCHEMA_V2
+    assert worker["schema_version"] == SCHEMA_V3
+    assert worker["context_entries"] == []
     assert worker["role"] == "TEACHER" and worker["activity"] is None
     assert set(worker["lesson_direction"]) == {"teacher_direction", "objectives", "activity_title"}
     assert worker["lesson_direction"]["activity_title"] == "Vẽ bằng ngón tay"
@@ -235,3 +237,46 @@ def test_a_generated_first_story_is_a_normal_script_review_run(env: Env) -> None
     first = rewrite(e, "t1", run_id, revision=1)
     assert first.status_code == 202
     assert [r["revision_no"] for r in story_rows(e, run_id)] == [1, 2]
+
+
+# ------------------------------------------------------------------------ T-12a: no Parent entries
+def test_a_selection_field_on_a_teacher_run_is_a_400_and_a_foreign_teacher_is_still_a_404(
+    env: Env,
+) -> None:
+    """D-T12a-A: ``selected_context_entry_ids`` is a Parent-run field. The owner lookup comes
+    first (a Teacher outside the class gets the uniform 404 whatever the body); then the Teacher
+    gets a plain 400 for the field, before any write (no new input row, no receipt)."""
+
+    e = env
+    run_id = to_subject_review(e)
+    snapshot = e.d.client.get(
+        f"/v1/story-runs/{run_id}", headers=who_headers(e, "t1")
+    ).json()["story_run"]
+    body = {
+        "expected_context_revision": snapshot["context_revision"],
+        "context_snapshot_sha256": snapshot["context_snapshot_sha256"],
+        "confirmed": True,
+        "selected_context_entry_ids": [],
+    }
+    refused = e.d.client.post(
+        f"/v1/story-runs/{run_id}/context-confirmation",
+        json=body,
+        headers=who_headers(e, "t1", "teacher-selection-key"),
+    )
+    assert refused.status_code == 400, refused.text
+    assert refused.json()["code"] == "INVALID_REQUEST"
+    assert [(i["field"], i["code"]) for i in refused.json()["field_errors"]] == [
+        ("selected_context_entry_ids", "NOT_ALLOWED")
+    ]
+    assert [r for r in receipt_rows(e, run_id) if r["operation"] == "CONFIRM_CONTEXT"] == []
+    assert story_rows(e, run_id) == [] and states(e, run_id)[0] == "SUBJECT_REVIEW"
+    assert e.generator.inputs == []
+    # a Teacher who is not the responsible one: the same body is the uniform 404
+    outsider = e.d.client.post(
+        f"/v1/story-runs/{run_id}/context-confirmation",
+        json=body,
+        headers=who_headers(e, "t4", "teacher-selection-key-2"),
+    )
+    assert outsider.status_code == 404, outsider.text
+    # the plain confirmation of the same run still works
+    assert confirm_context(e, "t1", run_id).status_code == 200

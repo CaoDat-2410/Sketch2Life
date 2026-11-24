@@ -48,8 +48,10 @@ from sketch2life.contracts.schemas.mobile_workflow import (
     WorkflowResultProvenanceV1,
 )
 from sketch2life.contracts.schemas.parent_profiles import (
+    CreateParentContextEntryRequest,
     CreateParentProfileRequest,
     PatchParentProfileRequest,
+    SupportNeedsPutV1,
     parent_error_payload,
     parent_field_errors,
 )
@@ -631,6 +633,7 @@ def create_app(
                 "TOKEN_EXPIRED": "The bearer token has expired",
                 "IDENTITY_PROVIDER_UNAVAILABLE": "Identity verification is unavailable",
                 "PARENT_STORE_UNAVAILABLE": "The profile store is unavailable",
+                "SUPPORT_NEEDS_UNAVAILABLE": "Support needs are unavailable",
                 "PROFILE_NOT_FOUND": "Profile was not found",
                 "INVALID_REQUEST": "The request is invalid",
                 "INVALID_IDEMPOTENCY_KEY": "The idempotency key conflicts with an earlier request",
@@ -1282,8 +1285,10 @@ def create_app(
         publish_teacher_story_run_create(schema)
         if isinstance(schemas, dict):
             for parent_request_model in (
+                CreateParentContextEntryRequest,
                 CreateParentProfileRequest,
                 PatchParentProfileRequest,
+                SupportNeedsPutV1,
             ):
                 model_schema = parent_request_model.model_json_schema(
                     ref_template="#/components/schemas/{model}"

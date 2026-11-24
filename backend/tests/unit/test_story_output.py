@@ -560,7 +560,8 @@ def test_a_fresh_rewrite_stores_a_final_202_receipt_and_no_pending_one(
     assert worker_input["rewrite_instruction"] == REWRITE_NEUTRAL_INSTRUCTION_V1
     assert worker_input["rewrite_instruction_version"] == "rewrite-neutral.v1"
     assert HINT not in worker_input["rewrite_instruction"]
-    assert worker_input["schema_version"] == "sketch2life.story-rewrite-input.v1"
+    assert worker_input["schema_version"] == "sketch2life.story-rewrite-input.v2"
+    assert worker_input["context_entries"] == []  # T-12a: no selection in this context
     assert worker_input["confirmed_subject"] == "rồng"
     assert worker_input["adult_confirmed_idea"] == "một ý tưởng"
     # T-2d-fix D3: the previous draft is left alone until the new one completes; the new one

@@ -320,6 +320,8 @@ SYNTHETIC_RESPONSE_EXAMPLES: dict[tuple[str, str], dict[str, Any]] = {
                 "age_months": 60,
             }
         ],
+        "next_cursor": None,
+        "active_profile_count": 1,
     },
     (
         "post",

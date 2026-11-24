@@ -26,6 +26,7 @@ ALL_ROWS = {
     "be1_organization_assignments": data.assignment_rows,
     "be1_classrooms": data.classroom_rows,
     "be1_managed_profiles": data.managed_profile_rows,
+    "be1_profile_revisions": data.be1_profile_revision_rows,
     "be1_enrollments": data.enrollment_rows,
     "be1_parent_groups": data.parent_group_rows,
     "be1_parent_group_members": data.parent_group_member_rows,

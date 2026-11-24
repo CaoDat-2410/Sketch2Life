@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Protocol
 from uuid import UUID
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
+from sketch2life.domain.parent_profile_context import SelectedContextEntry
 
 
 @dataclass(frozen=True, slots=True)
@@ -30,6 +32,18 @@ class ParentStoryProfileLookupPort(Protocol):
 
     def is_owned_profile(self, *, principal: VerifiedPrincipal, profile_id: UUID) -> bool:
         """FEAT-081 C3b: ownership only, any profile state, no revision read."""
+        ...
+
+    def resolve_selected_context_entries(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        profile_id: UUID,
+        entry_ids: Sequence[UUID],
+    ) -> list[SelectedContextEntry] | None:
+        """T-12a: the ``{kind, text}`` of the named entries in ``(created_at, id)`` order, or
+        ``None`` when any id is not an entry of this ACTIVE profile of the caller (a profile in
+        ``DELETE_PENDING`` resolves nothing). The profile row is share-locked."""
         ...
 
 

@@ -11,6 +11,8 @@ schema `ai_jobs`). Use `upgrade be1_core@head` or `upgrade ai_jobs@head` for one
 for all modules. Plain `upgrade head` is ambiguous and fails with "Multiple head revisions" without changing
 the database.
 
+The BE1 runtime needs every head, not only `be1_core`: the classroom revision (`20261120_cls_0001`, branch `lesson_library`) and the Teacher profile revision head (`20261121_bpr_0001`, goal v4 T-12b, branch `frc08_lifecycle`) sit on other branches, so `upgrade be1_core@head` alone leaves the BE1 models without their columns. An existing database needs one `upgrade heads` before the new code runs.
+
 Deploy with `upgrade heads`: the FR-C-08 lifecycle revision `20261119_frc08_lifecycle_scope` (branch `frc08_lifecycle`) only depends on the Story head, so a per-module `upgrade <branch>@head` skips it.
 
 The URL is required at runtime; no credential or default URL is stored in this repository. Do not print it in logs or command transcripts. The migration does not upload media or connect to Redis, Firebase, or an object store.

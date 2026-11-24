@@ -7,6 +7,8 @@ import json
 from dataclasses import dataclass
 from enum import StrEnum
 
+from sketch2life.domain.diagnosis_screen import looks_like_diagnosis
+
 MIN_PARENT_AGE_MONTHS = 36
 MAX_PARENT_AGE_MONTHS = 120
 MAX_DISPLAY_NAME_LENGTH = 120
@@ -116,6 +118,26 @@ def validate_snapshot(snapshot: ProfileSnapshot) -> None:
             "INVALID_REQUEST",
             "The profile request is invalid",
             field_errors=[{"field": "interests_summary", "code": "TOO_LONG"}],
+        )
+    if snapshot.interests_summary is not None and looks_like_diagnosis(snapshot.interests_summary):
+        # BR-20 (SRS l.266): interests never carry a diagnosis; the text is not echoed.
+        raise ParentProfileError(
+            400,
+            "INVALID_REQUEST",
+            "The profile request is invalid",
+            field_errors=[{"field": "interests_summary", "code": "DIAGNOSIS_LIKE"}],
+        )
+
+
+def validate_idempotency_key(value: str) -> None:
+    """1-128 visible ASCII characters (the one rule of every Parent command)."""
+
+    if not 1 <= len(value) <= 128 or any(ord(char) < 33 or ord(char) > 126 for char in value):
+        raise ParentProfileError(
+            400,
+            "INVALID_REQUEST",
+            "The idempotency key is invalid",
+            field_errors=[{"field": "Idempotency-Key", "code": "INVALID_FORMAT"}],
         )
 
 

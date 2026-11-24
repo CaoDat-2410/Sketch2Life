@@ -14,7 +14,11 @@ from sqlalchemy.orm import Session
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
 from sketch2life.application.ports.parent_roles import ParentRoleReader
+from sketch2life.application.services.parent_profile_context import (
+    ParentProfileContextService,
+)
 from sketch2life.application.services.parent_profiles import ParentProfileService
+from sketch2life.application.services.support_needs import ParentSupportNeedsService
 from sketch2life.domain.parent_profiles import ParentProfileError
 from sketch2life.infrastructure.identity.firebase_token_verifier import (
     IdentityVerificationUnavailable,
@@ -23,9 +27,17 @@ from sketch2life.infrastructure.persistence.be1_parent_role_adapter import (
     Be1ParentRoleAdapter,
 )
 from sketch2life.infrastructure.persistence.parent_profile_repository import (
+    SqlParentProfileContextRepository,
     SqlParentProfileRepository,
 )
+from sketch2life.infrastructure.persistence.support_needs_repository import (
+    SqlParentSupportNeedsRepository,
+)
 from sketch2life.interfaces.http.be1_runtime import Be1Runtime, get_runtime
+from sketch2life.interfaces.http.support_needs_runtime import (
+    SupportNeedsRuntime,
+    get_support_needs_runtime,
+)
 
 _bearer = HTTPBearer(auto_error=False)
 
@@ -117,6 +129,19 @@ def get_parent_profile_service(
     return ParentProfileService(SqlParentProfileRepository(db), synthetic_enabled=enabled)
 
 
+def get_parent_profile_context_service(
+    db: Session = Depends(get_parent_db),
+) -> ParentProfileContextService:
+    return ParentProfileContextService(SqlParentProfileContextRepository(db))
+
+
+def get_parent_support_needs_service(
+    db: Session = Depends(get_parent_db),
+    support_runtime: SupportNeedsRuntime = Depends(get_support_needs_runtime),
+) -> ParentSupportNeedsService:
+    return ParentSupportNeedsService(SqlParentSupportNeedsRepository(db), support_runtime.crypto)
+
+
 def get_parent_role_reader(
     runtime: Be1Runtime = Depends(get_runtime),
 ) -> ParentRoleReader:
@@ -144,8 +169,10 @@ def parent_idempotency_key(
 __all__ = [
     "get_parent_db",
     "get_parent_principal",
+    "get_parent_profile_context_service",
     "get_parent_profile_service",
     "get_parent_role_reader",
+    "get_parent_support_needs_service",
     "get_parent_runtime",
     "parent_idempotency_key",
     "parent_request_id",

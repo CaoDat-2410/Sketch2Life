@@ -20,11 +20,12 @@ from sketch2life.infrastructure.persistence.be1_models import (
     ConsentRecordModel,
     ManagedProfileModel,
     OrganizationModel,
+    ProfileRevisionModel,
 )
 from sketch2life.infrastructure.persistence.core_store import PostgresCoreStore
 from sketch2life.interfaces.http import app as http_app
 from sketch2life.interfaces.http import be1_runtime as be1_runtime_module
-from sqlalchemy import delete, func, select, update
+from sqlalchemy import delete, func, select, text, update
 from sqlalchemy.engine import make_url
 from sqlalchemy.exc import IntegrityError
 
@@ -151,11 +152,25 @@ def test_operator_created_synthetic_profile_persists_age_provenance_and_no_conse
                 .values(age_source="UNRECOGNIZED")
             )
     finally:
-        with sessions.begin() as db:
-            db.execute(delete(ManagedProfileModel).where(ManagedProfileModel.child_id == child_id))
-            db.execute(delete(ClassroomModel).where(ClassroomModel.class_id == class_id))
-            db.execute(
-                delete(OrganizationModel).where(
-                    OrganizationModel.organization_id == organization_id
+        # T-12b: the profile has a revision (RESTRICT foreign key, append-only trigger). This
+        # disposable-database teardown switches the user triggers of the revision table off in
+        # its own transaction, deletes the revision rows and then the profile, and switches them
+        # back on in a second transaction. No production path does this.
+        try:
+            with sessions.begin() as db:
+                db.execute(text("ALTER TABLE be1_profile_revisions DISABLE TRIGGER USER"))
+                db.execute(
+                    delete(ProfileRevisionModel).where(ProfileRevisionModel.child_id == child_id)
                 )
-            )
+                db.execute(
+                    delete(ManagedProfileModel).where(ManagedProfileModel.child_id == child_id)
+                )
+                db.execute(delete(ClassroomModel).where(ClassroomModel.class_id == class_id))
+                db.execute(
+                    delete(OrganizationModel).where(
+                        OrganizationModel.organization_id == organization_id
+                    )
+                )
+        finally:
+            with sessions.begin() as db:
+                db.execute(text("ALTER TABLE be1_profile_revisions ENABLE TRIGGER USER"))

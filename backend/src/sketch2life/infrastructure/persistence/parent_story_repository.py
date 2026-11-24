@@ -34,6 +34,7 @@ from sketch2life.application.ports.parent_story_inputs import (
 from sketch2life.application.ports.parent_story_profile_lookup import ParentStoryProfileReference
 from sketch2life.application.ports.parent_story_runs import (
     ActivityResolver,
+    ContextEntryResolver,
     ParentActivityContext,
     ParentStoryInputRecord,
     ParentStoryLifecycleRecord,
@@ -82,6 +83,12 @@ from sketch2life.application.services.story_review_rules import (
     story_confirmation_required,
 )
 from sketch2life.application.services.story_run_detail import compose_timeline, compose_video
+from sketch2life.domain.parent_profile_context import (
+    SNAPSHOT_MAX_BYTES,
+    build_selected_context_snapshot,
+    context_entries_for_worker,
+    jsonb_text_size,
+)
 from sketch2life.domain.story_teacher import TEACHER_PIN_SCHEMA, teacher_lesson_direction
 from sketch2life.domain.story_video.model import (
     MAX_ACCEPTED_REQUESTS,
@@ -1140,21 +1147,43 @@ class SqlParentStoryRunRepository:
         idempotency_key: str,
         on_story_started: StoryStartedCallback | None = None,
         generator_supports_role: bool = True,
+        selected_context_entry_ids: tuple[UUID, ...] | None = None,
+        resolve_context_entries: ContextEntryResolver | None = None,
     ) -> ParentStoryRunView:
         operation = "CONFIRM_CONTEXT"
         scope_kind = "STORY_RUN"
         scope_ref = run_id
         key_hash = _idempotency_key_hash(idempotency_key)
-        fingerprint = _sha256_json(
-            {
-                "expected_context_revision": expected_context_revision,
-                "context_snapshot_sha256": expected_context_snapshot_sha256,
-                "confirmed": True,
-            }
-        )
+        fingerprint_body: dict[str, Any] = {
+            "expected_context_revision": expected_context_revision,
+            "context_snapshot_sha256": expected_context_snapshot_sha256,
+            "confirmed": True,
+        }
+        if selected_context_entry_ids is not None:
+            # T-12a: only a present field joins the fingerprint (an old receipt replays as before);
+            # sorted, so the same selection in any order is the same request.
+            fingerprint_body["selected_context_entry_ids"] = sorted(
+                str(entry_id) for entry_id in selected_context_entry_ids
+            )
+        fingerprint = _sha256_json(fingerprint_body)
         run, access = self._owned_run_access(
             principal, run_id, lock=True, teacher_capable=True
         )
+        if selected_context_entry_ids is not None:
+            if self._is_teacher:
+                # T-12a D-T12a-A: a Teacher run never holds Parent context entries. The owner
+                # lookup above is first, so a foreign Teacher run is still the uniform 404.
+                self._session.rollback()
+                raise ParentStoryRunError(
+                    400,
+                    "INVALID_REQUEST",
+                    field_errors=[
+                        {"field": "selected_context_entry_ids", "code": "NOT_ALLOWED"}
+                    ],
+                )
+            if resolve_context_entries is None:
+                self._session.rollback()
+                raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE")
         self._lock_idempotency(
             principal=principal,
             operation=operation,
@@ -1193,7 +1222,77 @@ class SqlParentStoryRunRepository:
 
         now = datetime.now(UTC)
         new_version = int(run["version"])
-        if input_row["context_confirmed_by"] is None:
+        if selected_context_entry_ids is not None:
+            # T-12a (BR-21): the adult's explicit selection becomes a NEW immutable input row, born
+            # confirmed (the old row keeps its v1 snapshot and stays unconfirmed). One run UPDATE
+            # rebinds the run; ``start_if_ready`` below re-reads the run and its current input.
+            if input_row["context_confirmed_by"] is not None:
+                self._session.rollback()
+                raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
+            assert resolve_context_entries is not None
+            try:
+                profile_id = UUID(str(run["profile_ref"]))
+            except ValueError:
+                # a run without a readable profile reference has no entries to select
+                self._session.rollback()
+                raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION") from None
+            try:
+                entries = resolve_context_entries(profile_id, selected_context_entry_ids)
+            except SQLAlchemyError:
+                self._session.rollback()
+                raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE") from None
+            except BaseException:
+                self._session.rollback()
+                raise
+            try:
+                selected_snapshot = build_selected_context_snapshot(
+                    input_row["context_snapshot"], entries
+                )
+            except ValueError:
+                self._session.rollback()
+                raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION") from None
+            if jsonb_text_size(selected_snapshot) > SNAPSHOT_MAX_BYTES:
+                self._session.rollback()
+                raise ParentStoryRunError(
+                    400,
+                    "INVALID_REQUEST",
+                    field_errors=[{"field": "selected_context_entry_ids", "code": "TOO_LONG"}],
+                )
+            context_revision = context_revision + 1
+            new_version += 1
+            new_input_revision = int(input_row["input_revision"]) + 1
+            try:
+                self._session.execute(
+                    insert(story_tables.run_inputs).values(
+                        **_next_input_values_keeping_drawing(
+                            input_row,
+                            run_input_id=str(uuid4()),
+                            input_revision=new_input_revision,
+                            created_at=now,
+                            context_revision=context_revision,
+                            context_snapshot=selected_snapshot,
+                            context_snapshot_sha256=_sha256_json(selected_snapshot),
+                            context_confirmed_by=_principal_scope_ref(principal),
+                            context_confirmed_at=now,
+                        )
+                    )
+                )
+                self._session.execute(
+                    update(story_tables.story_runs)
+                    .where(_live_run(run_id))
+                    .values(
+                        current_input_revision=new_input_revision,
+                        version=new_version,
+                        revision=story_tables.story_runs.c.revision + 1,
+                        updated_at=now,
+                    )
+                )
+            except SQLAlchemyError:
+                # The run lock and the unique (run, input revision) make a collision unreachable,
+                # so a database refusal here is a store failure, never a state conflict.
+                self._session.rollback()
+                raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE") from None
+        elif input_row["context_confirmed_by"] is None:
             new_version += 1
             self._session.execute(
                 update(story_tables.run_inputs)
@@ -2819,7 +2918,7 @@ class SqlParentStoryRunRepository:
         )
         context = input_row["context_snapshot"]
         worker_input = {
-            "schema_version": "sketch2life.story-rewrite-input.v1",
+            "schema_version": "sketch2life.story-rewrite-input.v2",
             "role": "TEACHER" if self._is_teacher else "PARENT",
             "language": "vi",
             "confirmed_subject": str(run["subject_label"] or "").strip(),
@@ -2838,6 +2937,9 @@ class SqlParentStoryRunRepository:
             "lesson_direction": (
                 teacher_lesson_direction(context) if self._is_teacher else None
             ),
+            # T-12a: the {kind, text} entries the adult chose at the context confirmation; [] for
+            # a v1 context, an empty selection and every Teacher run.
+            "context_entries": context_entries_for_worker(context),
         }
         request_hash = _sha256_json(worker_input)
         revision_no = int(latest_story["revision_no"]) + 1

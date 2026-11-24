@@ -77,23 +77,30 @@ def test_the_revision_is_the_only_child_of_its_parent_and_the_review_epoch_follo
     assert constants["depends_on"] is None
     graph = _graph()
     assert {rev for rev, (downs, _) in graph.items() if _PARENT in downs} == {_REVISION}
-    # V4-A T-1b-fix: DDL-B1c (``20261123_rv_0001``) is the one child and ends the branch.
+    # V4-A T-1b-fix: DDL-B1c (``20261123_rv_0001``) is the one child; V4-B T-12b adds DDL-D
+    # (``20261121_bpr_0001``) after that, which ends the branch.
     assert {rev for rev, (downs, _) in graph.items() if _REVISION in downs} == {
         "20261123_rv_0001"
     }
 
 
-def test_one_more_revision_and_the_head_counts_stay_fifteen_and_ten() -> None:
+def test_one_more_revision_and_the_head_counts_are_sixteen_and_eleven() -> None:
     graph = _graph()
-    assert len(graph) == 52
+    # T-12a: 20261121_pce_0001 (Parent root); T-12b: 20261121_bpr_0001; T-12c: psn_0001, psn_0002;
+    # T-12b-fix: 20261123_ppg_0001 (BE1 branch). AIPORT1 20261113_svg_catalog_review stays a
+    # parallel child of 20261123_rv_0001 (one more head than Phase A alone).
+    assert len(graph) == 60
     down_targets = {target for downs, _ in graph.values() for target in downs}
     dependency_targets = down_targets | {target for _, dep in graph.values() for target in dep}
     heads_down_only = {rev for rev in graph if rev not in down_targets}
     heads_with_depends = {rev for rev in graph if rev not in dependency_targets}
-    assert (len(heads_down_only), len(heads_with_depends)) == (15, 10)
+    assert (len(heads_down_only), len(heads_with_depends)) == (16, 11)
     assert _REVISION not in heads_down_only and _PARENT not in heads_down_only
-    assert "20261113_svg_catalog_review" in heads_down_only
+    assert "20261113_svg_catalog_review" in heads_down_only  # AIPORT1 head, parallel to bpr
     assert "20261123_rv_0001" not in heads_down_only
+    assert "20261121_bpr_0001" not in heads_down_only
+    assert "20261123_ppg_0001" in heads_down_only
+    assert "20261121_psn_0002" not in heads_down_only
 
 
 # ----------------------------------------------------------------------------- the table

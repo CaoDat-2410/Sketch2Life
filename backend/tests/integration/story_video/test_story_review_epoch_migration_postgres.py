@@ -29,6 +29,9 @@ from sketch2life.infrastructure.config.settings import get_core_database_setting
 _BACKEND = Path(__file__).resolve().parents[3]
 _PARENT = "20261123_as_0001"
 _HEAD = "20261123_rv_0001"
+# V4-B T-12b: 20261121_bpr_0001 follows this revision; T-12c: 20261121_psn_0002 follows
+# that and is the live head now.
+_LIVE_HEAD = "20261123_ppg_0001"
 _B2 = "20261120_b2_0001"
 _REFUSED = "DDL-B1c downgrade refused"
 _SCOPE = "s" * 64
@@ -188,7 +191,7 @@ def test_the_head_is_the_new_revision_and_the_objects_exist(
 ) -> None:
     _config, engine = roundtrip
     versions = _versions(engine)
-    assert _HEAD in versions and {_PARENT, _B2}.isdisjoint(versions)
+    assert _LIVE_HEAD in versions and {_HEAD, _PARENT, _B2}.isdisjoint(versions)
     assert "review_epoch" in _columns(engine)
     constraints = _constraints(engine)
     assert {"uq_story_revision_review_epoch", "ck_story_revision_review_epoch"} <= constraints
@@ -241,7 +244,7 @@ def test_the_downgrade_refuses_while_a_re_confirmation_exists_and_changes_nothin
         for target in (_PARENT, _B2):  # the T-2e-a target passes through this revision first
             with pytest.raises(DBAPIError, match=_REFUSED):
                 command.downgrade(config, target)
-            assert _HEAD in _versions(engine) and _PARENT not in _versions(engine)
+            assert _LIVE_HEAD in _versions(engine) and _PARENT not in _versions(engine)
             assert "review_epoch" in _columns(engine)
             assert "uq_story_revision_review_epoch" in _constraints(engine)
     finally:
@@ -256,7 +259,8 @@ def test_the_explicit_downgrade_restores_the_old_unique_and_the_upgrade_restores
     try:
         _insert_review(engine, run_id, revision_id, 1)  # epoch 1 only: the guard passes
         command.downgrade(config, _PARENT)  # explicit revision, never -1
-        assert _PARENT in _versions(engine) and _HEAD not in _versions(engine)
+        assert _PARENT in _versions(engine)
+        assert {_HEAD, _LIVE_HEAD}.isdisjoint(_versions(engine))
         assert "review_epoch" not in _columns(engine)
         constraints = _constraints(engine)
         assert "uq_story_revision_review_once" in constraints
@@ -267,7 +271,7 @@ def test_the_explicit_downgrade_restores_the_old_unique_and_the_upgrade_restores
         with pytest.raises(IntegrityError, match="uq_story_revision_review_once"):
             _insert_review(engine, run_id, revision_id, None)
         command.upgrade(config, "heads")
-        assert _HEAD in _versions(engine) and "review_epoch" in _columns(engine)
+        assert _LIVE_HEAD in _versions(engine) and "review_epoch" in _columns(engine)
         assert (
             _scalar(
                 engine,
@@ -288,11 +292,12 @@ def test_the_whole_t2ea_and_t1bfix_stack_goes_down_to_b2_and_up_again(
 
     config, engine = roundtrip
     command.downgrade(config, _B2)
-    assert _B2 in _versions(engine) and {_PARENT, _HEAD}.isdisjoint(_versions(engine))
+    assert _B2 in _versions(engine)
+    assert {_PARENT, _HEAD, _LIVE_HEAD}.isdisjoint(_versions(engine))
     assert "review_epoch" not in _columns(engine)
     assert "uq_story_revision_review_once" in _constraints(engine)
     assert "SELECT_ACTIVITY" not in _receipt_operations(engine)
     command.upgrade(config, "heads")
-    assert _HEAD in _versions(engine) and "review_epoch" in _columns(engine)
+    assert _LIVE_HEAD in _versions(engine) and "review_epoch" in _columns(engine)
     assert "uq_story_revision_review_once" not in _constraints(engine)
     assert "SELECT_ACTIVITY" in _receipt_operations(engine)

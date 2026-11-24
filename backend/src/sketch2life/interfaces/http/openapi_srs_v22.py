@@ -14,6 +14,12 @@ SRS_V22_INCLUDED_OPERATIONS: frozenset[tuple[str, str]] = frozenset(
         ("get", "/v1/parent/profiles/{profile_id}"),
         ("patch", "/v1/parent/profiles/{profile_id}"),
         ("delete", "/v1/parent/profiles/{profile_id}"),
+        # FEAT-066 goal v4 T-12a (SRS l.263-265, l.497-499): the adult-entered context entries.
+        ("get", "/v1/parent/profiles/{profile_id}/context-entries"),
+        ("post", "/v1/parent/profiles/{profile_id}/context-entries"),
+        # FEAT-066 goal v4 T-12c (SRS l.264, l.499, l.1922): the Parent encrypted support needs.
+        ("get", "/v1/parent/profiles/{profile_id}/support-needs"),
+        ("put", "/v1/parent/profiles/{profile_id}/support-needs"),
         ("post", "/v1/story-runs"),
         # FEAT-081 C3b: the Parent run-history list (projected for the mobile client).
         ("get", "/v1/story-runs"),

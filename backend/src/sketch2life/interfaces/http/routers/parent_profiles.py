@@ -18,22 +18,39 @@ from sketch2life.application.ports.parent_roles import (
     ParentRoleReader,
     ParentRoleStoreUnavailable,
 )
+from sketch2life.application.services.parent_profile_context import (
+    ParentProfileContextService,
+)
 from sketch2life.application.services.parent_profiles import ParentProfileService
+from sketch2life.application.services.support_needs import ParentSupportNeedsService
 from sketch2life.contracts.schemas.parent_profiles import (
+    CreateParentContextEntryRequest,
     CreateParentProfileRequest,
+    ParentContextEntryEnvelope,
+    ParentContextEntryListView,
     ParentErrorResponse,
     ParentProfileDeletePendingView,
     ParentProfileListView,
     ParentProfileReference,
     ParentProfileView,
+    ParentRequest,
+    ParentSupportNeedsV1,
+    ParentSupportNeedsWriteV1,
     PatchParentProfileRequest,
+    SupportNeedsPutV1,
     parent_field_errors,
+)
+from sketch2life.domain.parent_profile_context import (
+    ContextEntryDraft,
+    parse_approximate_date,
 )
 from sketch2life.domain.parent_profiles import ParentProfileError, ProfileSnapshot
 from sketch2life.interfaces.http.parent_runtime import (
     get_parent_principal,
+    get_parent_profile_context_service,
     get_parent_profile_service,
     get_parent_role_reader,
+    get_parent_support_needs_service,
     parent_request_id,
 )
 
@@ -49,6 +66,8 @@ PARENT_ERROR_RESPONSES: dict[int | str, dict[str, Any]] = {
 }
 
 router = APIRouter(prefix="/v1/parent/profiles", tags=["Parent Profiles"])
+
+_NO_STORE = "private, no-store"
 
 _IDEMPOTENCY_PARAMETER = {
     "name": "Idempotency-Key",
@@ -120,11 +139,8 @@ def _idempotency_key(request: Request) -> tuple[str | None, list[dict[str, str]]
 
 async def _body_model(
     request: Request,
-    model_type: type[CreateParentProfileRequest] | type[PatchParentProfileRequest],
-) -> tuple[
-    CreateParentProfileRequest | PatchParentProfileRequest | None,
-    list[dict[str, str]],
-]:
+    model_type: type[ParentRequest],
+) -> tuple[ParentRequest | None, list[dict[str, str]]]:
     try:
         payload = await request.json()
     except (json.JSONDecodeError, UnicodeDecodeError):
@@ -401,6 +417,216 @@ def request_parent_profile_deletion(
                 result.body, parent_request_id(request)
             )
         },
+    )
+
+
+# T-12a (SRS l.263-265, l.497-499): the adult-entered context entries of a stable profile. Both
+# routes act on an ACTIVE profile of the caller only; the order is the one of the profile PATCH:
+# UUID, owner lookup (any state), active-Parent role, then key and body.
+@router.get(
+    "/{profile_id}/context-entries",
+    operation_id="listParentProfileContextEntriesV1",
+    response_model=ParentContextEntryListView,
+    responses=PARENT_ERROR_RESPONSES,
+    openapi_extra={
+        "parameters": [
+            {"name": "limit", "in": "query", "required": False, "schema": {"type": "integer"}},
+            {"name": "cursor", "in": "query", "required": False, "schema": {"type": "string"}},
+        ]
+    },
+)
+def list_parent_profile_context_entries(
+    request: Request,
+    profile_id: str = Path(..., json_schema_extra={"format": "uuid"}),
+    principal: VerifiedPrincipal = Depends(get_parent_principal),
+    service: ParentProfileContextService = Depends(get_parent_profile_context_service),
+    role_reader: ParentRoleReader = Depends(get_parent_role_reader),
+) -> JSONResponse:
+    parsed_id = _parse_profile_id(request, profile_id)
+    try:
+        service.assert_profile_owned(principal=principal, profile_id=parsed_id)
+    except ParentProfileError as error:
+        _raise_parent_error(error)
+    _require_active_parent(principal, role_reader)
+    limit, cursor, field_errors = _list_query(request)
+    if field_errors:
+        _raise_invalid(field_errors)
+    assert limit is not None
+    try:
+        page = service.list_context_entries(
+            principal=principal, profile_id=parsed_id, limit=limit, cursor=cursor
+        )
+    except ParentProfileError as error:
+        _raise_parent_error(error)
+    return JSONResponse(
+        status_code=200,
+        content={
+            "context_entries": page.items,
+            "next_cursor": page.next_cursor,
+            "limit": limit,
+        },
+        headers={"Cache-Control": _NO_STORE},
+    )
+
+
+@router.post(
+    "/{profile_id}/context-entries",
+    operation_id="createParentProfileContextEntryV1",
+    status_code=status.HTTP_201_CREATED,
+    response_model=ParentContextEntryEnvelope,
+    responses=PARENT_ERROR_RESPONSES,
+    openapi_extra={
+        "parameters": [_IDEMPOTENCY_PARAMETER],
+        "requestBody": {
+            "required": True,
+            "content": {
+                "application/json": {
+                    "schema": {"$ref": "#/components/schemas/CreateParentContextEntryRequest"}
+                }
+            },
+        },
+    },
+)
+async def create_parent_profile_context_entry(
+    request: Request,
+    profile_id: str = Path(..., json_schema_extra={"format": "uuid"}),
+    principal: VerifiedPrincipal = Depends(get_parent_principal),
+    service: ParentProfileContextService = Depends(get_parent_profile_context_service),
+    role_reader: ParentRoleReader = Depends(get_parent_role_reader),
+) -> JSONResponse:
+    parsed_id = _parse_profile_id(request, profile_id)
+    try:
+        service.assert_profile_owned(principal=principal, profile_id=parsed_id)
+    except ParentProfileError as error:
+        _raise_parent_error(error)
+    _require_active_parent(principal, role_reader)
+    idempotency_key, key_errors = _idempotency_key(request)
+    payload, body_errors = await _body_model(request, CreateParentContextEntryRequest)
+    errors = key_errors + body_errors
+    if errors:
+        _raise_invalid(errors)
+    assert idempotency_key is not None
+    assert isinstance(payload, CreateParentContextEntryRequest)
+    try:
+        result = service.create_context_entry(
+            principal=principal,
+            profile_id=parsed_id,
+            entry=ContextEntryDraft(
+                entry_kind=payload.entry_kind,
+                short_text=payload.short_text,
+                source_kind=payload.source_kind,
+                source_ref=payload.source_ref,
+                approximate_date=(
+                    parse_approximate_date(payload.approximate_date)
+                    if payload.approximate_date is not None
+                    else None
+                ),
+            ),
+            idempotency_key=idempotency_key,
+            request_id=parent_request_id(request),
+        )
+    except ParentProfileError as error:
+        _raise_parent_error(error)
+    return JSONResponse(
+        status_code=result.status_code,
+        content=result.body,
+        headers={
+            "X-Request-ID": _response_request_id(result.body, parent_request_id(request)),
+            "Cache-Control": _NO_STORE,
+        },
+    )
+
+
+# T-12c (SRS l.264 BR-20, l.499 FR-C-07, l.932, l.1922): the encrypted support needs of a profile.
+# Order of both routes: UUID, owner (404), active Parent (404), key source (503), then on the
+# PUT the key and body (400); the repository then refuses a profile in DELETE_PENDING (409),
+# replays, checks the revision (409) and writes in one transaction. Nothing here logs or echoes
+# a value; the no-store header keeps a decrypted answer out of caches.
+@router.get(
+    "/{profile_id}/support-needs",
+    operation_id="parentGetSupportNeedsV1",
+    response_model=ParentSupportNeedsV1,
+    responses=PARENT_ERROR_RESPONSES,
+)
+def get_parent_profile_support_needs(
+    request: Request,
+    profile_id: str = Path(..., json_schema_extra={"format": "uuid"}),
+    principal: VerifiedPrincipal = Depends(get_parent_principal),
+    service: ParentSupportNeedsService = Depends(get_parent_support_needs_service),
+    role_reader: ParentRoleReader = Depends(get_parent_role_reader),
+) -> JSONResponse:
+    parsed_id = _parse_profile_id(request, profile_id)
+    try:
+        service.assert_profile_owned(principal=principal, profile_id=parsed_id)
+    except ParentProfileError as error:
+        _raise_parent_error(error)
+    _require_active_parent(principal, role_reader)
+    try:
+        service.require_available()
+        body = service.get_support_needs(principal=principal, profile_id=parsed_id)
+    except ParentProfileError as error:
+        _raise_parent_error(error)
+    return JSONResponse(
+        status_code=200,
+        content=body,
+        headers={"Cache-Control": _NO_STORE, "X-Request-ID": parent_request_id(request)},
+    )
+
+
+@router.put(
+    "/{profile_id}/support-needs",
+    operation_id="parentPutSupportNeedsV1",
+    response_model=ParentSupportNeedsWriteV1,
+    responses=PARENT_ERROR_RESPONSES,
+    openapi_extra={
+        "parameters": [_IDEMPOTENCY_PARAMETER],
+        "requestBody": {
+            "required": True,
+            "content": {
+                "application/json": {"schema": {"$ref": "#/components/schemas/SupportNeedsPutV1"}}
+            },
+        },
+    },
+)
+async def put_parent_profile_support_needs(
+    request: Request,
+    profile_id: str = Path(..., json_schema_extra={"format": "uuid"}),
+    principal: VerifiedPrincipal = Depends(get_parent_principal),
+    service: ParentSupportNeedsService = Depends(get_parent_support_needs_service),
+    role_reader: ParentRoleReader = Depends(get_parent_role_reader),
+) -> JSONResponse:
+    parsed_id = _parse_profile_id(request, profile_id)
+    try:
+        service.assert_profile_owned(principal=principal, profile_id=parsed_id)
+    except ParentProfileError as error:
+        _raise_parent_error(error)
+    _require_active_parent(principal, role_reader)
+    try:
+        service.require_available()
+    except ParentProfileError as error:
+        _raise_parent_error(error)
+    idempotency_key, key_errors = _idempotency_key(request)
+    payload, body_errors = await _body_model(request, SupportNeedsPutV1)
+    errors = key_errors + body_errors
+    if errors:
+        _raise_invalid(errors)
+    assert idempotency_key is not None
+    assert isinstance(payload, SupportNeedsPutV1)
+    try:
+        body = service.put_support_needs(
+            principal=principal,
+            profile_id=parsed_id,
+            expected_revision=payload.expected_revision,
+            category=payload.category,
+            note=payload.note,
+            idempotency_key=idempotency_key,
+        )
+    except ParentProfileError as error:
+        _raise_parent_error(error)
+    return JSONResponse(
+        status_code=200,
+        content=body,
+        headers={"Cache-Control": _NO_STORE, "X-Request-ID": parent_request_id(request)},
     )
 
 

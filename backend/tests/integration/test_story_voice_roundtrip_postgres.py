@@ -33,7 +33,9 @@ _REVISION = "20261120_b1_0001"
 # (guarded) downgrades, the upgrade restores them.
 # FEAT-066 goal v4 T-2e-a: DDL-B3 follows DDL-B2; V4-A T-1b-fix: DDL-B1c follows DDL-B3 and is the
 # head of the branch now.
-_HEAD = "20261123_rv_0001"
+# V4-B T-12b: 20261121_bpr_0001 follows 20261123_rv_0001; T-12c: 20261121_psn_0002 follows
+# it and is the live head now.
+_HEAD = "20261123_ppg_0001"
 _REFUSED = "DDL-B1 downgrade refused"
 
 

@@ -66,6 +66,7 @@ PARENT_WORKER_KEYS = {
     "rewrite_instruction_version",
     "adult_rewrite_hint",
     "lesson_direction",
+    "context_entries",
 }
 
 

@@ -619,7 +619,8 @@ def test_the_story_starts_when_the_selection_is_the_last_gate(api: ActivityApi) 
     assert story["revision_no"] == 1 and story["understanding_revision"] == 1
     assert run_row(api, run_id)["run_state"] == "SCRIPT_REVIEW"
     worker = api.generator.inputs[0]
-    assert worker["schema_version"] == "sketch2life.story-generation-input.v2"
+    assert worker["schema_version"] == "sketch2life.story-generation-input.v3"
+    assert worker["context_entries"] == []  # T-12a: no selection, no entry
     assert worker["role"] == "PARENT" and worker["lesson_direction"] is None
     assert worker["confirmed_subject"] == SUBJECT and worker["child_age_months"] == 60
     assert worker["adult_confirmed_idea"] == TYPED
@@ -1286,8 +1287,10 @@ def test_the_head_is_the_new_revision_and_the_objects_exist(
 ) -> None:
     _config, engine = roundtrip
     versions = _versions(engine)
-    # V4-A T-1b-fix: DDL-B1c (``20261123_rv_0001``) follows this revision and is the live head.
-    assert "20261123_rv_0001" in versions
+    # V4-A T-1b-fix: DDL-B1c (``20261123_rv_0001``) follows this revision; V4-B T-12b:
+    # ``20261121_bpr_0001`` follows that; V4-B T-12c: ``20261121_psn_0002`` follows it and
+    # is the live head.
+    assert "20261123_ppg_0001" in versions
     assert {"20261123_as_0001", "20261120_b2_0001"}.isdisjoint(versions)
     assert _table_exists(engine) and "SELECT_ACTIVITY" in _receipt_names(engine)
     assert (
@@ -1310,7 +1313,7 @@ def test_the_explicit_downgrade_removes_every_object_and_the_upgrade_restores_th
         assert "20261120_b2_0001" in _versions(engine)
         assert not _table_exists(engine) and "SELECT_ACTIVITY" not in _receipt_names(engine)
         command.upgrade(config, "heads")
-        assert "20261123_rv_0001" in _versions(engine) and _table_exists(engine)
+        assert "20261123_ppg_0001" in _versions(engine) and _table_exists(engine)
         assert "SELECT_ACTIVITY" in _receipt_names(engine)
     finally:
         command.upgrade(config, "heads")
@@ -1325,7 +1328,7 @@ def test_the_downgrade_refuses_while_a_selection_row_or_a_receipt_exists(
         # only the receipt survives (the state after a purge): refused
         with pytest.raises(Exception, match="DDL-B3 downgrade refused"):
             command.downgrade(config, "20261120_b2_0001")
-        assert "20261123_rv_0001" in _versions(engine) and _table_exists(engine)
+        assert "20261123_ppg_0001" in _versions(engine) and _table_exists(engine)
         _insert_selection(engine, run_id, receipt_id)
         with pytest.raises(Exception, match="DDL-B3 downgrade refused"):
             command.downgrade(config, "20261120_b2_0001")

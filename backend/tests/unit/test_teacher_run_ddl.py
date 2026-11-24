@@ -72,7 +72,8 @@ def test_the_revision_is_the_only_child_of_the_story_head() -> None:
     graph = _graph()
     assert {rev for rev, downs in graph.items() if _PARENT in downs} == {"20261120_b2_0001"}
     # FEAT-066 goal v4 T-2e-a: DDL-B3 (``20261123_as_0001``) is the one child; V4-A T-1b-fix:
-    # DDL-B1c (``20261123_rv_0001``) is the one child of that and ends the branch.
+    # DDL-B1c (``20261123_rv_0001``) is the one child of that; V4-B T-12b: DDL-D
+    # (``20261121_bpr_0001``) is the one child of that and ends the branch.
     assert {rev for rev, downs in graph.items() if "20261120_b2_0001" in downs} == {
         "20261123_as_0001"
     }
@@ -80,8 +81,17 @@ def test_the_revision_is_the_only_child_of_the_story_head() -> None:
         "20261123_rv_0001"
     }
     assert {rev for rev, downs in graph.items() if "20261123_rv_0001" in downs} == {
-        "20261113_svg_catalog_review"
+        "20261113_svg_catalog_review",
+        "20261121_bpr_0001",
     }
+    assert {rev for rev, downs in graph.items() if "20261121_bpr_0001" in downs} == {
+        "20261121_psn_0002"
+    }
+    # V4-B T-12b-fix: ``20261123_ppg_0001`` (the lifecycle purge) is the one child and ends it.
+    assert {rev for rev, downs in graph.items() if "20261121_psn_0002" in downs} == {
+        "20261123_ppg_0001"
+    }
+    assert not {rev for rev, downs in graph.items() if "20261123_ppg_0001" in downs}
     assert graph["20261120_b2_0001"] == (_PARENT,)
 
 

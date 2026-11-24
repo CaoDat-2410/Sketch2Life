@@ -35,6 +35,9 @@ ALLOWED_CREATION_PATHS: frozenset[tuple[str, str, str]] = frozenset(
             "create_synthetic_profile",
             "constructor",
         ),
+        # V4-B T-12b: the keyed Teacher edit is the one update path. It sets `age_months` only
+        # together with `age_revision = age_revision + 1` (one UPDATE, see the test below).
+        ("sketch2life/interfaces/http/routers/be1_registry.py", "edit_profile", "attribute"),
     }
 )
 
@@ -499,9 +502,69 @@ def test_allowlist_check_fails_when_an_allowed_creation_path_disappears() -> Non
         check_against_allowlist(set(), allowed)
 
 
-def test_allowlist_names_exactly_the_two_creation_functions() -> None:
+def test_allowlist_names_exactly_the_two_creation_functions_and_the_edit() -> None:
     assert {(path, function) for path, function, _ in ALLOWED_CREATION_PATHS} == {
         ("sketch2life/interfaces/http/routers/be1_registry.py", "create_profile"),
         ("sketch2life/infrastructure/persistence/core_store.py", "create_synthetic_profile"),
+        ("sketch2life/interfaces/http/routers/be1_registry.py", "edit_profile"),
     }
-    assert {kind for _, _, kind in ALLOWED_CREATION_PATHS} == {"constructor"}
+    assert {kind for _, function, kind in ALLOWED_CREATION_PATHS if function != "edit_profile"} == {
+        "constructor"
+    }
+    assert {kind for _, function, kind in ALLOWED_CREATION_PATHS if function == "edit_profile"} == {
+        "attribute"
+    }
+
+
+def test_the_profile_edit_sets_the_age_only_together_with_the_age_revision_increment() -> None:
+    """V4-B T-12b: `edit_profile` assigns `age_months` and `age_revision + 1` in one branch.
+
+    The ORM flush turns the two attribute assignments of that branch into one UPDATE, so the
+    age and its revision always move in the same statement. The scan pins the source shape: the
+    only `age_months` assignment of the function sits in a block that also assigns
+    `age_revision = age_revision + 1`, and nothing else in the function writes either column.
+    """
+    source_path = (
+        Path(__file__).parents[2]
+        / "src"
+        / "sketch2life"
+        / "interfaces"
+        / "http"
+        / "routers"
+        / "be1_registry.py"
+    )
+    tree = ast.parse(source_path.read_text(encoding="utf-8"))
+    function = next(
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.FunctionDef) and node.name == "edit_profile"
+    )
+    blocks: list[ast.If] = []
+    for node in ast.walk(function):
+        if isinstance(node, ast.If) and any(
+            isinstance(child, ast.Assign)
+            and any(
+                isinstance(target, ast.Attribute) and target.attr == "age_months"
+                for target in child.targets
+            )
+            for child in node.body
+        ):
+            blocks.append(node)
+    assert len(blocks) == 1
+    assigned = {
+        target.attr: child.value
+        for child in blocks[0].body
+        if isinstance(child, ast.Assign)
+        for target in child.targets
+        if isinstance(target, ast.Attribute)
+    }
+    assert set(assigned) == {"age_months", "age_revision"}
+    assert _is_revision_increment(assigned["age_revision"])
+    writes = [
+        target.attr
+        for node in ast.walk(function)
+        if isinstance(node, ast.Assign)
+        for target in node.targets
+        if isinstance(target, ast.Attribute) and target.attr in AGE_PROVENANCE_COLUMNS
+    ]
+    assert sorted(writes) == ["age_months", "age_revision"]

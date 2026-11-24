@@ -14,8 +14,8 @@ triggered by ``context-confirmation`` and ``subject-confirmation``.
 The start is modelled on ``reserve_story_rewrite``: story revision 1 ``GENERATING``, run
 ``SCRIPT_GENERATING`` with ``job_state QUEUED``, no receipt of its own (the command's receipt is the
 only one), so the existing runner, the reaper and the completion path apply unchanged. The worker
-input is ``sketch2life.story-generation-input.v2``: the rewrite input without the rewrite fields and
-with the selected main activity.
+input is ``sketch2life.story-generation-input.v3``: the rewrite input without the rewrite fields and
+with the selected main activity and the ``context_entries`` the adult chose (T-12a, BR-21).
 """
 
 from __future__ import annotations
@@ -35,10 +35,11 @@ from sketch2life.application.ports.parent_story_runs import (
     ParentStoryRevisionReservation,
     ParentStoryRunError,
 )
+from sketch2life.domain.parent_profile_context import context_entries_for_worker
 from sketch2life.domain.story_teacher import teacher_lesson_direction, teacher_pin_ready
 from sketch2life.infrastructure.story_run_lite import tables as story_tables
 
-FIRST_STORY_INPUT_SCHEMA = "sketch2life.story-generation-input.v2"
+FIRST_STORY_INPUT_SCHEMA = "sketch2life.story-generation-input.v3"
 # The first story reuses the rewrite identifiers until the generator reports its own (DEV-2); a unit
 # test pins them equal to ``story_inputs.story_generation`` (importing it here would be circular).
 FIRST_STORY_MODEL_ID = "story-generator-port"
@@ -189,6 +190,8 @@ class FirstStoryStarter:
             "adult_confirmed_idea": idea_text,
             "activity": worker_activity(selection) if selection is not None else None,
             "lesson_direction": teacher_lesson_direction(context) if self._teacher else None,
+            # T-12a: the {kind, text} entries chosen at the context confirmation (BR-21).
+            "context_entries": context_entries_for_worker(context),
         }
         request_hash = self._sha256_json(worker_input)
         story_revision_id = str(uuid4())
