@@ -218,7 +218,6 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
         "/api/parent/v1/ai/story-runs/{run_id}/story-revisions",
         "/api/teacher/v1/organizations/{organization_id}/ai/lesson-plan-suggestions",
         "/api/teacher/v1/organizations/{organization_id}/ai/sketch-decks",
-        "/api/teacher/v1/organizations/{organization_id}/ai/lesson-visuals",
     } | {path for _method, path in PARENT_EXPO_INCLUDED_OPERATIONS} | {
         "/api/svg-catalog/v1/parent/guides",
         "/api/svg-catalog/v1/organizations/{organization_id}/assets",

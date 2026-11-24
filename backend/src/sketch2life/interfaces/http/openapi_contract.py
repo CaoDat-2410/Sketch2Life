@@ -11231,7 +11231,8 @@ MOUNTED_OPERATIONS[('post', '/v1/story-runs/{run_id}/subject-confirmation')] = {
                'asks for a new visual understanding of the same drawing (SRS l.394, l.1666).',
     'request_inputs': 'path `run_id*`: uuid; header `Idempotency-Key*`: string; '
                       'application/json (required): ParentSubjectConfirmationRequestV1 '
-                      '{expected_understanding_revision*:integer, confirmed_subject*:string}',
+                      '{expected_understanding_revision*:integer, confirmed_subject*:string, '
+                      'subject_roles:array<{entity_id*:string, label*:string, role*:string}>}',
     'surface': 'Parent / StoryRun integration proposal',
     'tag': 'Parent StoryRuns',
     'handler': 'parent_story_runs.py::confirm_parent_story_subject',
@@ -12892,6 +12893,59 @@ MOUNTED_OPERATIONS[("post", "/v1/notifications/read-all")] = {
     "tag": _NOTIFICATION_TAG,
     "authentication": "HTTPBearer (bearer)",
     "verification": _NOTIFICATION_VERIFICATION,
+}
+
+MOUNTED_OPERATIONS[("get", "/api/parent/v1/topics/suggestions")] = {
+    "purpose": "Return three distinct catalog topics from the authenticated Parent's rotation.",
+    "request_inputs": "query `draft_id*`: uuid; query `request_id*`: uuid (idempotent replay key); "
+    "query `exclude_set_ids`: list[string] (max 16)",
+    "handler": "parent_topic_suggestions.py::get_topic_suggestions",
+    "responses": (
+        {"status": "200", "description": "Three topic cards", "media_type": "application/json", "schema_name": "ParentTopicSuggestionSetV1"},
+        {"status": "401", "description": "Authentication is required", "media_type": "application/json", "schema_name": "HTTPValidationError"},
+        {"status": "403", "description": "The authenticated account is not an active Parent", "media_type": "application/json", "schema_name": "ParentStoryErrorEnvelopeV1"},
+        {"status": "409", "description": "The request ID conflicts with a previous request", "media_type": "application/json", "schema_name": "ParentStoryErrorEnvelopeV1"},
+        {"status": "422", "description": "The request does not match the API contract", "media_type": "application/json", "schema_name": "HTTPValidationError"},
+    ),
+    "surface": "Parent / topic and activity selection",
+    "tag": "Parent StoryRuns",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": "FEAT-083 source contract; account-scoped topic rotation; runtime/migration not verified",
+}
+MOUNTED_OPERATIONS[("get", "/api/parent/v1/topics/{topic_id}/drawing-subject-suggestions")] = {
+    "purpose": "Return three rotating catalog subjects for a recognized topic, or CUSTOM_INPUT_REQUIRED with zero cards for an uncatalogued topic.",
+    "request_inputs": "path `topic_id*`: string; query `draft_id*`: uuid; query `request_id*`: uuid (idempotent replay key); "
+    "query `topic*`: string; query `exclude_set_ids`: list[string] (max 16); query `exclude_subjects`: list[string] (max 24)",
+    "handler": "parent_topic_suggestions.py::get_drawing_subject_suggestions",
+    "responses": (
+        {"status": "200", "description": "Three catalog subject cards or CUSTOM_INPUT_REQUIRED with an empty card list", "media_type": "application/json", "schema_name": "ParentDrawingSubjectSuggestionSetV1"},
+        {"status": "401", "description": "Authentication is required", "media_type": "application/json", "schema_name": "HTTPValidationError"},
+        {"status": "403", "description": "The authenticated account is not an active Parent", "media_type": "application/json", "schema_name": "ParentStoryErrorEnvelopeV1"},
+        {"status": "409", "description": "The request ID conflicts with a previous request", "media_type": "application/json", "schema_name": "ParentStoryErrorEnvelopeV1"},
+        {"status": "422", "description": "The request does not match the API contract", "media_type": "application/json", "schema_name": "HTTPValidationError"},
+    ),
+    "surface": "Parent / topic and activity selection",
+    "tag": "Parent StoryRuns",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": "FEAT-083 source contract; recognized topics rotate catalog IDs; unknown topics require adult-entered subjects; runtime/migration not verified",
+}
+MOUNTED_OPERATIONS[("post", "/api/parent/v1/topics/custom-subject-validation")] = {
+    "purpose": "Check whether an adult-entered drawing subject fits the selected topic; uses deterministic catalog validation first and Qwen3.8 only for unresolved custom text.",
+    "request_inputs": "application/json (required): ParentCustomSubjectValidationRequestV1 {topic_id*:string, topic*:string, subject*:string}",
+    "handler": "parent_topic_suggestions.py::validate_custom_subject",
+    "responses": (
+        {"status": "200", "description": "Topic relevance decision", "media_type": "application/json", "schema_name": "ParentCustomSubjectValidationV1"},
+        {"status": "401", "description": "Authentication is required", "media_type": "application/json", "schema_name": "HTTPValidationError"},
+        {"status": "403", "description": "The authenticated account is not an active Parent", "media_type": "application/json", "schema_name": "ParentStoryErrorEnvelopeV1"},
+        {"status": "422", "description": "The request does not match the API contract or includes disallowed personal text", "media_type": "application/json", "schema_name": "HTTPValidationError"},
+        {"status": "502", "description": "The worker failed or returned an invalid response", "media_type": "application/json", "schema_name": "ParentStoryErrorEnvelopeV1"},
+        {"status": "503", "description": "Qwen3.8 validation is disabled or unavailable", "media_type": "application/json", "schema_name": "ParentStoryErrorEnvelopeV1"},
+        {"status": "504", "description": "The worker outcome is unknown; do not repeat blindly", "media_type": "application/json", "schema_name": "ParentStoryErrorEnvelopeV1"},
+    ),
+    "surface": "Parent / topic and activity selection",
+    "tag": "Parent StoryRuns",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": "FEAT-083 source contract; catalog checks are deterministic; custom validation sends topic and subject only, never child context; runtime not verified",
 }
 
 IDEMPOTENCY_MISMATCH_OPERATION_KEYS: Final[tuple[tuple[str, str], ...]] = (

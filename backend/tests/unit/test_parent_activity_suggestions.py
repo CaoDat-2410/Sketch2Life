@@ -10,6 +10,9 @@ from sketch2life.application.services.parent_activity_suggestions import (
     ParentActivitySuggestionError,
     ParentActivitySuggestionService,
     _contains_unsafe_action,
+    _has_child_agency,
+    _has_explicit_exploration,
+    _has_explicit_outdoor_setting,
     _has_incomplete_vietnamese_sentence_tail,
     classify_parent_activity_worker_failure,
 )
@@ -119,7 +122,7 @@ def test_catalog_context_excerpt_stops_at_word_boundary_without_mutating_lesson(
     source_activity = _activity("Quan sát bướm trong vườn")
     source_activity["instructions_text"] = (
         "Trẻ cùng người lớn quan sát bướm trong khu vườn "
-        + "và mô tả điều trẻ nhìn thấy " * 40
+        + "và mô tả điều trẻ nhìn thấy " * 80
     )
     lesson = _lesson(activity=source_activity)
 
@@ -128,7 +131,7 @@ def test_catalog_context_excerpt_stops_at_word_boundary_without_mutating_lesson(
     context_activity = prepared.worker_input["candidate_activities"][0]["activity"]
     bounded_instructions = context_activity["instructions_text"]
     normalized_source = " ".join(source_activity["instructions_text"].split())
-    assert len(bounded_instructions) <= 700
+    assert len(bounded_instructions) <= 1400
     assert bounded_instructions.endswith("…")
     assert normalized_source.startswith(bounded_instructions[:-1])
     assert normalized_source[len(bounded_instructions) - 1].isspace()
@@ -466,6 +469,97 @@ def test_fire_safety_gate_distinguishes_lua_fabric_from_fire():
     assert not _contains_unsafe_action("Trẻ dùng khăn lụa làm cánh bướm ngoài trời.")
     assert _contains_unsafe_action("Trẻ đốt lửa trong khu vườn.")
     assert not _contains_unsafe_action("Người lớn nhắc trẻ tránh lửa.")
+
+
+@pytest.mark.parametrize(
+    "instruction",
+    [
+        "Trẻ tự chọn một thẻ màu để so sánh.",
+        "Bé chủ động quan sát hình mai rùa.",
+        "Các em tự thử nghiệm cách xếp hình.",
+        "Con có thể chọn màu mình muốn vẽ.",
+    ],
+)
+def test_child_agency_gate_accepts_natural_vietnamese_wording(instruction):
+    assert _has_child_agency(instruction)
+
+
+@pytest.mark.parametrize(
+    "instruction",
+    [
+        "Bé nhìn kỹ những vệt màu trên mai rùa.",
+        "Các em theo dõi bóng chiếc lá trên sân.",
+        "Con lắng nghe tiếng chim trong vườn.",
+        "Trẻ nhận ra chiếc lá có hai mặt màu khác nhau.",
+        "Bé phát hiện vệt nước đã đổi hình dạng.",
+        "Các em đếm những chiếc lá rụng ở sân trường.",
+        "Trẻ ghi lại điều mình tìm thấy bằng hình vẽ.",
+        "Con đặt câu hỏi về dấu vết trên mai rùa.",
+    ],
+)
+def test_child_agency_gate_accepts_explicit_child_inquiry_actions(instruction):
+    assert _has_child_agency(instruction)
+
+
+def test_child_agency_gate_does_not_accept_a_negated_choice():
+    assert not _has_child_agency("Trẻ không được tự chọn thẻ màu.")
+
+
+@pytest.mark.parametrize(
+    "instruction",
+    [
+        "Trẻ không theo dõi bóng chiếc lá.",
+        "Bé không được đếm những cánh hoa.",
+        "Các em không nên chạm vào dấu vết đó.",
+    ],
+)
+def test_child_agency_gate_rejects_negated_inquiry_actions(instruction):
+    assert not _has_child_agency(instruction)
+
+
+@pytest.mark.parametrize(
+    "instruction",
+    [
+        "Bé nhìn kỹ đường đi của chú rùa.",
+        "Các em theo dõi bóng chiếc lá rồi kể điều mình nhận ra.",
+        "Trẻ đếm và ghi lại số cánh hoa đã rụng.",
+        "Con thử xem vỏ cây có những dấu hiệu nào.",
+        "Bé mô tả điều vừa phát hiện trong góc vườn.",
+        "Trẻ đặt câu hỏi về âm thanh nghe thấy ngoài sân.",
+    ],
+)
+def test_exploration_gate_accepts_concrete_child_inquiry_wording(instruction):
+    assert _has_explicit_exploration(instruction)
+
+
+def test_exploration_gate_does_not_accept_choosing_or_drawing_alone():
+    assert not _has_explicit_exploration("Trẻ tự chọn màu và vẽ một bông hoa.")
+
+
+@pytest.mark.parametrize(
+    "instruction",
+    [
+        "Ở ngoài sân, trẻ quan sát bóng của mai rùa.",
+        "Tại sân chơi, bé tự chọn một thẻ hình.",
+        "Trong góc vườn, các em so sánh màu sắc.",
+        "Ngoài hiên nhà, con thử xếp các thẻ.",
+        "Trên ban công an toàn, trẻ quan sát cây.",
+        "Ở sân sau, bé theo dõi bóng chiếc lá.",
+        "Trong vườn trường, các em đếm những chiếc lá rụng.",
+        "Ở sân trước nhà, trẻ tìm dấu hiệu của chú rùa.",
+        "Bé mô tả bồn cây ngoài sân.",
+    ],
+)
+def test_outdoor_setting_gate_accepts_common_vietnamese_places(instruction):
+    assert _has_explicit_outdoor_setting(instruction)
+
+
+@pytest.mark.parametrize(
+    "instruction",
+    ["Ở nơi thoáng, trẻ quan sát cây.", "Tại khu vực an toàn, bé tìm dấu vết."],
+)
+def test_outdoor_setting_gate_rejects_vague_locations(instruction):
+    assert not _has_explicit_outdoor_setting(instruction)
 
 
 def test_fallback_accepts_safe_lua_fabric_in_materials():

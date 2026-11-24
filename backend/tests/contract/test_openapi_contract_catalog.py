@@ -178,7 +178,6 @@ PR22_UNCATALOGUED_OPERATIONS = {
         "/api/teacher/v1/organizations/{organization_id}/ai/lesson-plan-suggestions",
     ),
     ("post", "/api/teacher/v1/organizations/{organization_id}/ai/sketch-decks"),
-    ("post", "/api/teacher/v1/organizations/{organization_id}/ai/lesson-visuals"),
 }
 CONTRACT_PARAMETER = re.compile(r"\b(path|query|header|cookie)\s+`([^`]+)`:\s*([^;]+)")
 CONTRACT_REQUEST_BODY = re.compile(

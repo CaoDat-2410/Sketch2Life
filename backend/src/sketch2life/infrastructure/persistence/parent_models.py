@@ -155,3 +155,74 @@ class ParentCommandReceiptModel(ParentPersistenceBase):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
+
+
+class ParentTopicRotationStateModel(ParentPersistenceBase):
+    """The ordered, privacy-minimal card cycle for one Parent account and scope."""
+
+    __tablename__ = "topic_rotation_states"
+    __table_args__ = (
+        UniqueConstraint(
+            "account_id",
+            "catalog_revision",
+            "rotation_kind",
+            "scope_id",
+            name="uq_parent_topic_rotation_state_scope",
+        ),
+        CheckConstraint("rotation_kind IN ('TOPIC', 'SUBJECT')", name="ck_parent_topic_rotation_kind"),
+        CheckConstraint("cycle_number >= 1", name="ck_parent_topic_rotation_cycle"),
+        CheckConstraint("cursor_position >= 0", name="ck_parent_topic_rotation_cursor"),
+        CheckConstraint(
+            "jsonb_typeof(ordered_ids) = 'array' AND octet_length(ordered_ids::text) <= 8192",
+            name="ck_parent_topic_rotation_ordered_ids",
+        ),
+        Index(
+            "ix_parent_topic_rotation_account_updated",
+            "account_id",
+            "updated_at",
+        ),
+        {"schema": "parent"},
+    )
+
+    rotation_state_id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True)
+    account_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    catalog_revision: Mapped[str] = mapped_column(String(80), nullable=False)
+    rotation_kind: Mapped[str] = mapped_column(String(12), nullable=False)
+    scope_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    ordered_ids: Mapped[list[str]] = mapped_column(JSONB, nullable=False)
+    cycle_number: Mapped[int] = mapped_column(BigInteger, nullable=False, server_default=text("1"))
+    cursor_position: Mapped[int] = mapped_column(BigInteger, nullable=False, server_default=text("0"))
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+class ParentTopicRotationReceiptModel(ParentPersistenceBase):
+    """Idempotent response receipt; contains catalog IDs, never user-entered text."""
+
+    __tablename__ = "topic_rotation_receipts"
+    __table_args__ = (
+        UniqueConstraint("account_id", "request_id", name="uq_parent_topic_rotation_receipt_request"),
+        CheckConstraint("octet_length(request_fingerprint) = 32", name="ck_parent_topic_rotation_fingerprint"),
+        CheckConstraint(
+            "jsonb_typeof(selected_ids) = 'array' AND octet_length(selected_ids::text) <= 2048",
+            name="ck_parent_topic_rotation_selected_ids",
+        ),
+        Index("ix_parent_topic_rotation_receipt_created", "created_at"),
+        {"schema": "parent"},
+    )
+
+    rotation_receipt_id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True)
+    account_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    request_id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), nullable=False)
+    draft_id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), nullable=False)
+    catalog_revision: Mapped[str] = mapped_column(String(80), nullable=False)
+    rotation_kind: Mapped[str] = mapped_column(String(12), nullable=False)
+    scope_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    request_fingerprint: Mapped[bytes] = mapped_column(BYTEA, nullable=False)
+    cycle_number: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    set_id: Mapped[str] = mapped_column(String(32), nullable=False)
+    selected_ids: Mapped[list[str]] = mapped_column(JSONB, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )

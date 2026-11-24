@@ -66,22 +66,30 @@ _UNSAFE_FIRE_ACTION = re.compile(
 )
 _NEGATION = re.compile(r"\b(?:khong|tranh|khong duoc|khong nen)\b")
 _OUTDOOR_MARKERS = (
-    "ngoai troi", "san truong", "san nha", "vuon", "cong vien", "bai co",
-    "thien nhien", "khuon vien", "hien nha",
+    "ngoai troi", "ngoai san", "ngoai hien", "san truong", "san nha",
+    "san choi", "san vuon", "khoang san", "goc san", "vuon nha", "goc vuon",
+    "vuon", "cong vien", "bai co", "thien nhien", "khuon vien", "hien nha",
+    "ban cong", "san sau", "sau nha", "san truoc nha", "san truoc",
+    "vuon truong", "goc vuon truong", "san co", "bon cay ngoai san",
 )
-_CHILD_AGENCY_MARKERS = (
-    "tre tu chon", "tre co the chon", "tre duoc chon", "tre tu quan sat",
-    "tre quan sat", "tre thu nghiem", "tre tu quyet dinh", "con tu chon",
-    "con co the chon", "theo lua chon cua tre", "khuyen khich tre",
-    "tre chu dong chon", "tre chu dong quan sat", "tre chu dong thu nghiem",
-    "tre co the tu chon", "tre tu kham pha", "con tu quan sat", "con tu kham pha",
-    "tre tu di dao", "tre tu ve", "tre tu sap xep", "tre tu mo ta",
+_CHILD_AGENCY_PATTERN = re.compile(
+    r"\b(?P<actor>tre|be|con|cac em)\b.{0,48}?"
+    r"\b(?P<action>tu chon|co the tu chon|co the chon|lua chon|chon|"
+    r"tu quan sat|quan sat|tu thu nghiem|thu nghiem|thu|"
+    r"tu kham pha|kham pha|so sanh|phan loai|sap xep|"
+    r"tu quyet dinh|quyet dinh|tu ve|ve|mo ta|ke lai|ke|tim|"
+    r"nhin ky|chu y|theo doi|lang nghe|nhan ra|phat hien|"
+    r"tim thay|tim xem|tim dau hieu|dem|do thu|ghi lai|dat cau hoi|thu xem)\b",
 )
+_CHILD_AGENCY_NEGATION = re.compile(r"\b(?:khong|khong duoc|khong nen|cam)\b")
 _ADULT_SUPPORT_MARKERS = (
     "nguoi lon", "phu huynh", "nguoi huong dan", "co the ho tro", "nguoi cham soc",
 )
 _MONTESSORI_EXPLORATION_MARKERS = (
     "quan sat", "thu nghiem", "kham pha", "so sanh", "phan loai", "tim hieu",
+    "nhin ky", "chu y", "theo doi", "lang nghe", "nhan ra", "phat hien",
+    "tim thay", "tim xem", "tim dau hieu", "dem", "do thu", "ghi lai",
+    "mo ta", "ke lai", "dat cau hoi", "thu xem",
 )
 _SAFETY_MARKERS = ("khong", "tranh", "an toan", "giam sat", "dam bao")
 _SENTENCE_ENDINGS = (".", "!", "?", "…", "。", "！", "？")
@@ -145,6 +153,13 @@ def _fold(value: str) -> str:
     normalized = unicodedata.normalize("NFD", value.casefold())
     folded = "".join(char for char in normalized if unicodedata.category(char) != "Mn")
     return folded.replace("đ", "d")
+
+
+def _has_explicit_exploration(value: str) -> bool:
+    """Recognize concrete inquiry actions while excluding choosing/drawing alone."""
+
+    normalized = _fold(value)
+    return any(marker in normalized for marker in _MONTESSORI_EXPLORATION_MARKERS)
 
 
 def _tokens(value: str) -> set[str]:
@@ -253,6 +268,22 @@ def _contains_unsafe_action(value: str) -> bool:
     return False
 
 
+def _has_child_agency(value: str) -> bool:
+    """Accept natural Vietnamese child-led phrasing without requiring fixed wording."""
+
+    for sentence in re.split(r"[.!?;]+", _fold(value)):
+        for match in _CHILD_AGENCY_PATTERN.finditer(sentence):
+            actor_to_action = sentence[match.start("actor") : match.start("action")]
+            if not _CHILD_AGENCY_NEGATION.search(actor_to_action):
+                return True
+    return False
+
+
+def _has_explicit_outdoor_setting(value: str) -> bool:
+    folded = _fold(value)
+    return any(marker in folded for marker in _OUTDOOR_MARKERS)
+
+
 def _is_renderable_activity(activity: Mapping[str, Any]) -> dict[str, Any] | None:
     try:
         from sketch2life.contracts.schemas.modal_ai import ParentActivitySuggestionItemV1
@@ -290,7 +321,7 @@ _WORKER_ACTIVITY_FIELD_LIMITS = {
         "objective": 400,
         "materials_text": 300,
         "preparation_text": 300,
-        "instructions_text": 700,
+        "instructions_text": 1400,
         "observation_notes": 300,
         "safety_notes": 300,
 }
@@ -718,7 +749,7 @@ class ParentActivitySuggestionService:
         if len(activities) != 3:
             reject("FALLBACK_COUNT_INVALID")
         normalized_titles: set[str] = set()
-        combined_texts: list[str] = []
+        distinct_content_texts: list[str] = []
         candidate_texts = [
             _fold(" ".join(candidate.activity.values()))
             for candidate in candidates
@@ -740,6 +771,17 @@ class ParentActivitySuggestionService:
                 )
             )
             folded = _fold(text)
+            distinct_content = _fold(
+                " ".join(
+                    (
+                        activity.title,
+                        activity.objective,
+                        activity.materials_text,
+                        activity.preparation_text,
+                        activity.instructions_text,
+                    )
+                )
+            )
             instructions = _fold(
                 " ".join((activity.instructions_text, activity.preparation_text))
             )
@@ -777,13 +819,11 @@ class ParentActivitySuggestionService:
                 reject("ACTIVITY_INSTRUCTIONS_TOO_SHORT")
             if len(activity.safety_notes.strip()) < 12:
                 reject("SAFETY_NOTE_TOO_SHORT")
-            if not any(marker in instructions for marker in _OUTDOOR_MARKERS):
+            if not _has_explicit_outdoor_setting(instructions):
                 reject("OUTDOOR_SETTING_NOT_EXPLICIT")
-            if not any(marker in instructions for marker in _CHILD_AGENCY_MARKERS):
+            if not _has_child_agency(instructions):
                 reject("CHILD_AGENCY_NOT_EXPLICIT")
-            if not any(
-                marker in instructions for marker in _MONTESSORI_EXPLORATION_MARKERS
-            ):
+            if not _has_explicit_exploration(instructions):
                 reject("EXPLORATION_NOT_EXPLICIT")
             if not any(marker in adult_role for marker in _ADULT_SUPPORT_MARKERS):
                 reject("ADULT_SUPPORT_NOT_EXPLICIT")
@@ -800,8 +840,8 @@ class ParentActivitySuggestionService:
             if _contains_non_latin_letter(text):
                 reject("NON_VIETNAMESE_SCRIPT")
             if any(
-                SequenceMatcher(None, folded, prior).ratio() >= 0.78
-                for prior in combined_texts
+                SequenceMatcher(None, distinct_content, prior).ratio() >= 0.88
+                for prior in distinct_content_texts
             ):
                 reject("ACTIVITIES_TOO_SIMILAR")
             if any(
@@ -810,7 +850,7 @@ class ParentActivitySuggestionService:
             ):
                 reject("DUPLICATES_CATALOG_ACTIVITY")
             normalized_titles.add(title_key)
-            combined_texts.append(folded)
+            distinct_content_texts.append(distinct_content)
 
 
 __all__ = [
