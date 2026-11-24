@@ -198,9 +198,6 @@ export function VideoCandidateScreen(props: Props): React.JSX.Element {
               ) : (
                 <PrimaryButton variant="creative" label={props.busy ? 'Đang tải video…' : 'Mở video'} disabled={!candidate.preview_available || props.busy} busy={props.busy} onPress={props.onPreview} />
               )}
-              <Text style={styles.compactMeta}>
-                {Math.round(candidate.metadata.duration_seconds)} giây · {candidate.metadata.scene_count} cảnh · Không có âm thanh
-              </Text>
             </>
           ) : null}
           {candidate.state === 'AWAITING_RECONCILIATION' ? (
@@ -370,6 +367,5 @@ const styles = StyleSheet.create({
   timelineFill: { height: '100%', borderRadius: 3, backgroundColor: palette.creativePrimary },
   timeLabels: { flexDirection: 'row', justifyContent: 'space-between' },
   timeText: { color: palette.creativeMuted, fontSize: 11, lineHeight: 16, fontVariant: ['tabular-nums'] },
-  compactMeta: { alignSelf: 'center', color: palette.creativeMuted, fontSize: 12, lineHeight: 17 },
   code: { color: palette.creativeMuted, fontSize: 11, lineHeight: 16 },
 });

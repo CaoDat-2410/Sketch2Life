@@ -13,6 +13,7 @@ import type {
   ParentProfileViewV1,
   ParentStoryRunV1,
   ParentActivityListV1,
+  ParentTopicCardV1,
   ParentUser,
   StoryDraft,
 } from '../domain/types';
@@ -42,6 +43,13 @@ import { StoryScreen } from './screens/StoryScreen';
 import { TopicScreen } from './screens/TopicScreen';
 import { TranscriptReviewScreen } from './screens/TranscriptReviewScreen';
 import { UnderstandingScreen } from './screens/UnderstandingScreen';
+import {
+  initialSubjectRoles,
+  mainSubjectLabel,
+  promoteToMain,
+  setRoleLabel,
+  toggleSecondaryUse,
+} from '../domain/subjectRoles';
 
 const previewTabs = [
   { id: 'auth', label: 'Đăng nhập' },
@@ -109,6 +117,12 @@ const previewActivityList: ParentActivityListV1 = {
   }],
   basis: { age_band: '36-71', pinned_lesson: true, no_candidate: false },
 };
+
+const previewTopicCards: ParentTopicCardV1[] = [
+  { topic_id: 'animals', title_vi: 'Động vật', description_vi: 'Những con vật quanh bé' },
+  { topic_id: 'nature', title_vi: 'Thiên nhiên', description_vi: 'Cây cối và khu vườn' },
+  { topic_id: 'transport', title_vi: 'Phương tiện', description_vi: 'Xe cộ quanh bé' },
+];
 
 const previewLessonSummary: LessonSummary = {
   contract: 'ParentLessonSummaryV1',
@@ -203,6 +217,12 @@ const previewCandidate: ParentDrawingCandidateV1 = {
   confidence: 0.86,
   adult_confirmation_required: true,
   decision: 'REVIEW_REQUIRED',
+  entities: [
+    { entity_id: 'main', label: 'Mô phỏng · một con bướm', suggested_role: 'main' },
+    { entity_id: 'sec-1', label: 'Mô phỏng · bông hoa', suggested_role: 'secondary' },
+    { entity_id: 'sec-2', label: 'Mô phỏng · chiếc lá', suggested_role: 'secondary' },
+  ],
+  subject_roles: null,
 };
 
 const previewContextRun: ParentStoryRunV1 = {
@@ -393,6 +413,30 @@ function available(capability: ParentCapabilityState['capability']): ParentCapab
   return { capability, state: 'available' };
 }
 
+/** Stateful preview of the subject review so the role controls can be exercised without a backend. */
+function UnderstandingPreview(): React.JSX.Element {
+  const [subject, setSubject] = useState('Mô phỏng · một con bướm');
+  const [roles, setRoles] = useState(() => initialSubjectRoles(previewCandidate));
+  return <UnderstandingScreen
+    candidate={previewCandidate}
+    stepLabel="5 / 8"
+    subject={subject}
+    busy={false}
+    error=""
+    onSubject={setSubject}
+    subjectRoles={roles}
+    onRenameSecondary={(id, label) => setRoles((current) => setRoleLabel(current, id, label))}
+    onToggleSecondary={(id) => setRoles((current) => toggleSecondaryUse(current, id))}
+    onMakeMain={(id) => {
+      const next = promoteToMain(roles, id, subject.trim() || mainSubjectLabel(roles));
+      setRoles(next);
+      setSubject(mainSubjectLabel(next));
+    }}
+    onConfirm={ignoreAction}
+    onBack={ignoreAction}
+  />;
+}
+
 export function ParentVisualPreviewHarness(): React.JSX.Element {
   const [activePreview, setActivePreview] = useState<PreviewId>('auth');
   const previewScreens: Record<PreviewId, React.JSX.Element> = {
@@ -510,9 +554,17 @@ export function ParentVisualPreviewHarness(): React.JSX.Element {
     />,
     topic: <TopicScreen
       topic="Khu vườn và thiên nhiên"
+      selectedTopicId="nature"
+      cards={previewTopicCards}
+      loading={false}
+      error=""
+      canContinue
       stepLabel="1 / 8"
+      onSelect={ignoreAction}
       onTopic={ignoreAction}
+      onRefresh={ignoreAction}
       onContinue={ignoreAction}
+      onSkip={ignoreAction}
       onBack={ignoreAction}
     />,
     idea: <IdeaScreen
@@ -540,7 +592,7 @@ export function ParentVisualPreviewHarness(): React.JSX.Element {
     'capture-denied': <CapturePreviewScreen state="camera-denied" />,
     'capture-selected': <CapturePreviewScreen state="photo-selected" />,
     transcript: <TranscriptReviewScreen stepLabel="5 / 8" transcript={previewTranscript} waiting={false} text="" edited={false} busy={false} error="" onText={ignoreAction} onConfirm={ignoreAction} onRefresh={ignoreAction} onBack={ignoreAction} />,
-    understanding: <UnderstandingScreen candidate={previewCandidate} stepLabel="5 / 8" subject="Mô phỏng · một con bướm" busy={false} error="" onSubject={ignoreAction} onConfirm={ignoreAction} onBack={ignoreAction} />,
+    understanding: <UnderstandingPreview />,
     'context-before': <ContextScreen profile={previewProfile} contextRun={null} stepLabel="6 / 8" busy={false} confirmed={false} error="" onRetryCreate={ignoreAction} onConfirm={ignoreAction} onContinue={ignoreAction} onBack={ignoreAction} />,
     'context-after': <ContextScreen profile={previewProfile} contextRun={previewContextRun} stepLabel="6 / 8" busy={false} confirmed={false} error="" onRetryCreate={ignoreAction} onConfirm={ignoreAction} onContinue={ignoreAction} onBack={ignoreAction} />,
     activity: <ActivityScreen stepLabel="7 / 8" topic="Khu vườn" subject="Một chú bướm" activities={previewActivityList} selectedIndex={0} loading={false} saving={false} attempted={false} error="" onRetry={ignoreAction} onSelect={ignoreAction} onContinue={ignoreAction} onCancel={ignoreAction} onBack={ignoreAction} />,

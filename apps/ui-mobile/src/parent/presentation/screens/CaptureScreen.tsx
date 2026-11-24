@@ -139,7 +139,7 @@ export function CaptureScreen({
   return (
     <ScreenFrame
       title="Chụp tranh"
-      subtitle="Chụp rõ bức vẽ để bắt đầu câu chuyện."
+      subtitle="Ảnh rõ nét giúp nhận diện tốt hơn."
       step={stepLabel}
       onBack={onBack}
       visualTone="creative"
@@ -150,8 +150,7 @@ export function CaptureScreen({
             <Ionicons name="color-palette-outline" size={19} color={palette.creativePrimary} />
           </View>
           <View style={styles.captureCopy}>
-            <Text style={styles.captureTitle}>{photo ? 'Bức tranh đã sẵn sàng' : 'Chọn bức vẽ của bé'}</Text>
-            <Text style={styles.captureSubtitle}>Ảnh rõ nét giúp nhận diện tốt hơn.</Text>
+            <Text style={styles.captureTitle}>{photo ? 'Đã chọn bức vẽ' : 'Chọn bức vẽ của bé'}</Text>
           </View>
           <Text style={styles.requiredBadge}>BẮT BUỘC</Text>
         </View>
@@ -164,7 +163,6 @@ export function CaptureScreen({
           description="AI đang nhận diện chủ thể và các chi tiết nhìn thấy trong ảnh. Người lớn sẽ xem lại kết quả sau bước này."
           note="Giữ nguyên ảnh đã chọn. Không gửi lại yêu cầu đang xử lý."
         /> : null}
-        {!photo ? <Text style={styles.emptyText}>Ảnh chỉ được gửi sau khi bạn chọn “Nhận diện tranh”.</Text> : null}
         <PrimaryButton variant="creative" label={photoLocked ? 'Ảnh đã gắn với buổi học' : photo ? 'Chụp lại' : 'Mở camera'} busy={busy} disabled={photoLocked || analysisBusy} onPress={() => void chooseImage('camera')} />
         <SecondaryButton variant="creative" label="Chọn từ thư viện ảnh" disabled={busy || photoLocked || analysisBusy} onPress={() => void chooseImage('gallery')} />
         {photoLocked ? <Notice variant="creative" text="Ảnh đã được gắn với buổi học này và không thể thay đổi." tone="info" /> : null}
@@ -185,7 +183,7 @@ export function CaptureScreen({
         /> : null}
       </Card>
       {flowError ? <Notice variant="creative" text={flowError} tone="info" /> : null}
-      <Notice variant="creative" text="Bước này sẽ tạo buổi học cho ảnh đã chọn rồi gửi tranh để nhận diện." />
+      {!runExists && !photoLocked ? <Notice variant="creative" text="Ảnh chỉ gửi khi bạn bắt đầu nhận diện." tone="info" /> : null}
       {!analysisBusy && photo?.analysisTerminal && runExists && onCloseUnresolvedRun ? <PrimaryButton
         variant="creative"
         label={closingRun ? 'Đang đóng buổi…' : 'Đóng buổi và bắt đầu lại'}
@@ -225,9 +223,7 @@ const styles = StyleSheet.create({
   captureIcon: { width: 40, height: 40, borderRadius: 14, backgroundColor: palette.creativeLavender, alignItems: 'center', justifyContent: 'center' },
   captureCopy: { flex: 1, minWidth: 0, gap: 2 },
   captureTitle: { color: palette.creativeInk, fontSize: 14, lineHeight: 19, fontWeight: '800' },
-  captureSubtitle: { color: palette.creativeMuted, fontSize: 11, lineHeight: 15 },
   requiredBadge: { alignSelf: 'flex-start', textAlignVertical: 'center', color: palette.creativePrimary, fontSize: 8, lineHeight: 12, fontWeight: '800', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 5, backgroundColor: palette.creativeLavender },
   imageFrame: { width: '100%', aspectRatio: 1.42, minHeight: 176, borderRadius: 19, backgroundColor: palette.creativeLavender, borderWidth: 1.2, borderColor: palette.creativeBorder, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   selectedImage: { width: '100%', height: '100%' },
-  emptyText: { color: palette.creativeMuted, fontSize: 11, lineHeight: 16, textAlign: 'center', minWidth: 0, flexShrink: 1 },
 });

@@ -3,6 +3,10 @@ import type {
   LessonDetail,
   LessonSummary,
   ParentCandidate,
+  ParentSubjectRoleV1,
+  ParentTopicSuggestionSetV1,
+  ParentDrawingSubjectSuggestionSetV1,
+  ParentCustomSubjectValidationV1,
   LessonInvitation,
   ParentGroupInvitation,
   ParentLessonDeliveryPage,
@@ -103,11 +107,21 @@ export interface ParentApiPort {
   declineLessonInvitation(invitationId: string): Promise<unknown>;
   listParentGroupInvitations(): Promise<{ contract: string; items: ParentGroupInvitation[]; next_cursor: string | null }>;
   acceptParentGroupInvitation(membershipId: string): Promise<unknown>;
+  listTopicSuggestions(draftId: string, excludedSetIds: string[], requestId: string): Promise<ParentTopicSuggestionSetV1>;
+  listDrawingSubjectSuggestions(input: {
+    draftId: string;
+    topicId: string;
+    topic: string;
+    excludedSetIds: string[];
+    excludedSubjects?: string[];
+    requestId: string;
+  }): Promise<ParentDrawingSubjectSuggestionSetV1>;
+  validateCustomSubject(input: { topicId: string; topic: string; subject: string }): Promise<ParentCustomSubjectValidationV1>;
   generateSketchGuide(topic: string): Promise<SketchGuideResult>;
   createStoryRun(input: StoryRunCreateInput): Promise<{ request_id: string; story_run: StoryRun }>;
   createStoryRunV1(input: ParentStoryRunCreateV1, actionIdentity: ParentActionIdentity): Promise<ParentStoryRunEnvelopeV1>;
   confirmStoryRunContextV1(runId: string, input: ParentStoryContextConfirmationV1, actionIdentity: ParentActionIdentity): Promise<ParentStoryRunEnvelopeV1>;
-  confirmStoryRunSubjectV1(runId: string, revision: number, subject: string, actionIdentity: ParentActionIdentity): Promise<ParentStorySubjectConfirmationAcceptedV1>;
+  confirmStoryRunSubjectV1(runId: string, revision: number, subject: string, actionIdentity: ParentActionIdentity, subjectRoles?: ParentSubjectRoleV1[]): Promise<ParentStorySubjectConfirmationAcceptedV1>;
   confirmStoryRunScriptV1(runId: string, revision: number, sha256: string, actionIdentity: ParentActionIdentity): Promise<ParentStoryScriptConfirmationV1>;
   createStoryRevisionV1(runId: string, revision: number, rewriteInstruction: string | undefined, actionIdentity: ParentActionIdentity): Promise<ParentStoryRevisionResultV1>;
   analyzeDrawing(storyRunId: string, imageBase64: string, mediaType: ParentDrawingMediaType): Promise<DrawingUnderstandingResult>;

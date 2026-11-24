@@ -19,6 +19,7 @@ import { ActivityScreen } from './screens/ActivityScreen';
 import { AuthScreen } from './screens/AuthScreen';
 import { CaptureScreen } from './screens/CaptureScreen';
 import { ContextScreen } from './screens/ContextScreen';
+import { DrawingSubjectScreen } from './screens/DrawingSubjectScreen';
 import { DrawingGuideScreen } from './screens/DrawingGuideScreen';
 import { HandoffScreen } from './screens/HandoffScreen';
 import { HomeScreen } from './screens/HomeScreen';
@@ -28,6 +29,7 @@ import { VideoScreen } from './screens/VideoScreen';
 import { LessonGalleryScreen } from './screens/LessonGalleryScreen';
 import { LessonHistoryScreen } from './screens/LessonHistoryScreen';
 import { LessonPickerScreen } from './screens/LessonPickerScreen';
+import { LearningPathScreen } from './screens/LearningPathScreen';
 import { NotificationsScreen } from './screens/NotificationsScreen';
 import { ParentBottomBar } from './screens/ParentBottomBar';
 import { ParentVisualPreviewHarness } from './ParentVisualPreviewHarness';
@@ -372,12 +374,47 @@ function renderLearningStep(
     storyRevisionNo: parent.storyRevisionNo,
     storySha256: parent.storySha256,
   });
+  if (step === 'entry') return <LearningPathScreen
+    error={parent.error}
+    onTopic={() => void parent.beginTopicPath()}
+    onLesson={parent.beginLessonPath}
+    onBack={() => parent.setStep('home')}
+  />;
   if (step === 'topic') return <TopicScreen
     topic={parent.topic}
+    selectedTopicId={parent.selectedTopicId}
+    cards={parent.topicSuggestions}
+    loading={parent.topicSuggestionBusy}
+    error={parent.topicSuggestionError}
+    canContinue={parent.topic.trim().length >= 2 && !parent.topicSuggestionBusy && !parent.subjectSuggestionBusy}
     stepLabel={stepLabel(1)}
-    onTopic={parent.setTopic}
-    onContinue={() => parent.setStep('idea')}
-    onBack={parent.backToProfile}
+    onSelect={parent.selectTopicCard}
+    onTopic={parent.setCustomTopic}
+    onRefresh={() => void parent.refreshTopicSuggestions()}
+    onContinue={() => void parent.continueTopicSelection()}
+    onSkip={parent.skipTopicSelection}
+    onBack={() => parent.setStep('entry')}
+  />;
+  if (step === 'subject') return <DrawingSubjectScreen
+    topic={parent.topic}
+    topicId={parent.selectedTopicId}
+    cards={parent.subjectSuggestions}
+    generationSource={parent.subjectSuggestionSets.at(-1)?.generation_source ?? null}
+    selectedSubject={parent.intendedDrawingSubject}
+    customSubject={parent.customDrawingSubject}
+    loading={parent.subjectSuggestionBusy}
+    validating={parent.subjectSuggestionBusy}
+    error={parent.subjectSuggestionError}
+    validationMessage={parent.subjectValidationMessage}
+    canContinue={Boolean(parent.intendedDrawingSubject.trim())
+      && (!parent.customDrawingSubject.trim() || parent.subjectValidationMessage.length > 0)
+      && !parent.subjectSuggestionBusy}
+    onSelect={parent.selectDrawingSubject}
+    onCustomSubject={parent.setCustomSubject}
+    onValidate={() => void parent.validateCustomDrawingSubject()}
+    onRefresh={() => void parent.refreshSubjectSuggestions()}
+    onContinue={parent.continueFromSubjectSelection}
+    onBack={() => parent.setStep('topic')}
   />;
   if (step === 'idea') return <IdeaScreen
     topic={parent.topic}
@@ -397,7 +434,7 @@ function renderLearningStep(
     onGenerateGuide={() => void parent.createGuide()}
     onOpenLessons={() => void parent.openLessons('picker')}
     onContinue={parent.openDrawingGuide}
-    onBack={() => parent.setStep('topic')}
+    onBack={() => parent.setStep(parent.lesson ? 'drawing-guide' : parent.selectedTopicId ? 'subject' : 'topic')}
   />;
   if (step === 'drawing-guide' && parent.lesson) return <DrawingGuideScreen
     lesson={parent.lesson}
@@ -448,6 +485,10 @@ function renderLearningStep(
     busy={parent.busy === 'subject'}
     error={parent.error}
     onSubject={parent.setSubject}
+    subjectRoles={parent.subjectRoles}
+    onRenameSecondary={parent.renameSecondarySubject}
+    onToggleSecondary={parent.toggleSecondarySubject}
+    onMakeMain={parent.makeMainSubject}
     onConfirm={() => void parent.confirmSubject()}
     onBack={() => parent.leaveWait('capture')}
   />;

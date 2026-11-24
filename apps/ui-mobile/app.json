@@ -44,7 +44,7 @@
       "./plugins/withDebugCleartextTraffic"
     ],
     "android": {
-      "package": "com.sketch2life.mobile",
+      "package": "com.sketch2life.parentexpo.dev",
       "blockedPermissions": [
         "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.READ_MEDIA_VIDEO"

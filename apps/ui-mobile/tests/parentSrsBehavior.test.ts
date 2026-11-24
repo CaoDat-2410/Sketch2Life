@@ -705,7 +705,7 @@ describe('R3 story workflow safety boundaries', () => {
     expect(understandingScreenSource).toContain('subject');
     expect(understandingScreenSource).not.toMatch(/toLowerCase\(\)[\s\S]{0,120}includes\(/);
     expect(understandingScreenSource).toContain('title="Nhận diện tranh"');
-    expect(profileControllerSource).toContain('confirmSubjectV1(runId, understandingRevision, confirmedSubject, actionIdentity)');
+    expect(profileControllerSource).toMatch(/confirmSubjectV1\(\s*runId,\s*understandingRevision,\s*confirmedSubject,\s*actionIdentity,\s*approvedRoles,?\s*\)/);
     expect(profileControllerSource).not.toContain('readRunPinnedLessonActivities');
     expect(profileControllerSource).toMatch(/application\.learning\.listActivitiesV1\(/);
     expect(profileControllerSource).toMatch(/application\.learning\.selectActivityV1\(/);

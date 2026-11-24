@@ -11,8 +11,12 @@ import type {
   ParentActivitySelectionRequestV1,
   ParentLessonVersionPinV1,
   ParentProfile,
+  ParentTopicSuggestionSetV1,
+  ParentDrawingSubjectSuggestionSetV1,
+  ParentCustomSubjectValidationV1,
   ParentStoryRunEnvelopeV1,
   ParentStoryRunV1,
+  ParentSubjectRoleV1,
 } from '../../domain/types';
 import { ParentApplicationError } from '../ParentApplicationError';
 import {
@@ -41,6 +45,17 @@ export class ParentLearningUseCases {
   getRun(runId: string) { return this.api.getStoryRun(runId); }
   getActiveRunV1(): Promise<ParentActiveStoryRunEnvelopeV1> { return this.api.getActiveStoryRunV1(); }
   getRunV1(runId: string) { return this.api.getStoryRunV1(runId); }
+  listTopicSuggestions(draftId: string, excludedSetIds: string[], requestId: string): Promise<ParentTopicSuggestionSetV1> {
+    return this.api.listTopicSuggestions(draftId, excludedSetIds, requestId);
+  }
+  listDrawingSubjectSuggestions(input: {
+    draftId: string; topicId: string; topic: string; excludedSetIds: string[]; excludedSubjects?: string[]; requestId: string;
+  }): Promise<ParentDrawingSubjectSuggestionSetV1> {
+    return this.api.listDrawingSubjectSuggestions(input);
+  }
+  validateCustomSubject(input: { topicId: string; topic: string; subject: string }): Promise<ParentCustomSubjectValidationV1> {
+    return this.api.validateCustomSubject(input);
+  }
   generateSketchGuide(topic: string) { return this.api.generateSketchGuide(topic); }
   async createRunBeforeDrawingV1(input: {
     profileId: string;
@@ -154,9 +169,15 @@ export class ParentLearningUseCases {
     if (!subject.trim()) throw new ParentApplicationError('PARENT_SUBJECT_REQUIRED', 'Xác nhận chủ thể của bức vẽ trước.');
     return this.api.confirmSubject(runId, revision, subject);
   }
-  confirmSubjectV1(runId: string, revision: number, subject: string, actionIdentity: ParentActionIdentity) {
+  confirmSubjectV1(
+    runId: string,
+    revision: number,
+    subject: string,
+    actionIdentity: ParentActionIdentity,
+    subjectRoles?: ParentSubjectRoleV1[],
+  ) {
     if (!subject.trim()) throw new ParentApplicationError('PARENT_SUBJECT_REQUIRED', 'Xác nhận chủ thể của bức vẽ trước.');
-    return this.api.confirmStoryRunSubjectV1(runId, revision, subject, actionIdentity);
+    return this.api.confirmStoryRunSubjectV1(runId, revision, subject, actionIdentity, subjectRoles);
   }
   listActivitiesV1(runId: string) {
     if (!runId.trim()) throw new ParentApplicationError('PARENT_ACTIVITY_RUN_INVALID', 'Chưa chọn được buổi học để tải hoạt động.');

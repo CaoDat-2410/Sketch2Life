@@ -9,6 +9,46 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $appRoot = Split-Path -Parent $PSScriptRoot
+$workspaceRoot = (Resolve-Path -LiteralPath (Join-Path $appRoot '..\..')).Path
+$rootEnvPath = $null
+$searchDirectory = $workspaceRoot
+while ($searchDirectory) {
+  if ((Test-Path -LiteralPath (Join-Path $searchDirectory 'pnpm-workspace.yaml')) -and
+      (Test-Path -LiteralPath (Join-Path $searchDirectory '.env'))) {
+    $rootEnvPath = Join-Path $searchDirectory '.env'
+    break
+  }
+  $parentDirectory = Split-Path -Parent $searchDirectory
+  if (-not $parentDirectory -or $parentDirectory -eq $searchDirectory) { break }
+  $searchDirectory = $parentDirectory
+}
+
+if (-not $rootEnvPath) {
+  throw 'Could not find the canonical root .env beside a pnpm-workspace.yaml.'
+}
+
+$apiLine = Get-Content -LiteralPath $rootEnvPath |
+  Where-Object { $_ -match '^\s*(?:export\s+)?SKETCH2LIFE_MOBILE_API_BASE_URL\s*=' } |
+  Select-Object -Last 1
+if (-not $apiLine -or $apiLine -notmatch '^\s*(?:export\s+)?SKETCH2LIFE_MOBILE_API_BASE_URL\s*=\s*(.*?)\s*$') {
+  throw 'SKETCH2LIFE_MOBILE_API_BASE_URL is missing from the root .env file.'
+}
+
+$apiBaseUrl = $matches[1].Trim()
+if (($apiBaseUrl.StartsWith('"') -and $apiBaseUrl.EndsWith('"')) -or
+    ($apiBaseUrl.StartsWith("'") -and $apiBaseUrl.EndsWith("'"))) {
+  $apiBaseUrl = $apiBaseUrl.Substring(1, $apiBaseUrl.Length - 2)
+}
+if ($apiBaseUrl -notmatch '^https?://[^/]+') {
+  throw 'SKETCH2LIFE_MOBILE_API_BASE_URL in the root .env must be an absolute HTTP(S) URL.'
+}
+
+# Ensure both Expo's manifest config and runtime API URL are derived from the
+# single canonical .env and cannot be shadowed by stale inherited shell values.
+Remove-Item Env:SKETCH2LIFE_MOBILE_API_BASE_URL -ErrorAction SilentlyContinue
+$env:SKETCH2LIFE_MOBILE_API_BASE_URL = $apiBaseUrl
+Remove-Item Env:EXPO_PUBLIC_API_URL -ErrorAction SilentlyContinue
+$env:EXPO_PUBLIC_API_URL = $apiBaseUrl
 
 function Resolve-Adb {
   $onPath = Get-Command adb.exe -ErrorAction SilentlyContinue

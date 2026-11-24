@@ -29,20 +29,18 @@ export function ActivityScreen(props: Props): React.JSX.Element {
   return (
     <ScreenFrame
       title="Hoạt động cùng bé"
-      subtitle="Người lớn chọn hoạt động chính trước khi bắt đầu câu chuyện."
+      subtitle="Chọn hoạt động bé sẽ làm sau video."
       step={props.stepLabel}
       onBack={noCandidate ? undefined : props.onBack}
       visualTone="creative"
     >
-      <Card variant="creative" style={styles.introCard}>
-        <View style={styles.introIcon}><Ionicons name="sparkles" size={22} color={palette.creativePrimary} /></View>
-        <View style={styles.introCopy}>
-          <Text style={styles.eyebrow}>HOẠT ĐỘNG PHÙ HỢP</Text>
-          <SectionTitle variant="creative">Chọn một hoạt động chính</SectionTitle>
-          <Text style={styles.description}>{props.subject.trim() ? `Chủ thể đã xác nhận: ${props.subject.trim()}` : 'Hoạt động dựa trên chủ thể đã xác nhận.'}</Text>
-          {props.topic.trim() ? <Text style={styles.topicText}>Chủ đề · {props.topic.trim()}</Text> : null}
-          {props.activities ? <Text style={styles.metaText}>Độ tuổi phù hợp · {props.activities.basis.age_band} tháng</Text> : null}
+      <Card variant="creative" style={styles.contextCard}>
+        <View style={styles.contextIcon}><Ionicons name="color-palette-outline" size={21} color={palette.creativePrimary} /></View>
+        <View style={styles.contextCopy}>
+          <Text style={styles.eyebrow}>BỨC TRANH</Text>
+          <Text numberOfLines={1} style={styles.contextSubject}>{props.subject.trim() || 'Chủ thể đã xác nhận'}</Text>
         </View>
+        {props.topic.trim() ? <View style={styles.topicPill}><Text numberOfLines={1} style={styles.topicText}>{props.topic.trim()}</Text></View> : null}
       </Card>
 
       {props.loading && !props.activities ? (
@@ -69,8 +67,8 @@ export function ActivityScreen(props: Props): React.JSX.Element {
       ) : (
         <>
           <View style={styles.resultsHeading}>
-            <SectionTitle variant="creative">Hoạt động có thể chọn</SectionTitle>
-            <Text style={styles.description}>{props.activities.basis.pinned_lesson ? 'Danh sách theo bài học đã ghim.' : 'Danh sách hoạt động phù hợp với buổi học.'}</Text>
+          <SectionTitle variant="creative">Chọn một hoạt động</SectionTitle>
+            <Text style={styles.description}>{props.activities.basis.pinned_lesson ? 'Theo bài học đã chọn.' : 'Phù hợp với tranh và hồ sơ bé.'}</Text>
           </View>
           {items.map((activity, index) => (
             <ActivityOption
@@ -144,13 +142,14 @@ function activityIcon(kind: ParentActivityV1['activity_kind']): React.ComponentP
 }
 
 const styles = StyleSheet.create({
-  introCard: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, backgroundColor: '#FFFEFF' },
-  introIcon: { width: 44, height: 44, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.creativeLavender },
-  introCopy: { flex: 1, minWidth: 0, gap: 5 },
+  contextCard: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#FFFEFF', paddingVertical: 10 },
+  contextIcon: { width: 40, height: 40, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.creativeLavender },
+  contextCopy: { flex: 1, minWidth: 0, gap: 2 },
   eyebrow: { color: palette.creativePrimary, fontSize: 9, lineHeight: 13, fontWeight: '800', letterSpacing: 0.6 },
+  contextSubject: { color: palette.creativeInk, fontSize: 14, lineHeight: 19, fontWeight: '800' },
   description: { color: palette.creativeMuted, fontSize: 13, lineHeight: 19, flexShrink: 1 },
-  topicText: { color: palette.creativePrimary, fontSize: 12, lineHeight: 17, fontWeight: '700' },
-  metaText: { color: palette.creativeMuted, fontSize: 11, lineHeight: 16 },
+  topicPill: { alignSelf: 'center', backgroundColor: '#F4ECFF', borderRadius: 999, maxWidth: '38%', paddingHorizontal: 9, paddingVertical: 6 },
+  topicText: { color: palette.creativePrimary, fontSize: 10, lineHeight: 14, fontWeight: '800' },
   stateCard: { gap: 14, backgroundColor: '#FFFEFF' },
   resultsHeading: { gap: 5 },
   optionPressable: { minWidth: 0 },

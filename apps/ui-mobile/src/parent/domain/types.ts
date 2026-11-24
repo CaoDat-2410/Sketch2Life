@@ -449,6 +449,50 @@ export type ParentActivityListV1 = {
   };
 };
 
+export type ParentTopicCardV1 = Readonly<{
+  topic_id: string;
+  title_vi: string;
+  description_vi: string;
+}>;
+
+export type ParentTopicSuggestionSetV1 = Readonly<{
+  contract: 'ParentTopicSuggestionSetV1';
+  request_id: string;
+  set_id: string;
+  draft_id: string;
+  catalog_revision: string;
+  cards: ReadonlyArray<ParentTopicCardV1>;
+  excluded_set_ids: ReadonlyArray<string>;
+}>;
+
+export type ParentDrawingSubjectCardV1 = Readonly<{
+  subject_id: string;
+  title_vi: string;
+  guide_subject: string;
+  relation_to_topic_vi?: string | null;
+}>;
+
+export type ParentDrawingSubjectSuggestionSetV1 = Readonly<{
+  contract: 'ParentDrawingSubjectSuggestionSetV1';
+  request_id: string;
+  set_id: string;
+  draft_id: string;
+  topic_id: string;
+  topic: string;
+  catalog_revision: string;
+  generation_source: 'CURATED_CATALOG' | 'CUSTOM_INPUT_REQUIRED';
+  review_required: true;
+  cards: ReadonlyArray<ParentDrawingSubjectCardV1>;
+  excluded_set_ids: ReadonlyArray<string>;
+}>;
+
+export type ParentCustomSubjectValidationV1 = Readonly<{
+  contract: 'ParentCustomSubjectValidationV1';
+  decision: 'ON_TOPIC' | 'OUT_OF_TOPIC' | 'NEEDS_CLARIFICATION';
+  normalized_subject: string | null;
+  message_vi: string;
+}>;
+
 /** Phase D can add the suggestion-round variant without changing this method's callers. */
 export type ParentActivitySelectionRequestV1 =
   | { expected_revision: number; activity: ParentActivityRefV1 }
@@ -467,12 +511,32 @@ export type ParentDrawingCandidateDecisionV1 =
   | 'CONFIRMED_BY_ADULT'
   | 'CORRECTED_BY_ADULT';
 
+export type ParentSubjectEntityIdV1 = 'main' | 'sec-1' | 'sec-2' | 'sec-3';
+export type ParentSubjectRoleKindV1 = 'main' | 'secondary' | 'excluded';
+
+/** FEAT-087: one object the AI found in the drawing (no boxes reach the client). */
+export type ParentDrawingEntityV1 = {
+  entity_id: ParentSubjectEntityIdV1;
+  label: string;
+  suggested_role: 'main' | 'secondary';
+};
+
+/** FEAT-087: the adult's final role for one object. */
+export type ParentSubjectRoleV1 = {
+  entity_id: ParentSubjectEntityIdV1;
+  label: string;
+  role: ParentSubjectRoleKindV1;
+};
+
 export type ParentDrawingCandidateV1 = {
   candidate_subject: string | null;
   visible_features: string[];
   confidence: number;
   adult_confirmation_required: true;
   decision: ParentDrawingCandidateDecisionV1;
+  /** Absent for drawings analysed before FEAT-087. */
+  entities?: ParentDrawingEntityV1[];
+  subject_roles?: ParentSubjectRoleV1[] | null;
 };
 
 export type ParentStoryDisplayV1 = {

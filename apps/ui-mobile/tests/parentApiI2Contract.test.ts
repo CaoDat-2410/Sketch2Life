@@ -59,6 +59,48 @@ const runEnvelope = {
 };
 
 describe('ParentApi I2 contract', () => {
+  it('sends stable request IDs when rotating curated topic and drawing-subject cards', async () => {
+    const topicDraft = {
+      contract: 'ParentTopicSuggestionSetV1', set_id: 'pts_000000000000000000000001',
+      request_id: '00000000-0000-4000-8000-000000000001', draft_id: '00000000-0000-4000-8000-000000000010',
+      catalog_revision: 'parent-topic-catalog-v1', excluded_set_ids: [],
+      cards: [
+        { topic_id: 'animals', title_vi: 'Động vật', description_vi: 'Các bạn quanh bé' },
+        { topic_id: 'plants', title_vi: 'Cây cối', description_vi: 'Cây xanh quanh nhà' },
+        { topic_id: 'weather', title_vi: 'Thời tiết', description_vi: 'Nắng, mưa và gió' },
+      ],
+    };
+    const subjectDraft = {
+      contract: 'ParentDrawingSubjectSuggestionSetV1', set_id: 'pds_000000000000000000000002',
+      request_id: '00000000-0000-4000-8000-000000000002', draft_id: '00000000-0000-4000-8000-000000000010',
+      topic_id: 'animals', topic: 'Động vật',
+      catalog_revision: 'parent-topic-catalog-v1', generation_source: 'CURATED_CATALOG',
+      review_required: true, excluded_set_ids: [],
+      cards: [
+        { subject_id: 'deer', title_vi: 'Hươu', guide_subject: 'con hươu', relation_to_topic_vi: 'Động vật trong rừng' },
+        { subject_id: 'turtle', title_vi: 'Rùa', guide_subject: 'con rùa', relation_to_topic_vi: 'Động vật gần gũi' },
+        { subject_id: 'chicken', title_vi: 'Gà', guide_subject: 'con gà', relation_to_topic_vi: 'Động vật quanh nhà' },
+      ],
+    };
+    const { api, calls } = createApi([
+      { status: 200, body: topicDraft },
+      { status: 200, body: subjectDraft },
+    ]);
+
+    await api.listTopicSuggestions(
+      '00000000-0000-4000-8000-000000000010', [], '00000000-0000-4000-8000-000000000001',
+    );
+    await api.listDrawingSubjectSuggestions({
+      draftId: '00000000-0000-4000-8000-000000000010', topicId: 'animals', topic: 'Động vật', excludedSetIds: [],
+      requestId: '00000000-0000-4000-8000-000000000002',
+    });
+
+    expect(new URL(calls[0].url).pathname).toBe('/api/parent/v1/topics/suggestions');
+    expect(new URL(calls[0].url).searchParams.get('request_id')).toBe('00000000-0000-4000-8000-000000000001');
+    expect(new URL(calls[1].url).pathname).toBe('/api/parent/v1/topics/animals/drawing-subject-suggestions');
+    expect(new URL(calls[1].url).searchParams.get('request_id')).toBe('00000000-0000-4000-8000-000000000002');
+  });
+
   it('encodes opaque profile cursors and reads items/next_cursor', async () => {
     const { api, calls } = createApi([{ status: 200, body: { items: [activeProfile], next_cursor: 'next +/?=', request_id: 'req-1' } }]);
     const page = await api.listProfilesV1(17, 'opaque +/?= token');

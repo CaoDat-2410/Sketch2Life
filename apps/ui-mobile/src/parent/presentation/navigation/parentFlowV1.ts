@@ -3,6 +3,8 @@ import type {
   LessonDetail,
   ParentLessonVersionPinV1,
   ParentDrawingCandidateV1,
+  ParentDrawingEntityV1,
+  ParentSubjectRoleV1,
   ParentProfileDeletePendingV1,
   ParentProfilePageV1,
   ParentProfileRecordV1,
@@ -231,13 +233,51 @@ export function readDrawingCandidate(value: unknown): ParentDrawingCandidateV1 |
     ? value.decision
     : 'REVIEW_REQUIRED';
 
+  const entities = readCandidateEntities(value.entities);
+  const subjectRoles = readCandidateRoles(value.subject_roles);
   return {
     candidate_subject: typeof value.candidate_subject === 'string' ? value.candidate_subject : null,
     visible_features: [...value.visible_features],
     confidence: value.confidence,
     adult_confirmation_required: true,
     decision,
+    ...(entities.length > 0 ? { entities } : {}),
+    ...(subjectRoles ? { subject_roles: subjectRoles } : {}),
   };
+}
+
+const SUBJECT_ENTITY_IDS = ['main', 'sec-1', 'sec-2', 'sec-3'] as const;
+
+function readCandidateEntities(value: unknown): ParentDrawingEntityV1[] {
+  if (!Array.isArray(value) || value.length > SUBJECT_ENTITY_IDS.length) return [];
+  const entities: ParentDrawingEntityV1[] = [];
+  for (const item of value) {
+    if (!isRecord(item) || typeof item.label !== 'string' || item.label.trim().length === 0) return [];
+    if (!SUBJECT_ENTITY_IDS.includes(item.entity_id as never)) return [];
+    if (item.suggested_role !== 'main' && item.suggested_role !== 'secondary') return [];
+    entities.push({
+      entity_id: item.entity_id as ParentDrawingEntityV1['entity_id'],
+      label: item.label,
+      suggested_role: item.suggested_role,
+    });
+  }
+  return entities;
+}
+
+function readCandidateRoles(value: unknown): ParentSubjectRoleV1[] | null {
+  if (!Array.isArray(value) || value.length === 0 || value.length > SUBJECT_ENTITY_IDS.length) return null;
+  const roles: ParentSubjectRoleV1[] = [];
+  for (const item of value) {
+    if (!isRecord(item) || typeof item.label !== 'string') return null;
+    if (!SUBJECT_ENTITY_IDS.includes(item.entity_id as never)) return null;
+    if (item.role !== 'main' && item.role !== 'secondary' && item.role !== 'excluded') return null;
+    roles.push({
+      entity_id: item.entity_id as ParentSubjectRoleV1['entity_id'],
+      label: item.label,
+      role: item.role,
+    });
+  }
+  return roles.filter((role) => role.role === 'main').length === 1 ? roles : null;
 }
 
 export function readRunUnderstanding(value: unknown): {
@@ -278,7 +318,7 @@ export type SubjectConfirmationOutcome = 'confirmed' | 'rerun-requested' | 'inva
  */
 export function readSubjectConfirmationOutcome(
   response: unknown,
-  expected: { runId: string; understandingRevision: number; subjectEdited: boolean },
+  expected: { runId: string; understandingRevision: number; subjectEdited: boolean; rolesProvided?: boolean },
 ): SubjectConfirmationOutcome {
   if (!isRecord(response) || response.story_run_id !== expected.runId) return 'invalid';
   const revision = response.understanding_revision;
@@ -288,7 +328,7 @@ export function readSubjectConfirmationOutcome(
   }
   if (response.decision !== 'CONFIRMED') return 'invalid';
   const accepted = revision === expected.understandingRevision
-    || (expected.subjectEdited && revision === expected.understandingRevision + 1);
+    || ((expected.subjectEdited || expected.rolesProvided) && revision === expected.understandingRevision + 1);
   return accepted ? 'confirmed' : 'invalid';
 }
 
@@ -497,6 +537,16 @@ const parentRecoveryGroups: Record<string, ParentRecoveryGroup> = {
 export function parentRecoveryGroupForError(error: unknown): ParentRecoveryGroup {
   const code = readErrorCode(error);
   return code ? parentRecoveryGroups[code] ?? 'unknown' : 'unknown';
+}
+
+export function subjectRolesIssueMessage(reason: 'LABEL_EMPTY' | 'LABEL_TOO_LONG' | 'LABEL_DUPLICATE' | 'MAIN_MISSING'): string {
+  const messages = {
+    LABEL_EMPTY: 'Hãy đặt tên cho mọi vật đang dùng trong truyện, hoặc tắt vật đó.',
+    LABEL_TOO_LONG: 'Tên vật quá dài. Hãy rút gọn xuống tối đa 100 ký tự.',
+    LABEL_DUPLICATE: 'Hai vật đang có cùng một tên. Hãy đặt tên khác nhau hoặc tắt một vật.',
+    MAIN_MISSING: 'Hãy chọn một chủ thể chính cho bức vẽ.',
+  } as const;
+  return messages[reason];
 }
 
 export function safeParentFlowErrorMessage(error: unknown): string {

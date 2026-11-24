@@ -39,6 +39,8 @@ const authMessages: Record<string, string> = {
 };
 
 export class ParentAuthError extends ParentApplicationError {
+  diagnosticStage?: string;
+
   constructor(code: string, message: string) {
     super(code, message);
     this.name = 'ParentAuthError';
@@ -54,15 +56,28 @@ export class ParentAuth implements ParentIdentityPort {
   }
 
   async signIn(email: string, password: string): Promise<ParentUser> {
-    const payload = await this.postFirebase(
-      `${IDENTITY_TOOLKIT}/accounts:signInWithPassword?key=${encodeURIComponent(this.apiKey())}`,
-      { email: email.trim(), password, returnSecureToken: true },
-    );
+    if (__DEV__) console.info('parent_auth_stage_started', { stage: 'firebase_password_sign_in' });
+    let payload: FirebasePayload;
+    try {
+      payload = await this.postFirebase(
+        `${IDENTITY_TOOLKIT}/accounts:signInWithPassword?key=${encodeURIComponent(this.apiKey())}`,
+        { email: email.trim(), password, returnSecureToken: true },
+      );
+      if (__DEV__) console.info('parent_auth_stage_succeeded', { stage: 'firebase_password_sign_in' });
+    } catch (error: unknown) {
+      this.logAuthFailure('firebase_password_sign_in', error);
+      if (error instanceof ParentAuthError && !error.diagnosticStage) error.diagnosticStage = 'firebase_password_sign_in';
+      throw error;
+    }
     this.session = this.toSession(payload);
     try {
+      if (__DEV__) console.info('parent_auth_stage_started', { stage: 'backend_parent_scope' });
       await this.ensureParentScope();
+      if (__DEV__) console.info('parent_auth_stage_succeeded', { stage: 'backend_parent_scope' });
       return this.session.user;
     } catch (error) {
+      this.logAuthFailure('backend_parent_scope', error);
+      if (error instanceof ParentAuthError && !error.diagnosticStage) error.diagnosticStage = 'backend_parent_scope';
       await this.signOut();
       throw error;
     }
@@ -189,9 +204,20 @@ export class ParentAuth implements ParentIdentityPort {
   }
 
   private async requireParentRole(): Promise<void> {
-    const response = await fetch(`${this.apiUrl()}/api/auth/v1/me`, {
+    const url = `${this.apiUrl()}/api/auth/v1/me`;
+    if (__DEV__) {
+      console.info('parent_auth_backend_request_started', {
+        origin: new URL(url).origin,
+        path: '/api/auth/v1/me',
+      });
+    }
+    const response = await fetch(url, {
       headers: { Authorization: `Bearer ${await this.getIdToken()}`, Accept: 'application/json' },
-    }).catch(() => { throw new ParentAuthError('AUTH_API_UNAVAILABLE', 'Không kiểm tra được quyền tài khoản.'); });
+    }).catch(() => {
+      const error = new ParentAuthError('AUTH_API_UNAVAILABLE', 'Không kiểm tra được quyền tài khoản.');
+      error.diagnosticStage = `backend_me_network@${new URL(url).origin}`;
+      throw error;
+    });
     const body = await response.json().catch(() => ({})) as {
       code?: string;
       role?: string;
@@ -208,7 +234,9 @@ export class ParentAuth implements ParentIdentityPort {
         });
       }
       if (response.status === 401) {
-        throw new ParentAuthError(code, 'Phiên đăng nhập không hợp lệ. Đăng nhập lại để tiếp tục.');
+        const error = new ParentAuthError(code, 'Phiên đăng nhập không hợp lệ. Đăng nhập lại để tiếp tục.');
+        error.diagnosticStage = `backend_me_401@${new URL(url).origin}`;
+        throw error;
       }
       if (response.status === 403) {
         throw new ParentAuthError(
@@ -244,7 +272,9 @@ export class ParentAuth implements ParentIdentityPort {
         Accept: 'application/json',
       },
     }).catch(() => {
-      throw new ParentAuthError('AUTH_API_UNAVAILABLE', 'Không kết nối được máy chủ tài khoản.');
+      const error = new ParentAuthError('AUTH_API_UNAVAILABLE', 'Không kết nối được máy chủ tài khoản.');
+      error.diagnosticStage = `backend_registration_complete_network@${new URL(url).origin}`;
+      throw error;
     });
     const body = await response.json().catch(() => ({})) as {
       role?: string;
@@ -254,7 +284,9 @@ export class ParentAuth implements ParentIdentityPort {
     };
     if (!response.ok) {
       const code = body.code ?? body.detail?.code ?? `AUTH_API_HTTP_${response.status}`;
-      throw new ParentAuthError(code, authMessages[code] ?? 'Chưa thể đồng bộ tài khoản với máy chủ.');
+      const error = new ParentAuthError(code, authMessages[code] ?? 'Chưa thể đồng bộ tài khoản với máy chủ.');
+      error.diagnosticStage = `backend_registration_complete_${response.status}@${new URL(url).origin}`;
+      throw error;
     }
     if (body.role !== 'parent' || body.state !== 'active') {
       throw new ParentAuthError('ACCOUNT_SETUP_UNAVAILABLE', authMessages.ACCOUNT_SETUP_UNAVAILABLE);
@@ -334,5 +366,14 @@ export class ParentAuth implements ParentIdentityPort {
       throw new ParentAuthError(code, authMessages[code] ?? 'Không thể xác thực lúc này.');
     }
     return body;
+  }
+
+  private logAuthFailure(stage: string, error: unknown): void {
+    if (!__DEV__) return;
+    console.warn('parent_auth_stage_failed', {
+      stage,
+      code: error instanceof ParentApplicationError ? error.code : 'UNEXPECTED_AUTH_ERROR',
+      errorName: error instanceof Error ? error.name : 'UnknownError',
+    });
   }
 }

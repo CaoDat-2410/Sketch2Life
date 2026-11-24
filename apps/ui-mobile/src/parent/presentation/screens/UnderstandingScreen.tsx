@@ -1,8 +1,9 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import type { ParentCandidate } from '../../domain/types';
+import type { ParentCandidate, ParentSubjectRoleV1 } from '../../domain/types';
 import { Card, Field, Notice, PrimaryButton, ScreenFrame, SectionTitle, palette } from '../components/ui';
+import { SecondarySubjectRow } from './SecondarySubjectRow';
 
 type Props = {
   candidate: ParentCandidate;
@@ -11,12 +12,18 @@ type Props = {
   busy: boolean;
   error: string;
   onSubject: (value: string) => void;
+  /** FEAT-087: other objects found in the drawing. Empty for drawings analysed earlier. */
+  subjectRoles?: ReadonlyArray<ParentSubjectRoleV1>;
+  onRenameSecondary?: (entityId: ParentSubjectRoleV1['entity_id'], label: string) => void;
+  onToggleSecondary?: (entityId: ParentSubjectRoleV1['entity_id']) => void;
+  onMakeMain?: (entityId: ParentSubjectRoleV1['entity_id']) => void;
   onConfirm: () => void;
   onBack: () => void;
 };
 
 export function UnderstandingScreen(props: Props): React.JSX.Element {
   const confidence = Math.max(0, Math.min(100, Math.round(props.candidate.confidence * 100)));
+  const others = (props.subjectRoles ?? []).filter((role) => role.role !== 'main');
   return (
     <ScreenFrame
       title="Nhận diện tranh"
@@ -67,6 +74,24 @@ export function UnderstandingScreen(props: Props): React.JSX.Element {
         </View>
         <Notice variant="creative" text="Đây là gợi ý để người lớn xem lại. Bạn có thể sửa tên chủ thể trước khi xác nhận." />
       </Card>
+      {others.length > 0 ? (
+        <Card variant="creative" style={styles.candidateCard}>
+          <View style={styles.resultCopy}>
+            <Text style={styles.eyebrow}>CÓ THỂ DÙNG TRONG TRUYỆN</Text>
+            <SectionTitle variant="creative">Vật khác trong tranh</SectionTitle>
+          </View>
+          <Text style={styles.confidenceCaption}>Chỉ những vật đang bật mới được đưa vào truyện.</Text>
+          {others.map((role) => (
+            <SecondarySubjectRow
+              key={role.entity_id}
+              role={role}
+              onRename={(label) => props.onRenameSecondary?.(role.entity_id, label)}
+              onToggle={() => props.onToggleSecondary?.(role.entity_id)}
+              onMakeMain={() => props.onMakeMain?.(role.entity_id)}
+            />
+          ))}
+        </Card>
+      ) : null}
       {props.error ? <Notice variant="creative" text={props.error} tone="error" /> : null}
       <PrimaryButton variant="creative" label="Xác nhận chủ thể" busy={props.busy} disabled={!props.subject.trim()} onPress={props.onConfirm} />
     </ScreenFrame>

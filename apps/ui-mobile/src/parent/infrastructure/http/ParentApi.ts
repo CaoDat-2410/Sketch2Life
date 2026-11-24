@@ -15,6 +15,10 @@ import type {
   ParentCandidate,
   ParentActivityListV1,
   ParentActivitySelectionRequestV1,
+  ParentCustomSubjectValidationV1,
+  ParentDrawingSubjectSuggestionSetV1,
+  ParentSubjectRoleV1,
+  ParentTopicSuggestionSetV1,
   ParentGroupInvitation,
   ParentLessonDeliveryPage,
   ParentNotification,
@@ -250,12 +254,22 @@ export class ParentApi implements ParentApiPort {
     ).then(liveRunOrLifecycleError);
   }
 
-  confirmStoryRunSubjectV1(runId: string, revision: number, subject: string, actionIdentity: ParentActionIdentity) {
+  confirmStoryRunSubjectV1(
+    runId: string,
+    revision: number,
+    subject: string,
+    actionIdentity: ParentActionIdentity,
+    subjectRoles?: ParentSubjectRoleV1[],
+  ) {
     assertVisibleAsciiKey(actionIdentity);
     return this.request<ParentStorySubjectConfirmationAcceptedV1>(
       `/v1/story-runs/${encodeURIComponent(runId)}/subject-confirmation`,
       'POST',
-      { expected_understanding_revision: revision, confirmed_subject: subject },
+      {
+        expected_understanding_revision: revision,
+        confirmed_subject: subject,
+        ...(subjectRoles && subjectRoles.length > 0 ? { subject_roles: subjectRoles } : {}),
+      },
       30_000,
       { 'Idempotency-Key': actionIdentity },
     ).then(liveRunOrLifecycleError);
@@ -541,6 +555,37 @@ export class ParentApi implements ParentApiPort {
 
   getLesson(lessonId: string) {
     return this.request<LessonDetail>(`/api/lesson-library/v1/me/lessons/${encodeURIComponent(lessonId)}`, 'GET');
+  }
+
+  listTopicSuggestions(draftId: string, excludedSetIds: string[], requestId: string) {
+    const query = new URLSearchParams({ draft_id: draftId, request_id: requestId });
+    excludedSetIds.forEach((setId) => query.append('exclude_set_ids', setId));
+    return this.request<ParentTopicSuggestionSetV1>(`/api/parent/v1/topics/suggestions?${query.toString()}`, 'GET');
+  }
+
+  listDrawingSubjectSuggestions(input: {
+    draftId: string;
+    topicId: string;
+    topic: string;
+    excludedSetIds: string[];
+    excludedSubjects?: string[];
+    requestId: string;
+  }) {
+    const query = new URLSearchParams({ draft_id: input.draftId, request_id: input.requestId, topic: input.topic });
+    input.excludedSetIds.forEach((setId) => query.append('exclude_set_ids', setId));
+    (input.excludedSubjects ?? []).forEach((subject) => query.append('exclude_subjects', subject));
+    return this.request<ParentDrawingSubjectSuggestionSetV1>(
+      `/api/parent/v1/topics/${encodeURIComponent(input.topicId)}/drawing-subject-suggestions?${query.toString()}`,
+      'GET',
+    );
+  }
+
+  validateCustomSubject(input: { topicId: string; topic: string; subject: string }) {
+    return this.request<ParentCustomSubjectValidationV1>(
+      '/api/parent/v1/topics/custom-subject-validation',
+      'POST',
+      { topic_id: input.topicId, topic: input.topic, subject: input.subject },
+    );
   }
 
   generateSketchGuide(topic: string) {

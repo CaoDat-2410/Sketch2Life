@@ -1,21 +1,38 @@
 import { useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
+import * as Crypto from 'expo-crypto';
 import { ParentApplicationError } from '../../application/ParentApplicationError';
 import { createParentActionIdentity } from '../../application/ports/ParentPorts';
 import type { ParentActionIdentity } from '../../application/ports/ParentPorts';
 import type { ParentApplicationModule } from '../../application/ports/ParentApplicationModule';
 import { parseStoryDraft } from '../../domain/storyDraft';
+import { isResolvedTopicConsistent } from '../../domain/topicMatching';
+import {
+  buildSubjectRolesRequest,
+  initialSubjectRoles,
+  mainSubjectLabel,
+  promoteToMain,
+  setRoleLabel,
+  toggleSecondaryUse,
+  type SubjectRolesRequest,
+} from '../../domain/subjectRoles';
 import type {
   LessonDetail,
   LessonInvitation,
   LessonSummary,
   ParentDrawingCandidateV1,
+  ParentDrawingSubjectCardV1,
+  ParentDrawingSubjectSuggestionSetV1,
   ParentActivityListV1,
   ParentActivitySelectionRequestV1,
+  ParentCustomSubjectValidationV1,
   ParentGroupInvitation,
   ParentProfileDeletePendingV1,
   ParentPlaybackSourceV1,
   ParentProfileViewV1,
+  ParentSubjectRoleV1,
+  ParentTopicCardV1,
+  ParentTopicSuggestionSetV1,
   ParentRunTranscriptV1,
   ParentStoryRunV1,
   ParentUser,
@@ -78,6 +95,7 @@ import {
   reconcileProfileRecord,
   safeParentFlowErrorMessage,
   safeProfileFieldMessages,
+  subjectRolesIssueMessage,
   selectProfileById,
 } from './parentFlowV1';
 
@@ -109,6 +127,23 @@ export function useParentController(application: ParentApplicationModule) {
   const [activeRun, setActiveRun] = useState<ParentStoryRunV1 | null>(null);
   const [activeRunCheck, setActiveRunCheck] = useState<ParentActiveRunCheckState>('checking');
   const [topic, setTopic] = useState('');
+  const [selectedTopicId, setSelectedTopicId] = useState('');
+  const [topicDraftId, setTopicDraftId] = useState('');
+  const [topicSuggestionSets, setTopicSuggestionSets] = useState<ParentTopicSuggestionSetV1[]>([]);
+  const [topicSuggestions, setTopicSuggestions] = useState<ParentTopicCardV1[]>([]);
+  const [topicSuggestionBusy, setTopicSuggestionBusy] = useState(false);
+  const [topicSuggestionError, setTopicSuggestionError] = useState('');
+  const lastTopicSuggestionSetId = useRef('');
+  const topicSuggestionRequestId = useRef('');
+  const subjectSuggestionRequestId = useRef('');
+  const [subjectSuggestionSets, setSubjectSuggestionSets] = useState<ParentDrawingSubjectSuggestionSetV1[]>([]);
+  const [subjectSuggestions, setSubjectSuggestions] = useState<ParentDrawingSubjectCardV1[]>([]);
+  const [subjectSuggestionBusy, setSubjectSuggestionBusy] = useState(false);
+  const [subjectSuggestionError, setSubjectSuggestionError] = useState('');
+  const [intendedDrawingSubject, setIntendedDrawingSubject] = useState('');
+  const [customDrawingSubject, setCustomDrawingSubject] = useState('');
+  const [subjectValidationMessage, setSubjectValidationMessage] = useState('');
+  const [customSubjectValidated, setCustomSubjectValidated] = useState(false);
   const [idea, setIdea] = useState('');
   const [lesson, setLesson] = useState<LessonDetail | null>(null);
   const [lessons, setLessons] = useState<LessonSummary[]>([]);
@@ -131,6 +166,10 @@ export function useParentController(application: ParentApplicationModule) {
   const [contextConfirmed, setContextConfirmed] = useState(false);
   const [candidate, setCandidate] = useState<ParentDrawingCandidateV1 | null>(null);
   const [subject, setSubject] = useState('');
+  const [subjectRoles, setSubjectRoles] = useState<ParentSubjectRoleV1[]>([]);
+  useEffect(() => {
+    setSubjectRoles(candidate ? initialSubjectRoles(candidate) : []);
+  }, [candidate]);
   const [subjectConfirmed, setSubjectConfirmed] = useState(false);
   const [understandingRevision, setUnderstandingRevision] = useState(0);
   const [activitySuggestions, setActivitySuggestions] = useState<ParentActivityListV1 | null>(null);
@@ -286,7 +325,22 @@ export function useParentController(application: ParentApplicationModule) {
       else await application.account.signUp(email, password);
       await loadParentData();
     } catch (cause) {
-      setAuthError(safeParentIdentityErrorMessage(cause));
+      const message = safeParentIdentityErrorMessage(cause);
+      if (__DEV__) {
+        const stage = cause && typeof cause === 'object' && 'diagnosticStage' in cause
+          && typeof cause.diagnosticStage === 'string'
+          ? cause.diagnosticStage
+          : 'unknown_auth_stage';
+        const diagnostic = cause instanceof ParentApplicationError
+          ? `${stage}:${cause.code}`
+          : cause instanceof Error
+            ? cause.name
+            : 'UNKNOWN_AUTH_FAILURE';
+        console.warn('parent_auth_ui_failure', { diagnostic });
+        setAuthError(`${message} (${diagnostic})`);
+      } else {
+        setAuthError(message);
+      }
     } finally {
       setBusy('');
     }
@@ -457,7 +511,231 @@ export function useParentController(application: ParentApplicationModule) {
     resetWorkflow();
     setProfile(target);
     setSelectedProfileId(target.profile_id);
+    setStep('entry');
+  }
+
+  async function beginTopicPath(): Promise<void> {
+    const draftId = Crypto.randomUUID();
+    topicSuggestionRequestId.current = Crypto.randomUUID();
+    subjectSuggestionRequestId.current = '';
+    const previousSetId = lastTopicSuggestionSetId.current;
+    setTopicDraftId(draftId);
+    setTopic('');
+    setSelectedTopicId('');
+    setIntendedDrawingSubject('');
+    setCustomDrawingSubject('');
+    setSubjectSuggestions([]);
+    setSubjectSuggestionSets([]);
+    setSubjectSuggestionError('');
+    setTopicSuggestionSets([]);
+    setTopicSuggestions([]);
+    setTopicSuggestionError('');
     setStep('topic');
+    await loadTopicSuggestionSet(draftId, previousSetId ? [previousSetId] : []);
+  }
+
+  async function loadTopicSuggestionSet(draftId: string, excludedSetIds: string[]): Promise<void> {
+    if (!topicSuggestionRequestId.current) topicSuggestionRequestId.current = Crypto.randomUUID();
+    const requestId = topicSuggestionRequestId.current;
+    setTopicSuggestionBusy(true);
+    setTopicSuggestionError('');
+    try {
+      const result = await application.learning.listTopicSuggestions(draftId, excludedSetIds, requestId);
+      if (result.contract !== 'ParentTopicSuggestionSetV1'
+        || result.request_id !== requestId
+        || result.draft_id !== draftId
+        || result.cards.length !== 3
+        || new Set(result.cards.map((card) => card.topic_id)).size !== 3
+        || excludedSetIds.includes(result.set_id)) {
+        throw new ParentApplicationError('PARENT_TOPIC_SUGGESTION_INVALID', 'Chưa nhận được ba gợi ý chủ đề hợp lệ.');
+      }
+      setTopicSuggestionSets((current) => [...current, result]);
+      setTopicSuggestions([...result.cards]);
+      lastTopicSuggestionSetId.current = result.set_id;
+      topicSuggestionRequestId.current = '';
+    } catch (cause) {
+      setTopicSuggestionError(safeParentFlowErrorMessage(cause));
+    } finally {
+      setTopicSuggestionBusy(false);
+    }
+  }
+
+  async function refreshTopicSuggestions(): Promise<void> {
+    if (!topicDraftId || topicSuggestionBusy) return;
+    if (!topicSuggestionRequestId.current) topicSuggestionRequestId.current = Crypto.randomUUID();
+    await loadTopicSuggestionSet(topicDraftId, topicSuggestionSets.map((set) => set.set_id));
+  }
+
+  function selectTopicCard(card: ParentTopicCardV1): void {
+    subjectSuggestionRequestId.current = '';
+    setTopic(card.title_vi);
+    setSelectedTopicId(card.topic_id);
+    setSubjectSuggestions([]);
+    setSubjectSuggestionSets([]);
+    setIntendedDrawingSubject('');
+    setCustomDrawingSubject('');
+    setSubjectValidationMessage('');
+    setCustomSubjectValidated(false);
+    setTopicSuggestionError('');
+  }
+
+  function setCustomTopic(value: string): void {
+    subjectSuggestionRequestId.current = '';
+    setTopic(value);
+    setSelectedTopicId('custom');
+    setSubjectSuggestions([]);
+    setSubjectSuggestionSets([]);
+    setIntendedDrawingSubject('');
+    setCustomDrawingSubject('');
+    setSubjectValidationMessage('');
+    setCustomSubjectValidated(false);
+    setSubjectSuggestionError('');
+  }
+
+  async function continueTopicSelection(): Promise<void> {
+    const selectedTopic = topic.trim();
+    if (selectedTopic.length < 2 || !topicDraftId || topicSuggestionBusy || subjectSuggestionBusy) {
+      setTopicSuggestionError('Chọn một chủ đề hoặc nhập chủ đề riêng trước khi tiếp tục.');
+      return;
+    }
+    if (!subjectSuggestionRequestId.current) subjectSuggestionRequestId.current = Crypto.randomUUID();
+    const requestId = subjectSuggestionRequestId.current;
+    setSubjectSuggestionBusy(true);
+    setSubjectSuggestionError('');
+    try {
+      const result = await application.learning.listDrawingSubjectSuggestions({
+        draftId: topicDraftId,
+        topicId: selectedTopicId || 'custom',
+        topic: selectedTopic,
+        requestId,
+        excludedSetIds: subjectSuggestionSets.map((set) => set.set_id),
+        excludedSubjects: subjectSuggestionSets.flatMap((set) => set.cards.flatMap((card) => [card.title_vi, card.guide_subject])),
+      });
+      const cards = Array.isArray(result.cards) ? result.cards : [];
+      const customInputRequired = result.generation_source === 'CUSTOM_INPUT_REQUIRED';
+      const cardShapeValid = customInputRequired
+        ? cards.length === 0 && result.topic_id.startsWith('custom-')
+        : cards.length === 3 && new Set(cards.map((card) => card.subject_id)).size === 3;
+      if (result.contract !== 'ParentDrawingSubjectSuggestionSetV1'
+        || result.request_id !== requestId
+        || result.draft_id !== topicDraftId
+        || !isResolvedTopicConsistent({
+          selectedTopicId: selectedTopicId || 'custom',
+          selectedTopic,
+          resolvedTopicId: result.topic_id,
+          resolvedTopic: result.topic,
+        })
+        || !cardShapeValid
+        || subjectSuggestionSets.some((set) => set.set_id === result.set_id)) {
+        throw new ParentApplicationError('PARENT_SUBJECT_SUGGESTION_INVALID', 'Chưa nhận được gợi ý phù hợp với chủ đề.');
+      }
+      setSelectedTopicId(result.topic_id);
+      setTopic(result.topic);
+      setSubjectSuggestionSets((current) => [...current, result]);
+      setSubjectSuggestions([...result.cards]);
+      setStep('subject');
+      subjectSuggestionRequestId.current = '';
+    } catch (cause) {
+      const message = safeParentFlowErrorMessage(cause);
+      setTopicSuggestionError(message);
+      setSubjectSuggestionError(message);
+    } finally {
+      setSubjectSuggestionBusy(false);
+    }
+  }
+
+  async function refreshSubjectSuggestions(): Promise<void> {
+    if (!topicDraftId || !topic || subjectSuggestionBusy || subjectSuggestions.length === 0) return;
+    if (!subjectSuggestionRequestId.current) subjectSuggestionRequestId.current = Crypto.randomUUID();
+    const requestId = subjectSuggestionRequestId.current;
+    setSubjectSuggestionBusy(true);
+    setSubjectSuggestionError('');
+    try {
+      const result = await application.learning.listDrawingSubjectSuggestions({
+        draftId: topicDraftId,
+        topicId: selectedTopicId,
+        topic,
+        requestId,
+        excludedSetIds: subjectSuggestionSets.map((set) => set.set_id),
+        excludedSubjects: subjectSuggestionSets.flatMap((set) => set.cards.flatMap((card) => [card.title_vi, card.guide_subject])),
+      });
+      if (result.request_id !== requestId
+        || result.generation_source !== 'CURATED_CATALOG'
+        || result.draft_id !== topicDraftId
+        || result.cards.length !== 3
+        || result.topic_id !== selectedTopicId
+        || new Set(result.cards.map((card) => card.subject_id)).size !== 3
+        || subjectSuggestionSets.some((set) => set.set_id === result.set_id)) {
+        throw new ParentApplicationError('PARENT_SUBJECT_SUGGESTION_INVALID', 'Chưa nhận được ba gợi ý khác cho chủ đề này.');
+      }
+      setSubjectSuggestionSets((current) => [...current, result]);
+      setSubjectSuggestions([...result.cards]);
+      setIntendedDrawingSubject('');
+      setCustomSubjectValidated(false);
+      subjectSuggestionRequestId.current = '';
+    } catch (cause) {
+      setSubjectSuggestionError(safeParentFlowErrorMessage(cause));
+    } finally {
+      setSubjectSuggestionBusy(false);
+    }
+  }
+
+  function selectDrawingSubject(card: ParentDrawingSubjectCardV1): void {
+    setIntendedDrawingSubject(card.guide_subject);
+    setCustomDrawingSubject('');
+    setCustomSubjectValidated(false);
+    setSubjectValidationMessage('');
+  }
+
+  function setCustomSubject(value: string): void {
+    setCustomDrawingSubject(value);
+    setCustomSubjectValidated(false);
+    setIntendedDrawingSubject('');
+    setSubjectValidationMessage('');
+  }
+
+  async function validateCustomDrawingSubject(): Promise<void> {
+    const proposed = customDrawingSubject.trim();
+    if (proposed.length < 2 || !selectedTopicId || !topic || subjectSuggestionBusy) return;
+    setSubjectSuggestionBusy(true);
+    setSubjectValidationMessage('');
+    try {
+      const result: ParentCustomSubjectValidationV1 = await application.learning.validateCustomSubject({
+        topicId: selectedTopicId,
+        topic,
+        subject: proposed,
+      });
+      if (result.contract !== 'ParentCustomSubjectValidationV1') {
+        throw new ParentApplicationError('PARENT_CUSTOM_SUBJECT_INVALID', 'Máy chủ chưa xác nhận được chủ đề của đối tượng.');
+      }
+      setCustomSubjectValidated(result.decision === 'ON_TOPIC');
+      setIntendedDrawingSubject(result.decision === 'ON_TOPIC' ? (result.normalized_subject ?? proposed) : '');
+      setSubjectValidationMessage(result.message_vi);
+    } catch (cause) {
+      setCustomSubjectValidated(false);
+      setIntendedDrawingSubject('');
+      setSubjectValidationMessage(safeParentFlowErrorMessage(cause));
+    } finally {
+      setSubjectSuggestionBusy(false);
+    }
+  }
+
+  function continueFromSubjectSelection(): void {
+    if (!intendedDrawingSubject.trim() || (customDrawingSubject.trim() && !customSubjectValidated)) return;
+    setIdea((current) => current.trim() || intendedDrawingSubject.trim());
+    setStep('idea');
+  }
+
+  function skipTopicSelection(): void {
+    setTopic('');
+    setSelectedTopicId('');
+    setSubjectSuggestions([]);
+    setSubjectSuggestionSets([]);
+    setIntendedDrawingSubject('');
+    setCustomDrawingSubject('');
+    setSubjectValidationMessage('');
+    setCustomSubjectValidated(false);
+    setStep('idea');
   }
 
   function ensureLearningProfileAllowed(target: ParentProfileViewV1 | null): boolean {
@@ -1003,6 +1281,20 @@ export function useParentController(application: ParentApplicationModule) {
     await analyzeDrawingForRun(contextRun.run_id);
   }
 
+  function renameSecondarySubject(entityId: ParentSubjectRoleV1['entity_id'], label: string): void {
+    setSubjectRoles((current) => setRoleLabel(current, entityId, label));
+  }
+
+  function toggleSecondarySubject(entityId: ParentSubjectRoleV1['entity_id']): void {
+    setSubjectRoles((current) => toggleSecondaryUse(current, entityId));
+  }
+
+  function makeMainSubject(entityId: ParentSubjectRoleV1['entity_id']): void {
+    const next = promoteToMain(subjectRoles, entityId, subject.trim() || mainSubjectLabel(subjectRoles));
+    setSubjectRoles(next);
+    setSubject(mainSubjectLabel(next));
+  }
+
   async function confirmSubject(): Promise<void> {
     if (busy) return;
     if (!ensureLearningProfileAllowed(profile)) return;
@@ -1019,7 +1311,13 @@ export function useParentController(application: ParentApplicationModule) {
       return;
     }
     const confirmedSubject = subject.trim();
-    const signature = JSON.stringify([runId, understandingRevision, confirmedSubject]);
+    const rolesRequest: SubjectRolesRequest = buildSubjectRolesRequest(subjectRoles, confirmedSubject);
+    if (rolesRequest.kind === 'invalid') {
+      setError(subjectRolesIssueMessage(rolesRequest.reason));
+      return;
+    }
+    const approvedRoles = rolesRequest.kind === 'ok' ? rolesRequest.roles : undefined;
+    const signature = JSON.stringify([runId, understandingRevision, confirmedSubject, approvedRoles ?? null]);
     const busyToken = beginBusy('subject');
     setError('');
     try {
@@ -1054,9 +1352,20 @@ export function useParentController(application: ParentApplicationModule) {
         }
       }
       const actionIdentity = retainedActionIdentity(subjectConfirmationAction, signature);
-      const response = await application.learning.confirmSubjectV1(runId, understandingRevision, confirmedSubject, actionIdentity);
+      const response = await application.learning.confirmSubjectV1(
+        runId,
+        understandingRevision,
+        confirmedSubject,
+        actionIdentity,
+        approvedRoles,
+      );
       const subjectEdited = confirmedSubject !== (candidate?.candidate_subject ?? '').trim();
-      const outcome = readSubjectConfirmationOutcome(response, { runId, understandingRevision, subjectEdited });
+      const outcome = readSubjectConfirmationOutcome(response, {
+        runId,
+        understandingRevision,
+        subjectEdited,
+        rolesProvided: approvedRoles !== undefined,
+      });
       if (outcome === 'invalid') {
         throw new ParentApplicationError('PARENT_SUBJECT_CONFIRMATION_INVALID', 'Subject confirmation did not match the reviewed result.');
       }
@@ -1087,7 +1396,14 @@ export function useParentController(application: ParentApplicationModule) {
         ...run,
         understanding_revision: response.understanding_revision,
         subject_label: confirmedSubject,
-        candidate: candidate ? { ...candidate, candidate_subject: confirmedSubject, decision } : null,
+        candidate: candidate
+          ? {
+            ...candidate,
+            candidate_subject: confirmedSubject,
+            decision,
+            ...(approvedRoles ? { subject_roles: approvedRoles } : {}),
+          }
+          : null,
       };
       setContextRun(confirmedRun);
       setActiveRun(confirmedRun);
@@ -2254,8 +2570,13 @@ export function useParentController(application: ParentApplicationModule) {
 
   function resetWorkflow(): void {
     setTopic(''); setIdea(''); setLesson(null); setPhotoValue(null); setCandidate(null); setSubject('');
+    setSelectedTopicId(''); setTopicDraftId(''); setTopicSuggestionSets([]); setTopicSuggestions([]);
+    setTopicSuggestionBusy(false); setTopicSuggestionError(''); topicSuggestionRequestId.current = '';
+    subjectSuggestionRequestId.current = ''; setSubjectSuggestionSets([]); setSubjectSuggestions([]);
+    setSubjectSuggestionBusy(false); setSubjectSuggestionError(''); setIntendedDrawingSubject('');
+    setCustomDrawingSubject(''); setSubjectValidationMessage(''); setCustomSubjectValidated(false);
     setContextRun(null); setContextConfirmed(false); setProfileFieldErrors({});
-    setAudioValue(null); setDrawingGuideIndex(0); setUnderstandingRevision(0); setSubjectConfirmed(false);
+    setAudioValue(null); setDrawingGuideIndex(0); setUnderstandingRevision(0); setSubjectConfirmed(false); setSubjectRoles([]);
     resetActivityReview();
     setStory(null); setStoryDisplayedRunId(''); setStoryRevisionNo(null); setStorySha256('');
     setStoryAttempted(false); setStoryConfirmed(false); setRewriteCount(0); setRewriteInstruction('');
@@ -2290,6 +2611,14 @@ export function useParentController(application: ParentApplicationModule) {
     pendingDeletions, pendingDeletionLoadingId, profileFieldErrors, consentState,
     publicSettings: application.publicSettings,
     activeRun, topic, setTopic, idea, setIdea, lesson, setLesson, lessons, lessonLoading, lessonLoadingId, lessonError,
+    selectedTopicId, topicSuggestions, topicSuggestionBusy, topicSuggestionError,
+    subjectSuggestionSets, subjectSuggestions, subjectSuggestionBusy, subjectSuggestionError,
+    intendedDrawingSubject, customDrawingSubject, subjectValidationMessage,
+    beginTopicPath,
+    beginLessonPath: () => void openLessons('picker'),
+    selectTopicCard, setCustomTopic, refreshTopicSuggestions, continueTopicSelection, skipTopicSelection,
+    selectDrawingSubject, setCustomSubject, validateCustomDrawingSubject, refreshSubjectSuggestions,
+    continueFromSubjectSelection,
     galleryMode, galleryLesson, lessonInvitations, groupInvitations, accountError, guideEnabled, setGuideEnabled,
     guideBase64, guideBusy, guideError, photo, setPhoto, audio, setAudio,
     contextRun, contextConfirmed, candidate, subject, setSubject, subjectConfirmed, understandingRevision,
@@ -2302,6 +2631,7 @@ export function useParentController(application: ParentApplicationModule) {
     selectProfile, requestProfileDeletion, refreshPendingDeletion, continueWithProfile, openLessons, chooseLesson, acceptLessonInvitation,
     declineLessonInvitation, acceptGroupInvitation, createGuide, openDrawingGuide, openContextReview, confirmContext,
     continueToCapture, analyzeDrawingForCurrentRun, confirmSubject,
+    subjectRoles, renameSecondarySubject, toggleSecondarySubject, makeMainSubject,
     confirmStory, refreshStory, drawingGuideIndex, setDrawingGuideIndex,
     resumeActiveRun, changePassword, resetCurrentPassword, signOut,
     leaveWait,
