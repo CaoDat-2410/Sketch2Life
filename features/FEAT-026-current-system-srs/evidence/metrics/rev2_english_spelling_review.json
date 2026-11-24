@@ -1,0 +1,261 @@
+{
+  "revision": "English SRS Rev2",
+  "document": "Sketch2Life_SRS_Form_English.docx",
+  "word_language_id": 9999999,
+  "flagged_token_count": 57,
+  "unique_flagged_tokens": 38,
+  "candidates": {
+    "minSdk": {
+      "count": 2,
+      "examples": [
+        "minSdk 29; targetSdk 36; compileSdk 37 \u0007",
+        "Android-only; com.sketch2life.mobile; minSdk 29; target 36; compile 37. \u0007"
+      ]
+    },
+    "artifact_version": {
+      "count": 1,
+      "examples": [
+        "artifact_id, artifact_version, source_artifact_ids[], created_at \u0007"
+      ]
+    },
+    "happy_cache_hit": {
+      "count": 1,
+      "examples": [
+        "happy_cache_hit \u0007"
+      ]
+    },
+    "expected_session_version": {
+      "count": 2,
+      "examples": [
+        "Current route: POST /v1/live-understanding. The mobile synthetic client sends mode=live-lightning, fixture_id, session_id, expected_session_version, and an optional request_id. The route parses the request with extra=forbid, rejects providers other than lightn",
+        "contract_name, contract_version, session_id, expected_session_version \u0007"
+      ]
+    },
+    "Pydantic": {
+      "count": 1,
+      "examples": [
+        "Python 3.12+; FastAPI + Pydantic boundary \u0007"
+      ]
+    },
+    "FastAPI": {
+      "count": 2,
+      "examples": [
+        "FastAPI health/live-fixture route, typed contracts, P1 admission/compiler, and provider guard \u0007",
+        "Python 3.12+; FastAPI + Pydantic boundary \u0007"
+      ]
+    },
+    "command_id": {
+      "count": 1,
+      "examples": [
+        "Replaying the same command_id returns its corresponding snapshot without incrementing the version a second time."
+      ]
+    },
+    "contract_name": {
+      "count": 1,
+      "examples": [
+        "contract_name, contract_version, session_id, expected_session_version \u0007"
+      ]
+    },
+    "src": {
+      "count": 2,
+      "examples": [
+        "backend/src/sketch2life: a Python modular monolith with domain, application, contracts, interfaces, and infrastructure layers.",
+        "packages/art-renderer/src \u0007"
+      ]
+    },
+    "asset_integrity_failure": {
+      "count": 1,
+      "examples": [
+        "asset_integrity_failure \u0007"
+      ]
+    },
+    "targetSdk": {
+      "count": 1,
+      "examples": [
+        "minSdk 29; targetSdk 36; compileSdk 37 \u0007"
+      ]
+    },
+    "cache_miss_fallback": {
+      "count": 2,
+      "examples": [
+        "FEAT-015 cache_miss_fallback, blocked_learning_media \u0007",
+        "cache_miss_fallback \u0007"
+      ]
+    },
+    "created_at": {
+      "count": 1,
+      "examples": [
+        "artifact_id, artifact_version, source_artifact_ids[], created_at \u0007"
+      ]
+    },
+    "PixiJS": {
+      "count": 2,
+      "examples": [
+        "PixiJS + GSAP package, closed Motion DSL, provenance, and fallback \u0007",
+        "packages/art-renderer: a standalone PixiJS/GSAP original-art renderer."
+      ]
+    },
+    "source_artifact_ids": {
+      "count": 1,
+      "examples": [
+        "artifact_id, artifact_version, source_artifact_ids[], created_at \u0007"
+      ]
+    },
+    "Firestore": {
+      "count": 1,
+      "examples": [
+        "Use Firebase Authentication only; Firebase Storage, Firestore, and Realtime Database are prohibited. \u0007"
+      ]
+    },
+    "generation_called": {
+      "count": 1,
+      "examples": [
+        "cache key, reviewed asset identity, fallback_type, generation_called \u0007"
+      ]
+    },
+    "MinIO": {
+      "count": 1,
+      "examples": [
+        "S3/MinIO adapters, a Redis/RQ worker, a job resource API, retention/deletion jobs, and production observability."
+      ]
+    },
+    "contract_version": {
+      "count": 1,
+      "examples": [
+        "contract_name, contract_version, session_id, expected_session_version \u0007"
+      ]
+    },
+    "fixtureFlow": {
+      "count": 2,
+      "examples": [
+        "fixtureFlow; P1ExperienceCompiler \u0007",
+        "fixtureFlow sequence v4->v6 \u0007"
+      ]
+    },
+    "compileSdk": {
+      "count": 1,
+      "examples": [
+        "minSdk 29; targetSdk 36; compileSdk 37 \u0007"
+      ]
+    },
+    "ExperienceSpec": {
+      "count": 3,
+      "examples": [
+        "100 MVP activities, 20 golden activities, deterministic rules, ExperienceSpec, Gate B integrity \u0007",
+        "Compile immutable ExperienceSpec and prepare media/renderer \u0007"
+      ]
+    },
+    "ActivityHandoff": {
+      "count": 1,
+      "examples": [
+        "ActivityHandoff READY or a typed blocked state \u0007"
+      ]
+    },
+    "stale_gate_or_completion": {
+      "count": 1,
+      "examples": [
+        "stale_gate_or_completion \u0007"
+      ]
+    },
+    "Runpod": {
+      "count": 5,
+      "examples": [
+        "Lightning for development/fixtures; Runpod is the production target through AiGateway. \u0007",
+        "A Runpod production adapter, frozen model profiles, live video generation, signed APK/AAB packages, and Play Console release."
+      ]
+    },
+    "fixture_id": {
+      "count": 1,
+      "examples": [
+        "Current route: POST /v1/live-understanding. The mobile synthetic client sends mode=live-lightning, fixture_id, session_id, expected_session_version, and an optional request_id. The route parses the request with extra=forbid, rejects providers other than lightn"
+      ]
+    },
+    "request_id": {
+      "count": 1,
+      "examples": [
+        "Current route: POST /v1/live-understanding. The mobile synthetic client sends mode=live-lightning, fixture_id, session_id, expected_session_version, and an optional request_id. The route parses the request with extra=forbid, rejects providers other than lightn"
+      ]
+    },
+    "fallback_type": {
+      "count": 1,
+      "examples": [
+        "cache key, reviewed asset identity, fallback_type, generation_called \u0007"
+      ]
+    },
+    "no_eligible_activity_add_context": {
+      "count": 1,
+      "examples": [
+        "no_eligible_activity_add_context \u0007"
+      ]
+    },
+    "invalid_media_recap": {
+      "count": 2,
+      "examples": [
+        "media_validation.py; FEAT-015 invalid_media_recap \u0007",
+        "invalid_media_recap \u0007"
+      ]
+    },
+    "lightning_dev": {
+      "count": 1,
+      "examples": [
+        "Current route: POST /v1/live-understanding. The mobile synthetic client sends mode=live-lightning, fixture_id, session_id, expected_session_version, and an optional request_id. The route parses the request with extra=forbid, rejects providers other than lightn"
+      ]
+    },
+    "production_eligible": {
+      "count": 2,
+      "examples": [
+        "Qualified Montessori catalog: current records are synthetic/provisional and production_eligible=false.",
+        "Catalog/activity/objective qualification required to set production_eligible=true. \u0007"
+      ]
+    },
+    "AiGateway": {
+      "count": 3,
+      "examples": [
+        "Lightning for development/fixtures; Runpod is the production target through AiGateway. \u0007",
+        "Lightning for development/fixtures; Runpod production target through AiGateway \u0007"
+      ]
+    },
+    "session_id": {
+      "count": 2,
+      "examples": [
+        "Current route: POST /v1/live-understanding. The mobile synthetic client sends mode=live-lightning, fixture_id, session_id, expected_session_version, and an optional request_id. The route parses the request with extra=forbid, rejects providers other than lightn",
+        "contract_name, contract_version, session_id, expected_session_version \u0007"
+      ]
+    },
+    "montessori": {
+      "count": 1,
+      "examples": [
+        "packages/domain-montessori and packages/domain-experience: domain/spec boundaries and catalog fixtures."
+      ]
+    },
+    "blocked_learning_media": {
+      "count": 2,
+      "examples": [
+        "FEAT-015 cache_miss_fallback, blocked_learning_media \u0007",
+        "blocked_learning_media \u0007"
+      ]
+    },
+    "modality_conflict_requires_gate_a": {
+      "count": 1,
+      "examples": [
+        "modality_conflict_requires_gate_a \u0007"
+      ]
+    },
+    "artifact_id": {
+      "count": 1,
+      "examples": [
+        "artifact_id, artifact_version, source_artifact_ids[], created_at \u0007"
+      ]
+    }
+  },
+  "disposition": "Candidate terms reviewed manually; dictionary flags are identifiers, acronyms, product names, technical vocabulary or labels unless specifically noted.",
+  "docx_sha256": "cfaf85fa4923a0b26228ee95a2980c31beedae085c167567f82ce4c2c53df037",
+  "pdf_sha256": "88ee851cd8b5688c3b10ee0ec3b64e913bdcdaa430dea17d204c938abc559dc0",
+  "manual_review": {
+    "result": "pass",
+    "reviewed_flagged_candidates": true,
+    "ordinary_english_spelling_errors_remaining": 0,
+    "disposition": "The 57 Word dictionary flags across 38 unique tokens are API/schema identifiers, acronyms, product/framework names, technical vocabulary, or labels. The rendered prose and headings were reviewed; no ordinary English spelling errors remain.",
+    "language_note": "Word reports a mixed document-level language ID (9999999); OOXML proofing runs use en-US, and the output text contains no Vietnamese diacritics."
+  }
+}

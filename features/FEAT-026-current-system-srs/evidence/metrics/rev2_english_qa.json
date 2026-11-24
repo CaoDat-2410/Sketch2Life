@@ -1,0 +1,225 @@
+{
+  "docx_zip_integrity": "pass",
+  "docx_sha256": "cfaf85fa4923a0b26228ee95a2980c31beedae085c167567f82ce4c2c53df037",
+  "docx_bytes": 367808,
+  "pdf_sha256": "88ee851cd8b5688c3b10ee0ec3b64e913bdcdaa430dea17d204c938abc559dc0",
+  "pdf_bytes": 664726,
+  "pdf_page_count": 13,
+  "docx_font_char_counts": {
+    "Arial": 22173
+  },
+  "docx_run_size_char_counts_pt": {
+    "10.0": 22173
+  },
+  "ooxml_font_family_attribute_counts": {
+    "Arial": 4508
+  },
+  "ooxml_proofing_language_attribute_counts": {
+    "en-US": 2814
+  },
+  "docx_text_latin_diacritics": [],
+  "pdf_text_latin_diacritics": [],
+  "pages_without_extractable_text": [],
+  "visually_blank_pages": [],
+  "pdf_text_out_of_bounds_characters": 0,
+  "page_text_horizontal_bounds_pt": [
+    {
+      "page": 1,
+      "min_x": 50.4,
+      "max_x": 561.45
+    },
+    {
+      "page": 2,
+      "min_x": 48.24,
+      "max_x": 561.45
+    },
+    {
+      "page": 3,
+      "min_x": 48.24,
+      "max_x": 561.45
+    },
+    {
+      "page": 4,
+      "min_x": 48.24,
+      "max_x": 561.45
+    },
+    {
+      "page": 5,
+      "min_x": 50.4,
+      "max_x": 561.45
+    },
+    {
+      "page": 6,
+      "min_x": 50.4,
+      "max_x": 561.45
+    },
+    {
+      "page": 7,
+      "min_x": 48.24,
+      "max_x": 561.45
+    },
+    {
+      "page": 8,
+      "min_x": 48.24,
+      "max_x": 561.45
+    },
+    {
+      "page": 9,
+      "min_x": 50.4,
+      "max_x": 561.45
+    },
+    {
+      "page": 10,
+      "min_x": 50.4,
+      "max_x": 561.45
+    },
+    {
+      "page": 11,
+      "min_x": 50.4,
+      "max_x": 561.45
+    },
+    {
+      "page": 12,
+      "min_x": 48.24,
+      "max_x": 561.45
+    },
+    {
+      "page": 13,
+      "min_x": 48.24,
+      "max_x": 561.45
+    }
+  ],
+  "page_records": [
+    {
+      "page": 1,
+      "printed_page_number": 1,
+      "orientation": "portrait",
+      "text_chars": 1112,
+      "ink_ratio": 0.154765,
+      "visually_blank": false,
+      "latin_diacritics": [],
+      "text_preview": "Sketch2Life | SRS form Internal project document | Synthetic and fixture data only | Page 1 Sketch2Life: Collaborative Creative Learning with AI for Children Current System Software Requirements Specification Field Value Document ID SRS-S2L"
+    },
+    {
+      "page": 2,
+      "printed_page_number": 2,
+      "orientation": "portrait",
+      "text_chars": 2869,
+      "ink_ratio": 0.240548,
+      "visually_blank": false,
+      "latin_diacritics": [],
+      "text_preview": "Sketch2Life | SRS form Internal project document | Synthetic and fixture data only | Page 2 1 Summary and Purpose Sketch2Life turns children's drawings and narration into a short learning experience, then guides them into an off￾screen Mont"
+    },
+    {
+      "page": 3,
+      "printed_page_number": 3,
+      "orientation": "portrait",
+      "text_chars": 2007,
+      "ink_ratio": 0.219178,
+      "visually_blank": false,
+      "latin_diacritics": [],
+      "text_preview": "Sketch2Life | SRS form Internal project document | Synthetic and fixture data only | Page 3 2.2 Out of Scope or Not Production-Ready • Firebase ID-token verification middleware, persistent role/authorization data, and Parent/Guide sign-in U"
+    },
+    {
+      "page": 4,
+      "printed_page_number": 4,
+      "orientation": "portrait",
+      "text_chars": 1109,
+      "ink_ratio": 0.099598,
+      "visually_blank": false,
+      "latin_diacritics": [],
+      "text_preview": "Sketch2Life | SRS form Internal project document | Synthetic and fixture data only | Page 4 Figure 1. Current Maturity by System Area 3.1 Repository boundary • apps/mobile: presentation and device adapters; does not own business truth. • ba"
+    },
+    {
+      "page": 5,
+      "printed_page_number": 5,
+      "orientation": "portrait",
+      "text_chars": 964,
+      "ink_ratio": 0.229963,
+      "visually_blank": false,
+      "latin_diacritics": [],
+      "text_preview": "Sketch2Life | SRS form Internal project document | Synthetic and fixture data only | Page 5 Figure 2. Current Boundaries and Accepted Target Topology Mobile communicates only with the backend over HTTPS. Mobile does not call Lightning, Runp"
+    },
+    {
+      "page": 6,
+      "printed_page_number": 6,
+      "orientation": "portrait",
+      "text_chars": 1258,
+      "ink_ratio": 0.289996,
+      "visually_blank": false,
+      "latin_diacritics": [],
+      "text_preview": "Sketch2Life | SRS form Internal project document | Synthetic and fixture data only | Page 6 5 Main Business Flows Figure 3. End-to-End Flow from Capture to Feedback Step Behavior and rule Maturity Capture Receives drawing and narration in a"
+    },
+    {
+      "page": 7,
+      "printed_page_number": 7,
+      "orientation": "portrait",
+      "text_chars": 1672,
+      "ink_ratio": 0.234738,
+      "visually_blank": false,
+      "latin_diacritics": [],
+      "text_preview": "Sketch2Life | SRS form Internal project document | Synthetic and fixture data only | Page 7 5.1 Live understanding dev boundary Current route: POST /v1/live-understanding. The mobile synthetic client sends mode=live-lightning, fixture_id, s"
+    },
+    {
+      "page": 8,
+      "printed_page_number": 8,
+      "orientation": "portrait",
+      "text_chars": 2778,
+      "ink_ratio": 0.371272,
+      "visually_blank": false,
+      "latin_diacritics": [],
+      "text_preview": "Sketch2Life | SRS form Internal project document | Synthetic and fixture data only | Page 8 • An outdated expected session version is rejected with STALE_SESSION_VERSION. • Job completion or cancellation with a mismatched version is rejecte"
+    },
+    {
+      "page": 9,
+      "printed_page_number": 9,
+      "orientation": "portrait",
+      "text_chars": 2411,
+      "ink_ratio": 0.417113,
+      "visually_blank": false,
+      "latin_diacritics": [],
+      "text_preview": "Sketch2Life | SRS form Internal project document | Synthetic and fixture data only | Page 9 ID Requirement Maturity Traceability FR-008 ExperienceSpec must be immutable and include a canonical hash, fit evaluation, and strict continuity. Of"
+    },
+    {
+      "page": 10,
+      "printed_page_number": 10,
+      "orientation": "portrait",
+      "text_chars": 2288,
+      "ink_ratio": 0.346006,
+      "visually_blank": false,
+      "latin_diacritics": [],
+      "text_preview": "Sketch2Life | SRS form Internal project document | Synthetic and fixture data only | Page 10 ID Quality area Requirement Evidence / source NFR-005 Resilience Typed failure/fallback; media failure does not break the handoff. FEAT-015 scenari"
+    },
+    {
+      "page": 11,
+      "printed_page_number": 11,
+      "orientation": "portrait",
+      "text_chars": 2162,
+      "ink_ratio": 0.36951,
+      "visually_blank": false,
+      "latin_diacritics": [],
+      "text_preview": "Sketch2Life | SRS form Internal project document | Synthetic and fixture data only | Page 11 Scenario Expected result Review result modality_conflict_requires_gate_a Preserve claims; GATE_A_REQUIRED [ ] Reconfirm no_eligible_activity_add_co"
+    },
+    {
+      "page": 12,
+      "printed_page_number": 12,
+      "orientation": "portrait",
+      "text_chars": 2284,
+      "ink_ratio": 0.302731,
+      "visually_blank": false,
+      "latin_diacritics": [],
+      "text_preview": "Sketch2Life | SRS form Internal project document | Synthetic and fixture data only | Page 12 Trace target Repository source Current system documentation features/FEAT-019-current-system-documentation/ 11.1 Dependency-driven next steps • Fre"
+    },
+    {
+      "page": 13,
+      "printed_page_number": 13,
+      "orientation": "portrait",
+      "text_chars": 1699,
+      "ink_ratio": 0.191966,
+      "visually_blank": false,
+      "latin_diacritics": [],
+      "text_preview": "Sketch2Life | SRS form Internal project document | Synthetic and fixture data only | Page 13 Appendix A. Requirement Update Form Use this form when adding or changing a requirement. Every behavior change must include an updated source/contr"
+    }
+  ],
+  "visual_review": "Pass: all 13 pages reviewed in contact sheets; cover, introduction/team, repaired tables, route/state model, requirements, security, traceability, sign-off and appendix pages checked at full size."
+}

@@ -1,5 +1,5 @@
-# Metrics evidence location
+# FEAT-026 metrics evidence
 
-This directory is present for the feature harness only. No metrics are currently recorded here;
-do not treat this placeholder as measurement or acceptance evidence. Add only reproducible,
-feature-owned metrics when the FEAT-026 verification produces them.
+- rev2_english_qa.json records DOCX/PDF hashes, page count, text language, font and size audits, bounds checks, and render review.
+- rev2_english_spelling_review.json records the Word spelling candidates and their manual disposition.
+- Historical receipts remain alongside these current Rev2 measurements and retain their original revision labels.
