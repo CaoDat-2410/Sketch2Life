@@ -9,7 +9,10 @@ import re
 from typing import Any
 
 STORY_VISUAL_PLAN_SCHEMA = "sketch2life.modal.story-visual-plan.v2"
-PROMPT_TEMPLATE_VERSION = "story-i2v-v4"
+STORY_VISUAL_PLAN_SCHEMA_V3 = "sketch2life.modal.story-visual-plan.v3"
+PROMPT_TEMPLATE_VERSION = "story-i2v-v7"
+KEYFRAME_PROMPT_TEMPLATE_VERSION = "story-i2v-v8"
+_MAX_DRAWN_SECONDARIES = 3
 _ENTITY_ID = re.compile(r"\A[a-z][a-z0-9-]{1,47}\Z")
 _CAMERA_MOTIONS = {"locked", "slow_follow", "slow_push"}
 _FRAME_RATE = 24
@@ -76,11 +79,13 @@ def validate_story_visual_plan(
     top_keys = {"schema_version", "source_story_sha256", "entities", "scenes"}
     if not isinstance(visual_plan, dict) or set(visual_plan) != top_keys:
         raise StoryVisualPlanError("VIDEO_STORY_VISUAL_PLAN_INVALID")
+    schema_version = visual_plan.get("schema_version")
     if (
-        visual_plan.get("schema_version") != STORY_VISUAL_PLAN_SCHEMA
+        schema_version not in {STORY_VISUAL_PLAN_SCHEMA, STORY_VISUAL_PLAN_SCHEMA_V3}
         or visual_plan.get("source_story_sha256") != story_sha256
     ):
         raise StoryVisualPlanError("VIDEO_STORY_VISUAL_PLAN_HASH_MISMATCH")
+    allow_drawn_secondary = schema_version == STORY_VISUAL_PLAN_SCHEMA_V3
 
     entities = visual_plan.get("entities")
     plan_scenes = visual_plan.get("scenes")
@@ -95,6 +100,7 @@ def validate_story_visual_plan(
     entity_map: dict[str, dict[str, Any]] = {}
     source_entities: set[str] = set()
     subject_ids: set[str] = set()
+    drawn_secondary_ids: set[str] = set()
     for entity in entities:
         keys = {"entity_id", "kind", "source", "label", "appearance"}
         if not isinstance(entity, dict) or set(entity) != keys:
@@ -106,9 +112,10 @@ def validate_story_visual_plan(
             not isinstance(entity_id, str)
             or _ENTITY_ID.fullmatch(entity_id) is None
             or entity_id in entity_map
-            or kind not in {"subject", "prop"}
+            or kind
+            not in ({"subject", "prop", "drawn_secondary"} if allow_drawn_secondary else {"subject", "prop"})
             or source not in {"source_drawing", "story_directed"}
-            or (kind == "subject") != (source == "source_drawing")
+            or (kind == "prop") != (source == "story_directed")
             or not _bounded_text(entity.get("label"), 1, 80)
             or not _bounded_text(entity.get("appearance"), 8, 240)
         ):
@@ -118,11 +125,13 @@ def validate_story_visual_plan(
             source_entities.add(entity_id)
         if kind == "subject":
             subject_ids.add(entity_id)
+        elif kind == "drawn_secondary":
+            drawn_secondary_ids.add(entity_id)
 
     if (
-        len(source_entities) != 1
-        or len(subject_ids) != 1
-        or source_entities != subject_ids
+        len(subject_ids) != 1
+        or len(drawn_secondary_ids) > _MAX_DRAWN_SECONDARIES
+        or source_entities != subject_ids | drawn_secondary_ids
     ):
         raise StoryVisualPlanError("VIDEO_STORY_SUBJECT_ANCHOR_INVALID")
 
@@ -164,10 +173,11 @@ def validate_story_visual_plan(
             or not subject_ids.issubset(visible)
             or introduced != expected_introduced
             or removed != expected_removed
+            or bool(introduced & drawn_secondary_ids)
             or not _bounded_text(plan_scene.get("continuity_in"), 1, 240)
             or not _bounded_text(plan_scene.get("continuity_out"), 1, 240)
             or not _bounded_text(plan_scene.get("spatial_direction"), 0, 160)
-            or not _bounded_text(plan_scene.get("model_action_instruction"), 8, 400)
+            or not _bounded_text(plan_scene.get("model_action_instruction"), 8, 900)
             or plan_scene.get("camera_motion") not in _CAMERA_MOTIONS
         ):
             raise StoryVisualPlanError("VIDEO_STORY_VISUAL_TRANSITION_INVALID")
@@ -182,7 +192,7 @@ def validate_story_visual_plan(
 def compile_scene_prompt(
     scene: dict[str, Any], visual_plan: dict[str, Any], *, first_scene: bool
 ) -> str:
-    """Compile a short action-first prompt from a validated visual plan."""
+    """Compile a detailed single-shot prompt from a validated visual plan."""
 
     plan_scene = next(
         item for item in visual_plan["scenes"] if item["scene_id"] == scene["scene_id"]
@@ -191,53 +201,107 @@ def compile_scene_prompt(
     visible = [entity_map[item] for item in plan_scene["visible_entity_ids"]]
     introduced = [entity_map[item] for item in plan_scene["introduced_entity_ids"]]
     removed = [entity_map[item] for item in plan_scene["removed_entity_ids"]]
+    visible_props = [item for item in visible if item["kind"] == "prop"]
 
     def describe(items: list[dict[str, Any]]) -> str:
-        return (
-            "; ".join(f"{item['label']}: {item['appearance']}" for item in items)
-            or "none"
-        )
+        def clean(value: str) -> str:
+            return value.strip().rstrip(".!? ")
 
-    initial_image = (
-        "the exact original child drawing"
-        if first_scene
-        else "the last frame of the preceding scene"
-    )
-    camera_instruction = {
-        "locked": (
-            "Camera is completely fixed. Keep subject scale, screen position, and crop constant; "
-            "no pan, zoom, tilt, shake, or reframing."
-        ),
-        "slow_follow": "Use only a subtle, smooth follow movement; keep the full subject in frame.",
-        "slow_push": "Use only the explicitly approved gentle push; do not crop or resize the subject.",
+        return "; ".join(
+            f"{clean(item['label'])}: {clean(item['appearance'])}" for item in items
+        ) or "none"
+
+    camera_shot = {
+        "locked": "locked, straight-on, medium-wide",
+        "slow_follow": "medium-wide with only the plan-approved subtle follow",
+        "slow_push": "medium-wide with only the plan-approved gentle push",
     }[plan_scene["camera_motion"]]
-    opening_instruction = (
-        "Use the exact original child drawing as the opening frame. Preserve the whole drawn subject."
-        if first_scene
-        else "Use the preceding scene's final frame as the exact opening state; continue its subject and prop placement."
+    camera_instruction = {
+        "locked": "keep the camera fixed, with no pan, zoom, tilt, shake, crop change, or reframing",
+        "slow_follow": "follow only subtly while keeping the full subject in frame at the same scale",
+        "slow_push": "use only the approved gentle push without cropping, resizing, or changing proportions",
+    }[plan_scene["camera_motion"]]
+    initial_image = "the verified original drawing" if first_scene else "the prior scene's final frame"
+    continuity_in = plan_scene["continuity_in"].strip().rstrip(".!? ")
+    continuity_out = plan_scene["continuity_out"].strip().rstrip(".!? ")
+    approved_action = plan_scene["approved_action"].strip().rstrip(".!? ")
+    action_instruction = plan_scene["model_action_instruction"].strip()
+    if not action_instruction.endswith((".", "!", "?")):
+        action_instruction += "."
+    spatial_direction = (
+        plan_scene["spatial_direction"].strip().rstrip(".!? ")
+        or "the established relative position"
     )
-    prompt = "\n".join(
+    if introduced:
+        prop_instruction = (
+            f"Introduce exactly once the newly approved prop {describe(introduced)} at {spatial_direction}; "
+            "keep it secondary and clear of the source subject"
+        )
+    elif visible_props:
+        prop_instruction = (
+            f"Keep the planned prop {describe(visible_props)} at {spatial_direction}; "
+            "do not duplicate it or let it cover the subject"
+        )
+    else:
+        prop_instruction = "Add no props or characters beyond the entities in the approved plan"
+    removal_instruction = (
+        f"remove only {describe(removed)} by the end"
+        if removed
+        else "keep the planned entities present through the end"
+    )
+    prompt = " ".join(
         (
-            "Image-to-video. Animate the supplied image itself; it is the only design reference. Do not create a replacement illustration.",
-            f"Opening state: {initial_image}. {opening_instruction}",
-            "Identity lock across every frame: keep the same subject silhouette, proportions, colors, line thickness, hand-drawn/crayon texture, screen position, and apparent size. Do not vectorize, clean up, beautify, recolor, or invent markings.",
-            f"Approved story action (source wording, unchanged): {plan_scene['approved_action']}",
-            (
-                "Faithful motion rendering of that action; add no event or behavior: "
-                f"{plan_scene['model_action_instruction']}"
-            ),
-            "Animate only the body parts and planned prop needed for this action; hold all other drawing details and the paper background still.",
-            f"Entities that must remain visible: {describe(visible)}.",
-            f"Introduce in this scene: {describe(introduced)}. Add each introduced entity exactly once, at the described size, orientation, and position; keep it secondary and do not cover or redraw the subject.",
-            f"Entities that must be absent by the end: {describe(removed)}.",
-            f"Spatial direction: {plan_scene['spatial_direction'] or 'preserve the current relative positions'}.",
-            f"Continuity at start: {plan_scene['continuity_in']}",
-            f"Resolve by the end: {plan_scene['continuity_out']}",
-            "Motion timing: show one clearly readable action from start to finish, then settle during the final fifth of the clip. Use restrained movement; no pose jump or teleport.",
-            camera_instruction,
-            "No extra entities, duplicate props, text, narration, subtitles, music, sound, or audio. Keep the background plain and stable.",
+            f"One continuous {camera_shot} shot opens on {initial_image} with this starting state: {continuity_in}; keep the complete drawing in frame.",
+            f"Preserve the supplied drawing's exact subject, silhouette, proportions, palette, uneven hand-drawn line quality, paper texture, composition, position, and scale; animate only this adult-approved action: {approved_action}.",
+            f"Show that action as a clear, physically plausible progression from beginning to result: {action_instruction}",
+            f"{prop_instruction}; move only the body parts or planned prop needed for this action with small, smooth movement; {removal_instruction}; keep all other marks and the paper still.",
+            f"End in this visible state: {continuity_out}, holding the pose briefly for continuity; {camera_instruction}; no cuts, extra objects, duplicate source, thumbnail, picture-in-picture, card, frame, readable text, subtitles, logos, narration, music, sound, or audio.",
         )
     )
+    if len(prompt) > 5_000:
+        raise StoryVisualPlanError("VIDEO_STORY_PROMPT_LIMIT_EXCEEDED")
+    return prompt
+
+
+def compile_keyframe_scene_prompt(scene: dict[str, Any], visual_plan: dict[str, Any]) -> str:
+    """story-i2v-v8: describe the motion between a given first and last frame.
+
+    The first and last frames are real keyframes composed from the child's own strokes, so the
+    prompt says what moves and what changes, not what to avoid.
+    """
+
+    plan_scene = next(
+        item for item in visual_plan["scenes"] if item["scene_id"] == scene["scene_id"]
+    )
+    entity_map = {entity["entity_id"]: entity for entity in visual_plan["entities"]}
+
+    def clean(value: str) -> str:
+        return value.strip().rstrip(".!? ")
+
+    drawn = [
+        entity_map[item]
+        for item in plan_scene["visible_entity_ids"]
+        if entity_map[item]["kind"] == "drawn_secondary"
+    ]
+    gone = [
+        entity_map[item]
+        for item in plan_scene["removed_entity_ids"]
+        if entity_map[item]["kind"] == "drawn_secondary"
+    ]
+    parts = [
+        "One continuous locked shot of a hand-drawn paper scene, animated as a gentle storybook cartoon.",
+        f"The first frame shows: {clean(plan_scene['continuity_in'])}.",
+        f"The last frame shows: {clean(plan_scene['continuity_out'])}.",
+        f"Between the two frames: {clean(plan_scene['model_action_instruction'])}.",
+    ]
+    for entity in drawn:
+        parts.append(f"The {clean(entity['label'])} stays where it is drawn.")
+    for entity in gone:
+        parts.append(
+            f"By the last frame the {clean(entity['label'])} is gone from the paper, as if it was used up."
+        )
+    parts.append("Keep the line work, colours and paper exactly as drawn; no text, no frame, no cuts.")
+    prompt = " ".join(parts)
     if len(prompt) > 5_000:
         raise StoryVisualPlanError("VIDEO_STORY_PROMPT_LIMIT_EXCEEDED")
     return prompt

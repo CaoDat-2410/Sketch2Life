@@ -36,21 +36,38 @@ from worker_observability import (  # noqa: E402
 APP_NAME = "sketch2life-srs23-drawing-vlm-dev"
 _CONTRACTS_FILE = _MODULE_DIR / "contracts.py"
 _OBSERVABILITY_FILE = _MODULE_DIR / "worker_observability.py"
-MODEL_ID = "Qwen/Qwen3.5-9B"
-MODEL_REVISION = "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+MODEL_ID = "Qwen/Qwen3.8-27B-FP8"
+MODEL_REVISION = "c3a462cc3d38cf351f3b26cbd763469eeb74ef81"
 MODEL_LICENSE = "Apache-2.0"
+FP8_KERNEL_REPO_ID = "kernels-community/finegrained-fp8"
+FP8_KERNEL_VERSION = 4
+QWEN_FLA_VERSION = "0.6.0"
+QWEN_TRITON_VERSION = "3.4.0"
+QWEN_CAUSAL_CONV1D_WHEEL = (
+    "causal-conv1d @ "
+    "https://github.com/Dao-AILab/causal-conv1d/releases/download/v1.7.0/"
+    "causal_conv1d-1.7.0%2Bcu12torch2.8cxx11abiTRUE-cp311-cp311-linux_x86_64.whl"
+    "#sha256=b28c3657a9d6855e1f95bc912ab94f893434276b437dec8008c92c9f38b6a1f4"
+)
 MODEL_VOLUME_NAME = "sketch2life-dev-model-weights-v2"
 SCRATCH_VOLUME_NAME = "sketch2life-dev-job-scratch-v2"
 MODEL_MOUNT = "/models"
 SCRATCH_MOUNT = "/scratch"
-MODEL_DIR = f"{MODEL_MOUNT}/qwen3_5_9b/{MODEL_REVISION}"
+MODEL_DIR = f"{MODEL_MOUNT}/qwen3_8_27b_fp8/{MODEL_REVISION}"
 MODEL_MANIFEST = f"{MODEL_DIR}/sketch2life-model-manifest.json"
 DRAWING_INPUT_SCHEMA = "sketch2life.modal.drawing-input.v1"
 MAX_MANIFEST_BYTES = 64 * 1024
 MAX_IMAGE_PIXELS = 2_000_000
 MAX_PROCESSOR_PIXELS = 512 * 512
-MAX_OUTPUT_UNITS = 512
+MAX_OUTPUT_UNITS = 768
 DRAWING_CONFIDENCE_LEVELS = tuple(round(step / 10, 1) for step in range(11))
+# FEAT-087: main subject + up to three secondary subjects, each with a coarse box.
+UNDERSTANDING_SCHEMA_V2 = "sketch2life.drawing-understanding.v2"
+BOX_GRID_MAX = 20  # LMFE 0.11.3 does not enforce ranges: every box value is a closed enum 0..20.
+BOX_GRID_VALUES = tuple(range(BOX_GRID_MAX + 1))
+MIN_BOX_GRID_CELLS = 4
+MAX_SECONDARY_SUBJECTS = 3
+FACING_VALUES = ("left", "right", "front")
 _SHA256 = re.compile(r"\A[0-9a-f]{64}\Z")
 
 
@@ -104,13 +121,18 @@ inference_image = (
     modal.Image.debian_slim(python_version="3.11")
     .add_local_file(str(_CONTRACTS_FILE), "/root/contracts.py", copy=True)
     .add_local_file(str(_OBSERVABILITY_FILE), "/root/worker_observability.py", copy=True)
-    .uv_pip_install("torch==2.7.1", "torchvision==0.22.1")
     .uv_pip_install(
-        "transformers==5.22.1",
+        "torch==2.8.0",
+        "torchvision==0.23.0",
+        "transformers[kernels]==5.22.1",
         "accelerate==1.8.1",
         "huggingface_hub==1.32.0",
         "Pillow==11.2.1",
         "lm-format-enforcer==0.11.3",
+        "kernels==0.17.2",
+        f"flash-linear-attention[cuda]=={QWEN_FLA_VERSION}",
+        QWEN_CAUSAL_CONV1D_WHEEL,
+        f"triton=={QWEN_TRITON_VERSION}",
     )
     .env({"HF_HUB_DISABLE_TELEMETRY": "1", "HF_HOME": "/tmp/huggingface"})
 )
@@ -195,7 +217,7 @@ def download_pinned_model() -> dict[str, Any]:
 @app.function(
     name="analyze-drawing",
     image=inference_image,
-    gpu=["L40S", "L4", "A10"],
+    gpu="L40S",
     cpu=4.0,
     memory=32_768,
     volumes={
@@ -212,7 +234,7 @@ def download_pinned_model() -> dict[str, Any]:
     workload="drawing.analyze",
     model_id=MODEL_ID,
     model_revision=MODEL_REVISION,
-    gpu_class="L40S|L4|A10",
+    gpu_class="L40S",
 )
 def analyze_drawing(payload: dict[str, Any]) -> dict[str, Any]:
     """Inspect one staged drawing and return a candidate requiring adult confirmation."""
@@ -234,19 +256,7 @@ def analyze_drawing(payload: dict[str, Any]) -> dict[str, Any]:
     with worker_phase("image_preprocess"), Image.open(image_path) as opened:
         drawing = opened.convert("RGB")
 
-    prompt = (
-        "Quan sát ảnh tranh đường nét đen trên nền trắng. Chỉ mô tả chủ thể và đặc điểm "
-        "nhìn thấy trực tiếp trong ảnh. Không suy đoán tuổi, danh tính, cảm xúc, năng lực "
-        "hay hoàn cảnh của người vẽ. Nếu không nhận ra chủ thể, dùng candidate_subject "
-        "là ‘chưa xác định’. visible_features gồm từ 1 đến 4 mô tả ngắn, cụ thể. "
-        "confidence là một trong các số 0.0, 0.1, 0.2, …, 1.0 (đúng một chữ số thập phân, "
-        "không dùng phần trăm), biểu thị mức chắc chắn rằng candidate_subject "
-        "là chủ thể chính nhìn thấy trong ảnh: gần 0 khi không nhận diện được, khoảng 0.5 "
-        "khi còn mơ hồ, gần 1 khi có dấu hiệu hình ảnh rõ ràng. Chỉ dựa trên ảnh; không "
-        "tăng confidence theo chủ đề hay ý định vẽ. Đây chỉ là ước lượng hỗ trợ người lớn, "
-        "không thay thế xác nhận của người lớn. "
-        "Không viết lời dẫn hoặc nội dung ngoài JSON."
-    )
+    prompt = _drawing_prompt()
     with worker_phase("prompt_encode"):
         messages = _drawing_messages(drawing, prompt)
         inputs = processor.apply_chat_template(
@@ -405,7 +415,7 @@ def _ensure_checkpoint_files(model_path: Path) -> None:
 
 
 def _drawing_messages(drawing: Any, prompt: str) -> list[dict[str, Any]]:
-    """Use the documented Qwen3.5 image-in-message input representation."""
+    """Use Qwen3.8's documented image-in-message input representation."""
 
     return [
         {
@@ -422,23 +432,97 @@ _CACHED_QWEN_VOCAB_DATA: Any | None = None
 _CACHED_QWEN_EOS_IDS: tuple[int, ...] | None = None
 
 
+def _drawing_prompt() -> str:
+    return (
+        "Quan sát ảnh tranh đường nét đen trên nền trắng. Chỉ mô tả những gì nhìn thấy "
+        "trực tiếp trong ảnh. Không suy đoán tuổi, danh tính, cảm xúc, năng lực hay hoàn "
+        "cảnh của người vẽ. Trả về một JSON gồm main_subject, secondary_subjects và confidence. "
+        "main_subject là chủ thể chính: vật lớn nhất hoặc ở trung tâm, ưu tiên sinh vật có thể "
+        "hành động; gồm label (tên ngắn), visible_features (1 đến 4 mô tả ngắn, cụ thể), "
+        "facing (left, right hoặc front: chủ thể quay mặt về phía nào trong ảnh) và box. "
+        "secondary_subjects là các vật khác được vẽ riêng biệt trong tranh (đồ ăn, đồ chơi, "
+        "cây, vật dụng…), tối đa 3 vật, mỗi vật có label, visible_features (0 đến 2 mô tả) "
+        "và box; để danh sách rỗng nếu tranh chỉ có một vật. Không liệt kê nền, mặt đất, "
+        "đường kẻ trang trí hay họa tiết; không bịa ra vật không nhìn thấy. "
+        "box gồm đúng 4 số nguyên [x0, y0, x1, y1] trên lưới từ 0 đến 20, trong đó 0 là mép "
+        "trái/trên và 20 là mép phải/dưới của ảnh; x0 nhỏ hơn x1, y0 nhỏ hơn y1; khung phải "
+        "bao trọn vật. Nếu không nhận ra chủ thể, dùng label là ‘chưa xác định’. "
+        "confidence là một trong các số 0.0, 0.1, 0.2, …, 1.0 (đúng một chữ số thập phân, "
+        "không dùng phần trăm), biểu thị mức chắc chắn rằng main_subject là chủ thể chính "
+        "nhìn thấy trong ảnh: gần 0 khi không nhận diện được, khoảng 0.5 khi còn mơ hồ, gần 1 "
+        "khi có dấu hiệu hình ảnh rõ ràng. Chỉ dựa trên ảnh; không tăng confidence theo chủ đề "
+        "hay ý định vẽ. Đây chỉ là ước lượng hỗ trợ người lớn, không thay thế xác nhận của "
+        "người lớn. Không viết lời dẫn hoặc nội dung ngoài JSON."
+    )
+
+
+def box_grid_to_pixels(
+    box: list[int], *, width: int, height: int
+) -> tuple[int, int, int, int]:
+    """Map a validated 0..20 grid box to pixel coordinates of an image."""
+
+    x0, y0, x1, y1 = box
+    return (
+        round(x0 * width / BOX_GRID_MAX),
+        round(y0 * height / BOX_GRID_MAX),
+        round(x1 * width / BOX_GRID_MAX),
+        round(y1 * height / BOX_GRID_MAX),
+    )
+
+
+def _box_schema() -> dict[str, Any]:
+    return {
+        "type": "array",
+        "minItems": 4,
+        "maxItems": 4,
+        "items": {"type": "integer", "enum": list(BOX_GRID_VALUES)},
+    }
+
+
 def _drawing_output_json_schema() -> dict[str, Any]:
+    def features(min_items: int, max_items: int) -> dict[str, Any]:
+        return {
+            "type": "array",
+            "minItems": min_items,
+            "maxItems": max_items,
+            "items": {"type": "string", "minLength": 1, "maxLength": 160},
+        }
+
     return {
         "type": "object",
         "properties": {
-            "candidate_subject": {"type": "string", "minLength": 1, "maxLength": 100},
-            "visible_features": {
+            "main_subject": {
+                "type": "object",
+                "properties": {
+                    "label": {"type": "string", "minLength": 1, "maxLength": 100},
+                    "visible_features": features(1, 4),
+                    "facing": {"type": "string", "enum": list(FACING_VALUES)},
+                    "box": _box_schema(),
+                },
+                "required": ["label", "visible_features", "facing", "box"],
+                "additionalProperties": False,
+            },
+            "secondary_subjects": {
                 "type": "array",
-                "minItems": 1,
-                "maxItems": 4,
-                "items": {"type": "string", "minLength": 1, "maxLength": 160},
+                "minItems": 0,
+                "maxItems": MAX_SECONDARY_SUBJECTS,
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "label": {"type": "string", "minLength": 1, "maxLength": 100},
+                        "visible_features": features(0, 2),
+                        "box": _box_schema(),
+                    },
+                    "required": ["label", "visible_features", "box"],
+                    "additionalProperties": False,
+                },
             },
             # LMFE 0.11.3 does not enforce numeric minimum/maximum or digit count, so a
             # bounded range let the model emit 85 / 1.5 / endless digits and fail
             # parsing after EOS. A closed enum is enforced character by character.
             "confidence": {"type": "number", "enum": list(DRAWING_CONFIDENCE_LEVELS)},
         },
-        "required": ["candidate_subject", "visible_features", "confidence"],
+        "required": ["main_subject", "secondary_subjects", "confidence"],
         "additionalProperties": False,
     }
 
@@ -446,7 +530,7 @@ def _drawing_output_json_schema() -> dict[str, Any]:
 def _build_drawing_prefix_allowed_tokens_fn(
     tokenizer: Any, *, eos_token_id: int | list[int] | None = None
 ) -> Any:
-    """Constrain Qwen3.5 to the exact VLM result schema at generation time."""
+    """Constrain Qwen3.8 to the exact VLM result schema at generation time."""
 
     global _CACHED_QWEN_VOCAB_DATA, _CACHED_QWEN_EOS_IDS
     os.environ["LMFE_DEFAULT_ALPHABET"] = LMFE_VIETNAMESE_JSON_ALPHABET
@@ -736,6 +820,7 @@ def _load_model() -> tuple[Any, Any]:
 
     if not torch.cuda.is_available():
         raise RuntimeError("MODAL_GPU_UNAVAILABLE")
+    _preload_allowlisted_fp8_kernel()
     _CACHED_PROCESSOR = AutoProcessor.from_pretrained(
         str(model_path),
         local_files_only=True,
@@ -754,22 +839,153 @@ def _load_model() -> tuple[Any, Any]:
     return _CACHED_MODEL, _CACHED_PROCESSOR
 
 
+def _preload_allowlisted_fp8_kernel() -> None:
+    """Load only the pinned, explicitly allowlisted Qwen FP8 kernel."""
+
+    from huggingface_hub import constants as hub_constants
+    from kernels import get_kernel
+    from transformers.integrations import hub_kernels
+
+    cache = getattr(hub_kernels, "_KERNEL_MODULE_MAPPING", None)
+    if not isinstance(cache, dict):
+        raise RuntimeError("MODAL_FP8_KERNEL_LOADER_UNSUPPORTED")
+    if isinstance(cache.get("finegrained-fp8"), type(sys)):
+        return
+
+    telemetry_was_disabled = hub_constants.HF_HUB_DISABLE_TELEMETRY
+    hub_constants.HF_HUB_DISABLE_TELEMETRY = False
+    try:
+        with worker_phase("fp8_kernel_runtime_compatibility"):
+            _ensure_fp8_triton_import_compatibility()
+        with worker_phase("fp8_kernel_allowlisted_load"):
+            kernel = get_kernel(
+                FP8_KERNEL_REPO_ID,
+                version=FP8_KERNEL_VERSION,
+                trust_remote_code=[FP8_KERNEL_REPO_ID],
+                user_agent={"component": "sketch2life-fp8-bootstrap"},
+            )
+    finally:
+        hub_constants.HF_HUB_DISABLE_TELEMETRY = telemetry_was_disabled
+
+    if not all(
+        callable(getattr(kernel, symbol, None))
+        for symbol in ("matmul_2d", "matmul_batched", "matmul_grouped")
+    ):
+        raise RuntimeError("MODAL_FP8_KERNEL_CONTRACT_INVALID")
+    cache["finegrained-fp8"] = kernel
+
+
+def _ensure_fp8_triton_import_compatibility() -> None:
+    """Expose Triton APIs at the import path expected by the pinned FP8 kernel."""
+
+    from types import SimpleNamespace
+
+    import triton
+    from triton._C import libtriton
+    from triton.compiler.compiler import triton_key
+    from triton.runtime import autotuner, cache, driver, jit
+
+    try:
+        from triton.tools.tensor_descriptor import TensorDescriptor
+    except ImportError as error:
+        raise RuntimeError("MODAL_FP8_TRITON_TENSOR_DESCRIPTOR_UNSUPPORTED") from error
+    if not callable(TensorDescriptor):
+        raise RuntimeError("MODAL_FP8_TRITON_TENSOR_DESCRIPTOR_UNSUPPORTED")
+
+    knobs = getattr(triton, "knobs", None)
+    if knobs is None:
+        knobs = SimpleNamespace(autotuning=SimpleNamespace(print=False))
+
+    canonical_exports = {
+        "JITFunction": (jit, "JITFunction"),
+        "get_cache_invalidating_env_vars": (libtriton, "get_cache_invalidating_env_vars"),
+        "get_cache_manager": (cache, "get_cache_manager"),
+        "triton_key": (triton_key, None),
+        "knobs": (knobs, None),
+        "driver": (driver, "driver"),
+    }
+    for name, (source, attribute) in canonical_exports.items():
+        if hasattr(autotuner, name):
+            continue
+        value = source if attribute is None else getattr(source, attribute, None)
+        if value is None:
+            raise RuntimeError("MODAL_FP8_TRITON_IMPORT_COMPATIBILITY_UNSUPPORTED")
+        setattr(autotuner, name, value)
+
+
+def _normalized_label(value: str) -> str:
+    decomposed = unicodedata.normalize("NFD", value.casefold().replace("đ", "d"))
+    stripped = "".join(ch for ch in decomposed if unicodedata.category(ch) != "Mn")
+    return " ".join(stripped.split())
+
+
+def _subject_violation(
+    item: Any, *, expected: set[str], min_features: int, max_features: int, main: bool
+) -> str:
+    """Content-free violation code for one subject object (``NONE`` when valid)."""
+
+    if not isinstance(item, dict):
+        return "SUBJECT_INVALID"
+    if set(item) != expected:
+        return "MISSING_KEYS" if set(item) < expected else "UNEXPECTED_KEYS"
+    label = item["label"]
+    if not isinstance(label, str) or not label.strip() or len(label) > 100:
+        return "SUBJECT_INVALID"
+    features = item["visible_features"]
+    if not isinstance(features, list) or not min_features <= len(features) <= max_features:
+        return "FEATURES_COUNT_INVALID"
+    if any(not isinstance(f, str) or not f.strip() or len(f) > 160 for f in features):
+        return "FEATURE_ITEM_INVALID"
+    if main and item["facing"] not in FACING_VALUES:
+        return "FACING_INVALID"
+    box = item["box"]
+    if (
+        not isinstance(box, list)
+        or len(box) != 4
+        or any(type(v) is not int or not 0 <= v <= BOX_GRID_MAX for v in box)
+    ):
+        return "BOX_INVALID"
+    x0, y0, x1, y1 = box
+    if x0 >= x1 or y0 >= y1 or (x1 - x0) * (y1 - y0) < MIN_BOX_GRID_CELLS:
+        return "BOX_INVALID"
+    return "NONE"
+
+
 def _drawing_contract_violation(parsed: Any) -> str:
     """Content-free code naming which output-contract rule a complete JSON value broke."""
 
-    expected = {"candidate_subject", "visible_features", "confidence"}
+    expected = {"main_subject", "secondary_subjects", "confidence"}
     if not isinstance(parsed, dict):
         return "ROOT_NOT_OBJECT"
     if set(parsed) != expected:
         return "MISSING_KEYS" if set(parsed) < expected else "UNEXPECTED_KEYS"
-    subject = parsed["candidate_subject"]
-    if not isinstance(subject, str) or not subject.strip() or len(subject) > 100:
-        return "SUBJECT_INVALID"
-    features = parsed["visible_features"]
-    if not isinstance(features, list) or not 1 <= len(features) <= 4:
-        return "FEATURES_COUNT_INVALID"
-    if any(not isinstance(i, str) or not i.strip() or len(i) > 160 for i in features):
-        return "FEATURE_ITEM_INVALID"
+    code = _subject_violation(
+        parsed["main_subject"],
+        expected={"label", "visible_features", "facing", "box"},
+        min_features=1,
+        max_features=4,
+        main=True,
+    )
+    if code != "NONE":
+        return code
+    secondaries = parsed["secondary_subjects"]
+    if not isinstance(secondaries, list) or len(secondaries) > MAX_SECONDARY_SUBJECTS:
+        return "SECONDARY_COUNT_INVALID"
+    for item in secondaries:
+        code = _subject_violation(
+            item,
+            expected={"label", "visible_features", "box"},
+            min_features=0,
+            max_features=2,
+            main=False,
+        )
+        if code != "NONE":
+            return code
+    labels = [_normalized_label(parsed["main_subject"]["label"])] + [
+        _normalized_label(item["label"]) for item in secondaries
+    ]
+    if len(set(labels)) != len(labels):
+        return "LABEL_DUPLICATE"
     confidence = parsed["confidence"]
     if isinstance(confidence, bool) or not isinstance(confidence, (int, float)):
         return "CONFIDENCE_NOT_NUMBER"
@@ -783,39 +999,35 @@ def _parse_candidate(answer: str) -> dict[str, Any]:
         parsed = json.loads(answer, object_pairs_hook=_reject_duplicate_candidate_keys)
     except (json.JSONDecodeError, ValueError) as exc:
         raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID") from exc
-    if not isinstance(parsed, dict) or set(parsed) != {
-        "candidate_subject",
-        "visible_features",
-        "confidence",
-    }:
-        raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID")
-    subject = parsed.get("candidate_subject")
-    features = parsed.get("visible_features")
-    confidence = parsed.get("confidence")
-    if (
-        not isinstance(subject, str)
-        or not subject.strip()
-        or len(subject) > 100
-        or not isinstance(features, list)
-        or not 1 <= len(features) <= 4
-        or any(
-            not isinstance(item, str) or not item.strip() or len(item) > 160
-            for item in features
-        )
-        or isinstance(confidence, bool)
-        or not isinstance(confidence, (int, float))
-    ):
+    if _drawing_contract_violation(parsed) != "NONE":
         raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID")
     try:
-        confidence_value = float(confidence)
+        confidence_value = float(parsed["confidence"])
     except (OverflowError, ValueError):
         raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID") from None
-    if not math.isfinite(confidence_value) or not 0 <= confidence_value <= 1:
-        raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID")
+    main = parsed["main_subject"]
+    main_subject = {
+        "label": main["label"].strip(),
+        "visible_features": [item.strip() for item in main["visible_features"]],
+        "facing": main["facing"],
+        "box": list(main["box"]),
+    }
+    secondary_subjects = [
+        {
+            "label": item["label"].strip(),
+            "visible_features": [feature.strip() for feature in item["visible_features"]],
+            "box": list(item["box"]),
+        }
+        for item in parsed["secondary_subjects"]
+    ]
     return {
-        "candidate_subject": subject.strip(),
-        "visible_features": [item.strip() for item in features],
+        "understanding_schema": UNDERSTANDING_SCHEMA_V2,
+        "main_subject": main_subject,
+        "secondary_subjects": secondary_subjects,
         "confidence": confidence_value,
+        # Legacy keys stay so v1 consumers keep working; they mirror the main subject.
+        "candidate_subject": main_subject["label"],
+        "visible_features": list(main_subject["visible_features"]),
     }
 
 

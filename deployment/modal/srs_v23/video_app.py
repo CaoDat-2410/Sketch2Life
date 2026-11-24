@@ -8,6 +8,7 @@ playable. Those decisions remain owned by the backend.
 
 from __future__ import annotations
 
+import gc
 import hashlib
 import inspect
 import json
@@ -32,14 +33,17 @@ from contracts import (
     WorkerContractError,
     parse_worker_input,
 )
-from story_image_guides import (
-    render_leaf_guide_frame,
-    validate_leaf_guide_renderer_runtime,
+from keyframe_plan import (
+    KeyframePlanError,
+    scene_conditioning,
+    validate_keyframe_plan,
 )
 from story_visual_plan import (
+    KEYFRAME_PROMPT_TEMPLATE_VERSION,
     PROMPT_TEMPLATE_VERSION,
     StoryVisualPlanError,
     canonical_sha256,
+    compile_keyframe_scene_prompt,
     compile_scene_prompt,
     plan_scene_frames,
     validate_story_visual_plan,
@@ -64,6 +68,10 @@ HF_AUTH_ENV_KEY = "HF_TOKEN"
 MODEL_MOUNT = "/models"
 SCRATCH_MOUNT = "/scratch"
 MODEL_ROOT = f"{MODEL_MOUNT}/ltx-2.5/{MODEL_REVISION}"
+# FEAT-087: SAM 2.1 hiera-small box prompts (same pinned checkpoint as drawing_segment_app.py).
+SAM2_REPOSITORY_COMMIT = "2b90b9f5ceec907a1c18123530e92e794ad901a4"
+SAM2_CHECKPOINT = Path(MODEL_MOUNT) / "sam2.1_hiera_small" / SAM2_REPOSITORY_COMMIT / "sam2.1_hiera_small.pt"
+SAM2_MODEL_CONFIG = "configs/sam2.1/sam2.1_hiera_s.yaml"
 MODEL_MARKER = f"{MODEL_ROOT}/sketch2life-model-manifest.json"
 
 INPUT_SCHEMA = "sketch2life.modal.video-scene-input.v1"
@@ -108,7 +116,14 @@ scratch_volume = modal.Volume.from_name(
 _contracts_file = _MODULE_DIR / "contracts.py"
 _observability_file = _MODULE_DIR / "worker_observability.py"
 _story_visual_plan_file = _MODULE_DIR / "story_visual_plan.py"
-_story_image_guides_file = _MODULE_DIR / "story_image_guides.py"
+_keyframe_modules = (
+    "keyframe_compositor.py",
+    "keyframe_metrics.py",
+    "keyframe_plan.py",
+    "keyframe_render.py",
+    "sam_masks.py",
+    "story_staging_worker.py",
+)
 _worker_base_image = (
     modal.Image.debian_slim(python_version="3.12")
     .add_local_file(str(_contracts_file), "/root/contracts.py", copy=True)
@@ -118,10 +133,11 @@ _worker_base_image = (
     .add_local_file(
         str(_story_visual_plan_file), "/root/story_visual_plan.py", copy=True
     )
-    .add_local_file(
-        str(_story_image_guides_file), "/root/story_image_guides.py", copy=True
-    )
 )
+for _module_name in _keyframe_modules:
+    _worker_base_image = _worker_base_image.add_local_file(
+        str(_MODULE_DIR / _module_name), f"/root/{_module_name}", copy=True
+    )
 _download_image = _worker_base_image.uv_pip_install("huggingface_hub==1.32.0").env(
     {"HF_HUB_DISABLE_TELEMETRY": "1", "HF_XET_HIGH_PERFORMANCE": "1"}
 )
@@ -130,23 +146,19 @@ _download_image = _worker_base_image.uv_pip_install("huggingface_hub==1.32.0").e
 # Use the official split-checkpoint pipeline, not Diffusers, ComfyUI, Wan or a
 # third-party LTX wrapper. The backend remains the only dispatcher.
 _inference_image = (
-    _worker_base_image.apt_install("ffmpeg", "git", "libcairo2")
+    _worker_base_image.apt_install("ffmpeg", "git")
     .pip_install("uv==0.9.8")
     .run_commands(
         "git clone --filter=blob:none --depth 1 --branch v1.6.2 "
         "https://github.com/Lightricks/LTX-2.git /opt/LTX-2",
         "cd /opt/LTX-2 && uv lock && uv sync --frozen --package ltx-pipelines",
-        "cd /opt/LTX-2 && uv pip install --python .venv/bin/python "
-        "CairoSVG==2.7.1 cairocffi==1.7.1 cffi==2.1.1 "
-        "cssselect2==0.10.1 defusedxml==0.7.1 pycparser==3.12 "
-        "tinycss2==1.5.1 webencodings==0.6.1",
-        "cd /opt/LTX-2 && .venv/bin/python -c "
-        "'import cairosvg; from PIL import Image; "
-        "assert cairosvg.__version__ == \"2.7.1\"; "
-        "print(\"story image guide renderer ready\")'",
         "cd /opt/LTX-2 && git rev-parse HEAD > /opt/LTX-2/LTX_CODE_COMMIT "
         "&& sha256sum uv.lock | cut -d ' ' -f 1 > /opt/LTX-2/LTX_UV_LOCK_SHA256",
         f'test "$(cat /opt/LTX-2/LTX_CODE_COMMIT)" = "{PINNED_LTX_CODE_COMMIT}"',
+        # FEAT-087: SAM 2.1 for keyframe masks, installed without touching the pinned torch stack.
+        "SAM2_BUILD_CUDA=0 uv pip install --python /opt/LTX-2/.venv/bin/python --no-deps "
+        f"git+https://github.com/facebookresearch/sam2.git@{SAM2_REPOSITORY_COMMIT}",
+        "uv pip install --python /opt/LTX-2/.venv/bin/python hydra-core==1.3.2 iopath==0.1.10",
     )
     .env(
         {
@@ -487,8 +499,6 @@ def diagnose_ltx25_runtime() -> dict[str, Any]:
         }
         if not expected_parameters.issubset(pipeline_parameters):
             raise RuntimeError("LTX_PIPELINE_CONSTRUCTOR_API_MISMATCH")
-    with worker_phase("story_image_guide_renderer_validation"):
-        image_guide_runtime = validate_leaf_guide_renderer_runtime()
     return {
         "status": "runtime_api_ready",
         "model_id": MODEL_ID,
@@ -500,7 +510,6 @@ def diagnose_ltx25_runtime() -> dict[str, Any]:
         "checkpoint_bytes": manifest["total_bytes"],
         "quantization_policy_type": type(policy).__name__,
         "pipeline_api_parameters": sorted(pipeline_parameters),
-        "story_image_guide_runtime": image_guide_runtime,
         "gpu_model_loaded": False,
         "gpu_inference_run": False,
     }
@@ -768,9 +777,6 @@ def generate_silent_story_video(payload: dict[str, Any]) -> dict[str, Any]:
     if request.workload != "video.story.generate":
         raise WorkerContractError("MODAL_WORKLOAD_NOT_ALLOWED")
 
-    with worker_phase("story_image_guide_renderer_preflight"):
-        validate_leaf_guide_renderer_runtime()
-
     refresh_worker_volume(scratch_volume)
     attempt_root = _safe_attempt_root(request.attempt_prefix)
     manifest_bytes = _read_bounded(
@@ -796,12 +802,33 @@ def generate_silent_story_video(payload: dict[str, Any]) -> dict[str, Any]:
         if not torch.cuda.is_available():
             raise RuntimeError("LTX_GPU_UNAVAILABLE")
         torch.cuda.reset_peak_memory_stats()
+        keyframes = None
+        if "keyframe_plan" in manifest:
+            import keyframe_render
+
+            with worker_phase("keyframe_preparation"):
+                keyframes = keyframe_render.prepare_keyframes(
+                    _safe_attempt_file(attempt_root, manifest["source_drawing_ref"]),
+                    manifest["keyframe_plan"],
+                    scene_count=len(manifest["scenes"]),
+                    workdir=working_dir,
+                    predictor_factory=_load_sam_predictor,
+                )
+            # SAM is released before the LTX pipeline loads; both do not fit comfortably together.
+            gc.collect()
+            torch.cuda.empty_cache()
         pipeline_cache_hit = _PIPELINE is not None
         model_load_started = time.perf_counter()
         with worker_phase("model_load"):
             pipeline = _load_pipeline()
         model_load_duration_ms = round(
             (time.perf_counter() - model_load_started) * 1000
+        )
+
+        prompt_template_version = (
+            PROMPT_TEMPLATE_VERSION
+            if keyframes is None
+            else KEYFRAME_PROMPT_TEMPLATE_VERSION
         )
 
         scene_results: list[dict[str, Any]] = []
@@ -812,38 +839,31 @@ def generate_silent_story_video(payload: dict[str, Any]) -> dict[str, Any]:
             scene_name = f"scene-{scene_index:02d}"
             raw_path = working_dir / f"{scene_name}-source.mp4"
             normalized_path = working_dir / f"{scene_name}.mp4"
-            compiled_prompt = compile_scene_prompt(
+            render_inputs = _scene_render_inputs(
+                keyframes,
                 scene,
                 manifest["scene_visual_plan"],
-                first_scene=scene_index == 1,
+                scene_index=scene_index,
+                scene_count=len(manifest["scenes"]),
+                legacy_start=conditioning_path,
             )
-            scene_plan = manifest["scene_visual_plan"]["scenes"][scene_index - 1]
-            image_guide_path: Path | None = None
-            image_guide_metadata: dict[str, Any] | None = None
-            if _scene_requires_leaf_guide(scene_plan):
-                image_guide_path = working_dir / f"{scene_name}-leaf-guide.png"
-                with worker_phase(f"scene_{scene_index:02d}_svg_guide_render"):
-                    image_guide_metadata = render_leaf_guide_frame(
-                        conditioning_path,
-                        image_guide_path,
-                    )
+            compiled_prompt = render_inputs["prompt"]
             prompt_sha256 = hashlib.sha256(compiled_prompt.encode("utf-8")).hexdigest()
-            conditioning_sha256 = _sha256_file(conditioning_path)
+            conditioning_sha256 = _sha256_file(render_inputs["start_path"])
             frame_plan = plan_scene_frames(scene["duration_seconds"])
             worker_stage(f"scene_{scene_index:02d}_started")
             inference_started = time.perf_counter()
             with worker_phase(f"scene_{scene_index:02d}_inference"):
                 generated_frame_plan = _run_ltx(
                     pipeline=pipeline,
-                    image_path=conditioning_path,
+                    image_path=render_inputs["start_path"],
                     output_path=raw_path,
                     visual_prompt=compiled_prompt,
                     seed=scene["seed"],
                     target_duration=scene["duration_seconds"],
                     prompt_is_compiled=True,
-                    image_guide_path=image_guide_path,
-                    image_guide_frame_idx=(72 if image_guide_path is not None else None),
-                    image_guide_strength=0.65,
+                    end_image_path=render_inputs["end_path"],
+                    end_strength=render_inputs["end_strength"],
                 )
                 torch.cuda.synchronize()
             inference_duration_ms = round(
@@ -885,8 +905,13 @@ def generate_silent_story_video(payload: dict[str, Any]) -> dict[str, Any]:
                 "scene_sha256": scene_sha256,
                 "scene_size_bytes": scene_bytes,
                 "conditioning_frame_sha256": conditioning_sha256,
-                "conditioned_from_previous_scene": scene_index > 1,
-                "prompt_template_version": PROMPT_TEMPLATE_VERSION,
+                "conditioned_from_previous_scene": render_inputs[
+                    "chain_from_previous_scene"
+                ],
+                "conditioning_keyframe": render_inputs["start_keyframe"],
+                "end_keyframe": render_inputs["end_keyframe"],
+                "end_frame_strength": render_inputs["end_strength"],
+                "prompt_template_version": prompt_template_version,
                 "prompt_sha256": prompt_sha256,
                 "duration_seconds": details["duration_seconds"],
                 "width": details["width"],
@@ -902,14 +927,7 @@ def generate_silent_story_video(payload: dict[str, Any]) -> dict[str, Any]:
                 "normalization_duration_ms": normalization_duration_ms,
                 "output_copy_duration_ms": output_copy_duration_ms,
             }
-            if image_guide_metadata is not None:
-                scene_record["image_guide"] = {
-                    **image_guide_metadata,
-                    "frame_idx": 72,
-                    "strength": 0.65,
-                    "source_conditioning_frame_sha256": conditioning_sha256,
-                }
-            if scene_index < len(manifest["scenes"]):
+            if keyframes is None and scene_index < len(manifest["scenes"]):
                 next_conditioning_path = (
                     working_dir / f"scene-{scene_index:02d}-continuity-frame.png"
                 )
@@ -1002,18 +1020,20 @@ def generate_silent_story_video(payload: dict[str, Any]) -> dict[str, Any]:
             "render_plan_sha256": manifest["render_plan_sha256"],
             "scene_visual_plan_sha256": canonical_sha256(manifest["scene_visual_plan"]),
             "source_drawing_sha256": manifest["source_drawing_sha256"],
-            "prompt_template_version": PROMPT_TEMPLATE_VERSION,
-            "continuity_mode": "previous_scene_final_frame",
+            "prompt_template_version": prompt_template_version,
+            "continuity_mode": (
+                "previous_scene_final_frame"
+                if keyframes is None
+                else "keyframe_chain"
+                if keyframes.render_mode == "keyframe"
+                else "original_each_scene"
+            ),
+            "render_mode": "legacy" if keyframes is None else keyframes.render_mode,
+            "fallback_reason": None if keyframes is None else keyframes.fallback_reason,
+            "keyframes": [] if keyframes is None else keyframes.summaries,
             "scene_count": len(scene_results),
             "scenes": scene_results,
-            "image_guides": [
-                {
-                    "scene_index": scene["scene_index"],
-                    **scene["image_guide"],
-                }
-                for scene in scene_results
-                if isinstance(scene.get("image_guide"), dict)
-            ],
+            "image_guides": [],
             "output_ref": "output/video.mp4",
             "output_sha256": output_sha256,
             "output_size_bytes": output_path.stat().st_size,
@@ -1088,7 +1108,7 @@ def _parse_story_input(raw: bytes) -> dict[str, Any]:
         "scenes",
         "scene_visual_plan",
     }
-    if not isinstance(payload, dict) or set(payload) != expected:
+    if not isinstance(payload, dict) or set(payload) - {"keyframe_plan"} != expected:
         raise WorkerContractError("VIDEO_STORY_MANIFEST_INVALID")
     story_revision_id = payload.get("story_revision_id")
     scene_count = payload.get("scene_count")
@@ -1202,6 +1222,13 @@ def _parse_story_input(raw: bytes) -> dict[str, Any]:
         "scenes": scenes,
         "scene_visual_plan": payload["scene_visual_plan"],
     }
+    if "keyframe_plan" in payload:
+        # FEAT-087: the keyframe plan is part of what the hash promises, but only when present.
+        try:
+            validate_keyframe_plan(payload["keyframe_plan"], scene_count=scene_count)
+        except KeyframePlanError as exc:
+            raise WorkerContractError(exc.code) from None
+        render_plan_payload["keyframe_plan"] = payload["keyframe_plan"]
     if canonical_sha256(render_plan_payload) != payload["render_plan_sha256"]:
         raise WorkerContractError("VIDEO_STORY_RENDER_PLAN_HASH_MISMATCH")
     return payload
@@ -1527,9 +1554,8 @@ def _run_ltx(
     seed: int,
     target_duration: float,
     prompt_is_compiled: bool = False,
-    image_guide_path: Path | None = None,
-    image_guide_frame_idx: int | None = None,
-    image_guide_strength: float = 0.65,
+    end_image_path: Path | None = None,
+    end_strength: float | None = None,
 ) -> dict[str, int | float]:
     import torch
     from ltx_pipelines.utils.media_io import encode_video
@@ -1542,27 +1568,16 @@ def _run_ltx(
     prompt = (
         visual_prompt if prompt_is_compiled else _ltx_animation_prompt(visual_prompt)
     )
+    if (end_image_path is None) != (end_strength is None):
+        raise ValueError("end_image_path and end_strength go together")
     conditioning = ImageConditioningInput.replace(
         str(image_path),
         frame_idx=0,
         strength=1.0,
     )
-    image_conditionings = [conditioning]
-    if image_guide_path is not None:
-        if (
-            image_guide_frame_idx is None
-            or not 1 <= image_guide_frame_idx < num_frames
-            or not 0 < image_guide_strength <= 1
-            or not image_guide_path.is_file()
-        ):
-            raise WorkerContractError("VIDEO_IMAGE_GUIDE_INVALID")
-        image_conditionings.append(
-            ImageConditioningInput.guide(
-                str(image_guide_path),
-                frame_idx=image_guide_frame_idx,
-                strength=image_guide_strength,
-            )
-        )
+    end_conditioning = _end_frame_conditioning(
+        end_image_path, num_frames=num_frames, strength=end_strength
+    )
     with torch.inference_mode():
         result = pipeline(
             prompt=prompt,
@@ -1570,7 +1585,7 @@ def _run_ltx(
             height=MODEL_FRAME_HEIGHT,
             width=OUTPUT_WIDTH,
             frame_rate=FPS,
-            images=image_conditionings,
+            images=[conditioning, *end_conditioning],
             num_frames=num_frames,
         )
         # LTX audio is intentionally discarded; this delivery produces silent MP4 only.
@@ -1586,36 +1601,106 @@ def _run_ltx(
     return frame_plan
 
 
-def _scene_requires_leaf_guide(scene_plan: dict[str, Any]) -> bool:
-    """Reapply the same leaf anchor in every scene where the prop remains visible."""
+def _load_sam_predictor() -> Any:
+    """SAM 2.1 hiera-small image predictor (box prompts) from the model volume."""
 
-    visible_entity_ids = scene_plan.get("visible_entity_ids")
-    return isinstance(visible_entity_ids, list) and "prop-leaf" in visible_entity_ids
+    from sam_masks import MaskError
+
+    if not SAM2_CHECKPOINT.is_file():
+        raise MaskError("SAM_CHECKPOINT_UNAVAILABLE")
+    import torch
+    from sam2.build_sam import build_sam2
+    from sam2.sam2_image_predictor import SAM2ImagePredictor
+
+    model = build_sam2(
+        SAM2_MODEL_CONFIG,
+        str(SAM2_CHECKPOINT),
+        device="cuda" if torch.cuda.is_available() else "cpu",
+        apply_postprocessing=False,
+    )
+    return SAM2ImagePredictor(model)
+
+
+def _scene_render_inputs(
+    keyframes: Any,
+    scene: dict[str, Any],
+    visual_plan: dict[str, Any],
+    *,
+    scene_index: int,
+    scene_count: int,
+    legacy_start: Path | None,
+) -> dict[str, Any]:
+    """Pick the conditioning images, strengths and prompt for one scene.
+
+    Without a keyframe plan this is the legacy path (v7 prompt, previous scene's final frame).
+    """
+
+    if keyframes is None:
+        return {
+            "start_path": legacy_start,
+            "end_path": None,
+            "end_strength": None,
+            "prompt": compile_scene_prompt(
+                scene, visual_plan, first_scene=scene_index == 1
+            ),
+            "prompt_version": PROMPT_TEMPLATE_VERSION,
+            "chain_from_previous_scene": scene_index > 1,
+            "start_keyframe": None,
+            "end_keyframe": None,
+        }
+    cond = scene_conditioning(
+        keyframes.render_mode, scene_index=scene_index, scene_count=scene_count
+    )
+    end_keyframe = cond["end_keyframe"]
+    return {
+        "start_path": keyframes.paths[cond["start_keyframe"]],
+        "end_path": None if end_keyframe is None else keyframes.paths[end_keyframe],
+        "end_strength": cond["end_strength"],
+        "prompt": compile_keyframe_scene_prompt(scene, visual_plan),
+        "prompt_version": KEYFRAME_PROMPT_TEMPLATE_VERSION,
+        "chain_from_previous_scene": False,
+        "start_keyframe": cond["start_keyframe"],
+        "end_keyframe": end_keyframe,
+    }
+
+
+def _end_frame_conditioning(
+    end_image_path: Path | None, *, num_frames: int, strength: float | None
+) -> list[Any]:
+    """FEAT-087: the scene's end keyframe is a soft guide on the last generated frame.
+
+    LTX only allows a hard ``replace`` at frame 0 or 1+8k, and the last frame of a clip is 8k, so
+    the end still is an ``ImageGuide`` (see evidence/M0_LTX_MULTI_IMAGE_END_FRAME_20261124.md).
+    """
+
+    if end_image_path is None or strength is None:
+        return []
+    from ltx_pipelines.utils.types import ImageConditioningInput
+
+    return [
+        ImageConditioningInput.guide(
+            str(end_image_path), frame_idx=num_frames - 1, strength=strength
+        )
+    ]
 
 
 def _ltx_animation_prompt(visual_prompt: str) -> str:
-    """Keep the child's source drawing as the visual anchor for one approved scene."""
+    """Animate one approved action from the supplied artwork without inventing an inset."""
 
     direction = visual_prompt.strip()
     if not direction:
         raise WorkerContractError("VIDEO_SCENE_DIRECTION_REQUIRED")
     return (
-        "Animate the supplied 2D child drawing itself; do not create a replacement image. "
-        "Treat the original artwork as the visual truth: preserve its exact recognizable "
-        "subject, silhouette, proportions, placement, uneven hand-drawn contours, line "
-        "thickness, and original palette. Keep the flat, simple 2D drawing on the same "
-        "plain white paper background. Do not redraw, beautify, smooth, recolor, or add "
-        "texture, 3D shading, text, logos, or another character. Add a simple prop only "
-        "when the approved scene direction explicitly names it; render that prop in the "
-        "same flat child-drawing style, keep it secondary, and do not let it cover or "
-        "replace the source subject. Keep the camera fixed. In every frame, keep the "
-        "subject as one clear, opaque drawing with a single crisp outline, stable scale, "
-        "and stable orientation. Use slow, restrained movement for the approved story "
-        "action. Keep the paper background plain and unmarked; do not render writing, "
-        "labels, signs, logos, or watermarks. Keep all other source-drawing parts visually "
-        "unchanged. Do not generate speech, narration, subtitles, music, sound, or any audio. "
-        "Approved scene direction: "
-        f"{direction}"
+        "Image-to-video, one continuous shot. From the supplied artwork, show this one "
+        "approved action with a clear start, visible movement, and result: "
+        f"{direction} "
+        "Preserve the exact source subject, silhouette, proportions, palette, hand-drawn "
+        "line quality, paper texture, position, and scale. Do not redraw, clean up, smooth, "
+        "recolor, or restyle it. Add only a prop explicitly named in the approved action, "
+        "once and beside the subject. Keep the camera and paper fixed. Never show the "
+        "source artwork as a duplicate, thumbnail, picture-in-picture, card, screen, or "
+        "frame; no cuts, extra objects, readable text, captions, logos, or watermarks. "
+        "Do not generate speech, narration, subtitles, music, sound, or any audio."
     )
 
 

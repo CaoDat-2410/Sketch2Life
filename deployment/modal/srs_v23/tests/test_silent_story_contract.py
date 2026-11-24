@@ -214,3 +214,69 @@ def test_story_output_echoes_the_source_drawing_hash_and_confirmed_story_hashes(
     assert result["storyboard_sha256"] == manifest["storyboard_sha256"]
     assert result["status"] == "CANDIDATE_READY"
     assert result["product_playable"] is False
+
+
+# ---- FEAT-087 M5: optional keyframe_plan in the manifest ---------------------------------------
+
+
+def _with_keyframe_plan(manifest: dict, plan: dict | None) -> dict:
+    """Attach ``keyframe_plan`` and re-hash like the backend: the hash covers it when present."""
+    import keyframe_plan
+
+    manifest = dict(manifest)
+    payload = {
+        "schema_version": manifest["schema_version"],
+        "story_revision_id": manifest["story_revision_id"],
+        "story_sha256": manifest["story_sha256"],
+        "storyboard_sha256": manifest["storyboard_sha256"],
+        "source_drawing_sha256": manifest["source_drawing_sha256"],
+        "target_duration_seconds": manifest["target_duration_seconds"],
+        "scenes": manifest["scenes"],
+        "scene_visual_plan": manifest["scene_visual_plan"],
+    }
+    if plan is not None:
+        manifest["keyframe_plan"] = plan
+        payload["keyframe_plan"] = plan
+    manifest["render_plan_sha256"] = video_worker.canonical_sha256(payload)
+    assert keyframe_plan.KEYFRAME_PLAN_SCHEMA
+    return manifest
+
+
+def _fallback_plan(reason: str = "KEYFRAME_NO_BOXES") -> dict:
+    import keyframe_plan
+
+    return {
+        "schema_version": keyframe_plan.KEYFRAME_PLAN_SCHEMA,
+        "render_mode": "fallback",
+        "fallback_reason": reason,
+        "source_facing": None,
+        "main": None,
+        "secondaries": [],
+        "staging": None,
+    }
+
+
+def test_a_manifest_without_keyframe_plan_still_parses_exactly_as_before() -> None:
+    parsed = _parse(_manifest())
+    assert "keyframe_plan" not in parsed
+
+
+def test_a_manifest_with_a_valid_keyframe_plan_is_accepted_and_hashed() -> None:
+    manifest = _with_keyframe_plan(_manifest(), _fallback_plan())
+    assert _parse(manifest)["keyframe_plan"]["render_mode"] == "fallback"
+
+
+def test_the_render_plan_hash_covers_the_keyframe_plan() -> None:
+    manifest = _with_keyframe_plan(_manifest(), _fallback_plan())
+    manifest["keyframe_plan"] = _fallback_plan("KEYFRAME_NO_STAGING")  # tampered after hashing
+    with pytest.raises(video_worker.WorkerContractError) as error:
+        _parse(manifest)
+    assert str(error.value) == "VIDEO_STORY_RENDER_PLAN_HASH_MISMATCH"
+
+
+def test_an_invalid_keyframe_plan_is_rejected_with_its_own_code() -> None:
+    plan = _fallback_plan()
+    plan["fallback_reason"] = None
+    with pytest.raises(video_worker.WorkerContractError) as error:
+        _parse(_with_keyframe_plan(_manifest(), plan))
+    assert str(error.value) == "KEYFRAME_PLAN_INVALID"

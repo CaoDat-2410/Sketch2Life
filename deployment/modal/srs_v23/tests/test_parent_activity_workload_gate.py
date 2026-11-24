@@ -49,3 +49,9 @@ def test_product_activity_workload_registry_remains_disabled() -> None:
     activity = next(item for item in registry["workloads"] if item["id"] == "parent.activity.suggest")
 
     assert activity["enabled"] is False
+
+
+def test_parent_activity_worker_timeout_covers_observed_qwen_cold_start() -> None:
+    source = (MODAL_DIR / "language_audio_app.py").read_text(encoding="utf-8")
+
+    assert "PARENT_ACTIVITY_WORKER_TIMEOUT_SECONDS = 900" in source

@@ -24,10 +24,10 @@ def test_ltx_prompt_keeps_source_art_and_only_allows_scripted_props() -> None:
         "The turtle looks at the leaf named in the adult-confirmed scene."
     )
 
-    assert "do not create a replacement image" in prompt
-    assert "preserve its exact recognizable subject" in prompt
-    assert "Add a simple prop only when the approved scene direction explicitly names it" in prompt
-    assert "do not let it cover or replace the source subject" in prompt
+    assert "exact source subject, silhouette" in prompt
+    assert "Add only a prop explicitly named in the approved action" in prompt
+    assert "Never show the source artwork as a duplicate, thumbnail" in prompt
+    assert "one continuous shot" in prompt
     assert "The turtle looks at the leaf named in the adult-confirmed scene." in prompt
 
 
@@ -40,9 +40,8 @@ def test_ltx_prompt_forbids_every_audio_track() -> None:
 def test_ltx_prompt_keeps_subject_clear_and_background_unmarked() -> None:
     prompt = video_worker._ltx_animation_prompt("The turtle looks at a leaf.")
 
-    assert "one clear, opaque drawing with a single crisp outline" in prompt
-    assert "Use slow, restrained movement" in prompt
-    assert "Keep the paper background plain and unmarked" in prompt
+    assert "Keep the camera and paper fixed" in prompt
+    assert "no cuts, extra objects, readable text" in prompt
 
 
 def test_ltx_prompt_rejects_an_empty_scene_direction() -> None:
@@ -52,13 +51,6 @@ def test_ltx_prompt_rejects_an_empty_scene_direction() -> None:
     assert str(error.value) == "VIDEO_SCENE_DIRECTION_REQUIRED"
 
 
-def test_leaf_guide_is_reapplied_for_every_scene_where_leaf_remains_visible() -> None:
-    assert video_worker._scene_requires_leaf_guide(
-        {"introduced_entity_ids": ["prop-leaf"], "visible_entity_ids": ["subject-main", "prop-leaf"]}
-    )
-    assert video_worker._scene_requires_leaf_guide(
-        {"introduced_entity_ids": [], "visible_entity_ids": ["subject-main", "prop-leaf"]}
-    )
-    assert not video_worker._scene_requires_leaf_guide(
-        {"introduced_entity_ids": [], "visible_entity_ids": ["subject-main"]}
-    )
+def test_video_app_no_longer_exposes_full_frame_leaf_guide_path() -> None:
+    assert not hasattr(video_worker, "_scene_requires_leaf_guide")
+    assert not hasattr(video_worker, "render_leaf_guide_frame")

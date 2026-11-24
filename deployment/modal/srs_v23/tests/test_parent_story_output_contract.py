@@ -28,6 +28,13 @@ from sketch2life.contracts.schemas.ai_story import StoryRevisionDraftV1  # noqa:
 
 
 def _valid_story() -> dict[str, Any]:
+    scene_actions = [
+        "Một chấm trứng nằm trên gân chiếc lá.",
+        "Sâu bướm gặm một mép lá xanh.",
+        "Sâu bướm hóa thành nhộng dưới cành.",
+        "Nhộng rung nhẹ khi lớp vỏ dần nứt.",
+        "Bướm xòe cánh rồi bay tới bông hoa.",
+    ]
     return {
         "schema_version": "sketch2life.story-revision.v1",
         "language": "vi",
@@ -42,9 +49,7 @@ def _valid_story() -> dict[str, Any]:
             {
                 "scene_index": index,
                 "title": f"Cảnh {index}",
-                "action": "Một chấm trứng nằm trên chiếc lá."
-                if index == 1
-                else "Sâu bướm quan sát chiếc lá.",
+                "action": scene_actions[index - 1],
                 "visual_prompt": "Giữ nét cánh bướm đơn giản, nhất quán với tranh.",
                 "narration": "Cùng quan sát chiếc lá.",
                 "start_ms": (index - 1) * 6_000,
@@ -200,7 +205,7 @@ def test_story_parser_preserves_each_allowed_sentence_terminator(terminator: str
     [
         ({"body": "Bé nhìn chiếc lá", "terminator": "…"}, "STORY_SENTENCE_FIELDS_INVALID"),
         ({"body": "Bé nhìn chiếc lá", "terminator": ".", "extra": "x"}, "STORY_SENTENCE_SCHEMA_INVALID"),
-        ({"body": "x" * 81, "terminator": "."}, "STORY_SENTENCE_FIELDS_INVALID"),
+        ({"body": "x" * 181, "terminator": "."}, "STORY_SENTENCE_FIELDS_INVALID"),
     ],
 )
 def test_story_parser_rejects_invalid_sentence_object(
@@ -257,7 +262,7 @@ def test_story_failure_diagnostics_do_not_require_visual_prompt_punctuation() ->
     assert visual_metric == {
         "field": "scenes[2].visual_prompt",
         "character_count": 27,
-        "max_length": 100,
+        "max_length": 900,
     }
     assert "A child studies a butterfly" not in json.dumps(diagnostics)
 
@@ -344,9 +349,9 @@ def test_parent_story_prompt_marks_length_targets_as_internal_metadata() -> None
         }
     )
 
-    assert "chỉ là quy tắc nội bộ" in prompt
-    assert "Mỗi phần story có body mục tiêu 35-50 ký tự" in prompt
-    assert "Mọi câu chỉ có một mệnh đề chính" in prompt
+    assert "Đây là giới hạn kỹ thuật, không ghi số ký tự" in prompt
+    assert "Mỗi action nêu một hành động chính có đối tượng/hướng/kết quả rõ khi phù hợp" in prompt
+    assert "Không lặp cùng hành động ở hai cảnh" in prompt
     assert '"topic":"Động vật"' in prompt
     assert '"lesson_subject_learning_notes":"Bướm phát triển' in prompt
 
@@ -359,13 +364,13 @@ def test_parent_story_generation_schema_uses_compact_fields_with_srs_scene_count
     scene_fields = scene_schema["items"]["properties"]
 
     assert scene_schema["minItems"] == scene_schema["maxItems"] == 5
-    assert scene_fields["visual_prompt"]["maxLength"] == 100
-    assert scene_fields["action"]["properties"]["body"]["maxLength"] == 60
-    assert scene_fields["narration"]["properties"]["body"]["maxLength"] == 60
+    assert scene_fields["visual_prompt"]["maxLength"] == 900
+    assert scene_fields["action"]["properties"]["body"]["maxLength"] == 140
+    assert scene_fields["narration"]["properties"]["body"]["maxLength"] == 120
     opening_schema = schema["properties"]["story"]["properties"]["opening"]
-    assert opening_schema["properties"]["body"]["maxLength"] == 80
+    assert opening_schema["properties"]["body"]["maxLength"] == 180
     assert opening_schema["properties"]["terminator"]["enum"] == [".", "?", "!"]
-    assert scene_fields["action"]["properties"]["body"]["maxLength"] == 60
+    assert scene_fields["action"]["properties"]["body"]["maxLength"] == 140
     prompt = story_worker._parent_story_prompt(
         {
             "topic": "Động vật",
@@ -378,13 +383,33 @@ def test_parent_story_generation_schema_uses_compact_fields_with_srs_scene_count
             "rewrite_instruction": None,
         }
     )
-    assert "Mỗi phần story có body mục tiêu 35-50 ký tự" in prompt
-    assert "Mỗi action có body mục tiêu 20-32 ký tự" in prompt
-    assert "Mỗi narration có body mục tiêu 20-35 ký tự" in prompt
-    assert "Mọi câu chỉ có một mệnh đề chính" in prompt
+    assert "Mỗi action nêu một hành động chính có đối tượng/hướng/kết quả rõ khi phù hợp" in prompt
+    assert "Mỗi narration bổ sung một chi tiết hữu ích, không chép lại action" in prompt
+    assert "Không lặp cùng hành động ở hai cảnh" in prompt
+    assert "3–4 câu tự nhiên" in prompt
+    assert "tối đa 900 ký tự" in prompt
     assert "pattern" not in scene_fields["narration"]
-    assert scene_fields["character_anchors"]["maxItems"] == 2
+    assert scene_fields["character_anchors"]["maxItems"] == 3
     assert story_worker.STORY_GENERATION_BUDGET == 4_096
+
+
+def test_visual_prompt_accepts_structured_motion_detail_within_new_bound() -> None:
+    content = _valid_content()
+    content["scenes"][0]["visual_prompt"] = "A" * 900
+
+    parsed = _parse_content(content)
+
+    assert len(parsed["scenes"][0]["visual_prompt"]) == 900
+
+
+def test_visual_prompt_rejects_content_over_new_bound() -> None:
+    content = _valid_content()
+    content["scenes"][0]["visual_prompt"] = "A" * 901
+
+    with pytest.raises(story_worker.StoryOutputValidationError) as error:
+        _parse_content(content)
+
+    assert error.value.reason_code == "CONTENT_SCENE_TEXT_INVALID"
 
 
 def test_generation_diagnostics_report_json_shape_without_generated_text() -> None:
@@ -414,7 +439,8 @@ def test_generation_pad_uses_model_eos_token_not_tokenizer_alias() -> None:
 
 
 def test_lmfe_token_data_excludes_model_eos_from_regular_tokens() -> None:
-    from lmformatenforcer.tokenenforcer import TokenEnforcerTokenizerData
+    lmfe_tokenenforcer = pytest.importorskip("lmformatenforcer.tokenenforcer")
+    TokenEnforcerTokenizerData = lmfe_tokenenforcer.TokenEnforcerTokenizerData
 
     class FakeTokenizer:
         eos_token_id = 7
@@ -447,7 +473,8 @@ def test_lmfe_token_data_excludes_model_eos_from_regular_tokens() -> None:
 def test_vietnamese_characters_keep_json_parser_inside_bounded_string(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from lmformatenforcer import JsonSchemaParser
+    lmformatenforcer = pytest.importorskip("lmformatenforcer")
+    JsonSchemaParser = lmformatenforcer.JsonSchemaParser
 
     monkeypatch.setenv(
         "LMFE_DEFAULT_ALPHABET", story_worker.LMFE_VIETNAMESE_JSON_ALPHABET
@@ -486,7 +513,7 @@ def test_vietnamese_characters_keep_json_parser_inside_bounded_string(
         ),
         (
             lambda value: value["scenes"][0].update(
-                action={"body": "a" * 61, "terminator": "."}
+                action={"body": "a" * 141, "terminator": "."}
             ),
             "STORY_SENTENCE_FIELDS_INVALID",
         ),
@@ -711,7 +738,7 @@ def test_constrained_decoder_receives_worker_story_schema(
         schema["properties"]["scenes"]["items"]["properties"]["visual_prompt"][
             "maxLength"
         ]
-        == 100
+        == 900
     )
     assert "scene_index" not in schema["properties"]["scenes"]["items"]["properties"]
     assert "start_ms" not in schema["properties"]["scenes"]["items"]["properties"]
@@ -827,10 +854,10 @@ def test_parent_story_prompt_spells_out_timeline_and_butterfly_order() -> None:
         }
     )
     assert "đúng 5 cảnh" in prompt
-    assert "Mỗi action có body mục tiêu 20-32 ký tự, tối đa 60" in prompt
+    assert "Mỗi action chỉ kể một hành động chính" in prompt
     assert "Mỗi action chỉ kể một hành động chính" in prompt
     assert "Không cắt câu để đạt giới hạn" in prompt
-    assert "Hệ thống tự thêm số thứ tự và thời gian cho cảnh" in prompt
+    assert "thời gian, số thứ tự hay key khác; hệ thống sẽ bổ sung" in prompt
     assert "start_ms lần lượt" not in prompt
     assert "trứng → sâu bướm ăn lá → nhộng → bướm trưởng thành" in prompt
     assert "không được kể như thể trẻ đã làm xong" in prompt
@@ -851,3 +878,111 @@ def test_parent_story_prompt_spells_out_timeline_and_butterfly_order() -> None:
         }
     )
     assert "trứng”" not in generic_prompt
+
+
+_SECONDARY = [{"entity_id": "sec-1", "label": "chiếc lá", "visible_features": ["màu xanh"]}]
+
+
+def _prompt_request(**extra: Any) -> dict[str, Any]:
+    return {
+        "topic": "Động vật",
+        "confirmed_subject": "con rùa",
+        "lesson_subject_learning_notes": None,
+        "visible_features": ["mai tròn"],
+        "child_age_months": 60,
+        "primary_activity": _valid_activity(),
+        "adult_confirmed_idea": "",
+        "rewrite_instruction": None,
+        **extra,
+    }
+
+
+def test_story_prompt_names_approved_secondary_objects_and_forbids_others() -> None:
+    prompt = story_worker._parent_story_prompt(_prompt_request(secondary_subjects=_SECONDARY))
+    assert '"secondary_subjects":[{"entity_id":"sec-1","label":"chiếc lá"' in prompt
+    assert "chỉ được nhắc tới những vật trong secondary_subjects" in prompt
+
+
+def test_story_prompt_without_secondary_objects_is_unchanged() -> None:
+    prompt = story_worker._parent_story_prompt(_prompt_request())
+    assert "secondary_subjects" not in prompt
+
+
+@pytest.mark.parametrize(
+    "value, ok",
+    [
+        (_SECONDARY, True),
+        ([], False),
+        ("chiếc lá", False),
+        ([{"entity_id": "main", "label": "x", "visible_features": []}], False),
+        ([{**_SECONDARY[0], "box": [1, 2, 3, 4]}], False),
+        ([{**_SECONDARY[0], "label": " "}], False),
+    ],
+)
+def test_worker_checks_secondary_subjects_shape(value: Any, ok: bool) -> None:
+    assert story_worker._secondary_subjects_valid(value) is ok
+
+
+def test_staging_envelope_for_a_good_pass_carries_staging_and_no_issue() -> None:
+    import json as _json
+
+    scenes = [
+        {
+            "main_end": {"position": "center-middle", "facing": "right", "scale": "same"},
+            "secondary_end": [{"entity_id": "sec-1", "state": "unchanged"}],
+        }
+        for _ in range(5)
+    ]
+    envelope = story_worker._staging_envelope(_json.dumps({"scenes": scenes}), _prompt_request(secondary_subjects=_SECONDARY))
+    assert envelope["staging_issue"] is None
+    assert envelope["staging"]["scenes"][4]["scene_index"] == 5
+
+
+def test_staging_envelope_for_garbage_keeps_the_story_and_gives_a_reason() -> None:
+    assert story_worker._staging_envelope("???", _prompt_request()) == {
+        "staging": None,
+        "staging_issue": "STAGING_SHAPE_INVALID",
+    }
+    assert story_worker._staging_envelope(None, _prompt_request()) == {
+        "staging": None,
+        "staging_issue": "STAGING_ABSENT",
+    }
+
+
+def _story_for_staging() -> dict[str, Any]:
+    return {
+        "scenes": [{"title": f"c{i}", "action": f"hành động {i}"} for i in range(1, 6)]
+    }
+
+
+def test_staging_for_story_passes_prompt_schema_and_budget_to_the_generator() -> None:
+    import json as _json
+
+    seen: dict[str, Any] = {}
+
+    def generate(prompt: str, schema: dict[str, Any], max_new_tokens: int) -> str:
+        seen.update(prompt=prompt, schema=schema, budget=max_new_tokens)
+        scenes = [
+            {
+                "main_end": {"position": "left-middle", "facing": "left", "scale": "same"},
+                "secondary_end": [{"entity_id": "sec-1", "state": "unchanged"}],
+            }
+            for _ in range(5)
+        ]
+        return _json.dumps({"scenes": scenes})
+
+    envelope = story_worker._staging_for_story(
+        _story_for_staging(), _prompt_request(secondary_subjects=_SECONDARY), generate
+    )
+    assert envelope["staging_issue"] is None and envelope["staging"] is not None
+    assert "hành động 3" in seen["prompt"] and "con rùa" in seen["prompt"]
+    assert seen["schema"]["properties"]["scenes"]["minItems"] == 5
+    assert seen["budget"] == story_worker.STORY_STAGING_BUDGET
+
+
+def test_staging_for_story_never_raises_when_the_generator_fails() -> None:
+    def boom(prompt: str, schema: dict[str, Any], max_new_tokens: int) -> str:
+        raise RuntimeError("cuda out of memory")
+
+    envelope = story_worker._staging_for_story(_story_for_staging(), _prompt_request(), boom)
+    assert envelope == {"staging": None, "staging_issue": "STAGING_PASS_FAILED"}

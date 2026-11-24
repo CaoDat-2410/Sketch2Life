@@ -295,6 +295,85 @@ def test_fp8_kernel_preload_restores_telemetry_after_loader_error(
     assert hub_constants.HF_HUB_DISABLE_TELEMETRY is True
 
 
+def test_drawing_fp8_kernel_preload_uses_exact_repo_allowlist(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    kernel = types.ModuleType("finegrained_fp8")
+    kernel.matmul_2d = lambda: None  # type: ignore[attr-defined]
+    kernel.matmul_batched = lambda: None  # type: ignore[attr-defined]
+    kernel.matmul_grouped = lambda: None  # type: ignore[attr-defined]
+    observed: dict[str, Any] = {}
+
+    hub_constants = types.SimpleNamespace(HF_HUB_DISABLE_TELEMETRY=True)
+    hub_package = types.ModuleType("huggingface_hub")
+    hub_package.constants = hub_constants  # type: ignore[attr-defined]
+
+    def get_kernel(repo_id: str, **kwargs: Any) -> types.ModuleType:
+        observed.update(repo_id=repo_id, **kwargs)
+        observed["telemetry_disabled_during_load"] = hub_constants.HF_HUB_DISABLE_TELEMETRY
+        return kernel
+
+    kernels_package = types.ModuleType("kernels")
+    kernels_package.get_kernel = get_kernel  # type: ignore[attr-defined]
+    integrations_package = types.ModuleType("transformers.integrations")
+    integrations_package.__path__ = []  # type: ignore[attr-defined]
+    hub_kernels = types.ModuleType("transformers.integrations.hub_kernels")
+    hub_kernels._KERNEL_MODULE_MAPPING = {}
+    integrations_package.hub_kernels = hub_kernels  # type: ignore[attr-defined]
+    transformers_package = types.ModuleType("transformers")
+    transformers_package.__path__ = []  # type: ignore[attr-defined]
+    transformers_package.integrations = integrations_package  # type: ignore[attr-defined]
+    for name, module in {
+        "huggingface_hub": hub_package,
+        "kernels": kernels_package,
+        "transformers": transformers_package,
+        "transformers.integrations": integrations_package,
+        "transformers.integrations.hub_kernels": hub_kernels,
+    }.items():
+        monkeypatch.setitem(sys.modules, name, module)
+    monkeypatch.setattr(drawing_worker, "worker_phase", lambda _name: nullcontext())
+    monkeypatch.setattr(
+        drawing_worker, "_ensure_fp8_triton_import_compatibility", lambda: None
+    )
+
+    drawing_worker._preload_allowlisted_fp8_kernel()
+    drawing_worker._preload_allowlisted_fp8_kernel()
+
+    assert observed == {
+        "repo_id": drawing_worker.FP8_KERNEL_REPO_ID,
+        "version": drawing_worker.FP8_KERNEL_VERSION,
+        "trust_remote_code": [drawing_worker.FP8_KERNEL_REPO_ID],
+        "user_agent": {"component": "sketch2life-fp8-bootstrap"},
+        "telemetry_disabled_during_load": False,
+    }
+    assert hub_constants.HF_HUB_DISABLE_TELEMETRY is True
+    assert hub_kernels._KERNEL_MODULE_MAPPING["finegrained-fp8"] is kernel
+
+
+def test_drawing_fp8_triton_compatibility_exposes_pinned_kernel_imports(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    autotuner, jit = _install_triton_runtime_modules(monkeypatch)
+
+    drawing_worker._ensure_fp8_triton_import_compatibility()
+
+    assert autotuner.JITFunction is jit.JITFunction
+    assert callable(autotuner.triton_key)
+    assert autotuner.driver is sys.modules["triton.runtime.driver"].driver
+
+
+def test_drawing_fp8_triton_compatibility_fails_closed_without_tensor_descriptor(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _install_triton_runtime_modules(monkeypatch)
+    monkeypatch.delitem(sys.modules, "triton.tools.tensor_descriptor")
+
+    with pytest.raises(
+        RuntimeError, match="MODAL_FP8_TRITON_TENSOR_DESCRIPTOR_UNSUPPORTED"
+    ):
+        drawing_worker._ensure_fp8_triton_import_compatibility()
+
+
 def _install_triton_runtime_modules(
     monkeypatch: pytest.MonkeyPatch,
     *,
@@ -516,7 +595,8 @@ def test_every_text_model_generate_call_uses_validated_processor_inputs() -> Non
         and node.func.attr == "generate"
     ]
 
-    assert len(generate_calls) == 7
+    # FEAT-087 M4 added the story staging pass (an 8th call, validated like the rest).
+    assert len(generate_calls) == 8
     assert all(
         any(
             keyword.arg is None
@@ -527,442 +607,6 @@ def test_every_text_model_generate_call_uses_validated_processor_inputs() -> Non
         )
         for call in generate_calls
     )
-
-
-def _parent_activity_sentence(body: str, terminator: str = ".") -> dict[str, str]:
-    return {"body": body, "terminator": terminator}
-
-
-def _parent_activity_fallback_result() -> dict[str, Any]:
-    activities = []
-    for index, markers in enumerate(worker._PARENT_ACTIVITY_FALLBACK_MARKERS):
-        content_markers = worker._PARENT_ACTIVITY_CONTENT_MARKERS[index]
-        activities.append(
-            {
-                "title": content_markers[0],
-                "objective": _parent_activity_sentence(markers[0]),
-                "materials_text": content_markers[1],
-                "preparation_text": _parent_activity_sentence(markers[1]),
-                "instructions_text": {
-                    "first_sentence": _parent_activity_sentence("Bước một"),
-                    "second_sentence": _parent_activity_sentence("Bước hai"),
-                },
-                "observation_notes": content_markers[2],
-                "safety_notes": _parent_activity_sentence(markers[2]),
-                "activity_kind": "outdoor",
-            }
-        )
-    return {
-        "decision": "NO_MATCH",
-        "selected_candidates": [],
-        "no_match_reason": worker._PARENT_ACTIVITY_NO_MATCH_REASON_MARKER,
-        "age_band_months": "36-71",
-        "fallback_activities": activities,
-    }
-
-
-def test_parent_activity_generated_fields_use_position_specific_safe_markers() -> None:
-    schema = worker._parent_activity_suggestion_json_schema(has_candidates=False)
-    activity_properties = schema["properties"]["fallback_activities"]["items"][
-        "properties"
-    ]
-
-    expected_markers = {
-        "objective": [row[0] for row in worker._PARENT_ACTIVITY_FALLBACK_MARKERS],
-        "preparation_text": [row[1] for row in worker._PARENT_ACTIVITY_FALLBACK_MARKERS],
-        "safety_notes": [row[2] for row in worker._PARENT_ACTIVITY_FALLBACK_MARKERS],
-    }
-    for field, markers in expected_markers.items():
-        sentence_properties = activity_properties[field]["properties"]
-        assert sentence_properties["body"]["enum"] == markers
-        assert sentence_properties["terminator"]["enum"] == ["."]
-        assert activity_properties[field]["required"] == ["body", "terminator"]
-    for field, marker_column in (
-        ("title", 0),
-        ("materials_text", 1),
-        ("observation_notes", 2),
-    ):
-        assert activity_properties[field]["enum"] == [
-            row[marker_column] for row in worker._PARENT_ACTIVITY_CONTENT_MARKERS
-        ]
-    assert schema["properties"]["no_match_reason"]["enum"] == [
-        worker._PARENT_ACTIVITY_NO_MATCH_REASON_MARKER
-    ]
-    instructions = activity_properties["instructions_text"]["properties"]
-    assert instructions["first_sentence"]["properties"]["body"]["enum"] == ["Bước một"]
-    assert instructions["second_sentence"]["properties"]["body"]["enum"] == ["Bước hai"]
-    assert activity_properties["instructions_text"]["required"] == [
-        "first_sentence",
-        "second_sentence",
-    ]
-
-
-def test_parent_activity_prompt_requires_short_complete_sentence_patterns() -> None:
-    prompt = worker._parent_activity_suggestion_prompt(
-        {
-            "age_band_ref": "age-36-71-months-v1",
-            "topic": "động vật",
-            "adult_confirmed_idea": "",
-            "confirmed_subject": "rùa",
-            "visible_features": ["mai xanh"],
-            "age_band_months": "36-71",
-            "profile_interest_tags": [],
-            "narration_interest_tags": [],
-            "candidate_activities": [],
-        }
-    )
-
-    assert "không tự viết nội dung các trường này" in prompt
-    for marker in (
-        "'Mục tiêu một'", "'Mục tiêu hai'", "'Mục tiêu ba'",
-        "'Chuẩn bị một'", "'Chuẩn bị hai'", "'Chuẩn bị ba'",
-        "'An toàn một'", "'An toàn hai'", "'An toàn ba'",
-    ):
-        assert marker in prompt
-    assert "first_sentence.body='Bước một'" in prompt
-    assert "Worker sẽ dựng câu hướng dẫn hoàn chỉnh" in prompt
-
-
-def test_parent_activity_parser_keeps_punctuation_and_length_gates() -> None:
-    valid = _parent_activity_fallback_result()
-    parsed = worker._parse_parent_activity_suggestions(
-        json.dumps(valid, ensure_ascii=False),
-        expected_age_band="36-71",
-        confirmed_subject="hạt nảy mầm",
-    )
-    assert len(parsed["fallback_activities"]) == 3
-    activity = parsed["fallback_activities"][0]
-    assert activity["title"] == "Quan sát hạt nảy mầm"
-    assert activity["objective"] == "Trẻ quan sát hình dáng của hạt nảy mầm qua tranh."
-    assert activity["materials_text"] == "Bức tranh đã chụp."
-    assert activity["preparation_text"] == "Người lớn chọn vị trí quan sát ngoài sân."
-    assert activity["observation_notes"] == "Người lớn quan sát chi tiết trẻ tự chọn."
-    assert activity["instructions_text"] == (
-        "Trẻ tự chọn vị trí quan sát ở sân nhà. "
-        "Trẻ quan sát hình dáng hạt nảy mầm qua tranh cùng người lớn."
-    )
-    assert activity["safety_notes"] == "Người lớn giám sát trẻ khi quan sát ở sân nhà."
-    assert parsed["no_match_reason"] == (
-        "Chưa có hoạt động trong thư viện phù hợp với chủ đề và tranh đã xác nhận."
-    )
-
-    overlong = _parent_activity_fallback_result()
-    overlong["fallback_activities"][0]["instructions_text"]["first_sentence"] = (
-        _parent_activity_sentence("x" * 75)
-    )
-    with pytest.raises(RuntimeError, match="MODAL_MODEL_OUTPUT_INVALID_ACTIVITY_FIELD"):
-        worker._parse_parent_activity_suggestions(
-            json.dumps(overlong, ensure_ascii=False), expected_age_band="36-71"
-        )
-
-
-def test_parent_activity_parser_accepts_subject_whose_last_word_looks_like_a_conjunction() -> None:
-    parsed = worker._parse_parent_activity_suggestions(
-        json.dumps(_parent_activity_fallback_result(), ensure_ascii=False),
-        expected_age_band="36-71",
-        confirmed_subject="con rùa và chiếc lá",
-    )
-
-    assert parsed["fallback_activities"][0]["objective"].endswith("qua tranh.")
-    assert all(
-        activity["objective"].endswith(("qua tranh.", "qua thẻ.", "ngoài sân."))
-        for activity in parsed["fallback_activities"]
-    )
-
-
-@pytest.mark.parametrize("subject", ["lá", "chó", "voi", "đó"])
-def test_parent_activity_tail_gate_preserves_vietnamese_tone_marks(subject: str) -> None:
-    sentence = f"Trẻ quan sát {subject}."
-    decomposed_sentence = unicodedata.normalize("NFD", sentence)
-
-    assert worker._parent_activity_incomplete_vietnamese_sentence_tail_reason(sentence) is None
-    assert (
-        worker._parent_activity_incomplete_vietnamese_sentence_tail_reason(
-            decomposed_sentence
-        )
-        is None
-    )
-
-
-@pytest.mark.parametrize("tail", ["là", "cho", "với", "do", "hoặc hình"])
-def test_parent_activity_tail_gate_still_rejects_incomplete_vietnamese_tails(
-    tail: str,
-) -> None:
-    assert (
-        worker._parent_activity_incomplete_vietnamese_sentence_tail_reason(
-            f"Trẻ quan sát {tail}."
-        )
-        is not None
-    )
-
-
-@pytest.mark.parametrize(
-    "duplicate_fragment",
-    [
-        '"decision": "NO_MATCH", "decision": "NO_MATCH"',
-        '"title": "Tên hoạt động một", "title": "Tên hoạt động một"',
-    ],
-)
-def test_parent_activity_parser_rejects_duplicate_json_keys(
-    duplicate_fragment: str,
-) -> None:
-    raw = json.dumps(_parent_activity_fallback_result(), ensure_ascii=False)
-    if duplicate_fragment.startswith('"decision"'):
-        raw = raw.replace('"decision": "NO_MATCH"', duplicate_fragment, 1)
-    else:
-        raw = raw.replace(
-            '"title": "Tên hoạt động một"', duplicate_fragment, 1
-        )
-
-    with pytest.raises(RuntimeError, match="MODAL_MODEL_OUTPUT_INVALID_JSON") as error:
-        worker._parse_parent_activity_suggestions(raw, expected_age_band="36-71")
-
-    assert raw not in str(error.value)
-
-
-def test_parent_activity_instruction_templates_are_complete_and_bounded() -> None:
-    for index in range(3):
-        instructions = worker._render_parent_activity_instructions(
-            index, subject="hạt nảy mầm"
-        )
-        assert len(instructions) <= 150
-        assert instructions.count(".") == 2
-        assert "Trẻ tự chọn" in instructions
-        assert any(term in instructions for term in ("quan sát", "so sánh", "thử nghiệm"))
-
-
-def test_parent_activity_rendered_objective_preparation_and_safety_are_bounded() -> None:
-    subject = "con rùa và chiếc lá"
-    expected_objectives = (
-        "Trẻ quan sát hình dáng của con rùa và chiếc lá qua tranh.",
-        "Trẻ so sánh đặc điểm của con rùa và chiếc lá qua thẻ.",
-        "Trẻ vận động mô phỏng con rùa và chiếc lá ngoài sân.",
-    )
-    for index in range(3):
-        objective = worker._render_parent_activity_objective(index, subject=subject)
-        preparation = worker._render_parent_activity_preparation(index)
-        safety = worker._render_parent_activity_safety_note(index)
-        assert objective == expected_objectives[index]
-        assert len(objective) <= 80 and objective.endswith(".")
-        assert len(preparation) <= 85 and preparation.endswith(".")
-        assert len(safety) <= 80 and safety.endswith(".")
-    assert "giám sát" in worker._render_parent_activity_safety_note(0)
-    assert "giám sát" in worker._render_parent_activity_safety_note(1)
-    assert "an toàn" in worker._render_parent_activity_safety_note(2)
-
-
-def test_parent_activity_fallback_copy_is_complete_bounded_and_distinct() -> None:
-    titles = [
-        worker._render_parent_activity_title(index, subject="con rùa và chiếc lá")
-        for index in range(3)
-    ]
-    materials = [worker._render_parent_activity_materials(index) for index in range(3)]
-    observations = [worker._render_parent_activity_observation(index) for index in range(3)]
-
-    assert titles == [
-        "Quan sát con rùa và chiếc lá",
-        "So sánh con rùa và chiếc lá",
-        "Mô phỏng con rùa và chiếc lá",
-    ]
-    assert len(set(titles)) == len(set(materials)) == len(set(observations)) == 3
-    assert all(1 <= len(value) <= 60 for value in titles)
-    assert all(value.endswith(".") for value in materials)
-    assert all(value.endswith(".") for value in observations)
-
-
-@pytest.mark.parametrize(
-    ("field_name", "marker_column"),
-    [("objective", 0), ("preparation_text", 1), ("safety_notes", 2)],
-)
-def test_parent_activity_parser_rejects_a_wrong_position_marker(
-    field_name: str, marker_column: int
-) -> None:
-    invalid = _parent_activity_fallback_result()
-    invalid["fallback_activities"][1][field_name] = _parent_activity_sentence(
-        worker._PARENT_ACTIVITY_FALLBACK_MARKERS[2][marker_column]
-    )
-    with pytest.raises(RuntimeError, match="MODAL_MODEL_OUTPUT_INVALID_ACTIVITY_FIELD"):
-        worker._parse_parent_activity_suggestions(
-            json.dumps(invalid, ensure_ascii=False),
-            expected_age_band="36-71",
-            confirmed_subject="hạt nảy mầm",
-        )
-
-
-@pytest.mark.parametrize(
-    ("field_name", "marker_column"),
-    [("title", 0), ("materials_text", 1), ("observation_notes", 2)],
-)
-def test_parent_activity_parser_rejects_wrong_plain_text_marker(
-    field_name: str, marker_column: int
-) -> None:
-    invalid = _parent_activity_fallback_result()
-    invalid["fallback_activities"][1][field_name] = (
-        worker._PARENT_ACTIVITY_CONTENT_MARKERS[2][marker_column]
-    )
-    with pytest.raises(RuntimeError, match="MODAL_MODEL_OUTPUT_INVALID_ACTIVITY_FIELD"):
-        worker._parse_parent_activity_suggestions(
-            json.dumps(invalid, ensure_ascii=False),
-            expected_age_band="36-71",
-            confirmed_subject="hạt nảy mầm",
-        )
-
-
-@pytest.mark.parametrize(
-    "instructions",
-    [
-        {"first_sentence": _parent_activity_sentence("Bước một")},
-        {
-            "first_sentence": _parent_activity_sentence("Bước một"),
-            "second_sentence": _parent_activity_sentence("Bước hai"),
-            "third_sentence": _parent_activity_sentence("Bước ba"),
-        },
-    ],
-)
-def test_parent_activity_instructions_require_exactly_two_typed_sentences(
-    instructions: dict[str, dict[str, str]],
-) -> None:
-    payload = _parent_activity_fallback_result()
-    payload["fallback_activities"][0]["instructions_text"] = instructions
-
-    with pytest.raises(RuntimeError, match="MODAL_MODEL_OUTPUT_INVALID_ACTIVITY_FIELD"):
-        worker._parse_parent_activity_suggestions(
-            json.dumps(payload, ensure_ascii=False), expected_age_band="36-71"
-        )
-
-
-@pytest.mark.parametrize(
-    ("field", "replacement"),
-    [
-        (
-            "preparation_text",
-            _parent_activity_sentence("Nội dung chưa xong", "?"),
-        ),
-        ("safety_notes", _parent_activity_sentence("   ")),
-    ],
-)
-def test_parent_activity_typed_sentence_gate_reports_only_field_path(
-    field: str, replacement: dict[str, str]
-) -> None:
-    with pytest.raises(worker._ParentActivityTextCompletenessError) as error:
-        worker._compose_parent_activity_sentence(
-            replacement,
-            field_path=f"fallback_activities[1].{field}",
-            max_length=85 if field == "preparation_text" else 80,
-        )
-
-    expected_path = f"fallback_activities[1].{field}"
-    assert error.value.field_path == expected_path
-    assert str(error.value) == "MODAL_MODEL_OUTPUT_INCOMPLETE_TEXT"
-    assert "Nội dung" not in str(error.value)
-    assert worker._parent_activity_output_error_diagnostics(error.value) == {
-        "invalid_text_field_path": expected_path,
-        "invalid_text_character_count": len(replacement["body"].strip()),
-        "incomplete_text_reason": (
-            "empty_body" if not replacement["body"].strip() else "terminator_invalid"
-        ),
-    }
-
-
-@pytest.mark.parametrize(
-    ("field", "body"),
-    [
-        ("preparation_text", "Người lớn dẫn trẻ đến vườn để trẻ"),
-        ("safety_notes", "Giữ khoảng cách nếu rùa đang di chuyển hoặc có"),
-    ],
-)
-def test_parent_activity_typed_sentence_gate_rejects_clipped_vietnamese_tails(
-    field: str, body: str
-) -> None:
-    replacement = _parent_activity_sentence(body)
-
-    with pytest.raises(worker._ParentActivityTextCompletenessError) as error:
-        worker._compose_parent_activity_sentence(
-            replacement,
-            field_path=f"fallback_activities[0].{field}",
-            max_length=85 if field == "preparation_text" else 80,
-        )
-
-    assert error.value.field_path == f"fallback_activities[0].{field}"
-    assert str(error.value) == "MODAL_MODEL_OUTPUT_INCOMPLETE_TEXT"
-    assert body not in str(error.value)
-    assert worker._parent_activity_output_error_diagnostics(error.value)[
-        "invalid_text_character_count"
-    ] == len(body)
-    assert worker._parent_activity_output_error_diagnostics(error.value)[
-        "incomplete_text_reason"
-    ] in {"dangling_word", "clipped_syllable", "dangling_phrase"}
-
-
-def test_parent_activity_prompt_requires_explicit_final_periods() -> None:
-    prompt = worker._parent_activity_suggestion_prompt({"candidate_activities": []})
-
-    assert "không tự viết nội dung các trường này" in prompt
-    assert "first_sentence.body='Bước một'" in prompt
-    assert "second_sentence.body='Bước hai'" in prompt
-    assert "Worker sẽ dựng câu hướng dẫn hoàn chỉnh" in prompt
-    for marker in (
-        "'Mục tiêu một'", "'Mục tiêu hai'", "'Mục tiêu ba'",
-        "'Chuẩn bị một'", "'Chuẩn bị hai'", "'Chuẩn bị ba'",
-        "'An toàn một'", "'An toàn hai'", "'An toàn ba'",
-        "'Tên hoạt động một/hai/ba'", "'Vật liệu một/hai/ba'",
-        "'Quan sát một/hai/ba'", "'Chưa khớp thư viện'", "'Lý do phù hợp'",
-    ):
-        assert marker in prompt
-    assert "\\nINPUT=" not in prompt
-    assert "\nINPUT=" in prompt
-
-
-@pytest.mark.parametrize("ensure_ascii", [False, True], ids=["literal", "json-escaped"])
-def test_parent_activity_language_gate_rejects_non_latin_fallback_text(
-    ensure_ascii: bool,
-) -> None:
-    invalid = _parent_activity_fallback_result()
-    invalid["fallback_activities"][1]["title"] = (
-        "Quan sát " + chr(0x4E2D)
-    )
-    encoded = json.dumps(invalid, ensure_ascii=ensure_ascii)
-    if ensure_ascii:
-        assert "\\u4e2d" in encoded
-
-    with pytest.raises(
-        worker._ParentActivityLanguageGateError,
-        match="MODAL_MODEL_OUTPUT_INVALID_NON_LATIN_SCRIPT",
-    ) as error:
-        worker._parse_parent_activity_suggestions(
-            encoded, expected_age_band="36-71"
-        )
-
-    assert error.value.field_path == "fallback_activities[1].title"
-    assert error.value.non_latin_letter_count == 1
-    assert chr(0x4E2D) not in str(error.value)
-
-
-def test_parent_activity_language_gate_covers_catalog_and_no_match_reasons() -> None:
-    catalog_match = _parent_activity_fallback_result() | {
-        "decision": "CATALOG_MATCH",
-        "selected_candidates": [
-            {
-                "candidate_ref": "C001",
-                "match_reason": worker._PARENT_ACTIVITY_MATCH_REASON_MARKER + chr(0x4E2D),
-            }
-        ],
-        "no_match_reason": "",
-        "fallback_activities": [],
-    }
-    with pytest.raises(worker._ParentActivityLanguageGateError) as catalog_error:
-        worker._parse_parent_activity_suggestions(
-            json.dumps(catalog_match, ensure_ascii=False), expected_age_band="36-71"
-        )
-    assert catalog_error.value.field_path == "selected_candidates[0].match_reason"
-
-    no_match = _parent_activity_fallback_result()
-    no_match["no_match_reason"] = worker._PARENT_ACTIVITY_NO_MATCH_REASON_MARKER + chr(0x4E2D)
-    with pytest.raises(worker._ParentActivityLanguageGateError) as reason_error:
-        worker._parse_parent_activity_suggestions(
-            json.dumps(no_match, ensure_ascii=False), expected_age_band="36-71"
-        )
-    assert reason_error.value.field_path == "no_match_reason"
 
 
 def test_qwen_text_model_placement_diagnostics_are_safe_and_count_offload() -> None:
@@ -1309,7 +953,7 @@ def test_flux3_checkpoint_verifier_requires_transformer_and_vae_files(
         flux_worker._verify_checkpoint(model_path, pup_path)
 
 
-def test_qwen_dev_workloads_keep_vision_on_qwen35_and_text_on_qwen38() -> None:
+def test_active_qwen_dev_workloads_use_the_pinned_qwen38_model() -> None:
     registry_path = (
         Path(__file__).resolve().parents[4]
         / "deployment"
@@ -1320,22 +964,22 @@ def test_qwen_dev_workloads_keep_vision_on_qwen35_and_text_on_qwen38() -> None:
     registry = json.loads(registry_path.read_text(encoding="utf-8"))
     candidates = {workload["id"]: workload["candidate"] for workload in registry["workloads"]}
 
-    assert candidates["drawing.analyze"].startswith("Qwen/Qwen3.5-9B@")
+    assert candidates["drawing.analyze"].startswith("Qwen/Qwen3.8-27B-FP8@")
     for workload_id in (
         "story.generate",
         "storyboard.generate",
-        "parent.topic-subjects.suggest",
         "parent.topic-subjects.validate",
         "parent.activity.suggest",
         "teacher.sketch-deck.generate",
         "lesson.plan.suggest",
     ):
         assert candidates[workload_id].startswith("Qwen/Qwen3.8-27B-FP8@")
-    assert "vision uses Qwen/Qwen3.5-9B@" in registry["model_selection_status"]
-    assert "text uses Qwen/Qwen3.8-27B-FP8@" in registry["model_selection_status"]
+    assert "Qwen/Qwen3.8-27B-FP8@" in registry["model_selection_status"]
+    assert "Qwen/Qwen3.5-9B@" not in registry["model_selection_status"]
+    assert "Retired from dispatch" in candidates["parent.topic-subjects.suggest"]
 
 
-def test_drawing_vlm_uses_qwen35_documented_image_message_shape() -> None:
+def test_drawing_vlm_uses_documented_image_message_shape() -> None:
     image = object()
     messages = drawing_worker._drawing_messages(image, "Return one JSON object.")
 
@@ -1349,19 +993,24 @@ def test_drawing_vlm_uses_qwen35_documented_image_message_shape() -> None:
 def test_drawing_candidate_parser_rejects_extra_text_and_duplicate_keys() -> None:
     valid = json.dumps(
         {
-            "candidate_subject": "bướm",
-            "visible_features": ["hai cặp cánh", "thân mảnh"],
-            "confidence": 0.92,
+            "main_subject": {
+                "label": "bướm",
+                "visible_features": ["hai cặp cánh", "thân mảnh"],
+                "facing": "front",
+                "box": [3, 3, 17, 17],
+            },
+            "secondary_subjects": [],
+            "confidence": 0.9,
         },
         ensure_ascii=False,
     )
     assert drawing_worker._parse_candidate(valid)["candidate_subject"] == "bướm"
+    assert drawing_worker._parse_candidate(valid)["main_subject"]["label"] == "bướm"
 
     for invalid in (
         "Dưới đây là JSON: " + valid,
         valid + "\nĐã hoàn thành.",
-        ('{"candidate_subject":"bướm","candidate_subject":"hoa",'
-         '"visible_features":["hai cặp cánh"]}'),
+        valid.replace('"confidence": 0.9', '"confidence": 0.9, "confidence": 0.8'),
     ):
         with pytest.raises(RuntimeError, match="MODAL_MODEL_OUTPUT_INVALID"):
             drawing_worker._parse_candidate(invalid)

@@ -2,13 +2,15 @@
 
 ## Qwen3.8 shared text candidate — 2026-11-22
 
-FEAT-082 pins the Modal `dev` language/audio text workloads to `Qwen/Qwen3.8-27B-FP8@c3a462cc3d38cf351f3b26cbd763469eeb74ef81` on L40S. Drawing analysis remains on Qwen3.5. This is an owner-approved development candidate, not a production model decision and not an amendment to the unsigned FEAT-063 SRS. Parent story input v3 contains bounded topic, exact pinned lesson subject-learning notes, permitted script direction, and existing approved run/selection fields; profile interests and identity are excluded. See [ADR-0024](../../../docs/adr/ADR-0024-qwen38-fp8-development-story-candidate.md) and FEAT-082 evidence for live verification status.
+FEAT-083 aligns the source for all active Qwen-backed text and vision workloads to `Qwen/Qwen3.8-27B-FP8@c3a462cc3d38cf351f3b26cbd763469eeb74ef81`. Drawing analysis uses the shared Qwen3.8 checkpoint on L40S; smaller GPUs are not eligible. This is an owner-directed development pin, not production approval. No FEAT-083 deployment, model download, migration or inference has been run, so the new drawing path is not runtime-verified. Whisper ASR, VieNeu TTS and LTX-2.5 video remain separate workloads. The canonical FEAT-063 SRS remains unsigned.
 
 This folder contains the **dev-only Modal deployment** for the current SRS v2.3 AI workloads. Product dispatch, auth, quota, storage transfer, safety acceptance, and playback remain backend-owned; every `workloads.json` entry stays disabled. The original generic L4/L40S scaffold remains contract-only. Separate private apps implement bounded synthetic POCs for drawing VLM, story/audio, FLUX images, and Wan video feasibility; none is a production model selection.
 
+**Rev75 source note (2026-11-23):** The legacy Teacher `/lesson-visuals` API and backend dispatch for `lesson.visual.generate` have been removed. Its old function in `flux_image_app.py` and dated FLUX outputs remain for provenance, but `lesson.visual.generate` is no longer in the accepted L4 workload envelope or current registry, so direct calls to that function fail closed during request validation. The separate Parent sketch-guide workload is unchanged. No SVG Teacher illustration API is connected by this change.
+
 ## Current dev deployment ? 2026-11-05
 
-- The only active FEAT-063 Qwen development profile is `Qwen/Qwen3.5-9B@c202236235762e1c871ad0ccb60c8ee5ba337b9a`. Qwen2.5 is retired from active configuration; older decisions and test reports remain historical.
+- The current source pin is Qwen3.8-27B-FP8 for active Qwen workloads. Qwen3.5 worker results below are historical evidence for the earlier checkpoint only and do not prove the current model works in Modal.
 - Rev45 passed synthetic Qwen3.5 drawing analysis, Parent story/storyboard, Teacher Sketch Deck, lesson suggestion, TTS, and exact-text ASR. These are worker-level results, not production/API readiness. Details: [`AI_NONVIDEO_AI_END_TO_END_20261105.md`](../../../features/FEAT-063-system-architecture-rearchitecture/evidence/AI_NONVIDEO_AI_END_TO_END_20261105.md).
 - Rev46A fixed FLUX.3 checkpoint staging by including Diffusers `transformer/` and `vae/` components. One synthetic Parent Sketch Guide and one lesson visual inference passed; both outputs are private DRAFT candidates with human review required. Details: [`AI_QWEN35_FLUX_REV46A_COMPLETION_20261105.md`](../../../features/FEAT-063-system-architecture-rearchitecture/evidence/AI_QWEN35_FLUX_REV46A_COMPLETION_20261105.md).
 - The download uses Modal `dev` Secret `huggingface-secret` with required `HF_TOKEN`. Secret values are never read or stored by the runner. Pinned FLUX and Qwen model Volumes remain retained.
@@ -44,9 +46,9 @@ The steps below describe initial setup for a new Modal workspace. The current de
 
 For temporary code iteration, use `modal serve` only when you later have an approved runnable handler. A persistent deployment is not required for local environment setup.
 
-## Qwen3.5 Modal validation
+## Historical Qwen3.5 Modal validation (not evidence for the current Qwen3.8 pin)
 
-The active FEAT-063 dev pin is `Qwen/Qwen3.5-9B@c202236235762e1c871ad0ccb60c8ee5ba337b9a`, loaded with Transformers 5.22.1 using `AutoProcessor` and `AutoModelForMultimodalLM`. Synthetic inputs are staged under unique attempt prefixes and removed after terminal outcomes. Rev45 worker results and limits are in the linked execution report above. The profile is for development tests only, not a production default or safety/quality approval.
+As of the 2026-11-05 Rev45 run, the FEAT-063 dev pin was `Qwen/Qwen3.5-9B@c202236235762e1c871ad0ccb60c8ee5ba337b9a`, loaded with Transformers 5.22.1 using `AutoProcessor` and `AutoModelForMultimodalLM`. This is historical evidence only; the current source pin is the Qwen3.8-27B-FP8 revision documented above. Synthetic inputs were staged under unique attempt prefixes and removed after terminal outcomes. Rev45 worker results and limits are in the linked execution report. Neither model pin is a production default or safety/quality approval.
 
 Qwen2.5 was retired from active FEAT-063 source/configuration by owner direction. Older POCs and evidence remain historical and are not current runtime choices. The existing `../qwen_vision_v2.py` is a separate legacy Qwen3-VL dev app, disabled and not used by this SRS v2.3 scaffold. GPU use incurs Modal charges; shared Volumes persist after apps stop.
 

@@ -2,7 +2,7 @@
   "schema_version": "sketch2life.modal.workload-registry.v1",
   "source": "FEAT-063 SRS v2.3-draft, §§6.2–6.3, 9.3–9.5, 22, 24.3–27, 31.4–31.5",
   "deployment_environment": "dev",
-  "model_selection_status": "dev test profile only: vision uses Qwen/Qwen3.5-9B@c202236235762e1c871ad0ccb60c8ee5ba337b9a; text uses Qwen/Qwen3.8-27B-FP8@c3a462cc3d38cf351f3b26cbd763469eeb74ef81; FLUX.3 Image Klein and LTX-2.5 remain gated candidates; no production model is approved and all product workloads remain disabled",
+  "model_selection_status": "Owner-directed development pin for every active Qwen workload: Qwen/Qwen3.8-27B-FP8@c3a462cc3d38cf351f3b26cbd763469eeb74ef81 for text and vision. Runtime/deployment is not verified by FEAT-083; no production model is approved and all product workloads remain disabled. Whisper, VieNeu-TTS and LTX-2.5 are separate non-Qwen workloads.",
   "workloads": [
     {
       "id": "asr.transcribe",
@@ -18,24 +18,24 @@
     {
       "id": "drawing.analyze",
       "execution_group": "l4",
-      "candidate": "Qwen/Qwen3.5-9B@c202236235762e1c871ad0ccb60c8ee5ba337b9a",
-      "candidate_status": "2026-11-05 Rev45 synthetic Qwen3.5 inference passed in 44.014s; candidate subject and visible features were returned from a generated drawing. Adult confirmation is required. This is worker evidence, not a production Parent API.",
+      "candidate": "Qwen/Qwen3.8-27B-FP8@c3a462cc3d38cf351f3b26cbd763469eeb74ef81",
+      "candidate_status": "Historical 2026-11-05 Rev45 Qwen3.5 worker result only; it does not verify the current Qwen3.8 candidate. FEAT-083 aligns the loader to Qwen3.8 on L40S; no Qwen3.8 inference/deployment is claimed. Adult confirmation remains required.",
       "enabled": false,
       "inputs": "one validated drawing asset and allowlisted context; adult confirms proposed subject",
       "human_gate": "adult confirms or corrects subject before story generation",
       "quota_owner": "AI Policy compute ledger; video quota admission remains backend-owned",
-      "implementation_status": "Synthetic Qwen3.5 worker inference and output checks passed; adult-confirmation gate retained; authenticated durable Parent API remains absent; disabled"
+      "implementation_status": "Source now pins the shared Qwen3.8-27B-FP8 checkpoint and L40S; historical Qwen3.5 evidence is not current-model evidence; deployment/inference remains unverified; disabled"
     },
     {
       "id": "story.generate",
       "execution_group": "l4",
       "candidate": "Qwen/Qwen3.8-27B-FP8@c3a462cc3d38cf351f3b26cbd763469eeb74ef81",
-      "candidate_status": "2026-11-05 Rev45 synthetic Qwen3.5 inference passed strict parsing and butterfly lifecycle checks in 113.381s with 5 scenes/30 seconds. Story and storyboard share one worker call. This is worker evidence, not a durable product API. Current dev text candidate: Qwen3.8-27B-FP8; Android UI verification pending.",
+      "candidate_status": "Historical 2026-11-05 Rev45 Qwen3.5 inference passed its then-current parser; this does not verify Qwen3.8. Current source pin is Qwen3.8-27B-FP8; no FEAT-083 inference/deployment is claimed.",
       "enabled": false,
       "inputs": "confirmed subject, adult-confirmed transcript, and minimum approved context via manifest",
       "human_gate": "adult reviews and confirms script/story before video admission",
       "quota_owner": "backend admission and AI Policy reservation",
-      "implementation_status": "Vietnamese Unicode constrained-decoder fix verified by Modal probes and successful synthetic story/storyboard inference; strict parser and semantic checks retained; product API remains fixture-only; disabled Qwen3.8-27B-FP8 shared text model is a dev candidate; this workload remains disabled pending the scoped verification."
+      "implementation_status": "Qwen3.8-27B-FP8 is the source pin for text/story work; prior Qwen3.5 inference remains historical. Parser, adult review and safety gates remain; current deployment/runtime is unverified; disabled."
     },
     {
       "id": "storyboard.generate",
@@ -46,7 +46,7 @@
       "inputs": "approved story direction via manifest; output target is 5–15 scenes",
       "human_gate": "same adult script-confirmation hash gates video admission",
       "quota_owner": "backend admission and AI Policy reservation",
-      "implementation_status": "Same Qwen3.5 worker as story.generate; synthetic 5-scene output passed parser and lifecycle checks; no product video dispatch; disabled Qwen3.8-27B-FP8 shared text model is a dev candidate; this workload remains disabled pending the scoped verification."
+      "implementation_status": "Shares the Qwen3.8-27B-FP8 text worker with story generation; prior Qwen3.5 evidence remains historical; no video inference/deployment is claimed; disabled."
     },
     {
       "id": "parent.sketch-guide.generate",
@@ -62,35 +62,35 @@
     {
       "id": "parent.topic-subjects.suggest",
       "execution_group": "l4",
-      "candidate": "Qwen/Qwen3.8-27B-FP8@c3a462cc3d38cf351f3b26cbd763469eeb74ef81",
-      "candidate_status": "FEAT-081 Rev20 implementation added with strict JSON parsing, exact-three output and duplicate/privacy gates; live inference has not yet been run. Current dev text candidate: Qwen3.8-27B-FP8; Android UI verification pending.",
+      "candidate": "Retired from dispatch: Parent topic and subject cards come from the first-party rotating catalog; this workload is not used.",
+      "candidate_status": "The old Qwen-generated subject-card fallback is superseded. Catalog cards rotate three at a time; uncatalogued topics require adult subject input and use the separate validation workload.",
       "enabled": false,
       "inputs": "Generic adult-entered topic and previously shown generic subject labels only; no child/profile/age/photo/audio/identifier fields",
       "human_gate": "Parent chooses one of exactly three draft subject cards; generated candidates do not assert the subject of the later drawing",
       "quota_owner": "Separate Parent topic suggestion compute cap; never video quota",
-      "implementation_status": "Worker and backend dispatch are coded; disabled by default and local/test-only behind SKETCH2LIFE_PARENT_TOPIC_SUBJECT_AI_ENABLED Qwen3.8-27B-FP8 shared text model is a dev candidate; this workload remains disabled pending the scoped verification."
+      "implementation_status": "No longer dispatched by the Parent API; deterministic catalog rotation is the active source; legacy worker code remains disabled and is not a fallback."
     },
     {
       "id": "parent.topic-subjects.validate",
       "execution_group": "l4",
       "candidate": "Qwen/Qwen3.8-27B-FP8@c3a462cc3d38cf351f3b26cbd763469eeb74ef81",
-      "candidate_status": "FEAT-081 Rev20 source implementation; no live inference has been run. Current dev text candidate: Qwen3.8-27B-FP8; Android UI verification pending.",
+      "candidate_status": "FEAT-083 source pin is Qwen3.8-27B-FP8; live inference/deployment has not been run for this revision.",
       "enabled": false,
       "inputs": "Generic adult-entered topic and generic intended drawing subject only; no child/profile/age/photo/audio/identifier fields",
       "human_gate": "The adult remains responsible for the choice; OUT_OF_TOPIC and NEEDS_CLARIFICATION block continuation.",
       "quota_owner": "Separate Parent topic-validation compute cap; never video quota",
-      "implementation_status": "Worker and backend dispatch are coded; disabled by default and local/test-only behind SKETCH2LIFE_PARENT_TOPIC_SUBJECT_AI_ENABLED Qwen3.8-27B-FP8 shared text model is a dev candidate; this workload remains disabled pending the scoped verification."
+      "implementation_status": "Qwen3.8-27B-FP8 is the source pin; sends generic adult-entered topic/subject text only; remains disabled pending separate runtime verification."
     },
     {
       "id": "parent.activity.suggest",
       "execution_group": "l4",
       "candidate": "Qwen/Qwen3.8-27B-FP8@c3a462cc3d38cf351f3b26cbd763469eeb74ef81",
-      "candidate_status": "Rev78: one zero-catalog synthetic fallback call loaded the model and entered inference but was cancelled after 976.326s without a terminal worker result; the application quality gate did not receive output. Catalog selection live behavior remains unverified. Current dev text candidate: Qwen3.8-27B-FP8; Android UI verification pending.",
+      "candidate_status": "Historical Rev78 Qwen3.8 call entered inference but was cancelled after 976.326s without a terminal result; it did not pass the application quality gate. FEAT-083 changes prompt/schema handling; no new inference is claimed.",
       "enabled": false,
       "inputs": "Parent-readable published/shared lesson candidates plus minimized age, interest tags, selected topic, adult-confirmed drawing context, and adult-confirmed narration; no image/audio bytes or direct identifiers",
       "human_gate": "adult reviews the selected catalog activities or exactly three temporary fallback drafts; generated drafts never publish to the lesson catalog",
       "quota_owner": "separate Parent AI compute accounting; never video quota",
-      "implementation_status": "Catalog-first Parent API, worker contract, and backend quality gate are implemented; Rev78A relaxes only list-like materials/observation formatting. Keep disabled until catalog and fallback Modal inference both reach a terminal result and pass the application gate. Qwen3.8-27B-FP8 shared text model is a dev candidate; this workload remains disabled pending the scoped verification."
+      "implementation_status": "Catalog-first selection and hard age/safety/privacy gates remain. Fallback parser now accepts substantive structured Qwen3.8 drafts and checks distinct focus/complete steps; live inference and quality-gate acceptance remain unverified; disabled."
     },
     {
       "id": "teacher.sketch-deck.generate",
@@ -113,17 +113,6 @@
       "human_gate": "authorized human review and edit before publication",
       "quota_owner": "AI Policy compute ledger; commercial accounting unresolved",
       "implementation_status": "LessonContentInputV1 draft adapter and synthetic inference passed; Admin/Teacher generation policy retained, Parent remains edit-only; durable product API remains absent; disabled Qwen3.8-27B-FP8 shared text model is a dev candidate; this workload remains disabled pending the scoped verification."
-    },
-    {
-      "id": "lesson.visual.generate",
-      "execution_group": "l4-candidate",
-      "candidate": "black-forest-labs/flux-3-image-klein@09561231f44e41381c461caf53d5452005a60ac9 + black-forest-labs/flux-3-image-klein-pup@a57899549f8f6f64c6c4d88db30827d496ff76d0",
-      "candidate_status": "2026-11-05 Rev46A: after staging the missing Diffusers transformer/VAE components, one synthetic FLUX.3 inference passed in 47.206s (3 panels, 768x432, DRAFT) with lesson revision/content-hash lineage matched. Educator review remains required.",
-      "enabled": false,
-      "inputs": "reviewed allowlisted lesson/activity content; never replace the child's original drawing",
-      "human_gate": "private draft, provenance, safety check, and authorized review",
-      "quota_owner": "separate AI Policy compute ledger",
-      "implementation_status": "Synthetic FLUX.3 visual worker, private DRAFT status, image contract, and lesson lineage passed once; authenticated durable product API and production safety review remain absent; disabled"
     },
     {
       "id": "drawing.segment",

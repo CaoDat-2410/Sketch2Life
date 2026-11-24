@@ -61,7 +61,7 @@ def test_silent_story_worker_is_pinned_and_runs_only_on_l40s() -> None:
     assert "scratch_volume" in ast.unparse(modal_config["volumes"])
 
 
-def test_ltx_keeps_the_original_drawing_as_frame_zero_and_guides_later_frames() -> None:
+def test_ltx_start_conditioning_is_always_a_hard_replace_at_frame_zero() -> None:
     run_ltx = _function("_run_ltx")
     calls = [
         ast.unparse(node)
@@ -71,14 +71,14 @@ def test_ltx_keeps_the_original_drawing_as_frame_zero_and_guides_later_frames() 
     replace_call = next(
         call for call in calls if call.startswith("ImageConditioningInput.replace(")
     )
-    guide_call = next(
-        call for call in calls if call.startswith("ImageConditioningInput.guide(")
-    )
     assert "frame_idx=0" in replace_call
     assert "strength=1.0" in replace_call
-    assert "frame_idx=image_guide_frame_idx" in guide_call
-    assert "image_conditionings" in VIDEO_SOURCE
-    assert "images=image_conditionings" in VIDEO_SOURCE
+    # FEAT-087: an end keyframe is a soft guide, built only by the dedicated helper.
+    assert not any(call.startswith("ImageConditioningInput.guide(") for call in calls)
+    helper = ast.unparse(_function("_end_frame_conditioning"))
+    assert "ImageConditioningInput.guide(" in helper and "num_frames - 1" in helper
+    assert "images=[conditioning, *end_conditioning]" in VIDEO_SOURCE
+    assert "story_image_guides" not in VIDEO_SOURCE
 
 
 def test_silent_story_worker_never_enables_warm_gpu_or_retries() -> None:
