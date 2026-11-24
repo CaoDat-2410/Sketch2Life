@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import logging
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
 from uuid import uuid4
@@ -98,6 +99,7 @@ class VerifiedDeviceStatusContext:
 
 
 PilotVisionFactory = Callable[[Settings, Engine], object]
+_LOGGER = logging.getLogger(__name__)
 
 
 def build_be1_runtime(
@@ -184,8 +186,20 @@ def get_db(runtime: Be1Runtime = Depends(get_runtime)) -> Iterator[Session]:
         # Probe at request start so unavailable PostgreSQL fails closed before any route work.
         session.execute(text("SELECT 1"))
         yield session
-    except SQLAlchemyError:
-        session.rollback()
+    except SQLAlchemyError as exc:
+        try:
+            session.rollback()
+        except SQLAlchemyError as rollback_error:
+            _LOGGER.error(
+                "code=%s error_type=%s",
+                "DATABASE_ROLLBACK_FAILED",
+                type(rollback_error).__name__,
+            )
+        _LOGGER.error(
+            "code=%s error_type=%s",
+            "DATABASE_UNAVAILABLE",
+            type(exc).__name__,
+        )
         raise HTTPException(status_code=503, detail={"code": "DATABASE_UNAVAILABLE"}) from None
     finally:
         session.close()

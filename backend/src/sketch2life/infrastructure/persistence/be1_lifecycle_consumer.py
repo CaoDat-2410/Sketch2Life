@@ -355,12 +355,16 @@ class Be1LifecycleConsumer:
         self._clock = clock
 
     # ------------------------------------------------------------------ entry points
-    def run_once(self) -> str | None:
-        claimed = self._outbox.claim_ready(
+    def run_once(self, *, target_run_ref: str | None = None) -> str | None:
+        aggregate_ids = (
+            None if target_run_ref is None else (validate_run_ref(target_run_ref),)
+        )
+        claimed = cast(Any, self._outbox).claim_ready(
             worker_id=self._config.worker_id,
             limit=1,
             lease_seconds=self._config.lease_seconds,
             event_types=LIFECYCLE_EVENT_TYPES,
+            aggregate_ids=aggregate_ids,
         )
         if not claimed:
             return None

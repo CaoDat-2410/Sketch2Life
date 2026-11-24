@@ -36,6 +36,7 @@ class PostgresOutbox:
         limit: int = 50,
         lease_seconds: int = 30,
         event_types: Collection[str] | None = None,
+        aggregate_ids: Collection[str] | None = None,
     ) -> Sequence[OutboxEnvelope]:
         """Lease ready rows; ``event_types`` (FR-C-08) limits the claim to those types.
 
@@ -49,6 +50,11 @@ class PostgresOutbox:
         type_filter = None if event_types is None else sorted(set(event_types))
         if type_filter is not None and not type_filter:
             raise ValueError("outbox claim event-type filter must not be empty")
+        aggregate_filter = None if aggregate_ids is None else sorted(set(aggregate_ids))
+        if aggregate_filter is not None and not aggregate_filter:
+            raise ValueError("outbox claim aggregate filter must not be empty")
+        if aggregate_filter is not None and len(aggregate_filter) > 500:
+            raise ValueError("outbox claim aggregate filter exceeds its bound")
         now = datetime.now(UTC)
         lease_until = now + timedelta(seconds=lease_seconds)
         with self._sessions.begin() as session:
@@ -66,6 +72,8 @@ class PostgresOutbox:
             )
             if type_filter is not None:
                 query = query.where(CoreOutboxEventModel.event_type.in_(type_filter))
+            if aggregate_filter is not None:
+                query = query.where(CoreOutboxEventModel.aggregate_id.in_(aggregate_filter))
             rows = list(
                 session.scalars(
                     query.order_by(CoreOutboxEventModel.created_at, CoreOutboxEventModel.event_id)
