@@ -135,6 +135,26 @@ features/FEAT-029-master-srs/evidence/notes/SOURCES.md
 /features/FEAT-058-review2-document-package/artifacts/submission_r2_rev11/SWP490_FA26SE225_R2_Registration.docx
 /features/FEAT-058-review2-document-package/artifacts/submission_r2_rev12/SWP490_FA26SE225_R2_Registration.docx
 
+# FEAT-091 branch recovery: operator-local copies, patch rejects and bulky scratch
+/Claude outputs/
+/Screenshot_1795450064.png
+*.rej
+/features/FEAT-026-current-system-srs/artifacts/Sketch2Life_SRS_Form_English.pdf
+/features/FEAT-063-system-architecture-rearchitecture/assets/generated.rar
+/features/FEAT-063-system-architecture-rearchitecture/assets/generated/generated.rar
+/features/FEAT-063-system-architecture-rearchitecture/evidence/.pytest-basetemp-rev37-run2/
+/features/FEAT-063-system-architecture-rearchitecture/evidence/rev33-pytest-tmp/
+/features/FEAT-063-system-architecture-rearchitecture/evidence/rev34-be1-final-tmp/
+/features/FEAT-063-system-architecture-rearchitecture/evidence/rev34-be1-pytest-tmp/
+/features/FEAT-063-system-architecture-rearchitecture/evidence/drawio_package/rendered/recheck-all-pages.pdf
+/features/FEAT-063-system-architecture-rearchitecture/evidence/**/*.log
+/features/FEAT-066-srs-word-generation/evidence/raw/
+/features/FEAT-066-srs-word-generation/evidence/screenshots/
+/features/FEAT-066-srs-word-generation/artifacts/~$*
+/features/FEAT-084-parent-mobile-ui-polish/evidence/**/*.log
+/features/FEAT-085-parent-e2e-runtime-repair/evidence/**/*.log
+/features/FEAT-085-parent-e2e-runtime-repair/evidence/ANDROID_PARENT_E2E_20261123/.pytest-modal-tmp/
+
 # FEAT-060 raw local command logs may contain workstation paths; reviewed summaries are versioned.
 /features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/active-ui-full-check.log
 /features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/admin-ui-integration-check.log
