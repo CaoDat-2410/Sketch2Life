@@ -4,7 +4,6 @@
 
 from __future__ import annotations
 
-import base64
 import hashlib
 import json
 from uuid import uuid4
@@ -19,7 +18,6 @@ from sketch2life.contracts.schemas.modal_ai import (
     TeacherReviewedPlanRequestV1,
 )
 from sketch2life.infrastructure.ai.modal_function_client import (
-    FLUX_MODEL_PROVENANCE,
     QWEN_TEXT_MODEL_ID,
     QWEN_TEXT_MODEL_REVISION,
     ModalFunctionExecutionFailed,

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 type SlideKind = 'orientation' | 'drawing_guide' | 'subject_exploration' | 'approved_activity'
 
@@ -30,10 +30,6 @@ export type TeacherSketchDeck = Readonly<{
 
 type Props = Readonly<{
   deck: TeacherSketchDeck
-  visualBase64: string | null
-  visualBusy: boolean
-  visualError: string
-  onGenerateVisual: () => void
   onClose: () => void
 }>
 
@@ -156,23 +152,11 @@ function TextList({ items, emptyLabel }: { items: string[]; emptyLabel?: string 
   return <ul className="space-y-2">{items.map((item, index) => <li key={`${index}-${item}`} className="flex gap-3 text-slate-800"><span aria-hidden="true" className="mt-[0.55rem] h-2 w-2 shrink-0 rounded-full bg-blue-600" /><span>{item}</span></li>)}</ul>
 }
 
-export function TeacherDeckPresentation({
-  deck,
-  visualBase64,
-  visualBusy,
-  visualError,
-  onGenerateVisual,
-  onClose,
-}: Props) {
+export function TeacherDeckPresentation({ deck, onClose }: Props) {
   const [slideIndex, setSlideIndex] = useState(0)
   const [stepIndex, setStepIndex] = useState(0)
   const slide = deck.slides[slideIndex]
   const currentStep = slide.kind === 'drawing_guide' ? slide.steps[stepIndex] : null
-  const imageSrc = useMemo(
-    () => visualBase64 && /^[A-Za-z0-9+/]+={0,2}$/.test(visualBase64) ? `data:image/png;base64,${visualBase64}` : null,
-    [visualBase64],
-  )
-
   function selectSlide(index: number) {
     setSlideIndex(index)
     setStepIndex(0)
@@ -259,15 +243,11 @@ export function TeacherDeckPresentation({
                     </div>
                   </div>
                   <div className="flex min-h-0 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-white p-2">
-                    {imageSrc
-                      ? <img src={imageSrc} alt={`Hướng dẫn line-sketch ${deck.topic}, gồm ${slide.steps.length} bước`} className="max-h-full max-w-full object-contain" />
-                      : <div className="max-w-sm px-5 text-center">
-                          <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-full bg-blue-50 text-2xl text-blue-700" aria-hidden="true">✎</div>
-                          <p className="font-bold">Chưa có hình hướng dẫn</p>
-                          <p className="mt-1 text-sm text-slate-600">Tạo ảnh line-sketch tùy chọn để hiển thị cùng các bước vẽ.</p>
-                          {visualError && <p role="alert" className="mt-3 rounded-lg bg-red-50 p-2 text-sm text-red-800">{visualError}</p>}
-                          <button type="button" disabled={visualBusy} onClick={onGenerateVisual} className="mt-4 rounded-lg bg-blue-700 px-4 py-2 text-sm font-bold text-white disabled:opacity-60">{visualBusy ? 'Đang tạo ảnh…' : 'Tạo ảnh hướng dẫn'}</button>
-                        </div>}
+                    <div className="max-w-sm px-5 text-center">
+                      <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-full bg-blue-50 text-2xl text-blue-700" aria-hidden="true">✎</div>
+                      <p className="font-bold">Chưa có hình minh họa</p>
+                      <p className="mt-1 text-sm text-slate-600">Bản trình chiếu hiện hiển thị nội dung và các bước hướng dẫn bằng chữ.</p>
+                    </div>
                   </div>
                 </div>
               )}

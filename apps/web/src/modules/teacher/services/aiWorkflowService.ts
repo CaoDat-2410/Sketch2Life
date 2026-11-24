@@ -43,8 +43,6 @@ type AiResponse<T> = Readonly<{
   review_required?: boolean
   suggestion?: T
   deck?: Record<string, unknown>
-  image_base64?: string
-  asset?: Record<string, unknown>
 }>
 
 function organizationId() {
@@ -88,6 +86,4 @@ export const aiWorkflowService = {
     post<AiResponse<Record<string, unknown>>>(`${prefix()}/lesson-plan-suggestions`, input),
   generateSketchDeck: (input: TeacherReviewedPlanInput) =>
     post<AiResponse<Record<string, unknown>>>(`${prefix()}/sketch-decks`, input),
-  generateLessonVisual: (input: TeacherReviewedPlanInput) =>
-    post<AiResponse<Record<string, unknown>>>(`${prefix()}/lesson-visuals`, input),
 }

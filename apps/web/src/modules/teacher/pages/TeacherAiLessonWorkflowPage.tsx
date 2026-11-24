@@ -49,8 +49,6 @@ export function TeacherAiLessonWorkflowPage() {
   const [activities, setActivities] = useState<ActivityDraft[]>([])
   const [reviewConfirmed, setReviewConfirmed] = useState(false)
   const [deck, setDeck] = useState<unknown>(null)
-  const [visual, setVisual] = useState<string | null>(null)
-  const [visualError, setVisualError] = useState('')
   const [presentationOpen, setPresentationOpen] = useState(false)
   const [busy, setBusy] = useState('')
   const [error, setError] = useState('')
@@ -153,7 +151,6 @@ export function TeacherAiLessonWorkflowPage() {
   async function generateDeck() {
     setError('')
     setNotice('')
-    setVisual(null)
     const input = reviewedPlan()
     if (!input) return
     setBusy('deck')
@@ -166,27 +163,6 @@ export function TeacherAiLessonWorkflowPage() {
       setNotice(`Sketch Deck Qwen đã tạo ở trạng thái bản nháp; mã yêu cầu ${response.request_id}.`)
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Không thể tạo Sketch Deck.')
-    } finally {
-      setBusy('')
-    }
-  }
-
-  async function generateVisual() {
-    setError('')
-    setVisualError('')
-    setNotice('')
-    const input = reviewedPlan()
-    if (!input) return
-    setBusy('visual')
-    try {
-      const response = await aiWorkflowService.generateLessonVisual(input)
-      if (!response.image_base64) throw new Error('Backend chưa trả ảnh minh họa hợp lệ.')
-      setVisual(response.image_base64 ?? null)
-      setNotice(`FLUX đã tạo ảnh minh họa bản nháp; mã yêu cầu ${response.request_id}.`)
-    } catch (cause) {
-      const message = cause instanceof Error ? cause.message : 'Không thể tạo ảnh minh họa.'
-      setError(message)
-      setVisualError(message)
     } finally {
       setBusy('')
     }
