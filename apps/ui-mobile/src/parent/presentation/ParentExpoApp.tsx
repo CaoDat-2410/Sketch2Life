@@ -27,6 +27,7 @@ import { IdeaScreen } from './screens/IdeaScreen';
 import { SketchGuideScreen } from './screens/SketchGuideScreen';
 import { TranscriptReviewScreen } from './screens/TranscriptReviewScreen';
 import { VideoScreen } from './screens/VideoScreen';
+import { VideoWatcher } from './components/VideoWatcher';
 import { LessonGalleryScreen } from './screens/LessonGalleryScreen';
 import { LessonHistoryScreen } from './screens/LessonHistoryScreen';
 import { LessonPickerScreen } from './screens/LessonPickerScreen';
@@ -338,7 +339,10 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
     onBack={() => parent.setStep('profile')}
   />);
 
-  return renderLearningStep(parent, platform, pendingCaptureSource, () => setPendingCaptureSource(null));
+  return <View style={{ flex: 1 }}>
+    {renderLearningStep(parent, platform, pendingCaptureSource, () => setPendingCaptureSource(null))}
+    <VideoWatcher run={parent.contextRun} onVideoStep={parent.step === 'video'} onOpenVideo={() => parent.setStep('video')} onPoll={() => void parent.pollVideoQuietly()} />
+  </View>;
 }
 
 function renderLearningStep(
@@ -545,6 +549,8 @@ function renderLearningStep(
   if (step === 'video') return <VideoScreen
     stepLabel={stepLabel(8)}
     panel={parent.videoPanel}
+    runId={parent.contextRun?.run_id ?? null}
+    activity={parent.contextRun?.main_activity?.selected ?? null}
     busy={['video-request', 'video-playback', 'video-unsuitable', 'video-complete', 'video-refresh'].includes(parent.busy) ? parent.busy : ''}
     error={parent.error}
     playback={parent.playback}

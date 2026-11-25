@@ -2435,6 +2435,17 @@ export function useParentController(application: ParentApplicationModule) {
     await openVideoStep();
   }
 
+  /** FEAT-093: one quiet read of the run while a video is made and the adult is on another screen (no navigation). */
+  async function pollVideoQuietly(): Promise<void> {
+    const run = contextRun;
+    if (!run || busy) return;
+    try {
+      adoptPolledRun(await readLiveRun(run.run_id));
+    } catch {
+      // the next tick tries again; a failed quiet read is never shown
+    }
+  }
+
   async function requestVideo(): Promise<void> {
     const run = contextRun;
     if (busy || !run) return;
@@ -2846,7 +2857,7 @@ export function useParentController(application: ParentApplicationModule) {
     retakeAvailable, rewriteStory, rewriteNotice,
     videoPanel: readVideoPanel(contextRun, { spentRevisionNo: spentStoryRevisionNo, confirmedRevisionNo: confirmedStoryRevisionNo }),
     playback, videoReason, setVideoReason, markingUnsuitable, startUnsuitable, cancelUnsuitable,
-    openVideoStep, refreshVideo, requestVideo, playVideo, onPlaybackError, markVideoUnsuitable, completeRun,
+    openVideoStep, refreshVideo, pollVideoQuietly, requestVideo, playVideo, onPlaybackError, markVideoUnsuitable, completeRun,
     watchHistoryRun,
     storyConfirmationRequired: contextRun?.story_confirmation_required === true,
     storyOnlyCancel: Boolean(contextRun && readVideoPanel(contextRun, { spentRevisionNo: spentStoryRevisionNo, confirmedRevisionNo: confirmedStoryRevisionNo }).onlyCancel),

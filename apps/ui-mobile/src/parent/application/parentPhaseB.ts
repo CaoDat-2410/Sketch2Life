@@ -12,6 +12,8 @@ import type {
   ParentStoryRewriteAcceptedV1,
   ParentStoryRunV1,
   ParentPostVideoActivityV1,
+  ParentVideoCueV1,
+  ParentVideoProgressV1,
   ParentTranscriptConfirmedV1,
   ParentVideoGenerationAcceptedV1,
   ParentVideoReasonCodeV1,
@@ -461,6 +463,9 @@ export type VideoPanel = {
   postVideoActivities: ParentPostVideoActivityV1[] | null;
   storyConfirmationRequired: boolean;
   onlyCancel: boolean;
+  /** FEAT-093: the real stage of the video worker while it runs (server data, never invented here). */
+  progress: ParentVideoProgressV1 | null;
+  captions: ParentVideoCueV1[] | null;
 };
 
 const SCENE_LABELS = { QUEUED: 'Đang chờ', GENERATING: 'Đang tạo', READY: 'Đã xong', FAILED: 'Chưa tạo được' } as const;
@@ -468,7 +473,7 @@ const SCENE_LABELS = { QUEUED: 'Đang chờ', GENERATING: 'Đang tạo', READY: 
 const closedPanel = (headline: string, detail: string | null, tone: VideoPanel['tone']): VideoPanel => ({
   headline, detail, tone, inFlight: false, canRequest: false, requiresReason: false, needsScriptReview: false,
   canPlay: false, canMarkUnsuitable: false, canComplete: false, closed: true, requestsRemaining: null, scenes: [],
-  postVideoActivities: null, storyConfirmationRequired: false, onlyCancel: false,
+  postVideoActivities: null, storyConfirmationRequired: false, onlyCancel: false, progress: null, captions: null,
 });
 
 /**
@@ -513,6 +518,8 @@ export function readVideoPanel(
     postVideoActivities: readPostVideoActivities(run.post_video_activities),
     storyConfirmationRequired: run.story_confirmation_required === true,
     onlyCancel: false,
+    progress: video?.progress ?? null,
+    captions: video?.captions ?? null,
   };
 
   switch (state) {

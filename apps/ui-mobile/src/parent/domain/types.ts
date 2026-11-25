@@ -821,6 +821,17 @@ export type ParentVideoGenerationAcceptedV1 = {
   };
 };
 
+export type ParentVideoProgressV1 = {
+  stage: 'PLANNING' | 'PREPARING_SCENES' | 'RENDERING' | 'NARRATING' | 'ASSEMBLING' | 'CHECKING';
+  scene_index: number | null;
+  scene_count: number;
+  started_at: string;
+  /** A rough estimate for the waiting screen, never a promise. */
+  eta_seconds: number;
+};
+
+export type ParentVideoCueV1 = { start_ms: number; end_ms: number; text: string; lane: 'narration' | 'dialogue' };
+
 export type ParentVideoSceneStateV1 = { scene_index: number; state: 'QUEUED' | 'GENERATING' | 'READY' | 'FAILED' };
 
 export type ParentStoryRunVideoV1 = {
@@ -835,6 +846,8 @@ export type ParentStoryRunVideoV1 = {
     retryable: boolean;
     error_code: string | null;
   } | null;
+  progress?: ParentVideoProgressV1 | null;
+  captions?: ParentVideoCueV1[] | null;
   scenes: ParentVideoSceneStateV1[];
   playback: { state: 'AVAILABLE' | 'HIDDEN' | 'UNAVAILABLE'; asset_ref: string | null; token_route: string | null };
   /** The three-request run cap of FR-AI-07 (l.573), not the monthly quota. */
