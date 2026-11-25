@@ -73,13 +73,32 @@ export async function uploadRunMedia(input: {
     throw new ParentApplicationError(input.purpose === 'RUN_AUDIO' ? 'AUDIO_TOO_LARGE' : 'MEDIA_TOO_LARGE', 'Tệp quá lớn hoặc trống.');
   }
   const fileSha256 = await input.digest.sha256Hex(input.bytes);
-  const session = await input.uploads.create({
-    purpose: input.purpose,
-    target_ref: input.runId,
-    media_type: input.mediaType,
-    expected_size_bytes: input.bytes.byteLength,
-    expected_sha256: fileSha256,
-  }, input.keys.create, input.signal);
+  let session: UploadSessionView;
+  try {
+    session = await input.uploads.create({
+      purpose: input.purpose,
+      target_ref: input.runId,
+      media_type: input.mediaType,
+      expected_size_bytes: input.bytes.byteLength,
+      expected_sha256: fileSha256,
+    }, input.keys.create, input.signal);
+  } catch (cause) {
+    // A failed create response happens before the client sends any image bytes or starts AI work.
+    // Keep the stage explicit so the UI can offer its single safe retry with the same idempotency key.
+    if (cause instanceof ParentApplicationError && cause.status === 503) {
+      throw new ParentApplicationError(
+        'UPLOAD_SESSION_CREATE_UNAVAILABLE',
+        'The upload session could not be created before the file was sent.',
+        cause.requestId,
+        cause.status,
+        {
+          ...(cause.correlationId ? { correlationId: cause.correlationId } : {}),
+          ...(cause.retryable === undefined ? {} : { retryable: cause.retryable }),
+        },
+      );
+    }
+    throw cause;
+  }
 
   const partSize = session.part_size_bytes;
   const expectedParts = Math.ceil(input.bytes.byteLength / partSize);

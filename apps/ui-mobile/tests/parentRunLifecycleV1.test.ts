@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { AuthTokenPort } from '../src/parent/application/ports/ParentPorts';
 import { ParentApplicationError } from '../src/parent/application/ParentApplicationError';
 import { ParentPlatformUseCases } from '../src/parent/application/use-cases/ParentPlatformUseCases';
-import { ParentApi, ParentApiError } from '../src/parent/infrastructure/http/ParentApi';
+import { ParentApi, ParentApiError, ParentApiUnavailableError } from '../src/parent/infrastructure/http/ParentApi';
 import { isParentStoryRunLifecycleEnvelope } from '../src/parent/domain/types';
 import { requireLiveStoryRun } from '../src/parent/application/storyRunResult';
 import { parentRecoveryGroupForError, safeParentFlowErrorMessage } from '../src/parent/presentation/navigation/parentFlowV1';
@@ -54,25 +54,11 @@ describe('Parent run lifecycle client (FR-C-08)', () => {
     expect(header(calls[0], 'Idempotency-Key')).toBe('cancel-action-1');
   });
 
-  it('reconciles the current run revision before cancelling an unresolved run', async () => {
-    const liveRun = {
-      run_id: 'synthetic-run',
-      run_revision: 7,
-      run_state: 'IMAGE_ATTACHED',
-    };
-    const { api, calls } = createApi([
-      { status: 200, body: { request_id: 'r0', story_run: liveRun } },
-      { status: 202, body: { request_id: 'r1', lifecycle } },
-    ]);
+  it('refuses the legacy cancel operation instead of calling an unconfirmed route', async () => {
+    const { api, calls } = createApi([]);
 
-    const result = await api.cancelStoryRun('synthetic-run');
-
-    expect(result.lifecycle.run_state).toBe('DELETE_PENDING');
-    expect(calls).toHaveLength(2);
-    expect(`${calls[0].init.method} ${new URL(calls[0].url).pathname}`).toBe('GET /v1/story-runs/synthetic-run');
-    expect(`${calls[1].init.method} ${new URL(calls[1].url).pathname}`).toBe('POST /v1/story-runs/synthetic-run/cancel');
-    expect(JSON.parse(String(calls[1].init.body))).toEqual({ expected_revision: 7 });
-    expect(header(calls[1], 'Idempotency-Key')).toMatch(/^[\x21-\x7E]{1,128}$/);
+    await expect(api.cancelStoryRun('synthetic-run')).rejects.toBeInstanceOf(ParentApiUnavailableError);
+    expect(calls).toHaveLength(0);
   });
 
   it('deletes without a body and with an idempotency key', async () => {

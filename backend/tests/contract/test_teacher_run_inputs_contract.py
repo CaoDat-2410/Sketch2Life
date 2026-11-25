@@ -21,9 +21,11 @@ from __future__ import annotations
 import inspect
 import json
 from collections.abc import Iterator
+from datetime import UTC, datetime
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
+from uuid import UUID
 
 import pytest
 import story_run_inputs_matrix as matrix  # type: ignore[import-not-found]
@@ -43,6 +45,7 @@ from sketch2life.application.ports.parent_story_inputs import (
 )
 from sketch2life.application.ports.parent_story_runs import (
     ParentStoryRevisionReservation,
+    ParentStoryRunRecord,
     StoryRewriteOutcome,
 )
 from sketch2life.application.ports.story_run_actor import RunActor, RunActorKind
@@ -246,6 +249,9 @@ class _Repository:
     def get_transcript(self, **kwargs: Any) -> Any:
         return self._record("get_transcript", kwargs)
 
+    def get_run(self, **kwargs: Any) -> Any:
+        return self._record("get_run", kwargs)
+
     def confirm_transcript(self, **kwargs: Any) -> Any:
         return self._record("confirm_transcript", kwargs)
 
@@ -295,7 +301,13 @@ def wired(monkeypatch: pytest.MonkeyPatch, application: FastAPI) -> Iterator[Any
     state = application.state
     saved = {
         name: getattr(state, name, None)
-        for name in ("drawing_analyzer", "speech_transcriber", "story_generator", "be1_runtime")
+        for name in (
+            "drawing_analyzer",
+            "speech_transcriber",
+            "story_generator",
+            "be1_runtime",
+            "parent_drawing_recovery_enabled",
+        )
     }
     state.drawing_analyzer = state.speech_transcriber = state.story_generator = object()
     state.be1_runtime = SimpleNamespace(session_factory=lambda: None)
@@ -329,6 +341,74 @@ def _reservation(organization: str | None) -> ParentStoryRevisionReservation:
         receipt_id=None,
         organization_id=organization,
     )
+
+
+def _queued_parent_run(
+    *, run_state: str = "INPUT_PROCESSING", job_state: str = "QUEUED"
+) -> ParentStoryRunRecord:
+    now = datetime.now(UTC)
+    return ParentStoryRunRecord(
+        run_id=RUN_ID,
+        run_state=run_state,
+        run_revision=7,
+        parent_profile_id=UUID("00000000-0000-4000-8000-000000000001"),
+        profile_revision_ref=UUID("00000000-0000-4000-8000-000000000002"),
+        context_revision=1,
+        context_confirmed=True,
+        context_snapshot={},
+        context_snapshot_sha256=HASH,
+        current_input_revision=1,
+        understanding_revision=None,
+        subject_label=None,
+        candidate=None,
+        story_revision_id=None,
+        story_revision_no=None,
+        story_status=None,
+        story_sha256=None,
+        story_content=None,
+        job_state=job_state,
+        retryable=False,
+        error_code=None,
+        created_at=now,
+        updated_at=now,
+    )
+
+
+def test_parent_drawing_recovery_schedules_only_the_queued_attached_revision(
+    client: TestClient, wired: FastAPI
+) -> None:
+    _use(wired, "parent")
+    wired.state.parent_drawing_recovery_enabled = True
+    _Repository.reply = _queued_parent_run()
+
+    response = client.post(
+        f"/v1/story-runs/{RUN_ID}/drawing-analysis/resume",
+        headers={**_teacher_headers(), "X-Test-Principal": "parent"},
+        json={"expected_input_revision": 1},
+    )
+
+    assert response.status_code == 202, response.text
+    assert response.json()["dispatch_state"] == "ACCEPTED"
+    assert len(_Runner.scheduled) == 1
+    assert _Runner.scheduled[0][0] == "run"
+    assert _Runner.scheduled[0][1][1:] == (RUN_ID, 1)
+
+
+def test_parent_drawing_recovery_rejects_a_nonqueued_or_stale_revision(
+    client: TestClient, wired: FastAPI
+) -> None:
+    _use(wired, "parent")
+    wired.state.parent_drawing_recovery_enabled = True
+    _Repository.reply = _queued_parent_run(job_state="RUNNING")
+
+    response = client.post(
+        f"/v1/story-runs/{RUN_ID}/drawing-analysis/resume",
+        headers={**_teacher_headers(), "X-Test-Principal": "parent"},
+        json={"expected_input_revision": 1},
+    )
+
+    assert response.status_code == 409
+    assert _Runner.scheduled == []
 
 
 def test_a_teacher_rewrite_reaches_the_repository_and_the_runner_gets_the_actor(

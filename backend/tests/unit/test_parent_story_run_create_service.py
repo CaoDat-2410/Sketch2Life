@@ -58,9 +58,11 @@ class _AgeProfileLookup:
 class _CreateRepository:
     def __init__(self) -> None:
         self.calls = 0
+        self.arguments: dict[str, Any] = {}
 
-    def create_run(self, **_kwargs: Any) -> ParentStoryRunRecord:
+    def create_run(self, **kwargs: Any) -> ParentStoryRunRecord:
         self.calls += 1
+        self.arguments = kwargs
         return cast(ParentStoryRunRecord, object())
 
 
@@ -84,12 +86,14 @@ def test_create_replay_short_circuits_profile_lookup_and_normalizes_payload() ->
         idempotency_key="create-key",
         topic="  Butterflies  ",
         adult_confirmed_idea="  Visit a garden  ",
+        intended_drawing_subject="  butterfly   with orange wings  ",
         lesson_version_ref=lesson_version_ref,
     )
 
     assert result is record
     assert repository.arguments["topic"] == "Butterflies"
     assert repository.arguments["adult_confirmed_idea"] == "Visit a garden"
+    assert repository.arguments["intended_drawing_subject"] == "butterfly with orange wings"
     assert repository.arguments["lesson_version_ref"] == lesson_version_ref
 
 
@@ -107,8 +111,10 @@ def test_create_accepts_boundary_ages_before_repository_admission(age_months: in
         idempotency_key="create-key",
         topic="A garden",
         adult_confirmed_idea="A butterfly",
+        intended_drawing_subject="  butterfly   with orange wings  ",
     )
     assert repository.calls == 1
+    assert repository.arguments["intended_drawing_subject"] == "butterfly with orange wings"
 
 
 @pytest.mark.parametrize("age_months", (121, 155))

@@ -176,20 +176,31 @@ class FirstStoryStarter:
         ):
             return None
         context = input_row["context_snapshot"]
-        worker_input = {
-            "schema_version": FIRST_STORY_INPUT_SCHEMA,
-            "role": "TEACHER" if self._teacher else "PARENT",
-            "language": "vi",
-            "confirmed_subject": str(run["subject_label"] or "").strip(),
-            "understanding_revision": understanding_revision,
-            "drawing_sha256": str(input_row["original_sha256"]),
-            "visible_features": visible_features,
-            "child_age_months": int(context["age_months"]),
-            "context_revision": int(input_row["context_revision"]),
-            "adult_confirmed_idea": idea_text,
-            "activity": worker_activity(selection) if selection is not None else None,
-            "lesson_direction": teacher_lesson_direction(context) if self._teacher else None,
-        }
+        if not self._teacher:
+            worker_input = _parent_worker_input_v3(
+                run=run,
+                input_row=input_row,
+                context=context,
+                idea_text=idea_text,
+                visible_features=visible_features,
+                understanding_revision=understanding_revision,
+                selection=selection,
+            )
+        else:
+            worker_input = {
+                "schema_version": FIRST_STORY_INPUT_SCHEMA,
+                "role": "TEACHER",
+                "language": "vi",
+                "confirmed_subject": str(run["subject_label"] or "").strip(),
+                "understanding_revision": understanding_revision,
+                "drawing_sha256": str(input_row["original_sha256"]),
+                "visible_features": visible_features,
+                "child_age_months": int(context["age_months"]),
+                "context_revision": int(input_row["context_revision"]),
+                "adult_confirmed_idea": idea_text,
+                "activity": None,
+                "lesson_direction": teacher_lesson_direction(context),
+            }
         request_hash = self._sha256_json(worker_input)
         story_revision_id = str(uuid4())
         new_version = int(run["version"]) + 1
@@ -236,6 +247,71 @@ class FirstStoryStarter:
             receipt_id=None,
             organization_id=str(run["actor_scope_ref"]) if self._teacher else None,
         )
+
+
+def _parent_worker_input_v3(
+    *,
+    run: Mapping[Any, Any],
+    input_row: Mapping[Any, Any],
+    context: Mapping[Any, Any],
+    idea_text: str,
+    visible_features: list[str],
+    understanding_revision: int,
+    selection: Mapping[Any, Any] | None,
+) -> dict[str, Any]:
+    """FEAT-092: the Parent first story uses input v3, the only version the Modal story client and
+    worker accept (topic, lesson notes and the adult's main activity with its hash)."""
+
+    import hashlib
+    import json
+
+    from sketch2life.infrastructure.persistence.parent_story_repository import (
+        _story_primary_activity,
+    )
+
+    if selection is None:
+        raise ParentStoryRunError(409, "PARENT_ACTIVITY_SELECTION_REQUIRED")
+    primary_activity = _story_primary_activity(selection["activity_snapshot"])
+    topic = context.get("topic", "")
+    if not isinstance(topic, str) or len(topic) > 120:
+        raise ParentStoryRunError(409, "PARENT_CONTEXT_INVALID")
+    lesson_pin = input_row["lesson_pin_snapshot"]
+    lesson_notes: str | None = None
+    lesson_direction: str | None = None
+    if isinstance(lesson_pin, dict):
+        notes = lesson_pin.get("subject_learning_notes")
+        direction = lesson_pin.get("script_direction")
+        if isinstance(notes, str) and 1 <= len(notes) <= 5000:
+            lesson_notes = notes
+            if (
+                lesson_pin.get("script_following_allowed") is True
+                and isinstance(direction, str)
+                and direction.strip()
+                and len(direction) <= 2000
+            ):
+                lesson_direction = direction
+    return {
+        "schema_version": "sketch2life.story-generation-input.v3",
+        "role": "PARENT",
+        "language": "vi",
+        "topic": topic,
+        "confirmed_subject": str(run["subject_label"] or "").strip(),
+        "understanding_revision": understanding_revision,
+        "drawing_sha256": str(input_row["original_sha256"]),
+        "visible_features": visible_features,
+        "child_age_months": int(context["age_months"]),
+        "context_revision": int(input_row["context_revision"]),
+        "adult_confirmed_idea": idea_text,
+        "rewrite_instruction": None,
+        "lesson_subject_learning_notes": lesson_notes,
+        "lesson_direction": lesson_direction,
+        "primary_activity": primary_activity,
+        "primary_activity_sha256": hashlib.sha256(
+            json.dumps(
+                primary_activity, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+            ).encode("utf-8")
+        ).hexdigest(),
+    }
 
 
 __all__ = [

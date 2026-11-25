@@ -16,6 +16,7 @@ from sketch2life.interfaces.http.routers.child_preferences import (
 from sketch2life.interfaces.http.routers.health import router as health_router
 from sketch2life.interfaces.http.routers.images import router as images_router
 from sketch2life.interfaces.http.routers.jobs import router as jobs_router
+from sketch2life.interfaces.http.routers.lesson_feedback import router as lesson_feedback_router
 from sketch2life.interfaces.http.routers.lesson_library import router as lesson_library_router
 from sketch2life.interfaces.http.routers.lesson_occurrences import (
     router as lesson_occurrences_router,
@@ -33,14 +34,16 @@ from sketch2life.interfaces.http.routers.parent_story_inputs import (
     router as parent_story_inputs_router,
 )
 from sketch2life.interfaces.http.routers.parent_story_runs import router as parent_story_runs_router
+from sketch2life.interfaces.http.routers.parent_topic_suggestions import (
+    router as parent_topic_suggestions_router,
+)
+from sketch2life.interfaces.http.routers.password_recovery import router as password_recovery_router
+from sketch2life.interfaces.http.routers.payment_callbacks import router as payment_callbacks_router
 from sketch2life.interfaces.http.routers.pilot_assistance import router as pilot_assistance_router
+from sketch2life.interfaces.http.routers.platform_admin import router as platform_admin_router
 from sketch2life.interfaces.http.routers.platform_admin_accounts import (
     router as platform_admin_accounts_router,
 )
-from sketch2life.interfaces.http.routers.platform_admin import router as platform_admin_router
-from sketch2life.interfaces.http.routers.payment_callbacks import router as payment_callbacks_router
-from sketch2life.interfaces.http.routers.password_recovery import router as password_recovery_router
-from sketch2life.interfaces.http.routers.lesson_feedback import router as lesson_feedback_router
 from sketch2life.interfaces.http.routers.sessions import router as sessions_router
 from sketch2life.interfaces.http.routers.story_run_video import router as story_run_video_router
 from sketch2life.interfaces.http.routers.story_video import router as story_video_router
@@ -125,6 +128,7 @@ def mount_all_routers(
     application.include_router(lesson_library_router)
     application.include_router(lesson_feedback_router)
     application.include_router(parent_ai_router)
+    application.include_router(parent_topic_suggestions_router)
     if include_parent_story_runs:
         application.include_router(parent_story_runs_router)
         application.include_router(parent_story_inputs_router)

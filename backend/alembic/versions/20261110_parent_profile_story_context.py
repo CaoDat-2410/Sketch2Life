@@ -17,14 +17,57 @@ down_revision = (
     "20261019_vf_0001",
     "20261104_story_revisions",
     "20261110_ar_0001",
+    # I2 owns the live Story run context schema; it must be applied first.
+    "20261112_parent_story_context",
+    # The m2 Parent foundation owns parent.child_profiles/profile_revisions on a fresh database.
+    "20261109_m2_parent_profiles",
 )
 branch_labels = None
 depends_on = None
 
 
+def _create_table(name: str, *args, **kwargs) -> None:
+    """Create a table unless an earlier Parent foundation revision already did."""
+    schema = kwargs.get("schema")
+    if sa.inspect(op.get_bind()).has_table(name, schema=schema):
+        return
+    op.create_table(name, *args, **kwargs)
+
+
+def _create_index(name: str, table: str, columns, **kwargs) -> None:
+    schema = kwargs.get("schema")
+    inspector = sa.inspect(op.get_bind())
+    if any(ix["name"] == name for ix in inspector.get_indexes(table, schema=schema)):
+        return
+    op.create_index(name, table, columns, **kwargs)
+
+
+def _create_foreign_key(name: str, source: str, referent: str, *args, **kwargs) -> None:
+    schema = kwargs.get("source_schema")
+    inspector = sa.inspect(op.get_bind())
+    if any(fk["name"] == name for fk in inspector.get_foreign_keys(source, schema=schema)):
+        return
+    op.create_foreign_key(name, source, referent, *args, **kwargs)
+
+
+def _story_context_already_applied() -> bool:
+    """True when 20261112_parent_story_context already created the Story run context DDL."""
+    return bool(
+        op.get_bind()
+        .execute(
+            sa.text(
+                "SELECT EXISTS (SELECT 1 FROM information_schema.columns "
+                "WHERE table_schema = 'story' AND table_name = 'runs' "
+                "AND column_name = 'current_input_revision')"
+            )
+        )
+        .scalar()
+    )
+
+
 def upgrade() -> None:
     op.execute("CREATE SCHEMA IF NOT EXISTS parent")
-    op.create_table(
+    _create_table(
         "child_profiles",
         sa.Column("parent_profile_id", sa.String(36), primary_key=True),
         sa.Column("owner_subject", sa.String(256), nullable=False),
@@ -37,7 +80,7 @@ def upgrade() -> None:
         sa.UniqueConstraint("parent_profile_id", "owner_subject", name="uq_parent_profile_owner_ref"),
         schema="parent",
     )
-    op.create_table(
+    _create_table(
         "profile_revisions",
         sa.Column("profile_revision_id", sa.String(36), primary_key=True),
         sa.Column("parent_profile_id", sa.String(36), nullable=False),
@@ -63,7 +106,7 @@ def upgrade() -> None:
         sa.UniqueConstraint("parent_profile_id", "profile_revision_id", name="uq_parent_profile_revision_owner"),
         schema="parent",
     )
-    op.create_foreign_key(
+    _create_foreign_key(
         "fk_parent_profile_current_revision",
         "child_profiles",
         "profile_revisions",
@@ -72,7 +115,7 @@ def upgrade() -> None:
         source_schema="parent",
         referent_schema="parent",
     )
-    op.create_table(
+    _create_table(
         "data_authorizations",
         sa.Column("authorization_id", sa.String(36), primary_key=True),
         sa.Column("parent_profile_id", sa.String(36), nullable=False),
@@ -95,7 +138,7 @@ def upgrade() -> None:
         ),
         schema="parent",
     )
-    op.create_index(
+    _create_index(
         "uq_parent_authorization_active_policy",
         "data_authorizations",
         ["parent_profile_id", "purpose_code", "policy_version"],
@@ -103,18 +146,21 @@ def upgrade() -> None:
         schema="parent",
         postgresql_where=sa.text("state = 'GRANTED'"),
     )
-    op.create_index(
+    _create_index(
         "ix_parent_authorization_profile_state",
         "data_authorizations",
         ["parent_profile_id", "state"],
         schema="parent",
     )
-    op.create_index(
+    _create_index(
         "ix_parent_profile_owner_state_updated",
         "child_profiles",
         ["owner_subject", "state", "updated_at"],
         schema="parent",
     )
+
+    if _story_context_already_applied():
+        return
 
     op.add_column("runs", sa.Column("current_input_revision", sa.Integer(), nullable=True), schema="story")
     op.create_check_constraint(

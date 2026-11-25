@@ -27,8 +27,8 @@ Upgrade, in order:
 5. ``ck_story_run_state`` gains ``VIDEO_QUEUED``, ``VIDEO_GENERATING``, ``VIDEO_SAFETY_VALIDATING``,
    ``VIDEO_READY``, ``SAFETY_BLOCKED`` and ``ABANDONED`` (12 to 18 values; ``DRAFT`` and
    ``STORY_GENERATING`` are added by whoever first writes them) and
-   ``ck_story_receipt_operation`` gains ``CREATE_VIDEO_GENERATION``, ``MARK_VIDEO_UNSUITABLE`` and
-   ``COMPLETE_RUN`` (10 to 13).
+   ``ck_story_receipt_operation`` retains the Parent activity operations and gains
+   ``CREATE_VIDEO_GENERATION``, ``MARK_VIDEO_UNSUITABLE`` and ``COMPLETE_RUN`` (12 to 15).
 
 The CHECKs are added directly, which suits a disposable verification database; a production rollout
 uses ``NOT VALID`` then ``VALIDATE`` (as the FR-C-08 migration does). No GRANT statement is used by
@@ -68,7 +68,7 @@ NEW_RECEIPT_OPERATIONS = "'CREATE_VIDEO_GENERATION','MARK_VIDEO_UNSUITABLE','COM
 RECEIPT_OPERATIONS_BEFORE = (
     "'CREATE_RUN','ATTACH_ASSET','CONFIRM_SUBJECT','CONFIRM_CONTEXT',"
     "'CANCEL_RUN','GENERATE_STORY_REVISION','CONFIRM_STORY_REVISION','DELETE_RUN',"
-    "'SUBMIT_IDEA','CONFIRM_TRANSCRIPT'"
+    "'GENERATE_ACTIVITY_SET','SELECT_ACTIVITY','SUBMIT_IDEA','CONFIRM_TRANSCRIPT'"
 )
 RECEIPT_OPERATIONS_AFTER = f"{RECEIPT_OPERATIONS_BEFORE},{NEW_RECEIPT_OPERATIONS}"
 

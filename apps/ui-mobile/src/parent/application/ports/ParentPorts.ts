@@ -25,6 +25,7 @@ import type {
   ParentProfileSharePage,
   ParentRunLifecycleReceipt,
   ParentActivityListV1,
+  ParentActivitySuggestionSetV1,
   ParentActivitySelectionRequestV1,
   ParentStoryRunLifecycleEnvelopeV1,
   ParentStoryRunResultV1,
@@ -36,6 +37,7 @@ import type {
   ParentStoryRevisionResultV1,
   ParentStoryRunCreateV1,
   ParentStoryRunEnvelopeV1,
+  ParentDrawingAnalysisResumeV1,
   ParentStoryRunV1,
   ParentStoryScriptConfirmationV1,
   ParentStorySubjectConfirmationAcceptedV1,
@@ -52,6 +54,7 @@ import type {
   ParentVideoUnsuitableRequestV1,
   StoryRun,
 } from '../../domain/types';
+import type { SvgTopicStrokeGuideDraftV1 } from '../../domain/svgGuide';
 
 export interface ParentIdentityPort {
   currentUser(): Promise<ParentUser | null>;
@@ -94,6 +97,7 @@ export interface ParentApiPort {
   getActiveStoryRunV1(): Promise<ParentActiveStoryRunEnvelopeV1>;
   getStoryRunV1(runId: string): Promise<ParentStoryRunResultV1>;
   listActivitiesV1(runId: string): Promise<ParentActivityListV1>;
+  suggestActivitiesV1(runId: string, expectedUnderstandingRevision: number, actionIdentity: ParentActionIdentity): Promise<ParentActivitySuggestionSetV1>;
   selectActivityV1(runId: string, input: ParentActivitySelectionRequestV1, actionIdentity: ParentActionIdentity): Promise<ParentStoryRunEnvelopeV1>;
   listStoryRuns(profileId?: string, cursor?: string | null): Promise<ParentStoryRunHistoryPage>;
   cancelStoryRun(runId: string): Promise<ParentRunLifecycleReceipt>;
@@ -117,7 +121,7 @@ export interface ParentApiPort {
     requestId: string;
   }): Promise<ParentDrawingSubjectSuggestionSetV1>;
   validateCustomSubject(input: { topicId: string; topic: string; subject: string }): Promise<ParentCustomSubjectValidationV1>;
-  generateSketchGuide(topic: string): Promise<SketchGuideResult>;
+  generateSketchGuide(topic: string, intendedSubject?: string): Promise<SketchGuideResult>;
   createStoryRun(input: StoryRunCreateInput): Promise<{ request_id: string; story_run: StoryRun }>;
   createStoryRunV1(input: ParentStoryRunCreateV1, actionIdentity: ParentActionIdentity): Promise<ParentStoryRunEnvelopeV1>;
   confirmStoryRunContextV1(runId: string, input: ParentStoryContextConfirmationV1, actionIdentity: ParentActionIdentity): Promise<ParentStoryRunEnvelopeV1>;
@@ -129,6 +133,7 @@ export interface ParentApiPort {
   generateStory(storyRunId: string, revision: number, rewriteInstruction?: string): Promise<StoryGenerationResult>;
   confirmStory(storyRunId: string, revision: number, sha256: string): Promise<{ request_id: string; story_run: StoryRun }>;
   attachRunAssetV1(runId: string, assetRef: string, expectedRunRevision: number | null, actionIdentity: ParentActionIdentity): Promise<ParentRunAssetAcceptedV1>;
+  resumeDrawingAnalysisV1(runId: string, inputRevision: number): Promise<ParentDrawingAnalysisResumeV1>;
   addRunIdeaV1(runId: string, input: ParentRunIdeaRequestV1, actionIdentity: ParentActionIdentity): Promise<ParentRunIdeaAcceptedV1>;
   getRunTranscriptV1(runId: string): Promise<ParentRunTranscriptV1>;
   confirmRunTranscriptV1(runId: string, revision: number, sha256: string, actionIdentity: ParentActionIdentity): Promise<ParentTranscriptConfirmedV1>;
@@ -176,15 +181,7 @@ export type StoryRunCreateInput = {
   lesson_version_id?: string;
 };
 
-export type SketchGuideResult = {
-  request_id: string;
-  modal_call_id?: string;
-  status: string;
-  review_required: true;
-  model?: { id: string; revision: string };
-  image_base64: string;
-  asset?: Record<string, unknown>;
-};
+export type SketchGuideResult = SvgTopicStrokeGuideDraftV1;
 
 export type DrawingUnderstandingResult = {
   request_id: string;

@@ -1,6 +1,8 @@
 import type {
   ParentActivityListV1,
   ParentActivityRefV1,
+  ParentActivitySuggestionSetV1,
+  ParentSuggestedActivityV1,
   ParentActivityV1,
   ParentPlaybackGrantV1,
   ParentPlaybackSourceV1,
@@ -102,6 +104,95 @@ export function readActivityListV1(value: unknown): ParentActivityListV1 | null 
     items: items as ParentActivityV1[],
     basis: { age_band, pinned_lesson: value.basis.pinned_lesson, no_candidate: value.basis.no_candidate },
   };
+}
+
+/** Reads the persisted catalog-first/AI-fallback set before it reaches the selection screen. */
+export function readParentActivitySuggestionSetV1(
+  value: unknown,
+  expected: { runId: string; understandingRevision: number },
+): ParentActivitySuggestionSetV1 | null {
+  if (!isRecord(value)
+    || value.contract !== 'ParentActivitySuggestionSetV1'
+    || !isString(value.request_id) || !UUID.test(value.request_id)
+    || value.story_run_id !== expected.runId
+    || !isString(value.suggestion_set_id) || !UUID.test(value.suggestion_set_id)
+    || !isPositiveInt(value.set_revision)
+    || value.understanding_revision !== expected.understandingRevision
+    || (value.selection_mode !== 'CATALOG_SELECTION' && value.selection_mode !== 'AI_GENERATED_FALLBACK')
+    || !isNonNegativeInt(value.catalog_candidate_count)
+    || !isString(value.activities_snapshot_sha256) || !SHA256_HEX.test(value.activities_snapshot_sha256)
+    || value.review_required !== true
+    || !(value.modal_call_id === null || isString(value.modal_call_id))
+    || !Array.isArray(value.activities) || value.activities.length < 1 || value.activities.length > 24) return null;
+
+  const activities = value.activities.map(readSuggestedActivity);
+  if (activities.some((activity) => activity === null)) return null;
+  const typed = activities as ParentSuggestedActivityV1[];
+  if (value.selection_mode === 'AI_GENERATED_FALLBACK'
+    && (typed.length !== 3 || typed.some((item) => item.source !== 'AI_GENERATED_DRAFT'))) return null;
+  if (value.selection_mode === 'CATALOG_SELECTION'
+    && typed.some((item) => item.source === 'AI_GENERATED_DRAFT')) return null;
+
+  return {
+    contract: 'ParentActivitySuggestionSetV1',
+    request_id: value.request_id,
+    story_run_id: value.story_run_id,
+    suggestion_set_id: value.suggestion_set_id,
+    set_revision: value.set_revision,
+    understanding_revision: value.understanding_revision,
+    selection_mode: value.selection_mode,
+    catalog_candidate_count: value.catalog_candidate_count,
+    activities_snapshot_sha256: value.activities_snapshot_sha256,
+    review_required: true,
+    modal_call_id: value.modal_call_id,
+    activities: typed,
+  };
+}
+
+function readSuggestedActivity(value: unknown): ParentSuggestedActivityV1 | null {
+  if (!isRecord(value)) return null;
+  const textFields = [
+    'title', 'objective', 'materials_text', 'preparation_text',
+    'instructions_text', 'observation_notes', 'safety_notes',
+  ] as const;
+  if (textFields.some((field) => !isString(value[field]))
+    || (value.activity_kind !== 'outdoor' && value.activity_kind !== 'indoor' && value.activity_kind !== 'mixed')
+    || (value.source !== 'PINNED_LESSON' && value.source !== 'PUBLISHED_SHARED_LESSON' && value.source !== 'AI_GENERATED_DRAFT')) return null;
+  const nullableTextFields = [
+    'source_lesson_id', 'source_lesson_title', 'source_lesson_version_id', 'source_content_sha256', 'match_reason',
+  ] as const;
+  if (nullableTextFields.some((field) => value[field] !== null && !isString(value[field]))) return null;
+  const activityIndex = value.source_activity_index;
+  if (!(activityIndex === null || (typeof activityIndex === 'number' && Number.isInteger(activityIndex) && activityIndex >= 0 && activityIndex <= 23))) return null;
+  if (value.source === 'AI_GENERATED_DRAFT') {
+    if (value.source_lesson_id !== null || value.source_lesson_version_id !== null
+      || value.source_content_sha256 !== null || activityIndex !== null) return null;
+  } else if (!isString(value.source_lesson_id) || !value.source_lesson_id
+    || !isString(value.source_lesson_version_id) || !value.source_lesson_version_id
+    || !isString(value.source_content_sha256) || !SHA256_HEX.test(value.source_content_sha256)
+    || activityIndex === null) return null;
+
+  return {
+    title: value.title as string,
+    objective: value.objective as string,
+    materials_text: value.materials_text as string,
+    preparation_text: value.preparation_text as string,
+    instructions_text: value.instructions_text as string,
+    observation_notes: value.observation_notes as string,
+    safety_notes: value.safety_notes as string,
+    activity_kind: value.activity_kind,
+    source: value.source,
+    source_lesson_id: value.source_lesson_id as string | null,
+    source_lesson_title: value.source_lesson_title as string | null,
+    source_lesson_version_id: value.source_lesson_version_id as string | null,
+    source_content_sha256: value.source_content_sha256 as string | null,
+    source_activity_index: activityIndex as number | null,
+    match_reason: value.match_reason as string | null,
+  };
+}
+
+function isNonNegativeInt(value: unknown): value is number {
+  return typeof value === 'number' && Number.isInteger(value) && value >= 0;
 }
 
 /** `null` is a normal post-video answer when the pinned lesson is no longer accessible. */

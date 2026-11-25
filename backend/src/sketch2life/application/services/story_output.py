@@ -84,6 +84,8 @@ def complete_generated_story(
     provider_call_id: str,
     model_id: str,
     model_revision: str,
+    staging: dict[str, Any] | None = None,
+    staging_issue: str | None = None,
 ) -> ParentStoryRunRecord | TeacherStoryRunRecord:
     """Validate the draft and store it, or record the failure and raise ``StoryOutputInvalid``.
 
@@ -110,6 +112,8 @@ def complete_generated_story(
         provider_call_id=provider_call_id,
         model_id=model_id,
         model_revision=model_revision,
+        staging=staging,
+        staging_issue=staging_issue,
     )
     if isinstance(record, ParentStoryLifecycleRecord):
         # complete_story_revision refuses a purged run; a projection here is never served.

@@ -7,12 +7,14 @@ from __future__ import annotations
 import base64
 import binascii
 import hashlib
+import json
 from io import BytesIO
 from math import isfinite
 from typing import Annotated, Any, Literal
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response
+from pydantic import ValidationError
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from structlog import get_logger
@@ -34,20 +36,32 @@ from sketch2life.application.services.parent_story_runs import (
     ParentStoryRunService,
     ParentStoryRunServiceError,
 )
+from sketch2life.application.services.parent_svg_guide import (
+    ParentSvgGuideUnavailable,
+    build_parent_svg_guide,
+)
+from sketch2life.application.services.parent_activity_suggestions import (
+    ParentActivitySuggestionError,
+    ParentActivitySuggestionService,
+    classify_parent_activity_worker_failure,
+)
 from sketch2life.application.services.story_output import (
     StoryOutputInvalid,
     complete_generated_story,
 )
 from sketch2life.contracts.schemas.modal_ai import (
     ParentDrawingAnalysisRequestV1,
-    ParentSketchGuideRequestV1,
     ParentStoryRequestV1,
+)
+from sketch2life.contracts.schemas.svg_engine import SvgTopicStrokeGuideRequestV1
+from sketch2life.contracts.schemas.parent_activity_selection import (
+    ParentActivitySuggestionSetV1,
+    ParentActivitySuggestionsRequestV1,
 )
 from sketch2life.contracts.schemas.parent_story_runs import (
     ParentStoryRunLifecycleEnvelopeV1,
 )
 from sketch2life.infrastructure.ai.modal_function_client import (
-    FLUX_MODEL_PROVENANCE,
     STORY_MODEL_ID,
     STORY_MODEL_REVISION,
     ModalDrawingFunctionClient,
@@ -65,7 +79,11 @@ from sketch2life.infrastructure.persistence.parent_story_profile_lookup import (
 from sketch2life.infrastructure.persistence.parent_story_repository import (
     SqlParentStoryRunRepository,
 )
+from sketch2life.infrastructure.lesson_library.parent_activity_catalog import (
+    LessonLibraryParentActivityCatalogAdapter,
+)
 from sketch2life.interfaces.http.be1_runtime import get_db, get_verified_adult
+from sketch2life.interfaces.http.routers.lesson_library import get_lesson_library_service
 from sketch2life.interfaces.http.routers.parent_story_runs import story_run_response
 
 router = APIRouter(prefix="/api/parent/v1/ai", tags=["Parent AI v1"])
@@ -157,52 +175,53 @@ def _fail_story_run(
         raise
 
 
-@router.post("/sketch-guides", summary="Generate an optional generic line-sketch guide")
+@router.post("/sketch-guides", summary="Build an optional curated SVG line-sketch guide")
 def generate_sketch_guide(
-    payload: ParentSketchGuideRequestV1,
+    payload: SvgTopicStrokeGuideRequestV1,
+    request: Request,
+    response: Response,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
 ) -> dict[str, object]:
     _require_parent(db, principal)
-    _require_modal_dev()
-    request_id = str(uuid4())
+    request_id = request.headers.get("X-Request-ID") or str(uuid4())
+    response.headers["X-Request-ID"] = request_id
     try:
-        result = ModalJsonFunctionClient().invoke(
-            "parent.sketch-guide.generate",
-            {
-                "topic": payload.topic,
-                "difficulty": payload.difficulty,
-                "step_count": payload.step_count,
-            },
+        guide = build_parent_svg_guide(
+            topic=payload.topic,
+            intended_subject=payload.intended_subject,
+            request_id=request_id,
         )
-    except (ModalFunctionOutcomeUnknown, ModalFunctionExecutionFailed) as exc:
-        raise _provider_error(
-            exc, request_id=request_id, workload="parent.sketch-guide.generate"
+    except ParentSvgGuideUnavailable as exc:
+        _LOGGER.info(
+            "parent_svg_guide_input_rejected",
+            request_id=request_id,
+            error_code=str(exc),
+        )
+        raise HTTPException(
+            status_code=422,
+            detail={"code": "PARENT_SVG_GUIDE_INPUT_INVALID", "request_id": request_id},
+            headers={"X-Request-ID": request_id},
         ) from None
-    output = result.output
-    if output.get("model") != FLUX_MODEL_PROVENANCE:
-        raise HTTPException(status_code=502, detail={"code": "MODAL_MODEL_REVISION_MISMATCH"})
-    asset = output.get("asset")
-    if not isinstance(asset, dict) or not isinstance(asset.get("bytes"), bytes):
-        raise HTTPException(status_code=502, detail={"code": "MODAL_OUTPUT_CONTRACT_INVALID"})
-    image_bytes = asset["bytes"]
-    response_asset = {key: value for key, value in asset.items() if key != "bytes"}
-    _LOGGER.info(
-        "parent_modal_request_completed",
-        request_id=request_id,
-        modal_call_id=result.call_id,
-        workload="parent.sketch-guide.generate",
-        elapsed_seconds=result.elapsed_seconds,
-    )
-    return {
-        "request_id": request_id,
-        "modal_call_id": result.call_id,
-        "status": "DRAFT",
-        "review_required": True,
-        "model": output.get("model"),
-        "asset": response_asset,
-        "image_base64": base64.b64encode(image_bytes).decode("ascii"),
-    }
+    except Exception as exc:
+        _LOGGER.error(
+            "parent_svg_guide_source_failed",
+            request_id=request_id,
+            exception_type=type(exc).__name__,
+        )
+        raise HTTPException(
+            status_code=503,
+            detail={"code": "CURATED_SVG_GUIDE_UNAVAILABLE", "request_id": request_id},
+            headers={"X-Request-ID": request_id},
+        ) from None
+    if guide is None:
+        _LOGGER.info("parent_svg_guide_not_found", request_id=request_id)
+        raise HTTPException(
+            status_code=404,
+            detail={"code": "CURATED_SVG_GUIDE_NOT_FOUND", "request_id": request_id},
+            headers={"X-Request-ID": request_id},
+        )
+    return guide
 
 
 # Keep this legacy artwork-ingestion flow outside I2. It writes source and
@@ -579,6 +598,246 @@ def generate_story_revision(
         "review_required": True,
         "model": {"id": STORY_MODEL_ID, "revision": STORY_MODEL_REVISION},
     }
+
+
+@router.post(
+    "/story-runs/{run_id}/activity-suggestions",
+    response_model=ParentActivitySuggestionSetV1,
+    summary="Suggest Parent activities from accessible lessons and persist the set",
+)
+def suggest_parent_activities(
+    run_id: UUID,
+    payload: ParentActivitySuggestionsRequestV1,
+    request: Request,
+    response: Response,
+    idempotency_key: Annotated[
+        str, Header(alias="Idempotency-Key", min_length=1, max_length=200)
+    ],
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+) -> ParentActivitySuggestionSetV1:
+    """Catalog-first Qwen selection; a pinned lesson stays within its exact saved revision."""
+    _require_parent(db, principal)
+    request_id = str(uuid4())
+    repository = SqlParentStoryRunRepository(db)
+    try:
+        reservation = repository.reserve_activity_suggestion_set(
+            principal=principal,
+            run_id=str(run_id),
+            expected_understanding_revision=payload.expected_understanding_revision,
+            idempotency_key=idempotency_key,
+        )
+    except ParentStoryRunError as exc:
+        raise HTTPException(status_code=exc.status_code, detail={"code": exc.code}) from None
+
+    response.headers["Idempotency-Replayed"] = str(reservation.replayed).lower()
+    if reservation.replayed:
+        try:
+            return ParentActivitySuggestionSetV1.model_validate(reservation.replay_body)
+        except ValidationError:
+            raise HTTPException(
+                status_code=503,
+                detail={"code": "PARENT_ACTIVITY_RESPONSE_INVALID", "request_id": request_id},
+            ) from None
+
+    modal_result = None
+    workload_started = False
+    try:
+        if reservation.lesson_pin_snapshot is not None:
+            result = ParentActivitySuggestionService.pinned_lesson_response(
+                pinned_lesson_snapshot=reservation.lesson_pin_snapshot,
+                age_months=int(reservation.context_snapshot["age_months"]),
+                request_id=request_id,
+                story_run_id=str(run_id),
+                understanding_revision=reservation.understanding_revision,
+            )
+        else:
+            _require_modal_dev()
+            lesson_library = get_lesson_library_service(request, db)
+            service = ParentActivitySuggestionService(
+                LessonLibraryParentActivityCatalogAdapter(lesson_library)
+            )
+            prepared = service.prepare(
+                parent_principal_ref=principal.subject,
+                context_snapshot=reservation.context_snapshot,
+                subject_label=reservation.subject_label,
+                visible_features=list(reservation.visible_features),
+                pinned_lesson_snapshot=None,
+                exclude_activity_keys=reservation.excluded_candidate_keys,
+            )
+            _LOGGER.info(
+                "parent_activity_suggestions_catalog_prepared",
+                request_id=request_id,
+                accessible_lesson_count=prepared.accessible_lesson_count,
+                age_access_eligible_lesson_count=prepared.age_access_eligible_lesson_count,
+                age_access_eligible_activity_count=prepared.age_access_eligible_activity_count,
+                relevance_matched_activity_count=prepared.relevance_matched_activity_count,
+                candidate_count_sent=prepared.candidate_count,
+                truncated_catalog_context_field_count=(
+                    prepared.truncated_catalog_context_field_count
+                ),
+            )
+            workload_started = True
+            modal_result = ModalJsonFunctionClient().invoke(
+                "parent.activity.suggest", prepared.worker_input
+            )
+            raw_result = modal_result.output.get("result")
+            if not isinstance(raw_result, dict):
+                raise ParentActivitySuggestionError("MODAL_OUTPUT_CONTRACT_INVALID")
+            result = service.resolve(
+                prepared=prepared,
+                raw_result=raw_result,
+                request_id=request_id,
+                story_run_id=str(run_id),
+                understanding_revision=reservation.understanding_revision,
+                modal_call_id=modal_result.call_id,
+                excluded_activities=reservation.excluded_activities,
+            )
+
+        result["contract"] = "ParentActivitySuggestionSetV1"
+        activities = result.get("activities")
+        if not isinstance(activities, list) or not activities:
+            raise ParentActivitySuggestionError("PARENT_ACTIVITY_RESPONSE_INVALID")
+        result["activities_snapshot_sha256"] = hashlib.sha256(
+            json.dumps(
+                activities,
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode("utf-8")
+        ).hexdigest()
+        result.update(
+            {
+                "request_id": request_id,
+                "story_run_id": str(run_id),
+                "understanding_revision": reservation.understanding_revision,
+                "suggestion_set_id": reservation.suggestion_set_id,
+                "set_revision": reservation.set_revision,
+                "review_required": True,
+            }
+        )
+        validated = ParentActivitySuggestionSetV1.model_validate(result)
+        persisted = repository.complete_activity_suggestion_set(
+            principal=principal,
+            reservation=reservation,
+            response=validated.model_dump(mode="json"),
+            provider_call_id=modal_result.call_id if modal_result is not None else None,
+        )
+        _LOGGER.info(
+            "parent_activity_suggestions_completed",
+            request_id=request_id,
+            story_run_id=str(run_id),
+            suggestion_set_id=reservation.suggestion_set_id,
+            set_revision=reservation.set_revision,
+            understanding_revision=reservation.understanding_revision,
+            selection_mode=persisted["selection_mode"],
+            activity_count=len(activities),
+            modal_call_id=modal_result.call_id if modal_result is not None else None,
+            elapsed_seconds=modal_result.elapsed_seconds if modal_result is not None else 0,
+        )
+        return ParentActivitySuggestionSetV1.model_validate(persisted)
+    except ParentActivitySuggestionError as exc:
+        status_code = 502 if exc.code in {
+            "MODAL_OUTPUT_CONTRACT_INVALID",
+            "PARENT_ACTIVITY_QUALITY_GATE_REJECTED",
+            "PARENT_ACTIVITY_RESPONSE_INVALID",
+        } else 422
+        repository.fail_activity_suggestion_set(
+            principal=principal,
+            reservation=reservation,
+            error_code=exc.code,
+            response_status=status_code,
+        )
+        _LOGGER.warning(
+            "parent_activity_suggestions_rejected",
+            request_id=request_id,
+            story_run_id=str(run_id),
+            error_code=exc.code,
+            diagnostic_code=exc.diagnostic_code,
+            modal_call_id=modal_result.call_id if modal_result is not None else None,
+        )
+        raise HTTPException(
+            status_code=status_code,
+            detail={"code": exc.code, "request_id": request_id},
+        ) from None
+    except (ModalFunctionOutcomeUnknown, ModalFunctionExecutionFailed) as exc:
+        if isinstance(exc, ModalFunctionOutcomeUnknown):
+            status_code, error_code, diagnostic_code = (
+                504,
+                "PARENT_ACTIVITY_OUTCOME_UNKNOWN",
+                None,
+            )
+        else:
+            status_code = 502
+            error_code, diagnostic_code = classify_parent_activity_worker_failure(exc.code)
+        repository.fail_activity_suggestion_set(
+            principal=principal,
+            reservation=reservation,
+            error_code=error_code,
+            response_status=status_code,
+        )
+        _LOGGER.warning(
+            "parent_activity_modal_failed",
+            request_id=request_id,
+            story_run_id=str(run_id),
+            error_code=error_code,
+            diagnostic_code=diagnostic_code,
+            worker_error_code=None if isinstance(exc, ModalFunctionOutcomeUnknown) else exc.code,
+            modal_call_id=getattr(exc, "call_id", None),
+            workload="parent.activity.suggest",
+        )
+        raise HTTPException(
+            status_code=status_code,
+            detail={"code": error_code, "request_id": request_id},
+        ) from None
+    except HTTPException as exc:
+        status_code = exc.status_code if exc.status_code in {409, 422, 503} else 503
+        detail = exc.detail if isinstance(exc.detail, dict) else {}
+        error_code = str(detail.get("code", "PARENT_ACTIVITY_DEPENDENCY_UNAVAILABLE"))
+        repository.fail_activity_suggestion_set(
+            principal=principal,
+            reservation=reservation,
+            error_code=error_code,
+            response_status=status_code,
+        )
+        raise
+    except ParentStoryRunError as exc:
+        status_code = exc.status_code if exc.status_code in {409, 422, 503} else 503
+        repository.fail_activity_suggestion_set(
+            principal=principal,
+            reservation=reservation,
+            error_code=exc.code,
+            response_status=status_code,
+        )
+        raise HTTPException(status_code=exc.status_code, detail={"code": exc.code}) from None
+    except Exception as exc:
+        error_code = (
+            "PARENT_ACTIVITY_OUTCOME_UNKNOWN"
+            if workload_started
+            else "PARENT_ACTIVITY_SERVICE_UNAVAILABLE"
+        )
+        status_code = 504 if workload_started else 503
+        try:
+            repository.fail_activity_suggestion_set(
+                principal=principal,
+                reservation=reservation,
+                error_code=error_code,
+                response_status=status_code,
+            )
+        except ParentStoryRunError:
+            pass
+        _LOGGER.exception(
+            "parent_activity_suggestions_unhandled_failure",
+            request_id=request_id,
+            story_run_id=str(run_id),
+            error_code=error_code,
+            exception_type=type(exc).__name__,
+            modal_call_id=modal_result.call_id if modal_result is not None else None,
+        )
+        raise HTTPException(
+            status_code=status_code,
+            detail={"code": error_code, "request_id": request_id},
+        ) from None
 
 
 __all__ = ["router"]

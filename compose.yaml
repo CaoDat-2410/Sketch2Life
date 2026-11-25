@@ -93,7 +93,36 @@ services:
     # ClamAV's official image needs several GiB of memory for signature databases.
     mem_limit: 4g
 
+  # One-shot local bootstrap: migrates a fresh database (live Parent line only) and seeds the demo
+  # Parent identity from .env. `docker compose up -d` runs it before the api starts.
+  bootstrap:
+    # Every variable in the repo-root .env reaches the container. Entries under `environment:` win
+    # over .env, so container-internal values (database host, port, ...) are never overridden.
+    env_file:
+      - path: .env
+        required: false
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: ["python", "-m", "sketch2life.infrastructure.local_bootstrap"]
+    environment:
+      SKETCH2LIFE_ENV: local
+      SKETCH2LIFE_DATABASE_URL: postgresql+psycopg://${SKETCH2LIFE_POSTGRES_USER:-sketch2life}:${SKETCH2LIFE_POSTGRES_PASSWORD:-change-me}@postgres:5432/${SKETCH2LIFE_POSTGRES_DB:-sketch2life}
+      SKETCH2LIFE_LOCAL_SEED_PARENT_EMAIL: ${SKETCH2LIFE_LOCAL_SEED_PARENT_EMAIL:-}
+      SKETCH2LIFE_LOCAL_SEED_PARENT_PASSWORD: ${SKETCH2LIFE_LOCAL_SEED_PARENT_PASSWORD:-}
+      SKETCH2LIFE_FIREBASE_API_KEY: ${VITE_FIREBASE_API_KEY:-}
+      SKETCH2LIFE_FIREBASE_PROJECT_ID: ${SKETCH2LIFE_FIREBASE_PROJECT_ID:-${VITE_FIREBASE_PROJECT_ID:-}}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
   api:
+    # Every variable in the repo-root .env reaches the container. Entries under `environment:` win
+    # over .env, so container-internal values (database host, port, ...) are never overridden.
+    env_file:
+      - path: .env
+        required: false
     build:
       context: .
       dockerfile: backend/Dockerfile
@@ -137,6 +166,7 @@ services:
       SKETCH2LIFE_CLAMAV_PORT: 3310
       SKETCH2LIFE_PLATFORM_ADMIN_BOOTSTRAP_EMAIL: ${SKETCH2LIFE_PLATFORM_ADMIN_BOOTSTRAP_EMAIL:-}
       SKETCH2LIFE_AUTH_PROVIDER: ${SKETCH2LIFE_AUTH_PROVIDER:-development}
+      SKETCH2LIFE_SYNTHETIC_PILOT_ENABLED: ${SKETCH2LIFE_SYNTHETIC_PILOT_ENABLED:-false}
       SKETCH2LIFE_FIREBASE_PROJECT_ID: ${SKETCH2LIFE_FIREBASE_PROJECT_ID:-}
       SKETCH2LIFE_FIREBASE_ADMIN_JSON_BASE64: ${SKETCH2LIFE_FIREBASE_ADMIN_JSON_BASE64:-}
       SKETCH2LIFE_FIREBASE_CHECK_REVOKED_TOKENS: ${SKETCH2LIFE_FIREBASE_CHECK_REVOKED_TOKENS:-true}
@@ -149,6 +179,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      bootstrap:
+        condition: service_completed_successfully
       redis:
         condition: service_healthy
       minio-init:

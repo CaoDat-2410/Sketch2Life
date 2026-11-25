@@ -437,6 +437,7 @@ def _drawing_prompt() -> str:
         "Quan sát ảnh tranh đường nét đen trên nền trắng. Chỉ mô tả những gì nhìn thấy "
         "trực tiếp trong ảnh. Không suy đoán tuổi, danh tính, cảm xúc, năng lực hay hoàn "
         "cảnh của người vẽ. Trả về một JSON gồm main_subject, secondary_subjects và confidence. "
+        "Mọi label và visible_features phải viết bằng tiếng Việt có dấu, không dùng tiếng Anh. "
         "main_subject là chủ thể chính: vật lớn nhất hoặc ở trung tâm, ưu tiên sinh vật có thể "
         "hành động; gồm label (tên ngắn), visible_features (1 đến 4 mô tả ngắn, cụ thể), "
         "facing (left, right hoặc front: chủ thể quay mặt về phía nào trong ảnh) và box. "
@@ -444,9 +445,12 @@ def _drawing_prompt() -> str:
         "cây, vật dụng…), tối đa 3 vật, mỗi vật có label, visible_features (0 đến 2 mô tả) "
         "và box; để danh sách rỗng nếu tranh chỉ có một vật. Không liệt kê nền, mặt đất, "
         "đường kẻ trang trí hay họa tiết; không bịa ra vật không nhìn thấy. "
-        "box gồm đúng 4 số nguyên [x0, y0, x1, y1] trên lưới từ 0 đến 20, trong đó 0 là mép "
-        "trái/trên và 20 là mép phải/dưới của ảnh; x0 nhỏ hơn x1, y0 nhỏ hơn y1; khung phải "
-        "bao trọn vật. Nếu không nhận ra chủ thể, dùng label là ‘chưa xác định’. "
+        "box là một object có đủ 4 khóa số nguyên left (trái), top (trên), right (phải), "
+        "bottom (dưới), không được bỏ khóa nào, trên lưới từ 0 "
+        "đến 20: 0 là mép trái/trên, 20 là mép phải/dưới. Bắt buộc trái < phải và trên < dưới; "
+        "box phải bao trọn vật, không đảo thứ tự tọa độ. Tự kiểm tra trước khi trả JSON: "
+        "0 ≤ trái < phải ≤ 20, 0 ≤ trên < dưới ≤ 20, và (phải - trái) nhân (dưới - trên) "
+        "phải đạt ít nhất 4 ô lưới. Nếu không nhận ra chủ thể, dùng label là ‘chưa xác định’. "
         "confidence là một trong các số 0.0, 0.1, 0.2, …, 1.0 (đúng một chữ số thập phân, "
         "không dùng phần trăm), biểu thị mức chắc chắn rằng main_subject là chủ thể chính "
         "nhìn thấy trong ảnh: gần 0 khi không nhận diện được, khoảng 0.5 khi còn mơ hồ, gần 1 "
@@ -470,13 +474,39 @@ def box_grid_to_pixels(
     )
 
 
+BOX_KEYS = ("left", "top", "right", "bottom")
+
+
 def _box_schema() -> dict[str, Any]:
+    # FEAT-092: Qwen3.8 repeatedly returned boxes with three numbers (the bottom edge missing)
+    # although the array schema asked for four. Named keys are all ``required``, so the decoder
+    # cannot skip an edge; ``_normalize_box_objects`` turns them back into ``[l, t, r, b]``.
     return {
-        "type": "array",
-        "minItems": 4,
-        "maxItems": 4,
-        "items": {"type": "integer", "enum": list(BOX_GRID_VALUES)},
+        "type": "object",
+        "properties": {key: {"type": "integer", "enum": list(BOX_GRID_VALUES)} for key in BOX_KEYS},
+        "required": list(BOX_KEYS),
+        "additionalProperties": False,
     }
+
+
+def _normalize_box_objects(parsed: Any) -> Any:
+    """Convert ``{"left","top","right","bottom"}`` boxes to the ``[l, t, r, b]`` list contract."""
+
+    if not isinstance(parsed, dict):
+        return parsed
+
+    def convert(subject: Any) -> None:
+        if isinstance(subject, dict):
+            box = subject.get("box")
+            if isinstance(box, dict) and set(box) == set(BOX_KEYS):
+                subject["box"] = [box[key] for key in BOX_KEYS]
+
+    convert(parsed.get("main_subject"))
+    secondaries = parsed.get("secondary_subjects")
+    if isinstance(secondaries, list):
+        for item in secondaries:
+            convert(item)
+    return parsed
 
 
 def _drawing_output_json_schema() -> dict[str, Any]:
@@ -673,12 +703,46 @@ def _drawing_json_diagnostics(answer: str) -> dict[str, Any]:
             }
         )
         return details
+    parsed = _normalize_box_objects(parsed)
     details["json_complete"] = True
     details["json_root_type"] = type(parsed).__name__
     if isinstance(parsed, dict):
         details["json_root_key_count"] = len(parsed)
     details["contract_violation"] = _drawing_contract_violation(parsed)
+    if details["contract_violation"].startswith("BOX_"):
+        details["box_shapes"] = _box_shape_summary(parsed)
+        details["masked_structure"] = json.dumps(_mask_strings(parsed), separators=(",", ":"))[:600]
     return details
+
+
+def _mask_strings(value: Any) -> Any:
+    """Replace every string with ``~`` so only keys, numbers and nesting remain (no drawing content)."""
+
+    if isinstance(value, dict):
+        return {key: _mask_strings(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_mask_strings(item) for item in value]
+    return "~" if isinstance(value, str) else value
+
+
+def _box_shape_summary(parsed: Any) -> list[str]:
+    """Content-free shape of every subject box, e.g. ``list4:int,int,int,int`` or ``list2:list,list``."""
+
+    subjects: list[Any] = []
+    if isinstance(parsed, dict):
+        subjects.append(parsed.get("main_subject"))
+        secondaries = parsed.get("secondary_subjects")
+        if isinstance(secondaries, list):
+            subjects.extend(secondaries[:8])
+    shapes: list[str] = []
+    for subject in subjects:
+        box = subject.get("box") if isinstance(subject, dict) else None
+        if isinstance(box, list):
+            kinds = ",".join(type(value).__name__ for value in box[:8])
+            shapes.append(f"list{len(box)}:{kinds}")
+        else:
+            shapes.append(type(box).__name__)
+    return shapes
 
 
 def _drawing_decoder_diagnostics(
@@ -938,16 +1002,23 @@ def _subject_violation(
         return "FEATURE_ITEM_INVALID"
     if main and item["facing"] not in FACING_VALUES:
         return "FACING_INVALID"
-    box = item["box"]
-    if (
-        not isinstance(box, list)
-        or len(box) != 4
-        or any(type(v) is not int or not 0 <= v <= BOX_GRID_MAX for v in box)
-    ):
-        return "BOX_INVALID"
+    return _box_contract_violation(item["box"])
+
+
+def _box_contract_violation(box: Any) -> str:
+    """Return a content-free, precise reason for an invalid coarse-grid box."""
+
+    if not isinstance(box, list) or len(box) != 4:
+        return "BOX_SHAPE_INVALID"
+    if any(type(value) is not int for value in box):
+        return "BOX_TYPE_INVALID"
+    if any(not 0 <= value <= BOX_GRID_MAX for value in box):
+        return "BOX_RANGE_INVALID"
     x0, y0, x1, y1 = box
-    if x0 >= x1 or y0 >= y1 or (x1 - x0) * (y1 - y0) < MIN_BOX_GRID_CELLS:
-        return "BOX_INVALID"
+    if x0 >= x1 or y0 >= y1:
+        return "BOX_ORDER_INVALID"
+    if (x1 - x0) * (y1 - y0) < MIN_BOX_GRID_CELLS:
+        return "BOX_AREA_TOO_SMALL"
     return "NONE"
 
 
@@ -999,6 +1070,7 @@ def _parse_candidate(answer: str) -> dict[str, Any]:
         parsed = json.loads(answer, object_pairs_hook=_reject_duplicate_candidate_keys)
     except (json.JSONDecodeError, ValueError) as exc:
         raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID") from exc
+    parsed = _normalize_box_objects(parsed)
     if _drawing_contract_violation(parsed) != "NONE":
         raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID")
     try:

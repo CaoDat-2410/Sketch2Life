@@ -425,7 +425,7 @@ export type ParentActivityRefV1 = {
 };
 
 export type ParentActivityV1 = {
-  activity_ref: ParentActivityRefV1;
+  activity_ref: ParentActivityRefV1 | null;
   title: string;
   objective: string;
   materials_text: string;
@@ -434,9 +434,42 @@ export type ParentActivityV1 = {
   observation_notes: string;
   safety_notes: string;
   activity_kind: 'outdoor' | 'indoor' | 'mixed';
-  source: 'PINNED_LESSON' | 'PUBLIC' | 'SHARED';
-  lesson_title: string;
-  lesson_topic: string;
+  source: 'PINNED_LESSON' | 'PUBLIC' | 'SHARED' | 'PUBLISHED_SHARED_LESSON' | 'AI_GENERATED_DRAFT';
+  lesson_title: string | null;
+  lesson_topic: string | null;
+};
+
+export type ParentSuggestedActivityV1 = {
+  title: string;
+  objective: string;
+  materials_text: string;
+  preparation_text: string;
+  instructions_text: string;
+  observation_notes: string;
+  safety_notes: string;
+  activity_kind: 'outdoor' | 'indoor' | 'mixed';
+  source: 'PINNED_LESSON' | 'PUBLISHED_SHARED_LESSON' | 'AI_GENERATED_DRAFT';
+  source_lesson_id: string | null;
+  source_lesson_title: string | null;
+  source_lesson_version_id: string | null;
+  source_content_sha256: string | null;
+  source_activity_index: number | null;
+  match_reason: string | null;
+};
+
+export type ParentActivitySuggestionSetV1 = {
+  contract: 'ParentActivitySuggestionSetV1';
+  request_id: string;
+  story_run_id: string;
+  suggestion_set_id: string;
+  set_revision: number;
+  understanding_revision: number;
+  selection_mode: 'CATALOG_SELECTION' | 'AI_GENERATED_FALLBACK';
+  catalog_candidate_count: number;
+  activities_snapshot_sha256: string;
+  review_required: true;
+  modal_call_id: string | null;
+  activities: ParentSuggestedActivityV1[];
 };
 
 export type ParentActivityListV1 = {
@@ -496,7 +529,12 @@ export type ParentCustomSubjectValidationV1 = Readonly<{
 /** Phase D can add the suggestion-round variant without changing this method's callers. */
 export type ParentActivitySelectionRequestV1 =
   | { expected_revision: number; activity: ParentActivityRefV1 }
-  | { expected_revision: number; round_id: string; draft_index: number };
+  | {
+    expected_revision: number;
+    suggestion_set_id: string;
+    expected_understanding_revision: number;
+    activity_index: number;
+  };
 
 export type ParentMainActivityV1 = {
   state: 'NOT_SELECTED' | 'SELECTED';
@@ -594,6 +632,14 @@ export type ParentStoryRunCreateV1 = {
   topic: string;
   adult_confirmed_idea: string;
   lesson_version?: ParentLessonVersionPinV1 | null;
+};
+
+export type ParentDrawingAnalysisResumeV1 = {
+  request_id: string;
+  story_run_id: string;
+  input_revision: number;
+  run_revision: number;
+  dispatch_state: 'ACCEPTED';
 };
 
 export type ParentStoryRunEnvelopeV1 = {
@@ -729,6 +775,22 @@ export type ParentVideoGenerationStateV1 =
   | 'FAILED'
   | 'REJECTED_BY_ADULT'
   | 'SUPERSEDED';
+
+/** Compatibility read model for the retained candidate-progress presentation component. */
+export type ParentVideoCandidateV1 = Readonly<{
+  candidate_id: string;
+  state:
+    | 'STAGING'
+    | 'DISPATCHING'
+    | 'QUEUED'
+    | 'GENERATING'
+    | 'CANDIDATE_READY'
+    | 'FAILED'
+    | 'AWAITING_RECONCILIATION';
+  safe_failure_code?: string | null;
+  preview_available: boolean;
+  metadata?: Readonly<{ duration_seconds: number }> | null;
+}>;
 
 export type ParentVideoRequestV1 = {
   expected_revision: number;

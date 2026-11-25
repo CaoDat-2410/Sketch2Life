@@ -25,6 +25,7 @@ from sketch2life.application.parent_subject_roles import (
     present_candidate,
     relabel_main_subject,
 )
+from sketch2life.contracts.schemas.modal_ai import PARENT_ACTIVITY_DETAIL_TEXT_MAX_LENGTH
 from sketch2life.application.ports.identity import VerifiedPrincipal
 from sketch2life.application.ports.lesson_documents import scanner_identity_sha256
 from sketch2life.application.ports.object_storage import ObjectStorageFailure, ObjectStoragePort
@@ -42,6 +43,7 @@ from sketch2life.application.ports.parent_story_profile_lookup import ParentStor
 from sketch2life.application.ports.parent_story_runs import (
     ActivityResolver,
     ParentActivityContext,
+    ParentActivitySuggestionReservation,
     ParentStoryInputRecord,
     ParentStoryLifecycleRecord,
     ParentStoryRevisionReservation,
@@ -81,7 +83,6 @@ from sketch2life.application.ports.story_task_reaper import (
     REWRITE_ATTEMPTS_PER_SLOT,
 )
 from sketch2life.application.ports.story_video import RunVideoRows
-from sketch2life.application.story_staging import pack_story_content, unpack_sections
 from sketch2life.application.services.story_review_rules import (
     MAX_REVIEW_EPOCH,
     next_review_epoch,
@@ -90,6 +91,7 @@ from sketch2life.application.services.story_review_rules import (
     story_confirmation_required,
 )
 from sketch2life.application.services.story_run_detail import compose_timeline, compose_video
+from sketch2life.application.story_staging import pack_story_content, unpack_sections
 from sketch2life.domain.story_teacher import TEACHER_PIN_SCHEMA, teacher_lesson_direction
 from sketch2life.domain.story_video.model import (
     MAX_ACCEPTED_REQUESTS,
@@ -308,6 +310,7 @@ class SqlParentStoryRunRepository:
         run_id: str,
         topic: str,
         adult_confirmed_idea: str,
+        intended_drawing_subject: str | None = None,
         lesson_version_ref: dict[str, str] | None = None,
         lesson_pin_snapshot: dict[str, Any] | None = None,
     ) -> ParentStoryRunView:
@@ -321,6 +324,7 @@ class SqlParentStoryRunRepository:
             topic=topic,
             adult_confirmed_idea=adult_confirmed_idea,
             lesson_version_ref=lesson_version_ref,
+            intended_drawing_subject=intended_drawing_subject,
         )
         self._lock_idempotency(
             principal=principal,
@@ -361,6 +365,8 @@ class SqlParentStoryRunRepository:
             "topic": topic,
             "adult_confirmed_idea": adult_confirmed_idea,
         }
+        if intended_drawing_subject is not None:
+            context["intended_drawing_subject"] = intended_drawing_subject
         context_hash = _sha256_json(context)
         if len(_canonical_json(context).encode("utf-8")) > _PARENT_CONTEXT_MAX_BYTES:
             raise ParentStoryRunError(422, "INVALID_REQUEST")
@@ -441,6 +447,7 @@ class SqlParentStoryRunRepository:
         idempotency_key: str,
         topic: str,
         adult_confirmed_idea: str,
+        intended_drawing_subject: str | None = None,
         lesson_version_ref: dict[str, str] | None = None,
     ) -> ParentStoryRunView | None:
         self._refuse_teacher()
@@ -452,6 +459,7 @@ class SqlParentStoryRunRepository:
             topic=topic,
             adult_confirmed_idea=adult_confirmed_idea,
             lesson_version_ref=lesson_version_ref,
+            intended_drawing_subject=intended_drawing_subject,
         )
         try:
             self._lock_idempotency(
@@ -481,9 +489,7 @@ class SqlParentStoryRunRepository:
             raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE") from None
         return self.get_run(principal=principal, run_id=replay_run_id)
 
-    def get_run(
-        self, *, principal: VerifiedPrincipal, run_id: str
-    ) -> ParentStoryRunView:
+    def get_run(self, *, principal: VerifiedPrincipal, run_id: str) -> ParentStoryRunView:
         return self._read_run_view(principal, run_id, job_side_ok=False)
 
     def _read_run_view(
@@ -497,12 +503,16 @@ class SqlParentStoryRunRepository:
             # Only the DELETED tombstone may hold a NULL profile ref (D-218 A-4).
             raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE")
         input_row = self._current_input(run)
-        latest_story = self._session.execute(
-            select(story_tables.story_revisions)
-            .where(story_tables.story_revisions.c.run_id == run_id)
-            .order_by(story_tables.story_revisions.c.revision_no.desc())
-            .limit(1)
-        ).mappings().one_or_none()
+        latest_story = (
+            self._session.execute(
+                select(story_tables.story_revisions)
+                .where(story_tables.story_revisions.c.run_id == run_id)
+                .order_by(story_tables.story_revisions.c.revision_no.desc())
+                .limit(1)
+            )
+            .mappings()
+            .one_or_none()
+        )
         latest_understanding = self._latest_understanding(run_id)
         candidate = None
         # T-2b: after a retake the earlier understanding belongs to the replaced drawing; it stays
@@ -515,17 +525,41 @@ class SqlParentStoryRunRepository:
             snapshot = latest_understanding["result_snapshot"]
             result = snapshot.get("result") if isinstance(snapshot, dict) else None
             candidate = dict(result) if isinstance(result, dict) else None
+            # The VLM result is immutable. Adult confirmation is stored separately in
+            # review_decisions, so project that persisted decision into the client read model
+            # instead of leaving the original REVIEW_REQUIRED state visible after confirmation.
+            if candidate is not None and run["understanding_revision"] is not None:
+                command_scope_kind, command_scope_ref = self._command_scope(principal)
+                subject_decision_id = self._session.execute(
+                    select(story_tables.review_decisions.c.decision_id)
+                    .where(
+                        story_tables.review_decisions.c.run_id == run_id,
+                        story_tables.review_decisions.c.stage == "SUBJECT",
+                        story_tables.review_decisions.c.decision == "CONFIRM",
+                        story_tables.review_decisions.c.target_understanding_revision
+                        == int(run["understanding_revision"]),
+                        story_tables.review_decisions.c.actor_scope_kind == command_scope_kind,
+                        story_tables.review_decisions.c.actor_scope_ref == command_scope_ref,
+                    )
+                    .limit(1)
+                ).scalar_one_or_none()
+                if subject_decision_id is not None:
+                    candidate = _project_confirmed_candidate(candidate, run["subject_label"])
         story_content = None
         if latest_story is not None and latest_story["story_content"] is not None:
             sections = unpack_sections(latest_story["story_content"])
-            scenes = self._session.execute(
-                select(story_tables.story_scenes)
-                .where(
-                    story_tables.story_scenes.c.story_revision_id
-                    == latest_story["story_revision_id"]
+            scenes = (
+                self._session.execute(
+                    select(story_tables.story_scenes)
+                    .where(
+                        story_tables.story_scenes.c.story_revision_id
+                        == latest_story["story_revision_id"]
+                    )
+                    .order_by(story_tables.story_scenes.c.scene_index)
                 )
-                .order_by(story_tables.story_scenes.c.scene_index)
-            ).mappings().all()
+                .mappings()
+                .all()
+            )
             story_content = {
                 "schema_version": latest_story["schema_version"],
                 "language": latest_story["language"],
@@ -834,14 +868,18 @@ class SqlParentStoryRunRepository:
             key_hash=key_hash,
         )
         try:
-            receipt = self._session.execute(
-                select(story_tables.story_command_receipts).where(
-                    story_tables.story_command_receipts.c.actor_scope_kind == command_kind,
-                    story_tables.story_command_receipts.c.actor_scope_ref == command_ref,
-                    story_tables.story_command_receipts.c.operation == operation,
-                    story_tables.story_command_receipts.c.idempotency_key_sha256 == key_hash,
+            receipt = (
+                self._session.execute(
+                    select(story_tables.story_command_receipts).where(
+                        story_tables.story_command_receipts.c.actor_scope_kind == command_kind,
+                        story_tables.story_command_receipts.c.actor_scope_ref == command_ref,
+                        story_tables.story_command_receipts.c.operation == operation,
+                        story_tables.story_command_receipts.c.idempotency_key_sha256 == key_hash,
+                    )
                 )
-            ).mappings().one_or_none()
+                .mappings()
+                .one_or_none()
+            )
             if receipt is not None:
                 # SRS line 1697: the fingerprint check stays for cancel and delete replays;
                 # their fingerprints are never tombstoned (DTR step 4).
@@ -1160,9 +1198,7 @@ class SqlParentStoryRunRepository:
                 "confirmed": True,
             }
         )
-        run, access = self._owned_run_access(
-            principal, run_id, lock=True, teacher_capable=True
-        )
+        run, access = self._owned_run_access(principal, run_id, lock=True, teacher_capable=True)
         self._lock_idempotency(
             principal=principal,
             operation=operation,
@@ -1187,9 +1223,8 @@ class SqlParentStoryRunRepository:
         input_row = self._current_input(run)
         context_revision = int(input_row["context_revision"] or 0)
         context_hash = str(input_row["context_snapshot_sha256"] or "")
-        if (
-            context_revision != expected_context_revision
-            or not hmac.compare_digest(context_hash, expected_context_snapshot_sha256)
+        if context_revision != expected_context_revision or not hmac.compare_digest(
+            context_hash, expected_context_snapshot_sha256
         ):
             raise ParentStoryRunError(409, "STALE_REVISION")
         if run["run_state"] not in {
@@ -1456,6 +1491,486 @@ class SqlParentStoryRunRepository:
             on_story_started(reservation)
         return record
 
+    def reserve_activity_suggestion_set(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        run_id: str,
+        expected_understanding_revision: int,
+        idempotency_key: str,
+    ) -> ParentActivitySuggestionReservation:
+        """Reserve one immutable AI suggestion set after the adult confirmed the drawing subject."""
+        run = self._owned_run(principal, run_id, lock=True)
+        self._require_activity_state(run)
+        activity_context = self._activity_context(principal, run)
+        if activity_context.understanding_revision != expected_understanding_revision:
+            raise ParentStoryRunError(409, "PARENT_UNDERSTANDING_REVISION_STALE")
+        input_row = self._current_input(run)
+        # SRS order: the adult chooses the activity first and confirms the context afterwards, so
+        # suggestions must not wait for the context confirmation (the story start still does).
+        if input_row["original_sha256"] is None:
+            raise ParentStoryRunError(409, "PARENT_STORY_ARTWORK_REQUIRED")
+        context = {
+            "understanding_revision": activity_context.understanding_revision,
+            "input_revision": int(run["current_input_revision"]),
+            "context_revision": int(input_row["context_revision"]),
+            "context_snapshot": dict(activity_context.context_snapshot),
+            "subject_label": activity_context.subject_label,
+            "visible_features": tuple(activity_context.visible_features),
+            "lesson_pin_snapshot": activity_context.lesson_pin_snapshot,
+        }
+        operation = "GENERATE_ACTIVITY_SET"
+        key_hash = _idempotency_key_hash(idempotency_key)
+        fingerprint = _sha256_json(
+            {"expected_understanding_revision": expected_understanding_revision}
+        )
+        self._lock_idempotency(
+            principal=principal,
+            operation=operation,
+            scope_kind="STORY_RUN",
+            scope_ref=run_id,
+            key_hash=key_hash,
+        )
+        replay = self._find_idempotency_receipt(
+            principal=principal,
+            operation=operation,
+            scope_kind="STORY_RUN",
+            scope_ref=run_id,
+            key_hash=key_hash,
+            fingerprint=fingerprint,
+        )
+        if replay is not None:
+            if replay["state"] == "PENDING":
+                raise ParentStoryRunError(409, "PARENT_ACTIVITY_SUGGESTION_IN_PROGRESS")
+            body = replay["response_body"]
+            if not isinstance(body, dict):
+                raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE")
+            error_code = body.get("error_code")
+            if isinstance(error_code, str):
+                status = replay["response_status"]
+                if type(status) is not int or status not in {409, 422, 502, 503, 504}:
+                    raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE")
+                raise ParentStoryRunError(status, error_code)
+            set_id = body.get("suggestion_set_id")
+            set_revision = body.get("set_revision")
+            if not isinstance(set_id, str) or type(set_revision) is not int:
+                raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE")
+            self._session.commit()
+            return ParentActivitySuggestionReservation(
+                run_id=run_id,
+                suggestion_set_id=set_id,
+                set_revision=set_revision,
+                **context,
+                excluded_candidate_keys=(),
+                excluded_activities=(),
+                receipt_id=str(replay["receipt_id"]),
+                replayed=True,
+                replay_body=body,
+            )
+
+        sets = story_tables.parent_activity_suggestion_sets
+        previous_sets = self._session.execute(
+            select(sets)
+            .where(
+                sets.c.run_id == run_id,
+                sets.c.understanding_revision == expected_understanding_revision,
+            )
+            .order_by(sets.c.set_revision.desc())
+        ).mappings().all()
+        latest_revision = self._session.scalar(
+            select(func.max(sets.c.set_revision)).where(sets.c.run_id == run_id)
+        )
+        set_revision = int(latest_revision or 0) + 1
+        excluded_keys: set[str] = set()
+        excluded_activities: list[dict[str, Any]] = []
+        for row in previous_sets:
+            snapshot = row["activities_snapshot"]
+            if not isinstance(snapshot, list):
+                continue
+            for activity in snapshot:
+                if isinstance(activity, dict):
+                    excluded_activities.append(dict(activity))
+                    key = _parent_activity_candidate_key(activity)
+                    if key is not None:
+                        excluded_keys.add(key)
+
+        suggestion_set_id = str(uuid4())
+        try:
+            receipt_id = self._store_pending_idempotency_receipt(
+                principal=principal,
+                operation=operation,
+                scope_kind="STORY_RUN",
+                scope_ref=run_id,
+                key_hash=key_hash,
+                fingerprint=fingerprint,
+                run_id=run_id,
+                resource_version=set_revision,
+                now=datetime.now(UTC),
+            )
+            self._session.commit()
+        except IntegrityError:
+            self._session.rollback()
+            raise ParentStoryRunError(409, "INVALID_IDEMPOTENCY_KEY") from None
+        except SQLAlchemyError:
+            self._session.rollback()
+            raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE") from None
+        return ParentActivitySuggestionReservation(
+            run_id=run_id,
+            suggestion_set_id=suggestion_set_id,
+            set_revision=set_revision,
+            **context,
+            excluded_candidate_keys=tuple(sorted(excluded_keys)),
+            excluded_activities=tuple(excluded_activities),
+            receipt_id=receipt_id,
+        )
+
+    def complete_activity_suggestion_set(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        reservation: ParentActivitySuggestionReservation,
+        response: dict[str, Any],
+        provider_call_id: str | None,
+    ) -> dict[str, Any]:
+        if reservation.receipt_id is None or reservation.replayed:
+            raise ParentStoryRunError(409, "PARENT_ACTIVITY_SUGGESTION_RESERVATION_INVALID")
+        run = self._owned_run(principal, reservation.run_id, lock=True)
+        self._require_activity_state(run)
+        context = self._activity_context(principal, run)
+        input_row = self._current_input(run)
+        if (
+            context.understanding_revision != reservation.understanding_revision
+            or int(run["current_input_revision"]) != reservation.input_revision
+            or int(input_row["context_revision"]) != reservation.context_revision
+        ):
+            raise ParentStoryRunError(409, "PARENT_UNDERSTANDING_REVISION_STALE")
+        activities = response.get("activities")
+        if not isinstance(activities, list) or not activities:
+            raise ParentStoryRunError(502, "PARENT_ACTIVITY_RESPONSE_INVALID")
+        snapshot_hash = _sha256_json(activities)
+        final_response = {
+            **response,
+            "suggestion_set_id": reservation.suggestion_set_id,
+            "set_revision": reservation.set_revision,
+            "activities_snapshot_sha256": snapshot_hash,
+        }
+        now = datetime.now(UTC)
+        try:
+            self._session.execute(
+                insert(story_tables.parent_activity_suggestion_sets).values(
+                    suggestion_set_id=reservation.suggestion_set_id,
+                    run_id=reservation.run_id,
+                    set_revision=reservation.set_revision,
+                    understanding_revision=reservation.understanding_revision,
+                    input_revision=reservation.input_revision,
+                    context_revision=reservation.context_revision,
+                    selection_mode=final_response["selection_mode"],
+                    catalog_candidate_count=final_response["catalog_candidate_count"],
+                    activities_snapshot=activities,
+                    activities_snapshot_sha256=snapshot_hash,
+                    provider_call_id=provider_call_id,
+                    created_at=now,
+                )
+            )
+            updated = cast(
+                CursorResult[Any],
+                self._session.execute(
+                    update(story_tables.story_command_receipts)
+                    .where(
+                        story_tables.story_command_receipts.c.receipt_id
+                        == reservation.receipt_id,
+                        story_tables.story_command_receipts.c.state == "PENDING",
+                    )
+                    .values(
+                        state="FINAL",
+                        response_status=200,
+                        response_resource_version=reservation.set_revision,
+                        response_body=final_response,
+                        resource_ref=reservation.run_id,
+                        resource_version=reservation.set_revision,
+                        state_version=story_tables.story_command_receipts.c.state_version + 1,
+                        finalized_at=now,
+                    )
+                ),
+            )
+            if updated.rowcount != 1:
+                self._session.rollback()
+                raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE")
+            self._session.commit()
+        except IntegrityError:
+            self._session.rollback()
+            raise ParentStoryRunError(409, "PARENT_ACTIVITY_SUGGESTION_CONFLICT") from None
+        except SQLAlchemyError:
+            self._session.rollback()
+            raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE") from None
+        return final_response
+
+    def fail_activity_suggestion_set(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        reservation: ParentActivitySuggestionReservation,
+        error_code: str,
+        response_status: int,
+    ) -> None:
+        if reservation.receipt_id is None or reservation.replayed:
+            return
+        if response_status not in {409, 422, 502, 503, 504}:
+            raise ValueError("activity suggestion failure status is not supported")
+        try:
+            updated = self._session.execute(
+                update(story_tables.story_command_receipts)
+                .where(
+                    story_tables.story_command_receipts.c.receipt_id == reservation.receipt_id,
+                    story_tables.story_command_receipts.c.actor_scope_ref
+                    == _principal_scope_ref(principal),
+                    story_tables.story_command_receipts.c.state == "PENDING",
+                )
+                .values(
+                    state="FINAL",
+                    response_status=response_status,
+                    response_resource_version=reservation.set_revision,
+                    response_body={"error_code": error_code},
+                    resource_ref=reservation.run_id,
+                    resource_version=reservation.set_revision,
+                    state_version=story_tables.story_command_receipts.c.state_version + 1,
+                    finalized_at=datetime.now(UTC),
+                )
+            )
+            if updated.rowcount != 1:
+                self._session.rollback()
+                raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE")
+            self._session.commit()
+        except SQLAlchemyError:
+            self._session.rollback()
+            raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE") from None
+
+    def select_suggested_activity(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        run_id: str,
+        expected_revision: int,
+        suggestion_set_id: str,
+        expected_understanding_revision: int,
+        activity_index: int,
+        idempotency_key: str,
+        on_story_started: StoryStartedCallback | None = None,
+    ) -> ParentStoryRunView:
+        """Pin one item from the latest persisted set and pass through the existing story-start gate."""
+        run = self._owned_run(principal, run_id, lock=True)
+        key_hash = _idempotency_key_hash(idempotency_key)
+        fingerprint = _sha256_json(
+            {
+                "expected_revision": expected_revision,
+                "suggestion_set_id": suggestion_set_id,
+                "expected_understanding_revision": expected_understanding_revision,
+                "activity_index": activity_index,
+            }
+        )
+        self._lock_idempotency(
+            principal=principal,
+            operation=_SELECT_ACTIVITY_OPERATION,
+            scope_kind="STORY_RUN",
+            scope_ref=run_id,
+            key_hash=key_hash,
+        )
+        replay = self._find_idempotency_receipt(
+            principal=principal,
+            operation=_SELECT_ACTIVITY_OPERATION,
+            scope_kind="STORY_RUN",
+            scope_ref=run_id,
+            key_hash=key_hash,
+            fingerprint=fingerprint,
+        )
+        if replay is not None:
+            self._session.commit()
+            if run["run_state"] in PURGE_STATES:
+                return _projection(run)
+            return self.get_run(principal=principal, run_id=run_id)
+
+        self._refuse_purged(run)
+        self._require_activity_state(run)
+        if int(run["revision"]) != expected_revision:
+            raise ParentStoryRunError(409, "STALE_REVISION", current_version=int(run["revision"]))
+        context = self._activity_context(principal, run)
+        if context.understanding_revision != expected_understanding_revision:
+            raise ParentStoryRunError(409, "PARENT_UNDERSTANDING_REVISION_STALE")
+        latest_set = self._session.execute(
+            select(story_tables.parent_activity_suggestion_sets)
+            .where(
+                story_tables.parent_activity_suggestion_sets.c.run_id == run_id,
+                story_tables.parent_activity_suggestion_sets.c.understanding_revision
+                == expected_understanding_revision,
+            )
+            .order_by(story_tables.parent_activity_suggestion_sets.c.set_revision.desc())
+            .limit(1)
+        ).mappings().one_or_none()
+        if latest_set is None or str(latest_set["suggestion_set_id"]) != suggestion_set_id:
+            raise ParentStoryRunError(409, "PARENT_ACTIVITY_SET_STALE")
+        activities = latest_set["activities_snapshot"]
+        if (
+            not isinstance(activities, list)
+            or type(activity_index) is not int
+            or not 0 <= activity_index < len(activities)
+        ):
+            raise ParentStoryRunError(422, "PARENT_ACTIVITY_SELECTION_INVALID")
+        suggested = activities[activity_index]
+        if not isinstance(suggested, dict):
+            raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE")
+        if not hmac.compare_digest(
+            str(latest_set["activities_snapshot_sha256"]), _sha256_json(activities)
+        ):
+            raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE")
+
+        source = str(suggested.get("source", ""))
+        is_ai_draft = source == "AI_GENERATED_DRAFT"
+        lesson_id = _text_or_none(suggested.get("source_lesson_id"))
+        version_id = _text_or_none(suggested.get("source_lesson_version_id"))
+        content_sha256 = _text_or_none(suggested.get("source_content_sha256"))
+        source_index = suggested.get("source_activity_index")
+        if not is_ai_draft and (
+            not lesson_id
+            or not version_id
+            or not content_sha256
+            or type(source_index) is not int
+        ):
+            raise ParentStoryRunError(422, "PARENT_ACTIVITY_SELECTION_INVALID")
+        snapshot = {
+            "schema": "sketch2life.parent-activity-pin.v1",
+            "activity_ref": (
+                {
+                    "lesson_id": lesson_id,
+                    "version_id": version_id,
+                    "content_sha256": content_sha256,
+                    "activity_index": source_index,
+                }
+                if not is_ai_draft
+                else None
+            ),
+            "title": str(suggested["title"]),
+            "objective": str(suggested["objective"]),
+            "materials_text": str(suggested["materials_text"]),
+            "preparation_text": str(suggested["preparation_text"]),
+            "instructions_text": str(suggested["instructions_text"]),
+            "observation_notes": str(suggested["observation_notes"]),
+            "safety_notes": str(suggested["safety_notes"]),
+            "activity_kind": str(suggested["activity_kind"]),
+            "source": source,
+            "lesson_title": suggested.get("source_lesson_title"),
+            "lesson_topic": (
+                str((context.lesson_pin_snapshot or {}).get("topic", ""))
+                if source == "PINNED_LESSON"
+                else None
+            ),
+            "source_lesson_id": lesson_id,
+            "source_lesson_version_id": version_id,
+            "source_content_sha256": content_sha256,
+            "source_activity_index": source_index,
+            "match_reason": suggested.get("match_reason"),
+            "suggestion_set_id": suggestion_set_id,
+            "suggestion_set_revision": int(latest_set["set_revision"]),
+            "suggestion_activity_index": activity_index,
+        }
+        now = datetime.now(UTC)
+        snapshot["selected_at"] = now.isoformat()
+        snapshot_hash = _sha256_json(snapshot)
+        selection_id = str(uuid4())
+        selections = story_tables.activity_selections
+        legacy_selections = story_tables.parent_activity_selections
+        new_version = int(run["version"]) + 1
+        new_revision = int(run["revision"]) + 1
+        understanding_revision = int(run["understanding_revision"] or 0)
+        command_kind, command_ref = self._command_scope(principal)
+        try:
+            selection_no = int(
+                self._session.scalar(
+                    select(func.coalesce(func.max(selections.c.selection_no), 0)).where(
+                        selections.c.run_id == run_id
+                    )
+                )
+                or 0
+            ) + 1
+            legacy_revision = int(
+                self._session.scalar(
+                    select(func.coalesce(func.max(legacy_selections.c.selection_revision), 0)).where(
+                        legacy_selections.c.run_id == run_id
+                    )
+                )
+                or 0
+            ) + 1
+            receipt_id = self._store_idempotency_receipt(
+                principal=principal,
+                operation=_SELECT_ACTIVITY_OPERATION,
+                scope_kind="STORY_RUN",
+                scope_ref=run_id,
+                key_hash=key_hash,
+                fingerprint=fingerprint,
+                run_id=run_id,
+                resource_version=new_version,
+                response_body={
+                    "selection_id": selection_id,
+                    "suggestion_set_id": suggestion_set_id,
+                    "activity_index": activity_index,
+                    "understanding_revision": understanding_revision,
+                },
+                now=now,
+                response_status=200,
+            )
+            self._session.execute(
+                insert(selections).values(
+                    selection_id=selection_id,
+                    run_id=run_id,
+                    selection_no=selection_no,
+                    target_understanding_revision=understanding_revision,
+                    source_kind="AI_DRAFT" if is_ai_draft else "LESSON_ACTIVITY",
+                    lesson_id=None if is_ai_draft else lesson_id,
+                    version_id=None if is_ai_draft else version_id,
+                    content_sha256=None if is_ai_draft else content_sha256,
+                    activity_index=None if is_ai_draft else source_index,
+                    activity_snapshot=snapshot,
+                    activity_snapshot_sha256=snapshot_hash,
+                    command_receipt_id=receipt_id,
+                    actor_scope_kind=command_kind,
+                    actor_scope_ref=command_ref,
+                    created_at=now,
+                )
+            )
+            # Compatibility projection for the existing video-candidate FK; both rows have the
+            # same opaque ID and exact immutable snapshot, so story/video cannot refer to different
+            # activities during this schema reconciliation.
+            self._session.execute(
+                insert(legacy_selections).values(
+                    activity_selection_id=selection_id,
+                    run_id=run_id,
+                    selection_revision=legacy_revision,
+                    suggestion_set_id=suggestion_set_id,
+                    understanding_revision=understanding_revision,
+                    activity_index=activity_index,
+                    activity_snapshot=snapshot,
+                    activity_snapshot_sha256=snapshot_hash,
+                    actor_scope_ref=_principal_scope_ref(principal),
+                    created_at=now,
+                )
+            )
+            self._session.execute(
+                update(story_tables.story_runs)
+                .where(_live_run(run_id))
+                .values(version=new_version, revision=new_revision, updated_at=now)
+            )
+            story_reservation = self._first_story_starter().start_if_ready(run_id, principal, now)
+            self._session.commit()
+        except IntegrityError:
+            self._session.rollback()
+            raise ParentStoryRunError(409, "PARENT_ACTIVITY_SELECTION_CONFLICT") from None
+        except SQLAlchemyError:
+            self._session.rollback()
+            raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE") from None
+        record = self.get_run(principal=principal, run_id=run_id)
+        if story_reservation is not None and on_story_started is not None:
+            on_story_started(story_reservation)
+        return record
+
     def attach_artwork(
         self,
         *,
@@ -1482,7 +1997,7 @@ class SqlParentStoryRunRepository:
         new_input_revision = int(previous["input_revision"]) + 1
         lineage = story_tables.asset_lineage
         scanner_hash = hashlib.sha256(
-            f"{scanner_name}\0{scanner_version}".encode("utf-8")
+            f"{scanner_name}\0{scanner_version}".encode()
         ).hexdigest()
         try:
             self._session.add_all(
@@ -1577,9 +2092,7 @@ class SqlParentStoryRunRepository:
         except SQLAlchemyError:
             self._session.rollback()
             raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE") from None
-        return self.read_current_input(
-            principal=principal, run_id=run_id
-        )
+        return self.read_current_input(principal=principal, run_id=run_id)
 
     def read_current_input(
         self, *, principal: VerifiedPrincipal, run_id: str
@@ -1955,6 +2468,111 @@ class SqlParentStoryRunRepository:
             raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE") from None
         return True
 
+    def reconcile_modal_resource_exhausted_rejection(
+        self,
+        *,
+        run_id: str,
+        expected_run_revision: int,
+        expected_input_revision: int,
+        expected_derived_sha256: str,
+    ) -> bool:
+        """Requeue one operator-verified Modal rejection that created no FunctionCall.
+
+        This is intentionally not exposed as an HTTP operation. A local/test operator may call it
+        only after Modal returned the explicit ``ResourceExhaustedError`` from ``Function.spawn``
+        with no call ID. Locking, the exact state/error/revision/drawing checks, and the audit row
+        make that attested reconciliation a single compare-and-set. Timeouts and transport errors
+        must never use this method.
+        """
+        run = (
+            self._session.execute(
+                select(story_tables.story_runs)
+                .where(story_tables.story_runs.c.run_id == run_id)
+                .with_for_update()
+            )
+            .mappings()
+            .one_or_none()
+        )
+        if run is None or run["actor_scope_kind"] != _OWNER_SCOPE_KIND:
+            self._session.rollback()
+            return False
+        if (
+            run["run_state"] != "INPUT_PROCESSING"
+            or run["job_state"] != "AWAITING_RECONCILIATION"
+            or run["error_code"] != "DRAWING_OUTCOME_UNKNOWN"
+            or bool(run["retryable"])
+            or int(run["revision"]) != expected_run_revision
+            or run["current_input_revision"] != expected_input_revision
+            or not isinstance(expected_derived_sha256, str)
+            or len(expected_derived_sha256) != 64
+        ):
+            self._session.rollback()
+            return False
+
+        current = (
+            self._session.execute(
+                select(story_tables.run_inputs).where(
+                    story_tables.run_inputs.c.run_id == run_id,
+                    story_tables.run_inputs.c.input_revision == expected_input_revision,
+                )
+            )
+            .mappings()
+            .one_or_none()
+        )
+        if (
+            current is None
+            or current["original_asset_ref"] is None
+            or current["derived_asset_ref"] is None
+            or current["derived_sha256"] != expected_derived_sha256
+            or not self._drawing_unchanged(run, expected_input_revision)
+        ):
+            self._session.rollback()
+            return False
+
+        now = datetime.now(UTC)
+        try:
+            updated = cast(
+                CursorResult[Any],
+                self._session.execute(
+                    update(story_tables.story_runs)
+                    .where(
+                        _live_run(run_id),
+                        story_tables.story_runs.c.actor_scope_kind == _OWNER_SCOPE_KIND,
+                        story_tables.story_runs.c.run_state == "INPUT_PROCESSING",
+                        story_tables.story_runs.c.job_state == "AWAITING_RECONCILIATION",
+                        story_tables.story_runs.c.error_code == "DRAWING_OUTCOME_UNKNOWN",
+                        story_tables.story_runs.c.retryable.is_(False),
+                        story_tables.story_runs.c.revision == expected_run_revision,
+                        story_tables.story_runs.c.current_input_revision == expected_input_revision,
+                    )
+                    .values(
+                        job_state="QUEUED",
+                        error_code=None,
+                        version=story_tables.story_runs.c.version + 1,
+                        revision=story_tables.story_runs.c.revision + 1,
+                        updated_at=now,
+                    )
+                ),
+            )
+            if updated.rowcount != 1:
+                self._session.rollback()
+                return False
+            write_story_task_audit(
+                self._session,
+                actor_ref="SYSTEM_MODAL_RECONCILER",
+                action="DRAWING_DISPATCH_RECONCILED",
+                run_id=run_id,
+                decision="MODAL_RESOURCE_EXHAUSTED_NO_CALL_ID",
+                run_revision=expected_run_revision + 1,
+                now=now,
+                **story_task_audit_scope(run),
+            )
+            self._session.commit()
+        except SQLAlchemyError:
+            self._session.rollback()
+            raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE") from None
+        return True
+
     def fail_drawing_analysis_recoverable(
         self,
         *,
@@ -2101,9 +2719,7 @@ class SqlParentStoryRunRepository:
         the 202 and every replay) carries the command's own ``run_revision``, written before the
         start's extra bump. A Parent never starts here (it has no selection yet).
         """
-        run, access = self._owned_run_access(
-            principal, run_id, lock=True, teacher_capable=True
-        )
+        run, access = self._owned_run_access(principal, run_id, lock=True, teacher_capable=True)
         operation = "CONFIRM_SUBJECT"
         key_hash = _idempotency_key_hash(idempotency_key)
         fingerprint_inputs: dict[str, Any] = {
@@ -2447,9 +3063,7 @@ class SqlParentStoryRunRepository:
         idea_text = self._idea_for_story(run_id, input_row)
         candidate_snapshot = understanding["result_snapshot"]
         candidate = (
-            candidate_snapshot.get("result")
-            if isinstance(candidate_snapshot, dict)
-            else None
+            candidate_snapshot.get("result") if isinstance(candidate_snapshot, dict) else None
         )
         raw_features = candidate.get("visible_features") if isinstance(candidate, dict) else None
         if not isinstance(raw_features, list):
@@ -2558,9 +3172,7 @@ class SqlParentStoryRunRepository:
         if (
             require_activity_selection
             and run["run_state"] == "PREPARATION_REVIEW"
-            and latest_selection_row(
-                self._session, run_id, int(run["understanding_revision"] or 0)
-            )
+            and latest_selection_row(self._session, run_id, int(run["understanding_revision"] or 0))
             is None
         ):
             # T-2e-a D9: the legacy first-story route needs the adult's main activity first (only
@@ -2574,11 +3186,15 @@ class SqlParentStoryRunRepository:
         )
         context = input_row["context_snapshot"]
 
-        revisions = self._session.execute(
-            select(story_tables.story_revisions)
-            .where(story_tables.story_revisions.c.run_id == run_id)
-            .order_by(story_tables.story_revisions.c.revision_no.desc())
-        ).mappings().all()
+        revisions = (
+            self._session.execute(
+                select(story_tables.story_revisions)
+                .where(story_tables.story_revisions.c.run_id == run_id)
+                .order_by(story_tables.story_revisions.c.revision_no.desc())
+            )
+            .mappings()
+            .all()
+        )
         latest_story = revisions[0] if revisions else None
         if len(revisions) >= 4:
             raise ParentStoryRunError(409, "STORY_REWRITE_LIMIT_REACHED")
@@ -2589,10 +3205,39 @@ class SqlParentStoryRunRepository:
         ):
             raise ParentStoryRunError(409, "PARENT_STORY_REWRITE_NOT_ALLOWED")
 
+        # FEAT-092: the Modal story client and worker validate input v3 (topic, lesson notes and the
+        # adult's main activity); the v1 object built here made every story fail validation.
+        selection_row = latest_selection_row(
+            self._session, run_id, int(run["understanding_revision"] or 0)
+        )
+        if selection_row is None:
+            raise ParentStoryRunError(409, "PARENT_ACTIVITY_SELECTION_REQUIRED")
+        primary_activity = _story_primary_activity(selection_row["activity_snapshot"])
+        primary_activity_hash = _sha256_json(primary_activity)
+        topic = context.get("topic", "")
+        if not isinstance(topic, str) or len(topic) > 120:
+            raise ParentStoryRunError(409, "PARENT_CONTEXT_INVALID")
+        lesson_pin = input_row.get("lesson_pin_snapshot")
+        lesson_subject_learning_notes: str | None = None
+        lesson_direction: str | None = None
+        if lesson_pin is not None:
+            if not isinstance(lesson_pin, dict):
+                raise ParentStoryRunError(409, "PARENT_LESSON_PIN_INVALID")
+            notes = lesson_pin.get("subject_learning_notes")
+            direction = lesson_pin.get("script_direction")
+            follows_script = lesson_pin.get("script_following_allowed")
+            if not isinstance(notes, str) or not 1 <= len(notes) <= 5000:
+                raise ParentStoryRunError(409, "PARENT_LESSON_PIN_INVALID")
+            if direction is not None and (not isinstance(direction, str) or len(direction) > 2000):
+                raise ParentStoryRunError(409, "PARENT_LESSON_PIN_INVALID")
+            lesson_subject_learning_notes = notes
+            if follows_script is True and isinstance(direction, str) and direction.strip():
+                lesson_direction = direction
         worker_input = {
-            "schema_version": "sketch2life.story-generation-input.v1",
+            "schema_version": "sketch2life.story-generation-input.v3",
             "role": "PARENT",
             "language": "vi",
+            "topic": topic,
             "confirmed_subject": str(run["subject_label"] or "").strip(),
             "understanding_revision": expected_understanding_revision,
             "drawing_sha256": str(input_row["original_sha256"]),
@@ -2601,7 +3246,10 @@ class SqlParentStoryRunRepository:
             "context_revision": int(input_row["context_revision"]),
             "adult_confirmed_idea": idea_text,
             "rewrite_instruction": rewrite_instruction,
-            "lesson_direction": None,
+            "lesson_subject_learning_notes": lesson_subject_learning_notes,
+            "lesson_direction": lesson_direction,
+            "primary_activity": primary_activity,
+            "primary_activity_sha256": primary_activity_hash,
         }
         snapshot = understanding["result_snapshot"]
         candidate = snapshot.get("result") if isinstance(snapshot, dict) else None
@@ -2865,9 +3513,7 @@ class SqlParentStoryRunRepository:
             "adult_rewrite_hint": hint,
             # T-4b3a D7b: a Teacher run carries a bounded direction taken from its own context
             # snapshot (no name, no media); a Parent run carries none, as ever.
-            "lesson_direction": (
-                teacher_lesson_direction(context) if self._is_teacher else None
-            ),
+            "lesson_direction": (teacher_lesson_direction(context) if self._is_teacher else None),
         }
         snapshot = understanding["result_snapshot"]
         candidate = snapshot.get("result") if isinstance(snapshot, dict) else None
@@ -3515,9 +4161,7 @@ class SqlParentStoryRunRepository:
             return False
         spent = False
         if latest_story["status"] == "CONFIRMED":
-            review = self._latest_review(
-                str(run["run_id"]), str(latest_story["story_revision_id"])
-            )
+            review = self._latest_review(str(run["run_id"]), str(latest_story["story_revision_id"]))
             spent = review is not None and review_is_spent(
                 self._review_states(str(review["review_id"]))
             )
@@ -3576,9 +4220,7 @@ class SqlParentStoryRunRepository:
         expected_story_sha256: str,
         idempotency_key: str,
     ) -> ParentStoryRunView:
-        run, access = self._owned_run_access(
-            principal, run_id, lock=True, teacher_capable=True
-        )
+        run, access = self._owned_run_access(principal, run_id, lock=True, teacher_capable=True)
         operation = "CONFIRM_STORY_REVISION"
         key_hash = _idempotency_key_hash(idempotency_key)
         fingerprint = _sha256_json(
@@ -4612,16 +5254,20 @@ class SqlParentStoryRunRepository:
         fingerprint: str,
     ) -> RowMapping | None:
         command_kind, command_ref = self._command_scope(principal)
-        receipt = self._session.execute(
-            select(story_tables.story_command_receipts).where(
-                story_tables.story_command_receipts.c.actor_scope_kind == command_kind,
-                story_tables.story_command_receipts.c.actor_scope_ref == command_ref,
-                story_tables.story_command_receipts.c.operation == operation,
-                story_tables.story_command_receipts.c.idempotency_scope_kind == scope_kind,
-                story_tables.story_command_receipts.c.idempotency_scope_ref == scope_ref,
-                story_tables.story_command_receipts.c.idempotency_key_sha256 == key_hash,
+        receipt = (
+            self._session.execute(
+                select(story_tables.story_command_receipts).where(
+                    story_tables.story_command_receipts.c.actor_scope_kind == command_kind,
+                    story_tables.story_command_receipts.c.actor_scope_ref == command_ref,
+                    story_tables.story_command_receipts.c.operation == operation,
+                    story_tables.story_command_receipts.c.idempotency_scope_kind == scope_kind,
+                    story_tables.story_command_receipts.c.idempotency_scope_ref == scope_ref,
+                    story_tables.story_command_receipts.c.idempotency_key_sha256 == key_hash,
+                )
             )
-        ).mappings().one_or_none()
+            .mappings()
+            .one_or_none()
+        )
         if receipt is None:
             return None
         if not hmac.compare_digest(str(receipt["request_fingerprint_sha256"]), fingerprint):
@@ -4727,23 +5373,31 @@ class SqlParentStoryRunRepository:
         revision = run["current_input_revision"]
         if revision is None:
             raise ParentStoryRunError(409, "PARENT_STORY_CONTEXT_UNAVAILABLE")
-        row = self._session.execute(
-            select(story_tables.run_inputs).where(
-                story_tables.run_inputs.c.run_id == run["run_id"],
-                story_tables.run_inputs.c.input_revision == revision,
+        row = (
+            self._session.execute(
+                select(story_tables.run_inputs).where(
+                    story_tables.run_inputs.c.run_id == run["run_id"],
+                    story_tables.run_inputs.c.input_revision == revision,
+                )
             )
-        ).mappings().one_or_none()
+            .mappings()
+            .one_or_none()
+        )
         if row is None:
             raise ParentStoryRunError(503, "PARENT_STORY_CONTEXT_UNAVAILABLE")
         return row
 
     def _latest_understanding(self, run_id: str):
-        return self._session.execute(
-            select(story_tables.understanding_revisions)
-            .where(story_tables.understanding_revisions.c.run_id == run_id)
-            .order_by(story_tables.understanding_revisions.c.revision_no.desc())
-            .limit(1)
-        ).mappings().one_or_none()
+        return (
+            self._session.execute(
+                select(story_tables.understanding_revisions)
+                .where(story_tables.understanding_revisions.c.run_id == run_id)
+                .order_by(story_tables.understanding_revisions.c.revision_no.desc())
+                .limit(1)
+            )
+            .mappings()
+            .one_or_none()
+        )
 
     @staticmethod
     def _input_record(row) -> ParentStoryInputRecord:
@@ -4754,16 +5408,12 @@ class SqlParentStoryRunRepository:
             original_sha256=row["original_sha256"],
             original_media_type=row["original_media_type"],
             original_size_bytes=(
-                int(row["original_size_bytes"])
-                if row["original_size_bytes"] is not None
-                else None
+                int(row["original_size_bytes"]) if row["original_size_bytes"] is not None else None
             ),
             derived_asset_ref=row["derived_asset_ref"],
             derived_sha256=row["derived_sha256"],
             derived_size_bytes=(
-                int(row["derived_size_bytes"])
-                if row["derived_size_bytes"] is not None
-                else None
+                int(row["derived_size_bytes"]) if row["derived_size_bytes"] is not None else None
             ),
             source_profile_revision_ref=UUID(str(row["source_profile_revision_ref"])),
             context_revision=int(row["context_revision"]),
@@ -4920,21 +5570,43 @@ def _canonical_json(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
+def _story_primary_activity(activity: Mapping[str, Any]) -> dict[str, str]:
+    """The eight bounded fields of the adult's main activity that the story worker accepts."""
+
+    field_limits = {
+        "title": 160,
+        "objective": 400,
+        "materials_text": 300,
+        "preparation_text": PARENT_ACTIVITY_DETAIL_TEXT_MAX_LENGTH,
+        "instructions_text": 700,
+        "observation_notes": PARENT_ACTIVITY_DETAIL_TEXT_MAX_LENGTH,
+        "safety_notes": PARENT_ACTIVITY_DETAIL_TEXT_MAX_LENGTH,
+        "activity_kind": 16,
+    }
+    return {
+        key: str(activity.get(key, "")).strip()[:limit]
+        for key, limit in field_limits.items()
+    }
+
+
 def _create_run_fingerprint(
     *,
     parent_profile_id: UUID,
     topic: str,
     adult_confirmed_idea: str,
     lesson_version_ref: dict[str, str] | None,
+    intended_drawing_subject: str | None = None,
 ) -> str:
-    return _sha256_json(
-        {
-            "parent_profile_id": str(parent_profile_id),
-            "topic": topic,
-            "adult_confirmed_idea": adult_confirmed_idea,
-            "lesson_version": lesson_version_ref,
-        }
-    )
+    payload = {
+        "parent_profile_id": str(parent_profile_id),
+        "topic": topic,
+        "adult_confirmed_idea": adult_confirmed_idea,
+        "lesson_version": lesson_version_ref,
+    }
+    # Preserve older idempotency receipts when the optional subject was omitted.
+    if intended_drawing_subject is not None:
+        payload["intended_drawing_subject"] = intended_drawing_subject
+    return _sha256_json(payload)
 
 
 def _integrity_constraint_name(exc: IntegrityError) -> str | None:
@@ -5003,6 +5675,46 @@ def _public_run_error_code(stored: Any, video_rows: RunVideoRows | None) -> Any:
 
 def _text_or_none(value: object) -> str | None:
     return None if value is None else str(value)
+
+
+def _parent_activity_candidate_key(activity: Any) -> str | None:
+    """Stable published-lesson identity used to suppress repeats across suggestion rounds."""
+    if not isinstance(activity, Mapping):
+        return None
+    lesson_id = activity.get("source_lesson_id")
+    version_id = activity.get("source_lesson_version_id")
+    content_hash = activity.get("source_content_sha256")
+    activity_index = activity.get("source_activity_index")
+    if (
+        not isinstance(lesson_id, str)
+        or not lesson_id
+        or not isinstance(version_id, str)
+        or not version_id
+        or not isinstance(content_hash, str)
+        or len(content_hash) != 64
+        or type(activity_index) is not int
+        or activity_index < 0
+    ):
+        return None
+    return f"{lesson_id}:{version_id}:{content_hash}:{activity_index}"
+
+
+def _project_confirmed_candidate(
+    candidate: Mapping[str, Any], confirmed_subject: str | None
+) -> dict[str, Any]:
+    """Add a persisted adult decision to a copy of the immutable VLM candidate."""
+
+    projected = dict(candidate)
+    confirmed = str(confirmed_subject or "").strip()
+    if not confirmed:
+        return projected
+    suggested = str(projected.get("candidate_subject") or "").strip()
+    if projected.get("decision") == "CORRECTED_BY_ADULT" or suggested != confirmed:
+        projected["candidate_subject"] = confirmed
+        projected["decision"] = "CORRECTED_BY_ADULT"
+    else:
+        projected["decision"] = "CONFIRMED_BY_ADULT"
+    return projected
 
 
 def _teacher_pin_view(

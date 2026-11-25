@@ -42,6 +42,8 @@ const topicScreenSource = readFileSync(new URL('../src/parent/presentation/scree
 const ideaScreenSource = readFileSync(new URL('../src/parent/presentation/screens/IdeaScreen.tsx', import.meta.url), 'utf8');
 const captureScreenSource = readFileSync(new URL('../src/parent/presentation/screens/CaptureScreen.tsx', import.meta.url), 'utf8');
 const drawingGuideScreenSource = readFileSync(new URL('../src/parent/presentation/screens/DrawingGuideScreen.tsx', import.meta.url), 'utf8');
+const sketchGuideScreenSource = readFileSync(new URL('../src/parent/presentation/screens/SketchGuideScreen.tsx', import.meta.url), 'utf8');
+const progressiveSvgGuideSource = readFileSync(new URL('../src/parent/presentation/components/ProgressiveSvgGuide.tsx', import.meta.url), 'utf8');
 const understandingScreenSource = readFileSync(new URL('../src/parent/presentation/screens/UnderstandingScreen.tsx', import.meta.url), 'utf8');
 const contextScreenSource = readFileSync(new URL('../src/parent/presentation/screens/ContextScreen.tsx', import.meta.url), 'utf8');
 const transcriptReviewSource = readFileSync(new URL('../src/parent/presentation/screens/TranscriptReviewScreen.tsx', import.meta.url), 'utf8');
@@ -196,7 +198,7 @@ describe('L1 Vietnamese copy and paper presentation contracts', () => {
     expect(authScreenSource).not.toContain('<AuthIllustration');
     expect(accountScreenSource).toContain('Mật khẩu đã được cập nhật.');
     expect(accountScreenSource).not.toContain('Mật khẩu đã được cập nhật trên Firebase Authentication.');
-    expect(googleSignInButtonSource).toContain('Đăng nhập bằng Google hiện chưa khả dụng. Bạn có thể dùng email để tiếp tục.');
+    expect(googleSignInButtonSource).toContain('Google chưa được cấu hình cho ứng dụng này. Bạn có thể dùng email để tiếp tục.');
     expect(googleSignInButtonSource).toContain('Chưa thể hoàn tất đăng nhập bằng Google. Hãy thử lại hoặc dùng email.');
     expect(googleSignInButtonSource).not.toContain('response.params.error_description');
     expect(googleSignInButtonSource).not.toContain('Google Sign-In chưa cấu hình.');
@@ -317,6 +319,7 @@ afterEach(() => {
 
 describe('R1 account and profile boundaries', () => {
   it('coalesces an expired-session token refresh and presents a safe re-authentication message', async () => {
+    vi.stubGlobal('__DEV__', true);
     const jsonResponse = (body: unknown): Response => new Response(JSON.stringify(body), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
@@ -481,7 +484,8 @@ describe('R2 backend route boundary', () => {
     expect(ideaScreenSource).toContain('Bài học tham khảo');
     expect(ideaScreenSource).toContain('Có thể ghim một bài học từ thư viện.');
     expect(profileControllerSource).toContain('Định dạng bản ghi âm chưa được hỗ trợ.');
-    expect(topicScreenSource).toContain('onPress={() => props.onTopic(option.title)}');
+    expect(topicScreenSource).toContain('onPress={() => props.onSelect(card)}');
+    expect(topicScreenSource).toContain('onChangeText={props.onTopic}');
     expect(ideaScreenSource).toContain('Tiếp tục đến bức tranh');
     expect(lessonGallerySource).not.toContain('Có thể tiếp tục không cần bài giảng');
     expect(lessonGallerySource).not.toContain('Tiếp tục không dùng bài giảng');
@@ -498,15 +502,17 @@ describe('R2 backend route boundary', () => {
   });
 
   it('keeps L2 screens on paper cards and gates the synthetic preview outside normal app flow', () => {
-    expect(ideaScreenSource).toContain('Gợi ý nét vẽ do trí tuệ nhân tạo tạo');
-    expect(ideaScreenSource).not.toContain('Gợi ý nét vẽ do AI tạo');
+    expect(ideaScreenSource).toContain('Gợi ý nét vẽ');
+    expect(ideaScreenSource).toContain('Tùy chọn, có thể bỏ qua.');
     expect(ideaScreenSource).not.toContain('Gợi ý line sketch được tạo bởi AI');
     expect(lessonGallerySource).toContain('catalogCard: {');
     expect(lessonGallerySource).toContain('activityItem: {');
     expect(lessonPickerSource).toContain('lessonCard: {');
-    expect(ideaScreenSource).toContain('guideImage: { backgroundColor: palette.white');
+    expect(sketchGuideScreenSource).toContain('<ProgressiveSvgGuide');
+    expect(progressiveSvgGuideSource).toContain('Animated.createAnimatedComponent(Path)');
+    expect(progressiveSvgGuideSource).toContain('strokeDashoffset={getDashOffset(path.path_id)}');
     expect(drawingGuideScreenSource).toContain('title="Gợi ý vẽ (tùy chọn)"');
-    expect(drawingGuideScreenSource).toContain('<PrimaryButton label="Bỏ qua hướng dẫn" onPress={props.onContinue} />');
+    expect(drawingGuideScreenSource).toContain('<PrimaryButton variant="creative" label="Bỏ qua hướng dẫn" onPress={props.onContinue} />');
     expect(drawingGuideScreenSource).toContain('currentStep: { color: palette.ink');
     expect(captureScreenSource).toContain('aspectRatio: 1.42, minHeight: 176');
     expect(captureScreenSource).toContain('<Text style={styles.requiredBadge}>BẮT BUỘC</Text>');
@@ -588,7 +594,7 @@ describe('R2 backend route boundary', () => {
 describe('M3 concept surfaces and truthful capability states', () => {
   it('keeps the existing flow, typed unavailable states, and concept presentation', () => {
     expect(activityScreenSource).toContain('title="Hoạt động cùng bé"');
-    expect(activityScreenSource).toContain('Chọn một hoạt động chính');
+    expect(activityScreenSource).toContain('Chọn một hoạt động');
     expect(activityScreenSource).toContain('lesson_title');
     expect(activityScreenSource).toContain('noCandidate');
     expect(parentExpoAppSource).toContain('activities={parent.activitySuggestions}');
@@ -645,8 +651,8 @@ describe('M3 concept surfaces and truthful capability states', () => {
     const cameraActionAt = capturePreviewMarkup.indexOf('<PrimaryButton label={hasPhoto ?');
     const galleryActionAt = capturePreviewMarkup.indexOf('<SecondaryButton label="Chọn từ thư viện ảnh"');
     const photoSlotAt = capturePreviewMarkup.indexOf('<View style={styles.capturePreviewImageFrame}>');
-    expect(captureScreenSource).toContain('Ảnh chỉ được gửi sau khi bạn chọn “Nhận diện tranh”.');
-    const requiredPhotoNoticeAt = captureScreenSource.indexOf('Bước này sẽ tạo buổi học cho ảnh đã chọn rồi gửi tranh để nhận diện.');
+    expect(captureScreenSource).toContain('Ảnh chỉ gửi khi bạn bắt đầu nhận diện.');
+    const requiredPhotoNoticeAt = captureScreenSource.indexOf('Ảnh chỉ gửi khi bạn bắt đầu nhận diện.');
     const continueActionAt = captureScreenSource.indexOf('Tạo buổi và nhận diện tranh');
     for (const position of [requiredBadgeAt, permissionNoticeAt, cameraActionAt, galleryActionAt, photoSlotAt, requiredPhotoNoticeAt, continueActionAt]) {
       expect(position).toBeGreaterThanOrEqual(0);
@@ -689,7 +695,8 @@ describe('R3 story workflow safety boundaries', () => {
     expect(profileControllerSource).not.toContain('createRunBeforeDrawingV1(');
     expect(profileControllerSource).not.toContain('application.learning.generateSketchGuide(');
     expect(profileControllerSource).toContain('Gợi ý nét vẽ tự động 4–8 bước chưa khả dụng.');
-    expect(parentApiSource).toContain('image_base64: string');
+    expect(learningUseCasesSource).toContain("purpose: 'RUN_ARTWORK'");
+    expect(learningUseCasesSource).toContain('uploadRunMedia(');
     expect(parentApiSource).not.toMatch(/generateSketchGuide\([\s\S]*?ordered_steps/);
     expect(profileControllerSource).toContain('retainedKeySet(drawingUploadAction');
     expect(profileControllerSource).toContain('await handleOrWaitDrawing(latest)');
@@ -778,6 +785,11 @@ describe('R3 story workflow safety boundaries', () => {
     expect(profileControllerSource).toContain('await requestActivityList(false, run)');
     expect(profileControllerSource).toContain('await followFirstStory(run.run_id)');
     expect(analysisSource).not.toContain('PARENT_CONTEXT_NOT_CONFIRMED');
+    const subjectConfirmationStart = profileControllerSource.indexOf('async function confirmSubject');
+    const subjectConfirmationEnd = profileControllerSource.indexOf('async function requestActivityList', subjectConfirmationStart);
+    const subjectConfirmationSource = profileControllerSource.slice(subjectConfirmationStart, subjectConfirmationEnd);
+    expect(subjectConfirmationSource).toContain('await requestActivityList(false, latest)');
+    expect(subjectConfirmationSource).toContain('await requestActivityList(false, confirmedRun)');
   });
 });
 

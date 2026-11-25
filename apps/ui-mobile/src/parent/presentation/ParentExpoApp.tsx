@@ -24,6 +24,7 @@ import { DrawingGuideScreen } from './screens/DrawingGuideScreen';
 import { HandoffScreen } from './screens/HandoffScreen';
 import { HomeScreen } from './screens/HomeScreen';
 import { IdeaScreen } from './screens/IdeaScreen';
+import { SketchGuideScreen } from './screens/SketchGuideScreen';
 import { TranscriptReviewScreen } from './screens/TranscriptReviewScreen';
 import { VideoScreen } from './screens/VideoScreen';
 import { LessonGalleryScreen } from './screens/LessonGalleryScreen';
@@ -344,7 +345,7 @@ function renderLearningStep(
   parent: ReturnType<typeof useParentController>,
   platform: ReturnType<typeof useParentPlatformController>,
   pendingCaptureSource: 'camera' | 'gallery' | null,
-  onCaptureIntentHandled: () => void,
+  clearPendingCaptureIntent: () => void,
 ): React.JSX.Element {
   const step: AppStep = parent.step;
   const stepLabel = (number: number): string => `${number} / 8`;
@@ -376,8 +377,8 @@ function renderLearningStep(
   });
   if (step === 'entry') return <LearningPathScreen
     error={parent.error}
-    onTopic={() => void parent.beginTopicPath()}
-    onLesson={parent.beginLessonPath}
+    onTopic={() => { clearPendingCaptureIntent(); void parent.beginTopicPath(); }}
+    onLesson={() => { clearPendingCaptureIntent(); parent.beginLessonPath(); }}
     onBack={() => parent.setStep('home')}
   />;
   if (step === 'topic') return <TopicScreen
@@ -436,6 +437,18 @@ function renderLearningStep(
     onContinue={parent.openDrawingGuide}
     onBack={() => parent.setStep(parent.lesson ? 'drawing-guide' : parent.selectedTopicId ? 'subject' : 'topic')}
   />;
+  if (step === 'sketch-guide') return <SketchGuideScreen
+    topic={parent.topic}
+    layout={null}
+    draft={parent.guideDraft}
+    catalogChecked
+    busy={parent.guideBusy}
+    error={parent.guideError}
+    onFindCatalog={() => undefined}
+    onGenerateDraft={() => void parent.createGuide()}
+    onSkip={parent.openDrawingGuide}
+    onBack={() => parent.setStep('idea')}
+  />;
   if (step === 'drawing-guide' && parent.lesson) return <DrawingGuideScreen
     lesson={parent.lesson}
     stepLabel={stepLabel(3)}
@@ -471,11 +484,17 @@ function renderLearningStep(
     stepLabel={stepLabel(4)}
     canAnalyze={canAnalyze}
     analysisBusy={parent.busy === 'context-create' || parent.busy === 'understanding'}
+    closingRun={parent.busy === 'close-unresolved-run'}
+    flowError={parent.error}
     runExists={Boolean(parent.contextRun?.run_id)}
+    analysisFailed={parent.contextRun?.run_state === 'INPUT_REVIEW' && parent.contextRun.job_state === 'FAILED'}
+    retakeAvailable={parent.retakeAvailable}
     initialCaptureSource={pendingCaptureSource}
-    onCaptureIntentHandled={onCaptureIntentHandled}
+  onCaptureIntentHandled={clearPendingCaptureIntent}
     onPhoto={parent.setPhoto}
     onContinue={() => void parent.analyzeDrawingForCurrentRun()}
+    onCheckStatus={() => void parent.resumeActiveRun()}
+    onCloseUnresolvedRun={() => void parent.closeUnresolvedDrawingRun()}
     onBack={() => parent.leaveWait(parent.contextRun ? 'context' : 'idea')}
   />;
   if (step === 'understanding' && parent.candidate) return <UnderstandingScreen

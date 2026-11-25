@@ -12,7 +12,7 @@ import type {
   ParentNotification,
   ParentProfileViewV1,
   ParentStoryRunV1,
-  ParentActivityListV1,
+  ParentActivitySuggestionSetV1,
   ParentTopicCardV1,
   ParentUser,
   StoryDraft,
@@ -99,10 +99,19 @@ const previewActivity: Activity = {
   activity_kind: 'indoor',
 };
 
-const previewActivityList: ParentActivityListV1 = {
+const previewActivityList: ParentActivitySuggestionSetV1 = {
+  contract: 'ParentActivitySuggestionSetV1',
   request_id: 'preview-only',
-  items: [{
-    activity_ref: { lesson_id: 'preview-lesson-01', version_id: 'preview-v1', content_sha256: 'a'.repeat(64), activity_index: 0 },
+  story_run_id: '00000000-0000-4000-8000-000000000001',
+  suggestion_set_id: '00000000-0000-4000-8000-000000000002',
+  set_revision: 1,
+  understanding_revision: 1,
+  selection_mode: 'CATALOG_SELECTION',
+  catalog_candidate_count: 1,
+  activities_snapshot_sha256: 'a'.repeat(64),
+  review_required: true,
+  modal_call_id: null,
+  activities: [{
     title: previewActivity.title,
     objective: previewActivity.objective,
     materials_text: previewActivity.materials_text,
@@ -112,10 +121,13 @@ const previewActivityList: ParentActivityListV1 = {
     safety_notes: previewActivity.safety_notes,
     activity_kind: previewActivity.activity_kind,
     source: 'PINNED_LESSON',
-    lesson_title: 'Mô phỏng · khu vườn nhỏ',
-    lesson_topic: 'Mô phỏng · cây cối',
+    source_lesson_id: 'preview-lesson-01',
+    source_lesson_title: 'Mô phỏng · khu vườn nhỏ',
+    source_lesson_version_id: 'preview-v1',
+    source_content_sha256: 'a'.repeat(64),
+    source_activity_index: 0,
+    match_reason: 'Mô phỏng · phù hợp chủ đề',
   }],
-  basis: { age_band: '36-71', pinned_lesson: true, no_candidate: false },
 };
 
 const previewTopicCards: ParentTopicCardV1[] = [

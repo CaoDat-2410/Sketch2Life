@@ -39,6 +39,7 @@ from sketch2life.application.ports.parent_story_runs import (
     ParentStoryLifecycleRecord,
     ParentStoryRevisionReservation,
     ParentStoryRunError,
+    ParentStoryRunRecord,
     StoryRewriteOutcome,
 )
 from sketch2life.application.ports.story_run_actor import RunActor
@@ -47,11 +48,13 @@ from sketch2life.contracts.schemas.parent_story_inputs import (
     AttachRunAssetRequestV1,
     ConfirmTranscriptRequestV1,
     IdeaTranscriptRefV1,
+    ParentDrawingAnalysisResumeAcceptedV1,
     ParentRunAssetAcceptedV1,
     ParentRunIdeaAcceptedV1,
     ParentRunTranscriptV1,
     ParentStoryRewriteAcceptedV1,
     ParentTranscriptConfirmationV1,
+    ResumeDrawingAnalysisRequestV1,
     RewriteStoryRequestV1,
 )
 from sketch2life.contracts.schemas.parent_story_runs import (
@@ -227,6 +230,72 @@ def attach_parent_run_asset(
             *job_actor(actor, result.organization_id),
         )
     return _accepted(run_id, payload.asset_ref, result)
+
+
+@router.post(
+    "/{run_id}/drawing-analysis/resume",
+    response_model=ParentDrawingAnalysisResumeAcceptedV1,
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Resume analysis of the current attached drawing when its job is still queued",
+    responses={
+        401: {"model": ParentStoryErrorEnvelopeV1, "description": "Authentication is required."},
+        404: {"model": ParentStoryErrorEnvelopeV1, "description": "The Parent run was not found."},
+        409: {
+            "model": ParentStoryErrorEnvelopeV1,
+            "description": "The run is no longer queued for drawing analysis.",
+        },
+        503: {
+            "model": ParentStoryErrorEnvelopeV1,
+            "description": "The local Modal worker is unavailable.",
+        },
+    },
+)
+def resume_parent_drawing_analysis(
+    run_id: UUID,
+    payload: ResumeDrawingAnalysisRequestV1,
+    request: Request,
+    background_tasks: BackgroundTasks,
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+) -> ParentDrawingAnalysisResumeAcceptedV1:
+    """Dispatch only the unchanged queued input; the runner's CAS prevents duplicate Modal calls."""
+    actor = require_story_run_actor(db, principal)
+    if actor.is_teacher:
+        raise HTTPException(status_code=404, detail={"code": "RESOURCE_NOT_FOUND"})
+    state = request.app.state
+    if not getattr(state, "parent_drawing_recovery_enabled", False):
+        raise HTTPException(status_code=503, detail={"code": "PROVIDER_UNAVAILABLE"})
+    analyzer = getattr(state, "drawing_analyzer", None)
+    runtime = getattr(state, "be1_runtime", None)
+    if analyzer is None or runtime is None or runtime.session_factory is None:
+        raise HTTPException(status_code=503, detail={"code": "PROVIDER_UNAVAILABLE"})
+    repository = story_run_repository(db, actor)
+    try:
+        record = repository.get_run(principal=principal, run_id=str(run_id))
+    except ParentStoryRunError as exc:
+        raise _http_error(exc) from None
+    if not isinstance(record, ParentStoryRunRecord):
+        raise HTTPException(status_code=404, detail={"code": "RESOURCE_NOT_FOUND"})
+    if (
+        record.run_state != "INPUT_PROCESSING"
+        or record.job_state != "QUEUED"
+        or record.current_input_revision != payload.expected_input_revision
+    ):
+        raise HTTPException(status_code=409, detail={"code": "INVALID_STATE_TRANSITION"})
+    runner = ParentInputJobRunner(runtime.session_factory, analyzer)
+    background_tasks.add_task(
+        runner.run,
+        principal,
+        str(run_id),
+        payload.expected_input_revision,
+    )
+    return ParentDrawingAnalysisResumeAcceptedV1(
+        request_id=uuid4(),
+        story_run_id=run_id,
+        input_revision=payload.expected_input_revision,
+        run_revision=record.run_revision,
+        dispatch_state="ACCEPTED",
+    )
 
 
 def _accepted(

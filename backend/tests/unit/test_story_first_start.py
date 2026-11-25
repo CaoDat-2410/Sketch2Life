@@ -292,26 +292,34 @@ def test_all_gates_met_reserves_revision_one_without_a_receipt() -> None:
     assert run_values["retryable"] is False and run_values["error_code"] is None
 
 
-def test_the_worker_input_is_the_v2_shape_with_the_bounded_activity() -> None:
+def test_the_parent_worker_input_is_the_v3_shape_with_the_primary_activity() -> None:
+    """FEAT-092: the Modal story client and worker accept only input v3 for a Parent run."""
+
     reservation = _starter(_Session()).start_if_ready(RUN_ID, PRINCIPAL, NOW)
     assert reservation is not None
     worker = reservation.worker_input
-    assert set(worker) == WORKER_KEYS
-    assert (
-        worker["schema_version"]
-        == FIRST_STORY_INPUT_SCHEMA
-        == ("sketch2life.story-generation-input.v2")
-    )
+    assert worker["schema_version"] == "sketch2life.story-generation-input.v3"
+    assert FIRST_STORY_INPUT_SCHEMA == "sketch2life.story-generation-input.v2"  # Teacher keeps v2
+    assert set(worker) == {
+        "schema_version", "role", "language", "topic", "confirmed_subject",
+        "understanding_revision", "drawing_sha256", "visible_features", "child_age_months",
+        "context_revision", "adult_confirmed_idea", "rewrite_instruction",
+        "lesson_subject_learning_notes", "lesson_direction", "primary_activity",
+        "primary_activity_sha256",
+    }
     assert worker["role"] == "PARENT" and worker["lesson_direction"] is None
     assert worker["confirmed_subject"] == "rong"  # trimmed
     assert worker["child_age_months"] == 60 and worker["visible_features"] == ["leaf", "stem"]
     assert worker["adult_confirmed_idea"] == "adult idea"
-    assert set(worker["activity"]) == ACTIVITY_KEYS  # no material text, no selected_at
-    assert (
-        worker["activity"]["lesson_id"] == "lesson-1"
-        and worker["activity"]["content_sha256"] == HASH
+    assert set(worker["primary_activity"]) == {
+        "title", "objective", "materials_text", "preparation_text", "instructions_text",
+        "observation_notes", "safety_notes", "activity_kind",
+    }
+    primary = json.dumps(
+        worker["primary_activity"], ensure_ascii=False, sort_keys=True, separators=(",", ":")
     )
-    assert "rewrite_instruction" not in worker and "adult_rewrite_hint" not in worker
+    assert worker["primary_activity_sha256"] == hashlib.sha256(primary.encode("utf-8")).hexdigest()
+    assert "activity" not in worker and "adult_rewrite_hint" not in worker
     canonical = json.dumps(worker, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
     assert reservation.request_sha256 == hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 

@@ -46,11 +46,13 @@ export interface ParentApplicationModule {
     | 'confirmRunContextV1'
     | 'confirmSubjectV1'
     | 'listActivitiesV1'
+    | 'suggestActivitiesV1'
     | 'selectActivityV1'
     | 'confirmScriptV1'
     | 'createStoryRevisionV1'
     | 'understandDrawing'
     | 'attachDrawingV1'
+    | 'resumeDrawingAnalysisV1'
     | 'submitVoiceIdeaV1'
     | 'submitTextIdeaV1'
     | 'getTranscriptV1'
@@ -60,7 +62,11 @@ export interface ParentApplicationModule {
     | 'requestVideoV1'
     | 'markVideoUnsuitableV1'
     | 'completeRunV1'
-    | 'openPlaybackV1'> & {
+    | 'openPlaybackV1'
+    | 'listTopicSuggestions'
+    | 'listDrawingSubjectSuggestions'
+    | 'validateCustomSubject'
+    | 'generateSketchGuide'> & {
       getActiveRunV1(): Promise<ParentActiveStoryRunEnvelopeV1>;
     };
   platform: Pick<ParentPlatformUseCases,

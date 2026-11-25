@@ -12,6 +12,7 @@ import type {
   ParentProfileViewV1,
   SuggestedActivity,
 } from '../../domain/types';
+import { ParentApplicationError } from '../../application/ParentApplicationError';
 
 export type ProfileFieldKey = 'display_name' | 'age_months' | 'interests_summary';
 export type ProfileFieldMessages = Partial<Record<ProfileFieldKey, string>>;
@@ -202,6 +203,54 @@ export function canAnalyzeDrawing(input: {
   return input.photoSelected;
 }
 
+export const PARENT_DRAWING_TERMINAL_MESSAGE =
+  'Buổi học này đã dừng. Hãy đóng buổi rồi bắt đầu một buổi mới với bức tranh khác.';
+
+export function hasUsedDrawingRetake(inputRevision: unknown): boolean {
+  return typeof inputRevision === 'number'
+    && Number.isInteger(inputRevision)
+    && inputRevision >= 2;
+}
+
+export function isTerminalFailedStoryRun(value: unknown): boolean {
+  if (!isRecord(value) || value.run_state !== 'FAILED') return false;
+  const job = isRecord(value.job) ? value.job : null;
+  const jobState = job?.state ?? value.job_state;
+  const retryable = job?.retryable ?? value.retryable;
+  if (jobState === 'RUNNING' || jobState === 'QUEUED' || jobState === 'AWAITING_RECONCILIATION') return false;
+  return retryable !== true;
+}
+
+/** Identifies a deterministic first-story output failure; it is recovered by a fresh run, never a duplicate request. */
+export function isRecoverableStoryOutputFailure(value: unknown): boolean {
+  return isRecord(value)
+    && value.run_state === 'FAILED'
+    && value.error_code === 'STORY_OUTPUT_INVALID'
+    && value.job_state === 'FAILED'
+    && value.story_status === 'FAILED'
+    && value.retryable === false;
+}
+
+export function terminalDrawingFailureMessage(errorCode: unknown): string {
+  if (typeof errorCode !== 'string' || !/^[A-Z0-9_]{1,80}$/.test(errorCode)) {
+    return PARENT_DRAWING_TERMINAL_MESSAGE;
+  }
+  return `Chưa đọc được tranh lần này. ${PARENT_DRAWING_TERMINAL_MESSAGE}`;
+}
+
+export function isSafePreDispatchDrawingError(error: unknown): boolean {
+  if (!(error instanceof ParentApplicationError) || error.status !== 503 || error.retryable === true) {
+    return false;
+  }
+  return new Set([
+    'MODAL_AI_NOT_ENABLED',
+    'PARENT_ARTWORK_SCAN_UNAVAILABLE',
+    'PARENT_ARTWORK_STORAGE_UNAVAILABLE',
+    'PARENT_STORY_RUN_STORE_UNAVAILABLE',
+    'UPLOAD_SESSION_CREATE_UNAVAILABLE',
+  ]).has(error.code);
+}
+
 export function canConfirmDrawingSubject(input: {
   runId: string | null | undefined;
   candidatePresent: boolean;
@@ -334,7 +383,11 @@ export function readSubjectConfirmationOutcome(
 
 export function isActiveOrUnreconciledStoryRun(value: unknown): boolean {
   if (!isRecord(value)) return true;
-  return value.story_status === 'GENERATING'
+  return value.run_state === 'SCRIPT_GENERATING'
+    || value.run_state === 'SCRIPT_GENERATION_UNKNOWN'
+    || value.run_state === 'STORY_GENERATING'
+    || value.run_state === 'STORY_GENERATION_UNKNOWN'
+    || value.story_status === 'GENERATING'
     || value.story_status === 'AWAITING_RECONCILIATION'
     || value.job_state === 'QUEUED'
     || value.job_state === 'RUNNING'
@@ -420,6 +473,7 @@ export function canRequestStoryRevision(input: {
   understandingRevision: number | null | undefined;
   storyPresent: boolean;
   storyAttempted: boolean;
+  failedGeneration?: boolean;
   rewriteCount: number;
   rewriteInstruction: string;
   storyConfirmed: boolean;
@@ -430,6 +484,9 @@ export function canRequestStoryRevision(input: {
     || (input.understandingRevision ?? 0) < 1 || input.storyConfirmed || !input.subjectConfirmed) return false;
 
   const isRewrite = Boolean(input.rewriteInstruction.trim());
+  if (input.failedGeneration && !input.storyPresent) {
+    return isRewrite && input.rewriteCount < 3;
+  }
   if (!isRewrite) return !input.storyPresent && (!input.storyAttempted || input.allowSameActionRetry);
   return input.storyPresent && (input.rewriteCount < 3 || input.allowSameActionRetry);
 }
@@ -523,8 +580,12 @@ const parentRecoveryGroups: Record<string, ParentRecoveryGroup> = {
   PROVIDER_UNAVAILABLE: 'provider-hold',
   MODAL_FUNCTION_UNAVAILABLE: 'provider-hold',
   MODAL_AI_NOT_ENABLED: 'provider-hold',
+  MODAL_DISPATCH_REJECTED: 'wait-retry-after',
   MODAL_OUTCOME_UNKNOWN: 'reconciliation',
+  DRAWING_OUTCOME_UNKNOWN: 'reconciliation',
   AWAITING_RECONCILIATION: 'reconciliation',
+  DRAWING_OUTPUT_TRUNCATED: 'provider-hold',
+  DRAWING_WORKER_FAILED_TERMINAL: 'provider-hold',
   SUBSCRIPTION_RESTRICTED: 'teacher-only',
   CLASS_CAPACITY_REACHED: 'teacher-only',
   RATE_LIMITED: 'wait-retry-after',
@@ -555,8 +616,10 @@ export function safeParentFlowErrorMessage(error: unknown): string {
     ACTION_NOT_ALLOWED: 'Tài khoản hiện không thể thực hiện thao tác này.',
     PARENT_STORE_UNAVAILABLE: 'Hồ sơ đang tạm thời không khả dụng. Vui lòng thử lại sau.',
     PARENT_STORY_RUN_STORE_UNAVAILABLE: 'Buổi học đang tạm thời không khả dụng. Hãy thử tải lại sau.',
+    UPLOAD_SESSION_CREATE_UNAVAILABLE: 'Ảnh chưa được tải lên. Bạn có thể thử lại một lần.',
     DEPENDENCY_UNAVAILABLE: 'Danh sách hoạt động đang tạm thời không khả dụng. Hãy thử tải lại sau.',
     PARENT_ACTIVITY_SELECTION_REQUIRED: 'Hãy chọn và lưu một hoạt động trước khi tiếp tục câu chuyện.',
+    PARENT_ACTIVITY_QUALITY_GATE_REJECTED: 'Gợi ý hoạt động chưa đạt kiểm tra chất lượng. Máy chủ đã loại bỏ và chưa lưu gợi ý để chọn.',
     PARENT_ACTIVITY_RUN_INVALID: 'Chưa chọn được buổi học để tải hoạt động. Hãy mở lại buổi học.',
     PARENT_ACTIVITY_LIST_INVALID: 'Chưa tải được danh sách hoạt động. Hãy thử tải lại.',
     PARENT_ACTIVITY_SELECTION_INVALID: 'Chưa xác nhận được hoạt động đã chọn. Hãy kiểm tra lại danh sách.',
@@ -580,6 +643,7 @@ export function safeParentFlowErrorMessage(error: unknown): string {
     PROVIDER_UNAVAILABLE: 'Dịch vụ tạo nội dung hiện chưa khả dụng. Hãy kiểm tra trạng thái trước khi thử lại.',
     MODAL_FUNCTION_UNAVAILABLE: 'Dịch vụ tạo nội dung hiện chưa khả dụng.',
     MODAL_AI_NOT_ENABLED: 'Dịch vụ tạo nội dung hiện chưa khả dụng.',
+    MODAL_DISPATCH_REJECTED: 'Máy chủ AI đang bận. Ảnh chưa được phân tích; bạn có thể chụp lại một lần hoặc thử sau.',
     MODAL_OUTCOME_UNKNOWN: 'Chưa xác nhận được kết quả. Hãy kiểm tra trạng thái trước khi thử lại.',
     AWAITING_RECONCILIATION: 'Đang kiểm tra trạng thái yêu cầu. Không gửi yêu cầu trùng lặp.',
     SUBSCRIPTION_RESTRICTED: 'Thao tác này chưa khả dụng trong luồng dành cho phụ huynh.',
@@ -594,6 +658,9 @@ export function safeParentFlowErrorMessage(error: unknown): string {
     PARENT_CONTEXT_NOT_CONFIRMED: 'Người lớn cần xác nhận ngữ cảnh trước khi tiếp tục.',
     PARENT_DRAWING_REQUIRED: 'Hãy chọn ảnh tranh trước khi tiếp tục xem xét.',
     PARENT_DRAWING_RESULT_INVALID: 'Chưa thể đọc kết quả xem xét tranh. Hãy kiểm tra trạng thái trước khi gửi lại.',
+    DRAWING_OUTPUT_TRUNCATED: 'Kết quả đọc tranh chưa hoàn tất. Hãy thử lại sau.',
+    DRAWING_OUTCOME_UNKNOWN: 'Chưa xác nhận được kết quả đọc tranh. Hãy kiểm tra trạng thái trước khi gửi lại.',
+    DRAWING_WORKER_FAILED_TERMINAL: 'Dịch vụ chưa đọc được bức tranh. Hãy bắt đầu buổi mới với ảnh khác.',
     SUBJECT_RERUN_PENDING: 'Hệ thống đang xem lại bức tranh theo chủ thể bạn vừa sửa. Hãy chờ một lát rồi mở lại buổi học để xác nhận kết quả mới.',
     PARENT_SUBJECT_CONFIRMATION_INVALID: 'Chưa thể xác nhận chủ thể của bức tranh.',
     // Goal v3 Phase B: uploads, idea, transcript, rewrite, video and playback (copy for owner review).
@@ -659,7 +726,7 @@ export function safeProfileFieldMessages(error: unknown): ProfileFieldMessages {
   return messages;
 }
 
-function readErrorCode(value: unknown): string | null {
+export function readErrorCode(value: unknown): string | null {
   if (!isRecord(value) || typeof value.code !== 'string') return null;
   return /^[A-Z0-9_]{1,80}$/.test(value.code) ? value.code : null;
 }

@@ -9,12 +9,14 @@ from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
+
 from sketch2life.infrastructure.config.settings import (
     CoreDatabaseSettings,
     Settings,
     get_core_database_settings,
     get_settings,
 )
+from sketch2life.interfaces.http.admin_contract import ADMIN_OPERATIONS
 from sketch2life.interfaces.http.app import create_app
 from sketch2life.interfaces.http.openapi_contract import (
     IDEMPOTENCY_MISMATCH_OPERATION_KEYS,
@@ -37,7 +39,6 @@ from sketch2life.interfaces.http.openapi_srs_v22 import (
     SRS_V22_INCLUDED_OPERATIONS,
     SRS_V22_TAGS,
 )
-from sketch2life.interfaces.http.admin_contract import ADMIN_OPERATIONS
 from sketch2life.interfaces.http.quota_contract import QUOTA_OPERATIONS
 
 HTTP_METHODS = {"get", "post", "put", "patch", "delete", "options", "head"}
@@ -171,6 +172,9 @@ PR22_UNCATALOGUED_OPERATIONS = {
     ("post", "/api/parent/v1/ai/drawing-understandings"),
     ("post", "/api/parent/v1/ai/story-runs/{run_id}/story-revisions"),
     ("post", "/v1/story-runs/{run_id}/cancel"),
+    # FEAT-085 Addendum 13: local-only recovery for an attached drawing that remained queued
+    # while the Modal analyzer was unavailable; the repository CAS prevents duplicate dispatch.
+    ("post", "/v1/story-runs/{run_id}/drawing-analysis/resume"),
     # FR-C-08 (Contract Draft 11 §3.7): the Parent delete route stays uncatalogued.
     ("delete", "/v1/story-runs/{run_id}"),
     (
@@ -178,6 +182,8 @@ PR22_UNCATALOGUED_OPERATIONS = {
         "/api/teacher/v1/organizations/{organization_id}/ai/lesson-plan-suggestions",
     ),
     ("post", "/api/teacher/v1/organizations/{organization_id}/ai/sketch-decks"),
+    # FEAT-086 Teacher visual generation is mounted but has no approved catalog entry yet.
+    ("post", "/api/teacher/v1/organizations/{organization_id}/ai/lesson-visuals"),
 }
 CONTRACT_PARAMETER = re.compile(r"\b(path|query|header|cookie)\s+`([^`]+)`:\s*([^;]+)")
 CONTRACT_REQUEST_BODY = re.compile(
@@ -231,7 +237,12 @@ def test_swagger_ui_and_openapi_json_are_published(monkeypatch: pytest.MonkeyPat
         published_spec = openapi_response.json()
         assert published_spec["openapi"] == "3.1.0"
         assert published_spec["info"]["title"] == "Sketch2Life FE API"
-        assert published_spec["tags"] == SRS_V22_TAGS + [{"name": "Admin", "description": "Administration, identity and school-scoped feedback."}]
+        assert published_spec["tags"] == SRS_V22_TAGS + [
+            {
+                "name": "Admin",
+                "description": "Administration, identity and school-scoped feedback.",
+            }
+        ]
         assert len(published_spec["info"]["description"].split()) <= 55
         assert all(len(tag["description"].split()) <= 9 for tag in published_spec["tags"])
         assert "ApiError" in published_spec["components"]["schemas"]
@@ -315,7 +326,10 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
 
     assert spec["openapi"] == "3.1.0"
     assert spec["tags"] == public_tags(TAG_DESCRIPTIONS)
-    assert len(operations) == 197 + len(ADMIN_OPERATIONS - PR22_UNCATALOGUED_OPERATIONS) + len(QUOTA_OPERATIONS)
+    expected_operation_count = (
+        201 + len(ADMIN_OPERATIONS - PR22_UNCATALOGUED_OPERATIONS) + len(QUOTA_OPERATIONS)
+    )
+    assert len(operations) == expected_operation_count
     catalog_operations = set(MOUNTED_OPERATIONS)
     catalog_paths = {path for _method, path in catalog_operations}
     # FEAT-066 T-2a: five generic upload-session operations (four paths) join the catalog.
@@ -336,13 +350,13 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
     # FEAT-066 T-4b1: the child selection, its read and its confirmation, three new paths.
     # FEAT-066 T-5a: the class projection confirmation and its token, two new paths.
     # FEAT-066 goal v4 T-2e-a: the activity list and the activity selection, two new paths.
-    assert len(catalog_paths) == 154
+    assert len(catalog_paths) == 157
     assert MOUNTED_OPERATION_COUNT == 135
     assert (
         len(catalog_operations)
         == MOUNTED_OPERATION_COUNT
-        + 5 + 3 + 5 + 1 + 4 + 2 + 1 + 1 + 3 + 1 + 1 + 2 + 2 + 3 + 3 + 2 + 2
-        == 176
+        + 5 + 3 + 5 + 1 + 4 + 2 + 1 + 1 + 3 + 1 + 1 + 2 + 2 + 3 + 3 + 2 + 2 + 3
+        == 179
     )
     assert set(operations) - catalog_operations == (
         PILOT_ONLY_OPERATIONS | PR22_UNCATALOGUED_OPERATIONS | ADMIN_OPERATIONS | QUOTA_OPERATIONS
@@ -357,7 +371,7 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
     ]
     assert "x-contract-surface" not in profile_lookup
     assert len(PILOT_ONLY_OPERATIONS) == 5
-    assert len(PR22_UNCATALOGUED_OPERATIONS) == 16
+    assert len(PR22_UNCATALOGUED_OPERATIONS) == 17
 
     assert (
         "post",
@@ -718,7 +732,10 @@ def test_runtime_openapi_operation_ids_are_non_empty_and_unique(
         for method, operation in path_item.items()
         if method.lower() in HTTP_METHODS
     ]
-    assert len(operation_ids) == 197 + len(ADMIN_OPERATIONS - PR22_UNCATALOGUED_OPERATIONS) + len(QUOTA_OPERATIONS)
+    expected_operation_count = (
+        201 + len(ADMIN_OPERATIONS - PR22_UNCATALOGUED_OPERATIONS) + len(QUOTA_OPERATIONS)
+    )
+    assert len(operation_ids) == expected_operation_count
     assert all(isinstance(value, str) and value for value in operation_ids)
     assert len(set(operation_ids)) == len(operation_ids)
 

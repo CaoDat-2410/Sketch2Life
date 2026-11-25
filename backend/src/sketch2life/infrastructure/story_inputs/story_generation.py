@@ -168,6 +168,8 @@ class ParentStoryRewriteRunner:
                 model_revision=_bounded(
                     result.model_revision, _MODEL_REVISION_MAX, STORY_REWRITE_MODEL_REVISION
                 ),
+                staging=result.staging,
+                staging_issue=result.staging_issue,
             )
         except StoryOutputInvalid as invalid:
             # The failure is already recorded by the service.

@@ -3315,6 +3315,14 @@ No implementation, tests, validators, database operation, or launch is claimed b
   Draft 13 and amendment 1, this record and the D rows. Not pushed, not merged; both need a separate owner word.
   `OWNER_MODAL_CALL_APPROVED=NO`.
 
+## FEAT-063 Parent activity AI recovery after merge — 2026-11-25
+
+- **Owner instruction:** “fix lại ... check lại cả mấy cái t từng thay đổi trong worktree ... xác nhận lại và ấy vào đi”; narrowed to inspect only the newest worktree. This authorizes the bounded recovery below.
+- **Plan:** `plan/PLAN_REV79_RESTORE_PARENT_ACTIVITY_AI_AFTER_MERGE_20261125.md`, SHA-256 `536525C257D71E20A50765698119085525012577D1DA4B23DB701B6DEA927442`.
+- **Source:** only `.codex-worktrees/fe`, `feature/fe-mobile-remediation` at `77635688deed0114ac62c28c3f936da62144d59c`; target root `dev` at `d20c056c` with its pre-existing uncommitted work preserved.
+- **Authorized scope:** restore Parent catalog-first/Modal activity suggestions and persisted adult selection; audit that subject-role and keyframe-video code remain present. No other worktree, live Modal/GPU request, DB migration execution, commit or push.
+- **Status:** APPROVED by direct owner instruction in this conversation on 2026-11-25.
+
 ## FEAT-063 FR-C-08 follow-up — SRS wording edit covered by the FEAT-066 goal v2 program — 2026-11-19
 
 - **Owner decision:** the FR-C-08 SRS wording edit (Draft 2, 14 sites) is task B4 of the FEAT-066 goal v2 program

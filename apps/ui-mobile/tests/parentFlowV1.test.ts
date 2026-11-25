@@ -433,6 +433,8 @@ describe('parentFlowV1 pure flow decisions', () => {
       .toBe('Kết quả đọc tranh chưa hoàn tất. Hãy thử lại sau.');
     expect(safeParentFlowErrorMessage({ code: 'DRAWING_OUTCOME_UNKNOWN' }))
       .toBe('Chưa xác nhận được kết quả đọc tranh. Hãy kiểm tra trạng thái trước khi gửi lại.');
+    expect(safeParentFlowErrorMessage({ code: 'MODAL_DISPATCH_REJECTED' }))
+      .toBe('Máy chủ AI đang bận. Ảnh chưa được phân tích; bạn có thể chụp lại một lần hoặc thử sau.');
     expect(safeParentFlowErrorMessage({ code: 'PARENT_ACTIVITY_QUALITY_GATE_REJECTED' }))
       .toBe('Gợi ý hoạt động chưa đạt kiểm tra chất lượng. Máy chủ đã loại bỏ và chưa lưu gợi ý để chọn.');
     expect(safeParentFlowErrorMessage({ code: 'UNKNOWN', message: 'private child detail' }))
@@ -472,6 +474,7 @@ describe('parentFlowV1 pure flow decisions', () => {
       ['MODAL_AI_NOT_ENABLED', 'provider-hold'],
       ['MODAL_OUTCOME_UNKNOWN', 'reconciliation'],
       ['DRAWING_OUTCOME_UNKNOWN', 'reconciliation'],
+      ['MODAL_DISPATCH_REJECTED', 'wait-retry-after'],
       ['DRAWING_OUTPUT_TRUNCATED', 'provider-hold'],
       ['DRAWING_WORKER_FAILED_TERMINAL', 'provider-hold'],
       ['RATE_LIMITED', 'wait-retry-after'],

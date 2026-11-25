@@ -13,6 +13,15 @@ depends_on = None
 
 
 def upgrade() -> None:
+    already = op.get_bind().execute(
+        sa.text(
+            "SELECT EXISTS (SELECT 1 FROM information_schema.columns "
+            "WHERE table_schema = 'story' AND table_name = 'run_inputs' "
+            "AND column_name = 'lesson_pin_snapshot')"
+        )
+    ).scalar()
+    if already:  # 20261112_parent_story_context already created the snapshot columns
+        return
     op.add_column(
         "run_inputs",
         sa.Column("lesson_pin_snapshot", postgresql.JSONB(astext_type=sa.Text()), nullable=True),

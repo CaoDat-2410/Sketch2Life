@@ -877,6 +877,15 @@ def test_a_plain_confirmation_is_202_and_moves_to_preparation_review(api: Rewrit
     assert response.headers["Content-Location"] == f"/v1/story-runs/{seeded.run_id}"
     assert states(api, seeded.run_id) == ("PREPARATION_REVIEW", "SUCCEEDED")
     assert len(decision_rows(api, seeded.run_id)) == 1
+    read = api.client.get(
+        f"/v1/story-runs/{seeded.run_id}", headers=headers(api.parent)
+    )
+    assert read.status_code == 200
+    projected = read.json()["story_run"]
+    assert projected["candidate"]["decision"] == "CONFIRMED_BY_ADULT"
+    assert projected["candidate"]["candidate_subject"] == SUBJECT
+    # Confirmation is a separate review record; it does not rewrite the immutable VLM snapshot.
+    assert understanding_rows(api, seeded.run_id)[0]["result_snapshot"]["result"]["decision"] == "REVIEW_REQUIRED"
     assert api.analyzer.calls == []
     (receipt,) = receipt_rows(api, seeded.run_id, "CONFIRM_SUBJECT")
     assert receipt["response_status"] == 202

@@ -141,6 +141,8 @@ class StoryGenerationResult:
     call_id: str
     model_id: str
     model_revision: str
+    staging: dict[str, Any] | None = None
+    staging_issue: str | None = None
 
 
 class StoryGeneratorPort(Protocol):

@@ -66,13 +66,51 @@ def test_parent_activity_detail_schema_allows_complete_sentence_over_old_limit()
     assert parsed["fallback_activities"][0]["preparation_text"] == f"{body}."
 
 
-def test_parent_activity_long_field_still_rejects_dangling_vietnamese_tail() -> None:
+def test_parent_activity_drops_a_draft_with_a_dangling_tail_and_keeps_the_rest() -> None:
     result = _result("Người lớn chuẩn bị giấy và bút màu cho trẻ quan sát và")
+
+    parsed = worker._parse_parent_activity_suggestions(
+        json.dumps(result, ensure_ascii=False), expected_age_band="36-71"
+    )
+
+    assert [item["title"] for item in parsed["fallback_activities"]] == [
+        "So sánh màu sắc",
+        "Bước chân rùa con",
+    ]
+
+
+def test_parent_activity_still_rejects_when_every_draft_has_a_dangling_tail() -> None:
+    result = _result("Người lớn chuẩn bị giấy và bút màu cho trẻ quan sát và")
+    for activity in result["fallback_activities"]:
+        activity["preparation_text"] = _sentence("Người lớn chuẩn bị giấy và bút màu cho trẻ quan sát và")
 
     with pytest.raises(RuntimeError, match="MODAL_MODEL_OUTPUT_INCOMPLETE_TEXT"):
         worker._parse_parent_activity_suggestions(
             json.dumps(result, ensure_ascii=False), expected_age_band="36-71"
         )
+
+
+def test_parent_activity_keeps_at_most_three_of_four_valid_drafts() -> None:
+    result = _result("Người lớn chuẩn bị vật liệu trên hiên nhà trước khi trẻ bắt đầu.")
+    extra = _activity(2, "Người lớn chuẩn bị vật liệu trên hiên nhà trước khi trẻ bắt đầu.")
+    extra["title"] = "Tìm dấu chân rùa"
+    result["fallback_activities"].append(extra)
+
+    parsed = worker._parse_parent_activity_suggestions(
+        json.dumps(result, ensure_ascii=False), expected_age_band="36-71"
+    )
+
+    assert [item["title"] for item in parsed["fallback_activities"]] == [
+        "Quan sát mai rùa",
+        "So sánh màu sắc",
+        "Bước chân rùa con",
+    ]
+
+
+def test_parent_activity_schema_asks_for_four_drafts_when_no_candidates() -> None:
+    schema = worker._parent_activity_suggestion_json_schema(has_candidates=False)
+    drafts = schema["properties"]["fallback_activities"]
+    assert drafts["minItems"] == 4 and drafts["maxItems"] == 4
 
 
 def test_parent_activity_prompt_requires_complete_preparation_sentence_endings() -> None:
@@ -126,14 +164,18 @@ def test_parent_activity_parser_still_requires_known_focus_label() -> None:
         )
 
 
-def test_parent_activity_parser_still_rejects_duplicate_titles() -> None:
+def test_parent_activity_parser_drops_a_duplicate_title_draft() -> None:
     result = _result("Người lớn chuẩn bị vật liệu trên hiên nhà trước khi trẻ bắt đầu.")
     result["fallback_activities"][1]["title"] = result["fallback_activities"][0]["title"]
 
-    with pytest.raises(RuntimeError, match="MODAL_MODEL_OUTPUT_DUPLICATE_ACTIVITY_TITLE"):
-        worker._parse_parent_activity_suggestions(
-            json.dumps(result, ensure_ascii=False), expected_age_band="36-71"
-        )
+    parsed = worker._parse_parent_activity_suggestions(
+        json.dumps(result, ensure_ascii=False), expected_age_band="36-71"
+    )
+
+    assert [item["title"] for item in parsed["fallback_activities"]] == [
+        "Quan sát mai rùa",
+        "Bước chân rùa con",
+    ]
 
 
 def test_parent_activity_schema_and_parser_require_exactly_three_steps() -> None:

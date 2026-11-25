@@ -14,6 +14,7 @@ import type {
   LessonSummary,
   ParentCandidate,
   ParentActivityListV1,
+  ParentActivitySuggestionSetV1,
   ParentActivitySelectionRequestV1,
   ParentCustomSubjectValidationV1,
   ParentDrawingSubjectSuggestionSetV1,
@@ -44,6 +45,7 @@ import type {
   ParentStoryRevisionResultV1,
   ParentStoryRunCreateV1,
   ParentStoryRunEnvelopeV1,
+  ParentDrawingAnalysisResumeV1,
   ParentStoryRunV1,
   ParentStoryScriptConfirmationV1,
   ParentStorySubjectConfirmationAcceptedV1,
@@ -61,6 +63,7 @@ import type {
   ParentVideoUnsuitableRequestV1,
   StoryRun,
 } from '../../domain/types';
+import type { SvgTopicStrokeGuideDraftV1 } from '../../domain/svgGuide';
 import { buildPlaybackSource, isPlaybackGrantForRun } from '../../application/parentPhaseB';
 import {
   readNotificationPageV1,
@@ -212,6 +215,17 @@ export class ParentApi implements ParentApiPort {
     return this.request<ParentActivityListV1>(`/v1/activities?${query.toString()}`, 'GET');
   }
 
+  suggestActivitiesV1(runId: string, expectedUnderstandingRevision: number, actionIdentity: ParentActionIdentity) {
+    assertVisibleAsciiKey(actionIdentity);
+    return this.request<ParentActivitySuggestionSetV1>(
+      `/api/parent/v1/ai/story-runs/${encodeURIComponent(runId)}/activity-suggestions`,
+      'POST',
+      { expected_understanding_revision: expectedUnderstandingRevision },
+      1_850_000,
+      { 'Idempotency-Key': actionIdentity },
+    );
+  }
+
   selectActivityV1(runId: string, input: ParentActivitySelectionRequestV1, actionIdentity: ParentActionIdentity) {
     assertVisibleAsciiKey(actionIdentity);
     return this.request<ParentStoryRunEnvelopeV1>(
@@ -360,6 +374,16 @@ export class ParentApi implements ParentApiPort {
       30_000,
       { 'Idempotency-Key': actionIdentity },
     ).then(liveRunOrLifecycleError);
+  }
+
+  /** Retry dispatch of the already attached queued drawing; never uploads or resends its image. */
+  resumeDrawingAnalysisV1(runId: string, inputRevision: number) {
+    return this.request<ParentDrawingAnalysisResumeV1>(
+      `/v1/story-runs/${encodeURIComponent(runId)}/drawing-analysis/resume`,
+      'POST',
+      { expected_input_revision: inputRevision },
+      30_000,
+    );
   }
 
   /** T-2c (SRS l.1665): text and/or `audio_ref`, or one transcript correction. 202; the ASR job reference is parked (Q-J). */
@@ -588,16 +612,13 @@ export class ParentApi implements ParentApiPort {
     );
   }
 
-  generateSketchGuide(topic: string) {
-    return this.request<{
-      request_id: string;
-      modal_call_id?: string;
-      status: string;
-      review_required: true;
-      model?: { id: string; revision: string };
-      image_base64: string;
-      asset?: Record<string, unknown>;
-    }>('/api/parent/v1/ai/sketch-guides', 'POST', { topic, difficulty: 'beginner', step_count: 3 }, 910_000);
+  generateSketchGuide(topic: string, intendedSubject?: string) {
+    return this.request<SvgTopicStrokeGuideDraftV1>('/api/parent/v1/ai/sketch-guides', 'POST', {
+      contract: 'SvgTopicStrokeGuideRequestV1',
+      topic,
+      intended_subject: intendedSubject,
+      difficulty: 'beginner',
+    }, 60_000);
   }
 
   createStoryRun(input: {

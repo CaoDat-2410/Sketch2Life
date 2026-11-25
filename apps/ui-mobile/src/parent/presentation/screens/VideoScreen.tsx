@@ -87,8 +87,8 @@ export function VideoScreen(props: Props): React.JSX.Element {
       {panel.postVideoActivities && panel.postVideoActivities.length > 0 ? (
         <Card variant="creative" style={styles.playerCard}>
           <SectionTitle variant="creative">Hoạt động sau khi xem</SectionTitle>
-          {panel.postVideoActivities.map((activity) => (
-            <View key={`${activity.activity_ref.lesson_id}-${activity.activity_ref.version_id}-${activity.activity_ref.activity_index}`} style={styles.activityRow}>
+          {panel.postVideoActivities.map((activity, index) => (
+            <View key={activity.activity_ref ? `${activity.activity_ref.lesson_id}-${activity.activity_ref.version_id}-${activity.activity_ref.activity_index}` : `ai-draft-${index}`} style={styles.activityRow}>
               <Text style={styles.activityTitle}>{activity.is_main ? 'Hoạt động chính' : 'Hoạt động gợi ý'} · {activity.title}</Text>
               <Text style={styles.bodyText}>{activity.objective}</Text>
             </View>

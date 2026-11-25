@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import logging
-
 from fastapi.testclient import TestClient
 import pytest
 
@@ -53,7 +51,7 @@ def test_sketch_guide_api_returns_correlated_non_sensitive_no_match_without_moda
     def fail_if_modal_is_used():
         raise AssertionError("missing curated guide must not dispatch a retired Modal workload")
 
-    monkeypatch.setattr(parent_ai, "ModalJsonFunctionClient", fail_if_modal_is_used)
+    monkeypatch.setattr(parent_ai, "_require_modal_dev", fail_if_modal_is_used)
     response = client.post(
         "/api/parent/v1/ai/sketch-guides",
         headers={"X-Request-ID": "svg-guide-no-match-1"},
@@ -75,7 +73,7 @@ def test_sketch_guide_api_returns_correlated_non_sensitive_no_match_without_moda
 
 def test_sketch_guide_api_logs_only_safe_source_failure_diagnostics(
     monkeypatch: pytest.MonkeyPatch,
-    caplog: pytest.LogCaptureFixture,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
     client = _client(monkeypatch)
     monkeypatch.setattr(
@@ -83,8 +81,6 @@ def test_sketch_guide_api_logs_only_safe_source_failure_diagnostics(
         "build_parent_svg_guide",
         lambda **_kwargs: (_ for _ in ()).throw(RuntimeError("private source path")),
     )
-    caplog.set_level(logging.ERROR, logger=parent_ai.__name__)
-
     response = client.post(
         "/api/parent/v1/ai/sketch-guides",
         headers={"X-Request-ID": "svg-guide-source-error-1"},
@@ -100,6 +96,7 @@ def test_sketch_guide_api_logs_only_safe_source_failure_diagnostics(
     assert response.json()["detail"]["code"] == "CURATED_SVG_GUIDE_UNAVAILABLE"
     assert response.json()["detail"]["request_id"] == "svg-guide-source-error-1"
     assert "private source path" not in response.text
-    assert "private source path" not in caplog.text
-    assert "svg-guide-source-error-1" in caplog.text
-    assert "RuntimeError" in caplog.text
+    safe_log = capsys.readouterr().out
+    assert "private source path" not in safe_log
+    assert "svg-guide-source-error-1" in safe_log
+    assert "RuntimeError" in safe_log

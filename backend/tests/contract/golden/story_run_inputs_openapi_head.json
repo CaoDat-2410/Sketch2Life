@@ -1395,7 +1395,7 @@
   },
   "ParentStoryRunLifecycleProjectionV1": {
    "additionalProperties": false,
-   "description": "FR-C-08 content-free projection from DELETE_PENDING on (Contract Draft 11 \u00a73.4).\n\nNo context snapshot, story, candidate, subject label, profile ref, asset ref, count,\npercentage or storage key is ever part of it (SRS lines 1053, 1520, 1809).",
+   "description": "FR-C-08 content-free projection from DELETE_PENDING on (Contract Draft 11 §3.4).\n\nNo context snapshot, story, candidate, subject label, profile ref, asset ref, count,\npercentage or storage key is ever part of it (SRS lines 1053, 1520, 1809).",
    "properties": {
     "lifecycle_request_ref": {
      "format": "uuid",
@@ -1458,6 +1458,22 @@
      "minimum": 1.0,
      "title": "Expected Understanding Revision",
      "type": "integer"
+    },
+    "subject_roles": {
+     "anyOf": [
+      {
+       "items": {
+        "$ref": "#/components/schemas/ParentSubjectRoleV1"
+       },
+       "maxItems": 4,
+       "minItems": 1,
+       "type": "array"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Subject Roles"
     }
    },
    "required": [

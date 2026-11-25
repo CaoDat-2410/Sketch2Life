@@ -17,8 +17,9 @@ Upgrade, in order:
 2. A ``BEFORE UPDATE`` trigger: a selection row is never changed (a re-selection is a new row with
    the next ``selection_no``). There is no DELETE guard: the purge must delete the rows, and the
    run foreign key is ``ON DELETE CASCADE`` for hygiene only.
-3. ``ck_story_receipt_operation`` gains ``SELECT_ACTIVITY`` (13 to 14 values): dropped and
-   re-created.
+3. ``ck_story_receipt_operation`` preserves the Parent activity and video operation union. The
+   parallel Parent activity migration already introduced ``SELECT_ACTIVITY``, so this revision
+   keeps that value rather than narrowing or duplicating the CHECK.
 
 The downgrade refuses while any selection row or any ``SELECT_ACTIVITY`` receipt exists (after a
 purge only the receipts remain), restores the 13-name check and drops the table. Run it with an
@@ -48,10 +49,10 @@ NEW_RECEIPT_OPERATIONS = "'SELECT_ACTIVITY'"
 RECEIPT_OPERATIONS_BEFORE = (
     "'CREATE_RUN','ATTACH_ASSET','CONFIRM_SUBJECT','CONFIRM_CONTEXT',"
     "'CANCEL_RUN','GENERATE_STORY_REVISION','CONFIRM_STORY_REVISION','DELETE_RUN',"
-    "'SUBMIT_IDEA','CONFIRM_TRANSCRIPT','CREATE_VIDEO_GENERATION',"
-    "'MARK_VIDEO_UNSUITABLE','COMPLETE_RUN'"
+    "'GENERATE_ACTIVITY_SET','SELECT_ACTIVITY','SUBMIT_IDEA','CONFIRM_TRANSCRIPT',"
+    "'CREATE_VIDEO_GENERATION','MARK_VIDEO_UNSUITABLE','COMPLETE_RUN'"
 )
-RECEIPT_OPERATIONS_AFTER = f"{RECEIPT_OPERATIONS_BEFORE},{NEW_RECEIPT_OPERATIONS}"
+RECEIPT_OPERATIONS_AFTER = RECEIPT_OPERATIONS_BEFORE
 
 CHECKS: tuple[tuple[str, str], ...] = (
     ("ck_as_selection_no", "selection_no >= 1"),

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Image, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, Platform, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
@@ -9,6 +9,7 @@ import type { SelectedPhoto } from '../navigation/workflowTypes';
 import { isWithinOfflinePhotoLimit } from '../navigation/parentFlowV1';
 import { Card, Notice, PrimaryButton, SecondaryButton, ScreenFrame, palette } from '../components/ui';
 import { ParentAiLoadingState } from '../components/ParentAiLoadingState';
+import { shouldRequestMediaLibraryPermission } from './mediaLibraryPermission';
 
 type Props = {
   photo: SelectedPhoto | null;
@@ -18,10 +19,13 @@ type Props = {
   closingRun?: boolean;
   flowError?: string;
   runExists?: boolean;
+  analysisFailed?: boolean;
+  retakeAvailable?: boolean;
   initialCaptureSource?: 'camera' | 'gallery' | null;
   onCaptureIntentHandled?: () => void;
   onPhoto: (photo: SelectedPhoto) => void;
   onContinue: () => void;
+  onCheckStatus?: () => void;
   onCloseUnresolvedRun?: () => void;
   onBack: () => void;
 };
@@ -42,10 +46,13 @@ export function CaptureScreen({
   closingRun = false,
   flowError = '',
   runExists = false,
+  analysisFailed = false,
+  retakeAvailable = false,
   initialCaptureSource = null,
   onCaptureIntentHandled,
   onPhoto,
   onContinue,
+  onCheckStatus,
   onCloseUnresolvedRun,
   onBack,
 }: Props): React.JSX.Element {
@@ -69,7 +76,7 @@ export function CaptureScreen({
           setError('Máy ảnh chưa được cấp quyền. Bạn vẫn có thể chọn tranh từ thư viện ảnh.');
           return;
         }
-      } else {
+      } else if (shouldRequestMediaLibraryPermission(Platform.OS, Platform.Version)) {
         const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (!permission.granted) {
           setError('Thư viện ảnh chưa được cấp quyền. Bạn có thể cấp quyền hoặc thử lại.');
@@ -182,9 +189,10 @@ export function CaptureScreen({
           )}
         /> : null}
       </Card>
-      {flowError ? <Notice variant="creative" text={flowError} tone="info" /> : null}
+      {flowError ? <Notice variant="creative" text={flowError} tone={analysisFailed ? 'warning' : 'info'} /> : null}
       {!runExists && !photoLocked ? <Notice variant="creative" text="Ảnh chỉ gửi khi bạn bắt đầu nhận diện." tone="info" /> : null}
-      {!analysisBusy && photo?.analysisTerminal && runExists && onCloseUnresolvedRun ? <PrimaryButton
+      {!analysisBusy && runExists && onCloseUnresolvedRun
+        && (photo?.analysisTerminal || (analysisFailed && !retakeAvailable)) ? <PrimaryButton
         variant="creative"
         label={closingRun ? 'Đang đóng buổi…' : 'Đóng buổi và bắt đầu lại'}
         busy={closingRun}
@@ -192,9 +200,9 @@ export function CaptureScreen({
         onPress={onCloseUnresolvedRun}
       /> : !analysisBusy ? <PrimaryButton
         variant="creative"
-        label={photo?.analysisRetryable ? 'Thử lại nhận diện tranh' : photo?.analysisError ? 'Kiểm tra trạng thái buổi học' : runExists ? 'Nhận diện tranh' : 'Tạo buổi và nhận diện tranh'}
-        disabled={!photo || !canAnalyze || busy || analysisBusy}
-        onPress={onContinue}
+        label={runExists && !photo ? 'Kiểm tra trạng thái buổi học' : photo?.analysisRetryable ? 'Thử lại nhận diện tranh' : photo?.analysisError ? 'Kiểm tra trạng thái buổi học' : runExists ? 'Nhận diện tranh' : 'Tạo buổi và nhận diện tranh'}
+        disabled={runExists && !photo ? busy : !photo || !canAnalyze || busy || analysisBusy}
+        onPress={runExists && !photo ? (onCheckStatus ?? onContinue) : onContinue}
       /> : null}
     </ScreenFrame>
   );

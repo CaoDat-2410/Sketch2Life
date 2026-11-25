@@ -101,6 +101,7 @@ export type AppStep =
   | 'topic'
   | 'subject'
   | 'idea'
+  | 'sketch-guide'
   | 'drawing-guide'
   | 'lessons'
   | 'capture'

@@ -167,14 +167,32 @@ def select_parent_story_activity(
     service = _selection_service(request, db)
     started: list[ParentStoryRevisionReservation] = []
     try:
-        record = service.select_activity(
-            principal=principal,
-            run_id=str(run_id),
-            expected_revision=payload.expected_revision,
-            activity_ref=payload.activity.model_dump(),
-            idempotency_key=key,
-            on_story_started=started.append,
-        )
+        if payload.activity is not None:
+            record = service.select_activity(
+                principal=principal,
+                run_id=str(run_id),
+                expected_revision=payload.expected_revision,
+                activity_ref=payload.activity.model_dump(),
+                idempotency_key=key,
+                on_story_started=started.append,
+            )
+        else:
+            if (
+                payload.suggestion_set_id is None
+                or payload.expected_understanding_revision is None
+                or payload.activity_index is None
+            ):
+                raise ParentStoryRunError(422, "PARENT_ACTIVITY_SELECTION_INVALID")
+            record = SqlParentStoryRunRepository(db).select_suggested_activity(
+                principal=principal,
+                run_id=str(run_id),
+                expected_revision=payload.expected_revision,
+                suggestion_set_id=str(payload.suggestion_set_id),
+                expected_understanding_revision=payload.expected_understanding_revision,
+                activity_index=payload.activity_index,
+                idempotency_key=key,
+                on_story_started=started.append,
+            )
     except ParentStoryRunError as exc:
         raise _http_error(exc) from None
     except LessonLibraryError:

@@ -619,24 +619,23 @@ def test_the_story_starts_when_the_selection_is_the_last_gate(api: ActivityApi) 
     assert story["revision_no"] == 1 and story["understanding_revision"] == 1
     assert run_row(api, run_id)["run_state"] == "SCRIPT_REVIEW"
     worker = api.generator.inputs[0]
-    assert worker["schema_version"] == "sketch2life.story-generation-input.v2"
+    assert worker["schema_version"] == "sketch2life.story-generation-input.v3"
     assert worker["role"] == "PARENT" and worker["lesson_direction"] is None
     assert worker["confirmed_subject"] == SUBJECT and worker["child_age_months"] == 60
     assert worker["adult_confirmed_idea"] == TYPED
-    assert worker["activity"]["title"] == "Find dragon wings"
-    assert worker["activity"]["lesson_id"] == "a" and worker["activity"]["version_id"] == "v-a"
-    assert set(worker["activity"]) == {
+    assert worker["primary_activity"]["title"] == "Find dragon wings"
+    assert set(worker["primary_activity"]) == {
         "title",
         "objective",
+        "materials_text",
+        "preparation_text",
         "instructions_text",
+        "observation_notes",
         "safety_notes",
         "activity_kind",
-        "source",
-        "lesson_id",
-        "version_id",
-        "content_sha256",
     }
-    assert "rewrite_instruction" not in worker
+    assert len(worker["primary_activity_sha256"]) == 64
+    assert worker["rewrite_instruction"] is None and "activity" not in worker
     assert story["request_sha256"] == _sha256_json(worker)
 
 

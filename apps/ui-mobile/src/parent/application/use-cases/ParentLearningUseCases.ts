@@ -15,6 +15,7 @@ import type {
   ParentDrawingSubjectSuggestionSetV1,
   ParentCustomSubjectValidationV1,
   ParentStoryRunEnvelopeV1,
+  ParentDrawingAnalysisResumeV1,
   ParentStoryRunV1,
   ParentSubjectRoleV1,
 } from '../../domain/types';
@@ -45,6 +46,9 @@ export class ParentLearningUseCases {
   getRun(runId: string) { return this.api.getStoryRun(runId); }
   getActiveRunV1(): Promise<ParentActiveStoryRunEnvelopeV1> { return this.api.getActiveStoryRunV1(); }
   getRunV1(runId: string) { return this.api.getStoryRunV1(runId); }
+  resumeDrawingAnalysisV1(runId: string, inputRevision: number): Promise<ParentDrawingAnalysisResumeV1> {
+    return this.api.resumeDrawingAnalysisV1(runId, inputRevision);
+  }
   listTopicSuggestions(draftId: string, excludedSetIds: string[], requestId: string): Promise<ParentTopicSuggestionSetV1> {
     return this.api.listTopicSuggestions(draftId, excludedSetIds, requestId);
   }
@@ -56,7 +60,9 @@ export class ParentLearningUseCases {
   validateCustomSubject(input: { topicId: string; topic: string; subject: string }): Promise<ParentCustomSubjectValidationV1> {
     return this.api.validateCustomSubject(input);
   }
-  generateSketchGuide(topic: string) { return this.api.generateSketchGuide(topic); }
+  generateSketchGuide(topic: string, intendedSubject?: string) {
+    return this.api.generateSketchGuide(topic, intendedSubject);
+  }
   async createRunBeforeDrawingV1(input: {
     profileId: string;
     topic: string;
@@ -183,6 +189,12 @@ export class ParentLearningUseCases {
     if (!runId.trim()) throw new ParentApplicationError('PARENT_ACTIVITY_RUN_INVALID', 'Chưa chọn được buổi học để tải hoạt động.');
     return this.api.listActivitiesV1(runId);
   }
+  suggestActivitiesV1(runId: string, expectedUnderstandingRevision: number, actionIdentity: ParentActionIdentity) {
+    if (!runId.trim() || !Number.isInteger(expectedUnderstandingRevision) || expectedUnderstandingRevision < 1) {
+      throw new ParentApplicationError('PARENT_ACTIVITY_RUN_INVALID', 'Chưa xác nhận được chủ thể để gợi ý hoạt động.');
+    }
+    return this.api.suggestActivitiesV1(runId, expectedUnderstandingRevision, actionIdentity);
+  }
   selectActivityV1(runId: string, input: ParentActivitySelectionRequestV1, actionIdentity: ParentActionIdentity) {
     if (!runId.trim() || !Number.isInteger(input.expected_revision) || input.expected_revision < 1) {
       throw new ParentApplicationError('PARENT_ACTIVITY_SELECTION_INVALID', 'Chưa xác nhận được hoạt động đã chọn.');
@@ -192,7 +204,9 @@ export class ParentLearningUseCases {
       || !Number.isInteger(input.activity.activity_index) || input.activity.activity_index < 0 || input.activity.activity_index > 23)) {
       throw new ParentApplicationError('PARENT_ACTIVITY_SELECTION_INVALID', 'Chưa xác nhận được hoạt động đã chọn.');
     }
-    if ('round_id' in input && (!input.round_id.trim() || !Number.isInteger(input.draft_index) || input.draft_index < 0)) {
+    if ('suggestion_set_id' in input && (!input.suggestion_set_id.trim()
+      || !Number.isInteger(input.expected_understanding_revision) || input.expected_understanding_revision < 1
+      || !Number.isInteger(input.activity_index) || input.activity_index < 0 || input.activity_index > 23)) {
       throw new ParentApplicationError('PARENT_ACTIVITY_SELECTION_INVALID', 'Chưa xác nhận được hoạt động đã chọn.');
     }
     return this.api.selectActivityV1(runId, input, actionIdentity);

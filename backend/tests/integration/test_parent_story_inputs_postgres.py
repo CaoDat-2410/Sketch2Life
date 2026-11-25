@@ -52,7 +52,10 @@ from sketch2life.infrastructure.persistence.core_lifecycle_store import (
     SqlCoreRunAssetPurge,
     build_plan,
 )
-from sketch2life.infrastructure.persistence.core_models import CoreAssetMetadataModel
+from sketch2life.infrastructure.persistence.core_models import (
+    CoreAssetMetadataModel,
+    CoreAuditEntryModel,
+)
 from sketch2life.infrastructure.persistence.parent_story_repository import (
     _DRAWING_INPUT_COLUMNS,
     SqlParentStoryRunRepository,
@@ -931,6 +934,67 @@ def test_a_stale_analysis_result_is_discarded(api: InputsApi) -> None:
     api.analyzer.register(derived_sha(first), DrawingAnalysisResult("old", ("a",), 0.5, 1))
     ParentInputJobRunner(api.sessions(), api.analyzer).run(principal, run_id, 2)  # stale work
     assert run_row(api, run_id) == before and api.analyzer.calls == []
+
+
+def test_verified_modal_no_call_rejection_is_reconciled_with_cas_and_audit(api: InputsApi) -> None:
+    run_id = new_run(api, api.parent, hold_slot=True)
+    drawing = png_bytes(seed=41)
+    handle = upload(api, api.parent, run_id, drawing)
+    attached = attach(api, api.parent, run_id, handle)
+    assert attached.status_code == 202, attached.text
+    principal = principal_of(api.parent)
+    with api.sessions()() as db:
+        repository = SqlParentStoryRunRepository(db)
+        assert repository.start_drawing_analysis(
+            principal=principal, run_id=run_id, expected_input_revision=2
+        )
+        repository.fail_drawing_analysis(
+            principal=principal,
+            run_id=run_id,
+            error_code="DRAWING_OUTCOME_UNKNOWN",
+            outcome_unknown=True,
+            expected_input_revision=2,
+        )
+
+    unknown = run_row(api, run_id)
+    current_input = input_rows(api, run_id)[-1]
+    with api.sessions()() as db:
+        repository = SqlParentStoryRunRepository(db)
+        assert repository.reconcile_modal_resource_exhausted_rejection(
+            run_id=run_id,
+            expected_run_revision=int(unknown["revision"]),
+            expected_input_revision=int(unknown["current_input_revision"]),
+            expected_derived_sha256=current_input["derived_sha256"],
+        )
+
+    queued = run_row(api, run_id)
+    assert (queued["run_state"], queued["job_state"], queued["error_code"]) == (
+        "INPUT_PROCESSING",
+        "QUEUED",
+        None,
+    )
+    assert queued["revision"] == unknown["revision"] + 1
+    assert queued["current_input_revision"] == unknown["current_input_revision"]
+    assert queued["active_owner_parent_account_id"] == unknown["active_owner_parent_account_id"]
+    with api.sessions()() as db:
+        audit = db.scalars(
+            select(CoreAuditEntryModel).where(
+                CoreAuditEntryModel.resource_id == run_id,
+                CoreAuditEntryModel.action == "DRAWING_DISPATCH_RECONCILED",
+            )
+        ).all()
+        assert len(audit) == 1
+        assert audit[0].decision == "MODAL_RESOURCE_EXHAUSTED_NO_CALL_ID"
+        assert audit[0].actor_ref == "SYSTEM_MODAL_RECONCILER"
+
+    with api.sessions()() as db:
+        assert not SqlParentStoryRunRepository(db).reconcile_modal_resource_exhausted_rejection(
+            run_id=run_id,
+            expected_run_revision=int(unknown["revision"]),
+            expected_input_revision=int(unknown["current_input_revision"]),
+            expected_derived_sha256=current_input["derived_sha256"],
+        )
+    assert run_row(api, run_id) == queued
 
 
 # ------------------------------------------------------------- uniform 404 and wrong purpose

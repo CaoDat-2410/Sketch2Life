@@ -21,7 +21,8 @@ Upgrade, in order:
    ``(run_id, source_asset_ref)``. The application marks the old row ``SUPERSEDED`` before it
    inserts a new one (the indexes are checked per statement).
 4. ``ck_story_run_state`` accepts ``INPUT_REVIEW`` (11 to 12 values; l.394).
-5. ``ck_story_receipt_operation`` accepts ``SUBMIT_IDEA`` and ``CONFIRM_TRANSCRIPT`` (8 to 10).
+5. ``ck_story_receipt_operation`` retains the two operations from the parallel Parent activity
+   branch, then accepts ``SUBMIT_IDEA`` and ``CONFIRM_TRANSCRIPT`` (10 to 12).
 
 The CHECKs are added directly, which suits a disposable verification database; a production
 rollout uses ``NOT VALID`` then ``VALIDATE`` (as the FR-C-08 migration does). No GRANT statement is
@@ -56,7 +57,8 @@ RUN_STATES_AFTER = RUN_STATES_BEFORE.replace(
 )
 RECEIPT_OPERATIONS_BEFORE = (
     "'CREATE_RUN','ATTACH_ASSET','CONFIRM_SUBJECT','CONFIRM_CONTEXT',"
-    "'CANCEL_RUN','GENERATE_STORY_REVISION','CONFIRM_STORY_REVISION','DELETE_RUN'"
+    "'CANCEL_RUN','GENERATE_STORY_REVISION','CONFIRM_STORY_REVISION','DELETE_RUN',"
+    "'GENERATE_ACTIVITY_SET','SELECT_ACTIVITY'"
 )
 RECEIPT_OPERATIONS_AFTER = f"{RECEIPT_OPERATIONS_BEFORE},'SUBMIT_IDEA','CONFIRM_TRANSCRIPT'"
 

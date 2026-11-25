@@ -74,8 +74,10 @@ def _render_fallback(preparation: str):
 def test_worker_contract_and_prompt_keep_three_realistic_bounded_drafts():
     schema = worker._parent_activity_suggestion_json_schema(has_candidates=False)
     activity_schema = schema["properties"]["fallback_activities"]["items"]["properties"]
-    assert schema["properties"]["fallback_activities"]["minItems"] == 3
-    assert schema["properties"]["fallback_activities"]["maxItems"] == 3
+    # FEAT-092: the worker drafts four so a draft failing a quality gate can be dropped; at most
+    # three reach the backend contract.
+    assert schema["properties"]["fallback_activities"]["minItems"] == 4
+    assert schema["properties"]["fallback_activities"]["maxItems"] == 4
     for field in ("preparation_text", "observation_notes", "safety_notes"):
         assert (
             activity_schema[field]["properties"]["body"]["maxLength"]
@@ -207,3 +209,19 @@ def test_selected_activity_snapshot_preserves_detail_over_old_limit():
     stored = _story_primary_activity(activity)
 
     assert stored["preparation_text"] == preparation
+
+
+def test_backend_contract_accepts_one_to_three_fallback_drafts_and_rejects_four_or_none():
+    base = _render_fallback("Người lớn chuẩn bị giấy và bút màu ở hiên nhà để trẻ so sánh màu mai rùa.")
+    payload = base.model_dump(mode="json")
+    drafts = payload["fallback_activities"]
+
+    for count in (1, 2, 3):
+        ParentActivitySuggestionWorkerResponseV2.model_validate(
+            {**payload, "fallback_activities": drafts[:count]}
+        )
+    for bad in ([], drafts + drafts[:1]):
+        with pytest.raises(ValidationError):
+            ParentActivitySuggestionWorkerResponseV2.model_validate(
+                {**payload, "fallback_activities": bad}
+            )

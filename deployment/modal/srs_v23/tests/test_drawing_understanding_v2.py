@@ -82,8 +82,10 @@ def test_output_json_schema_is_closed_enum_grid() -> None:
     main = schema["properties"]["main_subject"]
     assert main["properties"]["facing"]["enum"] == ["left", "right", "front"]
     for box in (main["properties"]["box"], secondaries["items"]["properties"]["box"]):
-        assert box["minItems"] == 4 and box["maxItems"] == 4
-        assert box["items"]["enum"] == list(range(21))
+        assert box["type"] == "object"
+        assert box["required"] == ["left", "top", "right", "bottom"]
+        assert box["additionalProperties"] is False
+        assert all(box["properties"][k]["enum"] == list(range(21)) for k in box["required"])
     assert secondaries["items"]["properties"]["visible_features"]["maxItems"] == 2
     assert "facing" not in secondaries["items"]["properties"]
 
@@ -91,12 +93,12 @@ def test_output_json_schema_is_closed_enum_grid() -> None:
 @pytest.mark.parametrize(
     "mutate, code",
     [
-        (lambda p: p["main_subject"].__setitem__("box", [12, 6, 2, 16]), "BOX_INVALID"),
-        (lambda p: p["main_subject"].__setitem__("box", [2, 16, 12, 6]), "BOX_INVALID"),
-        (lambda p: p["main_subject"].__setitem__("box", [2, 2, 3, 3]), "BOX_INVALID"),
-        (lambda p: p["main_subject"].__setitem__("box", [2, 6, 21, 16]), "BOX_INVALID"),
-        (lambda p: p["main_subject"].__setitem__("box", [2, 6, 12]), "BOX_INVALID"),
-        (lambda p: p["main_subject"].__setitem__("box", [2, 6, 12.5, 16]), "BOX_INVALID"),
+        (lambda p: p["main_subject"].__setitem__("box", [12, 6, 2, 16]), "BOX_ORDER_INVALID"),
+        (lambda p: p["main_subject"].__setitem__("box", [2, 16, 12, 6]), "BOX_ORDER_INVALID"),
+        (lambda p: p["main_subject"].__setitem__("box", [2, 2, 3, 3]), "BOX_AREA_TOO_SMALL"),
+        (lambda p: p["main_subject"].__setitem__("box", [2, 6, 21, 16]), "BOX_RANGE_INVALID"),
+        (lambda p: p["main_subject"].__setitem__("box", [2, 6, 12]), "BOX_SHAPE_INVALID"),
+        (lambda p: p["main_subject"].__setitem__("box", [2, 6, 12.5, 16]), "BOX_TYPE_INVALID"),
         (lambda p: p["main_subject"].__setitem__("facing", "up"), "FACING_INVALID"),
         (lambda p: p["secondary_subjects"][0].__setitem__("label", "Con  Rùa"), "LABEL_DUPLICATE"),
         (
@@ -141,7 +143,7 @@ def test_diagnostics_report_violation_code_without_content() -> None:
     payload["main_subject"]["box"] = [12, 6, 2, 16]
     text = _dump(payload)
     diagnostics = worker._drawing_json_diagnostics(text)
-    assert diagnostics["contract_violation"] == "BOX_INVALID"
+    assert diagnostics["contract_violation"] == "BOX_ORDER_INVALID"
     assert "con rùa" not in repr(diagnostics)
 
 
@@ -150,9 +152,49 @@ def test_prompt_defines_roles_and_forbids_background_and_invention() -> None:
     for needle in ("main_subject", "secondary_subjects", "box", "0 đến 20", "facing"):
         assert needle in prompt
     assert "nền" in prompt and "không bịa" in prompt.lower()
+    for key in ("left (trái)", "top (trên)", "right (phải)", "bottom (dưới)"):
+        assert key in prompt
+    assert "không được bỏ khóa nào" in prompt
+    assert "trái < phải" in prompt and "trên < dưới" in prompt
+    assert "tự kiểm tra trước khi trả json" in prompt.lower()
+    assert "(phải - trái) nhân (dưới - trên)" in prompt
+    assert "ít nhất 4 ô lưới" in prompt
     assert "candidate_subject" not in prompt
 
 
 def test_box_to_pixels_maps_grid_to_image() -> None:
     assert worker.box_grid_to_pixels([0, 0, 20, 20], width=1000, height=600) == (0, 0, 1000, 600)
     assert worker.box_grid_to_pixels([10, 5, 20, 15], width=1000, height=600) == (500, 150, 1000, 450)
+
+
+def test_prompt_requires_vietnamese_labels_and_features() -> None:
+    """The adult-facing subject name must come back in Vietnamese, not English."""
+
+    prompt = worker._drawing_prompt()
+    assert "tiếng Việt" in prompt
+    assert "label" in prompt and "visible_features" in prompt
+
+
+def test_named_box_objects_normalize_to_the_four_number_list() -> None:
+    parsed = {
+        "main_subject": {"label": "gà", "visible_features": ["mào đỏ"], "facing": "right",
+                         "box": {"left": 4, "top": 3, "right": 17, "bottom": 18}},
+        "secondary_subjects": [
+            {"label": "mặt trời", "visible_features": [], "box": {"left": 0, "top": 0, "right": 5, "bottom": 5}}
+        ],
+        "confidence": 0.9,
+    }
+    candidate = worker._parse_candidate(json.dumps(parsed))
+    assert candidate["main_subject"]["box"] == [4, 3, 17, 18]
+    assert candidate["secondary_subjects"][0]["box"] == [0, 0, 5, 5]
+
+
+def test_box_object_missing_an_edge_is_still_a_contract_violation() -> None:
+    bad = {
+        "main_subject": {"label": "gà", "visible_features": ["mào đỏ"], "facing": "right",
+                         "box": {"left": 4, "top": 3, "right": 17}},
+        "secondary_subjects": [],
+        "confidence": 0.9,
+    }
+    with pytest.raises(RuntimeError, match="MODAL_MODEL_OUTPUT_INVALID"):
+        worker._parse_candidate(json.dumps(bad))

@@ -109,11 +109,11 @@ class ParentActivitySuggestionWorkerResponseV2(StrictRequest):
                 raise ValueError("catalog match requires selections and no fallback drafts")
         elif (
             self.selected_candidates
-            or len(self.fallback_activities) != 3
+            or not 1 <= len(self.fallback_activities) <= 3
             or not self.no_match_reason
         ):
             raise ValueError(
-                "no match requires a reason and exactly three fallback drafts"
+                "no match requires a reason and one to three fallback drafts"
             )
         if len({item.candidate_ref for item in self.selected_candidates}) != len(
             self.selected_candidates

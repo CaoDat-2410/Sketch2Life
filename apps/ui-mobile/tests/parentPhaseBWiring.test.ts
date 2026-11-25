@@ -467,6 +467,29 @@ describe('Upload sessions for a run (T-2a, SRS l.1654-1658)', () => {
     expect((port.complete as ReturnType<typeof vi.fn>).mock.calls[0][2]).toBe('k-complete');
   });
 
+  it('marks upload-session-create 503 as pre-dispatch and sends no bytes', async () => {
+    const { port } = sessions(session(), session());
+    (port.create as ReturnType<typeof vi.fn>).mockRejectedValue(
+      new ParentApplicationError('PROVIDER_UNAVAILABLE', 'unavailable', 'request-safe-1', 503),
+    );
+
+    await expect(uploadRunMedia({
+      uploads: port,
+      digest,
+      purpose: 'RUN_ARTWORK',
+      runId: RUN,
+      mediaType: 'image/png',
+      bytes,
+      keys,
+    })).rejects.toMatchObject({
+      code: 'UPLOAD_SESSION_CREATE_UNAVAILABLE',
+      requestId: 'request-safe-1',
+      status: 503,
+    });
+    expect(port.putPart).not.toHaveBeenCalled();
+    expect(port.complete).not.toHaveBeenCalled();
+  });
+
   it('does not send a part the server already holds with the same hash, and resends one with another hash', async () => {
     const heldHash = await digest.sha256Hex(bytes.subarray(0, 4));
     const { port, parts } = sessions(

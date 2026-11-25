@@ -35,6 +35,24 @@ class AttachRunAssetRequestV1(BaseModel):
     expected_run_revision: int | None = Field(default=None, ge=1)
 
 
+class ResumeDrawingAnalysisRequestV1(BaseModel):
+    """Resume an already attached, still-queued drawing without uploading or changing it."""
+
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    expected_input_revision: int = Field(ge=1)
+
+
+class ParentDrawingAnalysisResumeAcceptedV1(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    request_id: UUID
+    story_run_id: UUID
+    input_revision: int = Field(ge=1)
+    run_revision: int = Field(ge=1)
+    dispatch_state: Literal["ACCEPTED"]
+
+
 class ParentRunAssetAcceptedV1(BaseModel):
     """202 body: the asset ref and its validation state (l.1664); no job reference (T2B-D8)."""
 
@@ -208,9 +226,11 @@ __all__ = [
     "ParentRunAssetAcceptedV1",
     "ParentRunIdeaAcceptedV1",
     "ParentRunTranscriptV1",
+    "ParentDrawingAnalysisResumeAcceptedV1",
     "ParentStoryRewriteAcceptedV1",
     "ParentTranscriptConfirmationV1",
     "RewriteStoryRequestV1",
+    "ResumeDrawingAnalysisRequestV1",
     "TranscriptCorrectionV1",
     "TranscriptState",
 ]

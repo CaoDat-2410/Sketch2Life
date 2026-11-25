@@ -590,8 +590,8 @@ story_command_receipts = Table(
     CheckConstraint(
         "operation IN ('CREATE_RUN','ATTACH_ASSET','CONFIRM_SUBJECT','CONFIRM_CONTEXT',"
         "'CANCEL_RUN','GENERATE_STORY_REVISION','CONFIRM_STORY_REVISION','DELETE_RUN',"
-        "'SUBMIT_IDEA','CONFIRM_TRANSCRIPT','CREATE_VIDEO_GENERATION',"
-        "'MARK_VIDEO_UNSUITABLE','COMPLETE_RUN','SELECT_ACTIVITY')",
+        "'GENERATE_ACTIVITY_SET','SELECT_ACTIVITY','SUBMIT_IDEA','CONFIRM_TRANSCRIPT',"
+        "'CREATE_VIDEO_GENERATION','MARK_VIDEO_UNSUITABLE','COMPLETE_RUN')",
         name="ck_story_receipt_operation",
     ),
     CheckConstraint(
@@ -1014,11 +1014,115 @@ Index(
 )
 
 
+# FEAT-063 Rev67 activity suggestions use the immutable suggestion/selection records introduced
+# by migration 20261114. The newer ``activity_selections`` table above is the StoryRun projection
+# consumed by the first-story gate. Until the video-candidate foreign key is migrated, the
+# selected row is mirrored to ``parent_activity_selections`` using the same opaque selection ID.
+parent_activity_suggestion_sets = Table(
+    "parent_activity_suggestion_sets",
+    STORY_METADATA,
+    Column("suggestion_set_id", String(36), primary_key=True),
+    Column("run_id", String(36), ForeignKey("story.runs.run_id", ondelete="CASCADE"), nullable=False),
+    Column("set_revision", Integer, nullable=False),
+    Column("understanding_revision", Integer, nullable=False),
+    Column("input_revision", Integer, nullable=False),
+    Column("context_revision", Integer, nullable=False),
+    Column("selection_mode", String(32), nullable=False),
+    Column("catalog_candidate_count", Integer, nullable=False),
+    Column("activities_snapshot", JSONB, nullable=False),
+    Column("activities_snapshot_sha256", String(64), nullable=False),
+    Column("provider_call_id", String(128)),
+    Column("created_at", DateTime(timezone=True), nullable=False, server_default=text("now()")),
+    UniqueConstraint("run_id", "set_revision", name="uq_story_parent_activity_set_revision"),
+    UniqueConstraint("run_id", "suggestion_set_id", name="uq_story_parent_activity_set_owner"),
+    CheckConstraint(
+        "set_revision > 0 AND understanding_revision > 0",
+        name="ck_story_parent_activity_set_revisions",
+    ),
+    CheckConstraint(
+        "input_revision > 0 AND context_revision > 0",
+        name="ck_story_parent_activity_set_inputs",
+    ),
+    CheckConstraint(
+        "selection_mode IN ('CATALOG_SELECTION','AI_GENERATED_FALLBACK')",
+        name="ck_story_parent_activity_set_mode",
+    ),
+    CheckConstraint(
+        "catalog_candidate_count BETWEEN 0 AND 500",
+        name="ck_story_parent_activity_set_candidate_count",
+    ),
+    CheckConstraint(
+        "length(activities_snapshot_sha256) = 64",
+        name="ck_story_parent_activity_set_hash",
+    ),
+    CheckConstraint(
+        "jsonb_typeof(activities_snapshot) = 'array' "
+        "AND octet_length(activities_snapshot::text) <= 262144",
+        name="ck_story_parent_activity_set_snapshot",
+    ),
+)
+Index(
+    "ix_story_parent_activity_set_current",
+    parent_activity_suggestion_sets.c.run_id,
+    parent_activity_suggestion_sets.c.understanding_revision,
+    parent_activity_suggestion_sets.c.set_revision,
+)
+
+parent_activity_selections = Table(
+    "parent_activity_selections",
+    STORY_METADATA,
+    Column("activity_selection_id", String(36), primary_key=True),
+    Column("run_id", String(36), nullable=False),
+    Column("selection_revision", Integer, nullable=False),
+    Column("suggestion_set_id", String(36), nullable=False),
+    Column("understanding_revision", Integer, nullable=False),
+    Column("activity_index", Integer, nullable=False),
+    Column("activity_snapshot", JSONB, nullable=False),
+    Column("activity_snapshot_sha256", String(64), nullable=False),
+    Column("actor_scope_ref", String(128), nullable=False),
+    Column("created_at", DateTime(timezone=True), nullable=False, server_default=text("now()")),
+    ForeignKeyConstraint(
+        ["run_id", "suggestion_set_id"],
+        [
+            "story.parent_activity_suggestion_sets.run_id",
+            "story.parent_activity_suggestion_sets.suggestion_set_id",
+        ],
+        ondelete="CASCADE",
+        name="fk_story_parent_activity_selection_set_owner",
+    ),
+    UniqueConstraint(
+        "run_id", "selection_revision", name="uq_story_parent_activity_selection_revision"
+    ),
+    CheckConstraint(
+        "selection_revision > 0 AND understanding_revision > 0",
+        name="ck_story_parent_activity_selection_revisions",
+    ),
+    CheckConstraint("activity_index BETWEEN 0 AND 23", name="ck_story_parent_activity_selection_index"),
+    CheckConstraint(
+        "length(activity_snapshot_sha256) = 64",
+        name="ck_story_parent_activity_selection_hash",
+    ),
+    CheckConstraint(
+        "jsonb_typeof(activity_snapshot) = 'object' "
+        "AND octet_length(activity_snapshot::text) <= 32768",
+        name="ck_story_parent_activity_selection_snapshot",
+    ),
+)
+Index(
+    "ix_story_parent_activity_selection_current",
+    parent_activity_selections.c.run_id,
+    parent_activity_selections.c.understanding_revision,
+    parent_activity_selections.c.selection_revision,
+)
+
+
 __all__ = [
     "CORE_METADATA",
     "STORY_METADATA",
     "STORY_SCHEMA",
     "activity_selections",
+    "parent_activity_selections",
+    "parent_activity_suggestion_sets",
     "asset_lineage",
     "review_decisions",
     "run_inputs",

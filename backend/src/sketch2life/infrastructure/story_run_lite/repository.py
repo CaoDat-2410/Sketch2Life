@@ -2035,11 +2035,65 @@ class SqlStoryRunLiteRepository:
                     409, "SUBJECT_NOT_CONFIRMED", "Confirm the drawing subject first."
                 )
             revision_no = len(revisions) + 1
+            # FEAT-092: the Modal story client and worker validate input v3 (topic, lesson notes and
+            # the adult's main activity); this path built v1, so every first story failed validation.
+            from sketch2life.infrastructure.persistence.parent_story_repository import (
+                _story_primary_activity,
+            )
+
+            selection_row = (
+                connection.execute(
+                    select(tables.activity_selections)
+                    .where(
+                        tables.activity_selections.c.run_id == run_id,
+                        tables.activity_selections.c.target_understanding_revision
+                        == expected_understanding_revision,
+                    )
+                    .order_by(tables.activity_selections.c.selection_no.desc())
+                    .limit(1)
+                )
+                .mappings()
+                .one_or_none()
+            )
+            if selection_row is None:
+                raise StoryRunLiteError(
+                    409,
+                    "PARENT_ACTIVITY_SELECTION_REQUIRED",
+                    "Choose the main activity before generating a story.",
+                )
+            primary_activity = _story_primary_activity(selection_row["activity_snapshot"])
+            primary_activity_sha256 = hashlib.sha256(
+                json.dumps(
+                    primary_activity, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+                ).encode("utf-8")
+            ).hexdigest()
+            context_snapshot = input_row["context_snapshot"]
+            topic = context_snapshot.get("topic", "") if isinstance(context_snapshot, dict) else ""
+            if not isinstance(topic, str) or len(topic) > 120:
+                raise StoryRunLiteError(
+                    409, "PARENT_CONTEXT_INVALID", "The confirmed topic is not valid."
+                )
+            lesson_pin = input_row["lesson_pin_snapshot"]
+            lesson_notes: str | None = None
+            lesson_direction: str | None = None
+            if isinstance(lesson_pin, dict):
+                notes = lesson_pin.get("subject_learning_notes")
+                direction = lesson_pin.get("script_direction")
+                if isinstance(notes, str) and 1 <= len(notes) <= 5000:
+                    lesson_notes = notes
+                    if (
+                        lesson_pin.get("script_following_allowed") is True
+                        and isinstance(direction, str)
+                        and direction.strip()
+                        and len(direction) <= 2000
+                    ):
+                        lesson_direction = direction
             context = {
                 "worker_input": {
-                    "schema_version": "sketch2life.story-generation-input.v1",
+                    "schema_version": "sketch2life.story-generation-input.v3",
                     "role": "PARENT",
                     "language": "vi",
+                    "topic": topic,
                     "confirmed_subject": confirmed_subject,
                     "understanding_revision": expected_understanding_revision,
                     "drawing_sha256": str(input_row["original_sha256"]),
@@ -2050,7 +2104,10 @@ class SqlStoryRunLiteRepository:
                     "context_revision": 1,
                     "adult_confirmed_idea": adult_confirmed_idea,
                     "rewrite_instruction": rewrite_instruction,
-                    "lesson_direction": None,
+                    "lesson_subject_learning_notes": lesson_notes,
+                    "lesson_direction": lesson_direction,
+                    "primary_activity": primary_activity,
+                    "primary_activity_sha256": primary_activity_sha256,
                 },
                 "confirmed_subject": confirmed_subject,
                 "model_id": "Qwen/Qwen3.8-27B-FP8",

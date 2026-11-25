@@ -133,15 +133,16 @@ def _calls(client: TestClient) -> dict[str, Any]:
 def test_every_ai_route_answers_the_404_before_the_provider_gate(
     client: TestClient, db: _Db
 ) -> None:
-    """The provider is not enabled here (``ai_provider`` is not ``modal_dev``).
+    """Wrong-role callers get the uniform 404 before any AI or catalog capability is used.
 
-    A wrong-role caller gets the 404 and never the 503 that would reveal the provider setting;
-    an active Parent does get the 503 (so the 404 above is the guard, not a missing route).
+    The curated SVG route is local and may return a catalog miss (404) for an active Parent;
+    the drawing and story routes still reveal the disabled provider only after Parent auth.
     """
     calls = _calls(client)
     _use_db(client, _Db("parent"))
     for name, call in calls.items():
-        assert call().status_code == 503, name
+        expected_status = 404 if name == "sketch-guides" else 503
+        assert call().status_code == expected_status, name
     _use_db(client, db)
     bodies = {name: call() for name, call in calls.items()}
     for name, response in bodies.items():

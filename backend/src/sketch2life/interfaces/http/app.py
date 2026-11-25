@@ -116,6 +116,10 @@ from sketch2life.infrastructure.storage.in_memory_auto_rig_grants import (
     InMemoryRigPackageGrantStore,
 )
 from sketch2life.infrastructure.storage.s3_compatible import Boto3S3CompatibleObjectStorage
+from sketch2life.infrastructure.story_inputs.modal_adapters import (
+    ModalParentDrawingAnalyzer,
+    ModalParentStoryGenerator,
+)
 from sketch2life.infrastructure.story_run_lite.composition import runtime_lifespan
 from sketch2life.infrastructure.story_video.composition import build_story_video_adapters
 from sketch2life.infrastructure.story_video.playback_tokens import build_playback_codec
@@ -1262,6 +1266,25 @@ def create_app(
         )
         application.state.upload_media_validator = build_upload_media_validator(
             storage_example_settings
+        )
+    application.state.parent_drawing_recovery_enabled = False
+    if (
+        _composition_profile == "combined"
+        and storage_example_settings.env in {"local", "test"}
+        and storage_example_settings.ai_provider == "modal_dev"
+    ):
+        runtime = application.state.be1_runtime
+        storage = application.state.lesson_library_storage
+        if runtime.session_factory is None or storage is None:
+            raise RuntimeError(
+                "Parent Modal workers require the configured database and object storage"
+            )
+        application.state.drawing_analyzer = ModalParentDrawingAnalyzer(storage)
+        application.state.story_generator = ModalParentStoryGenerator()
+        application.state.parent_drawing_recovery_enabled = True
+        _LOGGER.info(
+            "parent_modal_workers_composed env=%s drawing=true story=true",
+            storage_example_settings.env,
         )
     renderer_dist = Path(__file__).resolve().parents[5] / "packages" / "art-renderer" / "dist-demo"
     if renderer_dist.is_dir():

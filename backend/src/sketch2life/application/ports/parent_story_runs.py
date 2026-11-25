@@ -449,17 +449,18 @@ class ParentStoryRunRepositoryPort(Protocol):
         response_status: int,
     ) -> None: ...
 
-    def select_activity(
+    def select_suggested_activity(
         self,
         *,
         principal: VerifiedPrincipal,
         run_id: str,
+        expected_revision: int,
         suggestion_set_id: str,
         expected_understanding_revision: int,
         activity_index: int,
         idempotency_key: str,
-        activity_selection_id: str,
-    ) -> ParentActivitySelectionRecord: ...
+        on_story_started: StoryStartedCallback | None = None,
+    ) -> ParentStoryRunView: ...
 
     def record_understanding(
         self,

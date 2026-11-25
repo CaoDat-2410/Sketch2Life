@@ -50,7 +50,7 @@ def _complete(monkeypatch: pytest.MonkeyPatch, **staging: Any) -> dict[str, Any]
     session = _Session()
     repository = SqlParentStoryRunRepository(session)  # type: ignore[arg-type]
     monkeypatch.setattr(
-        repository, "_owned_run", lambda *_a, **_k: {"run_state": "STORY_GENERATING", "version": 3}
+        repository, "_owned_run", lambda *_a, **_k: {"run_state": "SCRIPT_GENERATING", "version": 3}
     )
     monkeypatch.setattr(repository, "get_run", lambda *_a, **_k: "view")
     reservation = ParentStoryRevisionReservation(

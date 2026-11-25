@@ -21,6 +21,8 @@ from sketch2life.application.ports.parent_story_profile_lookup import (
 )
 from sketch2life.infrastructure.persistence.parent_story_repository import (
     SqlParentStoryRunRepository,
+    _create_run_fingerprint,
+    _sha256_json,
 )
 
 _PRINCIPAL = VerifiedPrincipal("parent-1", "issuer-1", frozenset({"parent"}))
@@ -160,7 +162,11 @@ def test_activity_selection_idempotent_replay_survives_later_run_state(
     assert [kind for kind, _payload in session.events] == ["execute", "commit"]
 
 
-def _create(monkeypatch: pytest.MonkeyPatch, lesson_pin: dict[str, Any] | None) -> Any:
+def _create(
+    monkeypatch: pytest.MonkeyPatch,
+    lesson_pin: dict[str, Any] | None,
+    intended_drawing_subject: str | None = None,
+) -> Any:
     repository, session = _repository()
     monkeypatch.setattr(repository, "_lock_idempotency", lambda **_kwargs: None)
     monkeypatch.setattr(repository, "_find_idempotency_receipt", lambda **_kwargs: None)
@@ -181,6 +187,7 @@ def _create(monkeypatch: pytest.MonkeyPatch, lesson_pin: dict[str, Any] | None) 
         run_id=_RUN_ID,
         topic="topic",
         adult_confirmed_idea="",
+        intended_drawing_subject=intended_drawing_subject,
         lesson_pin_snapshot=lesson_pin,
     )
     return session.insert_into("run_inputs")
@@ -197,6 +204,75 @@ def test_create_with_lesson_pin_writes_the_snapshot(monkeypatch: pytest.MonkeyPa
     parameters, _sql = _bound_parameters(_create(monkeypatch, dict(_LESSON_PIN)))
     assert parameters["lesson_pin_snapshot"] == _LESSON_PIN
     assert isinstance(parameters["lesson_pin_snapshot_sha256"], str)
+
+
+def test_create_persists_intended_drawing_subject_in_context_snapshot(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    parameters, _sql = _bound_parameters(_create(monkeypatch, None, "bicycle"))
+    assert parameters["context_snapshot"]["intended_drawing_subject"] == "bicycle"
+
+
+def test_create_fingerprint_preserves_legacy_shape_without_subject() -> None:
+    legacy = _sha256_json(
+        {
+            "parent_profile_id": "11111111-1111-4111-8111-111111111111",
+            "topic": "transport",
+            "adult_confirmed_idea": "",
+            "lesson_version": None,
+        }
+    )
+    fingerprint = _create_run_fingerprint(
+        parent_profile_id=UUID("11111111-1111-4111-8111-111111111111"),
+        topic="transport",
+        adult_confirmed_idea="",
+        lesson_version_ref=None,
+        intended_drawing_subject=None,
+    )
+    assert fingerprint == legacy
+
+
+def test_create_fingerprint_distinguishes_intended_drawing_subject() -> None:
+    common = {
+        "parent_profile_id": UUID("11111111-1111-4111-8111-111111111111"),
+        "topic": "transport",
+        "adult_confirmed_idea": "",
+        "lesson_version_ref": None,
+    }
+    bicycle = _create_run_fingerprint(**common, intended_drawing_subject="bicycle")
+    train = _create_run_fingerprint(**common, intended_drawing_subject="train")
+    assert bicycle != train
+
+
+def test_replay_create_accepts_intended_subject_and_fingerprints_it(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    repository, _session = _repository()
+    captured: dict[str, Any] = {}
+    monkeypatch.setattr(repository, "_lock_idempotency", lambda **_kwargs: None)
+
+    def find_receipt(**kwargs: Any) -> None:
+        captured.update(kwargs)
+        return None
+
+    monkeypatch.setattr(repository, "_find_idempotency_receipt", find_receipt)
+    result = repository.replay_create_run(
+        principal=_PRINCIPAL,
+        account_id="account-1",
+        parent_profile_id=UUID("11111111-1111-4111-8111-111111111111"),
+        idempotency_key="create-replay-1",
+        topic="transport",
+        adult_confirmed_idea="",
+        intended_drawing_subject="bicycle",
+    )
+    assert result is None
+    assert captured["fingerprint"] == _create_run_fingerprint(
+        parent_profile_id=UUID("11111111-1111-4111-8111-111111111111"),
+        topic="transport",
+        adult_confirmed_idea="",
+        lesson_version_ref=None,
+        intended_drawing_subject="bicycle",
+    )
 
 
 def _attach(monkeypatch: pytest.MonkeyPatch, lesson_pin: dict[str, Any] | None) -> _Session:

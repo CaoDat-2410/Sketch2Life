@@ -120,7 +120,7 @@ def test_extra_data_is_classified_without_text() -> None:
 
 
 def test_box_values_are_a_closed_enum_0_to_20() -> None:
-    head = '{"main_subject":{"label":"rua","visible_features":["mai"],"facing":"left","box":['
+    head = '{"main_subject":{"label":"rua","visible_features":["mai"],"facing":"left","box":{"left":'
     after_two = _allowed_after(_enforcer(), _ids(head + "2"))
     pieces = {i: p for i, p in enumerate(_PIECES)}
     allowed_text = {pieces[i] for i in after_two}

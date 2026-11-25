@@ -1,14 +1,14 @@
 import React from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import type { ParentActivityListV1, ParentActivityV1 } from '../../domain/types';
-import { Card, ConfirmButton, Notice, PrimaryButton, ScreenFrame, SectionTitle, SecondaryButton, palette } from '../components/ui';
+import type { ParentActivitySuggestionSetV1, ParentSuggestedActivityV1 } from '../../domain/types';
+import { Card, Notice, PrimaryButton, ScreenFrame, SectionTitle, SecondaryButton, palette } from '../components/ui';
 
 type Props = {
   stepLabel: string;
   topic: string;
   subject: string;
-  activities: ParentActivityListV1 | null;
+  activities: ParentActivitySuggestionSetV1 | null;
   selectedIndex: number | null;
   loading: boolean;
   saving: boolean;
@@ -17,13 +17,12 @@ type Props = {
   onRetry: () => void;
   onSelect: (index: number) => void;
   onContinue: () => void;
-  onCancel: () => void;
+  onCancel?: () => void;
   onBack?: () => void;
 };
 
 export function ActivityScreen(props: Props): React.JSX.Element {
-  const items = props.activities?.items ?? [];
-  const noCandidate = props.activities?.basis.no_candidate === true;
+  const items = props.activities?.activities ?? [];
   const hasSelection = props.selectedIndex !== null && Boolean(items[props.selectedIndex]);
 
   return (
@@ -31,7 +30,7 @@ export function ActivityScreen(props: Props): React.JSX.Element {
       title="Hoạt động cùng bé"
       subtitle="Chọn hoạt động bé sẽ làm sau video."
       step={props.stepLabel}
-      onBack={noCandidate ? undefined : props.onBack}
+      onBack={props.onBack}
       visualTone="creative"
     >
       <Card variant="creative" style={styles.contextCard}>
@@ -45,19 +44,6 @@ export function ActivityScreen(props: Props): React.JSX.Element {
 
       {props.loading && !props.activities ? (
         <Card variant="creative" style={styles.stateCard}><ActivityIndicator color={palette.creativePrimary} /><Text style={styles.description}>Đang tải danh sách hoạt động…</Text></Card>
-      ) : noCandidate ? (
-        <Card variant="creative" style={styles.stateCard}>
-          <SectionTitle variant="creative">Chưa có hoạt động phù hợp</SectionTitle>
-          <Text style={styles.description}>Buổi học này chưa thể bắt đầu câu chuyện. Bạn có thể dừng buổi học trong lịch sử.</Text>
-          <ConfirmButton
-            label="Dừng buổi học"
-            title="Dừng buổi học này?"
-            message="Buổi học sẽ dừng và không thể tiếp tục."
-            confirmLabel="Dừng buổi học"
-            destructive
-            onConfirm={props.onCancel}
-          />
-        </Card>
       ) : !props.activities ? (
         <Card variant="creative" style={styles.stateCard}>
           <SectionTitle variant="creative">Chưa tải được hoạt động</SectionTitle>
@@ -68,11 +54,15 @@ export function ActivityScreen(props: Props): React.JSX.Element {
         <>
           <View style={styles.resultsHeading}>
           <SectionTitle variant="creative">Chọn một hoạt động</SectionTitle>
-            <Text style={styles.description}>{props.activities.basis.pinned_lesson ? 'Theo bài học đã chọn.' : 'Phù hợp với tranh và hồ sơ bé.'}</Text>
+            <Text style={styles.description}>
+              {props.activities.selection_mode === 'AI_GENERATED_FALLBACK'
+                ? 'Gợi ý mới · người lớn xem cùng bé.'
+                : 'Chọn hoạt động từ bài học phù hợp.'}
+            </Text>
           </View>
           {items.map((activity, index) => (
             <ActivityOption
-              key={`${activity.activity_ref.lesson_id}-${activity.activity_ref.version_id}-${activity.activity_ref.activity_index}`}
+              key={`${activity.source}-${activity.source_lesson_version_id ?? 'draft'}-${activity.source_activity_index ?? index}-${activity.title}`}
               activity={activity}
               selected={props.selectedIndex === index}
               onPress={() => props.onSelect(index)}
@@ -94,7 +84,7 @@ export function ActivityScreen(props: Props): React.JSX.Element {
   );
 }
 
-function ActivityOption({ activity, selected, onPress }: { activity: ParentActivityV1; selected: boolean; onPress: () => void }): React.JSX.Element {
+function ActivityOption({ activity, selected, onPress }: { activity: ParentSuggestedActivityV1; selected: boolean; onPress: () => void }): React.JSX.Element {
   return (
     <Pressable accessibilityRole="radio" accessibilityState={{ checked: selected }} accessibilityLabel={`Chọn hoạt động ${activity.title}`} onPress={onPress} style={({ pressed }) => [styles.optionPressable, pressed && styles.pressed]}>
       <Card variant="creative" style={[styles.activityCard, selected && styles.activityCardSelected]}>
@@ -110,7 +100,9 @@ function ActivityOption({ activity, selected, onPress }: { activity: ParentActiv
           <Text style={styles.fieldLabel}>MỤC TIÊU</Text>
           <Text style={styles.bodyText}>{activity.objective}</Text>
         </View>
-        <Text style={styles.sourceText}>Bài học · {activity.lesson_title}{activity.lesson_topic ? ` · ${activity.lesson_topic}` : ''}</Text>
+        <Text style={styles.sourceText}>
+          {activity.source_lesson_title ? `Bài học · ${activity.source_lesson_title}` : 'Gợi ý mới · cần người lớn duyệt'}
+        </Text>
         {activity.materials_text ? <Text style={styles.bodyText}>Chuẩn bị · {activity.materials_text}</Text> : null}
         {activity.preparation_text ? <Text style={styles.detailText}>{activity.preparation_text}</Text> : null}
         <View style={styles.instructionBox}>
@@ -124,18 +116,19 @@ function ActivityOption({ activity, selected, onPress }: { activity: ParentActiv
   );
 }
 
-function activitySourceLabel(source: ParentActivityV1['source']): string {
+function activitySourceLabel(source: ParentSuggestedActivityV1['source']): string {
   if (source === 'PINNED_LESSON') return 'Bài học đã ghim';
-  return source === 'PUBLIC' ? 'Bài học công khai' : 'Bài học được chia sẻ';
+  if (source === 'AI_GENERATED_DRAFT') return 'Gợi ý mới';
+  return 'Bài học được chia sẻ';
 }
 
-function activityKindLabel(kind: ParentActivityV1['activity_kind']): string {
+function activityKindLabel(kind: ParentSuggestedActivityV1['activity_kind']): string {
   if (kind === 'indoor') return 'Trong nhà';
   if (kind === 'outdoor') return 'Ngoài trời';
   return 'Trong nhà hoặc ngoài trời';
 }
 
-function activityIcon(kind: ParentActivityV1['activity_kind']): React.ComponentProps<typeof Ionicons>['name'] {
+function activityIcon(kind: ParentSuggestedActivityV1['activity_kind']): React.ComponentProps<typeof Ionicons>['name'] {
   if (kind === 'indoor') return 'home-outline';
   if (kind === 'outdoor') return 'leaf-outline';
   return 'sunny-outline';
