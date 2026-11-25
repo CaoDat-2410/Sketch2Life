@@ -1116,6 +1116,29 @@ Index(
 )
 
 
+video_generation_progress = Table(
+    "video_generation_progress",
+    STORY_METADATA,
+    Column(
+        "video_generation_id",
+        String(36),
+        ForeignKey("story.video_generations.video_generation_id", ondelete="CASCADE"),
+        primary_key=True,
+    ),
+    Column("stage", String(24), nullable=False),
+    Column("scene_index", SmallInteger),
+    Column("scene_count", SmallInteger, nullable=False),
+    Column("started_at", DateTime(timezone=True), nullable=False),
+    Column("updated_at", DateTime(timezone=True), nullable=False),
+    Column("captions_vtt", Text),
+    Column("cues", JSONB),
+    CheckConstraint(
+        "stage IN ('PLANNING','PREPARING_SCENES','RENDERING','NARRATING','ASSEMBLING','CHECKING')",
+        name="ck_vgp_stage",
+    ),
+)
+
+
 __all__ = [
     "CORE_METADATA",
     "STORY_METADATA",
@@ -1137,5 +1160,6 @@ __all__ = [
     "upload_parts",
     "upload_sessions",
     "video_generation_scenes",
+    "video_generation_progress",
     "video_generations",
 ]

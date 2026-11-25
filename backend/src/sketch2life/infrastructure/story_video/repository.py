@@ -633,6 +633,22 @@ class SqlStoryVideoRepository:
             100,
         )
 
+    def runnable_generations(self, limit: int) -> list[GenerationRecord]:
+        """Accepted work the video worker may advance, oldest first (FEAT-093)."""
+
+        return self._list(
+            _VG.c.state.in_(
+                [
+                    str(GenerationState.ACCEPTED),
+                    str(GenerationState.QUEUED),
+                    str(GenerationState.GENERATING),
+                    str(GenerationState.TECHNICAL_VALIDATING),
+                    str(GenerationState.SAFETY_VALIDATING),
+                ]
+            ),
+            limit,
+        )
+
     def orphaned_in_flight(self, limit: int) -> list[GenerationRecord]:
         """In-flight generations of a run already in a purge state (the cancel hook never ran)."""
 

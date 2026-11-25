@@ -51,6 +51,9 @@ class Settings(BaseSettings):
     # admission ports. Refused outside local/test (see the policy validator below). "unconfigured"
     # composes nothing: the video route answers 503 PROVIDER_UNAVAILABLE after its other checks.
     story_video_adapters: Literal["unconfigured", "local_test"] = "unconfigured"
+    # FEAT-093: "modal_dev" makes the video worker render real videos through the Modal dev apps; "fixture" keeps the
+    # synthetic stand-in. Only the worker process reads it (no Modal credential reaches the app or the API route).
+    story_video_renderer: Literal["fixture", "modal_dev"] = "fixture"
     # Per-call timeout of the two admission ports (BR-38: no port call inside a transaction).
     story_video_port_timeout_seconds: float = Field(default=5.0, ge=0.1, le=30.0)
     # T-1c (SRS l.1676, l.1691, TD-07): signing secret of the Parent video playback token. Blank

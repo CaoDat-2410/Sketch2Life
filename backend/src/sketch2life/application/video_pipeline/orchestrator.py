@@ -179,7 +179,14 @@ class VideoPipeline:
                 prepared = prep[scene.index].result()
                 backgrounds[scene.index] = prepared.background
                 report(STAGE_RENDERING, scene.index, count)
-                clips.append(self._renderer.render(SceneRenderJob(scene=scene, keyframe_png=prepared.keyframe_png)))
+                clips.append(self._renderer.render(
+                        SceneRenderJob(
+                            scene=scene,
+                            keyframe_png=prepared.keyframe_png,
+                            storyboard_sha256=plan.story_sha256,
+                            scene_count=count,
+                        )
+                    ))
             check_cancel()
             if not narration_future.done():
                 report(STAGE_NARRATING, None, count)

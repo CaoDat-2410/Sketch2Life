@@ -232,6 +232,33 @@ services:
       start_period: 120s
     restart: unless-stopped
 
+  # FEAT-093: the Parent video worker. Off by default: `docker compose --profile video up video-worker`.
+  # It is the only service that holds Modal credentials for video (C1 renders scenes, C2 prepares and narrates).
+  video-worker:
+    profiles: ["video"]
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: ["python", "-m", "sketch2life.infrastructure.story_video.video_worker"]
+    environment:
+      SKETCH2LIFE_ENV: local
+      SKETCH2LIFE_DATABASE_URL: postgresql+psycopg://${SKETCH2LIFE_POSTGRES_USER:-sketch2life}:${SKETCH2LIFE_POSTGRES_PASSWORD:-change-me}@postgres:5432/${SKETCH2LIFE_POSTGRES_DB:-sketch2life}
+      SKETCH2LIFE_STORY_VIDEO_RENDERER: ${SKETCH2LIFE_STORY_VIDEO_RENDERER:-modal_dev}
+      SKETCH2LIFE_STORY_VIDEO_ADAPTERS: ${SKETCH2LIFE_STORY_VIDEO_ADAPTERS:-local_test}
+      SKETCH2LIFE_S3_ENDPOINT: ${SKETCH2LIFE_S3_ENDPOINT-http://minio:9000}
+      SKETCH2LIFE_S3_REGION: ${SKETCH2LIFE_S3_REGION:-us-east-1}
+      SKETCH2LIFE_S3_BUCKET: ${SKETCH2LIFE_S3_BUCKET:-sketch2life-private}
+      SKETCH2LIFE_S3_ACCESS_KEY: ${SKETCH2LIFE_S3_ACCESS_KEY:-local-minio-user}
+      SKETCH2LIFE_S3_SECRET_KEY: ${SKETCH2LIFE_S3_SECRET_KEY:-change-this-local-minio-secret}
+      MODAL_TOKEN_ID: ${MODAL_TOKEN_ID:-}
+      MODAL_TOKEN_SECRET: ${MODAL_TOKEN_SECRET:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    restart: unless-stopped
+
 volumes:
   sketch2life-postgres:
   sketch2life-redis:

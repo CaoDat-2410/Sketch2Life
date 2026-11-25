@@ -66,6 +66,8 @@ class PreparedScene:
 class SceneRenderJob:
     scene: ScenePlan
     keyframe_png: bytes
+    storyboard_sha256: str = ""  # the confirmed story's hash; the renderer falls back to its own default
+    scene_count: int = 0
 
 
 @dataclass(frozen=True, slots=True)
