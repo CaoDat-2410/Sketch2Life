@@ -776,6 +776,33 @@
      "title": "Decision",
      "type": "string"
     },
+    "entities": {
+     "items": {
+      "$ref": "#/components/schemas/ParentDrawingEntityV1"
+     },
+     "maxItems": 4,
+     "title": "Entities",
+     "type": "array"
+    },
+    "needs_choice": {
+     "default": false,
+     "title": "Needs Choice",
+     "type": "boolean"
+    },
+    "subject_roles": {
+     "anyOf": [
+      {
+       "items": {
+        "$ref": "#/components/schemas/ParentSubjectRoleV1"
+       },
+       "type": "array"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Subject Roles"
+    },
     "visible_features": {
      "items": {
       "type": "string"
@@ -986,6 +1013,18 @@
      "minimum": 36.0,
      "title": "Age Months",
      "type": "integer"
+    },
+    "intended_drawing_subject": {
+     "anyOf": [
+      {
+       "maxLength": 160,
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Intended Drawing Subject"
     },
     "interests_summary": {
      "maxLength": 2000,
@@ -1268,7 +1307,7 @@
   },
   "ParentStoryRunLifecycleProjectionV1": {
    "additionalProperties": false,
-   "description": "FR-C-08 content-free projection from DELETE_PENDING on (Contract Draft 11 \u00a73.4).\n\nNo context snapshot, story, candidate, subject label, profile ref, asset ref, count,\npercentage or storage key is ever part of it (SRS lines 1053, 1520, 1809).",
+   "description": "FR-C-08 content-free projection from DELETE_PENDING on (Contract Draft 11 §3.4).\n\nNo context snapshot, story, candidate, subject label, profile ref, asset ref, count,\npercentage or storage key is ever part of it (SRS lines 1053, 1520, 1809).",
    "properties": {
     "lifecycle_request_ref": {
      "format": "uuid",
@@ -1626,6 +1665,21 @@
      "title": "Admission Pending",
      "type": "boolean"
     },
+    "captions": {
+     "anyOf": [
+      {
+       "items": {
+        "$ref": "#/components/schemas/ParentVideoCueV1"
+       },
+       "maxItems": 200,
+       "type": "array"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Captions"
+    },
     "current_generation_id": {
      "format": "uuid",
      "title": "Current Generation Id",
@@ -1672,6 +1726,16 @@
     },
     "playback": {
      "$ref": "#/components/schemas/ParentVideoPlaybackV1"
+    },
+    "progress": {
+     "anyOf": [
+      {
+       "$ref": "#/components/schemas/ParentVideoProgressV1"
+      },
+      {
+       "type": "null"
+      }
+     ]
     },
     "scenes": {
      "items": {

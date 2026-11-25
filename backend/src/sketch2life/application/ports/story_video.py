@@ -27,7 +27,7 @@ import json
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import StrEnum
-from typing import Final, Literal, Protocol
+from typing import Any, Final, Literal, Protocol
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
 from sketch2life.application.ports.parent_story_runs import ParentStoryLifecycleRecord
@@ -371,6 +371,18 @@ class DetailScene:
 
 
 @dataclass(frozen=True, slots=True)
+class DetailProgress:
+    """FEAT-093: where the video worker is, and the captions once the video exists."""
+
+    stage: str
+    scene_index: int | None
+    scene_count: int
+    started_at: datetime
+    updated_at: datetime
+    cues: tuple[dict[str, Any], ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
 class DetailGeneration:
     """One generation row as the run detail needs it: ids, states, clock values and the job.
 
@@ -391,6 +403,7 @@ class DetailGeneration:
     completed_at: datetime | None
     updated_at: datetime
     job: AiJob | None
+    progress: DetailProgress | None = None
 
 
 @dataclass(frozen=True, slots=True)

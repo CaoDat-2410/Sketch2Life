@@ -67,6 +67,8 @@ def compose_video(
         "kind": current.kind,
         "state": current.state,
         "job": _job(current),
+        "progress": _progress(current),
+        "captions": _captions(current),
         "scenes": [
             {"scene_index": scene.scene_index, "state": scene.state} for scene in rows.scenes
         ],
@@ -86,6 +88,51 @@ def compose_video(
             for row in accepted[:MAX_ACCEPTED_REQUESTS]
         ],
     }
+
+
+SECONDS_PER_SCENE = 100  # measured LTX time per scene on L40S (FEAT-093 M0)
+PLANNING_SECONDS = 150
+FINISHING_SECONDS = 120
+
+
+def estimate_eta_seconds(stage: str, scene_index: int | None, scene_count: int) -> int:
+    """A rough remaining time for the waiting screen; it is an estimate, never a promise."""
+
+    scenes_left = max(0, scene_count - (scene_index or 1) + 1)
+    if stage == "PLANNING":
+        return PLANNING_SECONDS + scene_count * SECONDS_PER_SCENE + FINISHING_SECONDS
+    if stage in ("PREPARING_SCENES", "RENDERING"):
+        return scenes_left * SECONDS_PER_SCENE + FINISHING_SECONDS
+    if stage == "NARRATING":
+        return FINISHING_SECONDS
+    return 45
+
+
+def _progress(row: DetailGeneration) -> dict[str, Any] | None:
+    progress = row.progress
+    if progress is None or row.state in ("READY", "FAILED", "SAFETY_BLOCKED"):
+        return None
+    return {
+        "stage": progress.stage,
+        "scene_index": progress.scene_index,
+        "scene_count": progress.scene_count,
+        "started_at": progress.started_at,
+        "eta_seconds": estimate_eta_seconds(progress.stage, progress.scene_index, progress.scene_count),
+    }
+
+
+def _captions(row: DetailGeneration) -> list[dict[str, Any]] | None:
+    if row.state != "READY" or row.progress is None or not row.progress.cues:
+        return None
+    return [
+        {
+            "start_ms": int(cue["start_ms"]),
+            "end_ms": int(cue["end_ms"]),
+            "text": str(cue["text"]),
+            "lane": str(cue.get("lane", "narration")),
+        }
+        for cue in row.progress.cues
+    ]
 
 
 def _job(row: DetailGeneration) -> dict[str, Any] | None:

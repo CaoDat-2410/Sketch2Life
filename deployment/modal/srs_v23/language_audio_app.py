@@ -27,7 +27,8 @@ from contracts import (  # noqa: E402
     parse_worker_input,
 )
 import story_staging_worker  # noqa: E402
-import video_timeline as _timeline  # noqa: E402
+import video_timeline as _timeline
+import scene_prepare as _scene_prepare  # noqa: E402
 import drawing_vlm_app as _drawing_worker  # noqa: E402
 from worker_observability import (  # noqa: E402
     GenerationProgress,
@@ -336,6 +337,12 @@ _text_image = (
         copy=True,
     )
     .add_local_file(str(_MODULE_DIR / "video_timeline.py"), "/root/video_timeline.py", copy=True)
+    .add_local_file(str(_MODULE_DIR / "scene_prepare.py"), "/root/scene_prepare.py", copy=True)
+    .add_local_file(str(_MODULE_DIR / "keyframe_compositor.py"), "/root/keyframe_compositor.py", copy=True)
+    .add_local_file(str(_MODULE_DIR / "keyframe_metrics.py"), "/root/keyframe_metrics.py", copy=True)
+    .add_local_file(str(_MODULE_DIR / "keyframe_plan.py"), "/root/keyframe_plan.py", copy=True)
+    .add_local_file(str(_MODULE_DIR / "sam_masks.py"), "/root/sam_masks.py", copy=True)
+    .apt_install("git")
     .uv_pip_install(
         "torch==2.8.0",
         "torchvision==0.23.0",
@@ -347,6 +354,15 @@ _text_image = (
         f"flash-linear-attention[cuda]=={QWEN_FLA_VERSION}",
         QWEN_CAUSAL_CONV1D_WHEEL,
         f"triton=={QWEN_TRITON_VERSION}",
+        # FEAT-093: the same container also prepares scene keyframes (FLUX background plate + SAM masks).
+        "diffusers==0.42.1",
+        "safetensors==0.8.0",
+        "hydra-core==1.3.2",
+        "iopath==0.1.10",
+    )
+    .run_commands(
+        "SAM2_BUILD_CUDA=0 pip install --no-deps "
+        "git+https://github.com/facebookresearch/sam2.git@2b90b9f5ceec907a1c18123530e92e794ad901a4"
     )
     .env(
         {
@@ -3069,6 +3085,160 @@ def synthesize_vietnamese_narration(payload: dict[str, Any]) -> dict[str, Any]:
         )
 
 
+SCENE_PREPARE_SAM_COMMIT = "2b90b9f5ceec907a1c18123530e92e794ad901a4"
+SCENE_PREPARE_SAM_CHECKPOINT = (
+    Path(MODEL_MOUNT) / "sam2.1_hiera_small" / SCENE_PREPARE_SAM_COMMIT / "sam2.1_hiera_small.pt"
+)
+SCENE_PREPARE_SAM_CONFIG = "configs/sam2.1/sam2.1_hiera_s.yaml"
+_scene_flux_pipeline: Any = None
+_scene_sam_predictor: Any = None
+
+
+def _scene_flux_dir() -> str:
+    root = Path(MODEL_MOUNT) / "flux_3_image_klein"
+    revisions = (
+        sorted(path for path in root.iterdir() if (path / "image" / "modular_model_index.json").is_file())
+        if root.is_dir()
+        else []
+    )
+    if not revisions:
+        raise RuntimeError("PLATE_MODEL_UNAVAILABLE")
+    return str(revisions[-1] / "image")
+
+
+def _scene_plate(prompt: str) -> Any:
+    """A 1280x768 crayon-style background plate from FLUX.3 klein; failures degrade to the paper background."""
+
+    global _scene_flux_pipeline
+    import gc
+
+    import torch
+
+    if _scene_flux_pipeline is None:
+        from diffusers import ModularPipeline
+
+        model_dir = _scene_flux_dir()
+        spec = ModularPipeline.from_pretrained(model_dir, local_files_only=True)
+        blocks = spec.blocks
+        blocks.sub_blocks.pop("prompt_upsampler", None)
+        pipeline = blocks.init_pipeline(model_dir)
+        pipeline.load_components(dtype={"vae": torch.float32, "default": torch.bfloat16}, local_files_only=True)
+        pipeline.to("cuda")
+        _scene_flux_pipeline = pipeline
+        gc.collect()
+    with torch.inference_mode():
+        image = _scene_flux_pipeline(
+            prompt=prompt,
+            height=768,
+            width=1280,
+            generator=torch.Generator(device="cuda").manual_seed(7),
+            output="images",
+        )[0]
+    return image
+
+
+def _scene_sam() -> Any:
+    global _scene_sam_predictor
+    if _scene_sam_predictor is None:
+        import sam_masks
+
+        if not SCENE_PREPARE_SAM_CHECKPOINT.is_file():
+            raise sam_masks.MaskError("SAM_CHECKPOINT_UNAVAILABLE")
+        import torch
+        from sam2.build_sam import build_sam2
+        from sam2.sam2_image_predictor import SAM2ImagePredictor
+
+        model = build_sam2(
+            SCENE_PREPARE_SAM_CONFIG,
+            str(SCENE_PREPARE_SAM_CHECKPOINT),
+            device="cuda" if torch.cuda.is_available() else "cpu",
+            apply_postprocessing=False,
+        )
+        _scene_sam_predictor = SAM2ImagePredictor(model)
+    return _scene_sam_predictor
+
+
+@app.function(
+    name="prepare-video-scene",
+    image=_story_text_image,
+    gpu="L40S",
+    cpu=4.0,
+    memory=32_768,
+    volumes={
+        MODEL_MOUNT: model_volume.with_mount_options(read_only=True),
+        SCRATCH_MOUNT: scratch_volume.with_mount_options(read_only=True),
+    },
+    min_containers=0,
+    max_containers=1,
+    scaledown_window=120,
+    timeout=900,
+    retries=0,
+)
+@observed_worker(
+    workload="video.scene.prepare",
+    model_id=TEXT_MODEL_ID,
+    model_revision=TEXT_MODEL_REVISION,
+    gpu_class="L40S",
+    timeout_seconds=900,
+)
+def prepare_video_scene(payload: dict[str, Any]) -> dict[str, Any]:
+    """FEAT-093: one scene keyframe, the child's subjects over a crayon background plate (paper fallback)."""
+
+    import base64
+    import binascii
+
+    with worker_phase("input_envelope"):
+        request = parse_worker_input(payload, execution_group="l4")
+    if request.workload != "video.scene.prepare":
+        raise WorkerContractError("MODAL_WORKLOAD_NOT_ALLOWED")
+    refresh_worker_volume(scratch_volume)
+    with worker_phase("input_manifest_read"):
+        data = _read_json_asset(request, expected_asset="input/request.json")
+    with worker_phase("scene_prepare_request"):
+        try:
+            drawing = base64.b64decode(data["drawing_png_b64"], validate=True)
+            if hashlib.sha256(drawing).hexdigest() != data["drawing_sha256"] or len(drawing) > 20 * 1024 * 1024:
+                raise ValueError("drawing")
+            main = data["main"]
+            secondaries = data["secondaries"]
+            staging = data["staging"]
+            scene_index = int(data["scene_index"])
+            plate_prompt = str(data["plate_prompt"])[:1_200]
+            if not isinstance(secondaries, list) or len(secondaries) > 3 or not 1 <= scene_index <= 15:
+                raise ValueError("shape")
+        except (KeyError, ValueError, TypeError, binascii.Error):
+            raise WorkerContractError("MODAL_INPUT_MANIFEST_INVALID") from None
+    with worker_phase("scene_prepare"):
+        outcome = _scene_prepare.prepare_scene(
+            drawing,
+            main=main,
+            secondaries=secondaries,
+            staging=staging,
+            scene_index=scene_index,
+            source_facing=str(data.get("source_facing", "right")),
+            plate_prompt=plate_prompt,
+            generate_plate=_scene_plate,
+            predictor_factory=_scene_sam,
+        )
+    print(
+        json.dumps(
+            {
+                "event": "scene_prepared",
+                "scene_index": scene_index,
+                "background": outcome["background"],
+                "reason": outcome["reason"],
+            },
+            sort_keys=True,
+        ),
+        flush=True,
+    )
+    response = _media_response(
+        request, "video.scene.prepare", TEXT_MODEL_ID, TEXT_MODEL_REVISION, "image/png", outcome["keyframe_png"]
+    )
+    response["prepare"] = {"background": outcome["background"], "reason": outcome["reason"]}
+    return response
+
+
 _NARRATION_VOICE = "Hải Đăng"
 _NARRATION_CLAUSE_MAX_CHARS = 100
 _narration_engine: Any = None
@@ -5280,6 +5450,7 @@ def _shared_qwen_routes() -> dict[str, Any]:
         "parent.topic-subjects.suggest": suggest_parent_topic_subjects.local,
         "parent.topic-subjects.validate": validate_parent_topic_subject.local,
         "video.timeline.generate": generate_video_timeline.local,
+        "video.scene.prepare": prepare_video_scene.local,
     }
 
 

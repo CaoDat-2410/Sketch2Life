@@ -131,6 +131,29 @@ class ParentVideoJobSummaryV1(BaseModel):
     error_code: str | None
 
 
+class ParentVideoProgressV1(BaseModel):
+    """FEAT-093: the real stage of the video worker and a rough time left (an estimate)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    stage: Literal["PLANNING", "PREPARING_SCENES", "RENDERING", "NARRATING", "ASSEMBLING", "CHECKING"]
+    scene_index: int | None = Field(default=None, ge=1, le=15)
+    scene_count: int = Field(ge=1, le=15)
+    started_at: datetime
+    eta_seconds: int = Field(ge=0, le=7200)
+
+
+class ParentVideoCueV1(BaseModel):
+    """One caption cue; the text is the adult-approved story narration or dialogue."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    start_ms: int = Field(ge=0)
+    end_ms: int = Field(ge=1)
+    text: str = Field(min_length=1, max_length=400)
+    lane: Literal["narration", "dialogue"]
+
+
 class ParentVideoSceneStateV1(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -172,6 +195,8 @@ class ParentStoryRunVideoV1(BaseModel):
     kind: Literal["INITIAL", "QUALITY_REGEN"]
     state: VideoGenerationState
     job: ParentVideoJobSummaryV1 | None
+    progress: ParentVideoProgressV1 | None = None
+    captions: list[ParentVideoCueV1] | None = Field(default=None, max_length=200)
     scenes: list[ParentVideoSceneStateV1]
     playback: ParentVideoPlaybackV1
     video_requests_used: int = Field(ge=0, le=3)

@@ -201,6 +201,17 @@
       "human_gate": "the adult already confirmed the story; the finished video is reviewed before use",
       "quota_owner": "backend admission and AI Policy reservation of the video request",
       "implementation_status": "Prompt, schema and structural parser are unit-tested offline; backend validates timing and rules; disabled pending live verification (FEAT-093 M10)."
+    },
+    {
+      "id": "video.scene.prepare",
+      "execution_group": "l4",
+      "candidate": "FLUX.3 klein background plate plus SAM 2.1 hiera-small masks and the CPU keyframe compositor",
+      "candidate_status": "FEAT-093 source only; not deployed or run for this revision.",
+      "enabled": false,
+      "inputs": "the adult-approved drawing, subject boxes and staging, and a background prompt; no child identifier",
+      "human_gate": "the finished video is reviewed by the adult before use",
+      "quota_owner": "backend admission and AI Policy reservation of the video request",
+      "implementation_status": "Core logic unit-tested offline; FLUX and SAM weights must be downloaded; disabled pending live verification (FEAT-093 M10)."
     }
   ]
 }

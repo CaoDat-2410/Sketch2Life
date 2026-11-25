@@ -21,6 +21,7 @@ from sqlalchemy.orm import Session
 
 from sketch2life.application.ports.story_video import (
     DetailGeneration,
+    DetailProgress,
     DetailScene,
     RunVideoRows,
 )
@@ -30,6 +31,7 @@ from sketch2life.infrastructure.story_video.job_projection import build_video_jo
 
 _VG = story_tables.video_generations
 _VGS = story_tables.video_generation_scenes
+_PROGRESS = story_tables.video_generation_progress
 _SCENES = story_tables.story_scenes
 _REVISIONS = story_tables.story_revisions
 # Three accepted requests at most (l.573) plus the one intent that may still wait for admission.
@@ -98,16 +100,40 @@ def read_run_video(
         .mappings()
         .all()
     )
+    progress_row = (
+        session.execute(
+            select(_PROGRESS).where(_PROGRESS.c.video_generation_id == current_generation_id)
+        )
+        .mappings()
+        .one_or_none()
+    )
     return RunVideoRows(
         current_generation_id=current_generation_id,
-        generations=tuple(_generation(row) for row in rows),
+        generations=tuple(
+            _generation(row, progress_row if str(row["video_generation_id"]) == current_generation_id else None)
+            for row in rows
+        ),
         scenes=tuple(
             DetailScene(int(scene["scene_index"]), str(scene["state"])) for scene in scenes
         ),
     )
 
 
-def _generation(row: Any) -> DetailGeneration:
+def _progress(row: Any) -> DetailProgress | None:
+    if row is None:
+        return None
+    cues = row["cues"] if isinstance(row["cues"], list) else []
+    return DetailProgress(
+        stage=str(row["stage"]),
+        scene_index=None if row["scene_index"] is None else int(row["scene_index"]),
+        scene_count=int(row["scene_count"]),
+        started_at=row["started_at"],
+        updated_at=row["updated_at"],
+        cues=tuple(cue for cue in cues if isinstance(cue, dict)),
+    )
+
+
+def _generation(row: Any, progress_row: Any = None) -> DetailGeneration:
     return DetailGeneration(
         generation_id=str(row["video_generation_id"]),
         generation_no=None if row["generation_no"] is None else int(row["generation_no"]),
@@ -123,6 +149,7 @@ def _generation(row: Any) -> DetailGeneration:
         completed_at=row["completed_at"],
         updated_at=row["updated_at"],
         job=build_video_job(row),
+        progress=_progress(progress_row),
     )
 
 
