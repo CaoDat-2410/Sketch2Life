@@ -31,6 +31,7 @@ L4_WORKLOADS = frozenset(
         "video.scene.validate",
         "tts.narration.generate",
         "video.final-safety.validate",
+        "video.timeline.generate",
     }
 )
 L40S_WORKLOADS = frozenset({"video.scene.generate", "video.story.generate"})

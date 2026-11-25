@@ -31,7 +31,7 @@ class AgeBandProfile:
     secondary_max: int
     speech_cps_min: float  # narration speed in characters per second (TTS quality gate)
     speech_cps_max: float
-    caption_max_cps: float  # reading speed on screen
+    caption_max_cps: float  # reading speed on screen (characters incl. spaces); at least 1.2 x speech_cps_max
 
     @property
     def total_seconds(self) -> int:
@@ -39,9 +39,9 @@ class AgeBandProfile:
 
 
 AGE_BANDS: Final[tuple[AgeBandProfile, ...]] = (
-    AgeBandProfile("36-71", 36, 71, 5, 6, 9, 1, 5, 1, 9.0, 13.0, 14.0),
+    AgeBandProfile("36-71", 36, 71, 5, 6, 9, 1, 5, 1, 8.0, 11.0, 14.0),
     AgeBandProfile("72-107", 72, 107, 7, 6, 14, 2, 8, 2, 10.0, 15.0, 18.0),
-    AgeBandProfile("108-120", 108, 120, 9, 6, 20, 3, 12, 3, 11.0, 16.0, 18.0),
+    AgeBandProfile("108-120", 108, 120, 9, 6, 20, 3, 12, 3, 11.0, 15.0, 18.0),
 )
 
 
@@ -77,6 +77,8 @@ def snap_ms_to_frame(milliseconds: int) -> int:
 
 def _validate_table() -> None:
     for profile in AGE_BANDS:
+        if profile.caption_max_cps < profile.speech_cps_max * 1.2:
+            raise AssertionError(f"{profile.band}: captions would be read faster than the voice allows")
         total = profile.total_seconds
         if not MIN_TOTAL_SECONDS <= total <= MAX_TOTAL_SECONDS:
             raise AssertionError(f"{profile.band}: total {total}s outside the SRS window")

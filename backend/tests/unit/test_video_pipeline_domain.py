@@ -124,6 +124,7 @@ def test_a_valid_timeline_parses_and_is_frame_exact() -> None:
         (lambda raw: raw["scenes"][3]["interactions"][0].__setitem__("from_state", 0.4), "INTERACTION_LADDER_DISCONTINUITY"),
         (lambda raw: raw["scenes"][2]["interactions"][0].__setitem__("to_state", 1.0), "INTERACTION_CONSUME_MUST_REDUCE"),
         (lambda raw: raw["scenes"][0].__setitem__("title", ""), "SCENE_TITLE_INVALID"),
+        (lambda raw: raw["scenes"][1].__setitem__("subjects", ["sec-1"]), "SCENE_MAIN_SUBJECT_MISSING"),
     ],
 )
 def test_broken_timelines_name_the_first_broken_rule(mutate, code) -> None:

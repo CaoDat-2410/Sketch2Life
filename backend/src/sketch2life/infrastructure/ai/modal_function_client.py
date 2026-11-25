@@ -1445,6 +1445,11 @@ _JSON_WORKERS: dict[str, tuple[str, str, int]] = {
         FUNCTION_NAME,
         1_200,
     ),
+    "video.timeline.generate": (
+        APP_NAME,
+        FUNCTION_NAME,
+        1_800,
+    ),
     "teacher.sketch-deck.generate": (
         "sketch2life-srs23-language-audio-dev",
         "generate-teacher-sketch-deck",

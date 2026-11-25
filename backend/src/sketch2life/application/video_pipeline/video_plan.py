@@ -8,10 +8,10 @@ decides timing on its own (FEAT-093 plan Rev 2, sections 4 and 15.2).
 from __future__ import annotations
 
 import hashlib
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Final
 
-from sketch2life.application.video_pipeline.age_profile import FPS, MAX_SCENE_FRAMES, ms_to_frames
+from sketch2life.application.video_pipeline.age_profile import FPS, MAX_SCENE_FRAMES, MAX_TOTAL_SECONDS, ms_to_frames
 from sketch2life.application.video_pipeline.caption_plan import LineAudio
 from sketch2life.application.video_pipeline.story_timeline import (
     Interaction,
@@ -49,6 +49,7 @@ class ScenePlan:
     start_frame: int
     target_frames: int
     model_frames: int
+    hold_frames: int  # last-frame hold added by the assembler when the narration is longer than the clip
     seed: int
     title: str
     visual_prompt: str
@@ -64,7 +65,7 @@ class ScenePlan:
 
     @property
     def duration_ms(self) -> int:
-        return round(self.target_frames * 1000 / FPS)
+        return round((self.target_frames + self.hold_frames) * 1000 / FPS)
 
 
 @dataclass(frozen=True, slots=True)
@@ -92,6 +93,32 @@ class VideoPlan:
         return placements
 
 
+def apply_stretches(plan: VideoPlan, extra_frames: dict[int, int]) -> VideoPlan:
+    """A plan in which the given scenes (by index) hold their last frame for extra frames.
+
+    Later scenes and their lines shift by the same time, so the master clock stays consistent. The total must stay
+    inside the SRS window and each scene inside the worker's frame limit, otherwise ``ValueError`` names the rule."""
+
+    scenes: list[ScenePlan] = []
+    shift_frames = 0
+    for scene in plan.scenes:
+        extra = max(0, extra_frames.get(scene.index, 0))
+        if scene.target_frames + extra > MAX_SCENE_FRAMES:
+            raise ValueError("SCENE_STRETCH_TOO_LONG")
+        shift_ms = round(shift_frames * 1000 / FPS)
+        lines = tuple(
+            replace(line, start_ms=line.start_ms + shift_ms, end_ms=line.end_ms + shift_ms) for line in scene.lines
+        )
+        scenes.append(
+            replace(scene, start_frame=scene.start_frame + shift_frames, hold_frames=scene.hold_frames + extra, lines=lines)
+        )
+        shift_frames += extra
+    total = plan.total_frames + shift_frames
+    if total > MAX_TOTAL_SECONDS * FPS:
+        raise ValueError("PLAN_STRETCH_EXCEEDS_SRS_WINDOW")
+    return replace(plan, total_frames=total, scenes=tuple(scenes))
+
+
 def _seed(story_sha256: str, index: int) -> int:
     digest = hashlib.sha256(f"{story_sha256}:{index}".encode("ascii")).digest()
     return int.from_bytes(digest[:4], "big") & 0x7FFFFFFF
@@ -117,6 +144,7 @@ def build_video_plan(timeline: StoryTimeline, *, story_sha256: str, main_entity_
                 start_frame=start_frame,
                 target_frames=target_frames,
                 model_frames=model_frames,
+                hold_frames=0,
                 seed=_seed(story_sha256, scene.index),
                 title=scene.title,
                 visual_prompt=scene.visual_prompt,
@@ -143,6 +171,7 @@ __all__ = [
     "ScenePlan",
     "StateLadder",
     "VideoPlan",
+    "apply_stretches",
     "build_video_plan",
     "nearest_model_frames",
 ]

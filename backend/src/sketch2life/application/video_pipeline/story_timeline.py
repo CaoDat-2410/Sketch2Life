@@ -300,6 +300,8 @@ def parse_timeline(
             or any(not isinstance(value, str) or value not in ids for value in subjects)
         ):
             raise TimelineError("SCENE_SUBJECTS_INVALID")
+        if main_entity_id not in subjects:
+            raise TimelineError("SCENE_MAIN_SUBJECT_MISSING")
         secondaries_used.update(value for value in subjects if value != main_entity_id)
         raw_interactions = item["interactions"]
         if not isinstance(raw_interactions, list) or len(raw_interactions) > 4:

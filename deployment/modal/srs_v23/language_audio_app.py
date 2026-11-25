@@ -27,6 +27,7 @@ from contracts import (  # noqa: E402
     parse_worker_input,
 )
 import story_staging_worker  # noqa: E402
+import video_timeline as _timeline  # noqa: E402
 import drawing_vlm_app as _drawing_worker  # noqa: E402
 from worker_observability import (  # noqa: E402
     GenerationProgress,
@@ -334,6 +335,7 @@ _text_image = (
         "/root/story_staging_worker.py",
         copy=True,
     )
+    .add_local_file(str(_MODULE_DIR / "video_timeline.py"), "/root/video_timeline.py", copy=True)
     .uv_pip_install(
         "torch==2.8.0",
         "torchvision==0.23.0",
@@ -1724,6 +1726,112 @@ def validate_parent_topic_subject(payload: dict[str, Any]) -> dict[str, Any]:
             "schema_version": "sketch2life.parent-topic-subject-validation.v1",
             **result,
         },
+    }
+
+
+@app.function(
+    name="generate-video-timeline",
+    image=_story_text_image,
+    gpu="L40S",
+    cpu=4.0,
+    memory=32_768,
+    volumes={
+        MODEL_MOUNT: model_volume.with_mount_options(read_only=True),
+        SCRATCH_MOUNT: scratch_volume.with_mount_options(read_only=True),
+    },
+    min_containers=0,
+    max_containers=1,
+    scaledown_window=120,
+    timeout=1_800,
+    retries=0,
+)
+@observed_worker(
+    workload="video.timeline.generate",
+    model_id=TEXT_MODEL_ID,
+    model_revision=TEXT_MODEL_REVISION,
+    gpu_class="L40S",
+    timeout_seconds=1_800,
+)
+def generate_video_timeline(payload: dict[str, Any]) -> dict[str, Any]:
+    """FEAT-093: expand a confirmed story into untimed scenes for the child's age band (no child identifiers)."""
+
+    with worker_phase("input_envelope"):
+        request = parse_worker_input(payload, execution_group="l4")
+    if request.workload != "video.timeline.generate":
+        raise WorkerContractError("MODAL_WORKLOAD_NOT_ALLOWED")
+    refresh_worker_volume(scratch_volume)
+    with worker_phase("input_manifest_read"):
+        data = _read_json_asset(request, expected_asset="input/request.json")
+    with worker_phase("video_timeline_request"):
+        try:
+            _timeline.validate_request(data)
+        except _timeline.TimelineRequestError as exc:
+            raise WorkerContractError(str(exc)) from None
+    with worker_phase("checkpoint_verification"):
+        _verify_marker(Path(TEXT_MODEL_MARKER), TEXT_MODEL_ID, TEXT_MODEL_REVISION)
+    with worker_phase("model_load"):
+        processor, model = _load_text_model()
+    messages = [
+        {"role": "system", "content": _timeline.system_prompt(data)},
+        {"role": "user", "content": _timeline.user_prompt(data)},
+    ]
+    with worker_phase("prompt_encoding"):
+        encoded = processor.apply_chat_template(
+            messages,
+            tokenize=True,
+            add_generation_prompt=True,
+            enable_thinking=False,
+            return_tensors="pt",
+            return_dict=True,
+        ).to(model.device)
+    input_ids = encoded["input_ids"]
+    max_new_tokens = _timeline.output_token_budget(data["age_band"]["scene_count"])
+    with worker_phase("constrained_decoder_setup"):
+        prefix_allowed_tokens_fn = _build_json_prefix_allowed_tokens_fn(
+            processor.tokenizer,
+            _timeline.json_schema(data),
+            eos_token_id=model.generation_config.eos_token_id,
+        )
+    import torch
+
+    with worker_phase("model_inference"), torch.inference_mode():
+        generated = model.generate(
+            **_qwen_text_model_generation_inputs(encoded),
+            do_sample=False,
+            max_new_tokens=max_new_tokens,
+            pad_token_id=_generation_pad_token_id(model, processor.tokenizer),
+            prefix_allowed_tokens_fn=prefix_allowed_tokens_fn,
+        )
+    output_token_count = int(generated.shape[-1] - input_ids.shape[-1])
+    text = processor.tokenizer.decode(generated[0, input_ids.shape[-1] :], skip_special_tokens=True)
+    with worker_phase("output_parse_and_quality_gate"):
+        try:
+            draft = _timeline.parse_output(text, data)
+        except _timeline.TimelineOutputError as exc:
+            if output_token_count >= max_new_tokens:
+                raise RuntimeError("MODAL_MODEL_OUTPUT_TRUNCATED") from None
+            raise RuntimeError(exc.code) from None
+    print(
+        json.dumps(
+            {
+                "event": "video_timeline_accepted",
+                "workload": request.workload,
+                "scene_count": len(draft["scenes"]),
+                "output_token_count": output_token_count,
+                "max_new_tokens": max_new_tokens,
+            },
+            sort_keys=True,
+        ),
+        flush=True,
+    )
+    return {
+        "schema_version": WORKER_OUTPUT_SCHEMA,
+        "workload": request.workload,
+        "job_id": request.job_id,
+        "generation_id": request.generation_id,
+        "attempt_id": request.attempt_id,
+        "model": {"id": TEXT_MODEL_ID, "revision": TEXT_MODEL_REVISION},
+        "result": {"schema_version": _timeline.OUTPUT_SCHEMA, **draft},
     }
 
 
@@ -5088,6 +5196,7 @@ def _shared_qwen_routes() -> dict[str, Any]:
         "parent.activity.suggest": suggest_parent_activities.local,
         "parent.topic-subjects.suggest": suggest_parent_topic_subjects.local,
         "parent.topic-subjects.validate": validate_parent_topic_subject.local,
+        "video.timeline.generate": generate_video_timeline.local,
     }
 
 
