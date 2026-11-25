@@ -1,0 +1,36 @@
+meta {
+  name: 688 [DRAFT-V4C] [LOCAL / TEST ONLY] Reject exact lesson version when version belongs to another lesson
+  type: http
+  seq: 688
+}
+
+get {
+  url: {{baseUrl}}/api/lesson-library/v1/organizations/{{organization_id}}/lessons/seed-lesson-l1/versions/seed-lv-l2-1
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_NOT_FOUND");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase C code at f031fc70; not yet run against a live backend.
+  Role: Assigned Teacher - set bearerToken to seed-tch-a1 token
+  Needs: organization_id=seed-org-a; seed-lv-l2-1 belongs to seed-lesson-l2, not seed-lesson-l1
+  Expected: 404 / RESOURCE_NOT_FOUND
+  Source: backend/src/sketch2life/infrastructure/lesson_library/service.py:822-834
+}

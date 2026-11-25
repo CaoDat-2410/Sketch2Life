@@ -1,0 +1,51 @@
+meta {
+  name: 758 [DRAFT-V4C] [LOCAL / TEST ONLY] Manager reads default capacity without subscription
+  type: http
+  seq: 758
+}
+
+get {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/capacity
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("Cache-Control")).to.equal("private, no-store");
+    expect(res.getHeader("ETag")).to.equal('"0"');
+    const body = res.getBody();
+    expect(body.contract).to.equal("Be1OrganizationCapacityV1");
+    expect(body.organization_id).to.equal(bru.getVar("organization_id"));
+    expect(body.subscription_id).to.equal(null);
+    expect(body.capacity).to.equal(10);
+    expect(body.active_class_count).to.be.a("number");
+    expect(body.available_slots).to.equal(Math.max(0, 10 - body.active_class_count));
+    expect(body.subscription_state).to.equal("NONE");
+    expect(body.revision).to.equal(0);
+    expect(body.period_start).to.equal(null);
+    expect(body.period_end).to.equal(null);
+    expect(body.scheduled_change).to.equal(null);
+    expect(body).to.not.have.property("price_id");
+  });
+}
+
+docs {
+  DRAFT after Phase C: checked against the code at 0f6e7683; not yet run against a live backend.
+  owner: Billing/Capacity
+  Role: Assigned School Manager - set bearerToken to seed-mgr-a token
+  Needs: organization_id=seed-org-a (no Billing subscription in seed data; reports 10 included slots per BR-04, 4 active classes, 6 available slots)
+  Expected: 200 / Be1OrganizationCapacityV1 (capacity 10, revision 0, ETag "0", Cache-Control: private, no-store)
+  Source: backend/src/sketch2life/interfaces/http/routers/be1_registry.py:702-727,771-822, backend/src/sketch2life/infrastructure/be1/capacity_adapter.py:74-110, backend/src/sketch2life/contracts/schemas/be1_capacity.py:40-53
+}

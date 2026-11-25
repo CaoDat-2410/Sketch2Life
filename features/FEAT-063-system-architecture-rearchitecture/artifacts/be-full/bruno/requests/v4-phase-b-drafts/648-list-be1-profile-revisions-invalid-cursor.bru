@@ -1,0 +1,38 @@
+meta {
+  name: 648 [DRAFT-V4B] [LOCAL / TEST ONLY] Reject malformed cursor on BE1 profile revisions list
+  type: http
+  seq: 648
+}
+
+get {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/classes/{{class_id}}/profiles/seed-ch-a-1-1/revisions?cursor=not-a-cursor
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.code).to.equal("INVALID_REQUEST");
+    expect(body.field_errors).to.deep.include({ field: "cursor", code: "INVALID_FORMAT" });
+  });
+}
+
+docs {
+  DRAFT: written from the Phase B code at 134561f4; not yet run against a live backend.
+  Role: Assigned Teacher - set bearerToken to seed-tch-a1 token
+  Needs: organization_id=seed-org-a, class_id=seed-org-a-class-1, seed-ch-a-1-1
+  Expected: 400 / INVALID_REQUEST (cursor INVALID_FORMAT)
+  Source: backend/src/sketch2life/interfaces/http/routers/be1_registry.py:2052-2061, backend/src/sketch2life/interfaces/http/api_conventions.py:90-120
+}

@@ -1,0 +1,38 @@
+meta {
+  name: 702 [DRAFT-V4C] [LOCAL / TEST ONLY] Reject Parent lessons list containing NUL byte in topic
+  type: http
+  seq: 702
+}
+
+get {
+  url: {{baseUrl}}/api/lesson-library/v1/me/lessons?topic=a%00b
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.code).to.equal("INVALID_REQUEST");
+    expect(body.field_errors).to.deep.include({ field: "topic", code: "INVALID_FORMAT" });
+  });
+}
+
+docs {
+  DRAFT: written from the Phase C code at f031fc70; not yet run against a live backend.
+  Role: Parent - set bearerToken to seed-parent-p1 token
+  Needs: seed-parent-p1
+  Expected: 400 / INVALID_REQUEST (topic INVALID_FORMAT)
+  Source: backend/src/sketch2life/infrastructure/lesson_library/service.py:131-138
+}

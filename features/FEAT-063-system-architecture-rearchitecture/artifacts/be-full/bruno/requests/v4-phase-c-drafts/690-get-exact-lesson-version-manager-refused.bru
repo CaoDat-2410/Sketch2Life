@@ -1,0 +1,36 @@
+meta {
+  name: 690 [DRAFT-V4C] [LOCAL / TEST ONLY] Refuse School Manager on exact lesson version read
+  type: http
+  seq: 690
+}
+
+get {
+  url: {{baseUrl}}/api/lesson-library/v1/organizations/{{organization_id}}/lessons/seed-lesson-l1/versions/seed-lv-l1-1
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(403);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("ACTION_NOT_ALLOWED");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase C code at f031fc70; not yet run against a live backend.
+  Role: School Manager - set bearerToken to seed-mgr-a token
+  Needs: organization_id=seed-org-a, seed-lesson-l1, seed-lv-l1-1
+  Expected: 403 / ACTION_NOT_ALLOWED
+  Source: backend/src/sketch2life/interfaces/http/routers/lesson_library.py:171-172,541
+}

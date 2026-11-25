@@ -1,0 +1,48 @@
+meta {
+  name: 745 [DRAFT-V4C] [LOCAL / TEST ONLY] Reject push endpoint registration with mismatched platform and provider
+  type: http
+  seq: 745
+}
+
+post {
+  url: {{baseUrl}}/v1/notifications/push-endpoints
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "contract": "PushEndpointRegistrationV1",
+    "platform_kind": "WEB",
+    "provider_kind": "ANDROID_PUSH",
+    "encrypted_registration_proof": "synthetic:mismatch-probe",
+    "app_version": "1.0.0"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("INVALID_REQUEST");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase C code at f031fc70; not yet run against a live backend.
+  Role: Active Parent - set bearerToken to seed-parent-p1 token
+  Needs: none (WEB + ANDROID_PUSH fails _validate_registration before adapter check)
+  Expected: 400 / INVALID_REQUEST
+  Source: backend/src/sketch2life/application/services/push_endpoints.py:373-375
+}

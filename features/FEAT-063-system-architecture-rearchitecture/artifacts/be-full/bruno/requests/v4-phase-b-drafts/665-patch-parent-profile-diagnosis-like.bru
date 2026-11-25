@@ -1,0 +1,50 @@
+meta {
+  name: 665 [DRAFT-V4B] [LOCAL / TEST ONLY] Reject diagnosis-like interests_summary on Parent profile patch (BR-20)
+  type: http
+  seq: 665
+}
+
+patch {
+  url: {{baseUrl}}/v1/parent/profiles/{{parent_profile_id}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "expected_revision": 1,
+    "display_name": "Phase B BR-20 test child",
+    "age_months": 60,
+    "interests_summary": "autism"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.code).to.equal("INVALID_REQUEST");
+    expect(body.field_errors).to.deep.include({ field: "interests_summary", code: "DIAGNOSIS_LIKE" });
+    expect(JSON.stringify(body)).to.not.include("autism");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase B code at 134561f4; not yet run against a live backend.
+  Role: Parent - set bearerToken to seed-parent-p1 token
+  Needs: parent_profile_id (owned ACTIVE profile, e.g. seed k1; validate_snapshot runs before revision check)
+  Expected: 400 / INVALID_REQUEST (interests_summary DIAGNOSIS_LIKE, no value echoed)
+  Source: backend/src/sketch2life/interfaces/http/routers/parent_profiles.py:354-367, backend/src/sketch2life/domain/parent_profiles.py:122-129
+}

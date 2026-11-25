@@ -1,0 +1,38 @@
+meta {
+  name: 695 [DRAFT-V4C] [LOCAL / TEST ONLY] Reject PUBLIC lesson search with incomplete age band pair
+  type: http
+  seq: 695
+}
+
+get {
+  url: {{baseUrl}}/api/lesson-library/v1/organizations/{{organization_id}}/public-lessons?target_age_band_ref=seed-age-band-placeholder
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.code).to.equal("INVALID_REQUEST");
+    expect(body.field_errors).to.deep.include({ field: "target_age_band_version", code: "REQUIRED" });
+  });
+}
+
+docs {
+  DRAFT: written from the Phase C code at f031fc70; not yet run against a live backend.
+  Role: Assigned Teacher - set bearerToken to seed-tch-a1 token
+  Needs: organization_id=seed-org-a
+  Expected: 400 / INVALID_REQUEST (target_age_band_version REQUIRED when target_age_band_ref is supplied alone)
+  Source: backend/src/sketch2life/infrastructure/lesson_library/service.py:167-176
+}

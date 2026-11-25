@@ -1,0 +1,50 @@
+meta {
+  name: 660 [DRAFT-V4B] [LOCAL / TEST ONLY] Reject diagnosis-like interest on BE1 profile edit (BR-20)
+  type: http
+  seq: 660
+}
+
+patch {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/classes/{{created_class_id}}/profiles/{{phase_b_child_id}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "expected_revision": 1,
+    "structured_interests": [
+      "autism"
+    ]
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.code).to.equal("INVALID_REQUEST");
+    expect(body.field_errors).to.deep.include({ field: "structured_interests", code: "DIAGNOSIS_LIKE" });
+    expect(JSON.stringify(body)).to.not.include("autism");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase B code at 134561f4; not yet run against a live backend.
+  Role: Assigned Teacher - set bearerToken to seed-tch-a3 token
+  Needs: created_class_id from 412, phase_b_child_id from 317 (body validation runs before revision check)
+  Expected: 400 / INVALID_REQUEST (structured_interests DIAGNOSIS_LIKE, no value echoed)
+  Source: backend/src/sketch2life/contracts/schemas/be1_runtime.py:110-122, backend/src/sketch2life/interfaces/http/api_conventions.py:55
+}

@@ -1,0 +1,46 @@
+meta {
+  name: 633 [DRAFT-V4B] [LOCAL / TEST ONLY] Reject Parent context entry create for Teacher wrong role
+  type: http
+  seq: 633
+}
+
+post {
+  url: {{baseUrl}}/v1/parent/profiles/{{parent_profile_id}}/context-entries
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "entry_kind": "OBSERVATION",
+    "short_text": "Likes drawing dinosaurs and stars",
+    "source_kind": "PARENT_NOTE"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("PROFILE_NOT_FOUND");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase B code at 134561f4; not yet run against a live backend.
+  Role: Teacher (wrong role) - set bearerToken to seed-tch-a1 token
+  Needs: parent_profile_id
+  Expected: 404 / PROFILE_NOT_FOUND
+  Source: backend/src/sketch2life/interfaces/http/routers/parent_profiles.py:94-113,497-502
+}

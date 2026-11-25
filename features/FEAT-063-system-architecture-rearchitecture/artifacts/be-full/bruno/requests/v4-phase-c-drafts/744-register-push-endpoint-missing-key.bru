@@ -1,0 +1,49 @@
+meta {
+  name: 744 [DRAFT-V4C] [LOCAL / TEST ONLY] Reject push endpoint registration without Idempotency-Key
+  type: http
+  seq: 744
+}
+
+post {
+  url: {{baseUrl}}/v1/notifications/push-endpoints
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "contract": "PushEndpointRegistrationV1",
+    "platform_kind": "WEB",
+    "provider_kind": "WEB_PUSH",
+    "encrypted_registration_proof": "synthetic:missing-key-probe",
+    "app_version": "1.0.0"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.code).to.equal("INVALID_REQUEST");
+    expect(body.field_errors).to.deep.include({ field: "Idempotency-Key", code: "REQUIRED" });
+  });
+}
+
+docs {
+  DRAFT: written from the Phase C code at f031fc70; not yet run against a live backend.
+  Role: Active Parent - set bearerToken to seed-parent-p1 token
+  Needs: none
+  Expected: 400 / INVALID_REQUEST (Idempotency-Key REQUIRED)
+  Source: backend/src/sketch2life/interfaces/http/routers/notifications.py:200, backend/src/sketch2life/interfaces/http/api_conventions.py:234-242
+}

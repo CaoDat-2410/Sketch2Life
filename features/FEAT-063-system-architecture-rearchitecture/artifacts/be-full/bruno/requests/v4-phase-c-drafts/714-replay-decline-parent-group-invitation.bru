@@ -1,0 +1,42 @@
+meta {
+  name: 714 [DRAFT-V4C] [LOCAL / TEST ONLY] Replay Parent decline invitation with same Idempotency-Key
+  type: http
+  seq: 714
+}
+
+post {
+  url: {{baseUrl}}/api/lesson-library/v1/me/parent-group-invitations/{{phase_c_decline_membership_id}}/decline
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Idempotency-Key: {{phase_c_decline_key}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.contract).to.equal("ParentGroupMembershipV1");
+    expect(body.membership_id).to.equal(bru.getVar("phase_c_decline_membership_id"));
+    expect(body.state).to.equal("DECLINED");
+    expect(body.revision).to.equal(Number(bru.getVar("phase_c_declined_revision")));
+    expect(res.getHeader("ETag")).to.equal('"' + String(body.revision) + '"');
+  });
+}
+
+docs {
+  DRAFT: written from the Phase C code at f031fc70; not yet run against a live backend.
+  Role: Invited Parent - set bearerToken to seed-parent-p1 token
+  Needs: needs-fixture: run after 713 (reuses phase_c_decline_key)
+  Expected: 200 / ParentGroupMembershipV1 (replayed state DECLINED and original ETag)
+  Source: backend/src/sketch2life/infrastructure/lesson_library/service.py:2554-2558,2836-2881
+}

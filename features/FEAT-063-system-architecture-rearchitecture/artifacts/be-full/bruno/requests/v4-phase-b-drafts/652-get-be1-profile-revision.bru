@@ -1,0 +1,45 @@
+meta {
+  name: 652 [DRAFT-V4B] [LOCAL / TEST ONLY] Teacher reads one BE1 profile revision
+  type: http
+  seq: 652
+}
+
+get {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/classes/{{class_id}}/profiles/seed-ch-a-1-1/revisions/{{phase_b_profile_revision_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.contract).to.equal("Be1ProfileRevisionV1");
+    expect(body.child_id).to.equal("seed-ch-a-1-1");
+    expect(body.profile_revision_id).to.equal(bru.getVar("phase_b_profile_revision_id"));
+    expect(body.revision_no).to.be.at.least(1);
+    expect(body.display_name).to.be.a("string");
+    expect(body.age_months).to.be.a("number");
+    expect(body.structured_interests).to.be.an("array");
+    expect(body.revision_hash).to.match(/^[0-9a-f]{64}$/);
+    expect(body).to.not.have.property("authored_by");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase B code at 134561f4; not yet run against a live backend.
+  Role: Assigned Teacher - set bearerToken to seed-tch-a1 token
+  Needs: phase_b_profile_revision_id captured by 647
+  Expected: 200 / Be1ProfileRevisionV1
+  Source: backend/src/sketch2life/interfaces/http/routers/be1_registry.py:2091-2114
+}

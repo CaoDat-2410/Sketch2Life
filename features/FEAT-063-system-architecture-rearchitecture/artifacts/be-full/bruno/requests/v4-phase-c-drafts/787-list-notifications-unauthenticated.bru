@@ -1,0 +1,32 @@
+meta {
+  name: 787 [DRAFT-V4C] [LOCAL / TEST ONLY] Reject anonymous request to notification inbox
+  type: http
+  seq: 787
+}
+
+get {
+  url: {{baseUrl}}/v1/notifications
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(401);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("AUTH_REQUIRED");
+  });
+}
+
+docs {
+  DRAFT after Phase C: checked against the code at 0f6e7683; not yet run against a live backend.
+  Role: Anonymous (no bearer token)
+  Needs: none
+  Expected: 401 / AUTH_REQUIRED
+  Source: backend/src/sketch2life/interfaces/http/routers/notifications.py:105-115, backend/tests/contract/test_notifications_routes.py:433-441
+}

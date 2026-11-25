@@ -1,0 +1,38 @@
+meta {
+  name: 635 [DRAFT-V4B] [LOCAL / TEST ONLY] Reject malformed Parent context entry cursor
+  type: http
+  seq: 635
+}
+
+get {
+  url: {{baseUrl}}/v1/parent/profiles/{{parent_profile_id}}/context-entries?cursor=not-a-cursor
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.code).to.equal("INVALID_REQUEST");
+    expect(body.field_errors).to.deep.include({ field: "cursor", code: "INVALID_FORMAT" });
+  });
+}
+
+docs {
+  DRAFT: written from the Phase B code at 134561f4; not yet run against a live backend.
+  Role: Parent - set bearerToken to seed-parent-p1 token
+  Needs: parent_profile_id (owned ACTIVE profile)
+  Expected: 400 / INVALID_REQUEST (cursor INVALID_FORMAT)
+  Source: backend/src/sketch2life/infrastructure/persistence/parent_profile_repository.py:701-741
+}

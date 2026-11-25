@@ -1,0 +1,46 @@
+meta {
+  name: 770 [DRAFT-V4C] [LOCAL / TEST ONLY] Hide foreign organization capacity PATCH with 404
+  type: http
+  seq: 770
+}
+
+patch {
+  url: {{baseUrl}}/api/be1/v1/organizations/seed-org-a/capacity
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  If-Match: "1"
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "action": "cancel_renewal"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_NOT_FOUND");
+  });
+}
+
+docs {
+  DRAFT after Phase C: checked against the code at 0f6e7683; not yet run against a live backend.
+  owner: Billing/Capacity
+  Role: Cross-org School Manager - set bearerToken to seed-mgr-b token
+  Needs: seed-org-a (unassigned for seed-mgr-b)
+  Expected: 404 / RESOURCE_NOT_FOUND
+  Source: backend/src/sketch2life/interfaces/http/routers/be1_registry.py:283-305,842, backend/tests/integration/test_be1_postgres_api.py:1183-1193
+}

@@ -1,0 +1,47 @@
+meta {
+  name: 646 [DRAFT-V4B] [LOCAL / TEST ONLY] Reject Parent context confirmation from wrong role (Teacher)
+  type: http
+  seq: 646
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{parent_v2_context_run_id}}/context-confirmation
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "expected_context_revision": 1,
+    "context_snapshot_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "confirmed": true,
+    "selected_context_entry_ids": []
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_NOT_FOUND");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase B code at 134561f4; not yet run against a live backend.
+  Role: Teacher (wrong role for Parent run) - set bearerToken to seed-tch-a1 token
+  Needs: parent_v2_context_run_id (or any Parent StoryRun UUID)
+  Expected: 404 / RESOURCE_NOT_FOUND
+  Source: backend/src/sketch2life/interfaces/http/routers/parent_story_runs.py:641-657, backend/src/sketch2life/infrastructure/persistence/parent_story_repository.py:1169-1171
+}

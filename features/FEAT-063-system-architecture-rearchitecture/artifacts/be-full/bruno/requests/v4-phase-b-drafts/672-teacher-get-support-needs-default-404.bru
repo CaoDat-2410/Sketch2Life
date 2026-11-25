@@ -1,0 +1,36 @@
+meta {
+  name: 672 [DRAFT-V4B] [LOCAL / TEST ONLY] Teacher GET support needs returns 404 default without permission store
+  type: http
+  seq: 672
+}
+
+get {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/classes/{{class_id}}/profiles/seed-ch-a-1-1/support-needs
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_NOT_FOUND");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase B code at 134561f4; not yet run against a live backend.
+  Role: Assigned Teacher - set bearerToken to seed-tch-a1 token
+  Needs: organization_id=seed-org-a, class_id=seed-org-a-class-1, seed-ch-a-1-1; production default has no permission store so DefaultTeacherSupportNeedsGuard returns false -> uniform 404 before consent or key check
+  Expected: 404 / RESOURCE_NOT_FOUND
+  Source: backend/src/sketch2life/interfaces/http/routers/be1_registry.py:2354-2370,2427-2429,2445-2476
+}

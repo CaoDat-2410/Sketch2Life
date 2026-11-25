@@ -1,0 +1,48 @@
+meta {
+  name: 778 [DRAFT-V4C] [LOCAL / TEST ONLY] Reject capacity downgrade when class selection count mismatches
+  type: http
+  seq: 778
+}
+
+patch {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{phase_c_capacity_org_id}}/capacity
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  If-Match: "{{phase_c_capacity_revision}}"
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "action": "downgrade",
+    "addon_slots": 0,
+    "suspend_class_refs": []
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(422);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("CLASS_SELECTION_REQUIRED");
+  });
+}
+
+docs {
+  DRAFT after Phase C: checked against the code at 0f6e7683; not yet run against a live backend.
+  owner: Billing/Capacity
+  Role: Assigned School Manager - set bearerToken to Manager token of phase_c_capacity_org_id
+  Needs: needs-fixture: SKETCH2LIFE_BILLING_SANDBOX_ENABLED=true; phase_c_capacity_org_id with addon_slots >= 1 and > 10 active classes
+  Expected: 422 / CLASS_SELECTION_REQUIRED
+  Source: backend/src/sketch2life/interfaces/http/routers/be1_registry.py:654-674, backend/src/sketch2life/infrastructure/platform_admin/sandbox_capacity.py:315-318, backend/tests/integration/test_be1_capacity_postgres.py:379-386
+}

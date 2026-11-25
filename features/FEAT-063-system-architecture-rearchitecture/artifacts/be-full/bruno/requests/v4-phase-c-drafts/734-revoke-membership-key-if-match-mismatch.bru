@@ -1,0 +1,38 @@
+meta {
+  name: 734 [DRAFT-V4C] [LOCAL / TEST ONLY] Reject revoke when Idempotency-Key is reused with different If-Match
+  type: http
+  seq: 734
+}
+
+delete {
+  url: {{baseUrl}}/api/lesson-library/v1/organizations/{{organization_id}}/parent-groups/{{phase_c_revoke_group_id}}/members/{{phase_c_revoke_membership_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  If-Match: "999"
+  Idempotency-Key: {{phase_c_revoke_key}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("INVALID_IDEMPOTENCY_KEY");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase C code at f031fc70; not yet run against a live backend.
+  Role: Assigned School Manager - set bearerToken to seed-mgr-a token
+  Needs: needs-fixture: run after 731 (reuses phase_c_revoke_key with changed If-Match "999")
+  Expected: 400 / INVALID_IDEMPOTENCY_KEY
+  Source: backend/src/sketch2life/infrastructure/lesson_library/service.py:2650-2663,2836-2851
+}

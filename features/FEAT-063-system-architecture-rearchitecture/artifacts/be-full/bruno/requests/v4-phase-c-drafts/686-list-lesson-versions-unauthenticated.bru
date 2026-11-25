@@ -1,0 +1,32 @@
+meta {
+  name: 686 [DRAFT-V4C] [LOCAL / TEST ONLY] Reject anonymous request to lesson versions list
+  type: http
+  seq: 686
+}
+
+get {
+  url: {{baseUrl}}/api/lesson-library/v1/organizations/{{organization_id}}/lessons/seed-lesson-l1/versions
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(401);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("AUTH_REQUIRED");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase C code at f031fc70; not yet run against a live backend.
+  Role: Anonymous (no bearer token)
+  Needs: organization_id=seed-org-a, seed-lesson-l1
+  Expected: 401 / AUTH_REQUIRED
+  Source: backend/src/sketch2life/interfaces/http/be1_runtime.py:197-202, backend/src/sketch2life/interfaces/http/error_envelope.py:61
+}

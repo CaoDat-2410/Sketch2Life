@@ -1,0 +1,53 @@
+meta {
+  name: 731 [DRAFT-V4C] [LOCAL / TEST ONLY] Manager revokes parent-group membership with If-Match and Idempotency-Key
+  type: http
+  seq: 731
+}
+
+delete {
+  url: {{baseUrl}}/api/lesson-library/v1/organizations/{{organization_id}}/parent-groups/{{phase_c_revoke_group_id}}/members/{{phase_c_revoke_membership_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  If-Match: "{{phase_c_revoke_expected_rev}}"
+  Idempotency-Key: {{phase_c_revoke_key}}
+}
+
+script:pre-request {
+  const key = "pg-revoke-" + Date.now();
+  const rev = Number(bru.getVar("phase_c_revoke_revision") || "1");
+  bru.setVar("phase_c_revoke_key", key);
+  bru.setVar("phase_c_revoke_expected_rev", String(rev));
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.contract).to.equal("ParentGroupMembershipV1");
+    expect(body.membership_id).to.equal(bru.getVar("phase_c_revoke_membership_id"));
+    expect(body.parent_group_id).to.equal(bru.getVar("phase_c_revoke_group_id"));
+    expect(body.state).to.equal("REVOKED");
+    const expectedNext = Number(bru.getVar("phase_c_revoke_expected_rev")) + 1;
+    expect(body.revision).to.equal(expectedNext);
+    expect(res.getHeader("ETag")).to.equal('"' + String(expectedNext) + '"');
+    expect(body).to.not.have.property("parent_principal_ref");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase C code at f031fc70; not yet run against a live backend.
+  Role: Assigned School Manager - set bearerToken to seed-mgr-a token
+  Needs: needs-fixture: disposable membership in seed-org-a (phase_c_revoke_group_id, phase_c_revoke_membership_id, phase_c_revoke_revision); keeps seed-pgm-1-p1 intact; saves phase_c_revoke_key and phase_c_revoke_expected_rev for 732, 734
+  Expected: 200 / ParentGroupMembershipV1 (state REVOKED, ETag "<revision>")
+  Source: backend/src/sketch2life/interfaces/http/routers/lesson_library.py:906-944, backend/src/sketch2life/infrastructure/lesson_library/service.py:2626-2718
+}

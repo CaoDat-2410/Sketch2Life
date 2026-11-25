@@ -1,0 +1,37 @@
+meta {
+  name: 791 [DRAFT-V4C] [LOCAL / TEST ONLY] Refuse Teacher on personal billing video quota endpoint with 403
+  type: http
+  seq: 791
+}
+
+get {
+  url: {{baseUrl}}/api/be1/v1/billing/video-quota
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(403);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("BILLING_PURCHASE_NOT_ALLOWED");
+  });
+}
+
+docs {
+  DRAFT after Phase C: checked against the code at 0f6e7683; not yet run against a live backend.
+  owner: Billing/Capacity
+  Role: Teacher - set bearerToken to seed-tch-a1 token
+  Needs: none (scope_for_be1 allows only parent or school_manager)
+  Expected: 403 / BILLING_PURCHASE_NOT_ALLOWED
+  Source: backend/src/sketch2life/interfaces/http/routers/be1_billing.py:76-85, backend/src/sketch2life/infrastructure/billing/quota_commerce.py:1529-1536
+}

@@ -1,0 +1,49 @@
+meta {
+  name: 671 [DRAFT-V4B] [LOCAL / TEST ONLY] Reject diagnosis-like note on Parent support needs PUT (BR-20)
+  type: http
+  seq: 671
+}
+
+put {
+  url: {{baseUrl}}/v1/parent/profiles/{{parent_profile_id}}/support-needs
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "expected_revision": 0,
+    "category": null,
+    "note": "autism"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.code).to.equal("INVALID_REQUEST");
+    expect(body.field_errors).to.deep.include({ field: "note", code: "DIAGNOSIS_LIKE" });
+    expect(JSON.stringify(body)).to.not.include("autism");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase B code at 134561f4; not yet run against a live backend.
+  Role: Parent - set bearerToken to seed-parent-p1 token
+  Needs: needs-fixture: test SupportNeedsRuntime.crypto configured on backend (require_available runs before body validation)
+  Expected: 400 / INVALID_REQUEST (note DIAGNOSIS_LIKE, no value echoed)
+  Source: backend/src/sketch2life/interfaces/http/routers/parent_profiles.py:604-612, backend/src/sketch2life/domain/support_needs.py:80-83
+}

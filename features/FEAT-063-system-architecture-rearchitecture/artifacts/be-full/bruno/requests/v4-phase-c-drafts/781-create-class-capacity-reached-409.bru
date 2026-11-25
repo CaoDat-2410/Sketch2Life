@@ -1,0 +1,46 @@
+meta {
+  name: 781 [DRAFT-V4C] [LOCAL / TEST ONLY] Refuse eleventh class creation when capacity reached
+  type: http
+  seq: 781
+}
+
+post {
+  url: {{baseUrl}}/api/be1/v1/organizations/seed-org-c/classes
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "display_name": "[TEST] Over capacity class"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.code).to.equal("CLASS_CAPACITY_REACHED");
+    expect(body.retryable).to.equal(false);
+  });
+}
+
+docs {
+  DRAFT after Phase C: checked against the code at 0f6e7683; not yet run against a live backend.
+  Role: Assigned School Manager - set bearerToken to seed-mgr-c token
+  Needs: seed-org-c (seeded with 10 active classes and no Billing subscription -> effective capacity 10, 0 available slots; refusal stores no class and no receipt)
+  Expected: 409 / CLASS_CAPACITY_REACHED (retryable false)
+  Source: backend/src/sketch2life/interfaces/http/routers/be1_registry.py:936-999, backend/tools/seed/data.py:98, backend/tests/integration/test_be1_postgres_api.py:1066-1154
+}

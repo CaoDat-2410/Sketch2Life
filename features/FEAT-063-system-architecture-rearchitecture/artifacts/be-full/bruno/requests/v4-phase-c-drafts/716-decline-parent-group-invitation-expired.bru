@@ -1,0 +1,37 @@
+meta {
+  name: 716 [DRAFT-V4C] [LOCAL / TEST ONLY] Reject Parent decline of expired invitation
+  type: http
+  seq: 716
+}
+
+post {
+  url: {{baseUrl}}/api/lesson-library/v1/me/parent-group-invitations/{{phase_c_expired_membership_id}}/decline
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Idempotency-Key: {{$guid}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("INVITATION_EXPIRED");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase C code at f031fc70; not yet run against a live backend.
+  Role: Parent - set bearerToken to seed-parent-p1 token
+  Needs: needs-fixture: expired membership_id owned by seed-parent-p1 in phase_c_expired_membership_id
+  Expected: 409 / INVITATION_EXPIRED (leaves state unchanged and writes no receipt)
+  Source: backend/src/sketch2life/infrastructure/lesson_library/service.py:2561-2568, backend/src/sketch2life/domain/lesson_library/model.py:94-102
+}

@@ -1,0 +1,51 @@
+meta {
+  name: 720 [DRAFT-V4C] [LOCAL / TEST ONLY] Parent lists own active parent-group memberships
+  type: http
+  seq: 720
+}
+
+get {
+  url: {{baseUrl}}/api/lesson-library/v1/me/parent-group-memberships?limit=25
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("Cache-Control")).to.equal("private, no-store");
+    const body = res.getBody();
+    expect(body.contract).to.equal("ParentGroupMembershipPageV1");
+    expect(body.items).to.be.an("array");
+    expect(body.items.length).to.be.at.least(1);
+    for (const item of body.items) {
+      expect(item.contract).to.equal("ParentGroupMembershipV1");
+      expect(item.state).to.equal("ACTIVE");
+      expect(item.membership_id).to.be.a("string");
+      expect(item.parent_group_id).to.be.a("string");
+      expect(item.invited_at).to.be.a("string");
+      expect(item.revision).to.be.at.least(1);
+      expect(item).to.not.have.property("parent_principal_ref");
+    }
+    const ids = body.items.map((item) => item.membership_id);
+    expect(ids).to.include("seed-pgm-1-p1");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase C code at f031fc70; not yet run against a live backend.
+  Role: Parent - set bearerToken to seed-parent-p1 token
+  Needs: seeded seed-pgm-1-p1 (active membership for seed-parent-p1)
+  Expected: 200 / ParentGroupMembershipPageV1 (ACTIVE memberships only, Cache-Control: private, no-store)
+  Source: backend/src/sketch2life/interfaces/http/routers/lesson_library.py:856-875, backend/src/sketch2life/infrastructure/lesson_library/service.py:2421-2460, backend/tools/seed/data.py:428-447
+}

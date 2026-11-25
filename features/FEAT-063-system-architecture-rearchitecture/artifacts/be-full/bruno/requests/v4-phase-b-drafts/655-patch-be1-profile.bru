@@ -1,0 +1,71 @@
+meta {
+  name: 655 [DRAFT-V4B] [LOCAL / TEST ONLY] Teacher edits BE1 child profile
+  type: http
+  seq: 655
+}
+
+patch {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/classes/{{created_class_id}}/profiles/{{phase_b_child_id}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{phase_b_be1_edit_key}}
+}
+
+body:json {
+  {
+    "expected_revision": {{phase_b_be1_edit_expected_revision}},
+    "display_name": "Synthetic Phase B edited",
+    "age_months": 62,
+    "structured_interests": [
+      "drawing",
+      "dinosaurs"
+    ]
+  }
+}
+
+script:pre-request {
+  const key = "be1-edit-" + Date.now();
+  const rev = Number(bru.getVar("phase_b_child_revision_no") || "1");
+  bru.setVar("phase_b_be1_edit_key", key);
+  bru.setVar("phase_b_be1_edit_expected_revision", String(rev));
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (typeof body.revision_no === "number") {
+    bru.setVar("phase_b_child_revision_no", String(body.revision_no));
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.contract).to.equal("Be1ProfileEditResultV1");
+    expect(body.child_id).to.equal(bru.getVar("phase_b_child_id"));
+    expect(body.profile_revision_id).to.be.a("string");
+    expect(body.revision_no).to.equal(Number(bru.getVar("phase_b_be1_edit_expected_revision")) + 1);
+    expect(body.revision_hash).to.match(/^[0-9a-f]{64}$/);
+    expect(res.getHeader("ETag")).to.equal('"' + String(body.revision_no) + '"');
+    expect(body).to.not.have.property("authored_by");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase B code at 134561f4; not yet run against a live backend.
+  Role: Assigned Teacher - set bearerToken to seed-tch-a3 token (assigned to created_class_id by 417)
+  Needs: created_class_id from 412, phase_b_child_id from 317 (before 340 moves it), local profile_receipt_hmac_key configured; no If-Match request header exists on this route (expected_revision is in JSON body; response sets ETag)
+  Expected: 200 / Be1ProfileEditResultV1 with ETag "<revision_no>"
+  Source: backend/src/sketch2life/interfaces/http/routers/be1_registry.py:2156-2340, backend/src/sketch2life/contracts/schemas/be1_runtime.py:83-138,547-553
+}
