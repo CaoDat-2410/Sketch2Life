@@ -102,18 +102,32 @@ export function Refresh({
 }
 export function Field({
   label: title,
+  hint,
   children,
 }: {
   label: string;
+  hint?: ReactNode;
   children: ReactNode;
 }) {
   const id = useId();
+  const hintId = id + "-hint";
   return (
-    <div className="s2l-admin-field grid min-w-0 gap-1.5 font-ui text-sm font-semibold text-ink-soft">
+    <div className="s2l-admin-field grid min-w-0 gap-2 font-ui text-sm font-semibold text-ink">
       <label className="leading-5" htmlFor={id}>{title}</label>
       {isValidElement(children)
-        ? cloneElement(children as ReactElement<{ id?: string }>, { id })
+        ? cloneElement(
+            children as ReactElement<{ id?: string; "aria-describedby"?: string }>,
+            {
+              id,
+              ...(hint ? { "aria-describedby": hintId } : {}),
+            },
+          )
         : children}
+      {hint && (
+        <p id={hintId} className="pa-field-hint m-0 font-normal text-xs leading-5 text-ink-soft">
+          {hint}
+        </p>
+      )}
     </div>
   );
 }
@@ -146,13 +160,13 @@ export function Feedback({
   return (
     <>
       {error && (
-      <div className="s2l-admin-feedback flex min-w-0 items-start gap-2 rounded-xl border border-coral-soft bg-coral-soft/70 px-4 py-3 font-ui text-sm leading-5 text-coral-ink" role="alert">
+      <div className="s2l-admin-feedback flex min-w-0 items-start gap-2 rounded-xl border border-coral-soft bg-coral-soft/70 px-4 py-3 font-ui text-sm leading-5 text-coral-ink" role="alert" aria-live="assertive">
           <CircleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
           {error}
         </div>
       )}
       {notice && (
-        <div className="s2l-admin-feedback rounded-xl border border-mint-soft bg-mint-soft/70 px-4 py-3 font-ui text-sm leading-5 text-mint-ink" role="status">
+        <div className="s2l-admin-feedback rounded-xl border border-mint-soft bg-mint-soft/70 px-4 py-3 font-ui text-sm leading-5 text-mint-ink" role="status" aria-live="polite">
           {notice}
         </div>
       )}

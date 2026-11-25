@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { RefreshCw, School } from "lucide-react";
+import { Link } from "react-router-dom";
 import {
   allowedClassCommands,
   classService,
@@ -22,6 +23,7 @@ export function ClassesPage() {
   const [retryName, setRetryName] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState("");
   const [error, setError] = useState("");
+  const [capacityReached, setCapacityReached] = useState(false);
   const [stateError, setStateError] = useState("");
   const [notice, setNotice] = useState("");
   const actionKeys = useRef(new Map<string, string>());
@@ -60,7 +62,7 @@ export function ClassesPage() {
     // One key per user action: a retry of the same name reuses it, a changed name is a new action.
     const key = actionKeys.current.get(name) ?? createIdempotencyKey();
     actionKeys.current.set(name, key);
-    setCreating(true); setError(""); setNotice("");
+    setCreating(true); setError(""); setCapacityReached(false); setNotice("");
     try {
       const created = await classService.createClass(name, key);
       actionKeys.current.delete(name);
@@ -76,6 +78,12 @@ export function ClassesPage() {
         setError("Lớp đã được tạo; danh sách chưa thể làm mới. Chọn Làm mới từ BE1 để cập nhật.");
       }
     } catch (cause) {
+      if (cause instanceof AdminBe1Error && cause.code === "CLASS_CAPACITY_REACHED") {
+        actionKeys.current.delete(name);
+        setRetryName(null);
+        setCapacityReached(true);
+        return;
+      }
       if (cause instanceof AdminBe1Error && cause.status >= 400 && cause.status < 500) actionKeys.current.delete(name);
       setRetryName(actionKeys.current.has(name) ? name : null);
       setError(cause instanceof Error ? cause.message : "Không thể tạo lớp. Hãy thử lại cùng yêu cầu.");
@@ -125,6 +133,9 @@ export function ClassesPage() {
           <p className="manager-business-subtle">Nhập tên lớp. Nếu kết quả gửi chưa rõ, hãy gửi lại cùng yêu cầu để tránh tạo trùng.</p>
         </div>
         <form className="cozy-form-stack" onSubmit={(event) => { event.preventDefault(); void createClass(); }}>
+          {capacityReached && <Alert role="alert" tone="danger">
+            Tổ chức đã đạt giới hạn số lớp hiện tại. <Link to="/school/capacity">Xem sức chứa</Link>
+          </Alert>}
           {error && <Alert role="alert" tone="danger">{error}</Alert>}
           <div className="cozy-form-grid">
             <FormField
@@ -132,7 +143,6 @@ export function ClassesPage() {
               label="Tên lớp"
               htmlFor="manager-class-name"
               required
-              help="API tạo lớp hiện chưa kiểm tra giới hạn sức chứa (SRS FR-T-03); hãy tự kiểm tra sức chứa trước khi tạo lớp."
             >
               <input id="manager-class-name" className="cozy-input" value={displayName} onChange={(event) => setDisplayName(event.target.value)} maxLength={200} required disabled={creating} />
             </FormField>
@@ -217,7 +227,7 @@ export function ClassesPage() {
               )}
             </div>
           )}
-          <p className="s2l-note">BE1 hiện chưa cung cấp capacity hoặc thao tác khôi phục lớp đã lưu trữ.</p>
+          <p className="s2l-note">Lớp đã lưu trữ không thể khôi phục trong BE1.</p>
         </aside>
       </section>
     </div>

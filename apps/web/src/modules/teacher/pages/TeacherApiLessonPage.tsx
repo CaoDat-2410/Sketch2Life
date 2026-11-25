@@ -19,6 +19,10 @@ import { Icon } from "../components/Icon";
 import { PageHeading } from "../../../shared/components/FeatureAvailability";
 import { Button, FormField, Select } from "../../../shared/ui";
 import { commandSignature, isStaleRevision, keyForCommand } from "../services/commandKeys";
+import { LessonVersionsPanel } from "../components/LessonVersionsPanel";
+import { TeacherPrivateSharePanel } from "../components/TeacherPrivateSharePanel";
+import { PublicLessonSearchPanel } from "../components/PublicLessonSearchPanel";
+import type { PublicLessonHit, RemixLessonResult } from "../../../shared/api/teacherLessonLibraryApi";
 
 const blankActivity = (): LessonActivity => ({
   title: "",
@@ -62,8 +66,11 @@ export function TeacherApiLessonPage() {
   const [detailError, setDetailError] = useState<string | null>(null);
   // FEAT-066 C4: set after a 409 STALE_REVISION; the Teacher chooses when to load the current version.
   const [staleRevision, setStaleRevision] = useState(false);
+  const [remixProvenance, setRemixProvenance] = useState<{ title: string; lessonId: string; versionId: string } | null>(null);
   const [reload, setReload] = useState(0);
   const mutationKeys = useRef(new Map<string, string>());
+  const skipNextDetailLoad = useRef<string | null>(null);
+  const pendingRemixSummary = useRef<LessonSummary | null>(null);
   const organizationId = configuredOrganizationId();
 
   useEffect(() => {
@@ -89,7 +96,14 @@ export function TeacherApiLessonPage() {
         }
         return backendApi.lessons(organizationId);
       })
-      .then((page) => { if (active) { setItems(page.items); setNextCursor(page.next_cursor); } })
+      .then((page) => {
+        if (!active) return;
+        const pinned = pendingRemixSummary.current;
+        const includesPinned = pinned && page.items.some((item) => item.lesson_id === pinned.lesson_id);
+        if (includesPinned) pendingRemixSummary.current = null;
+        setItems(pinned && !includesPinned ? [pinned, ...page.items] : page.items);
+        setNextCursor(page.next_cursor);
+      })
       .catch((cause: unknown) => { if (active) setPageError(backendMessage(cause)); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
@@ -101,6 +115,10 @@ export function TeacherApiLessonPage() {
       setDetail(null);
       setDetailError(null);
       return () => { active = false; };
+    }
+    if (skipNextDetailLoad.current === selectedId) {
+      skipNextDetailLoad.current = null;
+      return;
     }
     setDetail(null);
     setContent(blankContent());
@@ -148,6 +166,32 @@ export function TeacherApiLessonPage() {
     setDetail(null);
     setContent(blankContent());
     setDetailError(null);
+    setRemixProvenance(null);
+  };
+
+  const openRemixedLesson = (result: RemixLessonResult, hit: PublicLessonHit) => {
+    const remixed = result.lesson;
+    skipNextDetailLoad.current = remixed.lesson_id;
+    setSelectedId(remixed.lesson_id);
+    setDetail(remixed);
+    if (remixed.current_version.content) setContent(remixed.current_version.content);
+    setDetailError(null);
+    setStaleRevision(false);
+    setRemixProvenance({ title: hit.title, lessonId: result.source.lesson_id, versionId: result.source.version_id });
+    const summary: LessonSummary = {
+      contract: "LessonSummaryV1",
+      lesson_id: remixed.lesson_id,
+      title: remixed.current_version.content?.title ?? hit.title,
+      topic: remixed.current_version.content?.topic ?? hit.topic,
+      current_version_no: remixed.current_version.version_no,
+      review_state: remixed.current_version.review_state,
+      visibility: remixed.visibility,
+      activity_count: remixed.current_version.content?.activities.length ?? hit.activity_count,
+      updated_at: remixed.updated_at,
+    };
+    pendingRemixSummary.current = summary;
+    setItems((current) => [summary, ...current.filter((item) => item.lesson_id !== remixed.lesson_id)]);
+    setReload((value) => value + 1);
   };
 
   const normalizedContent = (): LessonContent => ({
@@ -295,7 +339,7 @@ export function TeacherApiLessonPage() {
           <div className="tw-row tw-between"><h2 className="tw-h2">Giáo án</h2><button type="button" className="tw-btn is-ghost is-sm" disabled={loading} onClick={() => setReload((value) => value + 1)}>Tải lại</button></div>
           {loading && <p className="tw-sub">Đang tải danh sách…</p>}
           {!loading && items.length === 0 && <p className="tw-sub">Chưa có giáo án trong phạm vi tài khoản.</p>}
-          <div style={{ display: "grid", gap: 8 }}>{items.map((item) => <button key={item.lesson_id} type="button" className={`tw-item tw-row tw-between${item.lesson_id === selectedId ? " is-selected" : ""}`} style={{ width: "100%", textAlign: "left" }} onClick={() => setSelectedId(item.lesson_id)} aria-pressed={selectedId === item.lesson_id}>
+          <div style={{ display: "grid", gap: 8 }}>{items.map((item) => <button key={item.lesson_id} type="button" className={`tw-item tw-row tw-between${item.lesson_id === selectedId ? " is-selected" : ""}`} style={{ width: "100%", textAlign: "left" }} onClick={() => { setRemixProvenance(null); setSelectedId(item.lesson_id); }} aria-pressed={selectedId === item.lesson_id}>
             <span style={{ minWidth: 0 }}><strong style={{ display: "block" }}>{item.title}</strong><span className="tw-meta">{item.topic} · bản {item.current_version_no} · {item.review_state}</span></span><span className="tw-chip is-gray">{item.visibility}</span>
           </button>)}</div>
           {moreError && <BackendNotice title="Không tải được giáo án tiếp theo" tone="error">{moreError}</BackendNotice>}
@@ -305,6 +349,7 @@ export function TeacherApiLessonPage() {
 
         <form className="tw-card cozy-form-card cozy-form-card--wide cozy-form-stack teacher-lesson-form" onSubmit={(event) => void save(event)}>
           <div className="tw-row tw-between tw-wrap"><h2 className="tw-h2" style={{ margin: 0 }}>{detail ? "Cập nhật giáo án" : "Tạo giáo án"}</h2>{detail && <span className="tw-chip is-gray">Revision {detail.revision} · {detail.current_version.review_state}</span>}</div>
+          {remixProvenance && detail?.lesson_id === selectedId && <p className="tw-item" role="status">Tạo từ bài công khai “{remixProvenance.title}” · nguồn {remixProvenance.lessonId}, bản {remixProvenance.versionId}.</p>}
           {selectedId && !detail && !detailError && <p className="tw-sub">Đang tải nội dung có revision hiện tại…</p>}
 
           <div className="cozy-form-grid">
@@ -399,6 +444,9 @@ export function TeacherApiLessonPage() {
           </div>
         </form>
       </div>
+      {detail && <TeacherPrivateSharePanel key={detail.lesson_id} organizationId={organizationId} lesson={detail} />}
+      {detail && <LessonVersionsPanel key={detail.lesson_id} organizationId={organizationId} lessonId={detail.lesson_id} />}
+      <PublicLessonSearchPanel organizationId={organizationId} onRemixed={openRemixedLesson} />
       <BackendNotice title="API không tự phát hành bài học" tone="info">Giáo án mới được tạo với visibility PRIVATE. Chỉ khi gửi grant PUBLIC, lesson sẽ vào trạng thái PENDING_REVIEW để School Manager quyết định.</BackendNotice>
     </div>
   );

@@ -54,6 +54,7 @@ export const teacherRunApi = {
   active: () => request<ActiveResponse>("/v1/story-runs/active/current").then(data),
   create: (input: TeacherCreateInput, key: string) => write<RunResponse>("/v1/story-runs", "POST", key, input),
   get: (id: string, etag?: string, signal?: AbortSignal) => request<RunResponse>(run(id), { headers: ifNoneMatch(etag), signal }, true),
+  delete: (id: string, key: string) => write<LifecycleEnvelope>(run(id), "DELETE", key),
   cancel: (id: string, revision: number, key: string) => write<RunResponse>(`${run(id)}/cancel`, "POST", key, { expected_revision: revision }),
   attachArtwork: (id: string, asset: string, revision: number, key: string) => write<{ request_id: string; story_run_id: string; input_revision: number; run_revision: number; run_state: string; analysis_state: string; asset_ref: string; asset_kind: "DRAWING"; asset_state: "READY" } | LifecycleEnvelope>(`${run(id)}/assets`, "POST", key, { asset_ref: asset, expected_run_revision: revision }),
   idea: (id: string, input: IdeaInput, key: string) => submitIdea(id, input, key, () => write<{ request_id: string; story_run_id: string; input_revision: number; run_revision: number; run_state: string; idea_source: "TEXT" | "VOICE" | "TEXT_AND_VOICE" | null; transcript: { transcript_revision: number; state: string } | null } | LifecycleEnvelope>(`${run(id)}/idea`, "POST", key, input)),

@@ -112,6 +112,23 @@ describe("cozy role shell", () => {
     expect(screen.getByRole("link", { name: "Giáo án" }).getAttribute("aria-current")).toBe("page");
   });
 
+  it("shows the Teacher SVG catalog as an available learning resource", () => {
+    const catalog = TEACHER_NAVIGATION.flatMap((group) => group.items).find((item) => item.href === "/teacher/svg-catalog");
+    expect(catalog?.label).toBe("Danh mục SVG");
+    expect(catalog?.state).toBe("available");
+  });
+
+  it("lists the Teacher, School Manager, and Platform Admin additions as available", () => {
+    const entries = [TEACHER_NAVIGATION, SCHOOL_MANAGER_NAVIGATION, PLATFORM_ADMIN_NAVIGATION].flatMap((groups) => groups.flatMap((group) => group.items));
+    for (const expected of [
+      { href: "/teacher/t14-feedback", label: "Phản hồi giáo án" },
+      { href: "/school/data-requests", label: "Yêu cầu dữ liệu" },
+      { href: "/platform/a02-platform-operations?panel=svgcatalog", label: "Danh mục SVG" },
+    ]) {
+      expect(entries.find((item) => item.href === expected.href)).toMatchObject({ ...expected, state: "available" });
+    }
+  });
+
   it("renders the School Manager breadcrumb and keeps its active group expanded", () => {
     renderRoleShell("School Manager", SCHOOL_MANAGER_NAVIGATION, "manager", "/school");
     expect(screen.getByRole("link", { name: "Không gian quản lý" }).getAttribute("href")).toBe("/school");

@@ -6,6 +6,8 @@ import type { User } from 'firebase/auth'
 import App from '../App'
 import { authService } from '../services/authService'
 import { classService } from '../services/classService'
+import { managerBusinessService } from '../services/managerBusinessService'
+import { capacityService } from '../services/capacityService'
 import { SCHOOL_MANAGER_NAVIGATION } from '../../../../shared/navigation/WebAppShell'
 import { getPreferences } from '../../../../shared/api/accountPreferencesApi'
 
@@ -82,10 +84,48 @@ describe('School Manager BE1 organization gate', () => {
     expect(screen.queryByRole('heading', { name: 'Người dùng & vai trò' })).toBeNull()
   })
 
-  it.each(['capacity'])('keeps %s unavailable', async (route) => {
+  it('routes capacity to the live page and marks its navigation item available', async () => {
     signedIn = true
-    render(<PortalSessionProvider><MemoryRouter initialEntries={[`/school/${route}`]}><App /></MemoryRouter></PortalSessionProvider>)
-    expect((await screen.findAllByText('Chưa khả dụng')).length).toBeGreaterThan(0)
+    vi.spyOn(managerBusinessService, 'organization').mockResolvedValue({
+      contract: 'Be1OrganizationV1',
+      organization_id: 'org-test',
+      display_name: 'Trường kiểm thử',
+    })
+    vi.spyOn(capacityService, 'getCapacity').mockResolvedValue({
+      data: {
+        contract: 'Be1OrganizationCapacityV1',
+        organization_id: 'org-test',
+        subscription_id: null,
+        capacity: 10,
+        active_class_count: 1,
+        available_slots: 9,
+        subscription_state: 'NONE',
+        revision: 0,
+        period_start: null,
+        period_end: null,
+        scheduled_change: null,
+      },
+      etag: '"0"',
+      revision: 0,
+    })
+    render(<PortalSessionProvider><MemoryRouter initialEntries={['/school/capacity']}><App /></MemoryRouter></PortalSessionProvider>)
+
+    expect(await screen.findByRole('heading', { name: 'Sức chứa lớp' })).toBeTruthy()
+    expect(await screen.findByText('Trường chưa có gói sức chứa. Sức chứa mặc định gồm 10 lớp.')).toBeTruthy()
+    const capacityLink = screen.getByRole('link', { name: /^Sức chứa$/ })
+    expect(capacityLink.getAttribute('href')).toBe('/school/capacity')
+    expect(capacityLink.getAttribute('aria-current')).toBe('page')
+    expect(capacityLink.textContent).not.toContain('Chờ API')
+    expect(SCHOOL_MANAGER_NAVIGATION.flatMap((group) => group.items).find((item) => item.href === '/school/capacity')?.state).toBe('available')
+  })
+
+  it('routes organization data requests to the new page', async () => {
+    signedIn = true
+    render(<PortalSessionProvider><MemoryRouter initialEntries={['/school/data-requests']}><App /></MemoryRouter></PortalSessionProvider>)
+
+    expect(await screen.findByRole('heading', { name: 'Yêu cầu dữ liệu' })).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Yêu cầu dữ liệu' }).getAttribute('href')).toBe('/school/data-requests')
+    expect(classService.currentAssignments).toHaveBeenCalledOnce()
   })
 
   it('redirects the removed teacher groups route and updates the navigation', async () => {

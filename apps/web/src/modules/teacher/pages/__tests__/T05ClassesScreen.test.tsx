@@ -1,10 +1,11 @@
 // Goal v3 Phase B: Teacher class page (T-7a2 server-decided 403/404, T-7b read-only class, T-7c create, T-7d move).
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { TeacherApiClassesPage, T05ClassDetailPage } from "../T05ClassesScreen";
 import { backendApi, type Be1Class } from "../../../../shared/api/backendApi";
-import { NOT_FOUND_OR_NO_ACCESS, TeacherRosterApiError, teacherRosterApi } from "../../../../shared/api/teacherRosterApi";
+import { teacherProfileApi } from "../../../../shared/api/teacherProfileApi";
+import { NOT_FOUND_OR_NO_ACCESS, TeacherRosterApiError, TeacherRosterPageError, teacherRosterApi } from "../../../../shared/api/teacherRosterApi";
 
 const klass = (id: string, state: Be1Class["state"] = "active", revision = 3): Be1Class => ({ class_id: id, display_name: "Lớp " + id, state, class_revision: revision });
 const profile = (id: string) => ({ child_id: id, class_id: "k1", display_name: "Synthetic " + id, age_months: 60 });
@@ -17,7 +18,8 @@ function mockApis(options: { classes?: Be1Class[]; teacherClassIds?: string[]; p
   });
   const classes = vi.spyOn(backendApi, "classes").mockResolvedValue({ contract: "Be1ClassListV1", items: options.classes ?? [klass("k1"), klass("k2", "active", 7)] });
   const profiles = vi.spyOn(teacherRosterApi, "profiles");
-  if (options.profiles instanceof Error) profiles.mockRejectedValue(options.profiles); else profiles.mockResolvedValue((options.profiles as never) ?? [profile("a")]);
+  if (options.profiles instanceof Error) profiles.mockRejectedValue(options.profiles);
+  else profiles.mockResolvedValue((options.profiles as never) ?? { items: [profile("a")], activeProfileCount: 1 });
   const consents = vi.spyOn(teacherRosterApi, "consents");
   if (options.consents instanceof Error) consents.mockRejectedValue(options.consents); else consents.mockResolvedValue((options.consents as never) ?? [consent("a")]);
   return { classes, profiles, consents };
@@ -46,6 +48,20 @@ describe("Teacher class list", () => {
 });
 
 describe("Teacher class page scope (T-7a2)", () => {
+  it("offers profile panels on roster rows and reads support needs only after open", async () => {
+    mockApis();
+    const supportRead = vi.spyOn(teacherProfileApi, "getSupportNeeds").mockResolvedValue({
+      contract: "Be1SupportNeedsV1", child_id: "a", revision: 0, category: null, note: null,
+    });
+    renderDetail();
+    expect(await screen.findByText("Synthetic a")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Lịch sử hồ sơ" })).toBeTruthy();
+    expect(supportRead).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Nhu cầu hỗ trợ" }));
+    expect(await screen.findByText("Phiên bản 0")).toBeTruthy();
+    expect(supportRead).toHaveBeenCalledWith("org-test", "k1", "a");
+  });
+
   it("shows one uniform not-found text for a 404 and no local 403", async () => {
     mockApis({ profiles: new TeacherRosterApiError(NOT_FOUND_OR_NO_ACCESS, "RESOURCE_NOT_FOUND", 404), consents: new TeacherRosterApiError(NOT_FOUND_OR_NO_ACCESS, "RESOURCE_NOT_FOUND", 404), teacherClassIds: [] });
     const { container } = renderDetail("other-class");
@@ -70,22 +86,43 @@ describe("Teacher class page scope (T-7a2)", () => {
     expect(screen.queryByRole("button", { name: "Chuyển lớp" })).toBeNull();
   });
 
-  it("keeps the roster hidden while consent cannot be read", async () => {
+  it("keeps the API-filtered roster visible when the separate consent read fails", async () => {
     mockApis({ consents: new TeacherRosterApiError("Máy chủ bận.", "PROVIDER_UNAVAILABLE", 503) });
     renderDetail();
-    expect(await screen.findByText(/Consent chưa thể xác minh/)).toBeTruthy();
-    expect(screen.queryByText("Synthetic a")).toBeNull();
+    expect(await screen.findByText(/Chi tiết trạng thái consent chưa thể tải/)).toBeTruthy();
+    expect(await screen.findByText("Synthetic a")).toBeTruthy();
   });
 
-  it("shows a calm locked notice for consent-not-effective", async () => {
-    mockApis({ profiles: new TeacherRosterApiError("", "CONSENT_NOT_EFFECTIVE", 403, "corr-locked") });
+  it("shows an ordinary safe error for an unexpected legacy CONSENT_NOT_EFFECTIVE response", async () => {
+    mockApis({ profiles: new TeacherRosterApiError("Roster request was rejected.", "CONSENT_NOT_EFFECTIVE", 409, "corr-locked") });
     renderDetail();
-    await screen.findByText("Danh sách hồ sơ tạm khóa đến khi có consent hiệu lực");
-    const lockedNotice = screen.getByRole("status");
-    expect(lockedNotice.textContent).toContain("Danh sách hồ sơ tạm khóa đến khi có consent hiệu lực");
-    expect(lockedNotice.textContent).toContain("Consent chưa được xác minh nên dữ liệu trẻ đang bị khóa.");
-    expect(lockedNotice.textContent).toContain("Mã yêu cầu: corr-locked");
-    expect(screen.queryByRole("alert")).toBeNull();
+    const error = await screen.findByRole("alert");
+    expect(error.textContent).toContain("Roster request was rejected.");
+    expect(error.textContent).toContain("Mã yêu cầu: corr-locked");
+    expect(screen.queryByText("Danh sách hồ sơ tạm khóa đến khi có consent hiệu lực")).toBeNull();
+  });
+
+  it("keeps rows loaded before a later roster page failure", async () => {
+    const partial = { items: [profile("a")], activeProfileCount: 3 };
+    mockApis({ profiles: new TeacherRosterPageError(
+      new TeacherRosterApiError("Máy chủ bận.", "PROVIDER_UNAVAILABLE", 503),
+      partial,
+    ) });
+    renderDetail();
+    expect(await screen.findByText(/Danh sách hồ sơ chỉ tải được một phần: Máy chủ bận/)).toBeTruthy();
+    expect(screen.getByText("Synthetic a")).toBeTruthy();
+  });
+
+  it("explains an empty eligible list with the aggregate active count", async () => {
+    mockApis({ profiles: { items: [], activeProfileCount: 4 } });
+    renderDetail();
+    expect(await screen.findByText("Lớp có 4 hồ sơ đang hoạt động nhưng chưa có hồ sơ nào đủ điều kiện hiển thị.")).toBeTruthy();
+  });
+
+  it("keeps the existing empty text when the active count is zero", async () => {
+    mockApis({ profiles: { items: [], activeProfileCount: 0 } });
+    renderDetail();
+    expect(await screen.findByText("API không trả hồ sơ có consent hiệu lực cho lớp này.")).toBeTruthy();
   });
 });
 
@@ -97,6 +134,99 @@ describe("Teacher read-only suspended class (T-7b)", () => {
     expect(await screen.findByText("Synthetic a")).toBeTruthy();
     expect(screen.queryByText(/Tạo hồ sơ thử nghiệm/)).toBeNull();
     expect(screen.queryByRole("button", { name: "Chuyển lớp" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Ghi nhận consent" })).toBeNull();
+    expect(screen.queryByLabelText("Mã trẻ")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Thu hồi" })).toBeNull();
+  });
+});
+
+describe("Teacher consent record and revoke (GAP-04)", () => {
+  const pendingConsent = {
+    consent_id: "consent-1",
+    child_id: "real-child",
+    purpose_ref: "classroom-learning-v1",
+    state: "pending",
+    effective: false,
+  };
+
+  it("records a manual child id, labels the pending row, and reloads consent rows", async () => {
+    const { consents } = mockApis({ consents: [] });
+    consents.mockResolvedValueOnce([]).mockResolvedValueOnce([pendingConsent]);
+    const record = vi.spyOn(teacherRosterApi, "recordConsent").mockResolvedValue({ consent_id: pendingConsent.consent_id, state: pendingConsent.state });
+    renderDetail();
+
+    expect((await screen.findByLabelText("Mục đích") as HTMLInputElement).value).toBe("classroom-learning-v1");
+    fireEvent.change(screen.getByLabelText("Mã trẻ"), { target: { value: "real-child" } });
+    fireEvent.click(screen.getByRole("button", { name: "Ghi nhận consent" }));
+
+    await waitFor(() => expect(record).toHaveBeenCalledTimes(1));
+    expect(record).toHaveBeenCalledWith("org-test", "k1", {
+      childId: "real-child",
+      purposeRef: "classroom-learning-v1",
+    });
+    expect(await screen.findByText("Đã ghi nhận, đang chờ xác thực; chưa có hiệu lực.")).toBeTruthy();
+    expect(await screen.findByText("Đang chờ xác thực, chưa hiệu lực")).toBeTruthy();
+    await waitFor(() => expect(consents).toHaveBeenCalledTimes(2));
+    expect(screen.getByText("Synthetic a")).toBeTruthy();
+    expect(document.body.textContent).toContain("không làm trẻ xuất hiện trong roster");
+  });
+
+  it.each([
+    ["INVALID_RESPONSE", 502],
+    ["PROVIDER_UNAVAILABLE", 503],
+    ["NETWORK_ERROR", 0],
+  ])("reloads consents and keeps the form after an uncertain %s result", async (code, status) => {
+    const { consents } = mockApis({ consents: [] });
+    consents.mockResolvedValueOnce([]).mockResolvedValueOnce([{ ...pendingConsent, child_id: "real-child" }]);
+    vi.spyOn(teacherRosterApi, "recordConsent").mockRejectedValue(new TeacherRosterApiError("uncertain", code, status));
+    renderDetail();
+
+    const childInput = await screen.findByLabelText("Mã trẻ") as HTMLInputElement;
+    fireEvent.change(childInput, { target: { value: "real-child" } });
+    fireEvent.click(screen.getByRole("button", { name: "Ghi nhận consent" }));
+
+    expect((await screen.findByRole("alert")).textContent).toContain("Đã gửi yêu cầu, hãy kiểm tra danh sách trước khi gửi lại.");
+    expect((screen.getByLabelText("Mã trẻ") as HTMLInputElement).value).toBe("real-child");
+    expect(screen.getByRole("alert").textContent).not.toMatch(/thử lại|gửi lại cùng yêu cầu/i);
+    expect(await screen.findByText("real-child")).toBeTruthy();
+    await waitFor(() => expect(consents).toHaveBeenCalledTimes(2));
+  });
+
+  it("locks double submits while the record request is pending", async () => {
+    mockApis({ consents: [] });
+    let resolveRecord: ((value: { consent_id: string; state: string }) => void) | undefined;
+    const record = vi.spyOn(teacherRosterApi, "recordConsent").mockImplementation(() => new Promise((resolve) => {
+      resolveRecord = resolve;
+    }));
+    const { container } = renderDetail();
+    fireEvent.change(await screen.findByLabelText("Mã trẻ"), { target: { value: "real-child" } });
+    const form = container.querySelector(".teacher-consent-record form");
+    if (!form) throw new Error("consent form not rendered");
+    fireEvent.submit(form);
+    fireEvent.submit(form);
+
+    expect(record).toHaveBeenCalledTimes(1);
+    expect((screen.getByRole("button", { name: "Đang ghi nhận…" }) as HTMLButtonElement).disabled).toBe(true);
+    await act(async () => {
+      resolveRecord?.({ consent_id: pendingConsent.consent_id, state: pendingConsent.state });
+    });
+    expect(await screen.findByText("Đã ghi nhận, đang chờ xác thực; chưa có hiệu lực.")).toBeTruthy();
+  });
+
+  it("requires confirmation before revoke and refreshes the consent list", async () => {
+    const revoked = { ...pendingConsent, state: "revoked" };
+    const { consents } = mockApis({ consents: [pendingConsent] });
+    consents.mockResolvedValueOnce([pendingConsent]).mockResolvedValueOnce([revoked]);
+    const revoke = vi.spyOn(teacherRosterApi, "revokeConsent").mockResolvedValue({ consent_id: "consent-1", state: "revoked" });
+    renderDetail();
+
+    fireEvent.click(await screen.findByRole("button", { name: "Thu hồi" }));
+    expect(revoke).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Xác nhận thu hồi" }));
+
+    await waitFor(() => expect(revoke).toHaveBeenCalledWith("org-test", "k1", "consent-1"));
+    await waitFor(() => expect(consents).toHaveBeenCalledTimes(2));
+    expect(await screen.findByText("Đã thu hồi")).toBeTruthy();
   });
 });
 
@@ -116,6 +246,7 @@ describe("Teacher synthetic profile create (T-7c)", () => {
     await waitFor(() => expect(create).toHaveBeenCalledTimes(2));
     expect(create.mock.calls[1][4]).toBe(create.mock.calls[0][4]);
     expect(await screen.findByText(/Đã tạo hồ sơ thử nghiệm/)).toBeTruthy();
+    expect(screen.getByText(/Hồ sơ synthetic này có thể xuất hiện trong danh sách roster/)).toBeTruthy();
   });
 
   it("blocks a name without the synthetic prefix before sending", async () => {

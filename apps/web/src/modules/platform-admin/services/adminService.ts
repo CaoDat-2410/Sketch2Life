@@ -206,6 +206,15 @@ export type QuotaProduct = {
   revision: number;
   updated_at: string | null;
 };
+export type QuotaProductEvent = {
+  event_id: string;
+  product_id: string;
+  offer_id: string;
+  actor_ref: string;
+  action: string;
+  snapshot: Record<string, unknown>;
+  created_at: string;
+};
 export type Quota = {
   available_units: number;
   granted_units?: number;

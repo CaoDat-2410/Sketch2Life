@@ -13,10 +13,12 @@ import { M01PublicationReviewPage } from "../pages/ManagerScreens";
 import { SchoolOverviewPage } from "./pages/SchoolOverviewPage";
 import { ClassesPage } from "./pages/ClassesPage";
 import { RosterConsentPage } from "./pages/RosterConsentPage";
+import { DataRequestsPage } from "./pages/DataRequestsPage";
 import { ParentGroupsPage } from "./pages/ParentGroupsPage";
 import { TeacherAssignmentsPage } from "./pages/TeacherAssignmentsPage";
 import { FeedbackPage } from "./pages/FeedbackPage";
 import { SchoolBillingPage, SchoolQuotaPage } from "./pages/QuotaBillingPages";
+import { CapacityPage } from "./pages/CapacityPage";
 import { authService } from "./services/authService";
 import { classService } from "./services/classService";
 import { InboxPage } from "../../../shared/notifications/InboxPage";
@@ -81,11 +83,6 @@ function SchoolManagerFrame({ children }: { children: ReactNode }) {
 }
 
 const UNAVAILABLE: Record<string, { title: string; requirement: string; dependencies: string[] }> = {
-  capacity: {
-    title: "Sức chứa",
-    requirement: "SRS yêu cầu xem giới hạn lớp và capacity hiện hành của trường.",
-    dependencies: ["API capacity theo organization.", "Quy tắc tính lớp active, archived và suspended.", "API cập nhật capacity có audit và precondition."],
-  },
   billing: {
     title: "Thanh toán",
     requirement: "School Manager cần xem invoice/payment state và lịch sử đối soát của trường.",
@@ -122,10 +119,12 @@ export function SchoolManagerBe1App() {
   if (location.pathname === "/school" || location.pathname === "/school/") page = <SchoolOverviewPage />;
   else if (location.pathname === "/school/classes") page = <ClassesPage />;
   else if (location.pathname === "/school/teachers") page = <RosterConsentPage />;
+  else if (location.pathname === "/school/data-requests") page = <DataRequestsPage />;
   else if (location.pathname === "/school/teacher-assignments") page = <TeacherAssignmentsPage />;
   else if (location.pathname === "/school/feedback") page = <FeedbackPage />;
   else if (location.pathname === "/school/teacher-groups") return <Navigate to="/school" replace />;
   else if (location.pathname === "/school/parent-groups") page = <ParentGroupsPage />;
+  else if (location.pathname === "/school/capacity") page = <CapacityPage />;
   else if (location.pathname === "/school/quota") page = <SchoolQuotaPage />;
   else if (location.pathname === "/school/billing") page = <SchoolBillingPage />;
   else if (location.pathname === "/school/review-content") page = <SchoolReviewPage />;

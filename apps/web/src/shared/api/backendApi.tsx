@@ -48,17 +48,26 @@ export interface ApiErrorBody {
   request_id?: string;
 }
 
+export interface ApiFieldError {
+  field: string;
+  code: string;
+}
+
 export class BackendApiError extends Error {
   readonly code: string;
   readonly status: number;
   readonly requestId?: string;
+  readonly fieldErrors: ApiFieldError[];
 
-  constructor(message: string, code: string, status: number, requestId?: string) {
+  constructor(message: string, code: string, status: number, requestId?: string, fieldErrors: ApiFieldError[] = []) {
     super(message);
     this.name = "BackendApiError";
     this.code = code;
     this.status = status;
     this.requestId = requestId;
+    this.fieldErrors = fieldErrors.filter((item) =>
+      /^[A-Za-z0-9_.[\]-]{1,80}$/.test(item.field) && /^[A-Z][A-Z0-9_]{0,63}$/.test(item.code),
+    ).slice(0, 20);
   }
 }
 
@@ -234,11 +243,15 @@ export interface UploadPartReceipt {
 
 export interface LessonVersion {
   contract: "LessonVersionV1";
+  lesson_id: string;
   version_id: string;
   version_no: number;
-  review_state: string;
+  review_state: "DRAFT" | "PENDING_REVIEW" | "CHANGES_REQUESTED" | "APPROVED";
+  structured_content_hash: string;
   source_document_revision_id: string | null;
-  content?: LessonContent | null;
+  authored_principal_ref: string;
+  created_at: string;
+  content: LessonContent | null;
 }
 
 export interface LessonSourceDocumentStatus {
@@ -313,7 +326,7 @@ export function createIdempotencyKey(): string {
 
 function errorFromResponse(body: unknown, status: number, headerRequestId: string | null): BackendApiError {
   const error = parseApiError(body, status, headerRequestId);
-  return new BackendApiError(error.message, error.code, status, error.requestId);
+  return new BackendApiError(error.message, error.code, status, error.requestId, error.fieldErrors);
 }
 
 export async function backendRequest<T>(

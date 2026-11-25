@@ -7,13 +7,25 @@ export interface CursorPage<T> {
   next_cursor: string | null;
 }
 
+export interface CursorPagesOptions {
+  /** Return the rows loaded before a later page fails instead of rejecting the whole walk. */
+  retainLoadedOnError?: boolean;
+}
+
+export interface CursorPagesResult<T, P> {
+  first: P;
+  items: T[];
+  failure?: { cause: unknown };
+}
+
 export const CURSOR_PAGE_LIMIT = 100;
 export const MAX_CURSOR_PAGES = 50;
 
 export async function collectCursorPages<T, P extends CursorPage<T> = CursorPage<T>>(
   loadPage: (cursor: string | undefined) => Promise<P>,
   maxPages: number = MAX_CURSOR_PAGES,
-): Promise<{ first: P; items: T[] }> {
+  options: CursorPagesOptions = {},
+): Promise<CursorPagesResult<T, P>> {
   const first = await loadPage(undefined);
   const items = [...first.items];
   const seen = new Set<string>();
@@ -21,7 +33,13 @@ export async function collectCursorPages<T, P extends CursorPage<T> = CursorPage
   let pages = 1;
   while (cursor && !seen.has(cursor) && pages < maxPages) {
     seen.add(cursor);
-    const page = await loadPage(cursor);
+    let page: P;
+    try {
+      page = await loadPage(cursor);
+    } catch (cause) {
+      if (options.retainLoadedOnError) return { first, items, failure: { cause } };
+      throw cause;
+    }
     items.push(...page.items);
     cursor = page.next_cursor;
     pages += 1;

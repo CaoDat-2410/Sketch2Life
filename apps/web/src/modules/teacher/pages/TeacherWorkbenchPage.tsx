@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { ArrowRight, BookOpen, CalendarDays, RefreshCw, Users } from "lucide-react";
 import { Link } from "react-router-dom";
-import { FeatureAvailability, PageHeading } from "../../../shared/components/FeatureAvailability";
+import { PageHeading } from "../../../shared/components/FeatureAvailability";
+import { TeacherQuotaCard } from "../components/TeacherQuotaCard";
 import {
   BackendApiError,
   backendApi,
@@ -86,12 +87,7 @@ export function TeacherWorkbenchPage() {
           <p className="s2l-empty-copy">Chưa có API occurrence, Sketch Deck hoặc checklist để tạo và theo dõi buổi dạy.</p>
           <Link className="s2l-card-link" to="/teacher/t04-session-sketch-deck">Xem yêu cầu API <ArrowRight size={15} aria-hidden="true" /></Link>
         </article>
-        <FeatureAvailability
-          title="Quota và lịch sử"
-          summary="Không hiển thị lượt quota, video job hoặc số liệu hoạt động nếu backend chưa trả dữ liệu có nguồn."
-          requirement="SRS yêu cầu quota/reconciliation theo scope cùng lịch sử occurrence và StoryRun."
-          dependencies={["API quota theo organization.", "API lịch sử occurrence/job có trạng thái reconciliation."]}
-        />
+        <TeacherQuotaCard reloadKey={reload} />
       </section>
     </div>
   );

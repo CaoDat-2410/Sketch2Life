@@ -54,11 +54,13 @@ export const TEACHER_NAVIGATION: PortalNavigationGroup[] = [
       { href: "/teacher/t01-lesson-workspace", label: "Tổng quan", icon: LayoutDashboard, state: "available" },
       { href: "/teacher/t05-classes-and-children", label: "Lớp được phân công", icon: Users, state: "available", matchPrefix: true },
       { href: "/teacher/t02-lesson-authoring", label: "Giáo án", icon: BookOpen, state: "available" },
+      { href: "/teacher/svg-catalog", label: "Danh mục SVG", icon: PanelsTopLeft, state: "available" },
       { href: "/teacher/t03-document-import-review", label: "Nhập tài liệu", icon: FileUp, state: "available" },
       { href: "/teacher/t04-session-sketch-deck", label: "Buổi dạy", icon: CalendarDays, state: "available" },
       { href: "/teacher/t02-presentation", label: "Trình bày giáo án", icon: Presentation, state: "waiting" },
       { href: "/teacher/t12-activities", label: "Hoạt động", icon: ClipboardList, state: "waiting" },
       { href: "/teacher/t13-ai-lesson-workflow", label: "Gợi ý giáo án AI", icon: BookOpen, state: "available" },
+      { href: "/teacher/t14-feedback", label: "Phản hồi giáo án", icon: MessageSquareText, state: "available" },
     ],
   },
   {
@@ -81,6 +83,7 @@ export const SCHOOL_MANAGER_NAVIGATION: PortalNavigationGroup[] = [
       { href: "/school/teachers", label: "Hồ sơ & consent", icon: ClipboardList, state: "available" },
       { href: "/school/teacher-assignments", label: "Phân công giáo viên", icon: GraduationCap, state: "available" },
       { href: "/school/parent-groups", label: "Nhóm phụ huynh", icon: Users, state: "available" },
+      { href: "/school/data-requests", label: "Yêu cầu dữ liệu", icon: FileClock, state: "available" },
     ],
   },
   {
@@ -93,7 +96,7 @@ export const SCHOOL_MANAGER_NAVIGATION: PortalNavigationGroup[] = [
   {
     label: "Nguồn lực",
     items: [
-      { href: "/school/capacity", label: "Sức chứa", icon: Gauge, state: "waiting" },
+      { href: "/school/capacity", label: "Sức chứa", icon: Gauge, state: "available" },
       { href: "/school/quota", label: "Hạn mức video", icon: Activity, state: "available" },
       { href: "/school/billing", label: "Thanh toán", icon: CreditCard, state: "available" },
     ],
@@ -124,6 +127,7 @@ export const PLATFORM_ADMIN_NAVIGATION: PortalNavigationGroup[] = [
     { href: "/platform/a01-content-moderation", label: "Học liệu", icon: BookOpen, state: "available" },
     { href: "/platform/a02-platform-operations?panel=catalog", label: "Hoạt động", icon: ClipboardList, state: "available" },
     { href: "/platform/a02-platform-operations?panel=feedback", label: "Phản hồi", icon: MessageSquareText, state: "available" },
+    { href: "/platform/a02-platform-operations?panel=svgcatalog", label: "Danh mục SVG", icon: PanelsTopLeft, state: "available" },
   ] },
   { label: "Tài chính & hạn mức", items: [
     { href: "/platform/a02-platform-operations?panel=billing", label: "Thanh toán", icon: CreditCard, state: "available" },
