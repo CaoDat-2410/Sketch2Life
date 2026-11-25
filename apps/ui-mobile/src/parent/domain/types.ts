@@ -557,6 +557,8 @@ export type ParentDrawingEntityV1 = {
   entity_id: ParentSubjectEntityIdV1;
   label: string;
   suggested_role: 'main' | 'secondary';
+  /** FEAT-093: false for scenery (sun, grass, ground) the adult has not named. Absent on older servers. */
+  suggested_included?: boolean;
 };
 
 /** FEAT-087: the adult's final role for one object. */
@@ -575,6 +577,8 @@ export type ParentDrawingCandidateV1 = {
   /** Absent for drawings analysed before FEAT-087. */
   entities?: ParentDrawingEntityV1[];
   subject_roles?: ParentSubjectRoleV1[] | null;
+  /** FEAT-093: two subjects are too close to call; the adult must choose the main one. */
+  needs_choice?: boolean;
 };
 
 export type ParentStoryDisplayV1 = {

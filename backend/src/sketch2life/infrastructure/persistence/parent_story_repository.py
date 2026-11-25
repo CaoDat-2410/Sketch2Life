@@ -610,7 +610,11 @@ class SqlParentStoryRunRepository:
                 else None
             ),
             subject_label=run["subject_label"],
-            candidate=present_candidate(candidate) if candidate is not None else None,
+            candidate=(
+                present_candidate(candidate, intent_terms=_intent_terms(input_row))
+                if candidate is not None
+                else None
+            ),
             story_revision_id=(
                 str(latest_story["story_revision_id"]) if latest_story is not None else None
             ),
@@ -5568,6 +5572,22 @@ def _build_next_input(
 
 def _canonical_json(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+
+
+def _intent_terms(input_row: Mapping[str, Any]) -> list[str]:
+    """The adult's own words (topic card, confirmed idea, typed idea) used to rank subjects."""
+
+    terms: list[str] = []
+    context = input_row.get("context_snapshot")
+    if isinstance(context, dict):
+        for key in ("topic", "adult_confirmed_idea"):
+            value = context.get(key)
+            if isinstance(value, str) and value.strip():
+                terms.append(value)
+    typed = input_row.get("typed_idea")
+    if isinstance(typed, str) and typed.strip():
+        terms.append(typed)
+    return terms
 
 
 def _story_primary_activity(activity: Mapping[str, Any]) -> dict[str, str]:

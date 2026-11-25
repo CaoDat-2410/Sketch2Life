@@ -92,6 +92,8 @@ class ParentDrawingEntityV1(BaseModel):
     entity_id: Literal["main", "sec-1", "sec-2", "sec-3"]
     label: str = Field(min_length=1, max_length=100)
     suggested_role: Literal["main", "secondary"]
+    # FEAT-093 M1: False for scenery (sun, grass, ground) the adult has not named.
+    suggested_included: bool = True
 
 
 class ParentDrawingCandidateV1(BaseModel):
@@ -104,6 +106,8 @@ class ParentDrawingCandidateV1(BaseModel):
     decision: Literal["REVIEW_REQUIRED", "CONFIRMED_BY_ADULT", "CORRECTED_BY_ADULT"]
     # FEAT-087: empty/None for drawings analysed before roles existed.
     entities: list[ParentDrawingEntityV1] = Field(default_factory=list, max_length=4)
+    # FEAT-093 M1: True when two subjects are too close to call; the adult must pick the main one.
+    needs_choice: bool = False
     subject_roles: list[ParentSubjectRoleV1] | None = None
 
 

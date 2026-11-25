@@ -12,6 +12,7 @@ import { isResolvedTopicConsistent } from '../../domain/topicMatching';
 import {
   buildSubjectRolesRequest,
   initialSubjectRoles,
+  mainChoiceRequired,
   mainSubjectLabel,
   promoteToMain,
   setRoleLabel,
@@ -175,8 +176,16 @@ export function useParentController(application: ParentApplicationModule) {
   const [candidate, setCandidate] = useState<ParentDrawingCandidateV1 | null>(null);
   const [subject, setSubject] = useState('');
   const [subjectRoles, setSubjectRoles] = useState<ParentSubjectRoleV1[]>([]);
+  const [mainChoiceMade, setMainChoiceMade] = useState(false);
   useEffect(() => {
-    setSubjectRoles(candidate ? initialSubjectRoles(candidate) : []);
+    const roles = candidate ? initialSubjectRoles(candidate) : [];
+    setSubjectRoles(roles);
+    setMainChoiceMade(false);
+    // A proposal that names another object as the main subject also changes the subject field.
+    if (roles.length > 0) {
+      const main = mainSubjectLabel(roles);
+      if (main) setSubject(main);
+    }
   }, [candidate]);
   const [subjectConfirmed, setSubjectConfirmed] = useState(false);
   const [understandingRevision, setUnderstandingRevision] = useState(0);
@@ -1405,6 +1414,11 @@ export function useParentController(application: ParentApplicationModule) {
     const next = promoteToMain(subjectRoles, entityId, subject.trim() || mainSubjectLabel(subjectRoles));
     setSubjectRoles(next);
     setSubject(mainSubjectLabel(next));
+    setMainChoiceMade(true);
+  }
+
+  function keepMainSubject(): void {
+    setMainChoiceMade(true);
   }
 
   async function confirmSubject(): Promise<void> {
@@ -1420,6 +1434,10 @@ export function useParentController(application: ParentApplicationModule) {
       explicitAdultAction: true,
     }) || !runId || !run) {
       setError(safeParentFlowErrorMessage({ code: 'PARENT_SUBJECT_REQUIRED' }));
+      return;
+    }
+    if (mainChoiceRequired(candidate, mainChoiceMade)) {
+      setError('Hãy chọn nhân vật chính trước khi xác nhận.');
       return;
     }
     const confirmedSubject = subject.trim();
@@ -2817,6 +2835,7 @@ export function useParentController(application: ParentApplicationModule) {
     declineLessonInvitation, acceptGroupInvitation, createGuide, openDrawingGuide, openContextReview, confirmContext,
     continueToCapture, analyzeDrawingForCurrentRun, closeUnresolvedDrawingRun, confirmSubject,
     subjectRoles, renameSecondarySubject, toggleSecondarySubject, makeMainSubject,
+    keepMainSubject, mainChoiceNeeded: mainChoiceRequired(candidate, mainChoiceMade),
     confirmStory, refreshStory, drawingGuideIndex, setDrawingGuideIndex,
     resumeActiveRun, changePassword, resetCurrentPassword, signOut,
     leaveWait,

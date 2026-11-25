@@ -189,10 +189,11 @@ def test_present_candidate_strips_boxes_and_exposes_entities_and_roles() -> None
     shown = present_candidate(_candidate())
     assert "main_subject" not in shown and "secondary_subjects" not in shown
     assert shown["entities"] == [
-        {"entity_id": "main", "label": "con rùa", "suggested_role": "main"},
-        {"entity_id": "sec-1", "label": "chiếc lá", "suggested_role": "secondary"},
-        {"entity_id": "sec-2", "label": "bông hoa", "suggested_role": "secondary"},
+        {"entity_id": "main", "label": "con rùa", "suggested_role": "main", "suggested_included": True},
+        {"entity_id": "sec-1", "label": "chiếc lá", "suggested_role": "secondary", "suggested_included": True},
+        {"entity_id": "sec-2", "label": "bông hoa", "suggested_role": "secondary", "suggested_included": True},
     ]
+    assert shown["needs_choice"] is False
     assert shown["subject_roles"] is None
     approved = present_candidate(apply_subject_roles(_candidate(), _roles()))
     assert approved["subject_roles"][2]["role"] == "excluded"

@@ -31,6 +31,7 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
+from sketch2life.application.parent_subject_roles import normalize_worker_candidate
 from sketch2life.application.ports.identity import VerifiedPrincipal
 from sketch2life.application.ports.parent_story_inputs import (
     DRAWING_ANALYSIS_FAILED,
@@ -75,6 +76,14 @@ def candidate_from_result(result: DrawingAnalysisResult) -> tuple[dict[str, Any]
         "adult_confirmation_required": True,
         "decision": "REVIEW_REQUIRED",
     }
+    raw = result.raw_candidate
+    if isinstance(raw, dict):
+        # FEAT-093 M1: keep the main and secondary subjects (with boxes) the worker found; the
+        # client only ever sees ``present_candidate`` (labels and suggested roles, no boxes).
+        detailed = normalize_worker_candidate(raw)
+        for key in ("understanding_schema", "main_subject", "secondary_subjects"):
+            if key in detailed:
+                candidate[key] = detailed[key]
     return candidate, subject or "UNCONFIRMED", float(result.confidence)
 
 

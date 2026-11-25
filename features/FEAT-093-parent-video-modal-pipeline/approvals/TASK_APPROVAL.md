@@ -10,3 +10,5 @@
 - Prerequisite still owned by the owner: P1 — a Hugging Face read token stored as a Modal Secret (needed before the FLUX download job in M5).
 - Not approved: any production release, real-child data, a third GPU container, server push, commit/push to a remote.
 - Plan changes after this point need a new revision and a new approval.
+- Amendment B (SRS BR-24 alignment: 30–90 s, 5–15 scenes, voice and captions always in the file, age table 5/7/9 scenes) approved by the owner
+  on 2026-11-25 ("fix theo srs"). Recorded in plan section 16.

@@ -9,8 +9,11 @@ no entities and keep working as a single main subject.
 from __future__ import annotations
 
 import unicodedata
+from collections.abc import Iterable
 from copy import deepcopy
 from typing import Any
+
+from sketch2life.application.subject_role_scoring import propose_roles
 
 MAIN_ENTITY_ID = "main"
 MAX_SECONDARY_SUBJECTS = 3
@@ -195,8 +198,13 @@ def approved_subjects(
     ]
 
 
-def present_candidate(candidate: dict[str, Any]) -> dict[str, Any]:
-    """Client-facing candidate: no boxes or internal snapshots, plus entities and roles."""
+def present_candidate(
+    candidate: dict[str, Any], *, intent_terms: Iterable[str] = ()
+) -> dict[str, Any]:
+    """Client-facing candidate: no boxes or internal snapshots, plus entities and roles.
+
+    FEAT-093 M1: the proposal comes from ``propose_roles`` (scores, scenery, ambiguity) and the
+    adult's intent words; ``needs_choice`` makes the app require an explicit main subject."""
 
     internal = {
         "main_subject",
@@ -208,6 +216,18 @@ def present_candidate(candidate: dict[str, Any]) -> dict[str, Any]:
     shown = {key: value for key, value in candidate.items() if key not in internal}
     entities = _original_entities(candidate)
     approved = candidate.get("approved_roles")
+    proposal = (
+        None
+        if entities is None
+        else propose_roles(
+            [{"entity_id": key, **entities[key]} for key in _ENTITY_IDS if key in entities],
+            intent_terms=intent_terms,
+        )
+    )
+    proposed_main = proposal.main_entity_id if proposal is not None else None
+    if proposed_main is None:
+        proposed_main = MAIN_ENTITY_ID
+    excluded = set(proposal.excluded_entity_ids) if proposal is not None else set()
     shown["entities"] = (
         []
         if entities is None
@@ -215,11 +235,13 @@ def present_candidate(candidate: dict[str, Any]) -> dict[str, Any]:
             {
                 "entity_id": key,
                 "label": str(entities[key]["label"]),
-                "suggested_role": "main" if key == MAIN_ENTITY_ID else "secondary",
+                "suggested_role": "main" if key == proposed_main else "secondary",
+                "suggested_included": key not in excluded,
             }
             for key in _ENTITY_IDS
             if key in entities
         ]
     )
+    shown["needs_choice"] = bool(proposal.needs_choice) if proposal is not None else False
     shown["subject_roles"] = deepcopy(approved) if isinstance(approved, list) else None
     return shown

@@ -60,6 +60,8 @@ class DrawingAnalysisResult:
     confidence: float
     child_count: int = 1
     topic_compatible: bool | None = None
+    # FEAT-093 M1: the worker's main/secondary subjects with boxes (None for older analyzers).
+    raw_candidate: dict[str, Any] | None = None
 
 
 class DrawingAnalyzerPort(Protocol):

@@ -149,6 +149,18 @@ class ModalParentDrawingAnalyzer:
                 if isinstance(candidate.get("topic_compatible"), bool)
                 else None
             ),
+            raw_candidate={
+                key: candidate[key]
+                for key in (
+                    "understanding_schema",
+                    "candidate_subject",
+                    "visible_features",
+                    "confidence",
+                    "main_subject",
+                    "secondary_subjects",
+                )
+                if key in candidate
+            },
         )
         _LOGGER.info(
             "parent_drawing_analysis_completed",

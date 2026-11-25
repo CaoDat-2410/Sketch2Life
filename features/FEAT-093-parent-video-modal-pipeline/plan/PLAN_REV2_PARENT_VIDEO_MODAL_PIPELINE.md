@@ -337,3 +337,31 @@ small/medium/large. Defaults: narration on, captions on.
   (Expo Push, which on Android uses FCM). `AGENTS.md` says Firebase is Authentication-only, so a push transport needs an owner decision and an ADR (and a stored
   push token per parent account, which is personal data). Default until decided: local notification while the app is alive or backgrounded, in-app chip and badge otherwise.
 - **P1 — Hugging Face token as a Modal Secret** (section 15.1). Without it the FLUX download job cannot run.
+
+## 16. Amendment B (2026-11-25) — align with SRS BR-24 (owner: "fix theo srs")
+
+Source: SRS BR-24 (line 267), storyboard step (448), FR-AI-04 (569), ScriptRevisionV1 (780). M0 finding F1 in `evidence/M0_FINDINGS_20261125.md`.
+This amendment **overrides** section 6 and the narration-skip idea of 15.2/U19. Approved by the owner's instruction on 2026-11-25.
+
+### 16.1 Age table (replaces section 6)
+
+| Band (months) | Scenes | Seconds per scene | Total | Narration per scene | Dialogue lines | Subjects | Plot |
+|---|---|---|---|---|---|---|---|
+| 36–71 | 5 | 6 | 30 s | 1 sentence, ≤ 9 words | ≤ 1 line, ≤ 5 words per video scene | 1 main + ≤ 1 secondary | one simple action per scene, concrete words |
+| 72–107 | 7 | 6 | 42 s | ≤ 14 words | ≤ 2 | 1 main + ≤ 2 secondary | cause and effect |
+| 108–120 | 9 | 6 | 54 s | ≤ 20 words | ≤ 3 | 1 main + ≤ 3 secondary | short problem and solution |
+
+Hard limits stay those of the SRS and the worker: 30–90 s total, 5–15 scenes, 24 fps, scene length ≤ 473 frames, scene boundaries on whole frames.
+Scene seconds are targets (about 6 s); the planner may trade seconds between scenes inside the 30–90 s window.
+
+### 16.2 Voice and captions
+- The final MP4 **always contains** the narration track (one neutral adult Vietnamese voice, same voice for every band, no background music) and the captions are always
+  produced (SRS). The parent's `Giọng kể` switch only **mutes** in the player; `Phụ đề` switch only hides the overlay. TTS is never skipped.
+- O2 is closed: one neutral adult voice for all bands.
+- Test U19 becomes: *switch `Giọng kể` off before pressing play → no sound, captions unchanged, same file*.
+
+### 16.3 Consequences
+- Wall time with one LTX container (measured about 98 s per scene, M0 F7): 5 scenes ≈ 8 min, 7 ≈ 11.5 min, 9 ≈ 15 min before preparation and assembly. The waiting-time section
+  and chip (section 11) are therefore required, not optional. Pipelining (C2 prepares scene i+1 while C1 renders scene i) is kept.
+- GPU budget unchanged (40 scene renders, 12 videos); one 5-scene spike (5 renders, 1 video) is already spent.
+- No SRS change is requested; the previous age table was an unapproved proposal that conflicted with the SRS.

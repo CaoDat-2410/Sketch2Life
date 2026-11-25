@@ -17,6 +17,9 @@ type Props = {
   onRenameSecondary?: (entityId: ParentSubjectRoleV1['entity_id'], label: string) => void;
   onToggleSecondary?: (entityId: ParentSubjectRoleV1['entity_id']) => void;
   onMakeMain?: (entityId: ParentSubjectRoleV1['entity_id']) => void;
+  /** FEAT-093: two subjects are too close to call; the main one must be chosen first. */
+  needsChoice?: boolean;
+  onKeepMain?: () => void;
   onConfirm: () => void;
   onBack: () => void;
 };
@@ -92,8 +95,22 @@ export function UnderstandingScreen(props: Props): React.JSX.Element {
           ))}
         </Card>
       ) : null}
+      {props.needsChoice ? (
+        <Card variant="creative" style={styles.candidateCard}>
+          <SectionTitle variant="creative">Chọn nhân vật chính</SectionTitle>
+          <Text style={styles.confidenceCaption}>
+            Trong tranh có hai nhân vật gần như nổi bật như nhau. Hãy chọn ai là nhân vật chính của câu chuyện.
+          </Text>
+          <PrimaryButton
+            variant="creative"
+            label={`Giữ “${props.subject.trim() || 'chủ thể này'}” làm nhân vật chính`}
+            onPress={() => props.onKeepMain?.()}
+          />
+          <Text style={styles.confidenceCaption}>Hoặc bấm “Đặt làm chủ thể chính” ở vật khác bên dưới.</Text>
+        </Card>
+      ) : null}
       {props.error ? <Notice variant="creative" text={props.error} tone="error" /> : null}
-      <PrimaryButton variant="creative" label="Xác nhận chủ thể" busy={props.busy} disabled={!props.subject.trim()} onPress={props.onConfirm} />
+      <PrimaryButton variant="creative" label="Xác nhận chủ thể" busy={props.busy} disabled={!props.subject.trim() || props.needsChoice === true} onPress={props.onConfirm} />
     </ScreenFrame>
   );
 }

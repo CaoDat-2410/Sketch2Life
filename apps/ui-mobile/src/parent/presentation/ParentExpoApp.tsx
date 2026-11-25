@@ -508,6 +508,8 @@ function renderLearningStep(
     onRenameSecondary={parent.renameSecondarySubject}
     onToggleSecondary={parent.toggleSecondarySubject}
     onMakeMain={parent.makeMainSubject}
+    needsChoice={parent.mainChoiceNeeded}
+    onKeepMain={parent.keepMainSubject}
     onConfirm={() => void parent.confirmSubject()}
     onBack={() => parent.leaveWait('capture')}
   />;

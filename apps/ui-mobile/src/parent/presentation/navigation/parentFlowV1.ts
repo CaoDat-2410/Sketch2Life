@@ -292,6 +292,7 @@ export function readDrawingCandidate(value: unknown): ParentDrawingCandidateV1 |
     decision,
     ...(entities.length > 0 ? { entities } : {}),
     ...(subjectRoles ? { subject_roles: subjectRoles } : {}),
+    ...(value.needs_choice === true ? { needs_choice: true } : {}),
   };
 }
 
@@ -308,6 +309,7 @@ function readCandidateEntities(value: unknown): ParentDrawingEntityV1[] {
       entity_id: item.entity_id as ParentDrawingEntityV1['entity_id'],
       label: item.label,
       suggested_role: item.suggested_role,
+      ...(item.suggested_included === false ? { suggested_included: false } : {}),
     });
   }
   return entities;

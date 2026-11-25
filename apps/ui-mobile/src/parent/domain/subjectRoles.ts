@@ -26,11 +26,27 @@ export function initialSubjectRoles(candidate: ParentDrawingCandidateV1): Parent
   if (candidate.subject_roles && candidate.subject_roles.length > 0) {
     return candidate.subject_roles.map((role) => ({ ...role }));
   }
-  return (candidate.entities ?? []).map((entity) => ({
+  const entities = candidate.entities ?? [];
+  const roles: ParentSubjectRoleV1[] = entities.map((entity) => ({
     entity_id: entity.entity_id,
     label: entity.label,
-    role: entity.suggested_role,
+    // FEAT-093: scenery the adult did not name starts switched off; the main subject is never off.
+    role: entity.suggested_role === 'secondary' && entity.suggested_included === false
+      ? 'excluded'
+      : entity.suggested_role,
   }));
+  // The proposal may name another object than the AI's first one as the main subject.
+  const proposed = entities.find((entity) => entity.suggested_role === 'main');
+  if (proposed && proposed.entity_id !== 'main' && roles.some((role) => role.entity_id === 'main' && role.role === 'main')) {
+    const aiMain = roles.find((role) => role.entity_id === 'main');
+    return promoteToMain(roles, proposed.entity_id, aiMain?.label ?? '');
+  }
+  return roles;
+}
+
+/** True while two subjects are too close to call and the adult has not yet chosen the main one. */
+export function mainChoiceRequired(candidate: ParentDrawingCandidateV1 | null, choiceMade: boolean): boolean {
+  return candidate?.needs_choice === true && !choiceMade;
 }
 
 export function mainSubjectLabel(roles: ReadonlyArray<ParentSubjectRoleV1>): string {
