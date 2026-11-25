@@ -94,7 +94,8 @@ def test_the_revision_is_the_one_child_of_the_story_head_with_no_label() -> None
 def test_one_more_revision_and_the_head_counts_are_sixteen_and_eleven() -> None:
     graph = _graph()
     # T-12a: pce_0001 (Parent root); T-12b: this revision; T-12c: psn_0001, psn_0002
-    assert len(graph) == 60  # T-12b-fix adds 20261123_ppg_0001 on the BE1 branch
+    # 62 after T-10b/T-10c; T-8b and T-NTF1 extend the notification chain.
+    assert len(graph) == 64
     down_targets = {target for downs, _ in graph.values() for target in downs}
     dependency_targets = down_targets | {target for _, dep in graph.values() for target in dep}
     heads_down_only = {rev for rev in graph if rev not in down_targets}

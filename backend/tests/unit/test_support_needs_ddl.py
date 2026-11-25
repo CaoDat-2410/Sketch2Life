@@ -140,10 +140,10 @@ def test_each_revision_is_the_one_child_of_one_head_and_declares_no_label(
     assert graph[revision] == ((parent,), ())
 
 
-def test_the_graph_has_60_revisions_and_the_head_counts_are_sixteen_and_eleven() -> None:
+def test_the_graph_has_64_revisions_and_the_head_counts_are_sixteen_and_eleven() -> None:
     graph = _graph()
     # 53 before T-12c (T-12a: pce_0001; T-12b: bpr_0001); T-12c adds psn_0001 and psn_0002.
-    assert len(graph) == 60  # T-12b-fix adds 20261123_ppg_0001 on the BE1 branch
+    assert len(graph) == 64  # T-NTF1 adds 20261125_nt_0003 after the notification-chain head
     down_targets = {target for downs, _ in graph.values() for target in downs}
     dependency_targets = down_targets | {target for _, dep in graph.values() for target in dep}
     heads_down_only = {rev for rev in graph if rev not in down_targets}

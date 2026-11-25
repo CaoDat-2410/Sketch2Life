@@ -379,6 +379,8 @@ def _apply_catalog_metadata(
                             "/api/lesson-library/v1/",
                             "/v1/upload-sessions",
                             "/v1/lesson-occurrences",
+                            # T-8b: PUSH_PLATFORM_UNSUPPORTED is a real 422 business-rule error.
+                            "/v1/notifications/push-endpoints",
                         )
                     )
                     and declared["media_type"]
@@ -1189,10 +1191,12 @@ def create_app(
     # recorded and confirmed at once).
     application.state.story_generator = None
     application.state.subject_edit_reruns_vlm = True
-    # FEAT-066 T-1a (OD-03): the video admission ports. None unless the flag story_video_adapters is
-    # "local_test" (refused outside local/test by Settings); with none the route answers 503
-    # PROVIDER_UNAVAILABLE after its authorization and state checks.
-    application.state.story_video_ports = build_story_video_adapters(storage_example_settings)
+    # FEAT-066 T-1a (OD-03): the video admission ports. ``unconfigured`` stays fail-closed; billing
+    # receives the existing BE1 session factory so its usage receipt commits in Billing's own UoW.
+    application.state.story_video_ports = build_story_video_adapters(
+        storage_example_settings,
+        session_factory=application.state.be1_runtime.session_factory,
+    )
     application.state.story_video_port_timeout_seconds = (
         storage_example_settings.story_video_port_timeout_seconds
     )

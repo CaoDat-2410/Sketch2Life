@@ -33,6 +33,7 @@ from sketch2life.infrastructure.lesson_library.service import (
 from sketch2life.infrastructure.lesson_library.tables import (
     ACCESS_GRANTS,
     COMMAND_RECEIPTS,
+    LIBRARY_ITEMS,
     LIBRARY_VERSIONS,
     PARENT_GROUP_MEMBERS,
     PARENT_GROUPS,
@@ -422,6 +423,94 @@ def _create_lesson(
         ),
     )
     assert response.status_code == 201, response.text
+    return response.json()
+
+
+def _create_lesson_in_org(
+    accepted: LessonApiAcceptance,
+    *,
+    organization_id: str,
+    teacher: str,
+    title: str,
+    visibility: str = "PRIVATE",
+) -> dict[str, object]:
+    response = accepted.client.post(
+        f"/api/lesson-library/v1/organizations/{organization_id}/lessons",
+        json={
+            "contract": "CreateLessonRequestV1",
+            "content": _content(title),
+            "visibility": visibility,
+        },
+        headers=_headers(teacher, **{"Idempotency-Key": f"lesson-create-{uuid4()}"}),
+    )
+    assert response.status_code == 201, response.text
+    return response.json()
+
+
+def _revise_lesson(
+    accepted: LessonApiAcceptance,
+    *,
+    lesson_id: str,
+    expected_revision: int,
+    title: str,
+) -> tuple[dict[str, object], int]:
+    response = accepted.client.patch(
+        f"/api/lesson-library/v1/organizations/{accepted.organization_id}/lessons/{lesson_id}",
+        json={"contract": "UpdateLessonRequestV1", "content": _content(title)},
+        headers=_headers(
+            accepted.teacher,
+            **{
+                "If-Match": f'"{expected_revision}"',
+                "Idempotency-Key": f"version-edit-{uuid4()}",
+            },
+        ),
+    )
+    assert response.status_code == 200, response.text
+    return response.json(), int(response.headers["ETag"].strip('"'))
+
+
+def _create_public_grant_in_org(
+    accepted: LessonApiAcceptance,
+    *,
+    organization_id: str,
+    teacher: str,
+    lesson: dict[str, object],
+) -> dict[str, object]:
+    response = accepted.client.post(
+        f"/api/lesson-library/v1/organizations/{organization_id}/lessons/"
+        f"{lesson['lesson_id']}/access-grants",
+        json={
+            "contract": "CreateLessonAccessGrantRequestV1",
+            "version_id": lesson["current_version"]["version_id"],
+            "audience_kind": "PUBLIC",
+            "audience_ref": None,
+            "capability": "VIEW",
+            "expires_at": None,
+        },
+        headers=_headers(teacher, **{"Idempotency-Key": f"public-grant-{uuid4()}"}),
+    )
+    assert response.status_code == 201, response.text
+    return response.json()
+
+
+def _approve_public_grant_in_org(
+    accepted: LessonApiAcceptance,
+    *,
+    organization_id: str,
+    manager: str,
+    grant: dict[str, object],
+) -> dict[str, object]:
+    response = accepted.client.post(
+        f"/api/lesson-library/v1/organizations/{organization_id}/access-grants/"
+        f"{grant['access_grant_id']}/decision",
+        json={
+            "contract": "DecideLessonAccessGrantRequestV1",
+            "decision": "APPROVE",
+            "reason": None,
+        },
+        headers=_headers(manager, **{"If-Match": '"1"', "Idempotency-Key": f"approve-{uuid4()}"}),
+    )
+    assert response.status_code == 200, response.text
     return response.json()
 
 
@@ -935,7 +1024,10 @@ def test_direct_parent_and_group_sharing_can_be_accepted_then_revoked(
     membership_revoked = client.delete(
         f"/api/lesson-library/v1/organizations/{accepted.organization_id}/parent-groups/"
         f"{group.json()['parent_group_id']}/members/{invitation.json()['membership_id']}",
-        headers=_headers(accepted.manager, **{"If-Match": '"2"'}),
+        headers=_headers(
+            accepted.manager,
+            **{"If-Match": '"2"', "Idempotency-Key": f"group-revoke-{uuid4()}"},
+        ),
     )
     assert membership_revoked.status_code == 200, membership_revoked.text
     assert membership_revoked.json()["state"] == "REVOKED"
@@ -1246,26 +1338,54 @@ def test_parent_can_still_self_revoke_parent_group_membership(
     revoked = client.delete(
         f"/api/lesson-library/v1/organizations/{org}/parent-groups/{group_id}/members/"
         f"{membership_id}",
-        headers=_headers(accepted.parent, **{"If-Match": f'"{revision}"'}),
+        headers=_headers(
+            accepted.parent,
+            **{
+                "If-Match": f'"{revision}"',
+                "Idempotency-Key": "conv1-parent-self-revoke",
+            },
+        ),
     )
     assert revoked.status_code == 200, revoked.text
     assert revoked.json()["membership_id"] == membership_id
+    replay = client.delete(
+        f"/api/lesson-library/v1/organizations/{org}/parent-groups/{group_id}/members/"
+        f"{membership_id}",
+        headers=_headers(
+            accepted.parent,
+            **{
+                "If-Match": f'"{revision}"',
+                "Idempotency-Key": "conv1-parent-self-revoke",
+            },
+        ),
+    )
+    assert replay.status_code == 200, replay.text
+    assert replay.json() == revoked.json()
+    assert replay.headers["ETag"] == revoked.headers["ETag"]
 
 
-def test_lesson_library_if_match_errors_are_400_with_field_errors(
+def test_parent_group_revoke_preconditions_are_reported(
     lesson_api_acceptance: LessonApiAcceptance,
 ) -> None:
-    """CONV-1 CV-4: missing or malformed If-Match gives 400 INVALID_REQUEST with a field error."""
+    """T-10c: revoke requires both headers and reports the strong If-Match precondition."""
     accepted = lesson_api_acceptance
     url = (
         f"/api/lesson-library/v1/organizations/{accepted.organization_id}/parent-groups/"
         f"{uuid4()}/members/{uuid4()}"
     )
-    missing = accepted.client.delete(url, headers=_headers(accepted.manager))
-    assert missing.status_code == 400, missing.text
-    assert missing.json()["field_errors"] == [{"field": "If-Match", "code": "REQUIRED"}]
+    key = f"precondition-{uuid4()}"
+    missing = accepted.client.delete(
+        url,
+        headers=_headers(accepted.manager, **{"Idempotency-Key": key}),
+    )
+    assert missing.status_code == 428, missing.text
+    assert missing.json()["code"] == "PRECONDITION_REQUIRED"
     malformed = accepted.client.delete(
-        url, headers=_headers(accepted.manager, **{"If-Match": "W/weak"})
+        url,
+        headers=_headers(
+            accepted.manager,
+            **{"If-Match": "W/weak", "Idempotency-Key": f"{key}-malformed"},
+        ),
     )
     assert malformed.status_code == 400, malformed.text
     assert malformed.json()["field_errors"] == [{"field": "If-Match", "code": "INVALID_FORMAT"}]
@@ -1704,6 +1824,11 @@ def _library_service(accepted: LessonApiAcceptance, db: Any) -> LessonLibrarySer
     )
 
 
+def _command_receipt_count(accepted: LessonApiAcceptance) -> int:
+    with accepted.app.state.be1_runtime.session_factory.begin() as db:
+        return int(db.execute(select(func.count()).select_from(COMMAND_RECEIPTS)).scalar_one())
+
+
 def _parent_view(
     accepted: LessonApiAcceptance, subject: str, lesson: dict[str, object]
 ) -> dict[str, object]:
@@ -1774,9 +1899,10 @@ def _request_changes(accepted: LessonApiAcceptance, grant: dict[str, Any]) -> No
 
 @contextmanager
 def _second_tenant(accepted: LessonApiAcceptance) -> Iterator[dict[str, str]]:
-    """Another organization with its own Teacher, plus another Parent account (removed after)."""
+    """Another synthetic organization with Teacher, Manager and Parent actors."""
     other_org = f"synthetic-lesson-other-org-{uuid4()}"
     other_teacher = f"synthetic-other-teacher-{uuid4()}"
+    other_manager = f"synthetic-other-manager-{uuid4()}"
     other_parent = f"synthetic-other-parent-{uuid4()}"
     with accepted.app.state.be1_runtime.session_factory.begin() as db:
         db.add(
@@ -1786,7 +1912,11 @@ def _second_tenant(accepted: LessonApiAcceptance) -> Iterator[dict[str, str]]:
                 state="active",
             )
         )
-        for subject, role in ((other_teacher, "teacher"), (other_parent, "parent")):
+        for subject, role in (
+            (other_teacher, "teacher"),
+            (other_manager, "school_manager"),
+            (other_parent, "parent"),
+        ):
             db.add(
                 AdultIdentityModel(
                     subject=subject,
@@ -1806,8 +1936,23 @@ def _second_tenant(accepted: LessonApiAcceptance) -> Iterator[dict[str, str]]:
                 active=True,
             )
         )
+        db.add(
+            OrganizationAssignmentModel(
+                assignment_id=str(uuid4()),
+                organization_id=other_org,
+                subject=other_manager,
+                class_id=None,
+                role="school_admin",
+                active=True,
+            )
+        )
     try:
-        yield {"organization": other_org, "teacher": other_teacher, "parent": other_parent}
+        yield {
+            "organization": other_org,
+            "teacher": other_teacher,
+            "manager": other_manager,
+            "parent": other_parent,
+        }
     finally:
         with accepted.app.state.be1_runtime.session_factory.begin() as db:
             db.execute(
@@ -1818,7 +1963,7 @@ def _second_tenant(accepted: LessonApiAcceptance) -> Iterator[dict[str, str]]:
             db.execute(
                 delete(OrganizationModel).where(OrganizationModel.organization_id == other_org)
             )
-            for subject in (other_teacher, other_parent):
+            for subject in (other_teacher, other_manager, other_parent):
                 db.execute(delete(AdultIdentityModel).where(AdultIdentityModel.subject == subject))
 
 
@@ -1938,7 +2083,10 @@ def test_t10d_c_parent_group_member_reads_a_draft_version_and_others_do_not(
     removed = client.delete(
         f"/api/lesson-library/v1/organizations/{org}/parent-groups/{group_id}"
         f"/members/{membership_id}",
-        headers=_headers(accepted.manager, **{"If-Match": '"2"'}),
+        headers=_headers(
+            accepted.manager,
+            **{"If-Match": '"2"', "Idempotency-Key": f"t10d-revoke-{uuid4()}"},
+        ),
     )
     assert removed.status_code == 200, removed.text
     assert _parent_view(accepted, accepted.parent, lesson) == _NO_READ
@@ -2149,3 +2297,593 @@ def test_t10d_j_an_occurrence_pin_of_a_privately_shared_draft_version_is_still_r
                 principal=teacher, organization_id=accepted.organization_id, ref=ref
             )
     assert (refused.value.status_code, refused.value.code) == (409, "INVALID_STATE_TRANSITION")
+
+
+def test_versions_keyset_no_duplicates_equal_timestamps(
+    lesson_api_acceptance: LessonApiAcceptance,
+) -> None:
+    accepted = lesson_api_acceptance
+    lesson = _create_lesson(accepted)
+    revision = 1
+    for version_no in range(2, 5):
+        _, revision = _revise_lesson(
+            accepted,
+            lesson_id=str(lesson["lesson_id"]),
+            expected_revision=revision,
+            title=f"Synthetic version {version_no}",
+        )
+    equal_timestamp = datetime(2026, 11, 24, 12, 0, tzinfo=UTC)
+    with accepted.app.state.be1_runtime.session_factory.begin() as db:
+        db.execute(
+            update(LIBRARY_VERSIONS)
+            .where(LIBRARY_VERSIONS.c.lesson_id == lesson["lesson_id"])
+            .values(created_at=equal_timestamp)
+        )
+
+    base = _lesson_base(accepted, lesson) + "/versions"
+    before = _command_receipt_count(accepted)
+    cursor = None
+    items: list[dict[str, Any]] = []
+    while True:
+        params: dict[str, str | int] = {"limit": 2}
+        if cursor is not None:
+            params["cursor"] = cursor
+        response = accepted.client.get(
+            base, params=params, headers=_headers(accepted.teacher)
+        )
+        assert response.status_code == 200, response.text
+        assert response.headers["Cache-Control"] == "private, no-store"
+        items.extend(response.json()["items"])
+        cursor = response.json()["next_cursor"]
+        if cursor is None:
+            break
+    after = _command_receipt_count(accepted)
+
+    assert before == after
+    assert [item["version_no"] for item in items] == [4, 3, 2, 1]
+    assert len({item["version_id"] for item in items}) == len(items)
+
+
+def test_version_get_returns_exact_hash(lesson_api_acceptance: LessonApiAcceptance) -> None:
+    accepted = lesson_api_acceptance
+    lesson = _create_lesson(accepted)
+    original = lesson["current_version"]
+    updated, _revision = _revise_lesson(
+        accepted,
+        lesson_id=str(lesson["lesson_id"]),
+        expected_revision=1,
+        title="Synthetic exact version two",
+    )
+    base = _lesson_base(accepted, lesson) + "/versions"
+    before = _command_receipt_count(accepted)
+    original_read = accepted.client.get(
+        f"{base}/{original['version_id']}", headers=_headers(accepted.teacher)
+    )
+    current_read = accepted.client.get(
+        f"{base}/{updated['current_version']['version_id']}",
+        headers=_headers(accepted.teacher),
+    )
+    after = _command_receipt_count(accepted)
+
+    assert original_read.status_code == current_read.status_code == 200
+    assert original_read.headers["Cache-Control"] == "private, no-store"
+    assert original_read.json()["version_id"] == original["version_id"]
+    assert original_read.json()["structured_content_hash"] == original["structured_content_hash"]
+    assert original_read.json()["content"]["title"] == lesson["current_version"]["content"]["title"]
+    assert current_read.json()["version_id"] == updated["current_version"]["version_id"]
+    assert current_read.json()["content"]["title"] == "Synthetic exact version two"
+    assert before == after
+
+
+def test_version_read_missing_and_cross_tenant_equal_404(
+    lesson_api_acceptance: LessonApiAcceptance,
+) -> None:
+    accepted = lesson_api_acceptance
+    lesson = _create_lesson(accepted)
+    other_lesson = _create_lesson(accepted, title="Synthetic second lesson")
+    base = _lesson_base(accepted, lesson) + "/versions"
+    missing_version = accepted.client.get(
+        f"{base}/missing-version", headers=_headers(accepted.teacher)
+    )
+    other_lesson_version = accepted.client.get(
+        f"{base}/{other_lesson['current_version']['version_id']}",
+        headers=_headers(accepted.teacher),
+    )
+    assert missing_version.status_code == other_lesson_version.status_code == 404
+    assert missing_version.json()["code"] == "RESOURCE_NOT_FOUND"
+    assert other_lesson_version.json()["code"] == "RESOURCE_NOT_FOUND"
+    assert missing_version.json()["message"] == other_lesson_version.json()["message"]
+
+    with _second_tenant(accepted) as other:
+        foreign = _create_lesson_in_org(
+            accepted,
+            organization_id=other["organization"],
+            teacher=other["teacher"],
+            title="Synthetic foreign lesson",
+        )
+        foreign_lesson_read = accepted.client.get(
+            f"/api/lesson-library/v1/organizations/{accepted.organization_id}/lessons/"
+            f"{foreign['lesson_id']}/versions/{foreign['current_version']['version_id']}",
+            headers=_headers(accepted.teacher),
+        )
+        absent_lesson_read = accepted.client.get(
+            f"/api/lesson-library/v1/organizations/{accepted.organization_id}/lessons/"
+            "missing-lesson/versions/missing-version",
+            headers=_headers(accepted.teacher),
+        )
+        assert foreign_lesson_read.status_code == absent_lesson_read.status_code == 404
+        assert foreign_lesson_read.json()["code"] == "RESOURCE_NOT_FOUND"
+        assert absent_lesson_read.json()["code"] == "RESOURCE_NOT_FOUND"
+        assert foreign_lesson_read.json()["message"] == absent_lesson_read.json()["message"]
+
+
+def test_public_search_hides_private_school_selected_other_tenant(
+    lesson_api_acceptance: LessonApiAcceptance,
+) -> None:
+    accepted = lesson_api_acceptance
+    marker = f"T10aVisibility{uuid4().hex}"
+    with _second_tenant(accepted) as other:
+        private_lesson = _create_lesson_in_org(
+            accepted,
+            organization_id=other["organization"],
+            teacher=other["teacher"],
+            title=f"{marker} private",
+        )
+        school_lesson = _create_lesson_in_org(
+            accepted,
+            organization_id=other["organization"],
+            teacher=other["teacher"],
+            title=f"{marker} school",
+            visibility="SCHOOL",
+        )
+        selected_lesson = _create_lesson_in_org(
+            accepted,
+            organization_id=other["organization"],
+            teacher=other["teacher"],
+            title=f"{marker} selected",
+        )
+        selected_grant = accepted.client.post(
+            f"/api/lesson-library/v1/organizations/{other['organization']}/lessons/"
+            f"{selected_lesson['lesson_id']}/access-grants",
+            json={
+                "contract": "CreateLessonAccessGrantRequestV1",
+                "version_id": selected_lesson["current_version"]["version_id"],
+                "audience_kind": "PRINCIPAL",
+                "audience_ref": other["parent"],
+                "capability": "REUSE",
+                "expires_at": None,
+            },
+            headers=_headers(other["teacher"], **{"Idempotency-Key": f"selected-{uuid4()}"}),
+        )
+        assert selected_grant.status_code == 201, selected_grant.text
+        accepted_invite = accepted.client.post(
+            f"/api/lesson-library/v1/me/lesson-invitations/"
+            f"{selected_grant.json()['access_grant_id']}/accept",
+            headers=_headers(other["parent"], **{"Idempotency-Key": f"selected-accept-{uuid4()}"}),
+        )
+        assert accepted_invite.status_code == 200, accepted_invite.text
+
+        public_lesson = _create_lesson_in_org(
+            accepted,
+            organization_id=other["organization"],
+            teacher=other["teacher"],
+            title=f"{marker} public",
+        )
+        public_grant = _create_public_grant_in_org(
+            accepted,
+            organization_id=other["organization"],
+            teacher=other["teacher"],
+            lesson=public_lesson,
+        )
+        _approve_public_grant_in_org(
+            accepted,
+            organization_id=other["organization"],
+            manager=other["manager"],
+            grant=public_grant,
+        )
+
+        before = _command_receipt_count(accepted)
+        response = accepted.client.get(
+            f"/api/lesson-library/v1/organizations/{accepted.organization_id}/public-lessons",
+            params={"q": marker},
+            headers=_headers(accepted.teacher),
+        )
+        after = _command_receipt_count(accepted)
+
+    assert response.status_code == 200, response.text
+    assert response.headers["Cache-Control"] == "private, no-store"
+    assert [item["lesson_id"] for item in response.json()["items"]] == [public_lesson["lesson_id"]]
+    first_item = response.json()["items"][0]
+    assert first_item["version_id"] == public_lesson["current_version"]["version_id"]
+    assert (
+        first_item["structured_content_hash"]
+        == public_lesson["current_version"]["structured_content_hash"]
+    )
+    assert not {
+        private_lesson["lesson_id"], school_lesson["lesson_id"], selected_lesson["lesson_id"]
+    }.intersection(item["lesson_id"] for item in response.json()["items"])
+    assert before == after
+
+
+def test_filters_before_page_boundary(lesson_api_acceptance: LessonApiAcceptance) -> None:
+    accepted = lesson_api_acceptance
+    marker = f"T10aFilterBoundary{uuid4().hex}"
+    nonmatch = _create_lesson(accepted, title="Unrelated synthetic public item")
+    match = _create_lesson(accepted, title=f"{marker} matching public item")
+    for lesson in (nonmatch, match):
+        grant = _create_public_grant(accepted, lesson, capability="VIEW")
+        _approve_public_grant(accepted, grant)
+    newer = datetime(2026, 11, 24, 12, 0, tzinfo=UTC)
+    older = newer - timedelta(days=1)
+    with accepted.app.state.be1_runtime.session_factory.begin() as db:
+        db.execute(
+            update(LIBRARY_ITEMS)
+            .where(LIBRARY_ITEMS.c.lesson_id == nonmatch["lesson_id"])
+            .values(updated_at=newer)
+        )
+        db.execute(
+            update(LIBRARY_ITEMS)
+            .where(LIBRARY_ITEMS.c.lesson_id == match["lesson_id"])
+            .values(updated_at=older)
+        )
+    public_response = accepted.client.get(
+        f"/api/lesson-library/v1/organizations/{accepted.organization_id}/public-lessons",
+        params={"q": marker, "limit": 1},
+        headers=_headers(accepted.teacher),
+    )
+    assert public_response.status_code == 200, public_response.text
+    assert [item["lesson_id"] for item in public_response.json()["items"]] == [match["lesson_id"]]
+
+    parent_nonmatch = _create_lesson(accepted, title="Unrelated private parent item")
+    parent_match = _create_lesson(accepted, title=f"{marker} matching private parent item")
+    for lesson in (parent_nonmatch, parent_match):
+        grants = _share_pair(accepted, lesson, "PRINCIPAL", accepted.parent)
+        _accept_invitations(accepted, grants)
+    with accepted.app.state.be1_runtime.session_factory.begin() as db:
+        db.execute(
+            update(LIBRARY_ITEMS)
+            .where(LIBRARY_ITEMS.c.lesson_id == parent_nonmatch["lesson_id"])
+            .values(created_at=newer)
+        )
+        db.execute(
+            update(LIBRARY_ITEMS)
+            .where(LIBRARY_ITEMS.c.lesson_id == parent_match["lesson_id"])
+            .values(created_at=older)
+        )
+    parent_response = accepted.client.get(
+        "/api/lesson-library/v1/me/lessons",
+        params={"source": "SHARED", "q": marker, "limit": 1},
+        headers=_headers(accepted.parent),
+    )
+    assert parent_response.status_code == 200, parent_response.text
+    assert [item["lesson_id"] for item in parent_response.json()["items"]] == [
+        parent_match["lesson_id"]
+    ]
+
+
+def test_cursor_rejects_different_filter(lesson_api_acceptance: LessonApiAcceptance) -> None:
+    accepted = lesson_api_acceptance
+    marker = f"T10aCursorScope{uuid4().hex}"
+    lessons = [_create_lesson(accepted, title=f"{marker} {index}") for index in range(2)]
+    for lesson in lessons:
+        grant = _create_public_grant(accepted, lesson, capability="VIEW")
+        _approve_public_grant(accepted, grant)
+    path = f"/api/lesson-library/v1/organizations/{accepted.organization_id}/public-lessons"
+    first = accepted.client.get(
+        path, params={"q": marker, "limit": 1}, headers=_headers(accepted.teacher)
+    )
+    assert first.status_code == 200, first.text
+    cursor = first.json()["next_cursor"]
+    assert cursor
+    refused = accepted.client.get(
+        path,
+        params={"q": f"{marker} changed", "limit": 1, "cursor": cursor},
+        headers=_headers(accepted.teacher),
+    )
+    assert refused.status_code == 400
+    assert refused.json()["code"] == "INVALID_REQUEST"
+
+
+def test_limit_101_invalid_request(lesson_api_acceptance: LessonApiAcceptance) -> None:
+    accepted = lesson_api_acceptance
+    response = accepted.client.get(
+        f"/api/lesson-library/v1/organizations/{accepted.organization_id}/public-lessons?limit=101",
+        headers=_headers(accepted.teacher),
+    )
+    assert response.status_code == 400
+    assert response.json()["code"] == "INVALID_REQUEST"
+
+
+def test_revoked_public_grant_not_visible(lesson_api_acceptance: LessonApiAcceptance) -> None:
+    accepted = lesson_api_acceptance
+    marker = f"T10aEligibility{uuid4().hex}"
+    revoked_lesson = _create_lesson(accepted, title=f"{marker} revoked")
+    expired_lesson = _create_lesson(accepted, title=f"{marker} expired")
+    hidden_lesson = _create_lesson(accepted, title=f"{marker} hidden")
+    unapproved_lesson = _create_lesson(accepted, title=f"{marker} unapproved")
+    grants: dict[str, dict[str, object]] = {}
+    for key, lesson in (
+        ("revoked", revoked_lesson),
+        ("expired", expired_lesson),
+        ("hidden", hidden_lesson),
+        ("unapproved", unapproved_lesson),
+    ):
+        grants[key] = _create_public_grant(accepted, lesson, capability="VIEW")
+    for key in ("revoked", "expired", "hidden"):
+        _approve_public_grant(accepted, grants[key])
+
+    # Positive control: an eligible approved PUBLIC lesson; and a SCHOOL lesson whose own
+    # PUBLIC grant stays pending (never approved) must stay absent.
+    eligible_lesson = _create_lesson(accepted, title=f"{marker} eligible")
+    _approve_public_grant(
+        accepted, _create_public_grant(accepted, eligible_lesson, capability="VIEW")
+    )
+    pending_lesson = _create_lesson(accepted, title=f"{marker} pending", visibility="SCHOOL")
+    _create_public_grant(accepted, pending_lesson, capability="VIEW")
+
+    revoked = accepted.client.delete(
+        f"{_lesson_base(accepted, revoked_lesson)}/access-grants/"
+        f"{grants['revoked']['access_grant_id']}",
+        headers=_keyed(accepted.teacher, 2, f"revoke-public-{uuid4()}"),
+    )
+    assert revoked.status_code == 200, revoked.text
+    with accepted.app.state.be1_runtime.session_factory.begin() as db:
+        db.execute(
+            update(ACCESS_GRANTS)
+            .where(ACCESS_GRANTS.c.access_grant_id == grants["expired"]["access_grant_id"])
+            .values(expires_at=datetime.now(UTC) - timedelta(minutes=1))
+        )
+        db.execute(
+            update(ACCESS_GRANTS)
+            .where(ACCESS_GRANTS.c.access_grant_id == grants["unapproved"]["access_grant_id"])
+            .values(state="ACTIVE")
+        )
+        db.execute(
+            update(LIBRARY_VERSIONS)
+            .where(LIBRARY_VERSIONS.c.lesson_id == unapproved_lesson["lesson_id"])
+            .values(review_state="DRAFT")
+        )
+    hidden = accepted.client.patch(
+        f"/api/lesson-library/v1/platform/lessons/{hidden_lesson['lesson_id']}/moderation",
+        json={
+            "contract": "ModerateLessonRequestV1",
+            "state": "HIDDEN",
+            "reason": "Synthetic visibility test",
+        },
+        headers=_keyed(accepted.platform_admin, 1, f"hide-public-{uuid4()}"),
+    )
+    assert hidden.status_code == 200, hidden.text
+
+    before = _command_receipt_count(accepted)
+    response = accepted.client.get(
+        f"/api/lesson-library/v1/organizations/{accepted.organization_id}/public-lessons",
+        params={"q": marker},
+        headers=_headers(accepted.teacher),
+    )
+    after = _command_receipt_count(accepted)
+    assert response.status_code == 200, response.text
+    assert response.headers["Cache-Control"] == "private, no-store"
+    assert [item["lesson_id"] for item in response.json()["items"]] == [
+        eligible_lesson["lesson_id"]
+    ]
+    assert before == after
+
+
+def test_parent_shared_scope_unchanged(lesson_api_acceptance: LessonApiAcceptance) -> None:
+    accepted = lesson_api_acceptance
+    marker = f"T10aParentShared{uuid4().hex}"
+    lesson = _create_lesson(accepted, title=f"{marker} shared lesson", visibility="PRIVATE")
+    grants = _share_pair(accepted, lesson, "PRINCIPAL", accepted.parent)
+    _accept_invitations(accepted, grants)
+    before = _command_receipt_count(accepted)
+    response = accepted.client.get(
+        "/api/lesson-library/v1/me/lessons",
+        params={"source": "SHARED", "q": marker},
+        headers=_headers(accepted.parent),
+    )
+    after = _command_receipt_count(accepted)
+    assert response.status_code == 200, response.text
+    assert response.headers["Cache-Control"] == "private, no-store"
+    assert [item["lesson_id"] for item in response.json()["items"]] == [lesson["lesson_id"]]
+    assert before == after
+
+    _revoke(accepted, lesson, grants, revision=2)
+    revoked_page = accepted.client.get(
+        "/api/lesson-library/v1/me/lessons",
+        params={"source": "SHARED", "q": marker},
+        headers=_headers(accepted.parent),
+    )
+    assert revoked_page.status_code == 200, revoked_page.text
+    assert all(item["lesson_id"] != lesson["lesson_id"] for item in revoked_page.json()["items"])
+
+
+def test_search_case_and_unicode(lesson_api_acceptance: LessonApiAcceptance) -> None:
+    accepted = lesson_api_acceptance
+    marker = uuid4().hex
+    lesson = _create_lesson(accepted, title=f"Bài học về bướm {marker}")
+    grant = _create_public_grant(accepted, lesson, capability="VIEW")
+    _approve_public_grant(accepted, grant)
+    path = f"/api/lesson-library/v1/organizations/{accepted.organization_id}/public-lessons"
+    q_response = accepted.client.get(
+        path,
+        params={"q": f"  BƯỚM {marker.upper()}  "},
+        headers=_headers(accepted.teacher),
+    )
+    topic_response = accepted.client.get(
+        path, params={"topic": "  cOn BƯỚM  "}, headers=_headers(accepted.teacher)
+    )
+    assert q_response.status_code == topic_response.status_code == 200
+    assert [item["lesson_id"] for item in q_response.json()["items"]] == [lesson["lesson_id"]]
+    # The topic is shared by every synthetic lesson, so only membership is asserted.
+    assert lesson["lesson_id"] in [item["lesson_id"] for item in topic_response.json()["items"]]
+
+
+def test_publication_revocation_between_pages_fails_closed(
+    lesson_api_acceptance: LessonApiAcceptance,
+) -> None:
+    accepted = lesson_api_acceptance
+    marker = f"T10aRevokeBetweenPages{uuid4().hex}"
+    lessons = [_create_lesson(accepted, title=f"{marker} {index}") for index in range(2)]
+    grants = [_create_public_grant(accepted, lesson, capability="VIEW") for lesson in lessons]
+    for grant in grants:
+        _approve_public_grant(accepted, grant)
+    newest = datetime(2026, 11, 24, 12, 0, tzinfo=UTC)
+    with accepted.app.state.be1_runtime.session_factory.begin() as db:
+        db.execute(
+            update(LIBRARY_ITEMS)
+            .where(LIBRARY_ITEMS.c.lesson_id == lessons[0]["lesson_id"])
+            .values(updated_at=newest)
+        )
+        db.execute(
+            update(LIBRARY_ITEMS)
+            .where(LIBRARY_ITEMS.c.lesson_id == lessons[1]["lesson_id"])
+            .values(updated_at=newest - timedelta(days=1))
+        )
+    path = f"/api/lesson-library/v1/organizations/{accepted.organization_id}/public-lessons"
+    first = accepted.client.get(
+        path, params={"q": marker, "limit": 1}, headers=_headers(accepted.teacher)
+    )
+    assert first.status_code == 200, first.text
+    assert first.json()["next_cursor"]
+    first_id = first.json()["items"][0]["lesson_id"]
+    remaining_index = next(
+        index for index, lesson in enumerate(lessons) if lesson["lesson_id"] != first_id
+    )
+    remaining = lessons[remaining_index]
+    revoked = accepted.client.delete(
+        f"{_lesson_base(accepted, remaining)}/access-grants/"
+        f"{grants[remaining_index]['access_grant_id']}",
+        headers=_keyed(accepted.teacher, 2, f"revoke-page-two-{uuid4()}"),
+    )
+    assert revoked.status_code == 200, revoked.text
+    second = accepted.client.get(
+        path,
+        params={"q": marker, "limit": 1, "cursor": first.json()["next_cursor"]},
+        headers=_headers(accepted.teacher),
+    )
+    assert second.status_code == 200, second.text
+    assert all(item["lesson_id"] != remaining["lesson_id"] for item in second.json()["items"])
+
+
+def test_version_routes_hide_other_authors_private_lessons_and_other_callers(
+    lesson_api_acceptance: LessonApiAcceptance,
+) -> None:
+    accepted = lesson_api_acceptance
+    private_lesson = _create_lesson(accepted, visibility="PRIVATE")
+    base = _lesson_base(accepted, private_lesson) + "/versions"
+    version_id = private_lesson["current_version"]["version_id"]
+    second_teacher = _add_second_teacher(accepted)
+
+    missing_list = accepted.client.get(
+        _lesson_base(accepted, {"lesson_id": "missing-lesson"}) + "/versions",
+        headers=_headers(second_teacher),
+    )
+    hidden_list = accepted.client.get(base, headers=_headers(second_teacher))
+    hidden_get = accepted.client.get(f"{base}/{version_id}", headers=_headers(second_teacher))
+    missing_get = accepted.client.get(
+        _lesson_base(accepted, {"lesson_id": "missing-lesson"}) + f"/versions/{version_id}",
+        headers=_headers(second_teacher),
+    )
+    assert hidden_list.status_code == hidden_get.status_code == 404
+    for hidden, missing in ((hidden_list, missing_list), (hidden_get, missing_get)):
+        assert hidden.status_code == missing.status_code == 404
+        assert hidden.json()["code"] == missing.json()["code"] == "RESOURCE_NOT_FOUND"
+        assert hidden.json()["message"] == missing.json()["message"]
+
+    search_path = f"/api/lesson-library/v1/organizations/{accepted.organization_id}/public-lessons"
+    paths = (base, f"{base}/{version_id}", search_path)
+    with _second_tenant(accepted) as other:
+        for caller in (accepted.parent, accepted.manager, other["teacher"], other["parent"]):
+            for path in paths:
+                refused = accepted.client.get(path, headers=_headers(caller))
+                assert refused.status_code in (403, 404), (caller, path, refused.text)
+                assert "items" not in refused.json()
+                assert "content" not in refused.json()
+
+
+def test_versions_cursor_replay_against_other_lesson_is_400(
+    lesson_api_acceptance: LessonApiAcceptance,
+) -> None:
+    accepted = lesson_api_acceptance
+    lesson = _create_lesson(accepted)
+    other_lesson = _create_lesson(accepted, title="Synthetic cursor replay target")
+    revision = 1
+    for version_no in range(2, 4):
+        _, revision = _revise_lesson(
+            accepted,
+            lesson_id=str(lesson["lesson_id"]),
+            expected_revision=revision,
+            title=f"Synthetic cursor version {version_no}",
+        )
+    first = accepted.client.get(
+        _lesson_base(accepted, lesson) + "/versions",
+        params={"limit": 1},
+        headers=_headers(accepted.teacher),
+    )
+    assert first.status_code == 200, first.text
+    cursor = first.json()["next_cursor"]
+    assert cursor
+    replay = accepted.client.get(
+        _lesson_base(accepted, other_lesson) + "/versions",
+        params={"limit": 1, "cursor": cursor},
+        headers=_headers(accepted.teacher),
+    )
+    assert replay.status_code == 400
+    assert replay.json()["code"] == "INVALID_REQUEST"
+    with _second_tenant(accepted) as other:
+        foreign = _create_lesson_in_org(
+            accepted,
+            organization_id=other["organization"],
+            teacher=other["teacher"],
+            title="Synthetic foreign cursor target",
+        )
+        foreign_replay = accepted.client.get(
+            f"/api/lesson-library/v1/organizations/{other['organization']}/lessons/"
+            f"{foreign['lesson_id']}/versions",
+            params={"limit": 1, "cursor": cursor},
+            headers=_headers(other["teacher"]),
+        )
+        assert foreign_replay.status_code == 400
+        assert foreign_replay.json()["code"] == "INVALID_REQUEST"
+
+
+def test_search_cursor_replay_by_another_teacher_is_400(
+    lesson_api_acceptance: LessonApiAcceptance,
+) -> None:
+    accepted = lesson_api_acceptance
+    marker = f"T10aCursorActor{uuid4().hex}"
+    for index in range(2):
+        lesson = _create_lesson(accepted, title=f"{marker} {index}")
+        _approve_public_grant(accepted, _create_public_grant(accepted, lesson, capability="VIEW"))
+    path = f"/api/lesson-library/v1/organizations/{accepted.organization_id}/public-lessons"
+    first = accepted.client.get(
+        path, params={"q": marker, "limit": 1}, headers=_headers(accepted.teacher)
+    )
+    assert first.status_code == 200, first.text
+    cursor = first.json()["next_cursor"]
+    assert cursor
+    second_teacher = _add_second_teacher(accepted)
+    replay = accepted.client.get(
+        path,
+        params={"q": marker, "limit": 1, "cursor": cursor},
+        headers=_headers(second_teacher),
+    )
+    assert replay.status_code == 400
+    assert replay.json()["code"] == "INVALID_REQUEST"
+
+
+def test_search_rejects_control_characters_with_400(
+    lesson_api_acceptance: LessonApiAcceptance,
+) -> None:
+    accepted = lesson_api_acceptance
+    path = f"/api/lesson-library/v1/organizations/{accepted.organization_id}/public-lessons"
+    for params in ({"q": "a\x00b"}, {"topic": "a\x00b"}, {"q": "a\x1fb"}):
+        response = accepted.client.get(path, params=params, headers=_headers(accepted.teacher))
+        assert response.status_code == 400, response.text
+        assert response.json()["code"] == "INVALID_REQUEST"
+    parent_response = accepted.client.get(
+        "/api/lesson-library/v1/me/lessons",
+        params={"source": "PUBLIC", "q": "a\x00b"},
+        headers=_headers(accepted.parent),
+    )
+    assert parent_response.status_code == 400, parent_response.text

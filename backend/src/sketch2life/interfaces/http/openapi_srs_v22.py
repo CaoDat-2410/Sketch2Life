@@ -67,10 +67,12 @@ SRS_V22_INCLUDED_OPERATIONS: frozenset[tuple[str, str]] = frozenset(
         # FEAT-066 T-5a (SRS l.1661-1662, l.777): the class projection of the sample video.
         ("post", "/v1/lesson-occurrences/{occurrence_id}/projection-confirmation"),
         ("post", "/v1/lesson-occurrences/{occurrence_id}/projection-playback-token"),
-        # FEAT-066 T-8a (SRS l.1681, l.812): the notification inbox and mark-read.
+        # FEAT-066 T-8a/T-8b (SRS l.812, l.815, l.1684-1685): inbox and endpoint management.
         ("get", "/v1/notifications"),
         ("post", "/v1/notifications/{inbox_item_id}/read"),
         ("post", "/v1/notifications/read-all"),
+        ("post", "/v1/notifications/push-endpoints"),
+        ("delete", "/v1/notifications/push-endpoints/{endpoint_id}"),
         ("get", "/api/be1/v1/organizations/{organization_id}"),
         ("get", "/api/be1/v1/organizations/{organization_id}/me"),
         ("get", "/api/be1/v1/billing/video-quota/payment-settings"),
@@ -301,7 +303,7 @@ SRS_V22_TAGS: list[dict[str, str]] = [
     },
     {
         "name": "Notifications",
-        "description": "Own notification inbox: cursor page and mark-read.",
+        "description": "Own inbox and push endpoint registration/revocation; no delivery route.",
     },
     {
         "name": "Video Quota & Billing",
@@ -315,7 +317,7 @@ SRS_V22_OPENAPI_DESCRIPTION = "\n\n".join(
         "organization/class management, consent, Teacher lesson preparation, and scoped video quota commerce.",
         "Authentication and access are checked.",
         "Activity catalog, Teacher occurrence, Sketch Deck, sample video, jobs/playback, "
-        "and notifications are unavailable; provider callbacks are excluded.",
+        "and push delivery are unavailable; provider callbacks are excluded.",
         "Parent confirmations and the draft SRS remain subject to approval.",
     )
 )

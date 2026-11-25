@@ -121,6 +121,7 @@ def test_current_version_only_with_stale_revision() -> None:
         (409, "CONFLICT", "INVALID_STATE_TRANSITION"),
         (409, "INVALID_TRANSITION", "INVALID_STATE_TRANSITION"),
         (409, "IDEMPOTENCY_KEY_REUSED", "IDEMPOTENCY_KEY_REUSED"),
+        (409, "STALE_SOURCE_VERSION", "STALE_SOURCE_VERSION"),
         (413, "REQUEST_TOO_LARGE", "REQUEST_TOO_LARGE"),
         (503, "DEPENDENCY_UNAVAILABLE", "PROVIDER_UNAVAILABLE"),
         (418, None, "INVALID_REQUEST"),
@@ -130,6 +131,11 @@ def test_current_version_only_with_stale_revision() -> None:
 )
 def test_code_mapping(status: int, code: str | None, expected: str) -> None:
     assert envelope.map_code(status, code) == expected
+
+
+def test_remix_dependency_unavailable_uses_provider_unavailable_on_the_wire() -> None:
+    assert envelope.map_code(503, "DEPENDENCY_UNAVAILABLE") == "PROVIDER_UNAVAILABLE"
+    assert envelope.MESSAGES["STALE_SOURCE_VERSION"]
 
 
 def test_validation_422_is_remapped_to_400() -> None:
@@ -155,6 +161,63 @@ def test_domain_422_codes_keep_their_status() -> None:
         422, {"code": "MALWARE_DETECTED"}, idempotency_header_present=False
     )
     assert (status, code) == (422, "MALWARE_DETECTED")
+
+
+def test_push_codes_are_registered_and_stale_revision_keeps_current_version() -> None:
+    for status, code in (
+        (422, "PUSH_PLATFORM_UNSUPPORTED"),
+        (503, "PUSH_REGISTRATION_UNAVAILABLE"),
+    ):
+        assert envelope.MESSAGES[code]
+        normalized = envelope.normalize_http_error(
+            status, {"code": code}, idempotency_header_present=False
+        )
+        assert normalized[:2] == (status, code)
+    normalized = envelope.normalize_http_error(
+        409,
+        {"code": "STALE_REVISION", "current_version": 7},
+        idempotency_header_present=True,
+    )
+    assert normalized == (409, "STALE_REVISION", None, 7)
+    body = envelope.build_error_body(
+        status=409, code="STALE_REVISION", request_id="req", current_version=7
+    )
+    assert body["current_version"] == 7
+
+
+def test_class_capacity_reached_has_a_stable_conflict_message() -> None:
+    message = envelope.MESSAGES["CLASS_CAPACITY_REACHED"]
+    assert message and message != envelope.STATUS_MESSAGES[409]
+    normalized = envelope.normalize_http_error(
+        409,
+        {"code": "CLASS_CAPACITY_REACHED"},
+        idempotency_header_present=True,
+    )
+    assert normalized[:2] == (409, "CLASS_CAPACITY_REACHED")
+    body = envelope.build_error_body(
+        status=409, code="CLASS_CAPACITY_REACHED", request_id="r"
+    )
+    assert body["message"] == message
+
+
+def test_billing_capacity_errors_are_registered_and_not_found_is_uniform() -> None:
+    expected = {
+        "CLASS_SELECTION_REQUIRED": 422,
+        "INVALID_CAPACITY_DOWNGRADE": 422,
+        "SUBSCRIPTION_PERIOD_ENDED": 409,
+    }
+    for code, status in expected.items():
+        assert envelope.MESSAGES[code]
+        normalized = envelope.normalize_http_error(
+            status, {"code": code}, idempotency_header_present=True
+        )
+        assert normalized[:2] == (status, code)
+        body = envelope.build_error_body(status=status, code=code, request_id="r")
+        assert body["message"] == envelope.MESSAGES[code]
+
+    assert envelope.normalize_http_error(
+        404, {"code": "NOT_FOUND"}, idempotency_header_present=False
+    )[:2] == (404, "RESOURCE_NOT_FOUND")
 
 
 def test_route_field_errors_are_whitelisted() -> None:

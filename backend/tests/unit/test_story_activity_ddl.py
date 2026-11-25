@@ -87,9 +87,8 @@ def test_the_revision_is_the_only_child_of_its_parent_and_the_review_epoch_follo
 def test_one_more_revision_and_the_head_counts_are_sixteen_and_eleven() -> None:
     graph = _graph()
     # T-12a: 20261121_pce_0001 (Parent root); T-12b: 20261121_bpr_0001; T-12c: psn_0001, psn_0002;
-    # T-12b-fix: 20261123_ppg_0001 (BE1 branch). AIPORT1 20261113_svg_catalog_review stays a
-    # parallel child of 20261123_rv_0001 (one more head than Phase A alone).
-    assert len(graph) == 60
+    # T-NTF1 adds 20261125_nt_0003 after the notification-chain head; other heads remain unchanged.
+    assert len(graph) == 64
     down_targets = {target for downs, _ in graph.values() for target in downs}
     dependency_targets = down_targets | {target for _, dep in graph.values() for target in dep}
     heads_down_only = {rev for rev in graph if rev not in down_targets}

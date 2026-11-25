@@ -421,7 +421,8 @@ def test_t01_commit_conflict_without_a_receipt_is_resource_conflict(
     api = t01_api
     key = f"t01-{uuid4().hex}"
     assert _post(api, key=key).status_code == 201
-    _hide_receipt_lookup(monkeypatch, times=2)  # the lookup and the re-read both miss
+    # The first lookup, the lookup after the capacity lock, and the re-read all miss.
+    _hide_receipt_lookup(monkeypatch, times=3)
     conflict = _post(api, key=key)
     assert conflict.status_code == 409, conflict.text
     assert conflict.json()["code"] == "RESOURCE_CONFLICT"

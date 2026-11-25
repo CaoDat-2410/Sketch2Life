@@ -5,10 +5,18 @@ from __future__ import annotations
 import json
 import re
 from collections.abc import Iterator
+from datetime import UTC, datetime
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
+from sketch2life.infrastructure.lesson_library.service import (
+    LessonLibraryError,
+    LessonLibraryService,
+    _decode_scoped_cursor,
+    _encode_scoped_cursor,
+)
 
 from sketch2life.infrastructure.config.settings import (
     CoreDatabaseSettings,
@@ -18,6 +26,8 @@ from sketch2life.infrastructure.config.settings import (
 )
 from sketch2life.interfaces.http.admin_contract import ADMIN_OPERATIONS
 from sketch2life.interfaces.http.app import create_app
+from sketch2life.interfaces.http.be1_runtime import get_db, get_verified_adult
+from sketch2life.interfaces.http.routers.lesson_library import get_lesson_library_service
 from sketch2life.interfaces.http.openapi_contract import (
     FEAT083_OPERATIONS,
     IDEMPOTENCY_MISMATCH_OPERATION_KEYS,
@@ -48,6 +58,7 @@ EXPECTED_IDEMPOTENCY_MISMATCH_OPERATION_KEYS = {
     ("post", "/api/lesson-library/v1/me/lesson-invitations/{access_grant_id}/accept"),
     ("post", "/api/lesson-library/v1/me/lesson-invitations/{access_grant_id}/decline"),
     ("post", "/api/lesson-library/v1/me/parent-group-invitations/{membership_id}/accept"),
+    ("post", "/api/lesson-library/v1/me/parent-group-invitations/{membership_id}/decline"),
     (
         "post",
         "/api/lesson-library/v1/organizations/{organization_id}/access-grants/{access_grant_id}/decision",
@@ -72,8 +83,16 @@ EXPECTED_IDEMPOTENCY_MISMATCH_OPERATION_KEYS = {
     ("patch", "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}"),
     ("delete", "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}"),
     (
+        "delete",
+        "/api/lesson-library/v1/organizations/{organization_id}/parent-groups/{parent_group_id}/members/{membership_id}",
+    ),
+    (
         "post",
         "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/versions",
+    ),
+    (
+        "post",
+        "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/remixes",
     ),
     (
         "delete",
@@ -85,6 +104,8 @@ EXPECTED_IDEMPOTENCY_MISMATCH_OPERATION_KEYS = {
     ("post", "/api/be1/v1/classes/{class_id}/assignments"),
     # FEAT-066 T0.1: create class is a keyed command.
     ("post", "/api/be1/v1/organizations/{organization_id}/classes"),
+    # T-CAP1: Manager subscription configuration is keyed and revision-bound.
+    ("patch", "/api/be1/v1/organizations/{organization_id}/capacity"),
     # FEAT-066 T-2a (SRS l.1697): the keyed generic upload commands.
     ("post", "/v1/upload-sessions"),
     ("post", "/v1/upload-sessions/{upload_id}/complete"),
@@ -106,6 +127,9 @@ EXPECTED_IDEMPOTENCY_MISMATCH_OPERATION_KEYS = {
     # FEAT-066 T-8a (SRS l.1697): the keyed notification mark-read commands.
     ("post", "/v1/notifications/{inbox_item_id}/read"),
     ("post", "/v1/notifications/read-all"),
+    # FEAT-066 goal v4 T-8b (SRS l.1697): keyed endpoint registration and revoke.
+    ("post", "/v1/notifications/push-endpoints"),
+    ("delete", "/v1/notifications/push-endpoints/{endpoint_id}"),
     # FEAT-066 T-7b (SRS l.1697): the keyed class suspend and archive commands.
     ("post", "/api/be1/v1/classes/{class_id}/suspend"),
     ("post", "/api/be1/v1/classes/{class_id}/archive"),
@@ -328,7 +352,7 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
 
     assert spec["openapi"] == "3.1.0"
     assert spec["tags"] == public_tags(TAG_DESCRIPTIONS)
-    assert len(operations) == 221 + len(ADMIN_OPERATIONS - PR22_UNCATALOGUED_OPERATIONS) + len(QUOTA_OPERATIONS)
+    assert len(operations) == 232 + len(ADMIN_OPERATIONS - PR22_UNCATALOGUED_OPERATIONS) + len(QUOTA_OPERATIONS)
     catalog_operations = set(MOUNTED_OPERATIONS)
     catalog_paths = {path for _method, path in catalog_operations}
     # FEAT-066 T-2a: five generic upload-session operations (four paths) join the catalog.
@@ -346,6 +370,7 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
     # FEAT-066 T-1c: the playback grant and the stream route, two new paths (the run detail read
     # stays one catalogued operation).
     # FEAT-066 T-8a: the notification inbox page and the two mark-read commands, three new paths.
+    # FEAT-066 goal v4 T-8b: registration and revoke add two endpoint-management paths.
     # FEAT-066 T-4b1: the child selection, its read and its confirmation, three new paths.
     # FEAT-066 T-5a: the class projection confirmation and its token, two new paths.
     # FEAT-066 goal v4 T-2e-a: the activity list and the activity selection, two new paths.
@@ -354,14 +379,16 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
     # three operations on three new paths.
     # FEAT-066 goal v4 T-12c: the Parent and the Teacher support-needs read and write,
     # four operations on two new paths (one path per family).
-    # The Phase B squash adds these 6 paths to the 168 of the integration branch.
-    assert len(catalog_paths) == 174
+    # FEAT-066 goal v4 T-10c: decline, own memberships, and Manager group members, three paths.
+    # T-CAP1 adds one capacity resource path with GET and PATCH (two operations).
+    assert len(catalog_paths) == 183
     assert MOUNTED_OPERATION_COUNT == 135
     assert (
         len(catalog_operations)
         == MOUNTED_OPERATION_COUNT
-        + 5 + 3 + 5 + 1 + 4 + 2 + 1 + 1 + 3 + 1 + 1 + 2 + 2 + 3 + 3 + 2 + 2 + 16 + 2 + 3 + 4
-        == 201
+        + 5 + 3 + 5 + 1 + 4 + 2 + 1 + 1 + 3 + 1 + 1 + 2 + 2 + 3 + 3 + 2 + 2 + 16 + 2 + 3 + 4 + 3
+        + 1 + 3 + 2 + 2
+        == 212
     )
     assert set(operations) - catalog_operations == (
         PILOT_ONLY_OPERATIONS | PR22_UNCATALOGUED_OPERATIONS | ADMIN_OPERATIONS | QUOTA_OPERATIONS
@@ -657,6 +684,11 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
         ("get", "/api/lesson-library/v1/me/lessons"),
         ("get", "/api/lesson-library/v1/me/lesson-invitations"),
         ("get", "/api/lesson-library/v1/me/parent-group-invitations"),
+        ("get", "/api/lesson-library/v1/me/parent-group-memberships"),
+        (
+            "get",
+            "/api/lesson-library/v1/organizations/{organization_id}/parent-groups/{parent_group_id}/members",
+        ),
     ):
         limit_parameter = next(
             parameter
@@ -667,13 +699,36 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
         assert limit_parameter["schema"]["minimum"] == 1
         assert limit_parameter["schema"]["maximum"] == 100
 
+    decline_catalog_response = MOUNTED_OPERATIONS[(
+        "post",
+        "/api/lesson-library/v1/me/parent-group-invitations/{membership_id}/decline",
+    )]["responses"]
+    assert "ETag" in next(
+        row["description"] for row in decline_catalog_response if row["status"] == "200"
+    )
+    for private_read in (
+        (
+            "get",
+            "/api/lesson-library/v1/me/parent-group-memberships",
+        ),
+        (
+            "get",
+            "/api/lesson-library/v1/organizations/{organization_id}/parent-groups/"
+            "{parent_group_id}/members",
+        ),
+    ):
+        response_rows = MOUNTED_OPERATIONS[private_read]["responses"]
+        assert "Cache-Control: private, no-store" in next(
+            row["description"] for row in response_rows if row["status"] == "200"
+        )
+
     for operation_key in IDEMPOTENCY_MISMATCH_OPERATION_KEYS:
         mismatch_response = operations[operation_key]["responses"]["400"]
         assert "INVALID_IDEMPOTENCY_KEY" in mismatch_response["description"]
         assert "Be1Error" in _schema_refs(
             mismatch_response["content"]["application/json"]["schema"]
         )
-    assert len(IDEMPOTENCY_MISMATCH_OPERATION_KEYS) == 37
+    assert len(IDEMPOTENCY_MISMATCH_OPERATION_KEYS) == 43
     assert set(IDEMPOTENCY_MISMATCH_OPERATION_KEYS) == (
         EXPECTED_IDEMPOTENCY_MISMATCH_OPERATION_KEYS
     )
@@ -728,6 +783,118 @@ def test_runtime_openapi_descriptions_equal_catalog_purpose_and_known_suffixes(
         assert operation["tags"] == [public_tag_name(contract["tag"])], key
 
 
+def test_parent_group_membership_openapi_schema_adds_organization_id(
+    runtime_openapi: dict[str, Any],
+) -> None:
+    schemas = runtime_openapi["components"]["schemas"]
+    membership = schemas["ParentGroupMembershipV1"]
+    assert set(membership["properties"]) == {
+        "contract",
+        "membership_id",
+        "parent_group_id",
+        "organization_id",
+        "state",
+        "invited_at",
+        "expires_at",
+        "accepted_at",
+        "revision",
+        "revision_source",
+    }
+    assert "organization_id" in membership["required"]
+    assert membership["properties"]["organization_id"]["type"] == "string"
+
+    invitation = schemas["ParentGroupInvitationV1"]
+    assert "organization_id" in invitation["properties"]
+    assert "organization_id" in invitation["required"]
+
+    membership_page = schemas["ParentGroupMembershipPageV1"]
+    page_items = membership_page["properties"]["items"]["items"]
+    assert "ParentGroupMembershipV1" in _schema_refs(page_items)
+
+    manager_summary = schemas["ParentGroupMemberSummaryV1"]
+    assert set(manager_summary["properties"]) == {
+        "membership_id",
+        "parent_group_id",
+        "state",
+        "invited_at",
+        "expires_at",
+        "accepted_at",
+        "revision",
+    }
+
+    response_contracts = (
+        (
+            "get",
+            "/api/lesson-library/v1/me/parent-group-invitations",
+            "200",
+            "ParentGroupInvitationPageV1",
+        ),
+        (
+            "post",
+            "/api/lesson-library/v1/me/parent-group-invitations/{membership_id}/accept",
+            "200",
+            "ParentGroupMembershipV1",
+        ),
+        (
+            "post",
+            "/api/lesson-library/v1/organizations/{organization_id}/parent-groups/"
+            "{parent_group_id}/invitations",
+            "201",
+            "ParentGroupInvitationV1",
+        ),
+        (
+            "post",
+            "/api/lesson-library/v1/me/parent-group-invitations/{membership_id}/decline",
+            "200",
+            "ParentGroupMembershipV1",
+        ),
+        (
+            "get",
+            "/api/lesson-library/v1/me/parent-group-memberships",
+            "200",
+            "ParentGroupMembershipPageV1",
+        ),
+        (
+            "delete",
+            "/api/lesson-library/v1/organizations/{organization_id}/parent-groups/"
+            "{parent_group_id}/members/{membership_id}",
+            "200",
+            "ParentGroupMembershipV1",
+        ),
+    )
+    for method, path, status, schema_name in response_contracts:
+        response_schema = runtime_openapi["paths"][path][method]["responses"][status][
+            "content"
+        ]["application/json"]["schema"]
+        assert schema_name in _schema_refs(response_schema), (method, path)
+
+    for key in (
+        ("get", "/api/lesson-library/v1/me/parent-group-invitations"),
+        ("post", "/api/lesson-library/v1/me/parent-group-invitations/{membership_id}/accept"),
+        (
+            "post",
+            "/api/lesson-library/v1/organizations/{organization_id}/parent-groups/"
+            "{parent_group_id}/invitations",
+        ),
+        (
+            "post",
+            "/api/lesson-library/v1/me/parent-group-invitations/{membership_id}/decline",
+        ),
+        ("get", "/api/lesson-library/v1/me/parent-group-memberships"),
+        (
+            "delete",
+            "/api/lesson-library/v1/organizations/{organization_id}/parent-groups/"
+            "{parent_group_id}/members/{membership_id}",
+        ),
+    ):
+        success = next(
+            row
+            for row in MOUNTED_OPERATIONS[key]["responses"]
+            if row["status"] in {"200", "201"}
+        )
+        assert "organization_id" in success["description"], key
+
+
 def test_runtime_openapi_operation_ids_are_non_empty_and_unique(
     runtime_openapi: dict[str, Any],
 ) -> None:
@@ -737,7 +904,9 @@ def test_runtime_openapi_operation_ids_are_non_empty_and_unique(
         for method, operation in path_item.items()
         if method.lower() in HTTP_METHODS
     ]
-    assert len(operation_ids) == 221 + len(ADMIN_OPERATIONS - PR22_UNCATALOGUED_OPERATIONS) + len(QUOTA_OPERATIONS)
+    assert len(operation_ids) == 232 + len(ADMIN_OPERATIONS - PR22_UNCATALOGUED_OPERATIONS) + len(
+        QUOTA_OPERATIONS
+    )
     assert all(isinstance(value, str) and value for value in operation_ids)
     assert len(set(operation_ids)) == len(operation_ids)
 
@@ -839,3 +1008,129 @@ def test_t7a2_child_profile_reads_publish_the_403_and_404_rows(
         responses = runtime_openapi["paths"][path]["get"]["responses"]
         assert "403" in responses, path
         assert "404" in responses, path
+
+
+def test_lesson_version_read_operations_in_catalog(runtime_openapi: dict[str, Any]) -> None:
+    library = "/api/lesson-library/v1"
+    lesson = f"{library}/organizations/{{organization_id}}/lessons/{{lesson_id}}"
+    version_list = f"{lesson}/versions"
+    version_detail = f"{version_list}/{{version_id}}"
+    public_search = f"{library}/organizations/{{organization_id}}/public-lessons"
+    operations = {
+        ("get", version_list): "LessonVersionPageV1",
+        ("get", version_detail): "LessonVersionV1",
+        ("get", public_search): "PublicLessonPageV1",
+    }
+    for key, response_contract in operations.items():
+        method, path = key
+        assert key in MOUNTED_OPERATIONS
+        operation = runtime_openapi["paths"][path][method]
+        assert "requestBody" not in operation
+        assert response_contract in _schema_refs(
+            operation["responses"]["200"]["content"]["application/json"]["schema"]
+        )
+    assert ("post", version_list) in MOUNTED_OPERATIONS
+
+
+def test_public_search_request_response_contract(runtime_openapi: dict[str, Any]) -> None:
+    path = "/api/lesson-library/v1/organizations/{organization_id}/public-lessons"
+    operation = runtime_openapi["paths"][path]["get"]
+    parameters = {parameter["name"]: parameter for parameter in operation["parameters"]}
+    assert {
+        "q",
+        "topic",
+        "target_age_band_ref",
+        "target_age_band_version",
+        "limit",
+        "cursor",
+    } <= set(parameters)
+    assert parameters["limit"]["schema"] == {
+        "title": "Limit",
+        "maximum": 100,
+        "minimum": 1,
+        "type": "integer",
+        "default": 25,
+    }
+    assert {"maxLength": 1024, "type": "string"} in parameters["cursor"]["schema"]["anyOf"]
+    assert "100 code points" in parameters["q"]["description"]
+    assert "200" in operation["responses"]
+    assert "400" in operation["responses"]
+
+
+def test_parent_search_filters_and_cursor_contract(runtime_openapi: dict[str, Any]) -> None:
+    path = "/api/lesson-library/v1/me/lessons"
+    operation = runtime_openapi["paths"][path]["get"]
+    parameters = {parameter["name"]: parameter for parameter in operation["parameters"]}
+    assert {
+        "source",
+        "q",
+        "topic",
+        "target_age_band_ref",
+        "target_age_band_version",
+        "limit",
+        "cursor",
+    } <= set(parameters)
+    assert parameters["limit"]["schema"]["default"] == 25
+    assert parameters["limit"]["schema"]["maximum"] == 100
+    assert {"maxLength": 1024, "type": "string"} in parameters["cursor"]["schema"]["anyOf"]
+    assert "100 code points" in parameters["q"]["description"]
+    assert "ParentLessonPageV1" in _schema_refs(
+        operation["responses"]["200"]["content"]["application/json"]["schema"]
+    )
+
+
+def test_search_invalid_filter_is_400() -> None:
+    principal = SimpleNamespace(subject="synthetic-parent", issuer="synthetic-issuer")
+    identity = SimpleNamespace(
+        state="active", account_role="parent", issuer="synthetic-issuer"
+    )
+    db = SimpleNamespace(get=lambda _model, _subject: identity)
+    service = LessonLibraryService(db, storage=None, parser=None, scanner=None)
+    application = create_app()
+    application.dependency_overrides[get_verified_adult] = lambda: principal
+    application.dependency_overrides[get_db] = lambda: db
+    application.dependency_overrides[get_lesson_library_service] = lambda: service
+    try:
+        with TestClient(application) as client:
+            response = client.get(
+                "/api/lesson-library/v1/me/lessons?target_age_band_ref=age-3-6"
+            )
+        assert response.status_code == 400
+        assert response.json()["code"] == "INVALID_REQUEST"
+        assert response.json()["field_errors"] == [
+            {"field": "target_age_band_version", "code": "REQUIRED"}
+        ]
+    finally:
+        application.dependency_overrides.clear()
+
+
+def test_cursor_shape_and_scope_are_opaque() -> None:
+    scope = {
+        "actor": "synthetic-teacher-opaque",
+        "route": "GET /organizations/org-a/public-lessons",
+        "source": "PUBLIC",
+        "filters": {"q": "bướm", "topic": None},
+        "order": "updated_at:desc,lesson_id:desc",
+    }
+    created_at = datetime(2026, 11, 24, tzinfo=UTC)
+    cursor = _encode_scoped_cursor(
+        scope=scope,
+        sort_value=created_at,
+        row_id="lesson-1",
+        value_kind="datetime",
+    )
+    assert "synthetic-teacher-opaque" not in cursor
+    assert "bướm" not in cursor
+    assert _decode_scoped_cursor(
+        cursor=cursor, scope=scope, value_kind="datetime"
+    ) == (created_at, "lesson-1")
+    for changed_scope in (
+        {**scope, "actor": "another-teacher"},
+        {**scope, "route": "GET /organizations/org-b/public-lessons"},
+        {**scope, "filters": {"q": "other", "topic": None}},
+    ):
+        with pytest.raises(LessonLibraryError) as refused:
+            _decode_scoped_cursor(
+                cursor=cursor, scope=changed_scope, value_kind="datetime"
+            )
+        assert (refused.value.status_code, refused.value.code) == (400, "INVALID_REQUEST")

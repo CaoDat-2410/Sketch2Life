@@ -51,7 +51,9 @@ DATABASE_SENTINEL = "postgresql+psycopg://sentinel_user:sentinel_pw@localhost:9/
 LIST = ("get", "/v1/notifications")
 READ_ONE = ("post", "/v1/notifications/{inbox_item_id}/read")
 READ_ALL = ("post", "/v1/notifications/read-all")
-OPERATIONS = (LIST, READ_ONE, READ_ALL)
+PUSH_REGISTER = ("post", "/v1/notifications/push-endpoints")
+PUSH_REVOKE = ("delete", "/v1/notifications/push-endpoints/{endpoint_id}")
+OPERATIONS = (LIST, READ_ONE, READ_ALL, PUSH_REGISTER, PUSH_REVOKE)
 NOW = datetime(2026, 11, 21, 7, 0, tzinfo=UTC)
 ITEM: dict[str, Any] = {
     "contract": "NotificationV1",
@@ -144,7 +146,7 @@ def headers(key: str | None = "key-1") -> dict[str, str]:
 
 
 # ----------------------------------------------------------------------------- catalog
-def test_the_three_operations_are_catalogued_projected_and_tagged() -> None:
+def test_the_five_operations_are_catalogued_projected_and_tagged() -> None:
     for key in OPERATIONS:
         assert key in MOUNTED_OPERATIONS
         assert key in SRS_V22_INCLUDED_OPERATIONS
@@ -153,10 +155,12 @@ def test_the_three_operations_are_catalogued_projected_and_tagged() -> None:
         assert MOUNTED_OPERATIONS[key]["authentication"] == "HTTPBearer (bearer)"
     assert READ_ONE in IDEMPOTENCY_MISMATCH_OPERATION_KEYS
     assert READ_ALL in IDEMPOTENCY_MISMATCH_OPERATION_KEYS
+    assert PUSH_REGISTER in IDEMPOTENCY_MISMATCH_OPERATION_KEYS
+    assert PUSH_REVOKE in IDEMPOTENCY_MISMATCH_OPERATION_KEYS
     assert LIST not in IDEMPOTENCY_MISMATCH_OPERATION_KEYS
 
 
-def test_the_route_table_under_notifications_is_exactly_the_three_t8a_routes() -> None:
+def test_the_route_table_under_notifications_is_exactly_the_five_t8a_t8b_routes() -> None:
     application = create_app()
     application.openapi()
     runtime_paths = application.state.runtime_openapi_schema["paths"]
@@ -169,22 +173,14 @@ def test_the_route_table_under_notifications_is_exactly_the_three_t8a_routes() -
     assert routes == set(OPERATIONS)
 
 
-def test_no_push_endpoint_route_exists_t8b_is_deferred(
-    served: tuple[TestClient, FakeService],
-) -> None:
-    client, service = served
-    for method, path in (
-        ("post", "/v1/notifications/push-endpoints"),
-        ("get", "/v1/notifications/push-endpoints"),
-        ("delete", "/v1/notifications/push-endpoints/ep-1"),
-        ("post", "/v1/notifications/push-endpoints/ep-1/verify"),
-    ):
-        response = client.request(method, path, headers=headers())
-        assert response.status_code in {404, 405}, (method, path)
-        assert response.json()["code"] in {"RESOURCE_NOT_FOUND", "ACTION_NOT_ALLOWED"}
+def test_no_push_list_or_delivery_route_is_published() -> None:
     published = create_app().openapi()["paths"]
-    assert not [path for path in published if "push" in path]
-    assert service.calls == []
+    assert "/v1/notifications/push-endpoints" in published
+    assert "post" in published["/v1/notifications/push-endpoints"]
+    assert "get" not in published["/v1/notifications/push-endpoints"]
+    assert "/v1/notifications/push-endpoints/{endpoint_id}" in published
+    assert "delete" in published["/v1/notifications/push-endpoints/{endpoint_id}"]
+    assert not any("delivery" in path or "send" in path for path in published)
 
 
 def test_no_route_accepts_a_recipient_or_an_account() -> None:
@@ -196,8 +192,14 @@ def test_no_route_accepts_a_recipient_or_an_account() -> None:
             continue
         for operation in item.values():
             declared.update(parameter["name"].lower() for parameter in operation["parameters"])
-            assert "requestBody" not in operation, path
-    assert declared == {"limit", "cursor", "idempotency-key", "inbox_item_id"}
+            if path == "/v1/notifications/push-endpoints":
+                body = operation["requestBody"]["content"]["application/json"]["schema"]
+                assert body["$ref"] == "#/components/schemas/PushEndpointRegistrationV1"
+            else:
+                assert "requestBody" not in operation, path
+    assert declared == {
+        "limit", "cursor", "idempotency-key", "inbox_item_id", "endpoint_id", "if-match"
+    }
 
 
 def test_published_contract_documents_the_routes_and_leaks_nothing() -> None:
@@ -223,8 +225,23 @@ def test_published_contract_documents_the_routes_and_leaks_nothing() -> None:
     assert every["responses"]["200"]["content"]["application/json"]["schema"] == {
         "$ref": "#/components/schemas/NotificationReadAllV1"
     }
+    register = published["/v1/notifications/push-endpoints"]["post"]
+    assert register["responses"]["201"]["content"]["application/json"]["schema"] == {
+        "$ref": "#/components/schemas/PushEndpointV1"
+    }
+    register_parameters = {(p["in"], p["name"]): p for p in register["parameters"]}
+    assert register_parameters[("header", "Idempotency-Key")]["required"] is True
+    revoke = published["/v1/notifications/push-endpoints/{endpoint_id}"]["delete"]
+    revoke_parameters = {(p["in"], p["name"]): p for p in revoke["parameters"]}
+    assert revoke_parameters[("header", "If-Match")]["required"] is True
+    assert revoke_parameters[("header", "Idempotency-Key")]["required"] is True
+    assert "content" not in revoke["responses"]["204"]
+    assert "409" in revoke["responses"]
     schemas = spec["components"]["schemas"]
-    for name in ("NotificationV1", "NotificationPageV1", "NotificationReadAllV1"):
+    for name in (
+        "NotificationV1", "NotificationPageV1", "NotificationReadAllV1",
+        "PushEndpointRegistrationV1", "PushEndpointV1",
+    ):
         assert schemas[name]["additionalProperties"] is False, name
     assert set(schemas["NotificationV1"]["properties"]) == set(ITEM)
     assert set(schemas["NotificationPageV1"]["properties"]) == {
@@ -238,7 +255,11 @@ def test_published_contract_documents_the_routes_and_leaks_nothing() -> None:
         in schemas["NotificationPageV1"]["properties"]["unread_count"]["description"]
     )
     scoped = json.dumps(
-        {path: published[path] for path in published if "notifications" in path}
+        {
+            path: published[path]
+            for path in published
+            if "notifications" in path and "push-endpoints" not in path
+        }
     ) + json.dumps({name: schemas[name] for name in schemas if name.startswith("Notification")})
     for word in HIDDEN_WORDS:
         assert word not in scoped.lower(), word
@@ -248,6 +269,12 @@ def test_published_contract_documents_the_routes_and_leaks_nothing() -> None:
         for name in schemas[schema]["properties"]
     }
     assert not [name for name in names if "playback" in name or "url" in name]
+
+
+def test_srs_v22_description_limits_push_to_endpoint_management() -> None:
+    from sketch2life.interfaces.http.openapi_srs_v22 import SRS_V22_OPENAPI_DESCRIPTION
+
+    assert "push delivery are unavailable" in SRS_V22_OPENAPI_DESCRIPTION
 
 
 def test_the_schemas_are_strict() -> None:

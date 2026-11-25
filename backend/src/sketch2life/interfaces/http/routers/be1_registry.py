@@ -18,7 +18,7 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, Response, status
 from sqlalchemy import Select, and_, exists, func, or_, select, tuple_
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from sketch2life.application.ports.identity import (
@@ -29,6 +29,11 @@ from sketch2life.application.ports.identity import (
 from sketch2life.application.ports.support_needs import (
     SupportNeedsCrypto,
     SupportNeedsUnavailable,
+)
+from sketch2life.contracts.schemas.be1_capacity import (
+    Be1CapacityConfigureRequest,
+    Be1OrganizationCapacityV1,
+    Be1ScheduledCapacityChangeV1,
 )
 from sketch2life.contracts.schemas.be1_runtime import (
     Be1PilotProfileListResponse,
@@ -54,8 +59,14 @@ from sketch2life.domain.be1_profile_revisions import (
 )
 from sketch2life.domain.core_foundation import CoreRuleViolation, validate_age_months
 from sketch2life.domain.eligibility import PROOF_VERSION
+from sketch2life.domain.platform_admin import AdminError
 from sketch2life.domain.support_needs import SupportNeedsPayload
-from sketch2life.infrastructure.config.settings import MIN_PROFILE_RECEIPT_KEY_BYTES
+from sketch2life.infrastructure.be1.capacity_adapter import (
+    Be1CapacityAdapter,
+    CapacityDependencyUnavailable,
+    effective_active_class_count,
+)
+from sketch2life.infrastructure.config.settings import MIN_PROFILE_RECEIPT_KEY_BYTES, Settings
 from sketch2life.infrastructure.persistence.be1_models import (
     AdultIdentityModel,
     Be1CommandReceiptModel,
@@ -71,6 +82,7 @@ from sketch2life.infrastructure.persistence.be1_models import (
     SessionMembershipModel,
     SyntheticEligibilityProofModel,
 )
+from sketch2life.infrastructure.persistence.billing_models import SubscriptionModel
 from sketch2life.infrastructure.persistence.support_needs_repository import (
     Be1SupportNeedsStore,
     SupportNeedsStale,
@@ -101,8 +113,10 @@ from sketch2life.interfaces.http.routers.be1_common import (
     get_class,
     get_session,
     hide_archived_from_teacher,
+    project_due_capacity_suspensions,
     require_assignment,
     require_class_teacher_row,
+    settle_due_class_suspensions,
 )
 from sketch2life.interfaces.http.support_needs_runtime import (
     SupportNeedsRuntime,
@@ -401,6 +415,7 @@ def assign_class_teacher(
         roles={"school_admin"},
         class_id=class_id,
     )
+    settle_due_class_suspensions(db, organization_id, actor=principal.subject)
     # C-D5: 1-128 visible ASCII, one header; the parsed value replaces the declared one.
     idempotency_key = parse_idempotency_key(request)
     expected_revision = _strong_revision(if_match)
@@ -540,6 +555,7 @@ def list_classes(
     db: Session = Depends(get_db),
 ) -> dict[str, object]:
     assignments = require_assignment(db, principal, organization_id)
+    settle_due_class_suspensions(db, organization_id, actor=principal.subject)
     allowed_class_ids = {row.class_id for row in assignments if row.class_id is not None}
     # T-7b-DEC-3 (closes T-7a Q-1): only an organization-wide School Manager row lists every
     # class. An organization-wide Teacher-family row is a membership marker and no longer does;
@@ -635,6 +651,288 @@ def _stored_class_replay(
     )
 
 
+_CAPACITY_ADMIN_WIRE_ERRORS: dict[str, tuple[int, str]] = {
+    "CLASS_SELECTION_REQUIRED": (422, "CLASS_SELECTION_REQUIRED"),
+    "INVALID_CAPACITY_DOWNGRADE": (422, "INVALID_CAPACITY_DOWNGRADE"),
+    "SUBSCRIPTION_PERIOD_ENDED": (409, "SUBSCRIPTION_PERIOD_ENDED"),
+    "NOT_FOUND": (404, "RESOURCE_NOT_FOUND"),
+    "INVALID_IDEMPOTENCY_KEY": (400, "INVALID_IDEMPOTENCY_KEY"),
+    "STALE_REVISION": (409, "STALE_REVISION"),
+}
+
+
+def _raise_capacity_admin_error(exc: AdminError) -> NoReturn:
+    if exc.code == "BILLING_SANDBOX_DISABLED":
+        raise failure(
+            503,
+            "DEPENDENCY_UNAVAILABLE",
+            "Billing capacity is temporarily unavailable",
+        ) from None
+    wire_error = _CAPACITY_ADMIN_WIRE_ERRORS.get(exc.code)
+    if wire_error is not None:
+        status_code, code = wire_error
+        raise failure(status_code, code, "The capacity command could not be completed") from None
+    # Billing may add a code before BE1 has a stable public contract for it. Fail closed with
+    # the registered dependency error instead of leaking an unclassified internal code.
+    raise failure(
+        503,
+        "DEPENDENCY_UNAVAILABLE",
+        "Billing capacity is temporarily unavailable",
+    ) from None
+
+
+def _capacity_adapter(db: Session, actor: str, settings: Settings) -> Be1CapacityAdapter:
+    try:
+        return Be1CapacityAdapter(db, actor, settings)
+    except AdminError as exc:
+        _raise_capacity_admin_error(exc)
+
+
+def _active_class_refs(db: Session, organization_id: str) -> set[str]:
+    return set(
+        db.scalars(
+            select(ClassroomModel.class_id).where(
+                ClassroomModel.organization_id == organization_id,
+                ClassroomModel.state == "active",
+            )
+        )
+    )
+
+
+def _capacity_response(
+    db: Session,
+    adapter: Be1CapacityAdapter,
+    *,
+    organization_id: str,
+    row: SubscriptionModel | None,
+    view: dict[str, Any],
+) -> Be1OrganizationCapacityV1:
+    active_refs = _active_class_refs(db, organization_id)
+    due_refs = {str(class_ref) for class_ref in view.get("suspended_class_refs", [])}
+    active_count = effective_active_class_count(active_refs, due_refs)
+    scheduled = adapter.scheduled_change(row, view)
+    return Be1OrganizationCapacityV1(
+        organization_id=organization_id,
+        subscription_id=row.subscription_id if row is not None else None,
+        capacity=int(view["capacity"]),
+        active_class_count=active_count,
+        available_slots=max(0, int(view["capacity"]) - active_count),
+        subscription_state=str(view["state"]),
+        revision=int(view["revision"]),
+        period_start=view["period_start"],
+        period_end=view["period_end"],
+        scheduled_change=(
+            Be1ScheduledCapacityChangeV1.model_validate(scheduled) if scheduled else None
+        ),
+    )
+
+
+def _raise_capacity_unavailable(db: Session) -> NoReturn:
+    db.rollback()
+    raise failure(
+        503,
+        "DEPENDENCY_UNAVAILABLE",
+        "Billing capacity is temporarily unavailable",
+    ) from None
+
+
+def _capacity_config_fingerprint(
+    organization_id: str, payload: Be1CapacityConfigureRequest, expected_revision: int
+) -> str:
+    material = {
+        "organization_id": organization_id,
+        "action": payload.action,
+        "payload": payload.model_dump(mode="json", exclude_unset=True),
+        "expected_revision": expected_revision,
+    }
+    return hashlib.sha256(
+        json.dumps(material, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+
+
+def _capacity_receipt_replay(
+    receipt: Be1CommandReceiptModel,
+    *,
+    fingerprint: str,
+    response: Response,
+) -> Be1OrganizationCapacityV1:
+    if receipt.request_fingerprint != fingerprint:
+        raise failure(
+            400,
+            "INVALID_IDEMPOTENCY_KEY",
+            "Idempotency-Key was already used for another request",
+        )
+    stored = Be1OrganizationCapacityV1.model_validate(receipt.response_json)
+    response.headers["ETag"] = f'"{stored.revision}"'
+    response.headers["Cache-Control"] = "private, no-store"
+    return stored
+
+
+@router.get(
+    "/organizations/{organization_id}/capacity",
+    response_model=Be1OrganizationCapacityV1,
+)
+def read_organization_capacity(
+    organization_id: str,
+    request: Request,
+    response: Response,
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+) -> Be1OrganizationCapacityV1:
+    """Read only the authenticated Manager's Billing-derived effective capacity."""
+    try:
+        _require_m2_assignment(db, principal, organization_id, roles={"school_admin"})
+    except HTTPException as exc:
+        # Capacity is a sensitive Manager resource; do not reveal that an organization has a
+        # capacity record to an assigned non-Manager.
+        if exc.status_code in {403, 404}:
+            raise _scope_denied() from None
+        raise
+    try:
+        adapter = _capacity_adapter(
+            db, principal.subject, request.app.state.be1_runtime.settings
+        )
+        row, view = adapter.view_for_organization(organization_id, lock=False)
+        due_refs = {str(class_ref) for class_ref in view.get("suspended_class_refs", [])}
+        projected = project_due_capacity_suspensions(
+            db,
+            organization_id=organization_id,
+            actor=principal.subject,
+            class_refs=due_refs,
+        )
+        result = _capacity_response(
+            db,
+            adapter,
+            organization_id=organization_id,
+            row=row,
+            view=view,
+        )
+        if projected:
+            # Commit the read-time class state, revision, audit, and outbox together.
+            db.commit()
+    except CapacityDependencyUnavailable:
+        _raise_capacity_unavailable(db)
+    except AdminError as exc:
+        db.rollback()
+        _raise_capacity_admin_error(exc)
+    except SQLAlchemyError:
+        _raise_capacity_unavailable(db)
+    response.headers["ETag"] = f'"{result.revision}"'
+    response.headers["Cache-Control"] = "private, no-store"
+    return result
+
+
+@router.patch(
+    "/organizations/{organization_id}/capacity",
+    response_model=Be1OrganizationCapacityV1,
+)
+def configure_organization_capacity(
+    organization_id: str,
+    payload: Be1CapacityConfigureRequest,
+    request: Request,
+    response: Response,
+    idempotency_key: Annotated[
+        str, Header(alias="Idempotency-Key", min_length=1, max_length=128)
+    ],
+    if_match: Annotated[str, Header(alias="If-Match")],
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+) -> Be1OrganizationCapacityV1:
+    """Configure only this Manager's subscription through the Billing-owned rules."""
+    _require_m2_assignment(db, principal, organization_id, roles={"school_admin"})
+    idempotency_key = parse_idempotency_key(request)
+    expected_revision = _strong_revision(if_match)
+    scope = f"PATCH /organizations/{organization_id}/capacity"
+    fingerprint = _capacity_config_fingerprint(organization_id, payload, expected_revision)
+    receipt = db.get(Be1CommandReceiptModel, (principal.subject, scope, idempotency_key))
+    if receipt is not None:
+        result = _capacity_receipt_replay(receipt, fingerprint=fingerprint, response=response)
+        db.rollback()
+        return result
+
+    try:
+        adapter = _capacity_adapter(
+            db, principal.subject, request.app.state.be1_runtime.settings
+        )
+        # Constructing the command service checks Billing's local-test sandbox gate. Reads and
+        # class creation never construct it.
+        billing_capacity = adapter.command_service()
+        row, view = adapter.view_for_organization(organization_id, lock=True)
+        if row is None:
+            raise AdminError("NOT_FOUND", 404)
+        subscription_id = row.subscription_id
+        # The subscription row serializes same-organization PATCH requests. Recheck the BE1
+        # receipt after the lock so a concurrent first request replays before its stale check.
+        receipt = db.get(Be1CommandReceiptModel, (principal.subject, scope, idempotency_key))
+        if receipt is not None:
+            result = _capacity_receipt_replay(
+                receipt, fingerprint=fingerprint, response=response
+            )
+            db.rollback()
+            return result
+
+        if row.revision != expected_revision:
+            current_revision = row.revision
+            db.rollback()
+            raise_stale_revision(current_version=current_revision, etag=str(current_revision))
+
+        due_refs = {str(class_ref) for class_ref in view.get("suspended_class_refs", [])}
+        project_due_capacity_suspensions(
+            db,
+            organization_id=organization_id,
+            actor=principal.subject,
+            class_refs=due_refs,
+        )
+        config_payload = {
+            "action": payload.action,
+            "addon_slots": payload.addon_slots,
+            "suspend_class_refs": payload.suspend_class_refs or [],
+        }
+        configured = billing_capacity.configure(  # type: ignore[no-untyped-call]
+            subscription_id,
+            config_payload,
+            expected_revision,
+            idempotency_key,
+            _active_class_refs(db, organization_id),
+        )
+        result = _capacity_response(
+            db,
+            adapter,
+            organization_id=organization_id,
+            row=row,
+            view=configured,
+        )
+        audit(
+            db,
+            organization_id=organization_id,
+            actor=principal.subject,
+            action=f"subscription.{payload.action}",
+            resource_type="organization_subscription",
+            resource_id=subscription_id,
+        )
+        db.add(
+            Be1CommandReceiptModel(
+                principal_ref=principal.subject,
+                operation_scope=scope,
+                idempotency_key=idempotency_key,
+                organization_id=organization_id,
+                request_fingerprint=fingerprint,
+                response_json=result.model_dump(mode="json"),
+            )
+        )
+        db.commit()
+    except CapacityDependencyUnavailable:
+        _raise_capacity_unavailable(db)
+    except AdminError as exc:
+        db.rollback()
+        _raise_capacity_admin_error(exc)
+    except SQLAlchemyError:
+        _raise_capacity_unavailable(db)
+    response.headers["ETag"] = f'"{result.revision}"'
+    response.headers["Cache-Control"] = "private, no-store"
+    return result
+
+
 @router.post("/organizations/{organization_id}/classes", status_code=status.HTTP_201_CREATED)
 def create_class(
     organization_id: str,
@@ -658,6 +956,53 @@ def create_class(
         )
         db.rollback()
         return replay
+
+    # The Billing subscription row is the organization serialization lock shared with
+    # subscription configuration and payment settlement. When there is no subscription row,
+    # the adapter locks the BE1 organization row before the active-class count. Capacity view,
+    # downgrade projection, class write, audit/outbox and receipt stay in this Session.
+    try:
+        adapter = _capacity_adapter(
+            db, principal.subject, request.app.state.be1_runtime.settings
+        )
+        _subscription, capacity_view = adapter.view_for_organization(organization_id, lock=True)
+    except CapacityDependencyUnavailable:
+        _raise_capacity_unavailable(db)
+    except AdminError as exc:
+        db.rollback()
+        _raise_capacity_admin_error(exc)
+    except SQLAlchemyError:
+        _raise_capacity_unavailable(db)
+
+    # A concurrent same-key create may have committed while this request waited for the
+    # subscription lock. Check again before the capacity refusal so successful retries replay.
+    receipt = db.get(Be1CommandReceiptModel, (principal.subject, scope, idempotency_key))
+    if receipt is not None:
+        replay = _stored_class_replay(
+            receipt, fingerprint=fingerprint, display_name=payload.display_name
+        )
+        db.rollback()
+        return replay
+
+    active_refs = _active_class_refs(db, organization_id)
+    due_suspensions = {
+        str(class_ref) for class_ref in capacity_view.get("suspended_class_refs", [])
+    }
+    active_count = effective_active_class_count(active_refs, due_suspensions)
+    if active_count >= int(capacity_view["capacity"]):
+        db.rollback()
+        raise failure(
+            409,
+            "CLASS_CAPACITY_REACHED",
+            "The organization has no available class slots",
+        )
+
+    project_due_capacity_suspensions(
+        db,
+        organization_id=organization_id,
+        actor=principal.subject,
+        class_refs=due_suspensions,
+    )
     class_id = str(uuid4())
     record = ClassroomModel(
         class_id=class_id,
@@ -788,6 +1133,7 @@ def _change_class_state(
     _require_m2_assignment(
         db, principal, organization_id, roles={"school_admin"}, class_id=class_id
     )
+    settle_due_class_suspensions(db, organization_id, actor=principal.subject)
     # (3) the key (1-128 visible ASCII) and the strong class revision.
     idempotency_key = parse_idempotency_key(request)
     expected_revision = _strong_revision(if_match)
@@ -1031,6 +1377,7 @@ def list_pilot_profiles(
     )
     # T-7a2-DEC-1: an org-wide `teacher` row covers the class but is not the assignment.
     require_class_teacher_row(assignments, session.class_id)
+    settle_due_class_suspensions(db, organization_id, actor=principal.subject)
     if (
         runtime.settings.env not in {"local", "test"}
         or not runtime.settings.synthetic_pilot_enabled
@@ -1351,6 +1698,7 @@ def create_profile(
     )
     if not any(row.class_id == class_id and row.role == "teacher" for row in assignments):
         raise _scope_denied()
+    settle_due_class_suspensions(db, organization_id, actor=principal.subject)
     idempotency_key = parse_idempotency_key(request)
     expected_revision = _strong_revision(if_match)
     classroom = db.scalar(class_lock_select(class_id))
@@ -1694,6 +2042,7 @@ def move_profile(
         db, organization_id, principal.subject, target_id
     ):
         raise _scope_denied()
+    settle_due_class_suspensions(db, organization_id, actor=principal.subject)
     # Both class rows FOR UPDATE in ascending id order: A->B and B->A cannot deadlock.
     locked = {cid: db.scalar(class_lock_select(cid)) for cid in sorted((class_id, target_id))}
     source, target = locked[class_id], locked[target_id]

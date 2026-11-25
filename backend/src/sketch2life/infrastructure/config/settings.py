@@ -47,12 +47,16 @@ class Settings(BaseSettings):
     # signature media validator. Refused outside local/test (see the policy validator below).
     scanner_adapter: Literal["clamav", "local_test_allowlist"] = "clamav"
     local_scanner_allowlist_file: Path | None = None
-    # T-1a (OD-03): "local_test" composes the accept-all local/test pair of the Parent video
-    # admission ports. Refused outside local/test (see the policy validator below). "unconfigured"
-    # composes nothing: the video route answers 503 PROVIDER_UNAVAILABLE after its other checks.
-    story_video_adapters: Literal["unconfigured", "local_test"] = "unconfigured"
+    # "local_test" composes the accept-all local/test pair and is refused outside local/test.
+    # "billing" selects the Billing quota adapter; the default stays fail-closed as unconfigured.
+    story_video_adapters: Literal["unconfigured", "local_test", "billing"] = "unconfigured"
     # Per-call timeout of the two admission ports (BR-38: no port call inside a transaction).
     story_video_port_timeout_seconds: float = Field(default=5.0, ge=0.1, le=30.0)
+    # Monthly free ("INCLUDED") video units per owner scope and Vietnam calendar month. Parent
+    # demo default 2, owner decision 2026-11-25; Admin-configurable. 0 grants nothing (not
+    # configured). Never a sellable product.
+    video_quota_included_units_parent: int = Field(default=2, ge=0, le=1000)
+    video_quota_included_units_organization: int = Field(default=0, ge=0, le=100000)
     # T-1c (SRS l.1676, l.1691, TD-07): signing secret of the Parent video playback token. Blank
     # means unset. Unset in staging/production the playback routes answer 503 (fail closed at the
     # route; the API still starts); local/test then use a per-process key. Never logged or echoed.
@@ -277,7 +281,7 @@ class Settings(BaseSettings):
         # Checked first so staging/production fail on this reason before any other policy reason.
         if self.scanner_adapter != "clamav" and self.env not in {"local", "test"}:
             raise ValueError("the local test scanner adapter is available only in local/test")
-        if self.story_video_adapters != "unconfigured" and self.env not in {"local", "test"}:
+        if self.story_video_adapters == "local_test" and self.env not in {"local", "test"}:
             raise ValueError("the local test video adapters are available only in local/test")
 
         if self.ops_probe_token is not None:

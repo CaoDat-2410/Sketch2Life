@@ -20,12 +20,19 @@ from fastapi.testclient import TestClient
 from sqlalchemy import func, select
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
-from sketch2life.infrastructure.config.settings import get_core_database_settings, get_settings
+from sketch2life.infrastructure.config.settings import (
+    CoreDatabaseSettings,
+    Settings,
+    get_core_database_settings,
+    get_settings,
+)
 from sketch2life.infrastructure.persistence.be1_models import (
     AdultIdentityModel,
+    Be1CommandReceiptModel,
     Be1GroupDraftModel,
     Be1RoomCodeModel,
     Be1RoomCodeRateLimitModel,
+    ClassroomModel,
     ClassroomSessionModel,
     ConsentRecordModel,
     DataLifecycleRequestModel,
@@ -38,6 +45,7 @@ from sketch2life.infrastructure.persistence.be1_models import (
     SessionMembershipModel,
 )
 from sketch2life.infrastructure.persistence.be1_worker import run_retention_once
+from sketch2life.infrastructure.persistence.billing_models import SubscriptionModel
 from sketch2life.infrastructure.persistence.core_models import (
     CoreAssetMetadataModel,
     CoreAuditEntryModel,
@@ -64,9 +72,12 @@ def acceptance_client(monkeypatch: pytest.MonkeyPatch, tmp_path) -> Iterator[Acc
     if "be1_acceptance" not in database_url.rsplit("/", 1)[-1]:
         pytest.fail("BE1_TEST_DATABASE_URL must point to a disposable *be1_acceptance database")
 
+    monkeypatch.setitem(Settings.model_config, "env_file", None)
+    monkeypatch.setitem(CoreDatabaseSettings.model_config, "env_file", None)
     monkeypatch.setenv("SKETCH2LIFE_DATABASE_URL", database_url)
     monkeypatch.setenv("SKETCH2LIFE_AUTH_PROVIDER", "development")
     monkeypatch.setenv("SKETCH2LIFE_ENV", "test")
+    monkeypatch.delenv("SKETCH2LIFE_BILLING_SANDBOX_ENABLED", raising=False)
     monkeypatch.setenv("SKETCH2LIFE_SYNTHETIC_PILOT_ENABLED", "true")
     monkeypatch.setenv("SKETCH2LIFE_ROOM_CODE_HMAC_KEY", "synthetic-test-key-" + "x" * 40)
     monkeypatch.setenv("SKETCH2LIFE_BE1_ARTIFACT_ROOT", str(tmp_path / "artifacts"))
@@ -110,7 +121,6 @@ def acceptance_client(monkeypatch: pytest.MonkeyPatch, tmp_path) -> Iterator[Acc
                 active=True,
             )
         )
-
     principal = VerifiedPrincipal(
         subject=subject,
         issuer="synthetic-test-issuer",
@@ -308,14 +318,15 @@ def test_real_http_writes_audits_outbox_and_enforces_assignment_scope(
     # FEAT-066 T-7d: the enrollment move adds one path and one operation.
     # FEAT-066 goal v4 T-12b: the profile edit and the two revision reads add three paths.
     # FEAT-066 goal v4 T-12c: the Teacher support-needs read and write add one path.
-    assert len(be1_paths) == 80  # 62 of Phase B plus the 18 paths integration added (quota, admin)
+    # FEAT-066 goal v4 T-CAP1: the Manager capacity path adds one path and two operations.
+    assert len(be1_paths) == 81  # 62 of Phase B plus the 19 paths integration added (quota, admin)
     be1_operations = sum(
         1
         for path in be1_paths
         for method in openapi["paths"][path]
         if method in {"get", "post", "put", "patch", "delete"}
     )
-    assert be1_operations == 87  # 68 of Phase B plus the 19 operations integration added
+    assert be1_operations == 89  # 68 of Phase B plus the 21 operations integration added
     assert "HTTPBearer" in openapi["components"]["securitySchemes"]
     error_schema = openapi["components"]["schemas"]["Be1Error"]
     assert set(error_schema["properties"]) == {
@@ -1050,3 +1061,174 @@ def test_retention_worker_purges_local_bytes_once_but_keeps_external_purge_pendi
         assert deletion is not None
         assert deletion.state == "awaiting_external_purge"
         assert deletion.unresolved_items >= 1
+
+
+def test_no_subscription_organization_gets_ten_slots_and_refuses_the_eleventh_class(
+    acceptance_client: AcceptanceClient,
+) -> None:
+    accepted = acceptance_client
+    client = accepted.client
+    assert accepted.app.state.be1_runtime.settings.billing_sandbox_enabled is False
+    with accepted.app.state.be1_runtime.session_factory() as db:
+        assert db.scalar(
+            select(SubscriptionModel.subscription_id).where(
+                SubscriptionModel.organization_ref == accepted.organization_id
+            )
+        ) is None
+
+    for index in range(10):
+        created = client.post(
+            _url(accepted, "/classes"),
+            json={"display_name": f"Capacity Class {index}"},
+            headers={"Idempotency-Key": f"capacity-fill-{uuid4().hex}"},
+        )
+        assert created.status_code == 201, created.text
+
+    capacity = client.get(
+        f"/api/be1/v1/organizations/{accepted.organization_id}/capacity"
+    )
+    assert capacity.status_code == 200, capacity.text
+    assert capacity.json()["capacity"] == 10
+    assert capacity.json()["active_class_count"] == 10
+    assert capacity.json()["available_slots"] == 0
+    assert capacity.json()["subscription_id"] is None
+    assert capacity.json()["revision"] == 0
+
+    runtime = accepted.app.state.be1_runtime
+    with runtime.session_factory() as db:
+        before = {
+            "classes": db.scalar(
+                select(func.count()).select_from(ClassroomModel).where(
+                    ClassroomModel.organization_id == accepted.organization_id
+                )
+            ),
+            "audit": db.scalar(
+                select(func.count()).select_from(CoreAuditEntryModel).where(
+                    CoreAuditEntryModel.organization_id == accepted.organization_id
+                )
+            ),
+            "outbox": db.scalar(
+                select(func.count()).select_from(CoreOutboxEventModel).where(
+                    CoreOutboxEventModel.organization_id == accepted.organization_id
+                )
+            ),
+            "receipts": db.scalar(
+                select(func.count()).select_from(Be1CommandReceiptModel).where(
+                    Be1CommandReceiptModel.organization_id == accepted.organization_id
+                )
+            ),
+        }
+
+    refused = client.post(
+        _url(accepted, "/classes"),
+        json={"display_name": "Over Capacity"},
+        headers={"Idempotency-Key": f"capacity-refuse-{uuid4().hex}"},
+    )
+    assert refused.status_code == 409
+    assert refused.json()["code"] == "CLASS_CAPACITY_REACHED"
+
+    with runtime.session_factory() as db:
+        after = {
+            "classes": db.scalar(
+                select(func.count()).select_from(ClassroomModel).where(
+                    ClassroomModel.organization_id == accepted.organization_id
+                )
+            ),
+            "audit": db.scalar(
+                select(func.count()).select_from(CoreAuditEntryModel).where(
+                    CoreAuditEntryModel.organization_id == accepted.organization_id
+                )
+            ),
+            "outbox": db.scalar(
+                select(func.count()).select_from(CoreOutboxEventModel).where(
+                    CoreOutboxEventModel.organization_id == accepted.organization_id
+                )
+            ),
+            "receipts": db.scalar(
+                select(func.count()).select_from(Be1CommandReceiptModel).where(
+                    Be1CommandReceiptModel.organization_id == accepted.organization_id
+                )
+            ),
+        }
+    assert after == before
+
+
+def test_capacity_routes_hide_another_organizations_subscription(
+    acceptance_client: AcceptanceClient,
+) -> None:
+    accepted = acceptance_client
+    other_organization_id = f"synthetic-other-org-{uuid4()}"
+    now = datetime.now(UTC)
+    with accepted.app.state.be1_runtime.session_factory.begin() as db:
+        db.add(
+            OrganizationModel(
+                organization_id=other_organization_id,
+                display_name="Other Synthetic Organization",
+                state="active",
+            )
+        )
+        db.add(
+            SubscriptionModel(
+                subscription_id=str(uuid4()),
+                organization_ref=other_organization_id,
+                price_id=str(uuid4()),
+                addon_slots=3,
+                state="ACTIVE",
+                period_start=now,
+                period_end=now + timedelta(days=30),
+                revision=4,
+            )
+        )
+
+    path = f"/api/be1/v1/organizations/{other_organization_id}/capacity"
+    read = accepted.client.get(path)
+    assert read.status_code == 404
+    assert read.json()["code"] == "RESOURCE_NOT_FOUND"
+    configure = accepted.client.patch(
+        path,
+        json={"action": "cancel_renewal"},
+        headers={"If-Match": '"4"', "Idempotency-Key": f"foreign-{uuid4().hex}"},
+    )
+    assert configure.status_code == 404
+    assert configure.json()["code"] == "RESOURCE_NOT_FOUND"
+
+
+def test_concurrent_class_creates_serialize_on_the_final_slot(
+    acceptance_client: AcceptanceClient,
+) -> None:
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Barrier
+
+    accepted = acceptance_client
+    client = accepted.client
+    for index in range(9):
+        created = client.post(
+            _url(accepted, "/classes"),
+            json={"display_name": f"Concurrent Fill {index}"},
+            headers={"Idempotency-Key": f"concurrent-fill-{uuid4().hex}"},
+        )
+        assert created.status_code == 201, created.text
+
+    barrier = Barrier(2)
+
+    def create(name: str) -> tuple[int, str | None]:
+        barrier.wait(timeout=10)
+        result = client.post(
+            _url(accepted, "/classes"),
+            json={"display_name": name},
+            headers={"Idempotency-Key": f"last-slot-{uuid4().hex}"},
+        )
+        return result.status_code, result.json().get("code")
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        results = list(pool.map(create, ("Final Slot A", "Final Slot B")))
+
+    assert sorted(status for status, _code in results) == [201, 409]
+    assert next(code for status, code in results if status == 409) == "CLASS_CAPACITY_REACHED"
+    with accepted.app.state.be1_runtime.session_factory() as db:
+        assert db.scalar(
+            select(func.count()).select_from(ClassroomModel).where(
+                ClassroomModel.organization_id == accepted.organization_id,
+                ClassroomModel.state == "active",
+            )
+        ) == 10

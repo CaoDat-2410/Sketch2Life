@@ -83,11 +83,11 @@ def test_the_revision_is_the_only_child_of_the_parent_root_and_declares_no_label
     }
 
 
-def test_the_graph_has_60_revisions_and_the_head_counts_are_sixteen_and_eleven() -> None:
+def test_the_graph_has_64_revisions_and_the_head_counts_are_sixteen_and_eleven() -> None:
     graph = _graph()
     # V4-B T-12b adds 20261121_bpr_0001 on the Story branch; T-12c adds 20261121_psn_0001
     # here (the Parent head) and 20261121_psn_0002 on the Story branch (53 before them).
-    assert len(graph) == 60  # T-12b-fix adds 20261123_ppg_0001 on the BE1 branch
+    assert len(graph) == 64  # T-NTF1 adds 20261125_nt_0003 after the notification-chain head
     down_targets = {target for downs, _ in graph.values() for target in downs}
     dependency_targets = down_targets | {target for _, dep in graph.values() for target in dep}
     heads_down_only = {rev for rev in graph if rev not in down_targets}

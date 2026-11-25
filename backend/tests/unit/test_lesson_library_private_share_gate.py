@@ -164,7 +164,7 @@ def test_only_the_public_parent_read_statement_requires_an_approved_version() ->
     service = object.__new__(LessonLibraryService)
     captured: list[Any] = []
 
-    def capture(statement: Any, _limit: int) -> list[dict[str, Any]]:
+    def capture(statement: Any, _limit: int, **_kwargs: Any) -> list[dict[str, Any]]:
         captured.append(statement)
         return []
 

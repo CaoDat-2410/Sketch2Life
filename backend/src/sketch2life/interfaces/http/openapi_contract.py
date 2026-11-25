@@ -12877,15 +12877,18 @@ MOUNTED_OPERATIONS[_PROFILE_MOVE_KEY] = {
     "responses": _CLASS_STATE_RESPONSES,
 }
 
-# FEAT-066 goal v3 T-8a (SRS l.812, l.1681, l.1697; FR-B-09; UC-15; DDL-C part 1): the notification
-# inbox. The inbox is the source of truth; nothing is delivered (no e-mail, no push). T-8b (push
-# endpoints, SRS l.1682-1683) is deferred and not registered.
+# FEAT-066 T-8a/T-8b (SRS l.812, l.815, l.1681, l.1684-1685, l.1697; FR-B-09; UC-15; DDL-C):
+# the inbox and scoped push endpoint management. The inbox is the source of truth; no delivery is
+# implemented (no e-mail, no push).
 _NOTIFICATION_ERROR_DESCRIPTIONS: Final[dict[str, str]] = {
     "400": "The request is invalid (`INVALID_REQUEST`, `INVALID_IDEMPOTENCY_KEY`)",
     "401": "Authentication is required",
     "404": "The notification was not found, belongs to someone else, or the caller has no active "
     "adult identity with a role (`RESOURCE_NOT_FOUND`)",
-    "503": "A required service is unavailable (`DATABASE_UNAVAILABLE`)",
+    "409": "The owned endpoint version is stale (`STALE_REVISION` with `current_version`)",
+    "422": "This push platform is unsupported (`PUSH_PLATFORM_UNSUPPORTED`)",
+    "503": "A required service is unavailable (`DATABASE_UNAVAILABLE`, `PROVIDER_UNAVAILABLE`, "
+    "`PUSH_REGISTRATION_UNAVAILABLE`)",
 }
 
 
@@ -12897,7 +12900,7 @@ def _notification_responses(
         {
             "status": status,
             "description": description,
-            "media_type": "application/json",
+            "media_type": "application/json" if schema_name else "",
             "schema_name": schema_name,
         }
     ]
@@ -12913,9 +12916,9 @@ def _notification_responses(
     return tuple(rows)
 
 
-_NOTIFICATION_SURFACE: Final = "Notification inbox"
+_NOTIFICATION_SURFACE: Final = "Notification inbox and push endpoints"
 _NOTIFICATION_TAG: Final = "Notifications"
-_NOTIFICATION_VERIFICATION: Final = "SRS l.784, l.812, l.1681, l.1697; goal v3 T-8a"
+_NOTIFICATION_VERIFICATION: Final = "SRS v2.7-draft l.815, l.1684-1685, l.1697; T-8a/T-8b"
 MOUNTED_OPERATIONS[("get", "/v1/notifications")] = {
     "purpose": "Read the caller's own notification inbox, newest first (25 per page by default, "
     "at most 100) with an opaque cursor. An item names its template and version and carries safe "
@@ -12957,6 +12960,41 @@ MOUNTED_OPERATIONS[("post", "/v1/notifications/read-all")] = {
     "responses": _notification_responses(
         ("200", "How many items were marked read", "NotificationReadAllV1"),
         "400", "401", "404", "503",
+    ),
+    "surface": _NOTIFICATION_SURFACE,
+    "tag": _NOTIFICATION_TAG,
+    "authentication": "HTTPBearer (bearer)",
+    "verification": _NOTIFICATION_VERIFICATION,
+}
+MOUNTED_OPERATIONS[("post", "/v1/notifications/push-endpoints")] = {
+    "purpose": "Register a proof-verified WEB_PUSH endpoint for the active Parent. The request "
+    "is strict and keyed; a replay returns only the original opaque endpoint reference and version. "
+    "Raw endpoint bytes, proof, ciphertext, fingerprint and owner are never returned or logged. "
+    "Android is unsupported until a provider is approved; registration remains disabled when the "
+    "proof or key adapters are unavailable. This operation does not send push notifications.",
+    "request_inputs": "header `Idempotency-Key*`: string; application/json (required): "
+    "PushEndpointRegistrationV1",
+    "handler": "notifications.py::register_push_endpoint",
+    "responses": _notification_responses(
+        ("201", "Opaque endpoint reference and version", "PushEndpointV1"),
+        "400", "401", "404", "422", "503",
+    ),
+    "surface": _NOTIFICATION_SURFACE,
+    "tag": _NOTIFICATION_TAG,
+    "authentication": "HTTPBearer (bearer)",
+    "verification": _NOTIFICATION_VERIFICATION,
+}
+MOUNTED_OPERATIONS[("delete", "/v1/notifications/push-endpoints/{endpoint_id}")] = {
+    "purpose": "Revoke the active Parent's owned endpoint at the strong If-Match version. "
+    "A same-key replay remains 204 after the version advances; an owned stale version is 409 "
+    "`STALE_REVISION` with `current_version`. Unknown and foreign endpoints share one 404. "
+    "Revocation does not change the inbox.",
+    "request_inputs": "path `endpoint_id*`: UUID; header `If-Match*`: strong ETag; "
+    "header `Idempotency-Key*`: string",
+    "handler": "notifications.py::revoke_push_endpoint",
+    "responses": _notification_responses(
+        ("204", "Endpoint revoked; response body is empty", ""),
+        "400", "401", "404", "409", "503",
     ),
     "surface": _NOTIFICATION_SURFACE,
     "tag": _NOTIFICATION_TAG,
@@ -13717,10 +13755,300 @@ MOUNTED_OPERATIONS[
     ),
 }
 
+MOUNTED_OPERATIONS[("get", "/api/lesson-library/v1/me/lessons")]["request_inputs"] = (
+    "query `source`: string; query `q`: string; query `topic`: string; "
+    "query `target_age_band_ref`: string; query `target_age_band_version`: integer; "
+    "query `limit`: integer; query `cursor`: opaque string (max 1024 bytes)"
+)
+
+_BE1_CAPACITY_PATH = "/api/be1/v1/organizations/{organization_id}/capacity"
+_BE1_CAPACITY_ERRORS: tuple[ResponseMetadata, ...] = (
+    {"status": "400", "description": "The request or the idempotency key is invalid (`INVALID_REQUEST`, `INVALID_IDEMPOTENCY_KEY`)", "media_type": "application/json", "schema_name": "Be1Error"},
+    {"status": "401", "description": "Authentication or device credential is required", "media_type": "application/json", "schema_name": "Be1Error"},
+    {"status": "403", "description": "The caller is not authorized for this resource", "media_type": "application/json", "schema_name": "Be1Error"},
+    {"status": "404", "description": "The scoped resource was not found", "media_type": "application/json", "schema_name": "Be1Error"},
+    {"status": "409", "description": "The command conflicts with current state", "media_type": "application/json", "schema_name": "Be1Error"},
+    {"status": "410", "description": "The requested artifact is no longer available", "media_type": "application/json", "schema_name": "Be1Error"},
+    {"status": "413", "description": "The request exceeds a supported size limit", "media_type": "application/json", "schema_name": "Be1Error"},
+    {"status": "415", "description": "The request media type is not supported", "media_type": "application/json", "schema_name": "Be1Error"},
+    {"status": "422", "description": "The request does not meet a business rule", "media_type": "application/json", "schema_name": "Be1Error"},
+    {"status": "429", "description": "The request is temporarily rate limited", "media_type": "application/json", "schema_name": "Be1Error"},
+    {"status": "503", "description": "A required backend dependency is unavailable", "media_type": "application/json", "schema_name": "Be1Error"},
+    {"status": "500", "description": "An unexpected server error occurred", "media_type": "application/json", "schema_name": "Be1Error"},
+)
+
+MOUNTED_OPERATIONS[("get", _BE1_CAPACITY_PATH)] = {
+    "purpose": "Read the assigned organization's effective class capacity and active-class usage.",
+    "request_inputs": "path `organization_id*`: string; header `X-Request-ID`: string",
+    "surface": "BE1 / billing capacity",
+    "tag": "BE1 — Organizations & Classes",
+    "handler": "be1_registry.py::read_organization_capacity",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": (
+        "Requires an active School Manager assignment before resolving the Billing subscription. "
+        "Returns only this organization's effective view; due downgrade selections are projected "
+        "from Billing events without exposing price policy."
+    ),
+    "responses": (
+        {"status": "200", "description": "Successful Response", "media_type": "application/json", "schema_name": "Be1OrganizationCapacityV1"},
+        *_BE1_CAPACITY_ERRORS,
+    ),
+}
+MOUNTED_OPERATIONS[("patch", _BE1_CAPACITY_PATH)] = {
+    "purpose": "Configure permitted renewal or downgrade settings for the assigned organization.",
+    "request_inputs": (
+        "path `organization_id*`: string; header `X-Request-ID`: string; "
+        "header `Idempotency-Key*`: string; header `If-Match*`: subscription revision ETag; "
+        "application/json (required): Be1CapacityConfigureRequest"
+    ),
+    "surface": "BE1 / billing capacity",
+    "tag": "BE1 — Organizations & Classes",
+    "handler": "be1_registry.py::configure_organization_capacity",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": (
+        "Binds If-Match and Idempotency-Key to the organization, action and payload. Reuses the "
+        "Billing configuration/event rules; BE1 audit and receipt commit in the same Session. "
+        "Renewal settlement, purchases and price policy remain outside this operation."
+    ),
+    "responses": (
+        {"status": "200", "description": "Successful Response", "media_type": "application/json", "schema_name": "Be1OrganizationCapacityV1"},
+        *_BE1_CAPACITY_ERRORS,
+    ),
+}
+
+MOUNTED_OPERATIONS[(
+    "get",
+    "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/versions",
+)] = {
+    "purpose": "List immutable versions of an organization-owned lesson for its assigned Teacher.",
+    "request_inputs": (
+        "path `organization_id*`: string; path `lesson_id*`: string; "
+        "query `limit`: integer; query `cursor`: opaque string (max 1024 bytes)"
+    ),
+    "surface": "Lesson Library",
+    "tag": "Teacher — Lesson Authoring",
+    "handler": "lesson_library.py::list_lesson_versions",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": "Read-only exact-version history; scoped cursor; private no-store response.",
+    "responses": (
+        {"status": "200", "description": "Successful Response", "media_type": "application/json", "schema_name": "LessonVersionPageV1"},
+        {"status": "422", "description": "Validation Error", "media_type": "application/json", "schema_name": "HTTPValidationError"},
+    ),
+}
+MOUNTED_OPERATIONS[(
+    "get",
+    "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/versions/{version_id}",
+)] = {
+    "purpose": "Read the requested immutable version and hash without substituting the current version.",
+    "request_inputs": (
+        "path `organization_id*`: string; path `lesson_id*`: string; path `version_id*`: string"
+    ),
+    "surface": "Lesson Library",
+    "tag": "Teacher — Lesson Authoring",
+    "handler": "lesson_library.py::get_lesson_version",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": "Exact linked version only; missing and out-of-scope resources share one 404.",
+    "responses": (
+        {"status": "200", "description": "Successful Response", "media_type": "application/json", "schema_name": "LessonVersionV1"},
+        {"status": "422", "description": "Validation Error", "media_type": "application/json", "schema_name": "HTTPValidationError"},
+    ),
+}
+MOUNTED_OPERATIONS[(
+    "get",
+    "/api/lesson-library/v1/organizations/{organization_id}/public-lessons",
+)] = {
+    "purpose": "Search eligible approved PUBLIC lessons across organizations for an assigned Teacher.",
+    "request_inputs": (
+        "path `organization_id*`: string; query `q`: string; query `topic`: string; "
+        "query `target_age_band_ref`: string; query `target_age_band_version`: integer; "
+        "query `limit`: integer; query `cursor`: opaque string (max 1024 bytes)"
+    ),
+    "surface": "Lesson Library",
+    "tag": "Teacher — Lesson Authoring",
+    "handler": "lesson_library.py::search_public_lessons",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": "Search results are discovery summaries; cross-organization version reads are not exposed.",
+    "responses": (
+        {"status": "200", "description": "Successful Response", "media_type": "application/json", "schema_name": "PublicLessonPageV1"},
+        {"status": "422", "description": "Validation Error", "media_type": "application/json", "schema_name": "HTTPValidationError"},
+    ),
+}
+MOUNTED_OPERATIONS[(
+    "post",
+    "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/remixes",
+)] = {
+    "purpose": (
+        "Create an organization-owned PRIVATE DRAFT from one exact, currently accessible PUBLIC "
+        "lesson version. Only the REUSE grant authorizes copying; the request carries no editable "
+        "lesson content and starts no AI work."
+    ),
+    "request_inputs": (
+        "path `organization_id*`: string; path `lesson_id*`: string; header `Idempotency-Key*`: "
+        "visible ASCII string (1-128 characters); application/json (required): "
+        "RemixLessonRequestV1 {contract, source_version_id*, source_content_sha256*}"
+    ),
+    "surface": "Lesson Library",
+    "tag": "Teacher — Lesson Authoring",
+    "handler": "lesson_library.py::remix_public_lesson",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": (
+        "Destination Teacher assignment and exact source PUBLIC/REUSE access are checked before "
+        "receipt replay. Inaccessible sources share one 404; source pin drift is 409 "
+        "STALE_SOURCE_VERSION. The copy, ordered activities, lineage, audit and durable receipt "
+        "commit together; response is private no-store with ETag \"1\"."
+    ),
+    "responses": (
+        {"status": "201", "description": "Created", "media_type": "application/json", "schema_name": "RemixLessonResponseV1"},
+        {"status": "400", "description": "Invalid request or INVALID_IDEMPOTENCY_KEY", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "404", "description": "Source or destination is unavailable", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "409", "description": "Source version pin is stale", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "503", "description": "Dependency unavailable", "media_type": "application/json", "schema_name": "Be1Error"},
+    ),
+}
+
+MOUNTED_OPERATIONS[(
+    "get",
+    "/api/lesson-library/v1/me/parent-group-invitations",
+)] = {
+    **MOUNTED_OPERATIONS[(
+        "get",
+        "/api/lesson-library/v1/me/parent-group-invitations",
+    )],
+    "verification": (
+        "Only live invitations addressed to the authenticated Parent are returned. Each item "
+        "includes organization_id from its parent group's organization."
+    ),
+    "responses": (
+        {"status": "200", "description": "Successful Response; each item includes organization_id from its parent group", "media_type": "application/json", "schema_name": "ParentGroupInvitationPageV1"},
+        {"status": "422", "description": "Validation Error", "media_type": "application/json", "schema_name": "HTTPValidationError"},
+    ),
+}
+MOUNTED_OPERATIONS[(
+    "post",
+    "/api/lesson-library/v1/me/parent-group-invitations/{membership_id}/accept",
+)] = {
+    **MOUNTED_OPERATIONS[(
+        "post",
+        "/api/lesson-library/v1/me/parent-group-invitations/{membership_id}/accept",
+    )],
+    "responses": (
+        {"status": "200", "description": "Successful Response; includes organization_id from the parent group's organization", "media_type": "application/json", "schema_name": "ParentGroupMembershipV1"},
+        {"status": "422", "description": "Validation Error", "media_type": "application/json", "schema_name": "HTTPValidationError"},
+    ),
+}
+MOUNTED_OPERATIONS[(
+    "post",
+    "/api/lesson-library/v1/organizations/{organization_id}/parent-groups/{parent_group_id}/invitations",
+)] = {
+    **MOUNTED_OPERATIONS[(
+        "post",
+        "/api/lesson-library/v1/organizations/{organization_id}/parent-groups/{parent_group_id}/invitations",
+    )],
+    "responses": (
+        {"status": "201", "description": "Created; includes organization_id from the parent group's organization", "media_type": "application/json", "schema_name": "ParentGroupInvitationV1"},
+        {"status": "422", "description": "Validation Error", "media_type": "application/json", "schema_name": "HTTPValidationError"},
+    ),
+}
+MOUNTED_OPERATIONS[(
+    "post",
+    "/api/lesson-library/v1/me/parent-group-invitations/{membership_id}/decline",
+)] = {
+    "purpose": "Let the invited Parent decline a named parent-group invitation.",
+    "request_inputs": (
+        "path `membership_id*`: string; header `Idempotency-Key*`: string"
+    ),
+    "surface": "Lesson Library",
+    "tag": "Parent — Invitations & Lesson Library",
+    "handler": "lesson_library.py::decline_parent_group_invitation",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": (
+        "Only the addressed Parent may decline. An expired invitation returns 409 "
+        "INVITATION_EXPIRED without changing the row or saving a receipt. The response includes "
+        "organization_id from the parent group's organization."
+    ),
+    "responses": (
+        {"status": "200", "description": "Successful Response; includes organization_id from the parent group's organization; ETag is the resulting strong revision", "media_type": "application/json", "schema_name": "ParentGroupMembershipV1"},
+        {"status": "422", "description": "Validation Error", "media_type": "application/json", "schema_name": "HTTPValidationError"},
+    ),
+}
+MOUNTED_OPERATIONS[(
+    "get",
+    "/api/lesson-library/v1/me/parent-group-memberships",
+)] = {
+    "purpose": "List the authenticated Parent's own active parent-group memberships.",
+    "request_inputs": (
+        "query `limit`: integer (default 25, minimum 1, maximum 100); "
+        "query `cursor`: opaque string (max 1024 bytes)"
+    ),
+    "surface": "Lesson Library",
+    "tag": "Parent — Invitations & Lesson Library",
+    "handler": "lesson_library.py::list_parent_group_memberships",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": (
+        "Only ACTIVE memberships owned by the authenticated Parent are returned. Each item "
+        "includes organization_id from its parent group's organization."
+    ),
+    "responses": (
+        {"status": "200", "description": "Successful Response; Cache-Control: private, no-store; each item includes organization_id from its parent group", "media_type": "application/json", "schema_name": "ParentGroupMembershipPageV1"},
+        {"status": "422", "description": "Validation Error", "media_type": "application/json", "schema_name": "HTTPValidationError"},
+    ),
+}
+MOUNTED_OPERATIONS[(
+    "get",
+    "/api/lesson-library/v1/organizations/{organization_id}/parent-groups/{parent_group_id}/members",
+)] = {
+    "purpose": "List privacy-limited parent-group membership states for an assigned School Manager.",
+    "request_inputs": (
+        "path `organization_id*`: string; path `parent_group_id*`: string; query `state`: "
+        "INVITED|ACCEPTED|DECLINED|REVOKED|EXPIRED; query `limit`: integer "
+        "(default 25, minimum 1, maximum 100); query `cursor`: opaque string (max 1024 bytes)"
+    ),
+    "surface": "Lesson Library",
+    "tag": "Parent & School Manager — Group Membership",
+    "handler": "lesson_library.py::list_parent_group_members",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": (
+        "A missing group, a group in another organization, or an unassigned caller receives the "
+        "same 404. Items contain no identity, contact, or child data; counts cover every state. "
+        "ACCEPTED maps to stored active; counts include invited, accepted, declined, revoked, "
+        "expired and total. The response uses Cache-Control: private, no-store."
+    ),
+    "responses": (
+        {"status": "200", "description": "Successful Response; Cache-Control: private, no-store", "media_type": "application/json", "schema_name": "ParentGroupMemberPageV1"},
+        {"status": "422", "description": "Validation Error", "media_type": "application/json", "schema_name": "HTTPValidationError"},
+    ),
+}
+
+MOUNTED_OPERATIONS[(
+    "delete",
+    "/api/lesson-library/v1/organizations/{organization_id}/parent-groups/{parent_group_id}/members/{membership_id}",
+)] = {
+    **MOUNTED_OPERATIONS[(
+        "delete",
+        "/api/lesson-library/v1/organizations/{organization_id}/parent-groups/{parent_group_id}/members/{membership_id}",
+    )],
+    "request_inputs": (
+        "path `organization_id*`: string; path `parent_group_id*`: string; "
+        "path `membership_id*`: string; header `If-Match`: strong revision ETag; "
+        "header `Idempotency-Key*`: string"
+    ),
+    "verification": (
+        "The Manager or addressed Parent may revoke with If-Match and Idempotency-Key. "
+        "A missing If-Match returns 428. A replay returns the saved response and its revision "
+        "ETag. A fresh stale revision returns 409 without saving a receipt. The response includes "
+        "organization_id from the parent group's organization."
+    ),
+    "responses": (
+        {"status": "200", "description": "Successful Response; includes organization_id from the parent group's organization", "media_type": "application/json", "schema_name": "ParentGroupMembershipV1"},
+        {"status": "422", "description": "Validation Error", "media_type": "application/json", "schema_name": "HTTPValidationError"},
+    ),
+}
+
 IDEMPOTENCY_MISMATCH_OPERATION_KEYS: Final[tuple[tuple[str, str], ...]] = (
     ("post", "/api/lesson-library/v1/me/lesson-invitations/{access_grant_id}/accept"),
     ("post", "/api/lesson-library/v1/me/lesson-invitations/{access_grant_id}/decline"),
     ("post", "/api/lesson-library/v1/me/parent-group-invitations/{membership_id}/accept"),
+    ("post", "/api/lesson-library/v1/me/parent-group-invitations/{membership_id}/decline"),
     ("post", "/api/lesson-library/v1/organizations/{organization_id}/access-grants/{access_grant_id}/decision"),
     ("post", "/api/lesson-library/v1/organizations/{organization_id}/lessons"),
     ("post", "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/access-grants"),
@@ -13732,7 +14060,15 @@ IDEMPOTENCY_MISMATCH_OPERATION_KEYS: Final[tuple[tuple[str, str], ...]] = (
     # FEAT-066 C4: keyed commands A18, A19, B07, B08 and A25 (SRS §21.4).
     ("patch", "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}"),
     ("delete", "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}"),
+    (
+        "delete",
+        "/api/lesson-library/v1/organizations/{organization_id}/parent-groups/{parent_group_id}/members/{membership_id}",
+    ),
     ("post", "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/versions"),
+    (
+        "post",
+        "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/remixes",
+    ),
     (
         "delete",
         "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/access-grants/{access_grant_id}",
@@ -13742,6 +14078,8 @@ IDEMPOTENCY_MISMATCH_OPERATION_KEYS: Final[tuple[tuple[str, str], ...]] = (
     ("post", "/api/be1/v1/classes/{class_id}/assignments"),
     # FEAT-066 T0.1 (C-D5, SRS l.1697): create class is a keyed command.
     ("post", "/api/be1/v1/organizations/{organization_id}/classes"),
+    # T-CAP1: Manager subscription configuration is keyed and revision-bound.
+    ("patch", "/api/be1/v1/organizations/{organization_id}/capacity"),
     # FEAT-066 T-7b (SRS l.1697): the keyed class state commands.
     ("post", "/api/be1/v1/classes/{class_id}/suspend"),
     ("post", "/api/be1/v1/classes/{class_id}/archive"),
@@ -13778,6 +14116,9 @@ IDEMPOTENCY_MISMATCH_OPERATION_KEYS: Final[tuple[tuple[str, str], ...]] = (
     # FEAT-066 T-8a (SRS l.1697): the two keyed mark-read commands of the notification inbox.
     ("post", "/v1/notifications/{inbox_item_id}/read"),
     ("post", "/v1/notifications/read-all"),
+    # FEAT-066 goal v4 T-8b (SRS l.1697): keyed endpoint registration and revoke.
+    ("post", "/v1/notifications/push-endpoints"),
+    ("delete", "/v1/notifications/push-endpoints/{endpoint_id}"),
 )
 
 _IDEMPOTENCY_MISMATCH_RESPONSE: Final[ResponseMetadata] = {

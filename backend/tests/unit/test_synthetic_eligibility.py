@@ -488,9 +488,9 @@ def test_head_counts_by_both_methods_match_the_derived_expectation() -> None:
     # FEAT-066 goal v4 T-12b: 20261121_bpr_0001 (DDL-D, the Teacher profile revisions) is a second
     # child of 20261123_rv_0001, parallel to 20261113_svg_catalog_review (one more head).
     # FEAT-066 goal v4 T-12c: 20261121_psn_0001 follows 20261121_pce_0001 and 20261121_psn_0002
-    # follows 20261121_bpr_0001; T-12b-fix: 20261123_ppg_0001 follows psn_0002 (60 revisions;
-    # heads 16 and 11 after the Phase B squash).
-    assert len(graph) == 60
+    # follows 20261121_bpr_0001; T-12b-fix: 20261123_ppg_0001 follows psn_0002.
+    # T-NTF1 adds 20261125_nt_0003 to the notification chain (64 revisions; heads remain 16 and 11).
+    assert len(graph) == 64
     down_targets = {target for down, _ in graph.values() for target in down}
     dependency_targets = down_targets | {target for _, dep in graph.values() for target in dep}
     heads_down_only = {rev for rev in graph if rev not in down_targets}

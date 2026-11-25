@@ -127,6 +127,8 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
         f"{library}/me/lessons/{{lesson_id}}/download": ["GET"],
         f"{library}/me/parent-group-invitations": ["GET"],
         f"{library}/me/parent-group-invitations/{{membership_id}}/accept": ["POST"],
+        f"{library}/me/parent-group-invitations/{{membership_id}}/decline": ["POST"],
+        f"{library}/me/parent-group-memberships": ["GET"],
         f"{organization}/access-grants": ["GET"],
         f"{organization}/access-grants/{{access_grant_id}}/decision": ["POST"],
         f"{organization}/lessons": ["GET", "POST"],
@@ -136,9 +138,13 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
         f"{lesson}/source-documents/{{source_document_id}}": ["GET"],
         f"{lesson}/source-documents/{{source_document_id}}/revisions/{{revision_id}}": ["GET"],
         f"{lesson}/upload-sessions": ["POST"],
-        f"{lesson}/versions": ["POST"],
+        f"{lesson}/versions": ["GET", "POST"],
+        f"{lesson}/versions/{{version_id}}": ["GET"],
+        f"{lesson}/remixes": ["POST"],
+        f"{organization}/public-lessons": ["GET"],
         f"{organization}/parent-groups": ["GET", "POST"],
         f"{organization}/parent-groups/{{parent_group_id}}/invitations": ["POST"],
+        f"{organization}/parent-groups/{{parent_group_id}}/members": ["GET"],
         f"{organization}/parent-groups/{{parent_group_id}}/members/{{membership_id}}": ["DELETE"],
         f"{library}/platform/lessons/{{lesson_id}}/moderation": ["PATCH"],
         upload: ["DELETE", "GET"],
@@ -167,6 +173,8 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
         # FEAT-066 goal v4 T-12c: the Teacher encrypted support needs.
         "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}"
         "/support-needs",
+        # T-CAP1: Manager reads and configures one organization's effective class capacity.
+        "/api/be1/v1/organizations/{organization_id}/capacity",
         # FEAT-066 M9-B: same-organization Teacher candidates for the first assignment.
         "/api/be1/v1/organizations/{organization_id}/teacher-candidates",
         "/api/be1/v1/device-grants/{grant_id}/join-status",
@@ -219,10 +227,12 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
         # FEAT-066 T-5a: the class projection of the sample video (SRS l.1661-1662), always mounted.
         "/v1/lesson-occurrences/{occurrence_id}/projection-confirmation",
         "/v1/lesson-occurrences/{occurrence_id}/projection-playback-token",
-        # FEAT-066 T-8a: the notification inbox (SRS l.1681), always mounted.
+        # FEAT-066 T-8a/T-8b: inbox and push endpoint commands (SRS l.812, l.815).
         "/v1/notifications",
         "/v1/notifications/read-all",
         "/v1/notifications/{inbox_item_id}/read",
+        "/v1/notifications/push-endpoints",
+        "/v1/notifications/push-endpoints/{endpoint_id}",
         "/api/platform-admin/v1/accounts",
         "/api/platform-admin/v1/accounts/{account_id}",
         "/api/parent/v1/ai/sketch-guides",

@@ -136,7 +136,7 @@ def test_current_receipt_is_returned_unchanged_without_inferred_provenance() -> 
         upgrade_parent_group_receipt,
     )
 
-    current = {**LEGACY_INVITATION, "revision": 4}
+    current = {**LEGACY_INVITATION, "organization_id": ORG_ID, "revision": 4}
 
     result = upgrade_parent_group_receipt(
         operation_scope=INVITE_SCOPE,
@@ -185,12 +185,30 @@ def test_legacy_receipt_replay_reconstructs_revision_without_writes(
     assert result is not None
     assert result["contract"] == expected_contract
     assert result["revision"] == 7
+    assert result["organization_id"] == ORG_ID
     assert result["revision_source"] == "reconstructed_from_current_row"
     model = ParentGroupInvitationV1 if scope == INVITE_SCOPE else ParentGroupMembershipV1
     assert model.model_validate(result).revision_source == "reconstructed_from_current_row"
     assert len(db.statements) == 2
     assert all(statement.is_select for statement in db.statements)
     assert (db.add_calls, db.flush_calls, db.commit_calls) == (0, 0, 0)
+
+
+def test_direct_upgrade_backfills_organization_id_for_pre_field_receipts() -> None:
+    from sketch2life.infrastructure.lesson_library.receipt_compat import (
+        upgrade_parent_group_receipt,
+    )
+
+    result = upgrade_parent_group_receipt(
+        operation_scope=ACCEPT_SCOPE,
+        response=LEGACY_ACCEPTANCE,
+        membership_row=_membership(),
+        organization_id=ORG_ID,
+        principal_ref=PARENT_ID,
+    )
+
+    assert result["organization_id"] == ORG_ID
+    assert result["revision"] == 7
 
 
 def test_legacy_receipt_without_current_membership_is_typed_failure() -> None:

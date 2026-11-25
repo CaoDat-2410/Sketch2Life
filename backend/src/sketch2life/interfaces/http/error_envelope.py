@@ -33,8 +33,8 @@ UPLOAD_SESSIONS_BASE = "/v1/upload-sessions"
 # base is always part of the family; it is matched on a whole segment like the upload base.
 LESSON_OCCURRENCES_BASE = "/v1/lesson-occurrences"
 
-# FEAT-066 T-8a: the notification inbox (SRS l.1681). Matched on a whole segment, so
-# ``/v1/notificationsfoo`` is not captured; the T-8b push-endpoint paths are not registered.
+# FEAT-066 T-8a/T-8b: notification inbox and push endpoint commands (SRS l.1681, l.1684-1685).
+# Matched on a whole segment, so ``/v1/notificationsfoo`` is not captured.
 NOTIFICATIONS_BASE = "/v1/notifications"
 
 FIELD_ERROR_CODES = frozenset(
@@ -67,6 +67,7 @@ GENERIC_CODE_MAP: Mapping[str, str] = {
     "INVALID_TRANSITION": "INVALID_STATE_TRANSITION",
     "REQUEST_VALIDATION_FAILED": "INVALID_REQUEST",
     "SERVICE_UNAVAILABLE": "PROVIDER_UNAVAILABLE",
+    # T-10b's internal 503 code is exposed as this stable CONV-1 wire code.
     "DEPENDENCY_UNAVAILABLE": "PROVIDER_UNAVAILABLE",
 }
 
@@ -98,7 +99,13 @@ MESSAGES: Mapping[str, str] = {
     "INVALID_STATE_TRANSITION": "Tài nguyên chưa ở trạng thái phù hợp cho thao tác này.",
     "INVALID_REQUEST": "Yêu cầu không hợp lệ.",
     "INVALID_IDEMPOTENCY_KEY": "Khóa yêu cầu trùng với một yêu cầu có nội dung khác.",
+    "CLASS_CAPACITY_REACHED": "Tổ chức đã đạt giới hạn số lớp hiện tại.",
+    "CLASS_SELECTION_REQUIRED": "Hãy chọn đúng các lớp cần tạm ngưng theo giới hạn mới.",
+    "INVALID_CAPACITY_DOWNGRADE": "Thông tin giảm giới hạn lớp chưa hợp lệ.",
+    "SUBSCRIPTION_PERIOD_ENDED": "Kỳ đăng ký đã kết thúc nên không thể cập nhật thay đổi này.",
     "STALE_REVISION": "Thông tin đã thay đổi. Vui lòng tải lại và thử lại.",
+    "PUSH_PLATFORM_UNSUPPORTED": "Nền tảng thông báo đẩy này chưa được hỗ trợ.",
+    "PUSH_REGISTRATION_UNAVAILABLE": "Đăng ký thông báo đẩy tạm thời chưa sẵn sàng.",
     "PROVIDER_UNAVAILABLE": "Dịch vụ tạm thời chưa sẵn sàng. Vui lòng thử lại sau.",
     "PROVIDER_BAD_RESPONSE": "Không thể hoàn tất yêu cầu lúc này.",
     "RATE_LIMITED": "Bạn đã gửi quá nhiều yêu cầu. Vui lòng thử lại sau.",
@@ -145,6 +152,14 @@ MESSAGES: Mapping[str, str] = {
     ),
     "DOCUMENT_TEXT_LIMIT_EXCEEDED": (
         "Văn bản trong tệp quá dài (tối đa 2 MB). Vui lòng rút gọn tệp rồi tải lại."
+    ),
+}
+
+# T-10b: exact-source hash drift is a named 409 and gets a stable Vietnamese message.
+MESSAGES = {
+    **MESSAGES,
+    "STALE_SOURCE_VERSION": (
+        "Bản giáo án nguồn đã thay đổi. Vui lòng tải lại bản mới nhất."
     ),
 }
 

@@ -11,6 +11,7 @@ from uuid import uuid4
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import case, func, or_, select, text
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from sketch2life.domain.billing_capacity import quota_month
@@ -1139,6 +1140,272 @@ class QuotaCommerceService:
             ],
             "total": len(rows),
         }
+
+    @staticmethod
+    def _video_owner_scope(owner_scope: tuple[str, str]) -> tuple[str, str]:
+        if (
+            not isinstance(owner_scope, tuple)
+            or len(owner_scope) != 2
+            or owner_scope[0] not in {"PARENT_ACCOUNT", "ORGANIZATION"}
+            or not isinstance(owner_scope[1], str)
+            or not owner_scope[1]
+            or len(owner_scope[1]) > 128
+        ):
+            raise ValueError("invalid video quota owner scope")
+        return owner_scope
+
+    @staticmethod
+    def _video_month_expiry(month: str) -> datetime:
+        year_text, month_text = month.split("-", maxsplit=1)
+        year, month_number = int(year_text), int(month_text)
+        if len(year_text) != 4 or len(month_text) != 2 or not 1 <= month_number <= 12:
+            raise ValueError("month must be YYYY-MM")
+        next_year = year + (month_number == 12)
+        next_month = month_number % 12 + 1
+        month_end = datetime(
+            next_year,
+            next_month,
+            1,
+            tzinfo=ZoneInfo("Asia/Ho_Chi_Minh"),
+        )
+        return month_end.astimezone(UTC)
+
+    def ensure_monthly_included_grant(
+        self, owner_scope: tuple[str, str], month: str
+    ) -> dict[str, Any]:
+        """Ensure one configured included grant for an owner and Vietnam calendar month.
+
+        The amount comes from the owner-configured setting for the scope (never a sellable
+        product and never a constant); 0 means NOT_CONFIGURED and nothing is granted. This method
+        owns and commits its Billing transaction.
+        """
+
+        owner_kind, owner_ref = self._video_owner_scope(owner_scope)
+        expires_at = self._video_month_expiry(month)
+        self.lock("quota-scope:" + owner_kind + ":" + owner_ref)
+        try:
+            existing = self.db.scalar(
+                select(VideoQuotaGrantModel).where(
+                    VideoQuotaGrantModel.owner_kind == owner_kind,
+                    VideoQuotaGrantModel.owner_ref == owner_ref,
+                    VideoQuotaGrantModel.kind == "INCLUDED",
+                    VideoQuotaGrantModel.period == month,
+                )
+            )
+            if existing is not None:
+                result = {
+                    "status": "EXISTS",
+                    "grant_ref": existing.grant_id,
+                    "period": month,
+                    "units": existing.units,
+                }
+                self.db.commit()
+                return result
+
+            setting_name = (
+                "video_quota_included_units_parent"
+                if owner_kind == "PARENT_ACCOUNT"
+                else "video_quota_included_units_organization"
+            )
+            units = getattr(self.settings, setting_name, 0)
+            if not isinstance(units, int) or isinstance(units, bool) or units < 1:
+                self.db.commit()
+                return {"status": "NOT_CONFIGURED", "grant_ref": None, "period": month}
+
+            grant = VideoQuotaGrantModel(
+                grant_id=str(uuid4()),
+                owner_kind=owner_kind,
+                owner_ref=owner_ref,
+                kind="INCLUDED",
+                units=units,
+                period=month,
+                expires_at=expires_at,
+            )
+            self.db.add(grant)
+            self.db.commit()
+            return {
+                "status": "CREATED",
+                "grant_ref": grant.grant_id,
+                "period": month,
+                "units": grant.units,
+            }
+        except Exception:
+            self.db.rollback()
+            raise
+
+    @staticmethod
+    def _video_admission_error_status(error: AdminError) -> str:
+        # Defensive mapping of Billing error codes to exactly one Story status. The current video
+        # path (grant read, usage count, receipt write) raises none of these codes; they stay so a
+        # future Billing check (allocation, subscription) cannot leak an unmapped code.
+        if error.code in {
+            "TEACHER_QUOTA_INSUFFICIENT",
+            "QUOTA_ALLOCATION_NOT_FOUND",
+            "SCHOOL_QUOTA_INSUFFICIENT",
+            "QUOTA_EXCEEDED",
+        }:
+            return "QUOTA_EXCEEDED"
+        if error.code == "SUBSCRIPTION_RESTRICTED":
+            return "SUBSCRIPTION_RESTRICTED"
+        if error.code in {"IDEMPOTENCY_CONFLICT", "QUOTA_ADMISSION_CONFLICT"}:
+            return "IDEMPOTENCY_MISMATCH"
+        return "UNAVAILABLE"
+
+    def consume_video_quota(
+        self,
+        owner_scope: tuple[str, str],
+        request_ref: str,
+        idempotency_key: str,
+        fingerprint: str,
+        contract_version: str,
+    ) -> dict[str, Any]:
+        """Consume one video unit with a Billing-owned idempotency receipt and transaction."""
+
+        try:
+            owner_kind, owner_ref = self._video_owner_scope(owner_scope)
+        except (TypeError, ValueError):
+            return {"status": "UNAVAILABLE", "usage_ref": None, "grant_ref": None}
+        if (
+            not isinstance(request_ref, str)
+            or not request_ref
+            or len(request_ref) > 128
+            or not isinstance(idempotency_key, str)
+            or not idempotency_key
+            or len(idempotency_key) > 128
+            or not isinstance(fingerprint, str)
+            or not fingerprint
+            or not isinstance(contract_version, str)
+            or not contract_version
+        ):
+            return {"status": "UNAVAILABLE", "usage_ref": None, "grant_ref": None}
+
+        receipt_actor = "story-video:" + hashlib.sha256(
+            (owner_kind + "\0" + owner_ref + "\0" + request_ref).encode()
+        ).hexdigest()
+        receipt_operation = "video.quota.admit.v1"
+        receipt_key = hashlib.sha256(idempotency_key.encode()).hexdigest()
+        receipt_fingerprint = hashlib.sha256(
+            (contract_version + "\0" + fingerprint).encode()
+        ).hexdigest()
+        scope_lock = "quota-scope:" + owner_kind + ":" + owner_ref
+
+        def save_receipt(result: dict[str, Any]) -> dict[str, Any]:
+            self.db.add(
+                BillingReceiptModel(
+                    actor_ref=receipt_actor,
+                    operation=receipt_operation,
+                    key=receipt_key,
+                    fingerprint=receipt_fingerprint,
+                    response_json=result,
+                )
+            )
+            self.db.commit()
+            return result
+
+        def prior_result() -> dict[str, Any] | None:
+            receipt = self.db.get(
+                BillingReceiptModel, (receipt_actor, receipt_operation, receipt_key)
+            )
+            if receipt is None:
+                return None
+            if receipt.fingerprint != receipt_fingerprint:
+                return {"status": "IDEMPOTENCY_MISMATCH", "usage_ref": None, "grant_ref": None}
+            result = dict(receipt.response_json)
+            result["duplicate"] = True
+            return result
+
+        try:
+            self.lock(scope_lock)
+            replay = prior_result()
+            if replay is not None:
+                self.db.commit()
+                return replay
+
+            now = self.clock()
+            current_month, _ = quota_month(now)  # type: ignore[no-untyped-call]
+            included = self.ensure_monthly_included_grant(owner_scope, current_month)
+
+            # ensure_monthly_included_grant commits its own grant transaction and releases the
+            # advisory lock; reacquire it before checking usage and writing the admission receipt.
+            self.lock(scope_lock)
+            replay = prior_result()
+            if replay is not None:
+                self.db.commit()
+                return replay
+
+            existing_usage = self.db.scalar(
+                select(VideoQuotaUsageModel).where(
+                    VideoQuotaUsageModel.owner_kind == owner_kind,
+                    VideoQuotaUsageModel.owner_ref == owner_ref,
+                    VideoQuotaUsageModel.admission_ref == request_ref,
+                )
+            )
+            if existing_usage is not None:
+                self.db.commit()
+                return {
+                    "status": "IDEMPOTENCY_MISMATCH",
+                    "usage_ref": None,
+                    "grant_ref": None,
+                    "duplicate": False,
+                }
+
+            grant = next(
+                (
+                    item
+                    for item in self.available_grants(owner_kind, owner_ref)
+                    if self._usage_count(self.db, item.grant_id) < item.units
+                ),
+                None,
+            )
+            if grant is None:
+                # A refusal is not stored: no usage row and no receipt, so a retry with the same
+                # key after a top-up is evaluated again.
+                self.db.commit()
+                return {
+                    "status": "QUOTA_EXCEEDED",
+                    "usage_ref": None,
+                    "grant_ref": None,
+                    "duplicate": False,
+                    "included_grant_state": included["status"],
+                    "contract_version": contract_version,
+                }
+
+            usage = VideoQuotaUsageModel(
+                usage_id=str(uuid4()),
+                grant_id=grant.grant_id,
+                owner_kind=owner_kind,
+                owner_ref=owner_ref,
+                admission_ref=request_ref,
+            )
+            self.db.add(usage)
+            result = {
+                "status": "ACCEPTED",
+                "usage_ref": usage.usage_id,
+                "grant_ref": grant.grant_id,
+                "duplicate": False,
+                "included_grant_state": included["status"],
+                "contract_version": contract_version,
+            }
+            return save_receipt(result)
+        except AdminError as error:
+            self.db.rollback()
+            return {
+                "status": self._video_admission_error_status(error),
+                "usage_ref": None,
+                "grant_ref": None,
+                "duplicate": False,
+            }
+        except SQLAlchemyError:
+            self.db.rollback()
+            return {
+                "status": "UNAVAILABLE",
+                "usage_ref": None,
+                "grant_ref": None,
+                "duplicate": False,
+            }
+        except Exception:
+            self.db.rollback()
+            raise
 
     def consume_teacher_quota(
         self, organization_ref: str, teacher_ref: str, admission_ref: str

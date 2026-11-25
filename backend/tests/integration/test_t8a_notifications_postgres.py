@@ -221,7 +221,7 @@ def _ids(response: Any) -> list[str]:
 
 
 # ----------------------------------------------------------------------------- the database
-def test_the_schema_holds_one_table_with_the_planned_indexes_and_checks(
+def test_the_schema_holds_the_inbox_table_with_the_planned_indexes_and_checks(
     directory: Directory,
 ) -> None:
     with directory.factory()() as db:
@@ -233,8 +233,8 @@ def test_the_schema_holds_one_table_with_the_planned_indexes_and_checks(
                 )
             ).scalars()
         )
-        # DDL-C part 1 only: no push endpoint and no delivery attempt table (T-8b is deferred).
-        assert tables == {"inbox_items"}
+        # DDL-C parts 1-3: inbox, push registration and (T-NTF1) content-free delivery attempts.
+        assert tables == {"inbox_items", "push_endpoints", "push_deliveries"}
         indexes = {
             row[0]: row[1]
             for row in db.execute(
@@ -269,6 +269,19 @@ def test_the_schema_holds_one_table_with_the_planned_indexes_and_checks(
             "ck_notif_inbox_hash",
             "ck_notif_inbox_params",
             "ck_notif_inbox_times",
+            "ck_push_endpoint_platform_provider",
+            "ck_push_endpoint_ciphertext_size",
+            "ck_push_endpoint_fingerprint",
+            "ck_push_endpoint_state",
+            "ck_push_endpoint_version",
+            "ck_push_endpoint_times",
+            "ck_push_endpoint_revoked_at",
+            "ck_push_endpoint_app_version",
+            "ck_push_delivery_status",
+            "ck_push_delivery_attempts",
+            "ck_push_delivery_error",
+            "ck_push_delivery_completed",
+            "ck_push_delivery_times",
         }
     engine = directory.app.state.be1_runtime.engine
     with engine.connect() as connection:
@@ -832,16 +845,25 @@ def test_no_inbox_row_or_response_holds_an_e_mail_a_url_or_a_name(directory: Dir
     }
 
 
-def test_no_push_endpoint_route_exists_on_the_live_app(directory: Directory) -> None:
+def test_push_registration_is_mounted_without_a_list_route(directory: Directory) -> None:
     d = directory
-    for method, path in (
-        ("post", "/v1/notifications/push-endpoints"),
-        ("get", "/v1/notifications/push-endpoints"),
-    ):
-        response = d.client.request(
-            method, path, headers=d.header("p1", **{"Idempotency-Key": "k"})
-        )
-        assert response.status_code in {404, 405}, (method, path)
+    response = d.client.post(
+        "/v1/notifications/push-endpoints",
+        json={
+            "contract": "PushEndpointRegistrationV1",
+            "platform_kind": "ANDROID",
+            "provider_kind": "ANDROID_PUSH",
+            "encrypted_registration_proof": "synthetic-only",
+        },
+        headers=d.header("p1", **{"Idempotency-Key": "k"}),
+    )
+    assert response.status_code == 422
+    assert response.json()["code"] == "PUSH_PLATFORM_UNSUPPORTED"
+    listing = d.client.get(
+        "/v1/notifications/push-endpoints",
+        headers=d.header("p1"),
+    )
+    assert listing.status_code == 405
 
 
 def test_a_failed_producer_transaction_leaves_the_inbox_unchanged(directory: Directory) -> None:

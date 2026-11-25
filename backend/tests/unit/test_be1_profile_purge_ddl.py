@@ -64,9 +64,9 @@ def test_the_revision_is_the_one_child_of_the_be1_head_with_no_label_or_dependen
     assert not {rev for rev, (downs, _) in graph.items() if REVISION in downs}
 
 
-def test_the_head_counts_are_sixteen_and_eleven_with_60_revisions() -> None:
+def test_the_head_counts_are_sixteen_and_eleven_with_64_revisions() -> None:
     graph = _graph()
-    assert len(graph) == 60
+    assert len(graph) == 64
     down_targets = {target for downs, _ in graph.values() for target in downs}
     dependency_targets = down_targets | {target for _, dep in graph.values() for target in dep}
     heads_down_only = {rev for rev in graph if rev not in down_targets}

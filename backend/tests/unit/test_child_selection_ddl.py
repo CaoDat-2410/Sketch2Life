@@ -114,7 +114,7 @@ def _graph() -> dict[str, tuple[str, ...]]:
 
 
 # ----------------------------------------------------------------------------- the revision graph
-def test_revision_is_the_only_child_of_nt_0001_and_ends_the_library_chain() -> None:
+def test_revision_is_the_only_child_of_nt_0001_before_the_remix_lineage_head() -> None:
     constants = _constants(_MIGRATION)
     assert constants["revision"] == "20261120_sel_0001" and len(str(constants["revision"])) <= 32
     assert constants["down_revision"] == _PARENT
@@ -125,7 +125,11 @@ def test_revision_is_the_only_child_of_nt_0001_and_ends_the_library_chain() -> N
         for down in downs:
             children.setdefault(down, set()).add(revision)
     assert children[_PARENT] == {"20261120_sel_0001"}
-    assert "20261120_sel_0001" not in children
+    assert children["20261120_sel_0001"] == {"20261121_ll_0001"}
+    assert children["20261121_ll_0001"] == {"20261121_pg_0001"}
+    assert children["20261121_pg_0001"] == {"20261121_nt_0002"}
+    assert children["20261121_nt_0002"] == {"20261125_nt_0003"}
+    assert "20261125_nt_0003" not in children
     node, chain = _LIBRARY_ROOT, [_LIBRARY_ROOT]
     while children.get(node):
         # FEAT-072: the Platform Admin chain (20261119_admin_foundation onward) branches from
@@ -136,10 +140,13 @@ def test_revision_is_the_only_child_of_nt_0001_and_ends_the_library_chain() -> N
         assert len(next_nodes) == 1, node
         (node,) = next_nodes
         chain.append(node)
-    assert chain[-1] == "20261120_sel_0001" and chain[-2] == _PARENT
+    assert chain[-1] == "20261125_nt_0003"
+    assert chain[-2] == "20261121_nt_0002" and chain[-3] == "20261121_pg_0001"
+    assert chain[-4] == "20261121_ll_0001" and chain[-5] == "20261120_sel_0001"
+    assert chain[-6] == _PARENT
 
 
-def test_the_graph_has_60_revisions_and_sixteen_heads() -> None:
+def test_the_graph_has_64_revisions_and_sixteen_heads() -> None:
     graph = _graph()
     # 41 after T-4b1; T-4b2 adds 20261120_b2_0001 on the Story branch (heads stay 14)
     # FEAT-072 adds the seven Platform Admin revisions as their own branch (one more head).
@@ -150,7 +157,7 @@ def test_the_graph_has_60_revisions_and_sixteen_heads() -> None:
     # parallel to the AIPORT1 20261113_svg_catalog_review (the Phase B squash keeps both heads).
     # FEAT-066 goal v4 T-12c adds 20261121_psn_0001 (Parent root) and 20261121_psn_0002 (bpr).
     # FEAT-066 goal v4 T-12b-fix adds 20261123_ppg_0001 on the BE1 branch (squash: 55 + 5).
-    assert len(graph) == 60
+    assert len(graph) == 64
     down_targets = {target for downs in graph.values() for target in downs}
     assert len([revision for revision in graph if revision not in down_targets]) == 16
 

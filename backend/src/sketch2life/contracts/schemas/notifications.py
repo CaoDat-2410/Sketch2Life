@@ -3,14 +3,15 @@
 The inbox is the source of truth of a notification. An item names its template and version and
 carries the producer's safe parameters (codes, counts and opaque references, never display text, a
 child name, media or a playback URL). The recipient, role, organization reference, trigger id,
-dedupe key and command hash stay on the server. No push endpoint or delivery state is part of this
-contract (T-8b is deferred).
+dedupe key and command hash stay on the server. This module also declares the separate push
+registration contract; neither contract exposes delivery state.
 """
 
 from __future__ import annotations
 
 from datetime import datetime
 from typing import Literal
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -61,4 +62,37 @@ class NotificationReadAllV1(BaseModel):
     )
 
 
-__all__ = ["NotificationPageV1", "NotificationReadAllV1", "NotificationV1"]
+class PushEndpointRegistrationV1(BaseModel):
+    """Strict request for a proof-verified WEB push endpoint registration."""
+
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    contract: Literal["PushEndpointRegistrationV1"]
+    platform_kind: Literal["WEB", "ANDROID"]
+    provider_kind: Literal["WEB_PUSH", "ANDROID_PUSH"]
+    encrypted_registration_proof: str = Field(min_length=1, max_length=8192)
+    app_version: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=64,
+        pattern=r"^[!-~]{1,64}$",
+    )
+
+
+class PushEndpointV1(BaseModel):
+    """Public endpoint reference; protected endpoint material never appears here."""
+
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    contract: Literal["PushEndpointV1"] = "PushEndpointV1"
+    endpoint_id: UUID
+    version: int = Field(ge=1)
+
+
+__all__ = [
+    "NotificationPageV1",
+    "NotificationReadAllV1",
+    "NotificationV1",
+    "PushEndpointRegistrationV1",
+    "PushEndpointV1",
+]
