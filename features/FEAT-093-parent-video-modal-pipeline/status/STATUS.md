@@ -10,3 +10,5 @@
 | M3-M11 | not started | |
 
 GPU budget used: 1 video (5 scene renders) of 12 videos / 40 scene renders.
+
+Live runs since the LTX spike: 1 drawing analysis dispatched on 2026-11-25 for the M2 UI check and then abandoned at the owner's request (credit saving); no further live runs until the offline work is done.
