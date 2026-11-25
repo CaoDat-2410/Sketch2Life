@@ -296,3 +296,17 @@ def test_the_video_plan_is_frame_exact_and_keeps_the_leaf_ladder() -> None:
     assert {scene.seed for scene in plan.scenes} and all(0 <= scene.seed < 2**31 for scene in plan.scenes)
     assert len(plan.line_placements()) == 5
     assert plan.scenes[0].model_frames % 8 == 1
+
+
+def test_a_cue_stays_long_enough_to_read_without_passing_the_next_cue() -> None:
+    from sketch2life.application.video_pipeline.caption_plan import Cue, extend_short_cues, lint_cues
+
+    fast = Cue(0, 1_700, "Gà con nhìn xuống sân đất nâu.", "narration")  # 30 characters in 1.7 s
+    later = Cue(4_000, 6_000, "Gà con bước đi.", "narration")
+
+    cues = extend_short_cues([fast, later], duration_ms=10_000, max_cps=14.0)
+
+    assert cues[0].end_ms >= 2_143 and cues[0].end_ms <= later.start_ms - 40
+    assert lint_cues(cues, duration_ms=10_000, max_cps=14.0) == []
+    boxed = extend_short_cues([fast, Cue(1_900, 3_000, "Tiếp theo.", "narration")], duration_ms=10_000, max_cps=14.0)
+    assert boxed[0].end_ms <= 1_900 - 40  # never into the next cue

@@ -1,7 +1,8 @@
 """C2 adapter: prepare one scene's keyframe (child's subjects over a crayon background plate) (FEAT-093).
 
-Implements ``ScenePreparationPort`` against the shared ``qwen-worker`` container (route ``video.scene.prepare``), so scene
-preparation, the timeline and the activities share the one non-LTX GPU container. The drawing and the request travel as one
+Implements ``ScenePreparationPort`` against the ``prepare-video-scene`` function. It has its own L40S container: the live run
+showed FLUX cannot load next to the resident Qwen 27B in ``qwen-worker`` (the plate failed and the scene fell back to paper),
+so the plate runs beside it, not inside it (a deviation from the two-container plan, recorded in FEAT-093). The drawing and the request travel as one
 JSON asset on the scratch volume; the worker answers with the keyframe PNG. The worker degrades to the paper background
 by itself; this adapter only maps transport failures to ``VideoPipelineError`` codes.
 """
@@ -25,7 +26,7 @@ from sketch2life.infrastructure.ai.modal_silent_story_video import (
     _VOLUME_VERSION,
 )
 
-FUNCTION_NAME: Final = "qwen-worker"
+FUNCTION_NAME: Final = "prepare-video-scene"
 MANIFEST_SCHEMA: Final = "sketch2life.modal.ai-request.v1"
 WORKER_INPUT_SCHEMA: Final = "sketch2life.modal.worker-input.v1"
 WORKER_OUTPUT_SCHEMA: Final = "sketch2life.modal.worker-output.v1"

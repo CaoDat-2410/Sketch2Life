@@ -176,6 +176,8 @@ class VideoPipeline:
             report(STAGE_PREPARING, 1, count)
             for scene in plan.scenes:
                 check_cancel()
+                if narration_future.done():
+                    narration_future.result()  # a narration failure surfaces now, before more scenes are rendered
                 prepared = prep[scene.index].result()
                 backgrounds[scene.index] = prepared.background
                 report(STAGE_RENDERING, scene.index, count)
@@ -315,7 +317,7 @@ class VideoPipeline:
                     clause_start += speech + CLAUSE_GAP_MS
                 cursor = start + result.total_ms + 300
         cues = build_cues(placements, speaker_labels=_speaker_labels(source))
-        cues = extend_short_cues(cues, duration_ms=plan.total_ms)
+        cues = extend_short_cues(cues, duration_ms=plan.total_ms, max_cps=profile.caption_max_cps)
         problems = lint_cues(cues, duration_ms=plan.total_ms, max_cps=profile.caption_max_cps)
         if problems:
             raise VideoPipelineError(f"VIDEO_CAPTIONS_{problems[0]}")

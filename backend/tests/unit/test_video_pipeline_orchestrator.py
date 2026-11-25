@@ -284,3 +284,25 @@ def test_a_run_without_a_main_subject_fails_early() -> None:
         pipeline.run(_source((PlannerSubject("sec-1", "chiếc lá", "secondary"),)))
 
     assert error.value.code == "VIDEO_MAIN_SUBJECT_MISSING"
+
+
+def test_a_narration_failure_stops_the_run_before_every_scene_is_rendered() -> None:
+    class _Broken(_Narration):
+        def synthesize(self, spoken):
+            raise VideoPipelineError("VIDEO_NARRATION_FAILED")
+
+    class _SlowRender(_Render):
+        def render(self, job):
+            import time
+
+            time.sleep(0.3)  # lets the narration thread fail while scenes are still being rendered
+            return super().render(job)
+
+    render = _SlowRender()
+    pipeline, _ = _pipeline(narration=_Broken(), render=render)
+
+    with pytest.raises(VideoPipelineError) as error:
+        pipeline.run(_source())
+
+    assert error.value.code == "VIDEO_NARRATION_FAILED"
+    assert len(render.calls) < 5

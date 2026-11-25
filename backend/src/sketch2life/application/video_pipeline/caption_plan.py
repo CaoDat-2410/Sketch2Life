@@ -10,6 +10,7 @@ Pure code: no model, storage or framework.
 
 from __future__ import annotations
 
+import math
 import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
@@ -156,15 +157,23 @@ def build_cues(
     return sorted(cues, key=lambda cue: (cue.start_ms, cue.end_ms))
 
 
-def extend_short_cues(cues: Sequence[Cue], *, duration_ms: int, min_ms: int = MIN_CUE_MS) -> list[Cue]:
-    """Stretch cues shorter than ``min_ms`` into free time before the next cue or the end of the video."""
+def extend_short_cues(
+    cues: Sequence[Cue], *, duration_ms: int, min_ms: int = MIN_CUE_MS, max_cps: float | None = None
+) -> list[Cue]:
+    """Keep cues on screen long enough: at least ``min_ms`` and, when ``max_cps`` is given, long enough to read.
+
+    The voice can be faster than a child reads (the live voice speaks about 17 characters a second), so a cue may stay
+    after its audio ends. It never passes the start of the next cue (minus a small gap) or the end of the video."""
 
     result: list[Cue] = []
     for position, cue in enumerate(cues):
         limit = cues[position + 1].start_ms - 40 if position + 1 < len(cues) else duration_ms
+        needed = min_ms
+        if max_cps:
+            needed = max(needed, math.ceil(len(cue.text) / max_cps * 1000))
         end = cue.end_ms
-        if end - cue.start_ms < min_ms:
-            end = max(end, min(cue.start_ms + min_ms, limit))
+        if end - cue.start_ms < needed:
+            end = max(end, min(cue.start_ms + needed, limit))
         result.append(Cue(cue.start_ms, end, cue.text, cue.lane, cue.speaker_ref))
     return result
 

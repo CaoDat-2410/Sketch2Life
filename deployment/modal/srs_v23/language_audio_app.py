@@ -28,7 +28,6 @@ from contracts import (  # noqa: E402
 )
 import story_staging_worker  # noqa: E402
 import video_timeline as _timeline
-import scene_prepare as _scene_prepare  # noqa: E402
 import drawing_vlm_app as _drawing_worker  # noqa: E402
 from worker_observability import (  # noqa: E402
     GenerationProgress,
@@ -316,6 +315,8 @@ _download_image = (
     .add_local_file(
         str(_MODULE_DIR / "drawing_vlm_app.py"), "/root/drawing_vlm_app.py", copy=True
     )
+    .add_local_file(str(_MODULE_DIR / "video_timeline.py"), "/root/video_timeline.py", copy=True)
+    .add_local_file(str(_MODULE_DIR / "story_staging_worker.py"), "/root/story_staging_worker.py", copy=True)
     .add_local_file(
         str(_observability_file), "/root/worker_observability.py", copy=True
     )
@@ -383,6 +384,8 @@ _tts_image = (
     .add_local_file(
         str(_MODULE_DIR / "drawing_vlm_app.py"), "/root/drawing_vlm_app.py", copy=True
     )
+    .add_local_file(str(_MODULE_DIR / "video_timeline.py"), "/root/video_timeline.py", copy=True)
+    .add_local_file(str(_MODULE_DIR / "story_staging_worker.py"), "/root/story_staging_worker.py", copy=True)
     .add_local_file(
         str(_observability_file), "/root/worker_observability.py", copy=True
     )
@@ -404,6 +407,8 @@ _asr_image = (
     .add_local_file(
         str(_MODULE_DIR / "drawing_vlm_app.py"), "/root/drawing_vlm_app.py", copy=True
     )
+    .add_local_file(str(_MODULE_DIR / "video_timeline.py"), "/root/video_timeline.py", copy=True)
+    .add_local_file(str(_MODULE_DIR / "story_staging_worker.py"), "/root/story_staging_worker.py", copy=True)
     .add_local_file(
         str(_observability_file), "/root/worker_observability.py", copy=True
     )
@@ -3137,6 +3142,26 @@ def _scene_plate(prompt: str) -> Any:
     return image
 
 
+def _logged_scene_plate(prompt: str) -> Any:
+    """``_scene_plate`` that records why a plate failed (library error text only; the prompt is never logged)."""
+
+    try:
+        return _scene_plate(prompt)
+    except Exception as error:  # noqa: BLE001
+        print(
+            json.dumps(
+                {
+                    "event": "scene_plate_failed",
+                    "error_type": type(error).__name__,
+                    "error_text": re.sub(r"\s+", " ", str(error))[:300],
+                },
+                sort_keys=True,
+            ),
+            flush=True,
+        )
+        raise
+
+
 def _scene_sam() -> Any:
     global _scene_sam_predictor
     if _scene_sam_predictor is None:
@@ -3187,6 +3212,8 @@ def prepare_video_scene(payload: dict[str, Any]) -> dict[str, Any]:
     import base64
     import binascii
 
+    import scene_prepare as _scene_prepare  # imported in the container: needs numpy and PIL
+
     with worker_phase("input_envelope"):
         request = parse_worker_input(payload, execution_group="l4")
     if request.workload != "video.scene.prepare":
@@ -3217,7 +3244,7 @@ def prepare_video_scene(payload: dict[str, Any]) -> dict[str, Any]:
             scene_index=scene_index,
             source_facing=str(data.get("source_facing", "right")),
             plate_prompt=plate_prompt,
-            generate_plate=_scene_plate,
+            generate_plate=_logged_scene_plate,
             predictor_factory=_scene_sam,
         )
     print(
