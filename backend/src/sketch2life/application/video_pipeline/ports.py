@@ -51,6 +51,9 @@ class ScenePrepJob:
     subject_labels: Mapping[str, str]
     subject_boxes: Mapping[str, tuple[int, int, int, int]]
     main_entity_id: str
+    drawing_png: bytes = b""
+    staging: Mapping[str, Any] | None = None  # ``sketch2life.story-staging.v1`` for the whole plan
+    secondary_ids: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)

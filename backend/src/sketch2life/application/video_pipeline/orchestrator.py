@@ -13,6 +13,7 @@ import math
 from collections.abc import Callable, Sequence
 from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import dataclass
+from typing import Any
 
 from sketch2life.application.video_pipeline.age_profile import FPS, AgeBandProfile, profile_for_age_months
 from sketch2life.application.video_pipeline.caption_plan import (
@@ -46,6 +47,7 @@ from sketch2life.application.video_pipeline.ports import (
     VideoSource,
     VideoValidatorPort,
 )
+from sketch2life.application.video_pipeline.staging_builder import StagingError, build_staging
 from sketch2life.application.video_pipeline.story_timeline import TimelineError, TimelineLine
 from sketch2life.application.video_pipeline.timeline_planner import (
     VideoTimelineGeneratorPort,
@@ -153,15 +155,21 @@ class VideoPipeline:
         plan = build_video_plan(timeline, story_sha256=source.story_sha256, main_entity_id=main)
         count = len(plan.scenes)
         labels = {item.entity_id: item.label for item in source.subjects}
+        secondary_ids = tuple(item.entity_id for item in source.subjects if item.entity_id != main)
+        try:
+            staging = build_staging(plan, subject_boxes=source.subject_boxes, secondary_ids=secondary_ids)
+        except StagingError as error:
+            raise VideoPipelineError(f"VIDEO_{error.code}") from None
+        staged = (staging, secondary_ids)
 
         c2 = ThreadPoolExecutor(max_workers=1, thread_name_prefix="video-c2")
         try:
             prep: dict[int, Future[PreparedScene]] = {}
             first = plan.scenes[0]
-            prep[first.index] = c2.submit(self._prepare, first, source, labels, main)
+            prep[first.index] = c2.submit(self._prepare, first, source, labels, main, staged)
             narration_future = c2.submit(self._narrate_all, plan, profile, source)
             for scene in plan.scenes[1:]:
-                prep[scene.index] = c2.submit(self._prepare, scene, source, labels, main)
+                prep[scene.index] = c2.submit(self._prepare, scene, source, labels, main, staged)
 
             clips: list[SceneClip] = []
             backgrounds: dict[int, str] = {}
@@ -202,7 +210,12 @@ class VideoPipeline:
 
     # ----------------------------------------------------------------- C2 work
     def _prepare(
-        self, scene: ScenePlan, source: VideoSource, labels: dict[str, str], main: str
+        self,
+        scene: ScenePlan,
+        source: VideoSource,
+        labels: dict[str, str],
+        main: str,
+        staged: tuple[dict[str, Any], tuple[str, ...]],
     ) -> PreparedScene:
         return self._preparation.prepare(
             ScenePrepJob(
@@ -211,6 +224,9 @@ class VideoPipeline:
                 subject_labels=labels,
                 subject_boxes=source.subject_boxes,
                 main_entity_id=main,
+                drawing_png=source.drawing_png,
+                staging=staged[0],
+                secondary_ids=staged[1],
             )
         )
 
