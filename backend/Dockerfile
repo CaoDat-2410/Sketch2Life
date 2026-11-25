@@ -12,6 +12,7 @@ COPY backend/src ./backend/src
 COPY data/activity-catalog ./data/activity-catalog
 COPY features/FEAT-028-pixi-topic-asset-library/assets/generated ./features/FEAT-028-pixi-topic-asset-library/assets/generated
 COPY packages/art-renderer/dist-demo ./packages/art-renderer/dist-demo
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg && rm -rf /var/lib/apt/lists/*
 RUN pip install --no-cache-dir '/app/backend[image-admission,modal]'
 
 WORKDIR /app/backend

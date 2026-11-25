@@ -333,3 +333,29 @@ def test_a_partly_gone_object_has_a_bite_taken_from_the_side_facing_the_subject(
 
 def mask_center_x(mask) -> float:
     return kc.mask_center(mask)[0]
+
+
+def test_a_background_plate_replaces_only_the_paper_and_keeps_the_childs_pixels(scene) -> None:
+    drawing, main, leaf = scene
+    frames = kc.build_keyframes(drawing, main, [leaf], _eat_leaf(), source_facing="right")
+    keyframe = frames[2]
+    plate = Image.new("RGB", (640, 384), (120, 200, 120))  # a flat green plate, smaller than the canvas
+
+    result = kc.apply_background_plate(keyframe, plate)
+
+    out = np.asarray(result)
+    frame_pixels = np.asarray(keyframe.image)
+    occupied = keyframe.main_mask | keyframe.secondary_masks["sec-1"]
+    assert result.size == (1280, 768)
+    assert np.array_equal(out[occupied], frame_pixels[occupied]), "the child's pixels changed"
+    far_from_subjects = ~kc._dilate(occupied, 6)
+    assert (out[far_from_subjects] == np.array([120, 200, 120])).all()
+
+
+def test_a_plate_needs_a_subject_to_place(scene) -> None:
+    drawing, main, leaf = scene
+    keyframe = kc.build_keyframes(drawing, main, [leaf], _eat_leaf(), source_facing="right")[1]
+    empty = kc.Keyframe(keyframe.image, np.zeros_like(keyframe.main_mask), {}, {})
+
+    with pytest.raises(kc.KeyframeError):
+        kc.apply_background_plate(empty, Image.new("RGB", (1280, 768), "white"))

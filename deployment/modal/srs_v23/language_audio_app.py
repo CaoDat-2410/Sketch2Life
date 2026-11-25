@@ -3069,6 +3069,89 @@ def synthesize_vietnamese_narration(payload: dict[str, Any]) -> dict[str, Any]:
         )
 
 
+_NARRATION_VOICE = "Hải Đăng"
+_NARRATION_CLAUSE_MAX_CHARS = 100
+_narration_engine: Any = None
+
+
+@app.function(
+    name="synthesize-narration-clause",
+    image=_tts_image,
+    cpu=4.0,
+    memory=12_288,
+    min_containers=0,
+    max_containers=2,
+    scaledown_window=300,
+    timeout=300,
+    retries=0,
+    volumes={
+        MODEL_MOUNT: model_volume.with_mount_options(read_only=True),
+        SCRATCH_MOUNT: scratch_volume.with_mount_options(read_only=True),
+    },
+)
+@observed_worker(
+    workload="tts.narration.generate",
+    model_id=TTS_MODEL_ID,
+    model_revision=TTS_MODEL_REVISION,
+    gpu_class="cpu",
+)
+def synthesize_narration_clause(payload: dict[str, Any]) -> dict[str, Any]:
+    """FEAT-093: one clause of the adult-approved story, preset adult voice, no cloning, no ASR."""
+
+    global _narration_engine
+    with worker_phase("input_envelope"):
+        request = parse_worker_input(payload, execution_group="l4")
+    worker_stage("workload_gate")
+    if request.workload != "tts.narration.generate":
+        raise WorkerContractError("MODAL_WORKLOAD_NOT_ALLOWED")
+    refresh_worker_volume(scratch_volume)
+    with worker_phase("input_manifest_read"):
+        data = _read_json_asset(request, expected_asset="input/request.json")
+    text = data.get("text")
+    if (
+        set(data) != {"text", "voice"}
+        or data.get("voice") != _NARRATION_VOICE
+        or not isinstance(text, str)
+        or not text.strip()
+        or len(text) > _NARRATION_CLAUSE_MAX_CHARS
+    ):
+        raise WorkerContractError("MODAL_INPUT_NOT_ALLOWED")
+    if _narration_engine is None:
+        with worker_phase("tts_checkpoint_verification"):
+            _verify_marker(Path(TTS_MODEL_MARKER), TTS_MODEL_ID, TTS_MODEL_REVISION)
+            _verify_marker(Path(TTS_CODEC_MARKER), TTS_CODEC_ID, TTS_CODEC_REVISION)
+        from vieneu import Vieneu
+
+        with worker_phase("tts_model_load"):
+            _narration_engine = Vieneu(
+                mode="v3turbo",
+                backbone_repo=TTS_MODEL_DIR,
+                device="cpu",
+                backend="onnx",
+                precision="fp32",
+                onnx_repo=TTS_MODEL_DIR,
+                onnx_dir=f"{TTS_MODEL_DIR}/onnx_update",
+                codec_repo=TTS_CODEC_DIR,
+                codec_dir=TTS_CODEC_DIR,
+                threads=4,
+            )
+    with worker_phase("tts_inference"):
+        audio = _narration_engine.infer(
+            text, voice=_NARRATION_VOICE, max_new_frames=240, max_chars=_NARRATION_CLAUSE_MAX_CHARS
+        )
+    output_path = Path(f"/tmp/clause-{request.attempt_id}.wav")
+    with worker_phase("audio_encode_and_validate"):
+        _narration_engine.save(audio, str(output_path))
+        output_bytes = output_path.read_bytes()
+        output_path.unlink(missing_ok=True)
+        if not output_bytes.startswith(b"RIFF") or len(output_bytes) > MAX_OUTPUT_BYTES:
+            raise RuntimeError("MODAL_OUTPUT_INVALID")
+    with worker_phase("audio_output_contract_validation"):
+        return _media_response(
+            request, "tts.narration.generate", TTS_MODEL_ID, TTS_MODEL_REVISION, "audio/wav", output_bytes
+        )
+
+
 @app.function(
     name="transcribe-vietnamese-audio",
     image=_asr_image,

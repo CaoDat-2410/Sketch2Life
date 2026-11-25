@@ -237,6 +237,28 @@ def _paper_colour(canvas: np.ndarray, masks: list[np.ndarray]) -> tuple[int, int
     return tuple(int(v) for v in np.median(outside, axis=0))  # type: ignore[return-value]
 
 
+def apply_background_plate(keyframe: Keyframe, plate: Image.Image) -> Image.Image:
+    """FEAT-093: put the child's real subjects (main and approved secondaries) on a background plate.
+
+    Pixels inside the subject masks, with a two pixel anti-alias margin, come from the keyframe, which holds the child's
+    own drawing pixels; everything else is the plate. Nothing of the child's drawing is regenerated, so the strokes and
+    the paper interior of the subjects stay exactly as drawn. The plate is fitted to the 1280x768 canvas.
+    """
+
+    base = np.asarray(plate.convert("RGB").resize((CANVAS_WIDTH, CANVAS_HEIGHT), Image.Resampling.LANCZOS)).copy()
+    frame = np.asarray(keyframe.image.convert("RGB"))
+    if frame.shape[:2] != base.shape[:2]:
+        raise KeyframeError("KEYFRAME_PLATE_SIZE_MISMATCH")
+    occupied = keyframe.main_mask.copy()
+    for mask in keyframe.secondary_masks.values():
+        occupied |= mask
+    if not occupied.any():
+        raise KeyframeError("KEYFRAME_NO_SUBJECT_TO_PLACE")
+    occupied = _dilate(occupied, 2)
+    base[occupied] = frame[occupied]
+    return Image.fromarray(base)
+
+
 def build_keyframes(
     drawing: Image.Image,
     main: SubjectLayer,
