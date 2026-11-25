@@ -1,0 +1,18 @@
+.pa-event-drawer-backdrop { position: fixed; inset: 0; z-index: 1000; display: flex; justify-content: flex-end; background: rgb(18 28 22 / 48%); }
+.pa-event-drawer { display: flex; width: min(980px, 100%); height: 100%; flex-direction: column; gap: 18px; overflow: auto; padding: clamp(18px, 3vw, 32px); background: var(--pa-surface, #fff); color: var(--pa-ink, #203228); box-shadow: -18px 0 52px rgb(18 28 22 / 18%); }
+.pa-event-drawer-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.pa-event-drawer-header h2 { margin: 0; }
+.pa-event-drawer-header p { margin: 6px 0; color: var(--pa-muted); }
+.pa-event-drawer-header code { overflow-wrap: anywhere; color: var(--pa-muted); }
+.pa-event-drawer-state { display: grid; align-content: center; justify-items: center; gap: 12px; flex: 1; min-height: 180px; margin: 0; padding: 24px; border: 1px dashed var(--pa-border); border-radius: 14px; text-align: center; }
+.pa-event-drawer-table-wrap { width: 100%; overflow: auto; border: 1px solid var(--pa-border); border-radius: 12px; }
+.pa-event-drawer .pa-table { min-width: 760px; }
+.pa-event-snapshot { min-width: 110px; }
+.pa-event-snapshot summary { cursor: pointer; color: var(--pa-primary, #52755e); font-weight: 650; }
+.pa-event-snapshot dl { display: grid; gap: 7px; min-width: 220px; max-width: 320px; margin: 10px 0 0; }
+.pa-event-snapshot dl > div { display: grid; gap: 2px; }
+.pa-event-snapshot dt { color: var(--pa-muted); font-size: 11px; }
+.pa-event-snapshot dd { overflow-wrap: anywhere; margin: 0; font-size: 12px; }
+@media (max-width: 640px) {
+  .pa-event-drawer { padding: 16px; }
+}

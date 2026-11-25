@@ -25,6 +25,7 @@ const RETRYABLE_STATUSES = [429, 502, 503, 504];
 const MAX_SERVER_MESSAGE_LENGTH = 500;
 
 const CODE_MESSAGES: Record<string, string> = {
+  SUPPORT_NEEDS_UNAVAILABLE: "Mục này chưa khả dụng.",
   EMAIL_VERIFICATION_REQUIRED: "Vui lòng mở email thiết lập tài khoản và xác minh email trước khi đăng nhập.",
   CONTENT_PERMISSION_REQUIRED: "Bạn chưa được cấp quyền duyệt nội dung.",
   SELF_PERMISSION_CHANGE_DENIED: "Bạn không thể tự thay đổi quyền duyệt nội dung của mình.",

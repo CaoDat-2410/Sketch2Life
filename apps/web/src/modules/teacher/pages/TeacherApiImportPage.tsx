@@ -18,6 +18,8 @@ import { Icon } from "../components/Icon";
 import { PageHeading } from "../../../shared/components/FeatureAvailability";
 import { Button, FormField, Select } from "../../../shared/ui";
 import { abortUploadWithRevision } from "../services/uploadAbort";
+import { ImportToVersionPanel } from "../components/ImportToVersionPanel";
+import { LessonVersionsPanel } from "../components/LessonVersionsPanel";
 
 const MIME_BY_EXTENSION: Record<string, string> = {
   pdf: "application/pdf",
@@ -76,6 +78,7 @@ export function TeacherApiImportPage() {
   const [sessionLoading, setSessionLoading] = useState(() => Boolean(readUploadResume()?.uploadSessionId));
   const [sourceDocument, setSourceDocument] = useState<LessonSourceDocumentStatus | null>(null);
   const [revision, setRevision] = useState<LessonDocumentRevisionPreview | null>(null);
+  const [versionsRefreshToken, setVersionsRefreshToken] = useState(0);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -185,7 +188,7 @@ export function TeacherApiImportPage() {
           return;
         }
         if (status.state !== "OPEN") {
-          setError(`Phiên upload đang ở trạng thái ${status.state}. API không trả kết quả source document cho trạng thái này; không gửi lại tệp.`);
+          setError("Phiên tải lên không còn mở. Hãy tải lại trạng thái trước khi tiếp tục.");
         }
       })
       .catch((cause: unknown) => { if (active) setError(backendMessage(cause)); })
@@ -275,7 +278,7 @@ export function TeacherApiImportPage() {
         }
         if (uploadSession.state !== "OPEN") {
           setSession(uploadSession);
-          setError(`Phiên upload đang ở trạng thái ${uploadSession.state}. API không trả kết quả source document cho trạng thái này; không gửi lại tệp.`);
+          setError("Phiên tải lên không còn mở. Hãy tải lại trạng thái trước khi tiếp tục.");
           return;
         }
       }
@@ -357,7 +360,7 @@ export function TeacherApiImportPage() {
         await recoverCompletedUpload(resume);
         showToast("Server đã xác nhận phiên upload hoàn tất; trạng thái xử lý đã được khôi phục.", "info");
       } else if (latest.state !== "OPEN") {
-        setError(`Phiên upload đang ở trạng thái ${latest.state}. API không trả kết quả source document cho trạng thái này; không gửi lại tệp.`);
+        setError("Phiên tải lên không còn mở. Hãy tải lại trạng thái trước khi tiếp tục.");
       }
     } catch (cause) {
       setError(backendMessage(cause));
@@ -425,7 +428,7 @@ export function TeacherApiImportPage() {
         {file && <div className="tw-item tw-row tw-between tw-wrap"><span>{file.name}</span><span className="tw-meta">{(file.size / (1024 * 1024)).toFixed(2)} MB · SHA-256 sẽ được tính trong trình duyệt</span></div>}
         {resume && file && !resumeFileMatches && <BackendNotice title="Tệp được chọn không trùng metadata phiên" tone="error">Kích thước hoặc thời điểm sửa đổi khác phiên đã lưu. Chưa gửi thêm phần nào.</BackendNotice>}
         {session?.state === "OPEN" && <BackendNotice title="Phiên upload đang mở trên server" tone="warn">Đã nhận {session.accepted_part_numbers.length}/{session.expected_parts} phần. Sau khi xác minh lại SHA-256, chỉ các phần còn thiếu mới được gửi.</BackendNotice>}
-        {resume?.uploadSessionId && session && session.state !== "OPEN" && <BackendNotice title="Phiên upload không còn mở" tone="warn">Server báo {session.state}. API status chưa trả source_document_id để nối tiếp kết quả đã đóng; không gửi lại tệp.</BackendNotice>}
+        {resume?.uploadSessionId && session && session.state !== "OPEN" && <BackendNotice title="Phiên tải lên không còn mở" tone="warn">Không thể tiếp tục phiên này. Hãy bắt đầu một lần tải lên mới nếu cần.</BackendNotice>}
         {error && <BackendNotice title="Không hoàn tất được quy trình nhập" tone="error">{error}</BackendNotice>}
         {!resume && !uploading && !loading && (!file || !lessonId) && (
           <p className="cozy-form-disabled-hint">Chọn tệp nguồn ở trên để bật nút tải tài liệu lên.</p>
@@ -458,16 +461,44 @@ export function TeacherApiImportPage() {
 
       {sourceDocument && <section className="tw-card cozy-form-card cozy-form-card--wide cozy-form-stack">
         <div className="tw-row tw-between tw-wrap"><h2 className="tw-h2">Kết quả xử lý tài liệu</h2><Button type="button" variant="secondary" size="sm" disabled={uploading} onClick={() => void refreshStatus()}>Tải lại trạng thái</Button></div>
-        <div className="tw-grid-2"><div className="tw-item"><span className="tw-meta">Trạng thái</span><strong style={{ display: "block" }}>{sourceDocument.state}</strong></div><div className="tw-item"><span className="tw-meta">Tệp an toàn</span><strong style={{ display: "block" }}>{sourceDocument.safe_file_name}</strong></div><div className="tw-item"><span className="tw-meta">Số trang / slide</span><strong style={{ display: "block" }}>{sourceDocument.page_or_slide_count ?? "Chưa có"}</strong></div><div className="tw-item"><span className="tw-meta">Parser</span><strong style={{ display: "block" }}>{sourceDocument.parser_version ?? "Chưa có"}</strong></div></div>
-        {sourceDocument.warnings.length > 0 && <BackendNotice title="Cảnh báo parser" tone="warn">{sourceDocument.warnings.join(" · ")}</BackendNotice>}
+        <div className="tw-grid-2"><div className="tw-item"><span className="tw-meta">Trạng thái</span><strong style={{ display: "block" }}>{sourceDocument.state === "READY_FOR_REVIEW" ? "Sẵn sàng rà soát" : "Chưa sẵn sàng"}</strong></div><div className="tw-item"><span className="tw-meta">Tệp an toàn</span><strong style={{ display: "block" }}>{sourceDocument.safe_file_name}</strong></div><div className="tw-item"><span className="tw-meta">Số trang / slide</span><strong style={{ display: "block" }}>{sourceDocument.page_or_slide_count ?? "Chưa có"}</strong></div></div>
+        {sourceDocument.warnings.length > 0 && <BackendNotice title="Cần kiểm tra kết quả trích xuất" tone="warn">Có lưu ý từ quá trình xử lý. Hãy rà soát kỹ các trường bên dưới trước khi xác nhận.</BackendNotice>}
         {revision && <>
-          <div className="tw-row tw-between tw-wrap"><h3 className="tw-h2" style={{ fontSize: 17 }}>Bản trích xuất để rà soát</h3><span className="tw-chip is-gray">{revision.review_state} · parser {revision.parser_version}</span></div>
+          <div className="tw-row tw-between tw-wrap"><h3 className="tw-h2" style={{ fontSize: 17 }}>Bản trích xuất để rà soát</h3><span className="tw-chip is-gray">{revision.review_state === "CONFIRMED" ? "Đã xác nhận" : "Cần rà soát"}</span></div>
           {revision.page_coverage.length > 0 && <p className="tw-meta">Trang đã bao phủ: {revision.page_coverage.join(", ")}</p>}
-          {revision.warnings.length > 0 && <BackendNotice title="Cần kiểm tra nội dung trích xuất" tone="warn">{revision.warnings.join(" · ")}</BackendNotice>}
-          <pre className="tw-item" style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere", maxHeight: 360, overflow: "auto", fontFamily: "inherit" }}>{JSON.stringify(revision.extracted_fields, null, 2)}</pre>
-          <BackendNotice title="Chưa tạo phiên bản giáo án từ bản trích xuất" tone="info">Hãy rà soát và biên tập structured content trước. API tạo version yêu cầu toàn bộ LessonContentInputV1 và revision hiện hành; tài liệu nguồn không tự động xuất bản.</BackendNotice>
+          {revision.warnings.length > 0 && <BackendNotice title="Cần kiểm tra nội dung trích xuất" tone="warn">Bản trích xuất có lưu ý. Hãy đối chiếu nội dung với tài liệu gốc trước khi tạo bản nháp.</BackendNotice>}
+          <div className="tw-grid-2" aria-label="Các trường đã trích xuất">
+            {([
+              ["Tên giáo án", revision.extracted_fields.title],
+              ["Chủ đề", revision.extracted_fields.topic],
+              ["Đối tượng vẽ", revision.extracted_fields.drawing_subject],
+              ["Các bước vẽ", revision.extracted_fields.drawing_steps_text],
+              ["Ghi chú kiến thức", revision.extracted_fields.subject_learning_notes],
+              ["Định hướng lời dẫn", revision.extracted_fields.script_direction],
+            ] as const).map(([label, value]) => (
+              <div className="tw-item" key={label}><span className="tw-meta">{label}</span><p style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{typeof value === "string" && value ? value : "Chưa có nội dung trích xuất"}</p></div>
+            ))}
+            <div className="tw-item"><span className="tw-meta">Mục tiêu</span>
+              {Array.isArray(revision.extracted_fields.objectives) && revision.extracted_fields.objectives.some((item) => typeof item === "string")
+                ? <ul>{revision.extracted_fields.objectives.filter((item): item is string => typeof item === "string").map((item, index) => <li key={`${index}-${item}`}>{item}</li>)}</ul>
+                : <p>Chưa có nội dung trích xuất</p>}
+            </div>
+          </div>
+          <details className="tw-item">
+            <summary>Xem dữ liệu trích xuất dạng JSON</summary>
+            <pre style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere", maxHeight: 360, overflow: "auto", fontFamily: "inherit" }}>{JSON.stringify(revision.extracted_fields, null, 2)}</pre>
+          </details>
+          <ImportToVersionPanel
+            organizationId={organizationId}
+            lessonId={lessonId}
+            sourceDocument={sourceDocument}
+            revision={revision}
+            onRevisionConfirmed={() => setRevision((current) => current ? { ...current, review_state: "CONFIRMED" } : current)}
+            onVersionCreated={() => setVersionsRefreshToken((current) => current + 1)}
+          />
         </>}
       </section>}
+      {sourceDocument && lessonId && <LessonVersionsPanel organizationId={organizationId} lessonId={lessonId} refreshToken={versionsRefreshToken} />}
     </div>
   );
 }

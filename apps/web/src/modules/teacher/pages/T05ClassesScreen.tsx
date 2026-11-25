@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, LockKeyhole, RefreshCw, UserPlus, Users } from "lucide-react";
 import { PageHeading } from "../../../shared/components/FeatureAvailability";
 import { Alert, Button, FormField, Select } from "../../../shared/ui";
+import { TeacherProfilePanels } from "../components/TeacherProfilePanels";
 import {
   BackendApiError,
   backendApi,
@@ -20,6 +21,7 @@ import {
   STALE_RELOADED,
   SYNTHETIC_NAME_PREFIX,
   TeacherRosterApiError,
+  TeacherRosterPageError,
   keepsCommandKey,
   profileInputProblem,
   teacherRosterApi,
@@ -36,7 +38,7 @@ function NoBackendSession() {
 
 /** Roster messages are already projected (uniform 404, safe 403, Retry-After); other errors use the shared text. */
 function rosterError(cause: unknown): string {
-  if (cause instanceof TeacherRosterApiError && cause.code !== "CONSENT_NOT_EFFECTIVE") {
+  if (cause instanceof TeacherRosterApiError) {
     return cause.message + (cause.requestId ? ` Mã yêu cầu: ${cause.requestId}.` : "");
   }
   return backendMessage(cause);
@@ -105,7 +107,7 @@ export function TeacherApiClassesPage() {
           <span className="s2l-class-open">Xem roster <ArrowRight size={15} aria-hidden="true" /></span>
         </button>
       ))}
-      <div className="s2l-note"><LockKeyhole size={15} aria-hidden="true" />Hồ sơ trẻ chỉ hiển thị khi API xác minh assignment và consent hiệu lực.</div>
+      <div className="s2l-note"><LockKeyhole size={15} aria-hidden="true" />API chỉ trả hồ sơ synthetic hoặc hồ sơ có consent hiệu lực trong assignment hiện hành.</div>
     </div>
   );
 }
@@ -118,12 +120,12 @@ function TeacherApiClassDetailPage({ classId }: { classId: string }) {
   const [classItem, setClassItem] = useState<Be1Class | null>(null);
   const [moveTargets, setMoveTargets] = useState<Be1Class[]>([]);
   const [profiles, setProfiles] = useState<TeacherProfile[]>([]);
+  const [activeProfileCount, setActiveProfileCount] = useState(0);
   const [consents, setConsents] = useState<TeacherConsent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
-  const [profileErrorCode, setProfileErrorCode] = useState<string | null>(null);
-  const [profileErrorRequestId, setProfileErrorRequestId] = useState<string | null>(null);
+  const [profileHasPartialData, setProfileHasPartialData] = useState(false);
   const [consentError, setConsentError] = useState<string | null>(null);
   const [reload, setReload] = useState(0);
   // T-7c / T-7d commands: one Idempotency-Key per exact user action, kept only while its outcome is unknown.
@@ -135,6 +137,15 @@ function TeacherApiClassDetailPage({ classId }: { classId: string }) {
   const [profileName, setProfileName] = useState(SYNTHETIC_NAME_PREFIX);
   const [ageMonths, setAgeMonths] = useState("60");
   const [moveDraft, setMoveDraft] = useState<MoveDraft | null>(null);
+  const [consentRosterChildId, setConsentRosterChildId] = useState("");
+  const [consentManualChildId, setConsentManualChildId] = useState("");
+  const [consentPurposeRef, setConsentPurposeRef] = useState("classroom-learning-v1");
+  const [consentEvidenceRef, setConsentEvidenceRef] = useState("");
+  const [consentMutationBusy, setConsentMutationBusy] = useState(false);
+  const consentMutationPending = useRef(false);
+  const [consentActionError, setConsentActionError] = useState<string | null>(null);
+  const [consentNotice, setConsentNotice] = useState<string | null>(null);
+  const [consentToRevoke, setConsentToRevoke] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -147,10 +158,10 @@ function TeacherApiClassDetailPage({ classId }: { classId: string }) {
     setLoading(true);
     setError(null);
     setProfileError(null);
-    setProfileErrorCode(null);
-    setProfileErrorRequestId(null);
+    setProfileHasPartialData(false);
     setConsentError(null);
     setProfiles([]);
+    setActiveProfileCount(0);
     setConsents([]);
     // T-7a2 (SRS l.864-865, AC-27): the server decides 403 versus the uniform 404 for this class; the
     // page no longer turns a class outside the caller's rows into its own 403.
@@ -161,12 +172,12 @@ function TeacherApiClassDetailPage({ classId }: { classId: string }) {
       backendApi.assignments(organizationId),
     ]).then(([classResult, profileResult, consentResult, identityResult]) => {
       if (!active) return;
-      const profileConsentLocked = profileResult.status === "rejected"
-        && profileResult.reason instanceof BackendApiError
-        && profileResult.reason.code === "CONSENT_NOT_EFFECTIVE";
-      const scopeFailure = [profileResult, consentResult]
-        .flatMap((result, index) => result.status === "rejected"
-          && !(index === 0 && profileConsentLocked)
+      const partialProfileError = profileResult.status === "rejected"
+        && profileResult.reason instanceof TeacherRosterPageError
+        ? profileResult.reason
+        : null;
+      const scopeFailure = partialProfileError ? undefined : [profileResult, consentResult]
+        .flatMap((result) => result.status === "rejected"
           && result.reason instanceof BackendApiError
           && (result.reason.status === 404 || result.reason.status === 403) ? [result.reason] : [])
         .sort((left, right) => right.status - left.status)[0];
@@ -185,21 +196,34 @@ function TeacherApiClassDetailPage({ classId }: { classId: string }) {
         item.class_id !== classId && item.state === "active" && item.class_revision !== undefined && ownClassIds.has(item.class_id)));
       if (consentResult.status === "fulfilled") setConsents(consentResult.value);
       else setConsentError(rosterError(consentResult.reason));
-      if (profileResult.status === "fulfilled") setProfiles(profileResult.value);
+      if (profileResult.status === "fulfilled") {
+        setProfiles(profileResult.value.items);
+        setActiveProfileCount(profileResult.value.activeProfileCount);
+      }
       else {
         setProfileError(rosterError(profileResult.reason));
-        setProfileErrorCode(profileResult.reason instanceof BackendApiError ? profileResult.reason.code : null);
-        setProfileErrorRequestId(profileResult.reason instanceof BackendApiError ? profileResult.reason.requestId ?? null : null);
+        if (partialProfileError) {
+          setProfiles(partialProfileError.partial.items);
+          setActiveProfileCount(partialProfileError.partial.activeProfileCount);
+          setProfileHasPartialData(true);
+        }
       }
     }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [classId, organizationId, reload]);
 
-  const visibleProfiles = profiles.filter((profile) =>
-    consents.some((consent) => consent.child_id === profile.child_id && consent.effective),
-  );
+  // The roster endpoint already returns only synthetic or effectively consented profiles.
+  const visibleProfiles = profiles;
   const classRevision = classItem?.class_revision;
   const writable = classItem?.state === "active" && classRevision !== undefined;
+  const consentChildId = consentManualChildId.trim() || consentRosterChildId;
+  const normalizedConsentPurpose = consentPurposeRef.trim();
+  const normalizedConsentEvidence = consentEvidenceRef.trim();
+  const consentFormValid = consentChildId.length >= 1
+    && consentChildId.length <= 128
+    && normalizedConsentPurpose.length >= 1
+    && normalizedConsentPurpose.length <= 128
+    && normalizedConsentEvidence.length <= 512;
 
   const runCommand = async (signature: string, send: (key: string) => Promise<string>) => {
     if (busy) return;
@@ -245,8 +269,74 @@ function TeacherApiClassDetailPage({ classId }: { classId: string }) {
     void runCommand(createSignature, async (key) => {
       const created = await teacherRosterApi.createProfile(organizationId, classId, classRevision, profileInput, key);
       setProfileName(SYNTHETIC_NAME_PREFIX);
-      return `Đã tạo hồ sơ thử nghiệm “${created.display_name}”. Roster chỉ hiện hồ sơ khi consent hiệu lực; hồ sơ thử nghiệm chưa có consent nên có thể chưa hiện ở danh sách bên trên.`;
+      return `Đã tạo hồ sơ thử nghiệm “${created.display_name}”. Hồ sơ synthetic này có thể xuất hiện trong danh sách roster.`;
     });
+  };
+
+  const recordConsent = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!writable || !consentFormValid || consentMutationPending.current) return;
+    consentMutationPending.current = true;
+    setConsentMutationBusy(true);
+    setConsentActionError(null);
+    setConsentNotice(null);
+    try {
+      const input = {
+        childId: consentChildId,
+        purposeRef: normalizedConsentPurpose,
+        ...(normalizedConsentEvidence ? { evidenceRef: normalizedConsentEvidence } : {}),
+      };
+      await teacherRosterApi.recordConsent(organizationId ?? "", classId, input);
+      setConsentManualChildId("");
+      setConsentRosterChildId("");
+      setConsentEvidenceRef("");
+      setConsentNotice("Đã ghi nhận, đang chờ xác thực; chưa có hiệu lực.");
+      setConsentToRevoke(null);
+      setReload((value) => value + 1);
+    } catch (cause) {
+      const outcomeUnknown = cause instanceof BackendApiError
+        && (cause.code === "INVALID_RESPONSE" || cause.status >= 500 || cause.status === 0 || cause.code === "NETWORK_ERROR");
+      if (outcomeUnknown) {
+        setConsentActionError("Đã gửi yêu cầu, hãy kiểm tra danh sách trước khi gửi lại.");
+        setReload((value) => value + 1);
+      } else {
+        setConsentActionError(rosterError(cause));
+        if (cause instanceof BackendApiError && (cause.status === 404 || cause.status === 409)) {
+          setReload((value) => value + 1);
+        }
+      }
+    } finally {
+      consentMutationPending.current = false;
+      setConsentMutationBusy(false);
+    }
+  };
+
+  const revokeConsent = async (consentId: string) => {
+    if (!writable || consentMutationPending.current) return;
+    const target = consents.find((item) => item.consent_id === consentId);
+    if (!target || target.state === "revoked") return;
+    consentMutationPending.current = true;
+    setConsentMutationBusy(true);
+    setConsentActionError(null);
+    setConsentNotice(null);
+    try {
+      const revoked = await teacherRosterApi.revokeConsent(organizationId ?? "", classId, consentId);
+      setConsents((current) => current.map((item) => item.consent_id === consentId
+        ? { ...item, state: revoked.state, effective: false }
+        : item));
+      setConsentToRevoke(null);
+      setConsentNotice("Đã thu hồi consent.");
+      setReload((value) => value + 1);
+    } catch (cause) {
+      setConsentActionError(rosterError(cause));
+      setConsentToRevoke(null);
+      if (cause instanceof BackendApiError && (cause.status === 404 || cause.status === 409)) {
+        setReload((value) => value + 1);
+      }
+    } finally {
+      consentMutationPending.current = false;
+      setConsentMutationBusy(false);
+    }
   };
 
   const moveTarget = moveTargets.find((item) => item.class_id === moveDraft?.targetClassId);
@@ -270,18 +360,18 @@ function TeacherApiClassDetailPage({ classId }: { classId: string }) {
       {error && <div className="s2l-alert" role="alert">{error}</div>}
       {classItem && !error && classItem.state !== "active" && <div className="s2l-note" role="status"><LockKeyhole size={15} aria-hidden="true" />{CLASS_READ_ONLY}</div>}
       {notice && <p className="s2l-note" role="status">{notice}</p>}
-      {classItem && !error && profileError && (profileErrorCode === "CONSENT_NOT_EFFECTIVE"
-        ? <Alert role="status" tone="info" icon={<LockKeyhole size={16} aria-hidden="true" />} className="teacher-consent-locked">
-            <strong>Danh sách hồ sơ tạm khóa đến khi có consent hiệu lực</strong>
-            <p>Consent chưa được xác minh nên dữ liệu trẻ đang bị khóa.</p>
-            {profileErrorRequestId && <small>Mã yêu cầu: {profileErrorRequestId}</small>}
-          </Alert>
-        : <div className="s2l-alert" role="alert">Hồ sơ chưa thể hiển thị: {profileError}</div>)}
-      {classItem && !error && consentError && <div className="s2l-alert" role="alert">Consent chưa thể xác minh; roster được ẩn cho đến khi tải được trạng thái consent.</div>}
+      {classItem && !error && profileError && <div className="s2l-alert" role="alert">{profileHasPartialData ? "Danh sách hồ sơ chỉ tải được một phần: " : "Hồ sơ chưa thể hiển thị: "}{profileError}</div>}
+      {classItem && !error && consentError && <div className="s2l-alert" role="alert">Chi tiết trạng thái consent chưa thể tải; roster vẫn hiển thị theo danh sách đã được API lọc.</div>}
       {classItem && !loading && !error && (
         <section className="s2l-data-card" aria-labelledby="teacher-roster-title">
-          <div className="s2l-section-heading"><div><h2 id="teacher-roster-title">Hồ sơ có consent hiệu lực</h2><p>Thông tin nhận diện chỉ dùng trong lớp thuộc assignment hiện hành.</p></div><span className="s2l-status-tag is-available">{visibleProfiles.length} hồ sơ</span></div>
-          {consentError ? null : visibleProfiles.length === 0 ? <p className="s2l-note">API không trả hồ sơ có consent hiệu lực cho lớp này.</p> : (
+          <div className="s2l-section-heading"><div><h2 id="teacher-roster-title">Hồ sơ đủ điều kiện hiển thị</h2><p>API roster chỉ trả hồ sơ synthetic hoặc hồ sơ có consent hiệu lực.</p></div><span className="s2l-status-tag is-available">{visibleProfiles.length} hồ sơ</span></div>
+          {visibleProfiles.length === 0
+            ? profileError && !profileHasPartialData
+              ? null
+              : activeProfileCount > 0
+                ? <p className="s2l-note">Lớp có {activeProfileCount} hồ sơ đang hoạt động nhưng chưa có hồ sơ nào đủ điều kiện hiển thị.</p>
+                : <p className="s2l-note">API không trả hồ sơ có consent hiệu lực cho lớp này.</p>
+            : (
             <ul className="s2l-roster-list">
               {visibleProfiles.map((profile) => {
                 const childConsents = consents.filter((consent) => consent.child_id === profile.child_id && consent.effective);
@@ -290,7 +380,7 @@ function TeacherApiClassDetailPage({ classId }: { classId: string }) {
                   <li key={profile.child_id}>
                     <span className="s2l-roster-avatar" aria-hidden="true">{profile.display_name.trim().slice(0, 1) || "•"}</span>
                     <span className="s2l-class-copy"><strong>{profile.display_name}</strong><small>{profile.age_months} tháng · {childConsents.map((consent) => consent.purpose_ref).join(", ")}</small></span>
-                    <span className="s2l-status-tag is-available">Consent hiệu lực</span>
+                    <span className="s2l-status-tag is-available">Đủ điều kiện hiển thị</span>
                     {writable && moveTargets.length > 0 && !moving && (
                       <button type="button" className="s2l-button" disabled={busy} onClick={() => { setMoveDraft({ childId: profile.child_id, targetClassId: "" }); setCommandError(null); }}>Chuyển lớp</button>
                     )}
@@ -315,6 +405,13 @@ function TeacherApiClassDetailPage({ classId }: { classId: string }) {
                         </div>
                       </div>
                     )}
+                    <TeacherProfilePanels
+                      organizationId={organizationId ?? ""}
+                      classId={classId}
+                      childId={profile.child_id}
+                      canEdit={writable && !busy}
+                      onProfileSaved={() => setReload((value) => value + 1)}
+                    />
                   </li>
                 );
               })}
@@ -322,9 +419,84 @@ function TeacherApiClassDetailPage({ classId }: { classId: string }) {
           )}
         </section>
       )}
-      {classItem && !consentError && !error && <section className="s2l-data-card">
-        <h2>Trạng thái consent từ API</h2>
-        {consents.length === 0 ? <p>API không trả consent record cho lớp này.</p> : <ul className="s2l-consent-list">{consents.map((consent) => <li key={consent.consent_id}><span>{consent.purpose_ref}</span><span className={"s2l-status-tag" + (consent.effective ? " is-available" : "")}>{consent.effective ? "Hiệu lực" : consent.state + " · chưa hiệu lực"}</span></li>)}</ul>}
+      {classItem && !error && <section className="s2l-data-card" aria-labelledby="teacher-consent-title">
+        <h2 id="teacher-consent-title">Trạng thái consent</h2>
+        {!consentError && (consents.length === 0
+          ? <p>API không trả consent record cho lớp này.</p>
+          : <ul className="s2l-consent-list">{consents.map((consent) => {
+            const revoked = consent.state === "revoked";
+            const pending = consent.state === "pending" && !consent.effective;
+            const statusLabel = revoked
+              ? "Đã thu hồi"
+              : consent.effective
+                ? "Hiệu lực"
+                : pending
+                  ? "Đang chờ xác thực, chưa hiệu lực"
+                  : "Chưa có hiệu lực";
+            return (
+              <li key={consent.consent_id}>
+                <span>{consent.child_id}</span>
+                <span>{consent.purpose_ref}</span>
+                <span className={"s2l-status-tag" + (consent.effective && !revoked ? " is-available" : "")}>{statusLabel}</span>
+                {writable && !revoked && (
+                  consentToRevoke === consent.consent_id
+                    ? <span className="teacher-consent-confirm" role="group" aria-label="Xác nhận thu hồi consent">
+                      <span>Bạn có chắc muốn thu hồi consent này?</span>
+                      <Button type="button" variant="primary" disabled={consentMutationBusy} onClick={() => void revokeConsent(consent.consent_id)}>
+                        {consentMutationBusy ? "Đang thu hồi…" : "Xác nhận thu hồi"}
+                      </Button>
+                      <Button type="button" variant="secondary" disabled={consentMutationBusy} onClick={() => setConsentToRevoke(null)}>Hủy</Button>
+                    </span>
+                    : <Button type="button" variant="secondary" disabled={consentMutationBusy} onClick={() => {
+                      setConsentToRevoke(consent.consent_id);
+                      setConsentActionError(null);
+                    }}>Thu hồi</Button>
+                )}
+              </li>
+            );
+          })}</ul>
+        )}
+        {consentActionError && <Alert role="alert" tone="danger">{consentActionError}</Alert>}
+        {consentNotice && <p className="s2l-note" role="status">{consentNotice}</p>}
+        {writable && (
+          <div className="teacher-consent-record">
+            <h3>Ghi nhận consent</h3>
+            <p className="cozy-form-hint" style={{ marginTop: 0 }}>Nếu trẻ chưa có trong roster, nhập mã trẻ thủ công. Consent mới đang chờ xác thực, chưa có hiệu lực và không làm trẻ xuất hiện trong roster.</p>
+            <form className="cozy-form-stack" onSubmit={recordConsent}>
+              <div className="cozy-form-grid">
+                <FormField className="cozy-span-4" label="Chọn trẻ trong roster" htmlFor="teacher-consent-roster-child">
+                  <Select id="teacher-consent-roster-child" value={consentRosterChildId} disabled={consentMutationBusy} onChange={(event) => {
+                    setConsentManualChildId("");
+                    setConsentRosterChildId(event.target.value);
+                  }}>
+                    <option value="">Chọn trẻ trong roster</option>
+                    {visibleProfiles.map((profile) => (
+                      <option key={profile.child_id} value={profile.child_id}>{profile.display_name} · {profile.child_id}</option>
+                    ))}
+                  </Select>
+                </FormField>
+                <FormField className="cozy-span-4" label="Mã trẻ" htmlFor="teacher-consent-child-id">
+                  <input id="teacher-consent-child-id" className="cozy-input" value={consentManualChildId} maxLength={128} disabled={consentMutationBusy} onChange={(event) => {
+                    setConsentRosterChildId("");
+                    setConsentManualChildId(event.target.value);
+                  }} />
+                </FormField>
+                <FormField className="cozy-span-4" label="Mục đích" htmlFor="teacher-consent-purpose" required>
+                  <input id="teacher-consent-purpose" className="cozy-input" value={consentPurposeRef} maxLength={128} required disabled={consentMutationBusy} onChange={(event) => setConsentPurposeRef(event.target.value)} />
+                </FormField>
+                <FormField className="cozy-span-4" label="Tham chiếu bằng chứng (không bắt buộc)" htmlFor="teacher-consent-evidence">
+                  <input id="teacher-consent-evidence" className="cozy-input" value={consentEvidenceRef} maxLength={512} disabled={consentMutationBusy} onChange={(event) => setConsentEvidenceRef(event.target.value)} />
+                </FormField>
+              </div>
+              {!consentMutationBusy && !consentFormValid && <p className="cozy-form-disabled-hint">Chọn trẻ trong roster hoặc nhập mã trẻ hợp lệ, rồi kiểm tra mục đích consent.</p>}
+              <div className="cozy-form-actions" style={{ marginTop: 0 }}>
+                <Button type="submit" variant="primary" loading={consentMutationBusy} disabled={consentMutationBusy || !consentFormValid}>
+                  {consentMutationBusy ? "Đang ghi nhận…" : "Ghi nhận consent"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        )}
       </section>}
       {classItem && !loading && !error && writable && (
         <section className="s2l-data-card cozy-form-card cozy-form-card--wide teacher-roster-create" aria-labelledby="teacher-profile-create-title">
@@ -351,7 +523,7 @@ function TeacherApiClassDetailPage({ classId }: { classId: string }) {
           </form>
         </section>
       )}
-      <div className="s2l-note"><LockKeyhole size={15} aria-hidden="true" />Không cấp consent hoặc sửa hồ sơ tại đây; tạo hồ sơ và chuyển lớp chỉ dùng khi lớp đang hoạt động.</div>
+      <div className="s2l-note"><LockKeyhole size={15} aria-hidden="true" />Consent mới chỉ được ghi nhận ở trạng thái chờ xác thực, chưa có hiệu lực. Tạo hồ sơ synthetic và chuyển lớp chỉ dùng khi lớp đang hoạt động.</div>
     </div>
   );
 }

@@ -1,10 +1,12 @@
-// Goal v3 Phase B: Teacher BE1 roster client (T-7a reads, T-7c keyed create, T-7d move) and A07 paging.
+// Goal v4 Phase B T-7e roster paging; preserve existing T-7a reads, T-7c create, T-7d move and A07 paging.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { backendApi } from "../backendApi";
 import { collectCursorPages } from "../cursorPages";
 import {
+  CLASS_READ_ONLY,
   NOT_FOUND_OR_NO_ACCESS,
   TeacherRosterApiError,
+  TeacherRosterPageError,
   keepsCommandKey,
   profileInputProblem,
   teacherRosterApi,
@@ -62,6 +64,15 @@ describe("cursor paging (SRS l.1640)", () => {
     expect(items).toHaveLength(3);
   });
 
+  it("stops when a server repeats the same cursor", async () => {
+    const load = vi.fn()
+      .mockResolvedValueOnce({ items: [1], next_cursor: "same" })
+      .mockResolvedValueOnce({ items: [2], next_cursor: "same" });
+    const { items } = await collectCursorPages<number>(load);
+    expect(items).toEqual([1, 2]);
+    expect(load).toHaveBeenCalledTimes(2);
+  });
+
   it("backendApi.classes sends the state filter and joins every A07 page (T-7a/T-7b)", async () => {
     const fetcher = setup([
       response(200, { contract: "Be1ClassListV1", items: [{ class_id: "a", display_name: "A", state: "active", class_revision: 2 }], next_cursor: "n/2" }),
@@ -80,15 +91,48 @@ describe("cursor paging (SRS l.1640)", () => {
   });
 });
 
-describe("Teacher roster reads (T-7a)", () => {
-  it("reads the Teacher A09 list and refuses a Manager count body", async () => {
+describe("Teacher roster reads (T-7e)", () => {
+  it("pages the Teacher roster at limit 100, passes the cursor, and de-duplicates child ids", async () => {
+    const first = { child_id: "c-1", class_id: "k", display_name: "Synthetic An", age_months: 60 };
+    const second = { child_id: "c-2", class_id: "k", display_name: "Synthetic Bình", age_months: 61 };
+    const third = { child_id: "c-3", class_id: "k", display_name: "Synthetic Chi", age_months: 62 };
+    const cursor = "opaque /+?=cursor";
     const fetcher = setup([
-      response(200, { contract: "Be1ManagedProfileListV1", items: [{ child_id: "c-1", class_id: "k", display_name: "Synthetic An", age_months: 60 }] }),
+      response(200, { contract: "Be1ManagedProfileListV1", items: [first, second], next_cursor: cursor, active_profile_count: 7 }),
+      response(200, { contract: "Be1ManagedProfileListV1", items: [second, third], next_cursor: null, active_profile_count: 8 }),
       response(200, { contract: "Be1ClassRosterSummaryV1", class_id: "k", active_profile_count: 2 }),
     ]);
-    await expect(teacherRosterApi.profiles("org-test", "k/1")).resolves.toHaveLength(1);
+    await expect(teacherRosterApi.profiles("org-test", "k/1")).resolves.toEqual({
+      items: [first, second, third],
+      activeProfileCount: 7,
+    });
     expect(call(fetcher).url.pathname).toBe("/api/be1/v1/organizations/org-test/classes/k%2F1/profiles");
+    expect(call(fetcher).url.search).toBe("?limit=100");
+    expect(call(fetcher, 1).url.searchParams.get("limit")).toBe("100");
+    expect(call(fetcher, 1).url.searchParams.get("cursor")).toBe(cursor);
+    expect(call(fetcher, 1).headers.get("Authorization")).toBe("Bearer token-1");
     await expect(teacherRosterApi.profiles("org-test", "k")).rejects.toMatchObject({ code: "INVALID_RESPONSE" });
+  });
+
+  it("keeps an empty page when the active class count is positive", async () => {
+    setup([response(200, { contract: "Be1ManagedProfileListV1", items: [], next_cursor: null, active_profile_count: 4 })]);
+    await expect(teacherRosterApi.profiles("org-test", "k")).resolves.toEqual({ items: [], activeProfileCount: 4 });
+  });
+
+  it("keeps loaded roster items and stops when a later page fails", async () => {
+    const first = { child_id: "c-1", class_id: "k", display_name: "Synthetic An", age_months: 60 };
+    const fetcher = setup([
+      response(200, { contract: "Be1ManagedProfileListV1", items: [first], next_cursor: "c/2", active_profile_count: 3 }),
+      response(503, envelope("PROVIDER_UNAVAILABLE", "Máy chủ bận.")),
+    ]);
+    const error = await rejectionOf(teacherRosterApi.profiles("org-test", "k"));
+    expect(error).toBeInstanceOf(TeacherRosterPageError);
+    expect(error).toMatchObject({
+      status: 503,
+      code: "PROVIDER_UNAVAILABLE",
+      partial: { items: [first], activeProfileCount: 3 },
+    });
+    expect(fetcher).toHaveBeenCalledTimes(2);
   });
 
   it("reads every A10 page with the class cursor", async () => {
@@ -116,7 +160,109 @@ describe("Teacher roster reads (T-7a)", () => {
 
   it("T-7a2: a 403 for a covering non-class-Teacher row is the safe not-allowed text", async () => {
     setup([response(403, envelope("ACTION_NOT_ALLOWED", "Tài khoản không được phép thực hiện thao tác này."))]);
-    await expect(teacherRosterApi.consents("org-test", "k")).rejects.toMatchObject({ status: 403, code: "ACTION_NOT_ALLOWED", message: "Tài khoản không được phép thực hiện thao tác này." });
+    await expect(teacherRosterApi.profiles("org-test", "k")).rejects.toMatchObject({ status: 403, code: "ACTION_NOT_ALLOWED", message: "Tài khoản không được phép thực hiện thao tác này." });
+  });
+
+  it("preserves 400 INVALID_REQUEST mapping for a bad roster request", async () => {
+    setup([response(400, envelope("INVALID_REQUEST", "Yêu cầu không hợp lệ.", { field_errors: [{ field: "cursor", code: "INVALID_FORMAT", message: "Cursor không hợp lệ." }] }))]);
+    await expect(teacherRosterApi.profiles("org-test", "k")).rejects.toMatchObject({ status: 400, code: "INVALID_REQUEST", message: "Yêu cầu không hợp lệ." });
+  });
+
+  it("does not add roster-specific handling for an unexpected legacy 409", async () => {
+    setup([response(409, envelope("CONSENT_NOT_EFFECTIVE", "Roster request was rejected."))]);
+    await expect(teacherRosterApi.profiles("org-test", "k")).rejects.toMatchObject({
+      status: 409,
+      code: "CONSENT_NOT_EFFECTIVE",
+      message: "Roster request was rejected.",
+    });
+  });
+});
+
+describe("Teacher consent commands (GAP-04)", () => {
+  const pendingConsent = {
+    contract: "Be1ConsentV1" as const,
+    consent_id: "consent-1",
+    child_id: "real-child",
+    purpose_ref: "classroom-learning-v1",
+    state: "pending",
+    effective: false,
+  };
+
+  it("posts the strict consent body, parses 201, and never sends If-Match", async () => {
+    const fetcher = setup([response(201, pendingConsent)]);
+    const result = await teacherRosterApi.recordConsent(
+      "org/one",
+      "k/1",
+      { childId: "real-child", purposeRef: "classroom-learning-v1", evidenceRef: "paper-form-1" },
+      "consent-key",
+    );
+    const request = call(fetcher);
+    expect(request.init.method).toBe("POST");
+    expect(request.url.pathname).toBe("/api/be1/v1/organizations/org%2Fone/classes/k%2F1/consents");
+    expect(request.body).toEqual({
+      class_id: "k/1",
+      child_id: "real-child",
+      purpose_ref: "classroom-learning-v1",
+      evidence_ref: "paper-form-1",
+    });
+    expect(request.body).not.toHaveProperty("contract");
+    expect(request.headers.get("Idempotency-Key")).toBe("consent-key");
+    expect(request.headers.get("If-Match")).toBeNull();
+    expect(result).toEqual({ consent_id: pendingConsent.consent_id, state: pendingConsent.state });
+  });
+
+  it("accepts a 201 consent receipt with only its required fields", async () => {
+    setup([response(201, { consent_id: "consent-1", state: "pending", child_id: "different-child", purpose_ref: "different-purpose" })]);
+    await expect(teacherRosterApi.recordConsent("org-test", "k", {
+      childId: "real-child",
+      purposeRef: "classroom-learning-v1",
+    })).resolves.toEqual({ consent_id: "consent-1", state: "pending" });
+  });
+
+  it.each([
+    [404, envelope("CLASS_NOT_FOUND", "Raw not-found body"), NOT_FOUND_OR_NO_ACCESS],
+    [403, envelope("ACTION_NOT_ALLOWED", "Raw refusal body"), "Tài khoản không được phép thực hiện thao tác này."],
+    [409, envelope("INVALID_STATE_TRANSITION", "Raw state body"), CLASS_READ_ONLY],
+    [422, envelope("CLASS_SCOPE_MISMATCH", "Raw scope body"), "Lớp trong yêu cầu không khớp với lớp đã chọn."],
+    [422, envelope("INVALID_REQUEST", "Raw validation body"), "Thông tin consent không hợp lệ. Vui lòng kiểm tra lại."],
+    [400, envelope("INVALID_REQUEST", "Raw validation body"), "Thông tin consent không hợp lệ. Vui lòng kiểm tra lại."],
+  ])("maps consent refusal %i to safe Vietnamese copy", async (status, body, message) => {
+    setup([response(status, body)]);
+    const error = await rejectionOf(teacherRosterApi.recordConsent("org-test", "k", {
+      childId: "real-child",
+      purposeRef: "classroom-learning-v1",
+    }));
+    expect(error.message).toBe(message);
+    expect(error.message).not.toContain("Raw");
+  });
+
+  it("revokes by class and consent path with no body, key, or If-Match", async () => {
+    const revoked = { ...pendingConsent, consent_id: "consent/1", state: "revoked" };
+    const fetcher = setup([response(200, revoked)]);
+    await expect(teacherRosterApi.revokeConsent("org/one", "k/1", "consent/1")).resolves.toEqual(revoked);
+    const request = call(fetcher);
+    expect(request.init.method).toBe("POST");
+    expect(request.url.pathname).toBe("/api/be1/v1/organizations/org%2Fone/classes/k%2F1/consents/consent%2F1/revoke");
+    expect(request.body).toBeUndefined();
+    expect(request.headers.get("Idempotency-Key")).toBeNull();
+    expect(request.headers.get("If-Match")).toBeNull();
+  });
+
+  it("maps a missing consent on revoke to the same uniform 404 copy", async () => {
+    setup([response(404, envelope("CONSENT_NOT_FOUND", "Raw consent body"))]);
+    await expect(teacherRosterApi.revokeConsent("org-test", "k", "missing")).rejects.toMatchObject({
+      status: 404,
+      message: NOT_FOUND_OR_NO_ACCESS,
+    });
+  });
+
+  it("rejects invalid inputs before fetch", async () => {
+    const fetcher = setup([]);
+    await expect(teacherRosterApi.recordConsent("org-test", "k", {
+      childId: " ",
+      purposeRef: "classroom-learning-v1",
+    })).rejects.toMatchObject({ code: "INVALID_REQUEST", status: 400 });
+    expect(fetcher).not.toHaveBeenCalled();
   });
 });
 

@@ -12,6 +12,7 @@ import {
 } from "./AdminDirectoryPages";
 import { LessonsPage, CatalogPage } from "./AdminContentPages";
 import { BillingPage, QuotaPage, CapacityPage } from "./AdminBillingPages";
+import { AdminSvgCatalogPage } from "./AdminSvgCatalogPage";
 import { Empty } from '../components/AdminUI'
 
 export function A01ContentModerationPage() {
@@ -35,6 +36,7 @@ export function A02PlatformOperationsPage() {
     billing: <BillingPage />,
     quota: <QuotaPage />,
     capacity: <CapacityPage />,
+    svgcatalog: <AdminSvgCatalogPage />,
   };
   return (
     <div key={panel}>

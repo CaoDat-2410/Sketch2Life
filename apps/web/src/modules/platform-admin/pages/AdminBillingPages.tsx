@@ -1,5 +1,6 @@
 import { AdminSelect } from '../components/AdminSelect'
-import { useState } from "react";
+import { Layers, School, Tags } from "lucide-react";
+import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   createIdempotencyKey,
@@ -14,12 +15,14 @@ import {
   type Offer,
   type Invoice,
   type QuotaProduct,
+  type QuotaProductEvent,
   type Quota,
   type Subscription,
   readAllPages,
 } from "../services/adminService";
 import { useAdminQuery, useAdminCommand, useAdminCursor, money, date, short } from '../components/adminHooks'
 import { Heading, Button, Field, Form, Feedback, LoadBoundary, Table, Refresh, CursorPager, Status, Empty } from '../components/AdminUI'
+import "../styles/admin-billing-events.css";
 
 type Scope = { owner_kind: string; owner_ref: string };
 function ScopeFields({
@@ -532,6 +535,12 @@ function QuotaCatalogWorkspace({ initialScope }: { initialScope?: Scope }) {
   const [offerKind, setOfferKind] = useState<QuotaProduct["offer_kind"]>("TOP_UP");
   const [units, setUnits] = useState(100);
   const [amount, setAmount] = useState(100000);
+  const [eventProduct, setEventProduct] = useState<QuotaProduct | null>(null);
+  const [eventItems, setEventItems] = useState<QuotaProductEvent[] | null>(null);
+  const [eventTotal, setEventTotal] = useState(0);
+  const [eventLoading, setEventLoading] = useState(false);
+  const [eventError, setEventError] = useState("");
+  const eventRequest = useRef(0);
   const products = useAdminQuery(
     () => read<Page<QuotaProduct>>("/billing/quota-products?include_inactive=true"),
     "quota-products",
@@ -548,6 +557,34 @@ function QuotaCatalogWorkspace({ initialScope }: { initialScope?: Scope }) {
   );
   const cmd = useAdminCommand();
   const refresh = () => { products.reload(); summary.reload(); invoices.reload(); };
+  const loadProductEvents = async (product: QuotaProduct) => {
+    const requestId = ++eventRequest.current;
+    setEventProduct(product);
+    setEventItems(null);
+    setEventTotal(0);
+    setEventError("");
+    setEventLoading(true);
+    try {
+      const result = await read<{ items: QuotaProductEvent[]; total: number }>(
+        "/billing/quota-products/" + encodeURIComponent(product.product_id) + "/events" + query({ limit: 100 }),
+      );
+      if (requestId === eventRequest.current) {
+        setEventItems(result.items);
+        setEventTotal(result.total);
+      }
+    } catch {
+      if (requestId === eventRequest.current) setEventError("Không tải được lịch sử sự kiện. Vui lòng thử lại.");
+    } finally {
+      if (requestId === eventRequest.current) setEventLoading(false);
+    }
+  };
+  const closeEventDrawer = () => {
+    eventRequest.current += 1;
+    setEventProduct(null);
+    setEventItems(null);
+    setEventError("");
+    setEventLoading(false);
+  };
   const beginCreate = () => {
     setEditing(null); setName(""); setOwnerKind("ORGANIZATION"); setOfferKind("TOP_UP"); setUnits(100); setAmount(100000); setFormOpen(true); cmd.clear();
   };
@@ -581,7 +618,7 @@ function QuotaCatalogWorkspace({ initialScope }: { initialScope?: Scope }) {
               { title: "Quota", render: (row) => row.units.toLocaleString("vi-VN") + " lượt" },
               { title: "Giá hiện tại", render: (row) => money(row.amount_vnd) },
               { title: "Trạng thái", render: (row) => <Status value={row.active ? "active" : "disabled"} /> },
-              { title: "Quản lý", render: (row) => <div className="pa-actions"><Button onClick={() => beginEdit(row)}>Sửa giá</Button><Button disabled={cmd.busy} onClick={() => cmd.run(() => cmd.send<QuotaProduct>("/billing/quota-products/" + row.product_id + "/state", { active: !row.active }, row.revision), refresh)}>{row.active ? "Tạm ẩn" : "Kích hoạt"}</Button></div> },
+              { title: "Quản lý", render: (row) => <div className="pa-actions"><Button onClick={() => beginEdit(row)}>Sửa giá</Button><Button disabled={cmd.busy} onClick={() => cmd.run(() => cmd.send<QuotaProduct>("/billing/quota-products/" + row.product_id + "/state", { active: !row.active }, row.revision), refresh)}>{row.active ? "Tạm ẩn" : "Kích hoạt"}</Button><Button onClick={() => loadProductEvents(row)}>Lịch sử</Button></div> },
             ]}
           />
         </LoadBoundary>
@@ -628,9 +665,53 @@ function QuotaCatalogWorkspace({ initialScope }: { initialScope?: Scope }) {
           ]} /></LoadBoundary>}
         </div>
       </section>
+      {eventProduct && <div className="pa-event-drawer-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) closeEventDrawer(); }}>
+        <aside className="pa-event-drawer" role="dialog" aria-modal="true" aria-labelledby="pa-event-drawer-title">
+          <header className="pa-event-drawer-header">
+            <div><h2 id="pa-event-drawer-title">Lịch sử quota</h2><p>{eventProduct.display_name}</p><code>{eventProduct.product_id}</code></div>
+            <Button onClick={closeEventDrawer}>Đóng</Button>
+          </header>
+          {eventLoading ? <p className="pa-event-drawer-state" role="status">Đang tải lịch sử sự kiện…</p>
+            : eventError ? <div className="pa-event-drawer-state" role="alert"><p>{eventError}</p><Button onClick={() => loadProductEvents(eventProduct)}>Thử lại</Button></div>
+              : eventItems?.length === 0 ? <p className="pa-event-drawer-state">Chưa có sự kiện nào cho gói này.</p>
+                : eventItems && <>
+                  <p className="pa-muted">{eventTotal.toLocaleString("vi-VN")} sự kiện</p>
+                  <div className="pa-event-drawer-table-wrap">
+                    <table className="pa-table">
+                      <thead><tr><th>Thời gian</th><th>Thao tác</th><th>Người thực hiện</th><th>Mã offer</th><th>Ảnh chụp</th></tr></thead>
+                      <tbody>{eventItems.map((item) => <tr key={item.event_id}>
+                        <td>{date(item.created_at)}</td>
+                        <td>{item.action}</td>
+                        <td>{short(item.actor_ref)}</td>
+                        <td>{item.offer_id}</td>
+                        <td><details className="pa-event-snapshot"><summary>Chi tiết</summary>
+                          {Object.keys(item.snapshot ?? {}).length === 0 ? <p>Không có dữ liệu</p> : <dl>{Object.entries(item.snapshot ?? {}).map(([key, value]) => {
+                            const fullValue = snapshotValue(value);
+                            const truncated = fullValue.length > 240 ? fullValue.slice(0, 237) + "…" : fullValue;
+                            const shortKey = key.length > 120 ? key.slice(0, 117) + "…" : key;
+                            return <div key={`${key}-${shortKey}`}><dt>{shortKey}</dt><dd>{truncated}</dd></div>;
+                          })}</dl>}
+                        </details></td>
+                      </tr>)}</tbody>
+                    </table>
+                  </div>
+                </>}
+        </aside>
+      </div>}
     </div>
   );
 }
+
+function snapshotValue(value: unknown): string {
+  if (typeof value === "string") return value;
+  try {
+    const serialized = JSON.stringify(value);
+    return serialized === undefined ? String(value) : serialized;
+  } catch {
+    return String(value);
+  }
+}
+
 function QuotaWorkspace({ initialScope }: { initialScope?: Scope }) {
   const [scope, setScope] = useState<Scope>(initialScope ?? {
       owner_kind: "ORGANIZATION",
@@ -771,10 +852,13 @@ type Quote = { invoice_id: string; amount_vnd: number };
 type ClassOption = { class_id: string; display_name: string };
 export function CapacityPage() {
   return (
-    <div className="pa-page">
+    <div className="pa-page pa-capacity-page">
       <Heading
         title="Sức chứa lớp học"
-      />
+        description="Quản lý bảng giá và cấp gói mở rộng số lớp cho từng trường học."
+      >
+        <span className="pa-sandbox-badge">Sandbox</span>
+      </Heading>
       <SandboxGate>
         <CapacityWorkspace />
       </SandboxGate>
@@ -826,25 +910,36 @@ function CapacityWorkspace() {
     q.reload();
     prices.reload();
   }
+  const subscriptions = q.data?.items ?? [];
+  const priceItems = prices.data?.items ?? [];
+  const noPrices = prices.data !== undefined && priceItems.length === 0;
   return (
     <>
       <Feedback {...cmd} />
       {quote && (
-        <aside className="pa-notice" role="status">
+        <aside className="pa-notice" role="status" aria-live="polite">
           Đã tạo hóa đơn test {short(quote.invoice_id)} ·{" "}
           {money(quote.amount_vnd)}.{" "}
           <Link to="?panel=billing">Mở đối soát để thanh toán →</Link>
         </aside>
       )}
-      <div className="pa-toolbar">
+      <div className="pa-toolbar pa-capacity-toolbar">
         <Button onClick={() => setShowPrice(!showPrice)}>
-          + Tạo bảng giá test
+          {showPrice ? "Đóng biểu mẫu bảng giá" : "+ Thêm bảng giá"}
         </Button>
         <Refresh onClick={refresh} />
       </div>
       {showPrice && (
-        <section className="pa-panel pa-padded">
-          <h2>Bảng giá mới</h2>
+        <section className="pa-panel pa-padded pa-capacity-card">
+          <div className="pa-capacity-card-head">
+            <span className="pa-capacity-card-icon" aria-hidden="true">
+              <Tags size={19} />
+            </span>
+            <div>
+              <h2>Bảng giá mới</h2>
+              <p>Thiết lập chu kỳ thanh toán, phí gói cơ bản và đơn giá mỗi lớp bổ sung.</p>
+            </div>
+          </div>
           <Form
             onSubmit={() =>
               cmd.run(
@@ -861,7 +956,7 @@ function CapacityWorkspace() {
               )
             }
           >
-            <div className="pa-form-grid">
+            <div className="pa-form-grid pa-capacity-form-grid">
               <Field label="Chu kỳ">
                 <AdminSelect
                   value={cycle}
@@ -871,7 +966,10 @@ function CapacityWorkspace() {
                   <option value={12}>Theo năm</option>
                 </AdminSelect>
               </Field>
-              <Field label="Giá cơ bản test (10 lớp)">
+              <Field
+                label="Giá cơ bản (VND)"
+                hint="Áp dụng cho 10 lớp cơ bản trong chu kỳ đã chọn."
+              >
                 <input
                   required
                   type="number"
@@ -892,18 +990,35 @@ function CapacityWorkspace() {
                 />
               </Field>
             </div>
-            <Button primary type="submit" disabled={cmd.busy}>
-              Lưu bảng giá test
-            </Button>
+            <div className="pa-actions">
+              <Button primary type="submit" disabled={cmd.busy}>
+                Lưu bảng giá
+              </Button>
+              <Button disabled={cmd.busy} onClick={() => setShowPrice(false)}>
+                Hủy
+              </Button>
+            </div>
           </Form>
         </section>
       )}
-      <section className="pa-panel pa-padded">
-        <h2>
-          {selected
-            ? "Điều chỉnh gói của " + schoolName(selected.organization_ref)
-            : "Đăng ký gói test"}
-        </h2>
+      <section className="pa-panel pa-padded pa-capacity-card">
+        <div className="pa-capacity-card-head">
+          <span className="pa-capacity-card-icon" aria-hidden="true">
+            <School size={19} />
+          </span>
+          <div>
+            <h2>
+              {selected
+                ? "Điều chỉnh gói của " + schoolName(selected.organization_ref)
+                : "Đăng ký gói sức chứa"}
+            </h2>
+            <p>
+              {selected
+                ? "Chọn hình thức điều chỉnh và số lớp bổ sung cho gói đang hoạt động."
+                : "Chọn trường học, bảng giá và số lớp bổ sung để tạo báo giá cho trường."}
+            </p>
+          </div>
+        </div>
         <Form
           onSubmit={() =>
             cmd.run(
@@ -944,7 +1059,7 @@ function CapacityWorkspace() {
             )
           }
         >
-          <div className="pa-form-grid">
+          <div className="pa-form-grid pa-capacity-form-grid">
             {selected ? (
               <Field label="Điều chỉnh">
                 <AdminSelect
@@ -965,6 +1080,7 @@ function CapacityWorkspace() {
                   <Field label="Trường học">
                     <AdminSelect
                       required
+                      className={!org ? "is-placeholder" : undefined}
                       value={org}
                       onChange={(e) => setOrg(e.target.value)}
                     >
@@ -981,14 +1097,26 @@ function CapacityWorkspace() {
                   </Field>
                 </LoadBoundary>
                 <LoadBoundary {...prices}>
-                  <Field label="Bảng giá">
+                  <Field
+                    label="Bảng giá"
+                    hint={
+                      noPrices
+                        ? 'Chưa có bảng giá nào. Nhấn "+ Thêm bảng giá" ở phía trên để tạo trước.'
+                        : undefined
+                    }
+                  >
                     <AdminSelect
                       required
+                      className={!price ? "is-placeholder" : undefined}
                       value={price}
                       onChange={(e) => setPrice(e.target.value)}
                     >
-                      <option value="">Chọn bảng giá test</option>
-                      {prices.data?.items.map((p) => (
+                      <option value="">
+                        {noPrices
+                          ? "Chưa có bảng giá — nhấn + Thêm bảng giá"
+                          : "Chọn bảng giá"}
+                      </option>
+                      {priceItems.map((p) => (
                         <option key={p.price_id} value={p.price_id}>
                           {p.cycle_months === 1 ? "Tháng" : "Năm"} ·{" "}
                           {money(p.base_amount_vnd)} +{" "}
@@ -1001,7 +1129,10 @@ function CapacityWorkspace() {
               </>
             )}
             {mode !== "RENEW" && (
-              <Field label="Tổng số lớp bổ sung (ngoài 10 lớp cơ bản)">
+              <Field
+                label="Số lớp bổ sung"
+                hint="Ngoài 10 lớp cơ bản được cấp sẵn (từ 0 đến 1.000 lớp)."
+              >
                 <input
                   required
                   type="number"
@@ -1052,7 +1183,7 @@ function CapacityWorkspace() {
             >
               {mode === "downgrade" && selected
                 ? "Xác nhận hạ sức chứa"
-                : "Tạo báo giá test"}
+                : "Tạo báo giá cho trường"}
             </Button>
             {selected && (
               <Button
@@ -1068,83 +1199,104 @@ function CapacityWorkspace() {
         </Form>
       </section>
       <LoadBoundary {...q}>
-        <section className="pa-panel">
-          <Table
-            items={q.data?.items ?? []}
-            rowKey={(r) => r.subscription_id}
-            emptyText="Chưa có gói sức chứa"
-            emptyDetail="Đăng ký gói test cho một trường để theo dõi sức chứa lớp học."
-            columns={[
-              {
-                title: "Trường học",
-                render: (r) => (
-                  <strong>{schoolName(r.organization_ref)}</strong>
-                ),
-              },
-              {
-                title: "Sức chứa",
-                render: (r) => (
-                  <>
-                    {r.capacity} lớp
-                    {r.scheduled_addon_slots !== null && (
-                      <small>Kỳ sau: {10 + r.scheduled_addon_slots} lớp</small>
-                    )}
-                  </>
-                ),
-              },
-              {
-                title: "Trạng thái",
-                render: (r) => <Status value={r.state} />,
-              },
-              { title: "Hết kỳ", render: (r) => date(r.period_end) },
-              {
-                title: "Thao tác",
-                render: (r) => (
-                  <div className="pa-actions">
-                    <Button
-                      disabled={cmd.busy}
-                      onClick={() => {
-                        setSelected(r);
-                        setSlots(r.addon_slots + 1);
-                        setMode("ADDON");
-                        setSuspended([]);
-                      }}
-                    >
-                      Điều chỉnh
-                    </Button>
-                    <Button
-                      disabled={cmd.busy}
-                      onClick={() =>
-                        cmd.run(
-                          () =>
-                            cmd.send(
-                              "/billing/sandbox/subscriptions/" +
-                                r.subscription_id,
-                              {
-                                action:
-                                  r.state === "CANCEL_AT_PERIOD_END"
-                                    ? "resume_renewal"
-                                    : "cancel_renewal",
-                              },
-                              r.revision,
-                              "PATCH",
-                            ),
-                          refresh,
-                        )
-                      }
-                    >
-                      {r.state === "CANCEL_AT_PERIOD_END"
-                        ? "Tiếp tục gia hạn"
-                        : "Dừng gia hạn"}
-                    </Button>
-                  </div>
-                ),
-              },
-            ]}
-          />
+        <section className="pa-panel pa-capacity-table-panel" aria-label="Danh sách gói sức chứa">
+          <div className="pa-capacity-list-head">
+            <div className="pa-capacity-list-title">
+              <span className="pa-capacity-card-icon" aria-hidden="true">
+                <Layers size={19} />
+              </span>
+              <div>
+                <h2>Danh sách gói sức chứa</h2>
+                <p>Theo dõi sức chứa lớp học, trạng thái và kỳ gia hạn của từng trường.</p>
+              </div>
+            </div>
+            <span className="pa-capacity-count">
+              {q.data?.total ?? subscriptions.length} gói
+            </span>
+          </div>
+          {subscriptions.length > 0 ? (
+            <Table
+              className="pa-capacity-table-scroll"
+              caption="Danh sách gói sức chứa lớp học"
+              items={subscriptions}
+              rowKey={(r) => r.subscription_id}
+              columns={[
+                {
+                  title: "Trường học",
+                  render: (r) => (
+                    <strong>{schoolName(r.organization_ref)}</strong>
+                  ),
+                },
+                {
+                  title: "Sức chứa",
+                  render: (r) => (
+                    <>
+                      {r.capacity} lớp
+                      {r.scheduled_addon_slots !== null && (
+                        <small>Kỳ sau: {10 + r.scheduled_addon_slots} lớp</small>
+                      )}
+                    </>
+                  ),
+                },
+                {
+                  title: "Trạng thái",
+                  render: (r) => <Status value={r.state} />,
+                },
+                { title: "Hết kỳ", render: (r) => date(r.period_end) },
+                {
+                  title: "Thao tác",
+                  render: (r) => (
+                    <div className="pa-actions">
+                      <Button
+                        disabled={cmd.busy}
+                        onClick={() => {
+                          setSelected(r);
+                          setSlots(r.addon_slots + 1);
+                          setMode("ADDON");
+                          setSuspended([]);
+                        }}
+                      >
+                        Điều chỉnh
+                      </Button>
+                      <Button
+                        disabled={cmd.busy}
+                        onClick={() =>
+                          cmd.run(
+                            () =>
+                              cmd.send(
+                                "/billing/sandbox/subscriptions/" +
+                                  r.subscription_id,
+                                {
+                                  action:
+                                    r.state === "CANCEL_AT_PERIOD_END"
+                                      ? "resume_renewal"
+                                      : "cancel_renewal",
+                                },
+                                r.revision,
+                                "PATCH",
+                              ),
+                            refresh,
+                          )
+                        }
+                      >
+                        {r.state === "CANCEL_AT_PERIOD_END"
+                          ? "Tiếp tục gia hạn"
+                          : "Dừng gia hạn"}
+                      </Button>
+                    </div>
+                  ),
+                },
+              ]}
+            />
+          ) : (
+            <Empty
+              text="Chưa có gói sức chứa"
+              detail="Chọn trường học và bảng giá ở biểu mẫu trên để tạo báo giá cho gói đầu tiên."
+            />
+          )}
           <CursorPager
             page={pagination.page}
-            count={q.data?.items.length ?? 0}
+            count={subscriptions.length}
             nextCursor={q.data?.next_cursor}
             onNext={pagination.next}
             onPrevious={pagination.back}

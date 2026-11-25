@@ -560,3 +560,198 @@ html[data-portal="platform"] .platform-accounts .accounts-pagination {
   html[data-portal="platform"] .s2l-app-shell .platform-accounts .accounts-heading { padding: 12px; }
   html[data-portal="platform"] .s2l-app-shell .platform-accounts .accounts-pagination { padding: 13px 12px; }
 }
+
+/* Capacity management polish: placeholder tone, balanced forms, responsive table & 1px dividers. */
+html[data-portal="platform"] button.s2l-select-trigger.is-placeholder {
+  color: var(--pa-muted-strong);
+  font-weight: 400;
+}
+html[data-portal="platform"] .pa-capacity-page {
+  min-width: 0;
+}
+html[data-portal="platform"] .pa-sandbox-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 4px 12px;
+  border: 1px solid var(--s2l-ui-butter-300);
+  border-radius: 999px;
+  background: var(--pa-warning-soft);
+  color: var(--pa-warning);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+html[data-portal="platform"] .pa-capacity-page .pa-sandbox {
+  align-items: center;
+  gap: 6px 14px;
+  padding: 12px 16px;
+  border: 1px solid var(--s2l-ui-butter-300);
+  border-radius: 14px;
+  background: var(--pa-warning-soft);
+  color: var(--pa-ink);
+  font-size: 13px;
+  line-height: 1.5;
+}
+html[data-portal="platform"] .pa-capacity-page .pa-sandbox strong {
+  color: var(--pa-warning);
+}
+html[data-portal="platform"] .pa-capacity-page .pa-notice {
+  border: 1px solid var(--s2l-ui-primary-300);
+  border-radius: 14px;
+  background: var(--pa-primary-soft);
+  color: var(--pa-ink);
+  font-size: 13px;
+  line-height: 1.5;
+}
+html[data-portal="platform"] .pa-capacity-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+html[data-portal="platform"] .pa-capacity-card-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--pa-border);
+}
+html[data-portal="platform"] .pa-capacity-card-head h2 {
+  margin: 0;
+  color: var(--pa-ink-strong);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+html[data-portal="platform"] .pa-capacity-card-head p {
+  margin: 4px 0 0;
+  color: var(--pa-muted-strong);
+  font-size: 13px;
+  line-height: 1.5;
+}
+html[data-portal="platform"] .pa-capacity-card-icon {
+  display: inline-grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  place-items: center;
+  border: 1px solid var(--s2l-ui-primary-300);
+  border-radius: 12px;
+  background: var(--pa-primary-soft);
+  color: var(--pa-primary);
+}
+html[data-portal="platform"] .pa-capacity-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 16px 20px;
+}
+html[data-portal="platform"] .pa-capacity-page .pa-form {
+  gap: 20px;
+}
+html[data-portal="platform"] .pa-capacity-page .pa-field-hint {
+  color: var(--pa-muted-strong);
+}
+html[data-portal="platform"] .pa-capacity-page :is(input:not([type="checkbox"]):not([type="radio"]), textarea) {
+  border: 1px solid color-mix(in srgb, var(--s2l-ui-ink) 18%, var(--s2l-ui-rule));
+  border-radius: 12px;
+  background: var(--pa-surface);
+  color: var(--pa-ink);
+  font-size: 14px;
+}
+html[data-portal="platform"] .pa-capacity-card .pa-actions {
+  gap: 10px;
+  padding-top: 4px;
+}
+html[data-portal="platform"] .pa-capacity-list-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px 16px;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--pa-border);
+}
+html[data-portal="platform"] .pa-capacity-list-title {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 240px;
+  align-items: flex-start;
+  gap: 13px;
+}
+html[data-portal="platform"] .pa-capacity-list-title h2 {
+  margin: 0;
+  color: var(--pa-ink-strong);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+html[data-portal="platform"] .pa-capacity-list-title p {
+  margin: 4px 0 0;
+  color: var(--pa-muted-strong);
+  font-size: 13px;
+  line-height: 1.5;
+}
+html[data-portal="platform"] .pa-capacity-count {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--pa-primary-soft);
+  color: var(--pa-primary-hover);
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+html[data-portal="platform"] .pa-capacity-table-panel .s2l-empty-state {
+  padding: 28px 22px;
+}
+html[data-portal="platform"] .pa-capacity-table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}
+html[data-portal="platform"] .pa-capacity-table-panel .pa-actions {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (max-width: 720px) {
+  html[data-portal="platform"] .pa-capacity-page .pa-admin-page-header > div:last-child {
+    justify-content: flex-start;
+  }
+  html[data-portal="platform"] .pa-capacity-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+  html[data-portal="platform"] .pa-capacity-page .pa-padded {
+    padding: 18px;
+  }
+  html[data-portal="platform"] .pa-capacity-list-head {
+    padding: 16px 18px;
+  }
+}
+
+@media (max-width: 520px) {
+  html[data-portal="platform"] .pa-capacity-toolbar {
+    flex-direction: row;
+    align-items: stretch;
+  }
+  html[data-portal="platform"] .pa-capacity-toolbar > button {
+    flex: 1 1 auto;
+  }
+  html[data-portal="platform"] .pa-capacity-card .pa-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  html[data-portal="platform"] .pa-capacity-card .pa-actions > button {
+    width: 100%;
+  }
+}

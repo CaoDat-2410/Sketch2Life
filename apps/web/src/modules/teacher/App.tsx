@@ -15,7 +15,9 @@ import { TeacherPresentationPage } from "./pages/TeacherPresentationPage";
 import { TeacherAiLessonWorkflowPage } from "./pages/TeacherAiLessonWorkflowPage";
 import { TeacherSampleRunPage } from "./pages/TeacherSampleRunPage";
 import { TeacherProjectionPage } from "./pages/TeacherProjectionPage";
+import { TeacherFeedbackPage } from "./pages/TeacherFeedbackPage";
 import { TeacherOccurrencePage } from "./pages/TeacherOccurrencePage";
+import { TeacherSvgCatalogPage } from "./pages/TeacherSvgCatalogPage";
 import { AccountSettingsPage } from "../../shared/settings/AccountSettingsPage";
 import { InboxPage } from "../../shared/notifications/InboxPage";
 
@@ -34,9 +36,11 @@ function renderTeacherPage(pathname: string) {
   if (pathname === "/teacher/t03-document-import-review") return <TeacherApiImportPage />;
   if (pathname === "/teacher/t02-presentation") return <TeacherPresentationPage />;
   if (pathname === "/teacher/t13-ai-lesson-workflow") return <TeacherAiLessonWorkflowPage />;
+  if (pathname === "/teacher/svg-catalog") return <TeacherSvgCatalogPage />;
   if (pathname === "/teacher/t04-session-sketch-deck") return <TeacherOccurrencePage />;
   if (pathname === "/teacher/t06-sample-story-run") return <TeacherSampleRunPage />;
   if (pathname === "/teacher/t07-video-presentation-confirmation") return <TeacherProjectionPage />;
+  if (pathname === "/teacher/t14-feedback") return <TeacherFeedbackPage />;
   if (pathname === "/teacher/t08-settings") return <AccountSettingsPage role="Teacher" />;
   if (pathname === "/teacher/t09-history") return <TeacherUnavailablePage title="Lịch sử" summary="Occurrence, StoryRun và trạng thái xử lý thuộc phạm vi của giáo viên." srsStep="Chưa có endpoint lịch sử/đối soát để hiển thị dữ liệu có nguồn gốc từ backend." missing={["API phân trang lịch sử occurrence/StoryRun theo assignment.", "API trạng thái job và reconciliation để phân biệt hoàn tất, chờ xử lý và lỗi."]} nextTo={ROLE_HOME} nextLabel="Về tổng quan" />;
   if (pathname === "/teacher/t10-inbox") return <InboxPage />;

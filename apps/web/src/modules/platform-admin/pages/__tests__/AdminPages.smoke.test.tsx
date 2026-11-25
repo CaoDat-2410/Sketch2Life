@@ -130,11 +130,41 @@ describe("Platform Admin page data and interactions", () => {
     expect(screen.getByText("Còn khả dụng").closest("div")?.textContent).toContain("42");
   });
 
-  it("opens the capacity price form while showing the active subscription", async () => {
+  it("opens the capacity price form while showing the active subscription and polished form controls", async () => {
     vi.stubGlobal("fetch", fixtureFetch());
     mount("capacity");
     expect((await screen.findAllByText(school.display_name)).length).toBeGreaterThan(0);
-    fireEvent.click(screen.getByRole("button", { name: /Tạo bảng giá test/ }));
+    expect(screen.getByText("Sandbox")).toBeTruthy();
+    expect(screen.getByRole("combobox", { name: "Bảng giá" }).className).toContain("is-placeholder");
+    const slotsInput = screen.getByLabelText("Số lớp bổ sung");
+    expect(slotsInput.getAttribute("aria-describedby")).toBeTruthy();
+    expect(screen.getByText(/Ngoài 10 lớp cơ bản/)).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Tạo báo giá cho trường" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /\+ Thêm bảng giá/ }));
     expect(await screen.findByRole("heading", { name: "Bảng giá mới" })).toBeTruthy();
+  });
+
+  it("shows empty capacity guidance and zero-price hint pointing to + Thêm bảng giá", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL) => {
+        const path = new URL(String(input), "http://localhost").pathname;
+        if (path.endsWith("/settings")) {
+          return response({
+            environment: "local",
+            real_payments_enabled: false,
+            billing_sandbox_enabled: true,
+            smtp_configured: true,
+            preferences: { locale: "vi-VN", email_notifications: true, revision: 1 },
+          });
+        }
+        return response({ items: [], total: 0, next_cursor: null });
+      }),
+    );
+    const { container } = mount("capacity");
+    expect(await screen.findByText("Chưa có gói sức chứa")).toBeTruthy();
+    expect(await screen.findByText(/Chưa có bảng giá nào\. Nhấn "\+ Thêm bảng giá"/)).toBeTruthy();
+    expect(container.querySelector(".pa-capacity-table-panel table")).toBeNull();
+    expect(container.querySelector(".pa-capacity-table-panel .s2l-empty-state")).toBeTruthy();
   });
 });

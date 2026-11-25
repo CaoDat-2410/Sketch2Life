@@ -95,7 +95,6 @@ Use a warm paper/chalk, forest/leaf, muted marigold/clay palette with restrained
 
 The reviewed recursive FEAT-066 inventories showed no file path present only in root and missing from the authorized worktree. The root subset is stale/different on some matching paths; preserve it and do not overwrite the newer active worktree records.
 
-
 ## D-066-26 — Keep the school theme local to authenticated School Manager
 
 Load the local manager stylesheet after shared styles so scoped selectors win without editing shared/global styles. Keep the school-office palette and responsive shell in apps/school-manager-ui only; do not restyle the shared login or add images, packages or business behavior. Revision 8 visual review is recorded as EV-010.
@@ -119,7 +118,6 @@ EV-011 records the generated Cool Grey + Cobalt palette on /m02-organization-man
 ## D-066-31 — Apply the supplied brand art and bright cobalt palette across browser UIs
 
 The direct user request authorizes the attached image as the web logo and the approved Cool Grey + Cobalt direction across the five existing browser app packages and their shared styles. Parent Android and all native apps remain excluded. The parent-ui and admin-ui sources are styled only as existing browser UIs; this does not establish new product roles or flows. Keep status semantics, behavior and privacy intact.
-
 
 ## D-066-32 — Supersede dashboard-only palette preview with direct cross-web adoption
 
@@ -215,11 +213,9 @@ For Rev24 Platform Admin, the local role flag is visual preview only. Do not inf
 
 For the Rev25 visual pass, keep the accepted role shell and route structure. Match each role's overview to its Rev23 board with fewer content layers and shorter copy: Teacher's three work areas, School Manager's organization/service status, and Platform Admin's four operational status cards. The persistent shell preview label is sufficient; do not repeat the same preview banner in dashboard content. Remove dashboard shortcuts duplicated by the sidebar. Preserve API-truthful status, SRS permissions/privacy and all existing unavailable dependencies.
 
-
 ### D-066-56 outcome — Rev25 overview alignment
 
 The overview pass is complete. Teacher's existing three-area workbench already matched the board after the prior cleanup, so this pass kept its source unchanged. School Manager uses organization status plus service availability; Platform Admin uses four operational status cards. The shell, navigation appearance, routes and logout were preserved. Missing API flows remain unavailable and are recorded without sample values or success claims. A separate same-path `aria-current` issue was found in Manager/Admin navigation and left for a focused accessibility correction outside this dashboard-only scope.
-
 
 ## D-066-57 — Use a restrained paper/crayon canvas behind the three web roles
 
@@ -232,7 +228,6 @@ The same CSS-native paper texture and sparse corner strokes are applied behind T
 ## D-066-58 — Rebuild auth presentation without changing identity flow
 
 For Rev27, use the brainstormed crayon learning-studio layout: keep one role-specific `/login` page per web app, make the login form the clear primary action, and retain simple links for Teacher, School Manager and Platform Admin. Reuse the existing sign-in/role-resolution adapter, URLs, preview state and mismatch handling. Reuse the existing school-model Three.js scene with an immediate SVG fallback; no new dependency, remote asset, real data or provider call. Do not add account recovery, organization selection or help flows without a SRS/API contract. The brainstorm is recorded in `evidence/notes/AUTH_UI_REDESIGN_BRAINSTORM_REV27_20261111.md`. Plan hash `C9EF609A920F3C53F0153ED109660B85003D4D03A8E1E76C2F46C3EB2EEF21C2` was approved before implementation.
-
 
 ### D-066-58 outcome — Rev27 shared web auth
 
@@ -277,7 +272,6 @@ After the owner reported the backend-data error on the active port, make the sam
 
 For FEAT-066 Rev36, preserve Firebase/backend authentication and the existing account GET/POST/PATCH contracts. Represent loading, failure and successful data as distinct UI states so an API error cannot look like an empty result. Show only the four product roles; Content Admin is a scoped permission, not a role, and no child-media access is inferred. Set page size to the supplied SRS default 25 while preserving offset pagination until the backend provides the required opaque cursor contract. Capability grants and visible audit-event browsing remain unavailable because their contracts are not exposed by the current typed API. Follow the owner attachment Rev69 for this task; leave repo SRS authority Rev60 unchanged.
 
-
 ## D-066-68 — Keep Platform Admin sidebar styling portal-scoped
 
 For Rev37, preserve the shared WebAppShell behavior and navigation contract. Apply presentation changes only to sidebar descendants under html[data-portal="platform"] in the existing Platform Admin stylesheet, using shared crayon tokens for paper, ink, focus and status states. Keep active route, waiting labels, auth/session actions, focus handling, responsive drawer, scrollable nav, and footer mechanics intact. This visual decision does not alter SRS requirements or authorization policy.
@@ -318,7 +312,6 @@ Group the School Manager navigation by organization operations, learning-content
 ## D-066-77 — Organize shared web files by responsibility (Rev47 proposal)
 
 Propose moving the shared root files into api, auth, components, navigation and styles, while preserving assets. Rewrite only import paths required by the moves; do not change runtime behavior or unrelated dirty content. Because the move changes shared paths across 27 source files, implementation requires explicit approval of the Rev47 plan. This decision is a proposal, not approval.
-
 
 ## D-066-78 — Complete approved shared-folder organization (Rev47)
 
@@ -853,3 +846,23 @@ This records the implementation contract for this task only. It does not sign of
 7. **Deploy order: web before backend.** The web Teacher roster must follow `next_cursor`, use the count in its empty state and no longer expect the old 409 before the backend of this phase is deployed to any shared environment (see D-066-100).
 
 **Not decided:** the key source and key custody; the Teacher permission persistence design; the Vietnamese wording of the SRS route additions; the dedicated purge role; the executor design; the retention duration for real data.
+
+## D-066-102 - T-12b/T-12c Teacher web presentation choices (2026-11-24)
+
+**Source:** the owner-launched plan `PLAN_V4B_FE_WEB_T-12BC_20261124.md`, revision 54, plus the final Phase B route list sections 3 and 4 and D-066-101.
+
+**Decisions:**
+1. Revision history is paged on demand at limit 100. The UI follows each opaque `next_cursor` only after the user selects the load-more action.
+2. Support-needs values exist only in the open panel's component state. Reads use `cache: no-store`; the panel loads only after open and unmounts on close.
+3. Support-needs 404, 503, and `CONSENT_NOT_EFFECTIVE` share one neutral unavailable state. A failed write in those states clears displayed and draft values.
+4. Use the existing `teacherHttp.request` error model, which preserves `current_version` as `currentVersion`; do not duplicate the error parser.
+
+These are web presentation and implementation choices only. They do not change the route contract, support-needs production defaults, or the open SRS operation-set question.
+
+## D-066-103 - Preserve a same-key retry for a pending support-needs write (2026-11-24)
+
+**Source:** T-12b/T-12c acceptance rule that an unclear write retry reuses its idempotency key, together with D-066-101's production defaults.
+
+**Clarification to D-066-102 item 3:** a support-needs GET that returns 503 clears loaded and draft values. A 404 or `CONSENT_NOT_EFFECTIVE` response clears loaded values, draft values, and any pending write. If a PUT returns 503, the panel shows only the shared neutral unavailable copy and a generic retry action; it retains that pending payload and key only in the mounted component memory so the same user action can be retried. Closing the panel unmounts it and clears the payload and key.
+
+No value is rendered in the unavailable state, stored in browser storage, placed in a URL, or logged.

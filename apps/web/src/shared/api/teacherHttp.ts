@@ -26,7 +26,13 @@ export const visibleAscii = /^[\x21-\x7E]{1,128}$/;
 
 // Vietnamese copy for codes the shared table does not cover. Everything else uses the shared envelope message.
 const CODE_MESSAGES: Record<string, string> = {
+  SUPPORT_NEEDS_UNAVAILABLE: "Mục này chưa khả dụng.",
   TEACHER_ASSIGNMENT_REQUIRED: "Bạn cần được phân công vào lớp trước khi tạo buổi dạy.",
+  INDEPENDENT_REVIEW_REQUIRED: "Người tạo nội dung không thể tự duyệt. Hãy nhờ một giáo viên khác.",
+  SVG_GUIDE_SOURCE_MISMATCH: "Guide cần gắn với đúng phiên bản và mã nguồn của SVG.",
+  SVG_SOURCE_INVALID: "SVG không hợp lệ hoặc chứa nội dung không được chấp nhận. Hãy kiểm tra lại tệp.",
+  SVG_PROVENANCE_URL_INVALID: "Liên kết nguồn và giấy phép phải là URL HTTPS hợp lệ.",
+  SVG_CATALOG_ITEM_NOT_FOUND: "Không tìm thấy nội dung hoặc bạn không có quyền truy cập. Hãy làm mới danh sách.",
   OCR_NOT_SUPPORTED: "Tài liệu đã tải lên chưa được hỗ trợ trích xuất.",
   ENCRYPTED_DOCUMENT_UNSUPPORTED: "Tài liệu được bảo vệ và không thể trích xuất.",
   UPLOAD_CHECKSUM_MISMATCH: "Dữ liệu tải lên không khớp mã kiểm tra. Hãy thử tải lại.",
