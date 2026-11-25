@@ -94,11 +94,18 @@ def _parse(raw=None):
 def test_the_age_table_obeys_the_srs_window() -> None:
     assert [(p.band, p.scene_count, p.total_seconds) for p in AGE_BANDS] == [
         ("36-71", 5, 30),
-        ("72-107", 7, 42),
-        ("108-120", 9, 54),
+        ("72-107", 7, 56),
+        ("108-120", 9, 72),
     ]
     with pytest.raises(ValueError):
         profile_for_age_months(30)
+
+
+def test_the_longest_allowed_voice_always_fits_its_scene() -> None:
+    from sketch2life.application.video_pipeline.age_profile import SCENE_VOICE_MARGIN_MS, worst_case_voice_ms
+
+    for profile in AGE_BANDS:
+        assert worst_case_voice_ms(profile) <= profile.scene_seconds * 1000 - SCENE_VOICE_MARGIN_MS, profile.band
 
 
 def test_a_valid_timeline_parses_and_is_frame_exact() -> None:
@@ -152,7 +159,7 @@ def test_a_subject_cannot_come_back_after_it_is_gone() -> None:
 def test_narration_and_dialogue_share_one_voice_and_cannot_overlap() -> None:
     raw = copy.deepcopy(_timeline())
     scene = raw["scenes"][0]
-    scene["dialogue"] = [{"speaker_ref": "rua", "text": "Chào bạn lá nhé.", "start_ms": scene["start_ms"] + 1_000, "end_ms": scene["start_ms"] + 2_000}]
+    scene["dialogue"] = [{"speaker_ref": "rua", "text": "Chào lá nhé.", "start_ms": scene["start_ms"] + 1_000, "end_ms": scene["start_ms"] + 2_000}]
 
     with pytest.raises(TimelineError) as error:
         _parse(raw)

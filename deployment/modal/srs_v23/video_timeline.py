@@ -59,6 +59,13 @@ def output_token_budget(scene_count: int) -> int:
     return 500 + 230 * scene_count
 
 
+CHARS_PER_WORD = 5.5  # the same number as the backend age table; the schema cap keeps every scene's voice inside its window
+
+
+def max_chars(words: int) -> int:
+    return int(words * CHARS_PER_WORD)
+
+
 def json_schema(data: dict[str, Any]) -> dict[str, Any]:
     band = data["age_band"]
     entity_ids = [item["entity_id"] for item in data["subjects"]]
@@ -81,7 +88,7 @@ def json_schema(data: dict[str, Any]) -> dict[str, Any]:
         "additionalProperties": False,
         "properties": {
             "speaker_ref": {"type": "string", "pattern": "^[a-z0-9-]{1,16}$"},
-            "text": {"type": "string", "minLength": 3, "maxLength": 160},
+            "text": {"type": "string", "minLength": 3, "maxLength": max_chars(band["dialogue_max_words"])},
         },
         "required": ["speaker_ref", "text"],
     }
@@ -93,7 +100,7 @@ def json_schema(data: dict[str, Any]) -> dict[str, Any]:
             "action": {"type": "string", "minLength": 1, "maxLength": 200},
             "visual_prompt": {"type": "string", "minLength": 8, "maxLength": 400},
             "background_prompt": {"type": "string", "minLength": 8, "maxLength": 200},
-            "narration": {"type": "string", "minLength": 3, "maxLength": 200},
+            "narration": {"type": "string", "minLength": 3, "maxLength": max_chars(band["narration_max_words"])},
             "dialogue": {"type": "array", "minItems": 0, "maxItems": band["dialogue_max_lines"], "items": line},
             "subjects": {"type": "array", "minItems": 1, "maxItems": 4, "items": {"type": "string", "enum": entity_ids}},
             "interactions": {"type": "array", "minItems": 0, "maxItems": 2, "items": interaction},

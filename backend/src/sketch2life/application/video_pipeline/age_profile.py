@@ -39,9 +39,9 @@ class AgeBandProfile:
 
 
 AGE_BANDS: Final[tuple[AgeBandProfile, ...]] = (
-    AgeBandProfile("36-71", 36, 71, 5, 6, 9, 1, 5, 1, 8.0, 11.0, 14.0),
-    AgeBandProfile("72-107", 72, 107, 7, 6, 14, 2, 8, 2, 10.0, 15.0, 18.0),
-    AgeBandProfile("108-120", 108, 120, 9, 6, 20, 3, 12, 3, 11.0, 15.0, 18.0),
+    AgeBandProfile("36-71", 36, 71, 5, 6, 7, 1, 3, 1, 8.0, 11.0, 14.0),
+    AgeBandProfile("72-107", 72, 107, 7, 8, 9, 2, 4, 2, 10.0, 15.0, 18.0),
+    AgeBandProfile("108-120", 108, 120, 9, 8, 10, 2, 4, 3, 11.0, 15.0, 18.0),
 )
 
 
@@ -75,6 +75,30 @@ def snap_ms_to_frame(milliseconds: int) -> int:
     return frames_to_ms(ms_to_frames(milliseconds))
 
 
+CHARS_PER_WORD: Final = 5.5  # Vietnamese syllables with their space; also the model's schema cap per word
+LETTER_SHARE: Final = 0.8  # letters and digits among the characters of a sentence
+LEAD_IN_MS: Final = 400
+VOICE_GAP_MS: Final = 300
+MIN_LINE_MS: Final = 1_200
+TAIL_MS: Final = 300
+SCENE_VOICE_MARGIN_MS: Final = LEAD_IN_MS + TAIL_MS
+
+
+def max_chars(words: int) -> int:
+    """The longest text the model may write for a word cap (the JSON schema enforces it)."""
+
+    return int(words * CHARS_PER_WORD)
+
+
+def worst_case_voice_ms(profile: AgeBandProfile) -> int:
+    """Time to speak the longest allowed narration plus every allowed dialogue line, at the middle speech rate."""
+
+    rate = (profile.speech_cps_min + profile.speech_cps_max) / 2
+    narration = max_chars(profile.narration_max_words) * LETTER_SHARE / rate * 1000
+    line = max(MIN_LINE_MS, max_chars(profile.dialogue_max_words) * LETTER_SHARE / rate * 1000)
+    return round(narration + profile.dialogue_max_lines * (VOICE_GAP_MS + line))
+
+
 def _validate_table() -> None:
     for profile in AGE_BANDS:
         if profile.caption_max_cps < profile.speech_cps_max * 1.2:
@@ -86,6 +110,8 @@ def _validate_table() -> None:
             raise AssertionError(f"{profile.band}: scene count outside the SRS window")
         if ms_to_frames(profile.scene_seconds * 1000) > MAX_SCENE_FRAMES:
             raise AssertionError(f"{profile.band}: scene longer than the worker allows")
+        if worst_case_voice_ms(profile) > profile.scene_seconds * 1000 - SCENE_VOICE_MARGIN_MS:
+            raise AssertionError(f"{profile.band}: the longest allowed narration and dialogue do not fit one scene")
 
 
 _validate_table()
@@ -94,11 +120,14 @@ __all__ = [
     "AGE_BANDS",
     "AgeBandProfile",
     "FPS",
+    "CHARS_PER_WORD",
     "MAX_SCENES",
     "MIN_SCENES",
     "frames_to_ms",
+    "max_chars",
     "ms_to_frames",
     "profile_for_age_months",
     "profile_for_band",
     "snap_ms_to_frame",
+    "worst_case_voice_ms",
 ]

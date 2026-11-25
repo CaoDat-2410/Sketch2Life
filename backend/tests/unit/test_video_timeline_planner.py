@@ -139,6 +139,6 @@ def test_the_request_carries_the_age_numbers_and_roles_only() -> None:
         topic="Động vật",
     )
 
-    assert request["age_band"]["scene_count"] == 5 and request["age_band"]["narration_max_words"] == 9
+    assert request["age_band"]["scene_count"] == 5 and request["age_band"]["narration_max_words"] == 7
     assert request["subjects"][0] == {"entity_id": "main", "label": "con rùa", "role": "main"}
     assert set(request["activity"]) == {"title", "objective"}
