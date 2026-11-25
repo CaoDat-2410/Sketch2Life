@@ -1,14 +1,30 @@
 import React from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import type { ParentActivityListV1, ParentActivityV1 } from '../../domain/types';
+import type {
+  ParentActivityListV1,
+  ParentActivitySuggestionSetV1,
+  ParentActivityV1,
+  SuggestedActivity,
+} from '../../domain/types';
 import { Card, ConfirmButton, Notice, PrimaryButton, ScreenFrame, SectionTitle, SecondaryButton, palette } from '../components/ui';
+
+export const ACTIVITY_COPY = {
+  aiSuggestionLabel: 'Gợi ý AI',
+  aiReviewRequired: 'Đây là gợi ý AI. Người lớn cần xem lại trước khi dùng.',
+  suggestionSetDescription: 'Người lớn xem lại các gợi ý trước khi chọn hoạt động.',
+  aiReviewed: 'Gợi ý AI đã được người lớn xem lại và chọn làm hoạt động chính.',
+  selectionRetry: 'Chưa xác nhận được lựa chọn. Danh sách và lựa chọn của bạn được giữ lại; hãy thử lưu lại.',
+} as const;
+
+type ActivityList = ParentActivityListV1 | ParentActivitySuggestionSetV1;
+type ActivityOptionData = ParentActivityV1 | SuggestedActivity;
 
 type Props = {
   stepLabel: string;
   topic: string;
   subject: string;
-  activities: ParentActivityListV1 | null;
+  activities: ActivityList | null;
   selectedIndex: number | null;
   loading: boolean;
   saving: boolean;
@@ -22,8 +38,11 @@ type Props = {
 };
 
 export function ActivityScreen(props: Props): React.JSX.Element {
-  const items = props.activities?.items ?? [];
-  const noCandidate = props.activities?.basis.no_candidate === true;
+  const suggestionSet = props.activities && 'activities' in props.activities ? props.activities : null;
+  const items: readonly ActivityOptionData[] = props.activities
+    ? ('items' in props.activities ? props.activities.items : props.activities.activities)
+    : [];
+  const noCandidate = Boolean(props.activities && 'basis' in props.activities && props.activities.basis.no_candidate);
   const hasSelection = props.selectedIndex !== null && Boolean(items[props.selectedIndex]);
 
   return (
@@ -41,7 +60,7 @@ export function ActivityScreen(props: Props): React.JSX.Element {
           <SectionTitle variant="creative">Chọn một hoạt động chính</SectionTitle>
           <Text style={styles.description}>{props.subject.trim() ? `Chủ thể đã xác nhận: ${props.subject.trim()}` : 'Hoạt động dựa trên chủ thể đã xác nhận.'}</Text>
           {props.topic.trim() ? <Text style={styles.topicText}>Chủ đề · {props.topic.trim()}</Text> : null}
-          {props.activities ? <Text style={styles.metaText}>Độ tuổi phù hợp · {props.activities.basis.age_band} tháng</Text> : null}
+          {props.activities && 'basis' in props.activities ? <Text style={styles.metaText}>Độ tuổi phù hợp · {props.activities.basis.age_band} tháng</Text> : null}
         </View>
       </Card>
 
@@ -70,11 +89,15 @@ export function ActivityScreen(props: Props): React.JSX.Element {
         <>
           <View style={styles.resultsHeading}>
             <SectionTitle variant="creative">Hoạt động có thể chọn</SectionTitle>
-            <Text style={styles.description}>{props.activities.basis.pinned_lesson ? 'Danh sách theo bài học đã ghim.' : 'Danh sách hoạt động phù hợp với buổi học.'}</Text>
+            <Text style={styles.description}>{suggestionSet
+              ? ACTIVITY_COPY.suggestionSetDescription
+              : props.activities && 'basis' in props.activities && props.activities.basis.pinned_lesson
+                ? 'Danh sách theo bài học đã ghim.'
+                : 'Danh sách hoạt động phù hợp với buổi học.'}</Text>
           </View>
           {items.map((activity, index) => (
             <ActivityOption
-              key={`${activity.activity_ref.lesson_id}-${activity.activity_ref.version_id}-${activity.activity_ref.activity_index}`}
+              key={activityKey(activity, index)}
               activity={activity}
               selected={props.selectedIndex === index}
               onPress={() => props.onSelect(index)}
@@ -96,7 +119,10 @@ export function ActivityScreen(props: Props): React.JSX.Element {
   );
 }
 
-function ActivityOption({ activity, selected, onPress }: { activity: ParentActivityV1; selected: boolean; onPress: () => void }): React.JSX.Element {
+function ActivityOption({ activity, selected, onPress }: { activity: ActivityOptionData; selected: boolean; onPress: () => void }): React.JSX.Element {
+  const aiDraft = activity.source === 'AI_GENERATED_DRAFT' || activity.source === 'AI_DRAFT';
+  const lessonTitle = 'lesson_title' in activity ? activity.lesson_title : activity.source_lesson_title;
+  const lessonTopic = 'lesson_topic' in activity ? activity.lesson_topic : null;
   return (
     <Pressable accessibilityRole="radio" accessibilityState={{ checked: selected }} accessibilityLabel={`Chọn hoạt động ${activity.title}`} onPress={onPress} style={({ pressed }) => [styles.optionPressable, pressed && styles.pressed]}>
       <Card variant="creative" style={[styles.activityCard, selected && styles.activityCardSelected]}>
@@ -112,7 +138,8 @@ function ActivityOption({ activity, selected, onPress }: { activity: ParentActiv
           <Text style={styles.fieldLabel}>MỤC TIÊU</Text>
           <Text style={styles.bodyText}>{activity.objective}</Text>
         </View>
-        <Text style={styles.sourceText}>Bài học · {activity.lesson_title}{activity.lesson_topic ? ` · ${activity.lesson_topic}` : ''}</Text>
+        {aiDraft ? <Text style={styles.aiReviewText}>{ACTIVITY_COPY.aiReviewRequired}</Text> : null}
+        {lessonTitle ? <Text style={styles.sourceText}>Bài học · {lessonTitle}{lessonTopic ? ` · ${lessonTopic}` : ''}</Text> : null}
         {activity.materials_text ? <Text style={styles.bodyText}>Chuẩn bị · {activity.materials_text}</Text> : null}
         {activity.preparation_text ? <Text style={styles.detailText}>{activity.preparation_text}</Text> : null}
         <View style={styles.instructionBox}>
@@ -126,9 +153,21 @@ function ActivityOption({ activity, selected, onPress }: { activity: ParentActiv
   );
 }
 
-function activitySourceLabel(source: ParentActivityV1['source']): string {
+function activityKey(activity: ActivityOptionData, index: number): string {
+  if ('activity_ref' in activity && activity.activity_ref) {
+    return `${activity.activity_ref.lesson_id}-${activity.activity_ref.version_id}-${activity.activity_ref.activity_index}`;
+  }
+  if ('source_lesson_id' in activity && activity.source_lesson_id && activity.source_lesson_version_id) {
+    return `${activity.source_lesson_id}-${activity.source_lesson_version_id}-${activity.source_activity_index ?? index}`;
+  }
+  return `activity-${index}`;
+}
+
+function activitySourceLabel(source: ActivityOptionData['source']): string {
+  if (source === 'AI_GENERATED_DRAFT' || source === 'AI_DRAFT') return ACTIVITY_COPY.aiSuggestionLabel;
   if (source === 'PINNED_LESSON') return 'Bài học đã ghim';
-  return source === 'PUBLIC' ? 'Bài học công khai' : 'Bài học được chia sẻ';
+  if (source === 'PUBLIC') return 'Bài học công khai';
+  return source === 'SHARED' || source === 'PUBLISHED_SHARED_LESSON' ? 'Bài học được chia sẻ' : 'Bài học đã ghim';
 }
 
 function activityKindLabel(kind: ParentActivityV1['activity_kind']): string {
@@ -172,6 +211,7 @@ const styles = StyleSheet.create({
   detailText: { color: palette.creativeMuted, fontSize: 12, lineHeight: 18 },
   instructionBox: { gap: 4 },
   sourceText: { color: palette.creativeMuted, fontSize: 11, lineHeight: 16, fontWeight: '700' },
+  aiReviewText: { color: palette.creativePrimary, fontSize: 12, lineHeight: 18, fontWeight: '700' },
   safetyBox: { flexDirection: 'row', alignItems: 'flex-start', gap: 7, borderRadius: 12, padding: 10, backgroundColor: '#FFF5D9' },
   safetyText: { flex: 1, color: '#72530D', fontSize: 12, lineHeight: 17 },
 });

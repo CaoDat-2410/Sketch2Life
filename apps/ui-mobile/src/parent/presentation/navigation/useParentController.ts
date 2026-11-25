@@ -3,6 +3,12 @@ import { AppState } from 'react-native';
 import { ParentApplicationError } from '../../application/ParentApplicationError';
 import { createParentActionIdentity } from '../../application/ports/ParentPorts';
 import type { ParentActionIdentity } from '../../application/ports/ParentPorts';
+import {
+  isActivitySelectionPhaseAFallbackError,
+  isActivitySuggestionFallbackError,
+  isUncertainActivitySelectionError,
+  retainedSuggestedActivitySelectionAction,
+} from '../../application/use-cases/ParentLearningUseCases';
 import type { ParentApplicationModule } from '../../application/ports/ParentApplicationModule';
 import { parseStoryDraft } from '../../domain/storyDraft';
 import type {
@@ -11,17 +17,32 @@ import type {
   LessonSummary,
   ParentDrawingCandidateV1,
   ParentActivityListV1,
+  ParentActivitySuggestionSetV1,
   ParentActivitySelectionRequestV1,
   ParentGroupInvitation,
+  ParentGroupMembershipV1,
+  CreateParentContextEntryRequest,
+  ParentContextEntryEnvelope,
+  ParentContextEntryListView,
   ParentProfileDeletePendingV1,
   ParentPlaybackSourceV1,
   ParentProfileViewV1,
   ParentRunTranscriptV1,
   ParentStoryRunV1,
+  ParentSupportNeedsV1,
+  ParentSupportNeedsWriteV1,
+  ParentTopicCardV1,
+  ParentTopicSuggestionSetV1,
+  ParentDrawingSubjectCardV1,
+  ParentDrawingSubjectSuggestionSetV1,
   ParentUser,
   ParentVideoReasonCodeV1,
+  SupportNeedsPutV1,
   StoryDraft,
 } from '../../domain/types';
+import type { SvgTopicStrokeGuideSourceDraftV1 } from '../../domain/svgGuide';
+import { isSafeSvgTopicStrokeGuideSourceDraft, svgGuideFailureMessage } from '../../domain/svgGuide';
+import { isResolvedTopicConsistent } from '../../domain/topicMatching';
 import { requireLiveStoryRun } from '../../application/storyRunResult';
 import {
   BACKGROUND_RUN_STATES,
@@ -32,6 +53,7 @@ import {
   isClosedRunState,
   readVideoPanel,
   readActivityListV1,
+  readActivitySuggestionSetV1,
 } from '../../application/parentPhaseB';
 import {
   RunWaitCancelled,
@@ -52,16 +74,24 @@ import type {
   ParentConsentUiState,
   SelectedAudio,
   SelectedPhoto,
+  ParentLessonSearchFilters,
   TimedEvent,
 } from './workflowTypes';
 import {
   PARENT_RUN_PREFLIGHT_UNAVAILABLE_MESSAGE,
+  canLeaveParentGroupMembership,
   isCurrentAuthorizedLesson,
+  mergeLessonSummaryPages,
+  parentGroupLeaveActionKey,
+  retainedParentGroupLeaveActionIdentity,
+  updateLessonSearchState,
 } from './workflowTypes';
 import {
   isActiveOrUnreconciledStoryRun,
+  isRecoverableFirstStoryFailure,
   isConfirmedRunSubject,
   isWithinOfflinePhotoLimit,
+  isVideoQuotaExceededError,
   canAnalyzeDrawing,
   canBeginContextStep,
   canConfirmDisplayedStory,
@@ -77,9 +107,16 @@ import {
   readDrawingCandidate,
   reconcileProfileRecord,
   safeParentFlowErrorMessage,
+  safeParentGroupMembershipErrorMessage,
+  safeParentGroupInvitationErrorMessage,
+  safeStoryRecoveryMessage,
   safeProfileFieldMessages,
   selectProfileById,
+  storyRecoverySignature,
+  STORY_RECOVERY_COPY,
 } from './parentFlowV1';
+import { isParentRunContextSnapshotV2 } from '../../domain/types';
+import { ACTIVITY_COPY } from '../screens/ActivityScreen';
 
 const consentState: ParentConsentUiState = createUnavailableParentConsentState('route-not-in-be-handoff');
 
@@ -91,6 +128,7 @@ type LessonLibrarySnapshot = {
   summaries: LessonSummary[] | null;
   lessonInvitations: LessonInvitation[] | null;
   groupInvitations: ParentGroupInvitation[] | null;
+  groupMemberships: ParentGroupMembershipV1[] | null;
 };
 
 type SelectedPhotoWithRunLock = SelectedPhoto & { locked?: boolean };
@@ -109,9 +147,27 @@ export function useParentController(application: ParentApplicationModule) {
   const [activeRun, setActiveRun] = useState<ParentStoryRunV1 | null>(null);
   const [activeRunCheck, setActiveRunCheck] = useState<ParentActiveRunCheckState>('checking');
   const [topic, setTopic] = useState('');
+  const [selectedTopicId, setSelectedTopicId] = useState('');
+  const [topicDraftId, setTopicDraftId] = useState('');
+  const [topicSuggestionSets, setTopicSuggestionSets] = useState<ParentTopicSuggestionSetV1[]>([]);
+  const [topicSuggestions, setTopicSuggestions] = useState<ParentTopicCardV1[]>([]);
+  const [topicSuggestionBusy, setTopicSuggestionBusy] = useState(false);
+  const [topicSuggestionError, setTopicSuggestionError] = useState('');
+  const lastTopicSuggestionSetId = useRef('');
+  const [subjectSuggestionSets, setSubjectSuggestionSets] = useState<ParentDrawingSubjectSuggestionSetV1[]>([]);
+  const [subjectSuggestions, setSubjectSuggestions] = useState<ParentDrawingSubjectCardV1[]>([]);
+  const [subjectSuggestionBusy, setSubjectSuggestionBusy] = useState(false);
+  const [subjectSuggestionError, setSubjectSuggestionError] = useState('');
+  const [intendedDrawingSubject, setIntendedDrawingSubject] = useState('');
+  const [customDrawingSubject, setCustomDrawingSubject] = useState('');
+  const [subjectValidationMessage, setSubjectValidationMessage] = useState('');
+  const [customSubjectValidated, setCustomSubjectValidated] = useState(false);
+  const [lessonPickerReturnStep, setLessonPickerReturnStep] = useState<'entry' | 'idea'>('idea');
   const [idea, setIdea] = useState('');
   const [lesson, setLesson] = useState<LessonDetail | null>(null);
   const [lessons, setLessons] = useState<LessonSummary[]>([]);
+  const [lessonSearchFilters, setLessonSearchFilters] = useState<ParentLessonSearchFilters>({ source: 'ALL', q: '', topic: '' });
+  const [lessonCursor, setLessonCursor] = useState<string | null>(null);
   const [lessonLoading, setLessonLoading] = useState(false);
   const [lessonLoadingId, setLessonLoadingId] = useState('');
   const [lessonError, setLessonError] = useState('');
@@ -119,11 +175,15 @@ export function useParentController(application: ParentApplicationModule) {
   const [galleryLesson, setGalleryLesson] = useState<LessonDetail | null>(null);
   const [lessonInvitations, setLessonInvitations] = useState<LessonInvitation[]>([]);
   const [groupInvitations, setGroupInvitations] = useState<ParentGroupInvitation[]>([]);
+  const [groupMemberships, setGroupMemberships] = useState<ParentGroupMembershipV1[]>([]);
+  const [groupMembershipCursor, setGroupMembershipCursor] = useState<string | null>(null);
+  const [groupMembershipsLoading, setGroupMembershipsLoading] = useState(false);
   const [accountError, setAccountError] = useState('');
   const [guideEnabled, setGuideEnabled] = useState(false);
   const [guideBase64, setGuideBase64] = useState('');
   const [guideBusy, setGuideBusy] = useState(false);
   const [guideError, setGuideError] = useState('');
+  const [svgGuideDraft, setSvgGuideDraft] = useState<SvgTopicStrokeGuideSourceDraftV1 | null>(null);
   const [drawingGuideIndex, setDrawingGuideIndex] = useState(0);
   const [photo, setPhotoValue] = useState<SelectedPhoto | null>(null);
   const [audio, setAudioValue] = useState<SelectedAudio | null>(null);
@@ -133,7 +193,7 @@ export function useParentController(application: ParentApplicationModule) {
   const [subject, setSubject] = useState('');
   const [subjectConfirmed, setSubjectConfirmed] = useState(false);
   const [understandingRevision, setUnderstandingRevision] = useState(0);
-  const [activitySuggestions, setActivitySuggestions] = useState<ParentActivityListV1 | null>(null);
+  const [activitySuggestions, setActivitySuggestions] = useState<ParentActivityListV1 | ParentActivitySuggestionSetV1 | null>(null);
   const [selectedActivityIndex, setSelectedActivityIndex] = useState<number | null>(null);
   const [activityBusy, setActivityBusy] = useState(false);
   const [activityAttempted, setActivityAttempted] = useState(false);
@@ -146,6 +206,8 @@ export function useParentController(application: ParentApplicationModule) {
   const [storyConfirmed, setStoryConfirmed] = useState(false);
   const [rewriteCount, setRewriteCount] = useState(0);
   const [rewriteInstruction, setRewriteInstruction] = useState('');
+  const [storyRecoveryHint, setStoryRecoveryHint] = useState('');
+  const [storyRecoveryContinuing, setStoryRecoveryContinuing] = useState(false);
   const [transcript, setTranscript] = useState<ParentRunTranscriptV1 | null>(null);
   const [transcriptText, setTranscriptTextValue] = useState('');
   const [transcriptWaiting, setTranscriptWaiting] = useState(false);
@@ -159,6 +221,7 @@ export function useParentController(application: ParentApplicationModule) {
   const [events, setEvents] = useState<TimedEvent[]>([]);
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
+  const [videoQuotaExceeded, setVideoQuotaExceeded] = useState(false);
   const [authError, setAuthError] = useState('');
   const [bootstrapBusy, setBootstrapBusy] = useState(false);
   const profileCreateAction = useRef<RetainedActionIdentity | null>(null);
@@ -167,10 +230,25 @@ export function useParentController(application: ParentApplicationModule) {
   const profileDeleteActions = useRef(new Map<string, RetainedActionIdentity>());
   const activeRunCheckInFlight = useRef<Promise<ActiveRunPreflightResult> | null>(null);
   const invitationActionsInFlight = useRef(new Set<string>());
+  const invitationActionIdentities = useRef(new Map<string, RetainedActionIdentity>());
+  const groupLeaveActionsInFlight = useRef(new Set<string>());
+  const groupLeaveActionIdentities = useRef(new Map<string, RetainedActionIdentity>());
+  const lessonListRequest = useRef(0);
+  const groupMembershipsRequest = useRef(0);
   const contextConfirmationAction = useRef<RetainedActionIdentity | null>(null);
   const subjectConfirmationAction = useRef<RetainedActionIdentity | null>(null);
   const scriptConfirmationAction = useRef<RetainedActionIdentity | null>(null);
+  const activitySuggestionAction = useRef<RetainedActionIdentity | null>(null);
   const activitySelectionAction = useRef<RetainedActionIdentity | null>(null);
+  const activitySuggestionSelectionActions = useRef(new Map<string, RetainedActionIdentity>());
+  const activitySuggestionSelectionReceipt = useRef<{
+    runId: string;
+    suggestionSetId: string;
+    understandingRevision: number;
+    activityIndex: number;
+    title: string;
+    objective: string;
+  } | null>(null);
   const activityCancelAction = useRef<RetainedActionIdentity | null>(null);
   const runCreationInFlight = useRef(false);
   const drawingAnalysisInFlight = useRef(false);
@@ -180,6 +258,7 @@ export function useParentController(application: ParentApplicationModule) {
   const transcriptCorrectionAction = useRef<RetainedActionIdentity | null>(null);
   const transcriptConfirmAction = useRef<RetainedActionIdentity | null>(null);
   const storyRewriteAction = useRef<RetainedActionIdentity | null>(null);
+  const storyRecoveryAction = useRef<RetainedActionIdentity | null>(null);
   const videoRequestAction = useRef<RetainedActionIdentity | null>(null);
   const videoUnsuitableAction = useRef<RetainedActionIdentity | null>(null);
   const completeRunAction = useRef<RetainedActionIdentity | null>(null);
@@ -400,6 +479,33 @@ export function useParentController(application: ParentApplicationModule) {
     setProfileFieldErrors({});
   }
 
+  function listContextEntries(
+    profileId: string,
+    cursor?: string | null,
+  ): Promise<ParentContextEntryListView> {
+    return application.profiles.listContextEntriesV1(profileId, cursor);
+  }
+
+  function createContextEntry(
+    profileId: string,
+    input: CreateParentContextEntryRequest,
+    actionIdentity: string,
+  ): Promise<ParentContextEntryEnvelope> {
+    return application.profiles.createContextEntryV1(profileId, input, actionIdentity);
+  }
+
+  function getSupportNeeds(profileId: string): Promise<ParentSupportNeedsV1> {
+    return application.profiles.getSupportNeedsV1(profileId);
+  }
+
+  function putSupportNeeds(
+    profileId: string,
+    input: SupportNeedsPutV1,
+    actionIdentity: string,
+  ): Promise<ParentSupportNeedsWriteV1> {
+    return application.profiles.putSupportNeedsV1(profileId, input, actionIdentity);
+  }
+
   async function requestProfileDeletion(target: ParentProfileViewV1): Promise<void> {
     if (isProfileDeletionPending(target.profile_id, pendingDeletions)) return;
     const actionIdentity = retainedMapActionIdentity(profileDeleteActions.current, target.profile_id, target.profile_id);
@@ -457,7 +563,243 @@ export function useParentController(application: ParentApplicationModule) {
     resetWorkflow();
     setProfile(target);
     setSelectedProfileId(target.profile_id);
+    setStep('entry');
+  }
+
+  async function beginTopicPath(): Promise<void> {
+    const draftId = createDraftUuid();
+    setTopicDraftId(draftId);
+    setTopic('');
+    setSelectedTopicId('');
+    setIntendedDrawingSubject('');
+    setSubjectSuggestions([]);
+    setSubjectSuggestionSets([]);
+    setTopicSuggestionSets([]);
+    setTopicSuggestionError('');
+    setSubjectSuggestionError('');
     setStep('topic');
+    await loadTopicSuggestionSet(draftId, lastTopicSuggestionSetId.current ? [lastTopicSuggestionSetId.current] : []);
+  }
+
+  async function loadTopicSuggestionSet(draftId: string, excludedSetIds: string[]): Promise<void> {
+    setTopicSuggestionBusy(true);
+    setTopicSuggestionError('');
+    try {
+      const result = await application.learning.listTopicSuggestions(draftId, excludedSetIds.slice(-16));
+      const cards = Array.isArray(result?.cards) ? result.cards : [];
+      if (result?.contract !== 'ParentTopicSuggestionSetV1'
+        || result.draft_id !== draftId
+        || cards.length !== 3
+        || new Set(cards.map((card) => card.topic_id)).size !== 3
+        || excludedSetIds.includes(result.set_id)) {
+        throw new ParentApplicationError('PARENT_TOPIC_SUGGESTION_INVALID', 'Chưa nhận được ba gợi ý chủ đề hợp lệ.');
+      }
+      setTopicSuggestionSets((current) => [...current, result]);
+      setTopicSuggestions([...cards]);
+      lastTopicSuggestionSetId.current = result.set_id;
+    } catch (cause) {
+      setTopicSuggestionError(topicSuggestionErrorMessage(cause));
+    } finally {
+      setTopicSuggestionBusy(false);
+    }
+  }
+
+  async function refreshTopicSuggestions(): Promise<void> {
+    if (!topicDraftId || topicSuggestionBusy) return;
+    const excluded = topicSuggestionSets.map((set) => set.set_id).slice(-16);
+    await loadTopicSuggestionSet(topicDraftId, excluded);
+  }
+
+  function selectTopicCard(card: ParentTopicCardV1): void {
+    setTopic(card.title_vi);
+    setSelectedTopicId(card.topic_id);
+    setSubjectSuggestions([]);
+    setSubjectSuggestionSets([]);
+    setIntendedDrawingSubject('');
+    setCustomDrawingSubject('');
+    setSubjectValidationMessage('');
+    setCustomSubjectValidated(false);
+    setTopicSuggestionError('');
+    setSubjectSuggestionError('');
+  }
+
+  function setCustomTopic(value: string): void {
+    setTopic(value);
+    setSelectedTopicId('custom');
+    setSubjectSuggestions([]);
+    setSubjectSuggestionSets([]);
+    setIntendedDrawingSubject('');
+    setCustomDrawingSubject('');
+    setSubjectValidationMessage('');
+    setCustomSubjectValidated(false);
+    setTopicSuggestionError('');
+    setSubjectSuggestionError('');
+  }
+
+  async function continueTopicSelection(): Promise<void> {
+    const selectedTopic = topic.trim();
+    if (selectedTopic.length < 2 || !topicDraftId || topicSuggestionBusy || subjectSuggestionBusy) {
+      setTopicSuggestionError('Chọn một chủ đề hoặc nhập chủ đề riêng trước khi tiếp tục.');
+      return;
+    }
+    const topicId = selectedTopicId || 'custom';
+    const excludedSetIds = subjectSuggestionSets.map((set) => set.set_id).slice(-16);
+    const excludedSubjects = [...new Set(subjectSuggestionSets.flatMap((set) =>
+      set.cards.flatMap((card) => [card.title_vi, card.guide_subject]),
+    ))];
+    setSubjectSuggestionBusy(true);
+    setTopicSuggestionError('');
+    setSubjectSuggestionError('');
+    setIntendedDrawingSubject('');
+    try {
+      const result = await application.learning.listDrawingSubjectSuggestions({
+        draftId: topicDraftId,
+        topicId,
+        topic: selectedTopic,
+        excludedSetIds,
+        excludedSubjects,
+      });
+      const cards = Array.isArray(result?.cards) ? result.cards : [];
+      const topicConsistent = typeof result?.topic_id === 'string'
+        && typeof result?.topic === 'string'
+        && isResolvedTopicConsistent({
+          selectedTopicId: topicId,
+          selectedTopic,
+          resolvedTopicId: result.topic_id,
+          resolvedTopic: result.topic,
+        });
+      if (result?.contract !== 'ParentDrawingSubjectSuggestionSetV1'
+        || result.draft_id !== topicDraftId
+        || !topicConsistent
+        || (result.generation_source !== 'CURATED_CATALOG' && result.generation_source !== 'QWEN_DRAFT')
+        || result.review_required !== true
+        || cards.length !== 3
+        || new Set(cards.map((card) => card.subject_id)).size !== 3
+        || subjectSuggestionSets.some((set) => set.set_id === result.set_id)) {
+        throw new ParentApplicationError('PARENT_SUBJECT_SUGGESTION_INVALID', 'Chưa nhận được ba gợi ý phù hợp.');
+      }
+      setSelectedTopicId(result.topic_id);
+      setTopic(result.topic);
+      setSubjectSuggestionSets((current) => [...current, result]);
+      setSubjectSuggestions([...cards]);
+      setStep('subject');
+    } catch (cause) {
+      const message = topicSuggestionErrorMessage(cause);
+      setTopicSuggestionError(message);
+      setSubjectSuggestionError(message);
+    } finally {
+      setSubjectSuggestionBusy(false);
+    }
+  }
+
+  async function refreshSubjectSuggestions(): Promise<void> {
+    if (!topicDraftId || !topic.trim() || subjectSuggestionBusy) return;
+    const excludedSetIds = subjectSuggestionSets.map((set) => set.set_id).slice(-16);
+    const excludedSubjects = [...new Set(subjectSuggestionSets.flatMap((set) =>
+      set.cards.flatMap((card) => [card.title_vi, card.guide_subject]),
+    ))];
+    setSubjectSuggestionBusy(true);
+    setSubjectSuggestionError('');
+    try {
+      const result = await application.learning.listDrawingSubjectSuggestions({
+        draftId: topicDraftId,
+        topicId: selectedTopicId,
+        topic,
+        excludedSetIds,
+        excludedSubjects,
+      });
+      if (result.contract !== 'ParentDrawingSubjectSuggestionSetV1'
+        || result.draft_id !== topicDraftId
+        || result.cards.length !== 3
+        || !isResolvedTopicConsistent({
+          selectedTopicId,
+          selectedTopic: topic,
+          resolvedTopicId: result.topic_id,
+          resolvedTopic: result.topic,
+        })
+        || (result.generation_source !== 'CURATED_CATALOG' && result.generation_source !== 'QWEN_DRAFT')
+        || result.review_required !== true
+        || new Set(result.cards.map((card) => card.subject_id)).size !== 3
+        || subjectSuggestionSets.some((set) => set.set_id === result.set_id)) {
+        throw new ParentApplicationError('PARENT_SUBJECT_SUGGESTION_INVALID', 'Chưa nhận được ba gợi ý khác cho chủ đề này.');
+      }
+      setSubjectSuggestionSets((current) => [...current, result]);
+      setSubjectSuggestions([...result.cards]);
+      setIntendedDrawingSubject('');
+      setCustomSubjectValidated(false);
+    } catch (cause) {
+      setSubjectSuggestionError(topicSuggestionErrorMessage(cause));
+    } finally {
+      setSubjectSuggestionBusy(false);
+    }
+  }
+
+  function selectDrawingSubject(card: ParentDrawingSubjectCardV1): void {
+    setIntendedDrawingSubject(card.guide_subject);
+    setCustomDrawingSubject('');
+    setCustomSubjectValidated(false);
+    setSubjectValidationMessage('');
+  }
+
+  function setCustomSubject(value: string): void {
+    setCustomDrawingSubject(value);
+    setCustomSubjectValidated(false);
+    setIntendedDrawingSubject('');
+    setSubjectValidationMessage('');
+  }
+
+  async function validateCustomDrawingSubject(): Promise<void> {
+    if (customDrawingSubject.trim().length < 2 || !selectedTopicId || !topic || subjectSuggestionBusy) return;
+    setSubjectSuggestionBusy(true);
+    setSubjectValidationMessage('');
+    try {
+      const result = await application.learning.validateCustomSubject({
+        topicId: selectedTopicId,
+        topic,
+        subject: customDrawingSubject.trim(),
+      });
+      if (result.contract !== 'ParentCustomSubjectValidationV1'
+        || !['ON_TOPIC', 'OUT_OF_TOPIC', 'NEEDS_CLARIFICATION'].includes(result.decision)
+        || typeof result.message_vi !== 'string'
+        || result.message_vi.length < 1 || result.message_vi.length > 240
+        || (result.normalized_subject !== null && typeof result.normalized_subject !== 'string')) {
+        throw new ParentApplicationError('PARENT_SUBJECT_VALIDATION_INVALID', 'ChÆ°a kiá»ƒm tra Ä‘Æ°á»£c Ä‘á»‘i tÆ°á»£ng nÃ y.');
+      }
+      setSubjectValidationMessage(result.message_vi);
+      if (result.decision === 'ON_TOPIC' && result.normalized_subject) {
+        setIntendedDrawingSubject(result.normalized_subject);
+        setCustomSubjectValidated(true);
+      } else {
+        setIntendedDrawingSubject('');
+        setCustomSubjectValidated(false);
+      }
+    } catch (cause) {
+      setSubjectValidationMessage(topicSuggestionErrorMessage(cause));
+      setCustomSubjectValidated(false);
+    } finally {
+      setSubjectSuggestionBusy(false);
+    }
+  }
+
+  function continueFromSubjectSelection(): void {
+    if (!intendedDrawingSubject.trim()) return;
+    setIdea('');
+    setStep('idea');
+  }
+
+  function skipTopicSelection(): void {
+    setTopic('');
+    setSelectedTopicId('');
+    setIntendedDrawingSubject('');
+    setCustomDrawingSubject('');
+    setSubjectSuggestions([]);
+    setSubjectSuggestionSets([]);
+    setSubjectValidationMessage('');
+    setCustomSubjectValidated(false);
+    setTopicSuggestionError('');
+    setSubjectSuggestionError('');
+    setIdea('');
+    setStep('idea');
   }
 
   function ensureLearningProfileAllowed(target: ParentProfileViewV1 | null): boolean {
@@ -481,35 +823,47 @@ export function useParentController(application: ParentApplicationModule) {
     return true;
   }
   async function openLessons(mode: 'gallery' | 'picker' = 'picker'): Promise<LessonLibrarySnapshot> {
+    if (mode === 'picker') setLessonPickerReturnStep(step === 'entry' ? 'entry' : 'idea');
     setGalleryMode(mode);
     setGalleryLesson(null);
     setStep(mode === 'gallery' ? 'lesson-library' : 'lessons');
+    const pageRequestNumber = lessonListRequest.current + 1;
+    lessonListRequest.current = pageRequestNumber;
+    const membershipRequestNumber = groupMembershipsRequest.current + 1;
+    groupMembershipsRequest.current = membershipRequestNumber;
     setLessonLoading(true);
     setLessonError('');
     setLessons([]);
+    setLessonCursor(null);
     setLessonInvitations([]);
     setGroupInvitations([]);
+    setGroupMemberships([]);
+    setGroupMembershipCursor(null);
+    setGroupMembershipsLoading(false);
     let snapshot: LessonLibrarySnapshot = {
       summaries: null,
       lessonInvitations: mode === 'gallery' ? null : [],
       groupInvitations: mode === 'gallery' ? null : [],
+      groupMemberships: mode === 'gallery' ? null : [],
     };
     try {
-      const [pageResult, lessonInviteResult, groupInviteResult] = await Promise.allSettled([
-        application.lessons.list(),
+      const [pageResult, lessonInviteResult, groupInviteResult, groupMembershipResult] = await Promise.allSettled([
+        application.lessons.list({ ...lessonSearchFilters, cursor: null, limit: 25 }),
         mode === 'gallery' ? application.lessons.listInvitations() : Promise.resolve(null),
         mode === 'gallery' ? application.lessons.listGroupInvitations() : Promise.resolve(null),
+        mode === 'gallery' ? application.lessons.listGroupMemberships() : Promise.resolve(null),
       ] as const);
       let nextError = '';
-      if (pageResult.status === 'fulfilled') {
+      if (pageResult.status === 'fulfilled' && lessonListRequest.current === pageRequestNumber) {
         const allowedLessons = pageResult.value.items.filter((item) => item.access_source === 'PUBLIC' || item.access_source === 'SHARED');
         setLessons(allowedLessons);
+        setLessonCursor(pageResult.value.next_cursor);
         snapshot = { ...snapshot, summaries: allowedLessons };
         if (lesson && !allowedLessons.some((item) => item.lesson_id === lesson.lesson_id && item.version_id === lesson.version_id)) {
           setLesson(null);
           nextError = 'Bài giảng đã thay đổi quyền hoặc phiên bản. Hãy kiểm tra lại trước khi tiếp tục.';
         }
-      } else {
+      } else if (pageResult.status === 'rejected' && lessonListRequest.current === pageRequestNumber) {
         if (lesson) setLesson(null);
         nextError = displayError(pageResult.reason);
       }
@@ -526,12 +880,91 @@ export function useParentController(application: ParentApplicationModule) {
         } else {
           if (!nextError) nextError = displayError(groupInviteResult.status === 'rejected' ? groupInviteResult.reason : null);
         }
+        if (groupMembershipResult.status === 'fulfilled' && groupMembershipResult.value
+          && groupMembershipsRequest.current === membershipRequestNumber) {
+          setGroupMemberships(groupMembershipResult.value.items);
+          setGroupMembershipCursor(groupMembershipResult.value.next_cursor);
+          snapshot = { ...snapshot, groupMemberships: groupMembershipResult.value.items };
+        } else if (groupMembershipResult.status === 'rejected' && groupMembershipsRequest.current === membershipRequestNumber) {
+          setGroupMemberships([]);
+          if (!nextError) nextError = displayError(groupMembershipResult.reason);
+        }
       }
-      setLessonError(nextError);
+      if (lessonListRequest.current === pageRequestNumber) setLessonError(nextError);
     } finally {
-      setLessonLoading(false);
+      if (lessonListRequest.current === pageRequestNumber) setLessonLoading(false);
     }
     return snapshot;
+  }
+
+  async function searchLessons(q: string, topicFilter: string): Promise<void> {
+    const next = updateLessonSearchState(
+      { filters: lessonSearchFilters, cursor: lessonCursor },
+      { source: 'ALL', q, topic: topicFilter },
+    );
+    setLessonSearchFilters(next.filters);
+    setLessonCursor(null);
+    if (next.changed) setLessons([]);
+    const requestNumber = lessonListRequest.current + 1;
+    lessonListRequest.current = requestNumber;
+    setLessonLoading(true);
+    setLessonError('');
+    try {
+      const page = await application.lessons.list({ ...next.filters, cursor: null, limit: 25 });
+      if (lessonListRequest.current !== requestNumber) return;
+      const allowedLessons = page.items.filter((item) => item.access_source === 'PUBLIC' || item.access_source === 'SHARED');
+      setLessons(allowedLessons);
+      setLessonCursor(page.next_cursor);
+      if (lesson && !allowedLessons.some((item) => item.lesson_id === lesson.lesson_id && item.version_id === lesson.version_id)) {
+        setLesson(null);
+        setLessonError('Bài giảng đã thay đổi quyền hoặc phiên bản. Hãy kiểm tra lại trước khi tiếp tục.');
+      }
+    } catch (cause) {
+      if (lessonListRequest.current === requestNumber) setLessonError(displayError(cause));
+    } finally {
+      if (lessonListRequest.current === requestNumber) setLessonLoading(false);
+    }
+  }
+
+  async function loadMoreLessons(): Promise<void> {
+    const cursor = lessonCursor;
+    if (!cursor || lessonLoading) return;
+    const requestNumber = lessonListRequest.current + 1;
+    lessonListRequest.current = requestNumber;
+    setLessonLoading(true);
+    setLessonError('');
+    try {
+      const page = await application.lessons.list({ ...lessonSearchFilters, cursor, limit: 25 });
+      if (lessonListRequest.current !== requestNumber) return;
+      const allowedLessons = page.items.filter((item) => item.access_source === 'PUBLIC' || item.access_source === 'SHARED');
+      setLessons((current) => mergeLessonSummaryPages(current, allowedLessons));
+      setLessonCursor(page.next_cursor);
+    } catch (cause) {
+      if (lessonListRequest.current === requestNumber) setLessonError(displayError(cause));
+    } finally {
+      if (lessonListRequest.current === requestNumber) setLessonLoading(false);
+    }
+  }
+
+  async function loadMoreGroupMemberships(): Promise<void> {
+    const cursor = groupMembershipCursor;
+    if (!cursor || groupMembershipsLoading) return;
+    const requestNumber = groupMembershipsRequest.current + 1;
+    groupMembershipsRequest.current = requestNumber;
+    setGroupMembershipsLoading(true);
+    try {
+      const page = await application.lessons.listGroupMemberships(cursor);
+      if (groupMembershipsRequest.current !== requestNumber) return;
+      setGroupMemberships((current) => {
+        const seen = new Set(current.map((item) => item.membership_id));
+        return [...current, ...page.items.filter((item) => !seen.has(item.membership_id))];
+      });
+      setGroupMembershipCursor(page.next_cursor);
+    } catch (cause) {
+      if (groupMembershipsRequest.current === requestNumber) setLessonError(displayError(cause));
+    } finally {
+      if (groupMembershipsRequest.current === requestNumber) setGroupMembershipsLoading(false);
+    }
   }
 
   async function chooseLesson(lessonId: string): Promise<void> {
@@ -551,7 +984,12 @@ export function useParentController(application: ParentApplicationModule) {
       }
       if (galleryMode === 'picker') {
         setLesson(detail);
-        setStep('topic');
+        setTopic(detail.topic);
+        setSelectedTopicId('lesson');
+        setIntendedDrawingSubject(detail.drawing_subject);
+        setSvgGuideDraft(null);
+        setGuideError('');
+        setStep('idea');
       } else {
         setGalleryLesson(detail);
       }
@@ -563,26 +1001,71 @@ export function useParentController(application: ParentApplicationModule) {
   }
 
   async function acceptLessonInvitation(invitationId: string): Promise<void> {
-    await respondToInvitation(`lesson:${invitationId}`, () => application.lessons.acceptInvitation(invitationId), {
+    await respondToInvitation(`lesson:${invitationId}:accept`, (identity) => application.lessons.acceptInvitation(invitationId, identity), {
       kind: 'lesson', id: invitationId, expected: ['ACCEPTED', 'ACTIVE'],
     });
   }
 
   async function declineLessonInvitation(invitationId: string): Promise<void> {
-    await respondToInvitation(`lesson:${invitationId}`, () => application.lessons.declineInvitation(invitationId), {
+    await respondToInvitation(`lesson:${invitationId}:decline`, (identity) => application.lessons.declineInvitation(invitationId, identity), {
       kind: 'lesson', id: invitationId, expected: ['DECLINED'],
     });
   }
 
   async function acceptGroupInvitation(membershipId: string): Promise<void> {
-    await respondToInvitation(`group:${membershipId}`, () => application.lessons.acceptGroupInvitation(membershipId), {
+    await respondToInvitation(`group:${membershipId}:accept`, (identity) => application.lessons.acceptGroupInvitation(membershipId, identity), {
       kind: 'group', id: membershipId, expected: ['ACTIVE'],
     });
   }
 
+  async function declineGroupInvitation(membershipId: string): Promise<void> {
+    await respondToInvitation(`group:${membershipId}:decline`, (identity) => application.lessons.declineGroupInvitation(membershipId, identity), {
+      kind: 'group', id: membershipId, expected: ['DECLINED'],
+    });
+  }
+
+  async function leaveGroup(membership: ParentGroupMembershipV1): Promise<void> {
+    if (!canLeaveParentGroupMembership(membership)) return;
+    const actionKey = parentGroupLeaveActionKey(membership);
+    if (groupLeaveActionsInFlight.current.has(actionKey)) return;
+    groupLeaveActionsInFlight.current.add(actionKey);
+    const actionIdentity = retainedParentGroupLeaveActionIdentity(
+      groupLeaveActionIdentities.current,
+      membership,
+      createParentActionIdentity,
+    );
+    setLessonLoadingId(`group:${membership.membership_id}:leave`);
+    setLessonError('');
+    try {
+      await application.lessons.leaveGroup(
+        membership.organization_id!,
+        membership.parent_group_id,
+        membership.membership_id,
+        membership.revision,
+        actionIdentity,
+      );
+      groupLeaveActionIdentities.current.delete(actionKey);
+      await openLessons('gallery');
+    } catch (cause) {
+      const code = cause instanceof ParentApplicationError ? cause.code : '';
+      if (code === 'STALE_REVISION' || code === 'INVALID_STATE_TRANSITION') {
+        groupLeaveActionIdentities.current.delete(actionKey);
+        const refreshed = await openLessons('gallery').catch(() => null);
+        setLessonError(refreshed && refreshed.summaries !== null && refreshed.groupMemberships !== null
+          ? safeParentGroupMembershipErrorMessage(cause)
+          : 'Chưa thể tải lại danh sách nhóm. Hãy kiểm tra lại trước khi xác nhận lại.');
+      } else {
+        setLessonError(safeParentGroupMembershipErrorMessage(cause));
+      }
+    } finally {
+      groupLeaveActionsInFlight.current.delete(actionKey);
+      setLessonLoadingId('');
+    }
+  }
+
   async function respondToInvitation(
     actionKey: string,
-    action: () => Promise<unknown>,
+    action: (identity: ParentActionIdentity) => Promise<unknown>,
     verification: {
       kind: 'lesson' | 'group';
       id: string;
@@ -591,26 +1074,32 @@ export function useParentController(application: ParentApplicationModule) {
   ): Promise<void> {
     if (invitationActionsInFlight.current.has(actionKey)) return;
     invitationActionsInFlight.current.add(actionKey);
+    const actionIdentity = retainedMapActionIdentity(invitationActionIdentities.current, actionKey, actionKey);
     setLessonLoadingId(verification.id);
     setLessonError('');
     let actionError = '';
     try {
-      await action();
+      await action(actionIdentity);
     } catch (cause) {
-      actionError = displayError(cause);
+      actionError = verification.kind === 'group'
+        ? safeParentGroupInvitationErrorMessage(cause)
+        : displayError(cause);
     }
     try {
       const refreshed = await openLessons('gallery');
       const listWasRefreshed = refreshed.summaries !== null
         && refreshed.lessonInvitations !== null
-        && refreshed.groupInvitations !== null;
+        && refreshed.groupInvitations !== null
+        && refreshed.groupMemberships !== null;
       if (!listWasRefreshed) {
         setLessonError('Chưa thể xác nhận trạng thái lời mời từ máy chủ. Hãy kiểm tra lại trước khi thử tiếp.');
       } else {
         const actual = verification.kind === 'lesson'
           ? refreshed.lessonInvitations?.find((item) => item.access_grant_id === verification.id)?.state
-          : refreshed.groupInvitations?.find((item) => item.membership_id === verification.id)?.state;
+          : refreshed.groupMemberships?.find((item) => item.membership_id === verification.id)?.state
+            ?? refreshed.groupInvitations?.find((item) => item.membership_id === verification.id)?.state;
         if (actual && verification.expected.includes(actual.toUpperCase())) {
+          invitationActionIdentities.current.delete(actionKey);
           setLessonError('');
         } else if (actionError) {
           setLessonError(actionError);
@@ -627,9 +1116,27 @@ export function useParentController(application: ParentApplicationModule) {
   }
 
   async function createGuide(): Promise<void> {
-    if (!guideEnabled) return;
+    if (!guideEnabled || !topic.trim() || guideBusy) return;
+    setGuideBusy(true);
     setGuideBase64('');
-    setGuideError('Gợi ý nét vẽ tự động 4–8 bước chưa khả dụng. Bạn vẫn có thể tiếp tục với hướng dẫn của bài học đã ghim.');
+    setGuideError('');
+    setSvgGuideDraft(null);
+    setDrawingGuideIndex(0);
+    setStep('drawing-guide');
+    try {
+      const draft = await application.learning.generateSketchGuide(
+        topic.trim(),
+        intendedDrawingSubject.trim() || lesson?.drawing_subject || undefined,
+      );
+      if (!isSafeSvgTopicStrokeGuideSourceDraft(draft)) {
+        throw new ParentApplicationError('PARENT_SVG_GUIDE_INVALID', 'Hướng dẫn chưa qua kiểm tra hiển thị an toàn.');
+      }
+      setSvgGuideDraft(draft);
+    } catch (cause) {
+      setGuideError(parentSvgGuideFailureMessage(cause));
+    } finally {
+      setGuideBusy(false);
+    }
   }
 
   function setAudio(value: SelectedAudio | null): void {
@@ -670,7 +1177,10 @@ export function useParentController(application: ParentApplicationModule) {
     setActivityBusy(false);
     setActivityAttempted(false);
     setActivityError('');
+    activitySuggestionAction.current = null;
     activitySelectionAction.current = null;
+    activitySuggestionSelectionActions.current.clear();
+    activitySuggestionSelectionReceipt.current = null;
     activityCancelAction.current = null;
   }
 
@@ -772,6 +1282,19 @@ export function useParentController(application: ParentApplicationModule) {
     }
     setError('');
     setDrawingGuideIndex(0);
+    if (guideEnabled && topic.trim()) {
+      void createGuide();
+      return;
+    }
+    setSvgGuideDraft(null);
+    setGuideError('');
+    setStep(lesson ? 'drawing-guide' : 'capture');
+  }
+
+  function continueAfterSketchGuide(): void {
+    setDrawingGuideIndex(0);
+    setSvgGuideDraft(null);
+    setGuideError('');
     setStep(lesson ? 'drawing-guide' : 'capture');
   }
 
@@ -870,65 +1393,87 @@ export function useParentController(application: ParentApplicationModule) {
     return true;
   }
 
-  async function confirmContext(): Promise<void> {
-    if (busy || !contextRun) return;
-    if (!ensureLearningProfileAllowed(profile)) return;
+  async function confirmContext(
+    selectedContextEntryIds?: readonly string[],
+  ): Promise<'confirmed' | 'entry-not-found' | 'already-confirmed' | 'failed'> {
+    if (busy || !contextRun) return 'failed';
+    if (!ensureLearningProfileAllowed(profile)) return 'failed';
     const run = contextRun;
-    if (!subjectConfirmed || !isConfirmedRunSubject(run, subject)) {
-      setError(safeParentFlowErrorMessage({ code: 'PARENT_SUBJECT_REQUIRED' }));
-      return;
-    }
-    const signature = JSON.stringify([run.run_id, run.context_revision, run.context_snapshot_sha256]);
     const busyToken = beginBusy('context-confirmation');
     setError('');
     try {
-      if (contextConfirmationAction.current) {
-        const latest = await getLatestRun(run.run_id);
-        if (latest.context_confirmed === true) {
-          setContextConfirmed(true);
-          contextConfirmationAction.current = null;
-          await handleStoryGateResult(latest, false);
-          return;
-        }
-        if (latest.context_revision !== run.context_revision
-          || latest.context_snapshot_sha256 !== run.context_snapshot_sha256) {
-          contextConfirmationAction.current = null;
-          setError(safeParentFlowErrorMessage({ code: 'STALE_REVISION' }));
-          return;
-        }
+      // The request must pin the latest revision/hash, and the post-write read is the review source.
+      const latest = await getLatestRun(run.run_id);
+      if (latest.context_confirmed === true) {
+        contextConfirmationAction.current = null;
+        await handleStoryGateResult(latest, false);
+        return 'already-confirmed';
       }
+      if (!subjectConfirmed || !isConfirmedRunSubject(latest, subject)) {
+        setError(safeParentFlowErrorMessage({ code: 'PARENT_SUBJECT_REQUIRED' }));
+        return 'failed';
+      }
+      const signature = JSON.stringify([
+        latest.run_id,
+        latest.context_revision,
+        latest.context_snapshot_sha256,
+        selectedContextEntryIds === undefined ? null : [...selectedContextEntryIds],
+      ]);
       const actionIdentity = retainedActionIdentity(contextConfirmationAction, signature);
-      const result = await application.learning.confirmRunContextV1(run, actionIdentity);
-      const confirmedRun = result.story_run;
-      setContextRun(confirmedRun);
-      setActiveRun(confirmedRun);
-      if (confirmedRun.run_id !== run.run_id
-        || confirmedRun.context_revision !== run.context_revision
-        || confirmedRun.context_snapshot_sha256 !== run.context_snapshot_sha256
-        || confirmedRun.context_confirmed !== true) {
+      const receipt = await application.learning.confirmRunContextV1(latest, actionIdentity, selectedContextEntryIds);
+      const reviewedRun = await getLatestRun(run.run_id);
+      if (receipt.story_run.run_id !== run.run_id
+        || receipt.story_run.context_revision !== reviewedRun.context_revision
+        || receipt.story_run.context_snapshot_sha256 !== reviewedRun.context_snapshot_sha256
+        || reviewedRun.context_confirmed !== true
+        || (selectedContextEntryIds !== undefined && !isParentRunContextSnapshotV2(reviewedRun.context_snapshot))) {
         setContextConfirmed(false);
         setError(safeParentFlowErrorMessage({ code: 'PARENT_CONTEXT_SNAPSHOT_INVALID' }));
-        return;
+        return 'failed';
       }
+      setContextRun(reviewedRun);
+      setActiveRun(reviewedRun);
       setContextConfirmed(true);
       contextConfirmationAction.current = null;
-      setSubjectConfirmed(isConfirmedRunSubject(confirmedRun, subject));
-      await handleStoryGateResult(confirmedRun);
+      setSubjectConfirmed(isConfirmedRunSubject(reviewedRun, subject));
+      await handleStoryGateResult(reviewedRun);
+      return 'confirmed';
     } catch (cause) {
-      let handledConflict = false;
-      if (cause instanceof ParentApplicationError && (cause.code === 'STALE_REVISION' || cause.code === 'INVALID_STATE_TRANSITION')) {
+      if (cause instanceof ParentApplicationError
+        && cause.code === 'RESOURCE_NOT_FOUND'
+        && selectedContextEntryIds !== undefined) {
+        contextConfirmationAction.current = null;
+        setError('Một số ghi chú không còn khả dụng. Danh sách đã được tải lại; hãy chọn lại.');
+        return 'entry-not-found';
+      }
+      if (cause instanceof ParentApplicationError
+        && cause.code === 'INVALID_REQUEST'
+        && cause.fieldErrors?.some((error) => error.field === 'selected_context_entry_ids' && error.code === 'TOO_LONG')) {
+        contextConfirmationAction.current = null;
+        setError('Ngữ cảnh đã chọn quá dài. Hãy chọn ít ghi chú hơn rồi thử lại.');
+        return 'failed';
+      }
+      if (cause instanceof ParentApplicationError
+        && (cause.status === 409 || cause.code === 'STALE_REVISION' || cause.code === 'INVALID_STATE_TRANSITION')) {
         contextConfirmationAction.current = null;
         try {
-          const latest = await readLiveRun(run.run_id);
-          await handleStoryGateResult(latest, false);
-          handledConflict = true;
+          const current = await getLatestRun(run.run_id);
+          if (current.context_confirmed === true) {
+            await handleStoryGateResult(current, false);
+            return 'already-confirmed';
+          }
+          await handleStoryGateResult(current, false);
+          setError(safeParentFlowErrorMessage(cause));
         } catch {
           setContextConfirmed(false);
           setSubjectConfirmed(false);
           setStep('home');
+          setError(safeParentFlowErrorMessage(cause));
         }
+        return 'failed';
       }
-      if (!handledConflict) setError(safeParentFlowErrorMessage(cause));
+      setError(safeParentFlowErrorMessage(cause));
+      return 'failed';
     } finally {
       endBusy(busyToken);
     }
@@ -1123,7 +1668,7 @@ export function useParentController(application: ParentApplicationModule) {
     }
   }
 
-  async function requestActivityList(force = false, sourceRun?: ParentStoryRunV1): Promise<void> {
+  async function requestActivityList(force = false, sourceRun?: ParentStoryRunV1, phaseAOnly = false): Promise<void> {
     if (!sourceRun && (activityBusy || (!force && activityAttempted && activitySuggestions))) return;
     if (!ensureLearningProfileAllowed(profile)) return;
     const run = sourceRun ?? contextRun;
@@ -1148,16 +1693,69 @@ export function useParentController(application: ParentApplicationModule) {
         setActivityError(safeParentFlowErrorMessage({ code: 'STALE_REVISION' }));
         return;
       }
-      const response = await timeRequest('activity-list', () => application.learning.listActivitiesV1(run.run_id));
-      const activityList = readActivityListV1(response);
-      if (!activityList) {
-        throw new ParentApplicationError('PARENT_ACTIVITY_LIST_INVALID', 'The activity list did not match the approved response shape.');
+      const loadPhaseAActivityList = async (): Promise<ParentActivityListV1> => {
+        const response = await timeRequest('activity-list', () => application.learning.listActivitiesV1(run.run_id));
+        const list = readActivityListV1(response);
+        if (!list) {
+          throw new ParentApplicationError('PARENT_ACTIVITY_LIST_INVALID', 'The activity list did not match the approved response shape.');
+        }
+        return list;
+      };
+      let activityList: ParentActivityListV1 | ParentActivitySuggestionSetV1;
+      if (phaseAOnly) {
+        activityList = await loadPhaseAActivityList();
+      } else {
+        const suggestionSignature = JSON.stringify([run.run_id, sourceRevision]);
+        const actionIdentity = retainedActionIdentity(activitySuggestionAction, suggestionSignature);
+        try {
+          const response = await timeRequest('activity-list', () => application.learning.requestActivitySuggestionsV1(
+            run.run_id,
+            sourceRevision,
+            actionIdentity,
+          ));
+          const suggestionSet = readActivitySuggestionSetV1(response);
+          if (!suggestionSet || suggestionSet.story_run_id !== run.run_id
+            || suggestionSet.understanding_revision !== sourceRevision) {
+            throw new ParentApplicationError('PARENT_ACTIVITY_LIST_INVALID', 'The activity suggestions did not match the approved response shape.');
+          }
+          activitySuggestionAction.current = null;
+          activityList = suggestionSet;
+        } catch (cause) {
+          if (!isActivitySuggestionFallbackError(cause)) throw cause;
+          activityList = await loadPhaseAActivityList();
+        }
       }
       setActivitySuggestions(activityList);
-      const selectedRef = latest.main_activity?.state === 'SELECTED' ? latest.main_activity.selected?.activity_ref : null;
-      const selectedIndex = selectedRef
-        ? activityList.items.findIndex((item) => JSON.stringify(item.activity_ref) === JSON.stringify(selectedRef))
-        : -1;
+      const selectedActivity = latest.main_activity?.state === 'SELECTED' ? latest.main_activity.selected : null;
+      let selectedIndex = -1;
+      if (selectedActivity && 'items' in activityList && selectedActivity.activity_ref) {
+        selectedIndex = activityList.items.findIndex((item) => JSON.stringify(item.activity_ref) === JSON.stringify(selectedActivity.activity_ref));
+      } else if (selectedActivity && 'activities' in activityList) {
+        if (selectedActivity.source === 'AI_DRAFT') {
+          const receipt = activitySuggestionSelectionReceipt.current;
+          const receiptIndex = receipt
+            && receipt.runId === run.run_id
+            && receipt.suggestionSetId === activityList.suggestion_set_id
+            && receipt.understandingRevision === sourceRevision
+            && receipt.title === selectedActivity.title
+            && receipt.objective === selectedActivity.objective
+            && activityList.activities[receipt.activityIndex]?.source === 'AI_GENERATED_DRAFT'
+            && activityList.activities[receipt.activityIndex]?.title === selectedActivity.title
+            && activityList.activities[receipt.activityIndex]?.objective === selectedActivity.objective
+            ? receipt.activityIndex
+            : -1;
+          selectedIndex = receiptIndex >= 0
+            ? receiptIndex
+            : activityList.activities.findIndex((item) => item.source === 'AI_GENERATED_DRAFT'
+              && item.title === selectedActivity.title && item.objective === selectedActivity.objective);
+        } else {
+          selectedIndex = selectedActivity.activity_ref === null ? -1 : activityList.activities.findIndex((item) =>
+            item.source_lesson_id === selectedActivity.activity_ref?.lesson_id
+            && item.source_lesson_version_id === selectedActivity.activity_ref?.version_id
+            && item.source_content_sha256 === selectedActivity.activity_ref?.content_sha256
+            && item.source_activity_index === selectedActivity.activity_ref?.activity_index);
+        }
+      }
       setSelectedActivityIndex(selectedIndex >= 0 ? selectedIndex : null);
       adoptPolledRun(latest);
     } catch (cause) {
@@ -1168,21 +1766,31 @@ export function useParentController(application: ParentApplicationModule) {
   }
 
   function chooseActivity(index: number): void {
-    if (!activitySuggestions || !Number.isInteger(index) || index < 0 || index >= activitySuggestions.items.length) return;
+    const itemCount = !activitySuggestions ? 0
+      : 'items' in activitySuggestions ? activitySuggestions.items.length : activitySuggestions.activities.length;
+    if (!activitySuggestions || !Number.isInteger(index) || index < 0 || index >= itemCount) return;
     setSelectedActivityIndex(index);
     setActivityError('');
   }
 
   async function selectActivity(): Promise<void> {
     if (busy || activityBusy || !ensureLearningProfileAllowed(profile)) return;
-    const selected = selectedActivityIndex === null ? null : activitySuggestions?.items[selectedActivityIndex] ?? null;
+    const suggestionSet = activitySuggestions && 'activities' in activitySuggestions ? activitySuggestions : null;
+    const selectedSuggestion = suggestionSet && selectedActivityIndex !== null
+      ? suggestionSet.activities[selectedActivityIndex] ?? null
+      : null;
+    const catalogList = activitySuggestions && 'items' in activitySuggestions ? activitySuggestions : null;
+    const selectedCatalog = catalogList && selectedActivityIndex !== null
+      ? catalogList.items[selectedActivityIndex] ?? null
+      : null;
     const runId = contextRun?.run_id;
-    if (!runId || !selected) {
+    if (!runId || (!selectedSuggestion && !selectedCatalog)) {
       setActivityError('Chọn một hoạt động trong danh sách trước khi tiếp tục.');
       return;
     }
 
     const busyToken = beginBusy('activity-selection');
+    let suggestionSelectionSignature: string | null = null;
     setError('');
     setActivityError('');
     try {
@@ -1195,25 +1803,89 @@ export function useParentController(application: ParentApplicationModule) {
         setActivityError(safeParentFlowErrorMessage({ code: 'STALE_REVISION' }));
         return;
       }
-      const signature = JSON.stringify([runId, latest.run_revision, selected.activity_ref]);
-      const actionIdentity = retainedActionIdentity(activitySelectionAction, signature);
-      const request: ParentActivitySelectionRequestV1 = {
-        expected_revision: latest.run_revision,
-        activity: selected.activity_ref,
-      };
-      const envelope = await timeRequest('activity-selection', () => application.learning.selectActivityV1(runId, request, actionIdentity));
-      activitySelectionAction.current = null;
-      await handleStoryGateResult(envelope.story_run);
-    } catch (cause) {
-      if (cause instanceof ParentApplicationError && (cause.code === 'STALE_REVISION' || cause.code === 'INVALID_STATE_TRANSITION')) {
+      if (suggestionSet && selectedSuggestion && selectedActivityIndex !== null) {
+        const selectionAction = retainedSuggestedActivitySelectionAction(activitySuggestionSelectionActions.current, {
+          runId,
+          suggestionSetId: suggestionSet.suggestion_set_id,
+          activityIndex: selectedActivityIndex,
+          understandingRevision: suggestionSet.understanding_revision,
+        });
+        const signature = selectionAction.signature;
+        suggestionSelectionSignature = signature;
+        const receipt = await timeRequest('activity-selection', () => application.learning.selectSuggestedActivityV1({
+          runId,
+          suggestionSetId: suggestionSet.suggestion_set_id,
+          revision: suggestionSet.understanding_revision,
+          activityIndex: selectedActivityIndex,
+          actionIdentity: selectionAction.identity,
+        }));
+        if (Number.isInteger(receipt.activity_index)) {
+          activitySuggestionSelectionReceipt.current = {
+            runId,
+            suggestionSetId: suggestionSet.suggestion_set_id,
+            understandingRevision: suggestionSet.understanding_revision,
+            activityIndex: receipt.activity_index,
+            title: selectedSuggestion.title,
+            objective: selectedSuggestion.objective,
+          };
+        }
+        activitySuggestionSelectionActions.current.delete(signature);
+        await handleStoryGateResult(await readLiveRun(runId));
+      } else if (selectedCatalog?.activity_ref) {
+        const signature = JSON.stringify([runId, latest.run_revision, selectedCatalog.activity_ref]);
+        const actionIdentity = retainedActionIdentity(activitySelectionAction, signature);
+        const request: ParentActivitySelectionRequestV1 = {
+          expected_revision: latest.run_revision,
+          activity: selectedCatalog.activity_ref,
+        };
+        const envelope = await timeRequest('activity-selection', () => application.learning.selectActivityV1(runId, request, actionIdentity));
         activitySelectionAction.current = null;
+        await handleStoryGateResult(envelope.story_run);
+      } else {
+        setActivityError(safeParentFlowErrorMessage({ code: 'PARENT_ACTIVITY_SELECTION_INVALID' }));
+      }
+    } catch (cause) {
+      if (suggestionSet && isActivitySelectionPhaseAFallbackError(cause)) {
+        try {
+          const latest = await readLiveRun(runId);
+          if (latest.run_state !== 'PREPARATION_REVIEW' || latest.main_activity?.state === 'SELECTED') {
+            if (suggestionSelectionSignature) activitySuggestionSelectionActions.current.delete(suggestionSelectionSignature);
+            await handleStoryGateResult(latest, false);
+            return;
+          }
+          if (suggestionSelectionSignature) activitySuggestionSelectionActions.current.delete(suggestionSelectionSignature);
+          activitySelectionAction.current = null;
+          setActivitySuggestions(null);
+          setSelectedActivityIndex(null);
+          setActivityAttempted(false);
+          await requestActivityList(true, latest, true);
+          setActivityError(safeParentFlowErrorMessage(cause));
+        } catch (reloadError) {
+          setActivityError(safeParentFlowErrorMessage(reloadError));
+        }
+      } else if (suggestionSet && isUncertainActivitySelectionError(cause)) {
+        try {
+          const latest = await readLiveRun(runId);
+          if (latest.run_state !== 'PREPARATION_REVIEW' || latest.main_activity?.state === 'SELECTED') {
+            if (suggestionSelectionSignature) activitySuggestionSelectionActions.current.delete(suggestionSelectionSignature);
+            await handleStoryGateResult(latest, false);
+            return;
+          }
+          adoptPolledRun(latest);
+          setActivityError(ACTIVITY_COPY.selectionRetry);
+        } catch {
+          setActivityError(ACTIVITY_COPY.selectionRetry);
+        }
+      } else if (cause instanceof ParentApplicationError && (cause.code === 'STALE_REVISION' || cause.code === 'INVALID_STATE_TRANSITION')) {
+        activitySelectionAction.current = null;
+        if (suggestionSelectionSignature) activitySuggestionSelectionActions.current.delete(suggestionSelectionSignature);
         try {
           const latest = await readLiveRun(runId);
           await handleStoryGateResult(latest, false);
         } catch (reloadError) {
           setActivityError(safeParentFlowErrorMessage(reloadError));
         }
-      } else if (cause instanceof ParentApplicationError && cause.code === 'RESOURCE_NOT_FOUND') {
+      } else if (!suggestionSet && cause instanceof ParentApplicationError && cause.code === 'RESOURCE_NOT_FOUND') {
         activitySelectionAction.current = null;
         setActivitySuggestions(null);
         setSelectedActivityIndex(null);
@@ -1277,7 +1949,9 @@ export function useParentController(application: ParentApplicationModule) {
     if (run.run_state === 'FAILED') {
       setStep('story');
       setStoryAttempted(true);
-      setError('Chưa tạo được câu chuyện. Hãy bắt đầu một buổi học mới.');
+      setError(isRecoverableFirstStoryFailure(run)
+        ? STORY_RECOVERY_COPY.eligibleFailure
+        : 'Chưa tạo được câu chuyện. Hãy bắt đầu một buổi học mới.');
       return;
     }
     setStep('story');
@@ -1307,7 +1981,9 @@ export function useParentController(application: ParentApplicationModule) {
         return;
       }
       if (latest.run_state === 'FAILED') {
-        setError('Chưa tạo được câu chuyện. Hãy bắt đầu một buổi học mới.');
+        setError(isRecoverableFirstStoryFailure(latest, runId)
+          ? STORY_RECOVERY_COPY.eligibleFailure
+          : 'Chưa tạo được câu chuyện. Hãy bắt đầu một buổi học mới.');
         return;
       }
       if (latest.run_state === 'SCRIPT_GENERATION_UNKNOWN') {
@@ -1319,6 +1995,120 @@ export function useParentController(application: ParentApplicationModule) {
       if (!(cause instanceof RunWaitCancelled)) setError(safeParentFlowErrorMessage(cause));
     } finally {
       endBusy(busyToken);
+    }
+  }
+
+  async function recoverFirstStory(hint?: string): Promise<void> {
+    const run = contextRun;
+    if (busy || !run || !ensureLearningProfileAllowed(profile)) return;
+    if (readVideoPanel(run, { spentRevisionNo: spentStoryRevisionNo, confirmedRevisionNo: confirmedStoryRevisionNo }).onlyCancel) return;
+
+    const busyToken = beginBusy('story-recovery');
+    setError('');
+    setRewriteNotice('');
+    try {
+      const latest = await getLatestRun(run.run_id);
+      if (latest.run_state === 'SCRIPT_GENERATING' || latest.run_state === 'STORY_GENERATING') {
+        setStoryRecoveryContinuing(true);
+        await followStoryRecovery(run.run_id);
+        return;
+      }
+      if (latest.run_state === 'SCRIPT_GENERATION_UNKNOWN') {
+        setStoryRecoveryContinuing(true);
+        setError(STORY_RECOVERY_COPY.unknownOutcome);
+        return;
+      }
+      if (latest.run_state === 'PREPARATION_REVIEW') {
+        setStoryRecoveryContinuing(false);
+        await handleStoryGateResult(latest, false);
+        return;
+      }
+      if ((latest.run_state === 'SCRIPT_REVIEW' || latest.run_state === 'FAILED')
+        && Number(latest.story_revision_no ?? 0) >= 2) {
+        // The server already finished (or ended) the recovery, for example after a lost response:
+        // adopt its outcome instead of showing a stale-state message.
+        setStoryRecoveryContinuing(true);
+        await followStoryRecovery(run.run_id);
+        return;
+      }
+      if (!isRecoverableFirstStoryFailure(latest, run.run_id)) {
+        storyRecoveryAction.current = null;
+        setStoryRecoveryContinuing(false);
+        setError(safeStoryRecoveryMessage({ code: 'INVALID_STATE_TRANSITION' }));
+        return;
+      }
+
+      setStoryRecoveryContinuing(true);
+      const key = retainedActionIdentity(storyRecoveryAction, storyRecoverySignature(run.run_id, hint));
+      const accepted = await timeRequest('story-recovery', () => application.learning.rewriteStoryV1(
+        latest,
+        hint?.trim() || undefined,
+        key,
+      ));
+      setContextRun({ ...latest, run_state: accepted.run_state, run_revision: accepted.run_revision });
+      await followStoryRecovery(run.run_id);
+    } catch (cause) {
+      if (cause instanceof RunWaitCancelled) return;
+      if (cause instanceof ParentApplicationError
+        && (cause.code === 'STALE_REVISION'
+          || cause.code === 'STORY_REWRITE_LIMIT_REACHED'
+          || cause.code === 'INVALID_STATE_TRANSITION')) {
+        storyRecoveryAction.current = null;
+        setStoryRecoveryContinuing(false);
+      }
+      setError(safeStoryRecoveryMessage(cause));
+    } finally {
+      endBusy(busyToken);
+    }
+  }
+
+  async function followStoryRecovery(runId: string): Promise<void> {
+    const range = { fromRevisionNo: 1, toRevisionNo: 2 };
+    const result = await waitRun(
+      runId,
+      (run) => classifyRewriteProgress(run, range).kind !== 'generating',
+      { onRun: adoptPolledRun },
+    );
+    const run = result.value;
+    if (!run || result.timedOut) {
+      setStoryRecoveryContinuing(true);
+      setRewriteNotice(STORY_RECOVERY_COPY.timeout);
+      return;
+    }
+
+    const progress = classifyRewriteProgress(run, range);
+    if (progress.kind === 'ready') {
+      storyRecoveryAction.current = null;
+      setStoryRecoveryContinuing(false);
+      setRewriteNotice('');
+      if (!adoptServerStory(run)) {
+        setError(safeParentFlowErrorMessage({ code: 'PARENT_STORY_REVISION_INVALID' }));
+        return;
+      }
+      adoptPolledRun(run);
+      setStoryRecoveryHint('');
+      setStep('story');
+      return;
+    }
+    if (progress.kind === 'closed') {
+      setStoryRecoveryContinuing(false);
+      if (run.run_state === 'FAILED') {
+        storyRecoveryAction.current = null;
+        setError(STORY_RECOVERY_COPY.terminalFailure);
+        return;
+      }
+      setError(safeParentFlowErrorMessage({ code: progress.state }));
+      return;
+    }
+    if (progress.kind === 'unknown-outcome') {
+      setStoryRecoveryContinuing(true);
+      setError(STORY_RECOVERY_COPY.unknownOutcome);
+      return;
+    }
+    if (progress.kind === 'failed' || progress.kind === 'unexpected') {
+      storyRecoveryAction.current = null;
+      setStoryRecoveryContinuing(false);
+      setError(safeParentFlowErrorMessage({ code: 'PARENT_STORY_REVISION_INVALID' }));
     }
   }
 
@@ -1926,6 +2716,7 @@ export function useParentController(application: ParentApplicationModule) {
     if (panel.requiresReason && videoReason === null) return;
     const reason = panel.requiresReason ? videoReason : null;
     const busyToken = beginBusy('video-request');
+    setVideoQuotaExceeded(false);
     setError('');
     try {
       const latest = await readLiveRun(run.run_id);
@@ -1966,10 +2757,14 @@ export function useParentController(application: ParentApplicationModule) {
         } catch {
           // Keep the safe command error when the refresh is unavailable.
         }
+        const quotaExceeded = isVideoQuotaExceededError(cause);
+        setVideoQuotaExceeded(quotaExceeded);
         setError(safeParentFlowErrorMessage(cause));
       } else {
         if (isDefinitiveClientError(cause)) videoRequestAction.current = null;
-        setError(safeRunMessage(cause));
+        const quotaExceeded = isVideoQuotaExceededError(cause);
+        setVideoQuotaExceeded(quotaExceeded);
+        setError(quotaExceeded ? safeParentFlowErrorMessage(cause) : safeRunMessage(cause));
       }
     } finally {
       endBusy(busyToken);
@@ -2015,6 +2810,51 @@ export function useParentController(application: ParentApplicationModule) {
       setPlayback(source);
     } catch (cause) {
       setError(safePlaybackMessage(cause));
+    } finally {
+      endBusy(busyToken);
+    }
+  }
+
+  async function openFailedRunForRecovery(runId: string): Promise<void> {
+    if (busy || !runId.trim()) return;
+    const busyToken = beginBusy('history-story-recovery');
+    setError('');
+    try {
+      const run = await readLiveRun(runId);
+      const selected = selectProfileById(profiles, run.parent_profile_id);
+      if (!ensureLearningProfileAllowed(selected)) return;
+      if (!isRecoverableFirstStoryFailure(run, runId)) {
+        storyRecoveryAction.current = null;
+        setStoryRecoveryContinuing(false);
+        setError(safeParentFlowErrorMessage({ code: 'FAILED' }));
+        return;
+      }
+
+      if (contextRun && contextRun.run_id !== runId
+        && !['FAILED', 'COMPLETED', 'ABANDONED', 'CANCELLED', 'DELETED'].includes(contextRun.run_state)) {
+        // Another live run is open in this session: do not wipe it to show a closed failed run.
+        setError(safeParentFlowErrorMessage({ code: 'ACTIVE_RUN_EXISTS' }));
+        return;
+      }
+      resetWorkflow();
+      if (selected) {
+        setProfile(selected);
+        setSelectedProfileId(selected.profile_id);
+      }
+      setTopic(run.context_snapshot.topic);
+      setIdea(run.context_snapshot.adult_confirmed_idea);
+      adoptPolledRun(run);
+      const understanding = readRunUnderstanding(run);
+      if (understanding) {
+        setCandidate(understanding.candidate);
+        setUnderstandingRevision(understanding.understandingRevision);
+        setSubject(understanding.subject);
+        setSubjectConfirmed(isConfirmedRunSubject(run, understanding.subject));
+      }
+      setStoryAttempted(true);
+      setStep('story');
+    } catch (cause) {
+      setError(safeParentFlowErrorMessage(cause));
     } finally {
       endBusy(busyToken);
     }
@@ -2247,6 +3087,18 @@ export function useParentController(application: ParentApplicationModule) {
       setPendingDeletions([]);
       setActiveRun(null);
       setActiveRunCheck('checking');
+      lessonListRequest.current += 1;
+      groupMembershipsRequest.current += 1;
+      invitationActionIdentities.current.clear();
+      groupLeaveActionIdentities.current.clear();
+      setLessons([]);
+      setLessonSearchFilters({ source: 'ALL', q: '', topic: '' });
+      setLessonCursor(null);
+      setLessonInvitations([]);
+      setGroupInvitations([]);
+      setGroupMemberships([]);
+      setGroupMembershipCursor(null);
+      setGroupMembershipsLoading(false);
       setStep('auth');
       resetWorkflow();
     }
@@ -2254,13 +3106,18 @@ export function useParentController(application: ParentApplicationModule) {
 
   function resetWorkflow(): void {
     setTopic(''); setIdea(''); setLesson(null); setPhotoValue(null); setCandidate(null); setSubject('');
+    setSelectedTopicId(''); setTopicDraftId(''); setTopicSuggestionSets([]); setTopicSuggestions([]);
+    setTopicSuggestionBusy(false); setTopicSuggestionError(''); setSubjectSuggestionSets([]); setSubjectSuggestions([]);
+    setSubjectSuggestionBusy(false); setSubjectSuggestionError(''); setIntendedDrawingSubject(''); setCustomDrawingSubject('');
+    setSubjectValidationMessage(''); setCustomSubjectValidated(false); setSvgGuideDraft(null);
     setContextRun(null); setContextConfirmed(false); setProfileFieldErrors({});
     setAudioValue(null); setDrawingGuideIndex(0); setUnderstandingRevision(0); setSubjectConfirmed(false);
     resetActivityReview();
     setStory(null); setStoryDisplayedRunId(''); setStoryRevisionNo(null); setStorySha256('');
     setStoryAttempted(false); setStoryConfirmed(false); setRewriteCount(0); setRewriteInstruction('');
+    setStoryRecoveryHint(''); setStoryRecoveryContinuing(false);
     setVideoBackStep('home');
-    setGuideBase64(''); setGuideEnabled(false); setEvents([]); setError(''); setBusy('');
+    setGuideBase64(''); setGuideBusy(false); setGuideError(''); setGuideEnabled(false); setEvents([]); setError(''); setBusy('');
     profileCreateAction.current = null;
     profilePatchActions.current.clear();
     profileDeleteActions.current.clear();
@@ -2275,6 +3132,7 @@ export function useParentController(application: ParentApplicationModule) {
     transcriptCorrectionAction.current = null;
     transcriptConfirmAction.current = null;
     storyRewriteAction.current = null;
+    storyRecoveryAction.current = null;
     videoRequestAction.current = null;
     videoUnsuitableAction.current = null;
     completeRunAction.current = null;
@@ -2289,18 +3147,33 @@ export function useParentController(application: ParentApplicationModule) {
     step, setStep, videoBackStep, currentUser, profiles, profile, setProfile, selectedProfileId, profileBeingEdited, setProfileBeingEdited,
     pendingDeletions, pendingDeletionLoadingId, profileFieldErrors, consentState,
     publicSettings: application.publicSettings,
-    activeRun, topic, setTopic, idea, setIdea, lesson, setLesson, lessons, lessonLoading, lessonLoadingId, lessonError,
+    activeRun, topic, setTopic, selectedTopicId, topicSuggestions, topicSuggestionBusy, topicSuggestionError,
+    subjectSuggestions, subjectSuggestionBusy, subjectSuggestionError,
+    subjectGenerationSource: subjectSuggestionSets[subjectSuggestionSets.length - 1]?.generation_source ?? null,
+    intendedDrawingSubject, customDrawingSubject,
+    subjectValidationMessage, customSubjectValidated, idea, setIdea, lesson, setLesson, lessons, lessonLoading, lessonLoadingId, lessonError,
+    searchQuery: lessonSearchFilters.q ?? '', searchTopic: lessonSearchFilters.topic ?? '',
+    hasMoreLessons: lessonCursor !== null,
+    hasMoreGroupMemberships: groupMembershipCursor !== null,
+    groupMemberships, groupMembershipsLoading,
+    lessonPickerReturnStep,
     galleryMode, galleryLesson, lessonInvitations, groupInvitations, accountError, guideEnabled, setGuideEnabled,
-    guideBase64, guideBusy, guideError, photo, setPhoto, audio, setAudio,
+    guideBase64, guideBusy, guideError, svgGuideDraft, photo, setPhoto, audio, setAudio,
     contextRun, contextConfirmed, candidate, subject, setSubject, subjectConfirmed, understandingRevision,
     activitySuggestions, selectedActivityIndex, activityBusy, activityAttempted, activityError,
     requestActivityList, chooseActivity, selectActivity, cancelEmptyActivityRun,
     story, storyDisplayedRunId, storyRevisionNo,
     storySha256, storyAttempted,
     storyConfirmed, rewriteCount, rewriteInstruction, setRewriteInstruction, events, busy, error, authError, bootstrapBusy,
+    storyRecoveryHint, setStoryRecoveryHint, storyRecoveryContinuing,
     loadParentData, authenticate, signInWithGoogle, resetPassword, createProfileAndReturn, updateProfile,
-    selectProfile, requestProfileDeletion, refreshPendingDeletion, continueWithProfile, openLessons, chooseLesson, acceptLessonInvitation,
-    declineLessonInvitation, acceptGroupInvitation, createGuide, openDrawingGuide, openContextReview, confirmContext,
+    listContextEntries, createContextEntry, getSupportNeeds, putSupportNeeds,
+    newActionIdentity: createParentActionIdentity,
+    selectProfile, requestProfileDeletion, refreshPendingDeletion, continueWithProfile, beginTopicPath, refreshTopicSuggestions,
+    selectTopicCard, setCustomTopic, continueTopicSelection, skipTopicSelection, selectDrawingSubject, setCustomSubject,
+    validateCustomDrawingSubject, refreshSubjectSuggestions, continueFromSubjectSelection,
+    openLessons, searchLessons, loadMoreLessons, loadMoreGroupMemberships, chooseLesson, acceptLessonInvitation,
+    declineLessonInvitation, acceptGroupInvitation, declineGroupInvitation, leaveGroup, createGuide, openDrawingGuide, continueAfterSketchGuide, openContextReview, confirmContext,
     continueToCapture, analyzeDrawingForCurrentRun, confirmSubject,
     confirmStory, refreshStory, drawingGuideIndex, setDrawingGuideIndex,
     resumeActiveRun, changePassword, resetCurrentPassword, signOut,
@@ -2309,11 +3182,12 @@ export function useParentController(application: ParentApplicationModule) {
     transcriptEdited: transcript !== null && classifyTranscript(transcript).kind === 'review'
       ? transcriptText.trim() !== (transcript.text ?? '').trim()
       : transcriptText.trim().length > 0,
-    retakeAvailable, rewriteStory, rewriteNotice,
+    retakeAvailable, rewriteStory, rewriteNotice, recoverFirstStory,
     videoPanel: readVideoPanel(contextRun, { spentRevisionNo: spentStoryRevisionNo, confirmedRevisionNo: confirmedStoryRevisionNo }),
+    videoQuotaExceeded,
     playback, videoReason, setVideoReason, markingUnsuitable, startUnsuitable, cancelUnsuitable,
     openVideoStep, refreshVideo, requestVideo, playVideo, onPlaybackError, markVideoUnsuitable, completeRun,
-    watchHistoryRun,
+    watchHistoryRun, openFailedRunForRecovery,
     storyConfirmationRequired: contextRun?.story_confirmation_required === true,
     storyOnlyCancel: Boolean(contextRun && readVideoPanel(contextRun, { spentRevisionNo: spentStoryRevisionNo, confirmedRevisionNo: confirmedStoryRevisionNo }).onlyCancel),
     rewriteAfterVideo: Boolean(contextRun?.story_status === 'CONFIRMED' && contextRun.story_confirmation_required === true),
@@ -2321,12 +3195,40 @@ export function useParentController(application: ParentApplicationModule) {
     resetWorkflow, backToProfile: () => { setStep('profile'); setError(''); },
     clearProfileFormErrors: () => setProfileFieldErrors({}),
     clearAuthError: () => setAuthError(''),
-    clearError: () => setError(''),
+    clearError: () => { setError(''); setVideoQuotaExceeded(false); },
   };
 }
 
 function displayError(cause: unknown): string {
   return safeParentIdentityErrorMessage(cause);
+}
+
+function topicSuggestionErrorMessage(cause: unknown): string {
+  if (isParentSessionExpired(cause)) return safeParentIdentityErrorMessage(cause);
+  if (cause instanceof ParentApplicationError
+    && ['PARENT_TOPIC_SUBJECT_AI_NOT_ENABLED', 'PARENT_TOPIC_TEXT_NOT_ALLOWED'].includes(cause.code)
+    && typeof cause.safeDisplayMessage === 'string'
+    && cause.safeDisplayMessage.trim().length <= 240
+    && !/[\u0000-\u001f\u007f]/.test(cause.safeDisplayMessage)) {
+    return cause.safeDisplayMessage;
+  }
+  return safeParentFlowErrorMessage(cause);
+}
+
+function parentSvgGuideFailureMessage(cause: unknown): string {
+  if (isParentSessionExpired(cause)) return safeParentIdentityErrorMessage(cause);
+  if (cause instanceof ParentApplicationError
+    && ['CURATED_SVG_GUIDE_NOT_FOUND', 'CURATED_SVG_GUIDE_UNAVAILABLE'].includes(cause.code)) {
+    return svgGuideFailureMessage(cause.code);
+  }
+  return `${safeParentFlowErrorMessage(cause)} Gợi ý nét vẽ không bắt buộc; bạn có thể tiếp tục mà không cần gợi ý.`;
+}
+
+function createDraftUuid(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (character) => {
+    const random = Math.floor(Math.random() * 16);
+    return (character === 'x' ? random : (random & 0x3) | 0x8).toString(16);
+  });
 }
 
 function safeProfileActionError(cause: unknown): string {

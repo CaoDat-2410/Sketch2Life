@@ -18,6 +18,8 @@ type Props = {
   onCancel: (runId: string) => void;
   onDelete: (runId: string) => void;
   onWatch: (runId: string) => void;
+  recoveryBusy?: boolean;
+  onRecoverFailed?: (runId: string) => void;
   onBack: () => void;
 };
 
@@ -80,6 +82,15 @@ export function StoryHistoryScreen(props: Props): React.JSX.Element {
             </View>
             {run.run_state === 'COMPLETED' && !run.deleting ? (
               <PrimaryButton variant="creative" label="Xem lại video" onPress={() => props.onWatch(run.run_id)} />
+            ) : null}
+            {run.run_state === 'FAILED' && !run.deleting ? (
+              <PrimaryButton
+                variant="creative"
+                label="Kiểm tra trạng thái"
+                busy={props.recoveryBusy === true}
+                disabled={props.recoveryBusy === true}
+                onPress={() => props.onRecoverFailed?.(run.run_id)}
+              />
             ) : null}
             {canCancel ? <ConfirmButton
               label="Hủy buổi đang mở"

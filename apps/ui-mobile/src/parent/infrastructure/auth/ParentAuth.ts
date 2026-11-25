@@ -29,7 +29,15 @@ const authMessages: Record<string, string> = {
   INVALID_PASSWORD: 'Email hoặc mật khẩu không đúng.',
   WEAK_PASSWORD: 'Mật khẩu cần có ít nhất 6 ký tự.',
   TOO_MANY_ATTEMPTS_TRY_LATER: 'Thử lại sau ít phút.',
+  RATE_LIMITED: 'Thử lại sau ít phút.',
+  PASSWORD_RECOVERY_UNAVAILABLE: 'Chưa gửi được yêu cầu, hãy thử lại sau.',
   ACCOUNT_ROLE_MISMATCH: 'Tài khoản này không có quyền Phụ huynh.',
+  ACCOUNT_SETUP_UNAVAILABLE: 'Chưa thể hoàn tất thiết lập tài khoản lúc này. Hãy thử lại sau.',
+  DATABASE_UNAVAILABLE: 'Chưa thể tạo tài khoản lúc này. Hãy thử lại sau.',
+  IDENTITY_PROVIDER_UNAVAILABLE: 'Chưa thể xác thực tài khoản lúc này. Hãy thử lại sau.',
+  FIREBASE_API_KEY_MISSING: 'Ứng dụng chưa sẵn sàng. Hãy thử lại sau.',
+  MOBILE_API_URL_MISSING: 'Ứng dụng chưa sẵn sàng. Hãy thử lại sau.',
+  REGISTRATION_CREATED_SIGNIN_FAILED: 'Tài khoản đã được tạo nhưng chưa đăng nhập được. Hãy chọn Đăng nhập để tiếp tục; đừng tạo tài khoản mới.',
 };
 
 export class ParentAuthError extends ParentApplicationError {
@@ -54,7 +62,7 @@ export class ParentAuth implements ParentIdentityPort {
     );
     this.session = this.toSession(payload);
     try {
-      await this.requireParentRole();
+      await this.ensureParentScope();
       return this.session.user;
     } catch (error) {
       await this.signOut();
@@ -65,21 +73,26 @@ export class ParentAuth implements ParentIdentityPort {
   async signUp(email: string, password: string): Promise<ParentUser> {
     const apiBaseUrl = this.apiUrl();
     const registrationUrl = `${apiBaseUrl}/api/auth/v1/registrations`;
-    const response = await fetch(registrationUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ email: email.trim(), password }),
-    }).catch((error: unknown) => {
+    let response: Response;
+    try {
+      response = await fetch(registrationUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ email: email.trim(), password }),
+      });
+    } catch (error: unknown) {
       if (__DEV__) {
         console.info('parent_registration_network_failed', {
           origin: new URL(registrationUrl).origin,
           path: '/api/auth/v1/registrations',
           errorName: error instanceof Error ? error.name : 'UnknownError',
-          errorMessage: error instanceof Error ? error.message : String(error),
         });
       }
-      throw new ParentAuthError('REGISTRATION_NETWORK_ERROR', 'Không kết nối được máy chủ đăng ký.');
-    });
+      const registrationError = new ParentAuthError('REGISTRATION_NETWORK_ERROR', 'Không kết nối được máy chủ đăng ký.');
+      const recovered = await this.tryRecoverParentSession(email, password);
+      if (recovered) return recovered;
+      throw registrationError;
+    }
     if (__DEV__) {
       console.info('parent_registration_response_received', {
         origin: new URL(registrationUrl).origin,
@@ -95,9 +108,22 @@ export class ParentAuth implements ParentIdentityPort {
     };
     if (!response.ok || result.status !== 'IDENTITY_CREATED' || result.role !== 'parent') {
       const code = result.code ?? result.detail?.code ?? `REGISTRATION_HTTP_${response.status}`;
-      throw new ParentAuthError(code, authMessages[code] ?? 'Không thể tạo tài khoản lúc này.');
+      const registrationError = new ParentAuthError(code, authMessages[code] ?? 'Không thể tạo tài khoản lúc này.');
+      if ([409, 503].includes(response.status)) {
+        const recovered = await this.tryRecoverParentSession(email, password);
+        if (recovered) return recovered;
+      }
+      throw registrationError;
     }
-    return this.signIn(email, password);
+    try {
+      return await this.signIn(email, password);
+    } catch (error) {
+      if (error instanceof ParentAuthError && error.code === 'ACCOUNT_ROLE_MISMATCH') throw error;
+      throw new ParentAuthError(
+        'REGISTRATION_CREATED_SIGNIN_FAILED',
+        authMessages.REGISTRATION_CREATED_SIGNIN_FAILED,
+      );
+    }
   }
 
   async signInWithGoogle(googleIdToken: string): Promise<ParentUser> {
@@ -115,7 +141,7 @@ export class ParentAuth implements ParentIdentityPort {
     );
     this.session = this.toSession(body);
     try {
-      await this.requireParentRole();
+      await this.ensureParentScope();
       return this.session.user;
     } catch (error) {
       await this.signOut();
@@ -124,15 +150,73 @@ export class ParentAuth implements ParentIdentityPort {
   }
 
   async resetPassword(email: string): Promise<void> {
-    try {
-      await this.postFirebase(
-        `${IDENTITY_TOOLKIT}/accounts:sendOobCode?key=${encodeURIComponent(this.apiKey())}`,
-        { requestType: 'PASSWORD_RESET', email: email.trim() },
-      );
-    } catch (error) {
-      if (error instanceof ParentAuthError && ['EMAIL_NOT_FOUND', 'USER_NOT_FOUND'].includes(error.code)) return;
-      throw error;
+    const normalizedEmail = email.trim();
+    if (
+      normalizedEmail.length < 3
+      || normalizedEmail.length > 254
+      || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)
+    ) {
+      throw new ParentAuthError('INVALID_EMAIL', authMessages.INVALID_EMAIL);
     }
+
+    const recoveryUrl = `${this.apiUrl()}/api/auth/v1/password-recovery`;
+    let response: Response;
+    try {
+      // Recovery delivery depends on the backend email worker.
+      response = await fetch(recoveryUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: normalizedEmail }),
+      });
+    } catch {
+      if (__DEV__) {
+        console.info('parent_password_recovery_failed', {
+          status: null,
+          code: 'PASSWORD_RECOVERY_UNAVAILABLE',
+        });
+      }
+      throw new ParentAuthError(
+        'PASSWORD_RECOVERY_UNAVAILABLE',
+        authMessages.PASSWORD_RECOVERY_UNAVAILABLE,
+      );
+    }
+
+    if (response.status === 202) {
+      const result = await response.json().catch(() => ({})) as { status?: string } | null;
+      if (result?.status === 'RECOVERY_REQUESTED') return;
+      if (__DEV__) {
+        console.info('parent_password_recovery_failed', {
+          status: response.status,
+          code: 'PASSWORD_RECOVERY_UNAVAILABLE',
+        });
+      }
+    } else if (response.status === 429) {
+      if (__DEV__) {
+        console.info('parent_password_recovery_failed', {
+          status: response.status,
+          code: 'RATE_LIMITED',
+        });
+      }
+      throw new ParentAuthError('RATE_LIMITED', authMessages.RATE_LIMITED);
+    } else if (response.status === 422) {
+      if (__DEV__) {
+        console.info('parent_password_recovery_failed', {
+          status: response.status,
+          code: 'INVALID_EMAIL',
+        });
+      }
+      throw new ParentAuthError('INVALID_EMAIL', authMessages.INVALID_EMAIL);
+    } else if (__DEV__) {
+      console.info('parent_password_recovery_failed', {
+        status: response.status,
+        code: 'PASSWORD_RECOVERY_UNAVAILABLE',
+      });
+    }
+
+    throw new ParentAuthError(
+      'PASSWORD_RECOVERY_UNAVAILABLE',
+      authMessages.PASSWORD_RECOVERY_UNAVAILABLE,
+    );
   }
 
   async changePassword(currentPassword: string, newPassword: string): Promise<void> {
@@ -182,7 +266,6 @@ export class ParentAuth implements ParentIdentityPort {
       if (__DEV__) {
         console.info('parent_role_resolution_failed', {
           status: response.status,
-          code,
           responseKeys: Object.keys(body),
         });
       }
@@ -202,6 +285,62 @@ export class ParentAuth implements ParentIdentityPort {
     }
   }
 
+  private async ensureParentScope(): Promise<void> {
+    let initialSetupError: unknown;
+    try {
+      await this.requireParentRole();
+      return;
+    } catch (error) {
+      if (!(error instanceof ParentAuthError) || error.code !== 'ACCOUNT_SETUP_UNAVAILABLE') throw error;
+      initialSetupError = error;
+    }
+
+    try {
+      await this.completeParentRegistration();
+    } catch (error) {
+      // Keep the existing generic sign-in message when the backend feature is off.
+      if (error instanceof ParentAuthError && error.code === 'ACCOUNT_SETUP_UNAVAILABLE') {
+        throw initialSetupError;
+      }
+      throw error;
+    }
+    await this.requireParentRole();
+  }
+
+  private async completeParentRegistration(): Promise<void> {
+    const response = await fetch(`${this.apiUrl()}/api/auth/v1/registrations/complete`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${await this.getIdToken()}`,
+        Accept: 'application/json',
+      },
+    }).catch(() => {
+      throw new ParentAuthError('AUTH_API_UNAVAILABLE', 'Không kết nối được máy chủ tài khoản.');
+    });
+    const body = await response.json().catch(() => ({})) as {
+      code?: string;
+      role?: string;
+      state?: string;
+      detail?: { code?: string };
+    };
+    if (!response.ok) {
+      const code = body.code ?? body.detail?.code ?? `AUTH_API_HTTP_${response.status}`;
+      throw new ParentAuthError(code, authMessages[code] ?? 'Chưa thể đồng bộ tài khoản với máy chủ.');
+    }
+    if (body.role !== 'parent' || body.state !== 'active') {
+      throw new ParentAuthError('ACCOUNT_SETUP_UNAVAILABLE', authMessages.ACCOUNT_SETUP_UNAVAILABLE);
+    }
+  }
+
+  private async tryRecoverParentSession(email: string, password: string): Promise<ParentUser | null> {
+    try {
+      return await this.signIn(email, password);
+    } catch {
+      // Preserve the registration failure if the existing identity cannot be recovered.
+      return null;
+    }
+  }
+
   private async refresh(active: Session): Promise<string> {
     const response = await fetch(`${SECURE_TOKEN}?key=${encodeURIComponent(this.apiKey())}`, {
       method: 'POST',
@@ -214,12 +353,16 @@ export class ParentAuth implements ParentIdentityPort {
   }
 
   private apiKey(): string {
-    if (!parentConfig.firebaseApiKey) throw new Error('Thiếu Firebase API key trong .env gốc.');
+    if (!parentConfig.firebaseApiKey) {
+      throw new ParentAuthError('FIREBASE_API_KEY_MISSING', authMessages.FIREBASE_API_KEY_MISSING);
+    }
     return parentConfig.firebaseApiKey;
   }
 
   private apiUrl(): string {
-    if (!parentConfig.apiBaseUrl) throw new Error('Thiếu API URL trong .env gốc.');
+    if (!parentConfig.apiBaseUrl) {
+      throw new ParentAuthError('MOBILE_API_URL_MISSING', authMessages.MOBILE_API_URL_MISSING);
+    }
     return parentConfig.apiBaseUrl;
   }
 
@@ -240,7 +383,17 @@ export class ParentAuth implements ParentIdentityPort {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
-    }).catch(() => { throw new ParentAuthError('AUTH_NETWORK_ERROR', 'Không kết nối được Firebase Auth.'); });
+    }).catch((error: unknown) => {
+      if (__DEV__) {
+        const requestUrl = new URL(url);
+        console.info('parent_firebase_auth_network_failed', {
+          host: requestUrl.host,
+          path: requestUrl.pathname,
+          errorName: error instanceof Error ? error.name : 'UnknownError',
+        });
+      }
+      throw new ParentAuthError('AUTH_NETWORK_ERROR', 'Không kết nối được Firebase Auth.');
+    });
     return this.readFirebase(response);
   }
 

@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { AppState, Linking } from 'react-native';
 import { parentConfig } from '../../infrastructure/config';
 import {
   applyLifecycleProjection,
@@ -18,6 +19,24 @@ import {
 import { ParentApplicationError } from '../../application/ParentApplicationError';
 import { createParentActionIdentity } from '../../application/ports/ParentPorts';
 import type { ParentApplicationModule } from '../../application/ports/ParentApplicationModule';
+import {
+  cancelResultMessage,
+  CHECKOUT_URL_MISSING_COPY,
+  CheckoutIdentityMap,
+  enabledQuotaProviders,
+  getOpenParentInvoice,
+  isCheckoutUrlOpenable,
+  paymentAttemptExpired,
+  pollParentInvoice,
+  quotaPaymentErrorMessage,
+  reconcileResultMessage,
+  RECONCILE_COOLDOWN_MS,
+  reconcileSecondsRemaining,
+  terminalInvoiceMessage,
+  withReconcileCooldown,
+  type ParentPaymentMessage,
+  type ParentPaymentProvider,
+} from '../../application/parentQuota';
 import { safeParentFlowErrorMessage } from './parentFlowV1';
 import {
   createUnavailableCapabilityState,
@@ -33,6 +52,9 @@ import type {
   ParentProfileShareGrant,
   ParentStoryRunSummary,
   ParentVideoQuota,
+  ParentQuotaProduct,
+  ParentQuotaInvoice,
+  ParentQuotaPaymentSettings,
 } from '../../domain/types';
 
 const unavailableReason: ParentCapabilityUnavailableReason = 'route-not-in-be-handoff';
@@ -49,8 +71,12 @@ const runHistoryCapability: ParentCapabilityState = parentConfig.apiBaseUrl
   ? { capability: 'run-history', state: 'available' }
   : createUnavailableCapabilityState('run-history', 'capability-not-configured');
 const notificationCapability = apiConfigured('notifications');
+const quotaCapability = apiConfigured('quota');
 const unavailableNotificationOperation = createUnavailableOperationState<void>(
   notificationCapability.state === 'unavailable' ? notificationCapability.reason : unavailableReason,
+);
+const unavailableQuotaOperation = createUnavailableOperationState<void>(
+  quotaCapability.state === 'unavailable' ? quotaCapability.reason : unavailableReason,
 );
 
 const platformCapabilities = {
@@ -58,7 +84,7 @@ const platformCapabilities = {
   sharing: createUnavailableCapabilityState('profile-sharing', unavailableReason),
   deliveries: createUnavailableCapabilityState('lesson-history', unavailableReason),
   notifications: notificationCapability,
-  quota: createUnavailableCapabilityState('quota', unavailableReason),
+  quota: quotaCapability,
   // Goal v3 Phase B: the video request, the run detail and the playback routes are live (the main controller owns them).
   jobStatus: apiConfigured('job-status'),
   video: apiConfigured('video'),
@@ -192,6 +218,39 @@ export function useParentPlatformController(application: ParentApplicationModule
   const [notificationsError, setNotificationsError] = useState('');
   const notificationActionKeys = useRef(new Map<string, string>());
   const notificationsRequest = useRef(0);
+  const [quota, setQuota] = useState<ParentVideoQuota | null>(null);
+  const [quotaProducts, setQuotaProducts] = useState<ParentQuotaProduct[]>([]);
+  const [quotaInvoices, setQuotaInvoices] = useState<ParentQuotaInvoice[]>([]);
+  const [quotaPaymentSettings, setQuotaPaymentSettings] = useState<ParentQuotaPaymentSettings | null>(null);
+  const [quotaBusy, setQuotaBusy] = useState(false);
+  const [quotaCheckoutBusy, setQuotaCheckoutBusy] = useState(false);
+  const [quotaActionInvoiceId, setQuotaActionInvoiceId] = useState('');
+  const [quotaError, setQuotaError] = useState('');
+  const [quotaPaymentStatus, setQuotaPaymentStatus] = useState<ParentPaymentMessage | null>(null);
+  const [quotaReconcileCooldowns, setQuotaReconcileCooldowns] = useState<Record<string, number>>({});
+  const [quotaClock, setQuotaClock] = useState(Date.now());
+  const [quotaReturnInvoiceId, setQuotaReturnInvoiceId] = useState('');
+  const quotaCheckoutKeys = useRef(new CheckoutIdentityMap());
+  const quotaRequest = useRef(0);
+  const quotaSummaryRequest = useRef(0);
+  const quotaScreenGeneration = useRef(0);
+  const quotaScreenActive = useRef(false);
+  const quotaReturnInvoiceIdRef = useRef('');
+  const checkoutWasOpened = useRef(false);
+  const quotaPollCancel = useRef<(() => void) | null>(null);
+  const quotaResumeHandler = useRef<() => void>(() => undefined);
+  const appStateCurrent = useRef(AppState.currentState);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      const wasAway = appStateCurrent.current === 'background' || appStateCurrent.current === 'inactive';
+      appStateCurrent.current = nextState;
+      if (nextState === 'active' && wasAway && checkoutWasOpened.current) {
+        quotaResumeHandler.current();
+      }
+    });
+    return () => subscription.remove();
+  }, []);
 
   /** Sign-out or another account: nothing of the previous account's inbox or run list may stay in memory. */
   function resetAccountData(): void {
@@ -209,6 +268,9 @@ export function useParentPlatformController(application: ParentApplicationModule
     setRunsProfileId(undefined);
     setRunsBusy(false);
     setRunsError('');
+    setQuota(null);
+    quotaSummaryRequest.current += 1;
+    clearQuotaScreenState();
   }
 
   async function loadNotifications(cursor: string | null = null): Promise<ParentOperationState<void>> {
@@ -304,9 +366,235 @@ export function useParentPlatformController(application: ParentApplicationModule
     }
   }
 
-  async function loadQuota(): Promise<ParentOperationState<void>> {
-    return unavailableShareOperation;
+  async function loadQuotaSummary(): Promise<ParentOperationState<void>> {
+    if (quotaCapability.state !== 'available') return unavailableQuotaOperation;
+    const requestNumber = quotaSummaryRequest.current + 1;
+    quotaSummaryRequest.current = requestNumber;
+    try {
+      const summary = await application.platform.getVideoQuota();
+      if (requestNumber !== quotaSummaryRequest.current) return { state: 'confirmed', value: undefined };
+      setQuota(summary);
+      return { state: 'confirmed', value: undefined };
+    } catch (failure) {
+      if (requestNumber !== quotaSummaryRequest.current) return { state: 'failed', retry: 'user-action-required' };
+      setQuotaError(quotaPaymentErrorMessage(failure));
+      return { state: 'failed', retry: 'user-action-required' };
+    }
   }
+
+  async function loadQuota(): Promise<ParentOperationState<void>> {
+    if (quotaCapability.state !== 'available') return unavailableQuotaOperation;
+    quotaScreenActive.current = true;
+    const screenGeneration = quotaScreenGeneration.current;
+    const requestNumber = quotaRequest.current + 1;
+    quotaRequest.current = requestNumber;
+    const summaryRequestNumber = quotaSummaryRequest.current + 1;
+    quotaSummaryRequest.current = summaryRequestNumber;
+    setQuotaBusy(true);
+    setQuotaError('');
+    try {
+      const [summary, products, invoices, paymentSettings] = await Promise.all([
+        application.platform.getVideoQuota(),
+        application.platform.getQuotaProducts(),
+        application.platform.getQuotaInvoices(50),
+        application.platform.getQuotaPaymentSettings(),
+      ]);
+      if (requestNumber !== quotaRequest.current || screenGeneration !== quotaScreenGeneration.current) return { state: 'confirmed', value: undefined };
+      if (summaryRequestNumber === quotaSummaryRequest.current) setQuota(summary);
+      setQuotaProducts(products);
+      setQuotaInvoices(invoices.items);
+      setQuotaPaymentSettings(paymentSettings);
+      return { state: 'confirmed', value: undefined };
+    } catch (failure) {
+      if (requestNumber !== quotaRequest.current || screenGeneration !== quotaScreenGeneration.current) return { state: 'failed', retry: 'user-action-required' };
+      setQuotaError(quotaPaymentErrorMessage(failure));
+      return { state: 'failed', retry: 'user-action-required' };
+    } finally {
+      if (requestNumber === quotaRequest.current && screenGeneration === quotaScreenGeneration.current) setQuotaBusy(false);
+    }
+  }
+
+  async function openQuotaCheckoutLink(invoiceId: string, checkoutUrl: string): Promise<void> {
+    if (!quotaScreenActive.current) return;
+    const screenGeneration = quotaScreenGeneration.current;
+    if (!isCheckoutUrlOpenable(checkoutUrl)) {
+      setQuotaPaymentStatus({ kind: 'pending', text: CHECKOUT_URL_MISSING_COPY });
+      return;
+    }
+    quotaReturnInvoiceIdRef.current = invoiceId;
+    setQuotaReturnInvoiceId(invoiceId);
+    checkoutWasOpened.current = true;
+    setQuotaPaymentStatus({ kind: 'pending', text: 'Đang chờ cổng thanh toán xác nhận giao dịch…' });
+    setQuotaError('');
+    try {
+      await Linking.openURL(checkoutUrl);
+    } catch {
+      if (screenGeneration !== quotaScreenGeneration.current) return;
+      checkoutWasOpened.current = false;
+      quotaReturnInvoiceIdRef.current = '';
+      setQuotaReturnInvoiceId('');
+      setQuotaPaymentStatus({ kind: 'pending', text: 'Không mở được trang thanh toán. Hóa đơn vẫn được giữ; hãy kiểm tra trạng thái.' });
+      void loadQuota();
+    }
+  }
+
+  async function checkoutQuotaProduct(productId: string, provider: ParentPaymentProvider): Promise<void> {
+    if (!quotaScreenActive.current || quotaCheckoutBusy || quotaCapability.state !== 'available') return;
+    const providerIsEnabled = quotaPaymentSettings
+      && enabledQuotaProviders(quotaPaymentSettings).some((item) => item.provider === provider);
+    if (!providerIsEnabled) {
+      setQuotaError('Cổng thanh toán đang tắt hoặc chưa cấu hình đầy đủ. Gói và giá vẫn xem được, checkout thật chưa mở.');
+      return;
+    }
+    if (getOpenParentInvoice(quotaInvoices)) {
+      setQuotaError('Đã có hóa đơn chưa nhận được kết quả cuối. Mở lại nếu liên kết còn hạn, hoặc kiểm tra và hủy đơn VNPay sau khi hết hạn.');
+      return;
+    }
+    const key = quotaCheckoutKeys.current.get(productId, provider, createParentActionIdentity);
+    const screenGeneration = quotaScreenGeneration.current;
+    setQuotaCheckoutBusy(true);
+    setQuotaError('');
+    setQuotaPaymentStatus(null);
+    try {
+      const result = await application.platform.checkoutQuotaProduct(productId, provider, key);
+      if (screenGeneration !== quotaScreenGeneration.current || !quotaScreenActive.current) return;
+      quotaCheckoutKeys.current.complete(productId, provider);
+      if (!result.checkout_url || !isCheckoutUrlOpenable(result.checkout_url)) {
+        setQuotaPaymentStatus({ kind: 'pending', text: CHECKOUT_URL_MISSING_COPY });
+        await loadQuota();
+        return;
+      }
+      await openQuotaCheckoutLink(result.invoice_id, result.checkout_url);
+    } catch (failure) {
+      if (screenGeneration !== quotaScreenGeneration.current) return;
+      setQuotaError(quotaPaymentErrorMessage(failure));
+    } finally {
+      if (screenGeneration === quotaScreenGeneration.current) setQuotaCheckoutBusy(false);
+    }
+  }
+
+  async function resumeQuotaPayment(invoiceId: string, checkoutUrl: string): Promise<void> {
+    await openQuotaCheckoutLink(invoiceId, checkoutUrl);
+  }
+
+  async function reconcileQuotaInvoice(invoiceId: string): Promise<void> {
+    if (!quotaScreenActive.current || quotaActionInvoiceId || quotaCapability.state !== 'available') return;
+    const screenGeneration = quotaScreenGeneration.current;
+    if (reconcileSecondsRemaining(quotaReconcileCooldowns, invoiceId, quotaClock) > 0) return;
+    setQuotaReconcileCooldowns((current) => withReconcileCooldown(current, invoiceId, Date.now() + RECONCILE_COOLDOWN_MS));
+    setQuotaActionInvoiceId(invoiceId);
+    setQuotaError('');
+    setQuotaPaymentStatus(null);
+    try {
+      const result = await application.platform.reconcileQuotaInvoice(invoiceId);
+      if (screenGeneration !== quotaScreenGeneration.current || !quotaScreenActive.current) return;
+      if (['PAID', 'FAILED', 'CANCELED'].includes(result.state)) {
+        setQuotaReconcileCooldowns((current) => withReconcileCooldown(current, invoiceId, null));
+      }
+      setQuotaPaymentStatus(reconcileResultMessage(result));
+      await loadQuota();
+    } catch (failure) {
+      if (screenGeneration !== quotaScreenGeneration.current) return;
+      setQuotaError(quotaPaymentErrorMessage(failure));
+      if (failure instanceof ParentApplicationError && (failure.status ?? 0) >= 500) {
+        setQuotaPaymentStatus({ kind: 'pending', text: 'Chưa nhận được kết quả đối soát có thể xác minh. Hóa đơn chưa chuyển trạng thái và quota chưa thay đổi. Chờ hết thời gian đếm ngược rồi mới kiểm tra lại.' });
+      }
+    } finally {
+      if (screenGeneration === quotaScreenGeneration.current) setQuotaActionInvoiceId('');
+    }
+  }
+
+  async function cancelExpiredQuotaInvoice(invoiceId: string): Promise<void> {
+    if (!quotaScreenActive.current || quotaActionInvoiceId || quotaCapability.state !== 'available') return;
+    const screenGeneration = quotaScreenGeneration.current;
+    const invoice = quotaInvoices.find((item) => item.invoice_id === invoiceId);
+    const attempt = invoice?.attempts.find((item) => ['REQUESTING', 'OPEN', 'UNKNOWN'].includes(item.state));
+    if (!invoice || invoice.provider !== 'VNPAY' || !attempt?.expires_at || !paymentAttemptExpired(attempt.expires_at, quotaClock)) return;
+    setQuotaReconcileCooldowns((current) => withReconcileCooldown(current, invoiceId, null));
+    setQuotaActionInvoiceId(invoiceId);
+    setQuotaError('');
+    setQuotaPaymentStatus(null);
+    try {
+      const result = await application.platform.cancelQuotaInvoice(invoiceId);
+      if (screenGeneration !== quotaScreenGeneration.current || !quotaScreenActive.current) return;
+      if (['PAID', 'FAILED', 'CANCELED'].includes(result.state)) {
+        setQuotaReconcileCooldowns((current) => withReconcileCooldown(current, invoiceId, null));
+      }
+      setQuotaPaymentStatus(cancelResultMessage(result));
+      await loadQuota();
+    } catch (failure) {
+      if (screenGeneration !== quotaScreenGeneration.current) return;
+      setQuotaError(quotaPaymentErrorMessage(failure));
+      if (failure instanceof ParentApplicationError && (failure.status ?? 0) >= 500) {
+        setQuotaPaymentStatus({ kind: 'pending', text: 'Chưa xác minh được với VNPay nên hóa đơn chưa bị hủy. Kiểm tra lại sau để tránh hủy nhầm giao dịch đã trả tiền.' });
+      }
+    } finally {
+      if (screenGeneration === quotaScreenGeneration.current) setQuotaActionInvoiceId('');
+    }
+  }
+
+  async function resumeQuotaReturnPolling(): Promise<void> {
+    const invoiceId = quotaReturnInvoiceIdRef.current;
+    if (!quotaScreenActive.current || !invoiceId || !checkoutWasOpened.current || quotaPollCancel.current) return;
+    checkoutWasOpened.current = false;
+    const screenGeneration = quotaScreenGeneration.current;
+    let cancelled = false;
+    const cancel = () => { cancelled = true; };
+    quotaPollCancel.current = cancel;
+    setQuotaPaymentStatus({ kind: 'pending', text: 'Đang chờ cổng thanh toán xác nhận giao dịch…' });
+    const result = await pollParentInvoice({
+      invoiceId,
+      fetchInvoices: () => application.platform.getQuotaInvoices(50),
+      onInvoices: (page) => setQuotaInvoices(page.items),
+      shouldContinue: () => !cancelled
+        && screenGeneration === quotaScreenGeneration.current
+        && quotaScreenActive.current
+        && quotaReturnInvoiceIdRef.current === invoiceId,
+    });
+    if (screenGeneration !== quotaScreenGeneration.current || !quotaScreenActive.current) return;
+    if (quotaPollCancel.current === cancel) quotaPollCancel.current = null;
+    if (result.state === 'cancelled') return;
+    quotaReturnInvoiceIdRef.current = '';
+    setQuotaReturnInvoiceId('');
+    if (result.state === 'terminal') {
+      setQuotaPaymentStatus(terminalInvoiceMessage(result.invoice));
+      await loadQuotaSummary();
+    } else {
+      setQuotaPaymentStatus({ kind: 'pending', text: 'Chưa nhận được xác nhận cuối từ cổng. Hóa đơn vẫn được giữ; dùng “Kiểm tra trạng thái” trong danh sách hóa đơn.' });
+    }
+  }
+
+  quotaResumeHandler.current = () => { void resumeQuotaReturnPolling(); };
+
+  function clearQuotaScreenState(): void {
+    quotaScreenGeneration.current += 1;
+    quotaScreenActive.current = false;
+    quotaRequest.current += 1;
+    quotaPollCancel.current?.();
+    quotaPollCancel.current = null;
+    quotaReturnInvoiceIdRef.current = '';
+    checkoutWasOpened.current = false;
+    quotaCheckoutKeys.current.reset();
+    setQuotaProducts([]);
+    setQuotaInvoices([]);
+    setQuotaPaymentSettings(null);
+    setQuotaBusy(false);
+    setQuotaCheckoutBusy(false);
+    setQuotaActionInvoiceId('');
+    setQuotaError('');
+    setQuotaPaymentStatus(null);
+    setQuotaReconcileCooldowns({});
+    setQuotaReturnInvoiceId('');
+  }
+
+  useEffect(() => {
+    const cooldownPending = Object.values(quotaReconcileCooldowns).some((until) => until > quotaClock);
+    const expiryPending = quotaInvoices.some((invoice) => invoice.state === 'PENDING'
+      && invoice.attempts.some((attempt) => attempt.expires_at && Date.parse(attempt.expires_at) > quotaClock));
+    if (!cooldownPending && !expiryPending) return undefined;
+    const timer = setInterval(() => setQuotaClock(Date.now()), 1_000);
+    return () => clearInterval(timer);
+  }, [quotaClock, quotaInvoices, quotaReconcileCooldowns]);
 
   return {
     resetAccountData,
@@ -343,10 +631,27 @@ export function useParentPlatformController(application: ParentApplicationModule
     loadNotifications,
     markNotificationRead,
     markAllNotificationsRead,
-    quota: null as ParentVideoQuota | null,
-    quotaBusy: false,
-    quotaError: unavailableMessage,
+    quota,
+    quotaProducts,
+    quotaInvoices,
+    quotaPaymentSettings,
+    quotaBusy,
+    quotaCheckoutBusy,
+    quotaActionInvoiceId,
+    quotaError: quotaCapability.state === 'available' ? quotaError : unavailableMessage,
+    quotaPaymentStatus,
+    quotaReconcileCooldowns,
+    quotaClock,
+    quotaReturnInvoiceId,
+    enabledQuotaProviders: quotaPaymentSettings ? enabledQuotaProviders(quotaPaymentSettings) : [],
+    quotaReconcileSecondsRemaining: (invoiceId: string) => reconcileSecondsRemaining(quotaReconcileCooldowns, invoiceId, quotaClock),
     loadQuota,
+    loadQuotaSummary,
+    checkoutQuotaProduct,
+    resumeQuotaPayment,
+    reconcileQuotaInvoice,
+    cancelExpiredQuotaInvoice,
+    clearQuotaScreenState,
     capabilities: platformCapabilities,
   };
 }

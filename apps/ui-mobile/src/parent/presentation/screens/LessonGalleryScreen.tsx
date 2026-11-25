@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import type { LessonDetail, LessonInvitation, LessonSummary, ParentGroupInvitation } from '../../domain/types';
+import type { LessonDetail, LessonInvitation, LessonSummary, ParentGroupInvitation, ParentGroupMembershipV1 } from '../../domain/types';
 import { Card, Notice, ScreenFrame, SecondaryButton, SectionTitle, TextButton, palette } from '../components/ui';
 import { ALL_LESSONS_TOPIC, buildLessonCatalogViewModel } from './catalogViewModel';
+import { canLeaveParentGroupMembership } from '../navigation/workflowTypes';
 
 type Props = {
   lessons: LessonSummary[];
@@ -11,6 +12,12 @@ type Props = {
   selectedPresetVersionId: string | null;
   lessonInvitations: LessonInvitation[];
   groupInvitations: ParentGroupInvitation[];
+  groupMemberships: ParentGroupMembershipV1[];
+  searchQuery: string;
+  searchTopic: string;
+  hasMoreLessons: boolean;
+  hasMoreGroupMemberships: boolean;
+  groupMembershipsLoading: boolean;
   loading: boolean;
   loadingId: string;
   error: string;
@@ -19,6 +26,11 @@ type Props = {
   onAcceptLessonInvitation: (invitationId: string) => void;
   onDeclineLessonInvitation: (invitationId: string) => void;
   onAcceptGroupInvitation: (membershipId: string) => void;
+  onDeclineGroupInvitation: (membershipId: string) => void;
+  onLeaveGroup: (membership: ParentGroupMembershipV1) => void;
+  onSearchLessons: (query: string, topic: string) => void;
+  onLoadMoreLessons: () => void;
+  onLoadMoreGroupMemberships: () => void;
   onBack: () => void;
   mode?: 'gallery' | 'picker';
 };
@@ -42,6 +54,7 @@ function parentGroupInvitationStateLabel(state: ParentGroupInvitation['state']):
     case 'ACTIVE': return 'Đã tham gia';
     case 'REVOKED': return 'Đã thu hồi';
     case 'EXPIRED': return 'Đã hết hạn';
+    case 'DECLINED': return 'Đã từ chối';
   }
 }
 
@@ -54,6 +67,17 @@ function expiryLabel(value: string | null): string | null {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return null;
   return `Có hiệu lực đến ${date.toLocaleDateString('vi-VN')}`;
+}
+
+function confirmLeaveGroup(membership: ParentGroupMembershipV1, onConfirm: () => void): void {
+  Alert.alert(
+    'Xác nhận rời nhóm',
+    'Bạn sẽ mất quyền truy cập các bài học được chia sẻ qua nhóm này. Nhà trường có thể mời bạn tham gia lại sau.',
+    [
+      { text: 'Hủy', style: 'cancel' },
+      { text: 'Rời nhóm', style: 'destructive', onPress: onConfirm },
+    ],
+  );
 }
 
 function StatusPill({ label, selected = false }: { label: string; selected?: boolean }): React.JSX.Element {
@@ -152,6 +176,8 @@ function DetailSection({
 export function LessonGalleryScreen(props: Props): React.JSX.Element {
   const isPicker = props.mode === 'picker';
   const [selectedTopic, setSelectedTopic] = useState(ALL_LESSONS_TOPIC);
+  const [searchQuery, setSearchQuery] = useState(props.searchQuery);
+  const [searchTopic, setSearchTopic] = useState(props.searchTopic);
   const catalog = buildLessonCatalogViewModel(props.lessons, selectedTopic);
   const showTopicFilters = !isPicker && catalog.topics.length > 1;
   const selectedVersion = props.selectedLesson
@@ -168,6 +194,34 @@ export function LessonGalleryScreen(props: Props): React.JSX.Element {
       safeAreaEdges={isPicker ? ['top', 'right', 'bottom', 'left'] : ['top', 'right', 'left']}
     >
       {props.error ? <Notice text={props.error} tone="error" /> : null}
+
+      <Card style={styles.searchCard}>
+        <TextInput
+          accessibilityLabel="Tìm bài học"
+          autoCapitalize="none"
+          maxLength={100}
+          onChangeText={setSearchQuery}
+          onSubmitEditing={() => props.onSearchLessons(searchQuery, searchTopic)}
+          placeholder="Tìm bài học"
+          returnKeyType="search"
+          style={styles.searchInput}
+          value={searchQuery}
+        />
+        <TextInput
+          accessibilityLabel="Chủ đề tùy chọn"
+          maxLength={120}
+          onChangeText={setSearchTopic}
+          onSubmitEditing={() => props.onSearchLessons(searchQuery, searchTopic)}
+          placeholder="Chủ đề (không bắt buộc)"
+          returnKeyType="search"
+          style={styles.searchInput}
+          value={searchTopic}
+        />
+        <Pressable accessibilityRole="button" accessibilityState={{ disabled: props.loading }} disabled={props.loading} onPress={() => props.onSearchLessons(searchQuery, searchTopic)} style={styles.searchButton}>
+          <Ionicons name="search" size={17} color="#FFFFFF" accessible={false} />
+          <Text style={styles.searchButtonText}>Tìm kiếm</Text>
+        </Pressable>
+      </Card>
 
       <Card style={styles.catalogCard}>
         <View style={styles.catalogHeader}>
@@ -236,6 +290,13 @@ export function LessonGalleryScreen(props: Props): React.JSX.Element {
           />
         ))}
       </Card>
+
+      {props.hasMoreLessons ? (
+        <Pressable accessibilityRole="button" accessibilityState={{ busy: props.loading, disabled: props.loading }} disabled={props.loading} onPress={props.onLoadMoreLessons} style={styles.loadMoreButton}>
+          {props.loading ? <ActivityIndicator size="small" color={colors.purple} /> : null}
+          <Text style={styles.loadMoreText}>{props.loading ? 'Đang tải…' : 'Xem thêm bài học'}</Text>
+        </Pressable>
+      ) : null}
 
       {props.loadingId && props.selectedLesson === null && props.lessons.length > 0 ? (
         <View style={styles.inlineLoading}>
@@ -382,15 +443,57 @@ export function LessonGalleryScreen(props: Props): React.JSX.Element {
                     <StatusPill label={parentGroupInvitationStateLabel(item.state)} selected={item.state === 'INVITED'} />
                   </View>
                   {item.state === 'INVITED' ? (
-                    <SecondaryButton
-                      label={actionBusy ? 'Đang xử lý…' : 'Chấp nhận lời mời'}
+                    <View style={styles.groupInvitationActions}>
+                      <SecondaryButton
+                        label={actionBusy ? 'Đang xử lý…' : 'Chấp nhận'}
+                        disabled={Boolean(props.loadingId)}
+                        onPress={() => props.onAcceptGroupInvitation(item.membership_id)}
+                      />
+                      <TextButton
+                        label="Từ chối"
+                        disabled={Boolean(props.loadingId)}
+                        onPress={() => props.onDeclineGroupInvitation(item.membership_id)}
+                      />
+                    </View>
+                  ) : null}
+                </View>
+              );
+            })}
+          </Card>
+
+          <Card style={styles.invitationCard}>
+            <View style={styles.invitationHeading}>
+              <View style={styles.sectionIconTileSmall}>
+                <Ionicons name="people-outline" size={19} color={colors.purple} accessible={false} />
+              </View>
+              <SectionTitle>Nhóm của tôi</SectionTitle>
+            </View>
+            {!props.loading && props.groupMemberships.length === 0 ? (
+              <Text style={styles.stateBody}>Bạn chưa tham gia nhóm nào.</Text>
+            ) : null}
+            {props.groupMemberships.map((membership) => {
+              const canLeave = canLeaveParentGroupMembership(membership);
+              const actionBusy = props.loadingId === `group:${membership.membership_id}:leave`;
+              return (
+                <View key={membership.membership_id} style={styles.membershipItem}>
+                  <Text style={styles.invitationTitle}>Nhóm phụ huynh</Text>
+                  <StatusPill label="Đã tham gia" selected />
+                  {canLeave ? (
+                    <TextButton
+                      label={actionBusy ? 'Đang xử lý…' : 'Rời nhóm'}
                       disabled={Boolean(props.loadingId)}
-                      onPress={() => props.onAcceptGroupInvitation(item.membership_id)}
+                      onPress={() => confirmLeaveGroup(membership, () => props.onLeaveGroup(membership))}
                     />
                   ) : null}
                 </View>
               );
             })}
+            {props.hasMoreGroupMemberships ? (
+              <Pressable accessibilityRole="button" accessibilityState={{ busy: props.groupMembershipsLoading, disabled: props.groupMembershipsLoading }} disabled={props.groupMembershipsLoading} onPress={props.onLoadMoreGroupMemberships} style={styles.loadMoreButton}>
+                {props.groupMembershipsLoading ? <ActivityIndicator size="small" color={colors.purple} /> : null}
+                <Text style={styles.loadMoreText}>{props.groupMembershipsLoading ? 'Đang tải…' : 'Xem thêm nhóm'}</Text>
+              </Pressable>
+            ) : null}
           </Card>
         </>
       ) : null}
@@ -409,6 +512,12 @@ const colors = {
 };
 
 const styles = StyleSheet.create({
+  searchCard: { backgroundColor: '#FFFEFC', borderColor: colors.border, borderRadius: 20, borderWidth: 1, gap: 9, padding: 13 },
+  searchInput: { minHeight: 46, borderColor: colors.border, borderRadius: 13, borderWidth: 1, color: colors.deepPurple, fontSize: 14, paddingHorizontal: 12 },
+  searchButton: { minHeight: 44, alignItems: 'center', alignSelf: 'flex-start', backgroundColor: colors.purple, borderRadius: 13, flexDirection: 'row', gap: 7, justifyContent: 'center', paddingHorizontal: 14 },
+  searchButtonText: { color: '#FFFFFF', fontSize: 13, fontWeight: '800' },
+  loadMoreButton: { minHeight: 48, alignItems: 'center', backgroundColor: colors.lavender, borderRadius: 15, flexDirection: 'row', gap: 8, justifyContent: 'center' },
+  loadMoreText: { color: colors.deepPurple, fontSize: 13, fontWeight: '800' },
   catalogCard: {
     backgroundColor: '#FFFEFC',
     borderColor: colors.border,
@@ -542,6 +651,8 @@ const styles = StyleSheet.create({
   invitationItemTitleRow: { alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'space-between' },
   invitationTitle: { color: colors.deepPurple, flex: 1, fontSize: 14, fontWeight: '800', lineHeight: 19, minWidth: 0 },
   invitationActions: { gap: 4 },
+  groupInvitationActions: { alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  membershipItem: { alignItems: 'center', borderTopColor: '#EEE5F6', borderTopWidth: 1, flexDirection: 'row', gap: 10, minHeight: 50, paddingTop: 9 },
   primaryLessonButton: {
     alignItems: 'center',
     backgroundColor: colors.purple,

@@ -5,6 +5,7 @@ import type {
   ParentProfileDeletePendingV1,
   ParentProfilePageV1,
   ParentProfileViewV1,
+  ParentStoryRunV1,
 } from '../src/parent/domain/types';
 import {
   canAnalyzeDrawing,
@@ -13,6 +14,7 @@ import {
   canConfirmDrawingSubject,
   canContinueToCapture,
   canRequestStoryRevision,
+  isRecoverableFirstStoryFailure,
   clampDrawingGuideIndex,
   isActiveOrUnreconciledStoryRun,
   isConfirmedRunSubject,
@@ -29,6 +31,9 @@ import {
   readRunPinnedLessonActivities,
   readStoryRevisionReadModel,
   reconcileProfileRecord,
+  safeStoryRecoveryMessage,
+  storyRecoverySignature,
+  STORY_RECOVERY_COPY,
   safeParentFlowErrorMessage,
   safeProfileFieldMessages,
   selectProfileById,
@@ -376,6 +381,60 @@ describe('parentFlowV1 pure flow decisions', () => {
     expect(canRequestStoryRevision({
       ...base, storyPresent: false, rewriteInstruction: '', storyAttempted: true, allowSameActionRetry: true,
     })).toBe(true);
+  });
+
+  it('allows recovery only for the exact failed first story tuple and matching run', () => {
+    const failedFirstStoryRun = {
+      run_id: 'synthetic-run',
+      run_state: 'FAILED',
+      story_revision_no: 1,
+      story_status: 'FAILED',
+      job_state: 'FAILED',
+      error_code: 'STORY_OUTPUT_INVALID',
+      retryable: false,
+    } as unknown as ParentStoryRunV1;
+
+    expect(isRecoverableFirstStoryFailure(failedFirstStoryRun)).toBe(true);
+    expect(isRecoverableFirstStoryFailure(failedFirstStoryRun, 'synthetic-run')).toBe(true);
+    expect(isRecoverableFirstStoryFailure(failedFirstStoryRun, 'another-run')).toBe(false);
+    expect(isRecoverableFirstStoryFailure(null)).toBe(false);
+    expect(isRecoverableFirstStoryFailure(undefined)).toBe(false);
+    expect(isRecoverableFirstStoryFailure({ ...failedFirstStoryRun, story_revision_no: 2 })).toBe(false);
+    expect(isRecoverableFirstStoryFailure({ ...failedFirstStoryRun, error_code: 'DRAWING_OUTPUT_INVALID' })).toBe(false);
+    expect(isRecoverableFirstStoryFailure({
+      ...failedFirstStoryRun, error_code: 'DRAWING_OUTPUT_INVALID', story_revision_no: null,
+    })).toBe(false);
+    expect(isRecoverableFirstStoryFailure({ ...failedFirstStoryRun, retryable: true })).toBe(false);
+    expect(isRecoverableFirstStoryFailure({ ...failedFirstStoryRun, job_state: 'AWAITING_RECONCILIATION' })).toBe(false);
+    expect(isRecoverableFirstStoryFailure({ ...failedFirstStoryRun, story_status: 'DRAFT' })).toBe(false);
+    expect(isRecoverableFirstStoryFailure({ ...failedFirstStoryRun, run_state: 'SCRIPT_GENERATION_UNKNOWN' })).toBe(false);
+    expect(isRecoverableFirstStoryFailure({ ...failedFirstStoryRun, run_state: 'SCRIPT_REVIEW' })).toBe(false);
+  });
+
+  it('builds a stable recovery signature for the run and exact optional hint', () => {
+    const emptyHint = storyRecoverySignature('synthetic-run');
+    expect(emptyHint).toBe(storyRecoverySignature('synthetic-run', undefined));
+    expect(storyRecoverySignature('synthetic-run', 'add a friend'))
+      .toBe(storyRecoverySignature('synthetic-run', 'add a friend'));
+    expect(storyRecoverySignature('synthetic-run', 'add a friend'))
+      .not.toBe(storyRecoverySignature('synthetic-run', 'add a cloud'));
+    expect(storyRecoverySignature('synthetic-run', 'add a friend'))
+      .not.toBe(storyRecoverySignature('another-run', 'add a friend'));
+    expect(storyRecoverySignature('synthetic-run', 'add a friend'))
+      .not.toBe(JSON.stringify(['synthetic-run', 'topic', 'idea', null]));
+  });
+
+  it('uses recovery-specific safe copy for limit, stale state, active run and invalid hint errors', () => {
+    expect(safeStoryRecoveryMessage({ code: 'STORY_REWRITE_LIMIT_REACHED' })).toBe(STORY_RECOVERY_COPY.limitReached);
+    expect(safeStoryRecoveryMessage({ code: 'STALE_REVISION' })).toBe(STORY_RECOVERY_COPY.staleState);
+    expect(safeStoryRecoveryMessage({ code: 'INVALID_STATE_TRANSITION' })).toBe(STORY_RECOVERY_COPY.staleState);
+    expect(safeStoryRecoveryMessage({ code: 'ACTIVE_RUN_EXISTS' })).toBe(STORY_RECOVERY_COPY.activeRunExists);
+    expect(safeStoryRecoveryMessage({ code: 'PARENT_REWRITE_HINT_INVALID' })).toBe(STORY_RECOVERY_COPY.hintInvalid);
+    expect(safeStoryRecoveryMessage({ code: 'UNKNOWN', message: 'private detail' }))
+      .toBe(safeParentFlowErrorMessage({ code: 'UNKNOWN', message: 'private detail' }));
+    expect(STORY_RECOVERY_COPY.body).toContain('một trong ba lần viết lại');
+    expect(STORY_RECOVERY_COPY.body).not.toMatch(/\d+ lượt/);
+    expect(STORY_RECOVERY_COPY.limitReached).not.toContain('xác nhận kịch bản');
   });
 
   it('confirms only the displayed story with the exact validated run, revision and hash', () => {

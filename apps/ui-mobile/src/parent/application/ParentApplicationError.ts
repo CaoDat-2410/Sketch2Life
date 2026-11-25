@@ -9,6 +9,7 @@ export type ParentApplicationErrorMetadata = {
   retryAfterSeconds?: number;
   currentVersion?: string | number;
   fieldErrors?: ParentSafeFieldError[];
+  safeDisplayMessage?: string;
 };
 
 export class ParentApplicationError extends Error {
@@ -26,6 +27,7 @@ export class ParentApplicationError extends Error {
     this.retryAfterSeconds = metadata.retryAfterSeconds;
     this.currentVersion = metadata.currentVersion;
     this.fieldErrors = metadata.fieldErrors;
+    this.safeDisplayMessage = metadata.safeDisplayMessage;
   }
 
   readonly correlationId?: string;
@@ -33,4 +35,5 @@ export class ParentApplicationError extends Error {
   readonly retryAfterSeconds?: number;
   readonly currentVersion?: string | number;
   readonly fieldErrors?: ParentSafeFieldError[];
+  readonly safeDisplayMessage?: string;
 }

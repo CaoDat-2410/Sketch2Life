@@ -6,6 +6,7 @@ export type ParentCapabilityId =
   | 'run-history'
   | 'lesson-history'
   | 'notifications'
+  | 'push-endpoints'
   | 'lessons'
   | 'story-creation'
   | 'job-status'

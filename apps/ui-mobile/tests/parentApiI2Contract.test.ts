@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { AuthTokenPort, ParentApiPort } from '../src/parent/application/ports/ParentPorts';
 import { ParentProfileUseCases } from '../src/parent/application/use-cases/ParentProfileUseCases';
 import { ParentApi, ParentApiError } from '../src/parent/infrastructure/http/ParentApi';
+import { svgGuideFailureMessage } from '../src/parent/domain/svgGuide';
 
 vi.mock('../src/parent/infrastructure/config', () => ({
   parentConfig: { apiBaseUrl: 'https://api.example.test' },
@@ -100,6 +101,23 @@ describe('ParentApi I2 contract', () => {
     expect(patched).toEqual(activeProfile);
     expect(requestBody(calls[0])).not.toHaveProperty('consent_policy_version');
     expect(deletion.state).toBe('DELETE_PENDING');
+  });
+
+  it('keeps an untouched context picker omitted and sends an explicit empty selection as an empty array', async () => {
+    const { api, calls } = createApi([
+      { status: 200, body: { request_id: 'receipt-v1', story_run: {} } },
+      { status: 200, body: { request_id: 'receipt-v2', story_run: {} } },
+    ]);
+    const base = { expected_context_revision: 2, context_snapshot_sha256: 'snapshot-hash', confirmed: true as const };
+
+    await api.confirmStoryRunContextV1('synthetic-run', base, 'context-v1-action');
+    await api.confirmStoryRunContextV1('synthetic-run', { ...base, selected_context_entry_ids: [] }, 'context-v2-empty-action');
+
+    expect(requestBody(calls[0])).toEqual(base);
+    expect(requestBody(calls[0])).not.toHaveProperty('selected_context_entry_ids');
+    expect(requestBody(calls[1])).toEqual({ ...base, selected_context_entry_ids: [] });
+    expect(header(calls[0], 'Idempotency-Key')).toBe('context-v1-action');
+    expect(header(calls[1], 'Idempotency-Key')).toBe('context-v2-empty-action');
   });
 
   it('preserves omitted and null interests_summary patch bodies', async () => {
@@ -373,7 +391,6 @@ describe('ParentApi I2 contract', () => {
     expect(new URL(calls[0].url).pathname).toBe('/api/parent/v1/ai/drawing-understandings');
     expect(header(calls[0], 'Idempotency-Key')).toBeNull();
     expect(fetcher).toHaveBeenCalledTimes(1);
-    expect(calls.some((call) => call.url.includes('activity-suggestions'))).toBe(false);
   });
 
   it('does not retry an unknown Modal outcome automatically', async () => {
@@ -386,5 +403,148 @@ describe('ParentApi I2 contract', () => {
 
     expect(fetcher).toHaveBeenCalledTimes(1);
     expect(header(calls[0], 'Idempotency-Key')).toBe('revision-action-once');
+  });
+
+  it('uses the catalog topic and subject routes with the backend query and body fields', async () => {
+    const topicSet = {
+      contract: 'ParentTopicSuggestionSetV1', set_id: 'pts_000000000000000000000001',
+      draft_id: '00000000-0000-4000-8000-000000000001', catalog_revision: 'topics-v1', excluded_set_ids: [],
+      cards: [
+        { topic_id: 'animals', title_vi: 'Động vật', description_vi: 'Những người bạn quanh ta' },
+        { topic_id: 'nature', title_vi: 'Thiên nhiên', description_vi: 'Cây cối và hoa lá' },
+        { topic_id: 'ocean', title_vi: 'Đại dương', description_vi: 'Sinh vật dưới biển' },
+      ],
+    };
+    const subjectSet = {
+      contract: 'ParentDrawingSubjectSuggestionSetV1', set_id: 'pds_000000000000000000000002',
+      draft_id: '00000000-0000-4000-8000-000000000001', topic_id: 'animals', topic: 'Động vật',
+      catalog_revision: 'subjects-v1', generation_source: 'CURATED_CATALOG', review_required: true,
+      excluded_set_ids: [], cards: [
+        { subject_id: 'cat', title_vi: 'Con mèo', guide_subject: 'con mèo', relation_to_topic_vi: 'Vật nuôi' },
+        { subject_id: 'bird', title_vi: 'Chim sẻ', guide_subject: 'chim sẻ', relation_to_topic_vi: 'Động vật bay' },
+        { subject_id: 'fish', title_vi: 'Cá vàng', guide_subject: 'cá vàng', relation_to_topic_vi: 'Động vật dưới nước' },
+      ],
+    };
+    const validation = {
+      contract: 'ParentCustomSubjectValidationV1', decision: 'ON_TOPIC',
+      normalized_subject: 'con mèo', message_vi: 'Lựa chọn phù hợp với chủ đề.',
+    };
+    const { api, calls } = createApi([
+      { status: 200, body: topicSet }, { status: 200, body: subjectSet }, { status: 200, body: validation },
+    ]);
+
+    const topicExclusions = Array.from({ length: 18 }, (_, index) => `pts_${String(index + 1).padStart(24, '0')}`);
+    const subjectSetExclusions = Array.from({ length: 18 }, (_, index) => `pds_${String(index + 1).padStart(24, '0')}`);
+    const subjectTextExclusions = Array.from({ length: 26 }, (_, index) => `subject-${index + 1}`);
+    await api.listTopicSuggestions('00000000-0000-4000-8000-000000000001', topicExclusions);
+    await api.listDrawingSubjectSuggestions({
+      draftId: '00000000-0000-4000-8000-000000000001', topicId: 'animals', topic: 'Động vật',
+      excludedSetIds: subjectSetExclusions, excludedSubjects: subjectTextExclusions,
+    });
+    await api.validateCustomSubject({ topicId: 'animals', topic: 'Động vật', subject: 'con mèo' });
+
+    const topicUrl = new URL(calls[0].url);
+    expect(topicUrl.pathname).toBe('/api/parent/v1/topics/suggestions');
+    expect(topicUrl.searchParams.get('draft_id')).toBe('00000000-0000-4000-8000-000000000001');
+    expect(topicUrl.searchParams.getAll('exclude_set_ids')).toEqual(topicExclusions.slice(-16));
+    const subjectUrl = new URL(calls[1].url);
+    expect(subjectUrl.pathname).toBe('/api/parent/v1/topics/animals/drawing-subject-suggestions');
+    expect(subjectUrl.searchParams.get('topic')).toBe('Động vật');
+    expect(subjectUrl.searchParams.getAll('exclude_set_ids')).toEqual(subjectSetExclusions.slice(-16));
+    expect(subjectUrl.searchParams.getAll('exclude_subjects')).toEqual(subjectTextExclusions.slice(-24));
+    expect(new URL(calls[2].url).pathname).toBe('/api/parent/v1/topics/custom-subject-validation');
+    expect(requestBody(calls[2])).toEqual({ topic_id: 'animals', topic: 'Động vật', subject: 'con mèo' });
+  });
+
+  it('normalizes drawing-subject exclusions and sends only backend-supported lengths', async () => {
+    const { api, calls } = createApi([{ status: 200, body: {} }]);
+
+    await api.listDrawingSubjectSuggestions({
+      draftId: '00000000-0000-4000-8000-000000000001',
+      topicId: 'animals',
+      topic: 'Động vật',
+      excludedSetIds: [],
+      excludedSubjects: [
+        'a'.repeat(81),
+        'b'.repeat(120),
+        'c'.repeat(80),
+        'de',
+        'f',
+        '   ',
+        '  red\t  apple\n  ',
+      ],
+    });
+
+    expect(new URL(calls[0].url).searchParams.getAll('exclude_subjects')).toEqual([
+      'c'.repeat(80),
+      'de',
+      'red apple',
+    ]);
+  });
+
+  it('applies the 24-item drawing-subject exclusion window after filtering', async () => {
+    const { api, calls } = createApi([{ status: 200, body: {} }]);
+    const subjects = Array.from({ length: 26 }, (_, index) => `subject-${index + 1}`);
+
+    await api.listDrawingSubjectSuggestions({
+      draftId: '00000000-0000-4000-8000-000000000001',
+      topicId: 'animals',
+      topic: 'Động vật',
+      excludedSetIds: [],
+      excludedSubjects: [...subjects, 'x'],
+    });
+
+    expect(new URL(calls[0].url).searchParams.getAll('exclude_subjects')).toEqual(subjects.slice(-24));
+  });
+
+  it('sends the versioned SVG topic-guide request body without the retired step_count field', async () => {
+    const { api, calls } = createApi([{ status: 200, body: { contract: 'SvgTopicStrokeGuideSourceDraftV1' } }]);
+
+    await api.generateSketchGuide('Động vật', 'con mèo');
+
+    expect(new URL(calls[0].url).pathname).toBe('/api/parent/v1/ai/sketch-guides');
+    expect(requestBody(calls[0])).toEqual({
+      contract: 'SvgTopicStrokeGuideRequestV1', topic: 'Động vật', intended_subject: 'con mèo', difficulty: 'beginner',
+    });
+    expect(requestBody(calls[0])).not.toHaveProperty('step_count');
+  });
+
+  it('preserves the API Vietnamese messages for disabled topic AI and private topic text', async () => {
+    const disabledMessage = 'Chủ đề này chưa có gợi ý trong danh mục. Hãy chọn một chủ đề gợi ý hoặc thử lại sau.';
+    const privateTextMessage = 'Chỉ nhập tên chủ đề hoặc đồ vật chung; không nhập tên, thông tin liên hệ hay dữ liệu riêng của trẻ.';
+    const { api } = createApi([
+      { status: 503, body: { detail: { code: 'PARENT_TOPIC_SUBJECT_AI_NOT_ENABLED', message: disabledMessage } } },
+      { status: 422, body: { detail: { code: 'PARENT_TOPIC_TEXT_NOT_ALLOWED', message: privateTextMessage } } },
+    ]);
+
+    const disabled = await api.listDrawingSubjectSuggestions({
+      draftId: '00000000-0000-4000-8000-000000000001', topicId: 'custom', topic: 'Chủ đề riêng', excludedSetIds: [],
+    }).catch((cause: unknown) => cause);
+    const privateText = await api.validateCustomSubject({ topicId: 'animals', topic: 'Động vật', subject: 'con mèo' })
+      .catch((cause: unknown) => cause);
+
+    expect(disabled).toBeInstanceOf(ParentApiError);
+    expect(disabled).toMatchObject({
+      code: 'PARENT_TOPIC_SUBJECT_AI_NOT_ENABLED', status: 503,
+      message: disabledMessage, safeDisplayMessage: disabledMessage,
+    });
+    expect(privateText).toBeInstanceOf(ParentApiError);
+    expect(privateText).toMatchObject({
+      code: 'PARENT_TOPIC_TEXT_NOT_ALLOWED', status: 422,
+      message: privateTextMessage, safeDisplayMessage: privateTextMessage,
+    });
+  });
+
+  it('treats CURATED_SVG_GUIDE_NOT_FOUND as one optional-guide response without a fallback request', async () => {
+    const { api, calls, fetcher } = createApi([
+      { status: 404, body: { detail: { code: 'CURATED_SVG_GUIDE_NOT_FOUND', message: 'No approved source drawing guide is available.' } } },
+    ]);
+    const result = await api.generateSketchGuide('Chủ đề chưa có', 'một đồ vật').catch((cause: unknown) => cause);
+
+    expect(result).toBeInstanceOf(ParentApiError);
+    expect(result).toMatchObject({ code: 'CURATED_SVG_GUIDE_NOT_FOUND', status: 404 });
+    expect(svgGuideFailureMessage((result as ParentApiError).code)).toContain('Bạn vẫn có thể tiếp tục chụp tranh mà không cần gợi ý.');
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(calls).toHaveLength(1);
   });
 });

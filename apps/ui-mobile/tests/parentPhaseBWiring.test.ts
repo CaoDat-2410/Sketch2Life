@@ -356,6 +356,7 @@ describe('Run waits and states', () => {
     expect(classifyRewriteProgress(runOf({ run_state: 'SCRIPT_REVIEW', story_revision_no: 2, story_status: 'DRAFT', job_state: 'FAILED', retryable: true }), resumed)).toMatchObject({ kind: 'failed', retryable: true });
     expect(rewriteRangeForRun(runOf({ story_revision_no: 2, story_status: 'DRAFT' }))).toEqual({ fromRevisionNo: 2, toRevisionNo: 3 });
     expect(rewritesLeft(1)).toBe(3);
+    expect(rewritesLeft(2)).toBe(2);
     expect(rewritesLeft(4)).toBe(0);
     expect(rewritesLeft(null)).toBe(0);
   });
@@ -603,6 +604,7 @@ describe('Learning use cases for Phase B', () => {
       requestVideoGenerationV1: record('video', { request_id: 'r', video_generation: { generation_id: GENERATION, state: 'ADMISSION_PENDING', generation_no: null, kind: 'INITIAL', job_id: null, run_state: 'VIDEO_ADMISSION_PENDING', run_revision: 11 } }),
       markVideoUnsuitableV1: record('unsuitable', { request_id: 'r', story_run: runOf() }),
       completeRunV1: record('complete', { request_id: 'r', story_run: runOf({ run_state: 'COMPLETED' }) }),
+      confirmStoryRunContextV1: record('context-confirmation', { request_id: 'r', story_run: runOf({ context_confirmed: true }) }),
       ...overrides,
     } as unknown as ParentApiPort;
     return { api, calls };
@@ -615,6 +617,30 @@ describe('Learning use cases for Phase B', () => {
     };
     return { sessions, digest: { sha256Hex: async () => SHA }, readFileBytes: vi.fn(async () => Uint8Array.from([1, 2, 3])) };
   };
+
+  it('keeps an omitted context selection distinct from explicit empty and selected IDs', async () => {
+    const { api, calls } = fakeApi();
+    const cases = new ParentLearningUseCases(api, uploadPort());
+    const run = runOf({ context_confirmed: false });
+
+    await cases.confirmRunContextV1(run, 'context-action-v1');
+    await cases.confirmRunContextV1(run, 'context-action-empty', []);
+    await cases.confirmRunContextV1(run, 'context-action-selected', ['00000000-0000-4000-8000-000000000001']);
+
+    expect(calls.map((call) => call.method)).toEqual([
+      'context-confirmation', 'context-confirmation', 'context-confirmation',
+    ]);
+    expect(calls[0].args[1]).toEqual({
+      expected_context_revision: 1, context_snapshot_sha256: SHA, confirmed: true,
+    });
+    expect(calls[1].args[1]).toEqual({
+      expected_context_revision: 1, context_snapshot_sha256: SHA, confirmed: true, selected_context_entry_ids: [],
+    });
+    expect(calls[2].args[1]).toEqual({
+      expected_context_revision: 1, context_snapshot_sha256: SHA, confirmed: true,
+      selected_context_entry_ids: ['00000000-0000-4000-8000-000000000001'],
+    });
+  });
 
   it('uploads the drawing first and attaches the returned handle to the run at its current revision', async () => {
     const { api, calls } = fakeApi();
@@ -697,6 +723,38 @@ describe('Learning use cases for Phase B', () => {
     // A rewrite answer for a different revision than the next one is not trusted.
     const wrong = fakeApi({ createStoryRewriteV1: vi.fn(async () => ({ story_run_id: RUN, story_revision_no: 4, run_revision: 3, run_state: 'SCRIPT_GENERATING' })) });
     await expect(new ParentLearningUseCases(wrong.api, uploadPort()).rewriteStoryV1(runOf({ story_revision_no: 2 }), 'x', 'k')).rejects.toMatchObject({ code: 'PARENT_REWRITE_RESULT_INVALID' });
+  });
+
+  it('accepts a first-story recovery from revision 1 without a hash and replays the same action identity', async () => {
+    const rewrite = vi.fn(async () => ({
+      story_run_id: RUN,
+      story_revision_no: 2,
+      run_revision: 8,
+      run_state: 'SCRIPT_GENERATING',
+    }));
+    const { api } = fakeApi({ createStoryRewriteV1: rewrite });
+    const cases = new ParentLearningUseCases(api, uploadPort());
+    const failedFirstStory = runOf({
+      run_state: 'FAILED',
+      story_revision_no: 1,
+      story_status: 'FAILED',
+      story_sha256: null,
+      job_state: 'FAILED',
+      error_code: 'STORY_OUTPUT_INVALID',
+      retryable: false,
+    });
+
+    const first = await cases.rewriteStoryV1(failedFirstStory, '  add a friend  ', 'recovery-key');
+    const replay = await cases.rewriteStoryV1(failedFirstStory, '  add a friend  ', 'recovery-key');
+    await cases.rewriteStoryV1(failedFirstStory, undefined, 'recovery-key-without-hint');
+
+    expect(first.story_revision_no).toBe(2);
+    expect(replay.story_revision_no).toBe(2);
+    const calls = rewrite.mock.calls as unknown as Array<[string, { expected_story_revision: number; expected_story_sha256?: string; hint?: string }, string]>;
+    expect(calls[0][1]).toEqual({ expected_story_revision: 1, hint: 'add a friend' });
+    expect(calls[1][1]).toEqual(calls[0][1]);
+    expect(calls[0][2]).toBe(calls[1][2]);
+    expect(calls[2][1]).toEqual({ expected_story_revision: 1 });
   });
 
   it('asks for a video only from the confirmed script, with a reason exactly from the second request on', async () => {

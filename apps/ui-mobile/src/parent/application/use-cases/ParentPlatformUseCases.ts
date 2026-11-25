@@ -1,4 +1,6 @@
 import type { ParentApiPort } from '../ports/ParentPorts';
+import type { ParentPaymentProvider } from '../parentQuota';
+import type { PushEndpointRegistrationV1 } from '../../domain/types';
 import { ParentApplicationError } from '../ParentApplicationError';
 
 /** Application actions for Parent history, sharing, notifications and quota. */
@@ -78,8 +80,43 @@ export class ParentPlatformUseCases {
     return this.api.markAllNotificationsRead(actionIdentity);
   }
 
+  registerPushEndpointV1(input: PushEndpointRegistrationV1, actionIdentity: string) {
+    return this.api.registerPushEndpointV1(input, actionIdentity);
+  }
+
+  deletePushEndpointV1(endpointId: string, expectedVersion: number, actionIdentity: string) {
+    return this.api.deletePushEndpointV1(endpointId, expectedVersion, actionIdentity);
+  }
+
   getVideoQuota() {
     return this.api.getVideoQuota();
+  }
+
+  getQuotaProducts() {
+    return this.api.getQuotaProducts();
+  }
+
+  getQuotaInvoices(limit = 50) {
+    return this.api.getQuotaInvoices(limit);
+  }
+
+  getQuotaPaymentSettings() {
+    return this.api.getQuotaPaymentSettings();
+  }
+
+  checkoutQuotaProduct(productId: string, provider: ParentPaymentProvider, actionIdentity: string) {
+    this.requireId(productId, 'QUOTA_PRODUCT_REQUIRED');
+    return this.api.checkoutQuotaProduct(productId, provider, actionIdentity);
+  }
+
+  reconcileQuotaInvoice(invoiceId: string) {
+    this.requireId(invoiceId, 'QUOTA_INVOICE_REQUIRED');
+    return this.api.reconcileQuotaInvoice(invoiceId);
+  }
+
+  cancelQuotaInvoice(invoiceId: string) {
+    this.requireId(invoiceId, 'QUOTA_INVOICE_REQUIRED');
+    return this.api.cancelQuotaInvoice(invoiceId);
   }
 
   private requireId(value: string, code: string): void {

@@ -5,11 +5,20 @@ import type {
   ParentCandidate,
   LessonInvitation,
   ParentGroupInvitation,
+  ParentGroupMembershipPage,
+  ParentGroupMembershipV1,
+  ParentLessonListOptions,
+  ParentLessonPage,
   ParentLessonDeliveryPage,
   ParentNotification,
   ParentNotificationPage,
   ParentNotificationReadAllV1,
+  PushEndpointRegistrationResultV1,
+  PushEndpointRegistrationV1,
   ParentProfile,
+  ParentContextEntryListView,
+  ParentContextEntryEnvelope,
+  CreateParentContextEntryRequest,
   ParentProfileCreateV1,
   ParentProfileDeletePendingV1,
   ParentProfileReferenceV1,
@@ -17,17 +26,30 @@ import type {
   ParentProfilePatchV1,
   ParentProfileRecordV1,
   ParentProfileViewV1,
+  ParentSupportNeedsV1,
+  ParentSupportNeedsWriteV1,
+  SupportNeedsPutV1,
   ParentProfileShareGrant,
   ParentProfileSharePage,
   ParentRunLifecycleReceipt,
   ParentActivityListV1,
+  ParentActivitySelectionReceiptV1,
+  ParentActivitySuggestionSetV1,
   ParentActivitySelectionRequestV1,
+  ParentCustomSubjectValidationV1,
+  ParentDrawingSubjectSuggestionSetV1,
   ParentStoryRunLifecycleEnvelopeV1,
   ParentStoryRunResultV1,
   ParentActiveStoryRunEnvelopeV1,
   ParentStoryRunHistoryPage,
   ParentUser,
   ParentVideoQuota,
+  ParentQuotaProduct,
+  ParentQuotaInvoicePage,
+  ParentQuotaPaymentSettings,
+  ParentQuotaCheckoutResult,
+  ParentQuotaReconcileResult,
+  ParentQuotaCancelResult,
   ParentStoryContextConfirmationV1,
   ParentStoryRevisionResultV1,
   ParentStoryRunCreateV1,
@@ -35,6 +57,7 @@ import type {
   ParentStoryRunV1,
   ParentStoryScriptConfirmationV1,
   ParentStorySubjectConfirmationAcceptedV1,
+  ParentTopicSuggestionSetV1,
   ParentPlaybackSourceV1,
   ParentRunAssetAcceptedV1,
   ParentRunIdeaAcceptedV1,
@@ -48,6 +71,8 @@ import type {
   ParentVideoUnsuitableRequestV1,
   StoryRun,
 } from '../../domain/types';
+import type { ParentPaymentProvider } from '../parentQuota';
+import type { SvgTopicStrokeGuideSourceDraftV1 } from '../../domain/svgGuide';
 
 export interface ParentIdentityPort {
   currentUser(): Promise<ParentUser | null>;
@@ -77,6 +102,10 @@ export interface ParentApiPort {
   listProfiles(): Promise<{ request_id: string; profiles: ParentProfile[] }>;
   listProfilesV1(limit?: number, cursor?: string | null): Promise<ParentProfilePageV1>;
   getProfileV1(profileId: string): Promise<ParentProfileRecordV1>;
+  listContextEntriesV1(profileId: string, cursor?: string | null): Promise<ParentContextEntryListView>;
+  createContextEntryV1(profileId: string, input: CreateParentContextEntryRequest, actionIdentity: ParentActionIdentity): Promise<ParentContextEntryEnvelope>;
+  getSupportNeedsV1(profileId: string): Promise<ParentSupportNeedsV1>;
+  putSupportNeedsV1(profileId: string, input: SupportNeedsPutV1, actionIdentity: ParentActionIdentity): Promise<ParentSupportNeedsWriteV1>;
   createProfileV1(input: ParentProfileCreateV1, actionIdentity: ParentActionIdentity): Promise<ParentProfileReferenceV1>;
   patchProfileV1(profileId: string, input: ParentProfilePatchV1, actionIdentity: ParentActionIdentity): Promise<ParentProfileViewV1>;
   requestProfileDeletionV1(profileId: string, actionIdentity: ParentActionIdentity): Promise<ParentProfileDeletePendingV1>;
@@ -91,19 +120,45 @@ export interface ParentApiPort {
   getStoryRunV1(runId: string): Promise<ParentStoryRunResultV1>;
   listActivitiesV1(runId: string): Promise<ParentActivityListV1>;
   selectActivityV1(runId: string, input: ParentActivitySelectionRequestV1, actionIdentity: ParentActionIdentity): Promise<ParentStoryRunEnvelopeV1>;
+  requestActivitySuggestionsV1(storyRunId: string, revision: number, actionIdentity: ParentActionIdentity): Promise<ActivitySuggestionResult>;
+  selectSuggestedActivityV1(input: {
+    storyRunId: string;
+    suggestionSetId: string;
+    revision: number;
+    activityIndex: number;
+    actionIdentity: ParentActionIdentity;
+  }): Promise<ActivitySelectionReceipt>;
   listStoryRuns(profileId?: string, cursor?: string | null): Promise<ParentStoryRunHistoryPage>;
   cancelStoryRun(runId: string): Promise<ParentRunLifecycleReceipt>;
   cancelStoryRunV1(runId: string, expectedRevision: number, actionIdentity: ParentActionIdentity): Promise<ParentStoryRunLifecycleEnvelopeV1>;
   deleteStoryRunV1(runId: string, actionIdentity: ParentActionIdentity): Promise<ParentStoryRunLifecycleEnvelopeV1>;
   deleteStoryRun(runId: string): Promise<ParentRunLifecycleReceipt>;
-  listLessons(): Promise<{ contract: string; items: LessonSummary[]; next_cursor: string | null }>;
+  listLessons(options?: ParentLessonListOptions): Promise<ParentLessonPage>;
   getLesson(lessonId: string): Promise<LessonDetail>;
   listLessonInvitations(): Promise<{ contract: string; items: LessonInvitation[]; next_cursor: string | null }>;
-  acceptLessonInvitation(invitationId: string): Promise<unknown>;
-  declineLessonInvitation(invitationId: string): Promise<unknown>;
+  acceptLessonInvitation(invitationId: string, actionIdentity?: ParentActionIdentity): Promise<unknown>;
+  declineLessonInvitation(invitationId: string, actionIdentity?: ParentActionIdentity): Promise<unknown>;
   listParentGroupInvitations(): Promise<{ contract: string; items: ParentGroupInvitation[]; next_cursor: string | null }>;
-  acceptParentGroupInvitation(membershipId: string): Promise<unknown>;
-  generateSketchGuide(topic: string): Promise<SketchGuideResult>;
+  acceptParentGroupInvitation(membershipId: string, actionIdentity?: ParentActionIdentity): Promise<unknown>;
+  declineParentGroupInvitation(membershipId: string, actionIdentity: ParentActionIdentity): Promise<ParentGroupMembershipV1>;
+  leaveParentGroup(
+    organizationId: string,
+    parentGroupId: string,
+    membershipId: string,
+    revision: number,
+    actionIdentity: ParentActionIdentity,
+  ): Promise<ParentGroupMembershipV1>;
+  listParentGroupMemberships(cursor?: string | null): Promise<ParentGroupMembershipPage>;
+  listTopicSuggestions(draftId: string, excludedSetIds: string[]): Promise<ParentTopicSuggestionSetV1>;
+  listDrawingSubjectSuggestions(input: {
+    draftId: string;
+    topicId: string;
+    topic: string;
+    excludedSetIds: string[];
+    excludedSubjects?: string[];
+  }): Promise<ParentDrawingSubjectSuggestionSetV1>;
+  validateCustomSubject(input: { topicId: string; topic: string; subject: string }): Promise<ParentCustomSubjectValidationV1>;
+  generateSketchGuide(topic: string, intendedSubject?: string): Promise<SvgTopicStrokeGuideSourceDraftV1>;
   createStoryRun(input: StoryRunCreateInput): Promise<{ request_id: string; story_run: StoryRun }>;
   createStoryRunV1(input: ParentStoryRunCreateV1, actionIdentity: ParentActionIdentity): Promise<ParentStoryRunEnvelopeV1>;
   confirmStoryRunContextV1(runId: string, input: ParentStoryContextConfirmationV1, actionIdentity: ParentActionIdentity): Promise<ParentStoryRunEnvelopeV1>;
@@ -133,7 +188,15 @@ export interface ParentApiPort {
   listNotifications(cursor?: string | null, limit?: number): Promise<ParentNotificationPage>;
   markNotificationRead(notificationId: string, actionIdentity: ParentActionIdentity): Promise<ParentNotification>;
   markAllNotificationsRead(actionIdentity: ParentActionIdentity): Promise<ParentNotificationReadAllV1>;
+  registerPushEndpointV1(input: PushEndpointRegistrationV1, actionIdentity: ParentActionIdentity): Promise<PushEndpointRegistrationResultV1>;
+  deletePushEndpointV1(endpointId: string, expectedVersion: number, actionIdentity: ParentActionIdentity): Promise<void>;
   getVideoQuota(): Promise<ParentVideoQuota>;
+  getQuotaProducts(): Promise<ParentQuotaProduct[]>;
+  getQuotaInvoices(limit?: number): Promise<ParentQuotaInvoicePage>;
+  getQuotaPaymentSettings(): Promise<ParentQuotaPaymentSettings>;
+  checkoutQuotaProduct(productId: string, provider: ParentPaymentProvider, actionIdentity: ParentActionIdentity): Promise<ParentQuotaCheckoutResult>;
+  reconcileQuotaInvoice(invoiceId: string): Promise<ParentQuotaReconcileResult>;
+  cancelQuotaInvoice(invoiceId: string): Promise<ParentQuotaCancelResult>;
 }
 
 export type ProfileCreateInput = {
@@ -162,16 +225,6 @@ export type StoryRunCreateInput = {
   lesson_version_id?: string;
 };
 
-export type SketchGuideResult = {
-  request_id: string;
-  modal_call_id?: string;
-  status: string;
-  review_required: true;
-  model?: { id: string; revision: string };
-  image_base64: string;
-  asset?: Record<string, unknown>;
-};
-
 export type DrawingUnderstandingResult = {
   request_id: string;
   modal_call_id?: string;
@@ -186,6 +239,10 @@ export type SubjectConfirmationResult = {
   understanding_revision: number;
   decision: string;
 };
+
+export type ActivitySuggestionResult = ParentActivitySuggestionSetV1;
+
+export type ActivitySelectionReceipt = ParentActivitySelectionReceiptV1;
 
 export type StoryGenerationResult = {
   request_id: string;

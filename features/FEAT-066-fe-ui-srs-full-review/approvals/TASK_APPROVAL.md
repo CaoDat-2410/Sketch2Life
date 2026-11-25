@@ -795,3 +795,14 @@ Mobile Phase D approval, 2026-11-22: The owner approved the goal v3 Phase D Andr
 - **Acceptance:** implement all seven criteria in plan revision 54, including on-demand revision paging, changed-fields-only profile edits with expected revision, safe stale/consent/state/not-found/service-error handling, support-needs default-unavailable behavior with identical neutral text for 404/503/consent refusal, no value logging or browser persistence, close-time state clearing, mocked tests, and the five listed gates.
 - **Boundaries:** no backend, mobile, School Manager, contract, credential, `.env`, debug-keystore, or model-weight changes. Preserve uncommitted T-7e edits. No stage, stash, branch switch, commit, or push. Run logs stay in `E:\AI_LOG\CODEX\fe-v4b-web-t12bc\`.
 - This amendment approves only the stated T-12b/T-12c Teacher web scope. It authorizes no backend deployment, shared-environment change, commit, or push.
+
+## Goal v4 Phase B Android Parent T-12a/T-12c/BR-20 — job fe-v4b-android-t12ac (2026-11-24)
+
+- **Status:** APPROVED_FOR_IMPLEMENTATION by the owner's explicit launch in this prompt (launch word GIVEN; running the prompt is the launch).
+- **Reviewer/approver:** Owner, direct prompt dated 2026-11-24; implementation review is recorded against the gates and evidence below.
+- **Plan revision:** 1, `plan/GOAL_V4_PHASE_B_ANDROID_T12AC_PLAN_20261124.md`.
+- **Plan SHA-256:** 242F336DD85B53FC9087F29399ECE476851158E8805E43CBD8EC4A284FF49CFD.
+- **Scope:** `apps/ui-mobile` on `feature/fe-mobile-remediation`, plus this FEAT-066 plan, approval amendment, context/decision/status and feature-local evidence. No backend, web, obsolete `apps/mobile`, secrets, signing material, `.env`, screenshots containing support values, repository run logs, commit, stage, stash, branch switch or push.
+- **Contract:** `tmp/phase-v4/PHASE_B_FINAL_ROUTE_LIST_20261124.md` §§2, 3.4, 4 and D-066-101. Canonical FEAT-063 SRS v2.7-draft remains unsigned.
+- **Acceptance criteria:** the seven criteria in the approved plan, covering the four Parent routes, V2 context selection, ephemeral support-needs state, BR-20 safe errors, mock tests and requested gates.
+- This amendment approves only the named Goal v4 Phase B Android Parent task. It does not alter earlier FEAT-066 scopes or approve backend, production key-source, Teacher, or SRS changes.

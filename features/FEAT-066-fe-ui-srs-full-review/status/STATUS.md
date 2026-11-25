@@ -767,3 +767,12 @@ The canonical working SRS `features/FEAT-063-system-architecture-rearchitecture/
 - git diff --check: exit 0; line-ending normalization warnings only.
 - Evidence: evidence/notes/EV-066-061_V4B_WEB_T12BC_20261124.md.
 - No commit, push, stage, stash, or branch switch; working tree remains for owner review.
+
+## Goal v4 Phase B Android Parent T-12a/T-12c/BR-20 — implemented and verified — 2026-11-24
+
+- **Status:** IMPLEMENTED AND VERIFIED; pending owner review. Changes remain local, unstaged and uncommitted.
+- **Scope:** `apps/ui-mobile` plus this task's FEAT-066 plan, approval amendment, context, implementation record and evidence. No backend or obsolete `apps/mobile` changes.
+- **Tests:** 22 files and 252 tests passed; `UI_COPY_AND_RECOVERY_VALID` printed.
+- **Gates:** typecheck, harness, repository security, architecture and `git diff --check` all exited 0. The diff check printed a CRLF-to-LF warning for `approvals/TASK_APPROVAL.md` but no whitespace errors.
+- **Limitations:** no Android lint script or native test suite exists in `apps/ui-mobile`; optional Gradle assembly was not run. No backend/runtime request was made. D-066-101 governs the unavailable support-needs production state while no key source is configured.
+- **Evidence:** `evidence/notes/GOAL_V4_PHASE_B_ANDROID_T12AC_EVIDENCE_20261124.md`; the append-only run log is in the designated external log folder.

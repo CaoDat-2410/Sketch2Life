@@ -526,3 +526,9 @@ Verification: all six requested gates passed. Vitest: 18 files, 228 tests, and `
 - The BE1 support-needs routes remain outside the published SRS operation set. The final route contract controls this integration; the SRS route addition remains an owner open item.
 - Evidence: evidence/notes/EV-066-061_V4B_WEB_T12BC_20261124.md. Final repository gate results are recorded there.
 - No backend, mobile, or School Manager code changed. No stage, stash, branch switch, commit, or push.
+
+## Goal v4 Phase B Android Parent T-12a/T-12c/BR-20 — 2026-11-24
+
+The owner-launched task `fe-v4b-android-t12ac` is implemented in `apps/ui-mobile` on `feature/fe-mobile-remediation`. Its approved plan and task-specific approval amendment are recorded in `plan/GOAL_V4_PHASE_B_ANDROID_T12AC_PLAN_20261124.md` and `approvals/TASK_APPROVAL.md`. The implementation adds Parent context entries and the selected-context V2 confirmation path, the ephemeral support-needs screen, and BR-20 safe field errors. D-066-101 remains the product decision; no new product or backend decision was made, and no production support-needs key source is configured.
+
+All six requested gates passed after the final source changes. Detailed results and implementation evidence are in `evidence/notes/GOAL_V4_PHASE_B_ANDROID_T12AC_EVIDENCE_20261124.md`. Status is implemented and verified, pending owner review. The FEAT-063 v2.7-draft remains unsigned. No backend/runtime call, commit, stage, push, branch change or screenshot was made; optional Gradle assembly was not run.
