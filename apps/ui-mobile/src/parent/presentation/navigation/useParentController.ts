@@ -6,6 +6,8 @@ import { createParentActionIdentity } from '../../application/ports/ParentPorts'
 import type { ParentActionIdentity } from '../../application/ports/ParentPorts';
 import type { ParentApplicationModule } from '../../application/ports/ParentApplicationModule';
 import { parseStoryDraft } from '../../domain/storyDraft';
+import type { SvgTopicStrokeGuideDraftV1 } from '../../domain/svgGuide';
+import { sketchGuideFailureMessage, sketchGuideRequestSubject } from './sketchGuideFlow';
 import { isResolvedTopicConsistent } from '../../domain/topicMatching';
 import {
   buildSubjectRolesRequest,
@@ -23,7 +25,7 @@ import type {
   ParentDrawingCandidateV1,
   ParentDrawingSubjectCardV1,
   ParentDrawingSubjectSuggestionSetV1,
-  ParentActivityListV1,
+  ParentActivitySuggestionSetV1,
   ParentActivitySelectionRequestV1,
   ParentCustomSubjectValidationV1,
   ParentGroupInvitation,
@@ -49,6 +51,7 @@ import {
   isClosedRunState,
   readVideoPanel,
   readActivityListV1,
+  readParentActivitySuggestionSetV1,
 } from '../../application/parentPhaseB';
 import {
   RunWaitCancelled,
@@ -93,6 +96,10 @@ import {
   readSubjectConfirmationOutcome,
   readDrawingCandidate,
   reconcileProfileRecord,
+  isTerminalFailedStoryRun,
+  hasUsedDrawingRetake,
+  isSafePreDispatchDrawingError,
+  terminalDrawingFailureMessage,
   safeParentFlowErrorMessage,
   safeProfileFieldMessages,
   subjectRolesIssueMessage,
@@ -158,6 +165,7 @@ export function useParentController(application: ParentApplicationModule) {
   const [guideEnabled, setGuideEnabled] = useState(false);
   const [guideBase64, setGuideBase64] = useState('');
   const [guideBusy, setGuideBusy] = useState(false);
+  const [guideDraft, setGuideDraft] = useState<SvgTopicStrokeGuideDraftV1 | null>(null);
   const [guideError, setGuideError] = useState('');
   const [drawingGuideIndex, setDrawingGuideIndex] = useState(0);
   const [photo, setPhotoValue] = useState<SelectedPhoto | null>(null);
@@ -172,7 +180,7 @@ export function useParentController(application: ParentApplicationModule) {
   }, [candidate]);
   const [subjectConfirmed, setSubjectConfirmed] = useState(false);
   const [understandingRevision, setUnderstandingRevision] = useState(0);
-  const [activitySuggestions, setActivitySuggestions] = useState<ParentActivityListV1 | null>(null);
+  const [activitySuggestions, setActivitySuggestions] = useState<ParentActivitySuggestionSetV1 | null>(null);
   const [selectedActivityIndex, setSelectedActivityIndex] = useState<number | null>(null);
   const [activityBusy, setActivityBusy] = useState(false);
   const [activityAttempted, setActivityAttempted] = useState(false);
@@ -210,10 +218,12 @@ export function useParentController(application: ParentApplicationModule) {
   const subjectConfirmationAction = useRef<RetainedActionIdentity | null>(null);
   const scriptConfirmationAction = useRef<RetainedActionIdentity | null>(null);
   const activitySelectionAction = useRef<RetainedActionIdentity | null>(null);
+  const activitySuggestionAction = useRef<RetainedActionIdentity | null>(null);
   const activityCancelAction = useRef<RetainedActionIdentity | null>(null);
   const runCreationInFlight = useRef(false);
   const drawingAnalysisInFlight = useRef(false);
   const drawingUploadAction = useRef<RetainedKeySet<'create' | 'complete' | 'attach'> | null>(null);
+  const drawingAnalysisRetryRunId = useRef<string | null>(null);
   const voiceUploadAction = useRef<RetainedKeySet<'create' | 'complete' | 'idea'> | null>(null);
   const audioSubmittedRunId = useRef<string | null>(null);
   const transcriptCorrectionAction = useRef<RetainedActionIdentity | null>(null);
@@ -521,6 +531,7 @@ export function useParentController(application: ParentApplicationModule) {
     const previousSetId = lastTopicSuggestionSetId.current;
     setTopicDraftId(draftId);
     setTopic('');
+    setIdea('');
     setSelectedTopicId('');
     setIntendedDrawingSubject('');
     setCustomDrawingSubject('');
@@ -905,9 +916,22 @@ export function useParentController(application: ParentApplicationModule) {
   }
 
   async function createGuide(): Promise<void> {
-    if (!guideEnabled) return;
+    if (!guideEnabled || guideBusy) return;
+    const guideTopic = topic.trim();
+    if (guideTopic.length < 2) return;
     setGuideBase64('');
-    setGuideError('Gợi ý nét vẽ tự động 4–8 bước chưa khả dụng. Bạn vẫn có thể tiếp tục với hướng dẫn của bài học đã ghim.');
+    setGuideError('');
+    setGuideBusy(true);
+    try {
+      const draft = await application.learning.generateSketchGuide(guideTopic, sketchGuideRequestSubject(idea));
+      setGuideDraft(draft);
+      setStep('sketch-guide');
+    } catch (cause) {
+      setGuideDraft(null);
+      setGuideError(sketchGuideFailureMessage(cause));
+    } finally {
+      setGuideBusy(false);
+    }
   }
 
   function setAudio(value: SelectedAudio | null): void {
@@ -949,6 +973,7 @@ export function useParentController(application: ParentApplicationModule) {
     setActivityAttempted(false);
     setActivityError('');
     activitySelectionAction.current = null;
+    activitySuggestionAction.current = null;
     activityCancelAction.current = null;
   }
 
@@ -1220,11 +1245,32 @@ export function useParentController(application: ParentApplicationModule) {
       setPhotoMessage(safeParentFlowErrorMessage({ code: 'PARENT_DRAWING_REQUIRED' }));
       return;
     }
+    if (selectedPhoto.analysisRetryable === true) {
+      if (drawingAnalysisRetryRunId.current === runId) {
+        setPhotoValue((current) => current ? {
+          ...current,
+          analysisRetryable: false,
+          analysisError: 'Lượt thử lại an toàn đã hết. Hãy đóng buổi này rồi bắt đầu buổi mới.',
+        } : current);
+        return;
+      }
+      drawingAnalysisRetryRunId.current = runId;
+    }
     drawingAnalysisInFlight.current = true;
     const busyToken = beginBusy('understanding');
     setError('');
     try {
       const latest = await getLatestRun(runId);
+      if (isTerminalFailedStoryRun(latest)) {
+        setPhotoValue((current) => current ? {
+          ...current,
+          locked: true,
+          analysisTerminal: true,
+          analysisRetryable: false,
+          analysisError: terminalDrawingFailureMessage(latest.error_code),
+        } as SelectedPhotoWithRunLock : current);
+        return;
+      }
       const revision = latest.current_input_revision;
       if (typeof revision !== 'number' || !Number.isInteger(revision) || revision < 1) {
         setPhotoMessage(safeParentFlowErrorMessage({ code: 'PARENT_DRAWING_RESULT_INVALID' }));
@@ -1250,6 +1296,7 @@ export function useParentController(application: ParentApplicationModule) {
         keys,
       }));
       drawingUploadAction.current = null;
+      drawingAnalysisRetryRunId.current = null;
       if (retakeAvailable) retakeUsed.current = true;
       setRetakeAvailable(false);
       setPhotoValue((current) => current ? { ...current, locked: true, analysisError: undefined } as SelectedPhoto : current);
@@ -1265,7 +1312,37 @@ export function useParentController(application: ParentApplicationModule) {
     } catch (cause) {
       if (cause instanceof RunWaitCancelled) return;
       if (isDefinitiveClientError(cause)) drawingUploadAction.current = null;
-      setPhotoMessage(safeParentFlowErrorMessage(cause));
+      let latest: ParentStoryRunV1 | null = null;
+      try {
+        latest = await getLatestRun(runId);
+      } catch {
+        // Keep the original safe error when run reconciliation is unavailable.
+      }
+      if (isTerminalFailedStoryRun(latest)) {
+        setPhotoValue((current) => current ? {
+          ...current,
+          locked: true,
+          analysisTerminal: true,
+          analysisRetryable: false,
+          analysisError: terminalDrawingFailureMessage(latest?.error_code),
+        } as SelectedPhotoWithRunLock : current);
+      } else if (isSafePreDispatchDrawingError(cause)
+        && selectedPhoto.analysisRetryable !== true
+        && drawingAnalysisRetryRunId.current !== runId) {
+        setPhotoValue((current) => current ? {
+          ...current,
+          analysisTerminal: false,
+          analysisRetryable: true,
+          analysisError: 'Lần gửi trước dừng trước khi gọi AI. Bạn có thể thử lại một lần.',
+        } : current);
+      } else {
+        setPhotoValue((current) => current ? {
+          ...current,
+          analysisTerminal: false,
+          analysisRetryable: false,
+          analysisError: safeParentFlowErrorMessage(cause),
+        } : current);
+      }
     } finally {
       drawingAnalysisInFlight.current = false;
       endBusy(busyToken);
@@ -1279,6 +1356,41 @@ export function useParentController(application: ParentApplicationModule) {
       return;
     }
     await analyzeDrawingForRun(contextRun.run_id);
+  }
+
+  async function closeUnresolvedDrawingRun(): Promise<void> {
+    if (busy || !contextRun) return;
+    const runId = contextRun.run_id;
+    const busyToken = beginBusy('close-unresolved-run');
+    try {
+      const latest = await getLatestRun(runId);
+      if (!isTerminalFailedStoryRun(latest)) {
+        await application.platform.cancelRunV1(runId, latest.run_revision, createParentActionIdentity());
+      }
+      setActiveRun(null);
+      setContextRun(null);
+      setContextConfirmed(false);
+      setSubjectConfirmed(false);
+      setUnderstandingRevision(0);
+      setPhotoValue(null);
+      setStory(null);
+      setStoryDisplayedRunId('');
+      setStoryRevisionNo(null);
+      setStorySha256('');
+      setStoryAttempted(false);
+      setStoryConfirmed(false);
+      setRewriteCount(0);
+      setRewriteInstruction('');
+      drawingUploadAction.current = null;
+      drawingAnalysisRetryRunId.current = null;
+      resetActivityReview();
+      setError('');
+      await beginTopicPath();
+    } catch (cause) {
+      setPhotoMessage(safeParentFlowErrorMessage(cause));
+    } finally {
+      endBusy(busyToken);
+    }
   }
 
   function renameSecondarySubject(entityId: ParentSubjectRoleV1['entity_id'], label: string): void {
@@ -1337,7 +1449,7 @@ export function useParentController(application: ParentApplicationModule) {
           setSubjectConfirmed(true);
           setStep('activity');
           subjectConfirmationAction.current = null;
-          await requestActivityList();
+          await requestActivityList(false, latest);
           return;
         }
         if (currentUnderstanding.understandingRevision !== understandingRevision) {
@@ -1413,7 +1525,7 @@ export function useParentController(application: ParentApplicationModule) {
       resetActivityReview();
       setStep('activity');
       subjectConfirmationAction.current = null;
-      await requestActivityList();
+      await requestActivityList(false, confirmedRun);
     } catch (cause) {
       if (cause instanceof ParentApplicationError && cause.code === 'STALE_REVISION') {
         subjectConfirmationAction.current = null;
@@ -1464,19 +1576,36 @@ export function useParentController(application: ParentApplicationModule) {
         setActivityError(safeParentFlowErrorMessage({ code: 'STALE_REVISION' }));
         return;
       }
-      const response = await timeRequest('activity-list', () => application.learning.listActivitiesV1(run.run_id));
-      const activityList = readActivityListV1(response);
-      if (!activityList) {
-        throw new ParentApplicationError('PARENT_ACTIVITY_LIST_INVALID', 'The activity list did not match the approved response shape.');
+      const suggestionAction = retainedActionIdentity(
+        activitySuggestionAction,
+        JSON.stringify([run.run_id, sourceRevision]),
+      );
+      const response = await timeRequest('activity-suggestions', () => application.learning.suggestActivitiesV1(
+        run.run_id,
+        sourceRevision,
+        suggestionAction,
+      ));
+      const suggestionSet = readParentActivitySuggestionSetV1(response, {
+        runId: run.run_id,
+        understandingRevision: sourceRevision,
+      });
+      if (!suggestionSet) {
+        throw new ParentApplicationError('PARENT_ACTIVITY_RESPONSE_INVALID', 'The activity suggestions did not match the approved response shape.');
       }
-      setActivitySuggestions(activityList);
-      const selectedRef = latest.main_activity?.state === 'SELECTED' ? latest.main_activity.selected?.activity_ref : null;
-      const selectedIndex = selectedRef
-        ? activityList.items.findIndex((item) => JSON.stringify(item.activity_ref) === JSON.stringify(selectedRef))
+      setActivitySuggestions(suggestionSet);
+      activitySuggestionAction.current = null;
+      const selectedActivity = latest.main_activity?.state === 'SELECTED' ? latest.main_activity.selected : null;
+      const selectedIndex = selectedActivity
+        ? suggestionSet.activities.findIndex((item) => item.title === selectedActivity.title
+          && item.source === selectedActivity.source
+          && item.instructions_text === selectedActivity.instructions_text)
         : -1;
       setSelectedActivityIndex(selectedIndex >= 0 ? selectedIndex : null);
       adoptPolledRun(latest);
     } catch (cause) {
+      if (!(cause instanceof ParentApplicationError && cause.code === 'PARENT_ACTIVITY_OUTCOME_UNKNOWN')) {
+        activitySuggestionAction.current = null;
+      }
       setActivityError(safeParentFlowErrorMessage(cause));
     } finally {
       setActivityBusy(false);
@@ -1484,16 +1613,17 @@ export function useParentController(application: ParentApplicationModule) {
   }
 
   function chooseActivity(index: number): void {
-    if (!activitySuggestions || !Number.isInteger(index) || index < 0 || index >= activitySuggestions.items.length) return;
+    if (!activitySuggestions || !Number.isInteger(index) || index < 0 || index >= activitySuggestions.activities.length) return;
     setSelectedActivityIndex(index);
     setActivityError('');
   }
 
   async function selectActivity(): Promise<void> {
     if (busy || activityBusy || !ensureLearningProfileAllowed(profile)) return;
-    const selected = selectedActivityIndex === null ? null : activitySuggestions?.items[selectedActivityIndex] ?? null;
+    const selectionIndex = selectedActivityIndex;
+    const selected = selectionIndex === null ? null : activitySuggestions?.activities[selectionIndex] ?? null;
     const runId = contextRun?.run_id;
-    if (!runId || !selected) {
+    if (!runId || !selected || selectionIndex === null) {
       setActivityError('Chọn một hoạt động trong danh sách trước khi tiếp tục.');
       return;
     }
@@ -1511,11 +1641,23 @@ export function useParentController(application: ParentApplicationModule) {
         setActivityError(safeParentFlowErrorMessage({ code: 'STALE_REVISION' }));
         return;
       }
-      const signature = JSON.stringify([runId, latest.run_revision, selected.activity_ref]);
+      const suggestionSet = activitySuggestions;
+      if (!suggestionSet) {
+        setActivityError('Tải lại gợi ý hoạt động trước khi chọn.');
+        return;
+      }
+      const signature = JSON.stringify([
+        runId,
+        latest.run_revision,
+        suggestionSet.suggestion_set_id,
+        selectionIndex,
+      ]);
       const actionIdentity = retainedActionIdentity(activitySelectionAction, signature);
       const request: ParentActivitySelectionRequestV1 = {
         expected_revision: latest.run_revision,
-        activity: selected.activity_ref,
+        suggestion_set_id: suggestionSet.suggestion_set_id,
+        expected_understanding_revision: suggestionSet.understanding_revision,
+        activity_index: selectionIndex,
       };
       const envelope = await timeRequest('activity-selection', () => application.learning.selectActivityV1(runId, request, actionIdentity));
       activitySelectionAction.current = null;
@@ -1529,7 +1671,9 @@ export function useParentController(application: ParentApplicationModule) {
         } catch (reloadError) {
           setActivityError(safeParentFlowErrorMessage(reloadError));
         }
-      } else if (cause instanceof ParentApplicationError && cause.code === 'RESOURCE_NOT_FOUND') {
+      } else if (cause instanceof ParentApplicationError && (
+        cause.code === 'RESOURCE_NOT_FOUND' || cause.code === 'PARENT_ACTIVITY_SET_STALE'
+      )) {
         activitySelectionAction.current = null;
         setActivitySuggestions(null);
         setSelectedActivityIndex(null);
@@ -1802,6 +1946,8 @@ export function useParentController(application: ParentApplicationModule) {
     const selected = selectProfileById(profiles, run.parent_profile_id);
     if (!ensureLearningProfileAllowed(selected)) return;
     resetWorkflow();
+    retakeUsed.current = hasUsedDrawingRetake(run.current_input_revision);
+    setRetakeAvailable(false);
     if (selected) {
       setProfile(selected);
       setSelectedProfileId(selected.profile_id);
@@ -1905,9 +2051,43 @@ export function useParentController(application: ParentApplicationModule) {
 
   /** After a drawing, a voice idea or a transcript confirmation: wait for the server, then show what it answered. */
   async function settleDrawingStage(runId: string): Promise<void> {
-    const result = await waitRun(runId, (run) => classifyDrawingProgress(run).kind !== 'processing', { onRun: adoptPolledRun });
+    const current = await readLiveRun(runId);
+    if (
+      current.run_state === 'INPUT_PROCESSING'
+      && current.job_state === 'QUEUED'
+      && current.current_input_revision !== null
+    ) {
+      try {
+        await application.learning.resumeDrawingAnalysisV1(
+          current.run_id,
+          current.current_input_revision,
+        );
+      } catch (cause) {
+        // A concurrent attach/background task may have claimed the queued row already. In that
+        // case the runner CAS is authoritative and polling remains safe; all other errors should
+        // be shown instead of leaving a silent spinner.
+        if (!(cause instanceof ParentApplicationError && cause.status === 409)) {
+          setPhotoMessage(safeRunMessage(cause));
+          return;
+        }
+      }
+    }
+    // FEAT-092: a job parked in reconciliation is not "working": stop the spinner and say so, nothing is resent.
+    const awaitingReconciliation = (run: ParentStoryRunV1) =>
+      run.run_state === 'INPUT_PROCESSING' && run.job_state === 'AWAITING_RECONCILIATION';
+    const result = await waitRun(
+      runId,
+      (run) => classifyDrawingProgress(run).kind !== 'processing' || awaitingReconciliation(run),
+      { onRun: adoptPolledRun },
+    );
     if (result.timedOut || !result.value) {
       setPhotoMessage('Việc nhận diện đang mất lâu hơn dự kiến. Ảnh đã được gửi; hãy quay lại sau để xem kết quả.');
+      return;
+    }
+    if (awaitingReconciliation(result.value)) {
+      setPhotoMessage(
+        'Chưa rõ kết quả nhận diện tranh. Ảnh đã được gửi và không gửi lại; hãy kiểm tra trạng thái sau hoặc đóng buổi để bắt đầu lại.',
+      );
       return;
     }
     await handleDrawingProgress(result.value);
@@ -1962,7 +2142,11 @@ export function useParentController(application: ParentApplicationModule) {
         // T-2b: one retake is allowed after a recoverable failure; the photo is unlocked for it.
         setRetakeAvailable(true);
         setPhotoValue((currentPhoto) => currentPhoto ? { ...currentPhoto, locked: false } as SelectedPhoto : currentPhoto);
-        setPhotoMessage('Chưa nhận diện được bức tranh. Bạn có thể chụp lại một lần.');
+        setPhotoMessage(
+          run.error_code === 'MODAL_DISPATCH_REJECTED'
+            ? safeParentFlowErrorMessage({ code: run.error_code })
+            : 'Chưa nhận diện được bức tranh. Bạn có thể chụp lại một lần.',
+        );
         setStep('capture');
         return;
       }
@@ -2581,7 +2765,7 @@ export function useParentController(application: ParentApplicationModule) {
     setStory(null); setStoryDisplayedRunId(''); setStoryRevisionNo(null); setStorySha256('');
     setStoryAttempted(false); setStoryConfirmed(false); setRewriteCount(0); setRewriteInstruction('');
     setVideoBackStep('home');
-    setGuideBase64(''); setGuideEnabled(false); setEvents([]); setError(''); setBusy('');
+    setGuideBase64(''); setGuideDraft(null); setGuideEnabled(false); setEvents([]); setError(''); setBusy('');
     profileCreateAction.current = null;
     profilePatchActions.current.clear();
     profileDeleteActions.current.clear();
@@ -2604,6 +2788,7 @@ export function useParentController(application: ParentApplicationModule) {
     contextConfirmationAction.current = null;
     subjectConfirmationAction.current = null;
     scriptConfirmationAction.current = null;
+    activitySuggestionAction.current = null;
   }
 
   return {
@@ -2620,7 +2805,7 @@ export function useParentController(application: ParentApplicationModule) {
     selectDrawingSubject, setCustomSubject, validateCustomDrawingSubject, refreshSubjectSuggestions,
     continueFromSubjectSelection,
     galleryMode, galleryLesson, lessonInvitations, groupInvitations, accountError, guideEnabled, setGuideEnabled,
-    guideBase64, guideBusy, guideError, photo, setPhoto, audio, setAudio,
+    guideBase64, guideDraft, guideBusy, guideError, photo, setPhoto, audio, setAudio,
     contextRun, contextConfirmed, candidate, subject, setSubject, subjectConfirmed, understandingRevision,
     activitySuggestions, selectedActivityIndex, activityBusy, activityAttempted, activityError,
     requestActivityList, chooseActivity, selectActivity, cancelEmptyActivityRun,
@@ -2630,7 +2815,7 @@ export function useParentController(application: ParentApplicationModule) {
     loadParentData, authenticate, signInWithGoogle, resetPassword, createProfileAndReturn, updateProfile,
     selectProfile, requestProfileDeletion, refreshPendingDeletion, continueWithProfile, openLessons, chooseLesson, acceptLessonInvitation,
     declineLessonInvitation, acceptGroupInvitation, createGuide, openDrawingGuide, openContextReview, confirmContext,
-    continueToCapture, analyzeDrawingForCurrentRun, confirmSubject,
+    continueToCapture, analyzeDrawingForCurrentRun, closeUnresolvedDrawingRun, confirmSubject,
     subjectRoles, renameSecondarySubject, toggleSecondarySubject, makeMainSubject,
     confirmStory, refreshStory, drawingGuideIndex, setDrawingGuideIndex,
     resumeActiveRun, changePassword, resetCurrentPassword, signOut,

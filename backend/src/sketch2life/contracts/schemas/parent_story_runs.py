@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from sketch2life.contracts.schemas.lesson_library import LessonActivityInputV1
 from sketch2life.contracts.schemas.story_run_video import (
@@ -163,7 +163,7 @@ class ParentActivityRefV1(BaseModel):
 class ParentActivityV1(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    activity_ref: ParentActivityRefV1
+    activity_ref: ParentActivityRefV1 | None = None
     title: str
     objective: str
     materials_text: str
@@ -172,9 +172,24 @@ class ParentActivityV1(BaseModel):
     observation_notes: str
     safety_notes: str
     activity_kind: Literal["outdoor", "indoor", "mixed"]
-    source: Literal["PINNED_LESSON", "PUBLIC", "SHARED"]
-    lesson_title: str
-    lesson_topic: str
+    source: Literal[
+        "PINNED_LESSON",
+        "PUBLIC",
+        "SHARED",
+        "PUBLISHED_SHARED_LESSON",
+        "AI_GENERATED_DRAFT",
+    ]
+    lesson_title: str | None = None
+    lesson_topic: str | None = None
+    # FEAT-092: provenance written by suggestion-set selections (see the repository snapshot).
+    source_lesson_id: str | None = None
+    source_lesson_version_id: str | None = None
+    source_content_sha256: str | None = None
+    source_activity_index: int | None = None
+    match_reason: str | None = None
+    suggestion_set_id: UUID | None = None
+    suggestion_set_revision: int | None = None
+    suggestion_activity_index: int | None = None
 
 
 class ParentPostVideoActivityV1(ParentActivityV1):
@@ -213,7 +228,28 @@ class ParentActivitySelectionRequestV1(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
 
     expected_revision: int = Field(ge=1)
-    activity: ParentActivityRefV1
+    activity: ParentActivityRefV1 | None = None
+    suggestion_set_id: UUID | None = Field(default=None, strict=False)
+    expected_understanding_revision: int | None = Field(default=None, ge=1)
+    activity_index: int | None = Field(default=None, ge=0, le=23)
+
+    @model_validator(mode="after")
+    def selection_variant(self) -> ParentActivitySelectionRequestV1:
+        catalog_selection = (
+            self.activity is not None
+            and self.suggestion_set_id is None
+            and self.expected_understanding_revision is None
+            and self.activity_index is None
+        )
+        suggestion_selection = (
+            self.activity is None
+            and self.suggestion_set_id is not None
+            and self.expected_understanding_revision is not None
+            and self.activity_index is not None
+        )
+        if not catalog_selection and not suggestion_selection:
+            raise ValueError("provide either a catalog activity reference or a suggestion-set index")
+        return self
 
 
 class ParentStoryRunResponseV1(BaseModel):

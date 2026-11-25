@@ -16,8 +16,10 @@ from structlog import get_logger
 from sketch2life.application.story_staging import secondary_subjects_are_valid
 from sketch2life.domain.ai_jobs.completion import canonical_json
 
-APP_NAME = "sketch2life-srs23-drawing-vlm-dev"
-FUNCTION_NAME = "analyze-drawing"
+# One Modal app and one warm Qwen3.8 container serve every interactive workload; the worker routes
+# by the payload's ``workload``. (The former ``...-drawing-vlm-dev`` app is retired.)
+APP_NAME = "sketch2life-srs23-language-audio-dev"
+FUNCTION_NAME = "qwen-worker"
 ENVIRONMENT_NAME = "dev"
 SCRATCH_VOLUME_NAME = "sketch2life-dev-job-scratch-v2"
 DRAWING_INPUT_SCHEMA = "sketch2life.modal.drawing-input.v1"
@@ -134,6 +136,13 @@ DRAWING_TERMINAL_LOG_INDEX_WAIT_SECONDS = 10.0
 _LOGGER = get_logger(__name__)
 
 
+def _is_remote_user_code_failure(exc: BaseException) -> bool:
+    """A builtin exception out of ``call.get`` is the worker's own failure; I/O and timeouts are not."""
+    return type(exc).__module__ == "builtins" and not isinstance(
+        exc, OSError | TimeoutError | MemoryError | RecursionError
+    )
+
+
 def summarize_worker_call_logs(
     call: Any,
     *,
@@ -229,12 +238,19 @@ def summarize_worker_call_logs(
                 progress["progress_kind"] = kind
             for key in ("generated_token_count", "max_new_tokens", "elapsed_ms"):
                 value = event.get(key)
-                if isinstance(value, int) and not isinstance(value, bool) and 0 <= value <= 10_000_000:
+                if (
+                    isinstance(value, int)
+                    and not isinstance(value, bool)
+                    and 0 <= value <= 10_000_000
+                ):
                     progress[key] = value
             rate = event.get("tokens_per_second")
-            if isinstance(rate, (int, float)) and not isinstance(rate, bool):
-                if 0 <= float(rate) <= 1_000_000:
-                    progress["tokens_per_second"] = round(float(rate), 3)
+            if (
+                isinstance(rate, (int, float))
+                and not isinstance(rate, bool)
+                and 0 <= float(rate) <= 1_000_000
+            ):
+                progress["tokens_per_second"] = round(float(rate), 3)
             if progress:
                 progress_updates.append(progress)
         if event_name == "worker_runtime_verified":
@@ -342,9 +358,7 @@ def _safe_diagnostic_details(event: dict[str, Any]) -> dict[str, Any]:
 
     details: dict[str, Any] = {"event": event["event"]}
     activity_field = event.get("invalid_text_field_path")
-    if isinstance(activity_field, str) and _SAFE_PARENT_ACTIVITY_FIELD.fullmatch(
-        activity_field
-    ):
+    if isinstance(activity_field, str) and _SAFE_PARENT_ACTIVITY_FIELD.fullmatch(activity_field):
         details["invalid_text_field_path"] = activity_field
     activity_reason = event.get("incomplete_text_reason")
     if isinstance(activity_reason, str) and activity_reason in _SAFE_ACTIVITY_TEXT_REASONS:
@@ -358,9 +372,12 @@ def _safe_diagnostic_details(event: dict[str, Any]) -> dict[str, Any]:
         if isinstance(value, bool):
             details[key] = value
     seconds = event.get("generation_seconds")
-    if isinstance(seconds, (int, float)) and not isinstance(seconds, bool):
-        if 0 <= seconds < 86_400:
-            details["generation_seconds"] = round(float(seconds), 3)
+    if (
+        isinstance(seconds, (int, float))
+        and not isinstance(seconds, bool)
+        and 0 <= seconds < 86_400
+    ):
+        details["generation_seconds"] = round(float(seconds), 3)
     for key in _DIAGNOSTIC_STRING_FIELDS:
         value = event.get(key)
         if isinstance(value, str) and re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{0,63}", value):
@@ -483,6 +500,94 @@ class ModalFunctionExecutionFailed(RuntimeError):
         self.code = code
         self.outcome_unknown = False
         super().__init__(code)
+
+
+class ModalFunctionDispatchRejected(RuntimeError):
+    """Modal explicitly rejected input creation before returning a FunctionCall handle."""
+
+    def __init__(self, code: str = "MODAL_RESOURCE_EXHAUSTED") -> None:
+        self.code = code
+        self.outcome_unknown = False
+        super().__init__(code)
+
+
+def _is_modal_resource_exhausted(exc: Exception) -> bool:
+    return type(exc).__name__ == "ResourceExhaustedError" and type(exc).__module__.startswith(
+        "modal."
+    )
+
+
+def _safe_modal_resource_exhaustion_diagnostics(exc: Exception) -> dict[str, object]:
+    """Return bounded, non-verbatim diagnostics for a Modal pre-call rejection.
+
+    Modal's gRPC details can contain server text that must not be copied into
+    application logs. Keep only an allowlisted status/category, detail type
+    names, length, and a one-way fingerprint. The original values stay local
+    to this function and are never returned or logged.
+    """
+
+    status = getattr(exc, "_grpc_status", None)
+    status_name = getattr(status, "name", None)
+    if not isinstance(status_name, str) or re.fullmatch(r"[A-Z_]{2,40}", status_name) is None:
+        status_name = "UNKNOWN"
+
+    raw_parts: list[str] = []
+    message = getattr(exc, "_grpc_message", None)
+    if isinstance(message, bytes):
+        raw_parts.append(message.decode("utf-8", errors="replace"))
+    elif isinstance(message, str):
+        raw_parts.append(message)
+
+    details = getattr(exc, "_grpc_details", None)
+    if not isinstance(details, (list, tuple)):
+        details = (details,) if details is not None else ()
+    detail_types: list[str] = []
+    for detail in details[:8]:
+        if isinstance(detail, bytes):
+            raw_parts.append(detail.decode("utf-8", errors="replace"))
+        elif isinstance(detail, str):
+            raw_parts.append(detail)
+        else:
+            detail_type = type(detail).__name__
+            if re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{0,63}", detail_type):
+                detail_types.append(detail_type)
+            try:
+                raw_parts.append(str(detail))
+            except Exception:
+                continue
+
+    raw_detail = "\n".join(raw_parts)[:8192]
+    normalized = raw_detail.casefold()
+    if re.search(r"(payload|request|input|argument|message).{0,48}(too large|size limit|exceed|limit)", normalized) or re.search(
+        r"(too large|size limit|exceed|limit).{0,48}(payload|request|input|argument|message)", normalized
+    ):
+        reason = "INPUT_LIMIT"
+    elif re.search(r"(quota|credit|billing|account limit)", normalized):
+        reason = "ACCOUNT_QUOTA_OR_LIMIT"
+    elif re.search(r"(rate limit|too many requests|concurren|in.flight|simultaneous).{0,48}(limit|exceed|capacity|maximum|too many)?", normalized):
+        reason = "INVOCATION_RATE_OR_CONCURRENCY"
+    elif re.search(r"(gpu|compute|container|worker|resource|insufficient).{0,48}(capacity|available|exhaust|limit|slot)?", normalized) or re.search(
+        r"(capacity|available|exhaust|limit|slot).{0,48}(gpu|compute|container|worker|resource)", normalized
+    ):
+        reason = "PROVIDER_CAPACITY"
+    elif re.search(r"(app|function).{0,48}(not deployed|not running|unavailable|stopped)", normalized):
+        reason = "DEPLOYMENT_STATE"
+    else:
+        reason = "UNKNOWN_RESOURCE_EXHAUSTED"
+
+    return {
+        "provider_status": status_name,
+        "provider_reason_category": reason,
+        "provider_detail_types": sorted(set(detail_types))[:4],
+        "provider_detail_length": len(raw_detail),
+        "provider_detail_fingerprint": hashlib.sha256(raw_detail.encode("utf-8")).hexdigest()[:16]
+        if raw_detail
+        else None,
+    }
+
+
+def _wait_before_spawn_retry() -> None:
+    time.sleep(1.0)
 
 
 @dataclass(frozen=True, slots=True)
@@ -629,6 +734,7 @@ class ModalDrawingFunctionClient:
 
         call_id: str | None = None
         terminal = False
+        known_dispatch_rejected = False
         stage = "resolve_worker"
         started = time.perf_counter()
         try:
@@ -662,7 +768,36 @@ class ModalDrawingFunctionClient:
                 workload="drawing.analyze",
                 **_call_identity(prepared.payload),
             )
-            call = function.spawn(prepared.payload)
+            call = None
+            for spawn_attempt in (1, 2):
+                try:
+                    call = function.spawn(prepared.payload)
+                    break
+                except Exception as exc:
+                    if not _is_modal_resource_exhausted(exc):
+                        raise
+                    retry_scheduled = spawn_attempt == 1
+                    _LOGGER.warning(
+                        "modal_worker_dispatch_rejected",
+                        workload="drawing.analyze",
+                        stage=stage,
+                        error_code="MODAL_RESOURCE_EXHAUSTED",
+                        exception_type="ResourceExhaustedError",
+                        modal_call_id=None,
+                        spawn_attempt=spawn_attempt,
+                        retry_scheduled=retry_scheduled,
+                        elapsed_ms=round((time.perf_counter() - started) * 1000),
+                        **_safe_modal_resource_exhaustion_diagnostics(exc),
+                        **_call_identity(prepared.payload),
+                    )
+                    if retry_scheduled:
+                        _wait_before_spawn_retry()
+                        continue
+                    terminal = True
+                    known_dispatch_rejected = True
+                    raise ModalFunctionDispatchRejected() from None
+            if call is None:
+                raise ModalFunctionOutcomeUnknown()
             call_id = getattr(call, "object_id", None)
             if not isinstance(call_id, str) or not call_id.startswith("fc-"):
                 _LOGGER.warning(
@@ -711,11 +846,7 @@ class ModalDrawingFunctionClient:
                 worker_error_code = summary.get("worker_error_code")
                 if not isinstance(worker_error_code, str):
                     worker_error_code = next(
-                        (
-                            code
-                            for code in _DRAWING_WORKER_ERROR_CODES
-                            if code in exception_text
-                        ),
+                        (code for code in _DRAWING_WORKER_ERROR_CODES if code in exception_text),
                         None,
                     )
                 _LOGGER.warning(
@@ -756,6 +887,20 @@ class ModalDrawingFunctionClient:
                         **_call_identity(prepared.payload),
                     )
                     raise ModalFunctionExecutionFailed("DRAWING_WORKER_FAILED_TERMINAL") from None
+                if _is_remote_user_code_failure(exc):
+                    # FEAT-092: Modal re-raises a worker defect (for example AttributeError) as the
+                    # original builtin type. The call finished and failed, so it is terminal, not unknown.
+                    terminal = True
+                    _LOGGER.warning(
+                        "modal_drawing_worker_terminal_failure",
+                        modal_call_id=call_id,
+                        error_code="DRAWING_WORKER_FAILED_TERMINAL",
+                        worker_error_code=None,
+                        worker_last_stage=summary.get("worker_last_stage"),
+                        exception_type=type(exc).__name__,
+                        **_call_identity(prepared.payload),
+                    )
+                    raise ModalFunctionExecutionFailed("DRAWING_WORKER_FAILED_TERMINAL") from None
                 raise ModalFunctionOutcomeUnknown(call_id) from exc
             terminal = True
             stage = "output_validation"
@@ -793,6 +938,8 @@ class ModalDrawingFunctionClient:
                 )
             raise
         except ModalFunctionExecutionFailed:
+            raise
+        except ModalFunctionDispatchRejected:
             raise
         except Exception as exc:
             if (
@@ -844,7 +991,8 @@ class ModalDrawingFunctionClient:
                         exception_type=type(exc).__name__,
                         **_call_identity(prepared.payload),
                     )
-                    raise ModalFunctionOutcomeUnknown(call_id) from exc
+                    if not known_dispatch_rejected:
+                        raise ModalFunctionOutcomeUnknown(call_id) from exc
 
 
 class ModalStoryFunctionClient:
@@ -885,7 +1033,10 @@ class ModalStoryFunctionClient:
             "primary_activity",
             "primary_activity_sha256",
         }
-        if not isinstance(worker_input, dict) or set(worker_input) - {"secondary_subjects"} != expected:
+        if (
+            not isinstance(worker_input, dict)
+            or set(worker_input) - {"secondary_subjects"} != expected
+        ):
             raise ValueError("Modal story request does not match the approved input contract")
         if "secondary_subjects" in worker_input and not secondary_subjects_are_valid(
             worker_input["secondary_subjects"]
@@ -915,7 +1066,8 @@ class ModalStoryFunctionClient:
                 )
             )
             or not isinstance(worker_input.get("primary_activity"), dict)
-            or set(worker_input["primary_activity"]) != {
+            or set(worker_input["primary_activity"])
+            != {
                 "title",
                 "objective",
                 "materials_text",
@@ -929,7 +1081,8 @@ class ModalStoryFunctionClient:
             or not re.fullmatch(r"[0-9a-f]{64}", worker_input["primary_activity_sha256"])
             or hashlib.sha256(
                 canonical_json(worker_input["primary_activity"]).encode("utf-8")
-            ).hexdigest() != worker_input["primary_activity_sha256"]
+            ).hexdigest()
+            != worker_input["primary_activity_sha256"]
         ):
             raise ValueError("Modal story request violates Parent role or SRS limits")
         request_bytes = canonical_json(worker_input).encode("utf-8")
@@ -987,8 +1140,8 @@ class ModalStoryFunctionClient:
                 if function is None:
                     stage = "function_resolution"
                     function = modal.Function.from_name(
-                        "sketch2life-srs23-language-audio-dev",
-                        "generate-story-and-storyboard",
+                        APP_NAME,
+                        FUNCTION_NAME,
                         environment_name=ENVIRONMENT_NAME,
                     )
                     _LOGGER.info(
@@ -1262,6 +1415,7 @@ __all__ = [
     "ModalStoryFunctionClient",
     "ModalFunctionOutcomeUnknown",
     "ModalFunctionExecutionFailed",
+    "ModalFunctionDispatchRejected",
     "ModalFunctionResult",
     "PreparedDrawingInput",
     "prepare_drawing_input",
@@ -1277,8 +1431,8 @@ class ModalJsonFunctionResult:
 
 _JSON_WORKERS: dict[str, tuple[str, str, int]] = {
     "parent.topic-subjects.validate": (
-        "sketch2life-srs23-language-audio-dev",
-        "validate-parent-topic-subject",
+        APP_NAME,
+        FUNCTION_NAME,
         1_800,
     ),
     "lesson.plan.suggest": (
@@ -1287,8 +1441,8 @@ _JSON_WORKERS: dict[str, tuple[str, str, int]] = {
         1_800,
     ),
     "parent.activity.suggest": (
-        "sketch2life-srs23-language-audio-dev",
-        "suggest-parent-activities",
+        APP_NAME,
+        FUNCTION_NAME,
         1_200,
     ),
     "teacher.sketch-deck.generate": (
@@ -1413,9 +1567,7 @@ class ModalJsonFunctionClient:
                 terminal = True
                 worker_summary = summarize_worker_call_logs(
                     call,
-                    max_log_wait_seconds=(
-                        10.0 if workload == "parent.activity.suggest" else 0.5
-                    ),
+                    max_log_wait_seconds=(10.0 if workload == "parent.activity.suggest" else 0.5),
                     remote_call_result="failed",
                 )
                 _LOGGER.warning(
@@ -1430,7 +1582,8 @@ class ModalJsonFunctionClient:
                 if (
                     workload == "parent.activity.suggest"
                     and worker_summary.get("worker_terminal_event") == "worker_failed"
-                    and terminal_code in {None, "UNCLASSIFIED_FAILURE", "MODAL_WORKER_FAILED_TERMINAL"}
+                    and terminal_code
+                    in {None, "UNCLASSIFIED_FAILURE", "MODAL_WORKER_FAILED_TERMINAL"}
                     and worker_summary.get("worker_diagnostic_code")
                     == "MODAL_MODEL_OUTPUT_INCOMPLETE_TEXT"
                 ):
@@ -1502,9 +1655,7 @@ class ModalJsonFunctionClient:
                         exception_type=type(exc).__name__,
                         **_call_identity(payload),
                     )
-                    raise ModalFunctionOutcomeUnknown(
-                        getattr(call, "object_id", None)
-                    ) from exc
+                    raise ModalFunctionOutcomeUnknown(getattr(call, "object_id", None)) from exc
 
 
 __all__ = [

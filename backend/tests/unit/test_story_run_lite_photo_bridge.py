@@ -8,6 +8,7 @@ from types import SimpleNamespace
 from unittest.mock import Mock
 
 import pytest
+
 from sketch2life.application.ports.story_run_lite import AssetBinding
 from sketch2life.domain.ai_jobs.completion import canonical_json
 from sketch2life.domain.story_run_lite import OwnerScopeKind
@@ -16,6 +17,7 @@ from sketch2life.infrastructure.ai.modal_function_client import (
     MODEL_ID,
     MODEL_REVISION,
     ModalDrawingFunctionClient,
+    ModalFunctionDispatchRejected,
     ModalFunctionExecutionFailed,
     ModalFunctionOutcomeUnknown,
     ModalFunctionResult,
@@ -487,6 +489,159 @@ def test_modal_function_spawn_failure_logs_stage_and_exception_type_without_sdk_
     function.spawn.assert_called_once_with(prepared.payload)
 
 
+def test_modal_resource_exhausted_retries_only_the_explicit_rejection(monkeypatch, capsys):
+    _source, prepared = _prepared_input()
+
+    class Batch:
+        def put_file(self, _stream, _path):
+            return None
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return None
+
+    class Volume:
+        removed = None
+
+        def batch_upload(self):
+            return Batch()
+
+        def remove_file(self, path, *, recursive):
+            self.removed = (path, recursive)
+
+    resource_error_type = type(
+        "ResourceExhaustedError",
+        (RuntimeError,),
+        {"__module__": "modal.exception"},
+    )
+    handle = Mock()
+    handle.object_id = "fc-after-rejection"
+    handle.get.return_value = {
+        "schema_version": "sketch2life.modal.worker-output.v1",
+        "workload": "drawing.analyze",
+        "job_id": prepared.payload["job_id"],
+        "generation_id": prepared.payload["generation_id"],
+        "attempt_id": prepared.payload["attempt_id"],
+        "input_sha256": prepared.drawing_sha256,
+        "model": {"id": MODEL_ID, "revision": MODEL_REVISION},
+        "result": {
+            "candidate_subject": "con bướm",
+            "visible_features": ["cánh đối xứng"],
+            "decision": "NEEDS_ADULT_CONFIRMATION",
+            "adult_confirmation_required": True,
+        },
+    }
+    function = Mock()
+    rejected = resource_error_type("sensitive provider detail")
+    rejected._grpc_status = SimpleNamespace(name="RESOURCE_EXHAUSTED")
+    rejected._grpc_message = "Insufficient capacity to create a worker container"
+    rejected._grpc_details = ["private-provider-detail"]
+    function.spawn.side_effect = [rejected, handle]
+    sleeps = []
+    monkeypatch.setattr(client_module, "_wait_before_spawn_retry", lambda: sleeps.append(1.0))
+    volume = Volume()
+
+    result = ModalDrawingFunctionClient(volume=volume, function=function).invoke(prepared)
+
+    assert function.spawn.call_count == 2
+    assert sleeps == [1.0]
+    assert result.call_id == "fc-after-rejection"
+    assert volume.removed == (f"{prepared.attempt_prefix}input", True)
+    logged = capsys.readouterr().out
+    assert "modal_worker_dispatch_rejected" in logged
+    assert "error_code=MODAL_RESOURCE_EXHAUSTED" in logged
+    assert "modal_call_id=None" in logged
+    assert "sensitive provider detail" not in logged
+    assert "provider_status=RESOURCE_EXHAUSTED" in logged
+    assert "provider_reason_category=PROVIDER_CAPACITY" in logged
+    assert "private-provider-detail" not in logged
+
+
+@pytest.mark.parametrize(
+    ("message", "expected"),
+    [
+        ("request payload size limit exceeded", "INPUT_LIMIT"),
+        ("workspace invocation rate limit reached", "INVOCATION_RATE_OR_CONCURRENCY"),
+        ("concurrency limit reached", "INVOCATION_RATE_OR_CONCURRENCY"),
+        ("insufficient GPU capacity", "PROVIDER_CAPACITY"),
+        ("unspecified server response", "UNKNOWN_RESOURCE_EXHAUSTED"),
+    ],
+)
+def test_modal_resource_exhaustion_diagnostic_classifies_without_logging_details(message, expected):
+    error = SimpleNamespace(
+        _grpc_status=SimpleNamespace(name="RESOURCE_EXHAUSTED"),
+        _grpc_message=message,
+        _grpc_details=["do-not-log-this"],
+    )
+
+    diagnostics = client_module._safe_modal_resource_exhaustion_diagnostics(error)
+
+    assert diagnostics["provider_status"] == "RESOURCE_EXHAUSTED"
+    assert diagnostics["provider_reason_category"] == expected
+    assert diagnostics["provider_detail_length"] > 0
+    assert "do-not-log-this" not in repr(diagnostics)
+
+
+def test_modal_resource_exhaustion_diagnostic_handles_missing_grpc_fields():
+    diagnostics = client_module._safe_modal_resource_exhaustion_diagnostics(RuntimeError("private"))
+
+    assert diagnostics == {
+        "provider_status": "UNKNOWN",
+        "provider_reason_category": "UNKNOWN_RESOURCE_EXHAUSTED",
+        "provider_detail_types": [],
+        "provider_detail_length": 0,
+        "provider_detail_fingerprint": None,
+    }
+
+
+def test_two_resource_exhausted_responses_are_recoverable_and_clean_scratch(capsys):
+    _source, prepared = _prepared_input()
+
+    class Batch:
+        def put_file(self, _stream, _path):
+            return None
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return None
+
+    class Volume:
+        removed = None
+
+        def batch_upload(self):
+            return Batch()
+
+        def remove_file(self, path, *, recursive):
+            self.removed = (path, recursive)
+
+    resource_error_type = type(
+        "ResourceExhaustedError",
+        (RuntimeError,),
+        {"__module__": "modal.exception"},
+    )
+    function = Mock()
+    function.spawn.side_effect = [
+        resource_error_type("sensitive provider detail"),
+        resource_error_type("sensitive provider detail"),
+    ]
+    volume = Volume()
+
+    with pytest.raises(ModalFunctionDispatchRejected) as error:
+        ModalDrawingFunctionClient(volume=volume, function=function).invoke(prepared)
+
+    assert error.value.code == "MODAL_RESOURCE_EXHAUSTED"
+    assert function.spawn.call_count == 2
+    assert volume.removed == (f"{prepared.attempt_prefix}input", True)
+    logged = capsys.readouterr().out
+    assert "retry_scheduled=False" in logged
+    assert "modal_call_id=None" in logged
+    assert "sensitive provider detail" not in logged
+
+
 def test_modal_function_not_found_at_spawn_is_terminal_and_cleans_scratch(capsys):
     _source, prepared = _prepared_input()
 
@@ -807,3 +962,57 @@ def test_modal_function_bridge_persists_only_correlated_adult_review_output(
     assert persisted.confidence == 0.0
     assert persisted.result_snapshot["result"]["adult_confirmation_required"] is True
     client.invoke.assert_called_once()
+
+
+def test_modal_drawing_remote_builtin_exception_is_terminal_not_unknown():
+    """FEAT-092: a worker-side AttributeError re-raised by call.get must not park the run in reconciliation."""
+    _source, prepared = _prepared_input()
+
+    class Batch:
+        def put_file(self, _stream, _path):
+            return None
+
+    class Volume:
+        @contextmanager
+        def batch_upload(self):
+            yield Batch()
+
+        def remove_file(self, _path, *, recursive):
+            return None
+
+    handle = Mock()
+    handle.object_id = "fc-synthetic-attr"
+    handle.get.side_effect = AttributeError("worker defect detail")
+    function = Mock()
+    function.spawn.return_value = handle
+
+    with pytest.raises(ModalFunctionExecutionFailed) as error:
+        ModalDrawingFunctionClient(volume=Volume(), function=function).invoke(prepared)
+
+    assert error.value.code == "DRAWING_WORKER_FAILED_TERMINAL"
+    assert "worker defect detail" not in repr(error.value)
+
+
+def test_modal_drawing_transport_error_stays_unknown():
+    _source, prepared = _prepared_input()
+
+    class Batch:
+        def put_file(self, _stream, _path):
+            return None
+
+    class Volume:
+        @contextmanager
+        def batch_upload(self):
+            yield Batch()
+
+        def remove_file(self, _path, *, recursive):
+            return None
+
+    handle = Mock()
+    handle.object_id = "fc-synthetic-net"
+    handle.get.side_effect = ConnectionError("socket reset")
+    function = Mock()
+    function.spawn.return_value = handle
+
+    with pytest.raises(ModalFunctionOutcomeUnknown):
+        ModalDrawingFunctionClient(volume=Volume(), function=function).invoke(prepared)
