@@ -1,0 +1,89 @@
+{
+  "profile": {
+    "offload": "none",
+    "resident": true,
+    "prompt_cache": true,
+    "decode_mode": "combined_compile",
+    "expandable": true
+  },
+  "scenes": [
+    {
+      "image": "bike_start.png",
+      "seconds": 10.0,
+      "seed": 940201,
+      "name": "bike-e1-old-prompt",
+      "prompt": "Image-to-video, one continuous shot. From the supplied artwork, show this one approved action with a clear start, visible movement, and result: The red crayon bicycle rolls slowly to the right across the grass, both black wheels turning steadily, while the small yellow flower beside the back wheel nods gently. Preserve the exact source subject, silhouette, proportions, palette, hand-drawn line quality, paper texture, position, and scale. Do not redraw, clean up, smooth, recolor, or restyle it. Add only a prop explicitly named in the approved action, once and beside the subject. Keep the camera and paper fixed. Never show the source artwork as a duplicate, thumbnail, picture-in-picture, card, screen, or frame; no cuts, extra objects, readable text, captions, logos, or watermarks. Do not generate speech, narration, subtitles, music, sound, or any audio."
+    },
+    {
+      "image": "bike_start.png",
+      "seconds": 10.0,
+      "seed": 940201,
+      "name": "bike-e1-new-prompt",
+      "prompt": "The red crayon bicycle rolls slowly to the right across the grass, both black wheels turning steadily, while the small yellow flower beside the back wheel nods gently. The movement is smooth and continuous from the first moment to the last. The drawing keeps its crayon strokes, colours and paper texture exactly as in the first frame. The camera remains static throughout."
+    },
+    {
+      "image": "bike_start.png",
+      "seconds": 10.0,
+      "seed": 940201,
+      "name": "bike-e3-crf0",
+      "prompt": "The red crayon bicycle rolls slowly to the right across the grass, both black wheels turning steadily, while the small yellow flower beside the back wheel nods gently. The movement is smooth and continuous from the first moment to the last. The drawing keeps its crayon strokes, colours and paper texture exactly as in the first frame. The camera remains static throughout.",
+      "crf": 0
+    },
+    {
+      "image": "bike_start.png",
+      "seconds": 10.0,
+      "seed": 940201,
+      "name": "bike-e3-crf33",
+      "prompt": "The red crayon bicycle rolls slowly to the right across the grass, both black wheels turning steadily, while the small yellow flower beside the back wheel nods gently. The movement is smooth and continuous from the first moment to the last. The drawing keeps its crayon strokes, colours and paper texture exactly as in the first frame. The camera remains static throughout.",
+      "crf": 33
+    },
+    {
+      "image": "chick_start.png",
+      "seconds": 10.0,
+      "seed": 940202,
+      "name": "chick-e1-old-prompt",
+      "prompt": "Image-to-video, one continuous shot. From the supplied artwork, show this one approved action with a clear start, visible movement, and result: The yellow crayon chick hops forward once and dips its beak down toward the grass, then lifts its head, its three tail feathers swaying. Preserve the exact source subject, silhouette, proportions, palette, hand-drawn line quality, paper texture, position, and scale. Do not redraw, clean up, smooth, recolor, or restyle it. Add only a prop explicitly named in the approved action, once and beside the subject. Keep the camera and paper fixed. Never show the source artwork as a duplicate, thumbnail, picture-in-picture, card, screen, or frame; no cuts, extra objects, readable text, captions, logos, or watermarks. Do not generate speech, narration, subtitles, music, sound, or any audio."
+    },
+    {
+      "image": "chick_start.png",
+      "seconds": 10.0,
+      "seed": 940202,
+      "name": "chick-e1-new-prompt",
+      "prompt": "The yellow crayon chick hops forward once and dips its beak down toward the grass, then lifts its head, its three tail feathers swaying. The movement is smooth and continuous from the first moment to the last. The drawing keeps its crayon strokes, colours and paper texture exactly as in the first frame. The camera remains static throughout."
+    },
+    {
+      "image": "chick_start.png",
+      "seconds": 10.0,
+      "seed": 940202,
+      "name": "chick-e3-crf0",
+      "prompt": "The yellow crayon chick hops forward once and dips its beak down toward the grass, then lifts its head, its three tail feathers swaying. The movement is smooth and continuous from the first moment to the last. The drawing keeps its crayon strokes, colours and paper texture exactly as in the first frame. The camera remains static throughout.",
+      "crf": 0
+    },
+    {
+      "image": "chick_start.png",
+      "seconds": 10.0,
+      "seed": 940202,
+      "name": "chick-e3-crf33",
+      "prompt": "The yellow crayon chick hops forward once and dips its beak down toward the grass, then lifts its head, its three tail feathers swaying. The movement is smooth and continuous from the first moment to the last. The drawing keeps its crayon strokes, colours and paper texture exactly as in the first frame. The camera remains static throughout.",
+      "crf": 33
+    },
+    {
+      "image": "chick_start.png",
+      "seconds": 10.0,
+      "seed": 940202,
+      "name": "chick-e2-end7",
+      "prompt": "The yellow crayon chick hops forward once and dips its beak down toward the grass, then lifts its head, its three tail feathers swaying. The movement is smooth and continuous from the first moment to the last. The drawing keeps its crayon strokes, colours and paper texture exactly as in the first frame. The camera remains static throughout.",
+      "end_image": "chick_end.png",
+      "end_strength": 0.7
+    },
+    {
+      "image": "chick_start.png",
+      "seconds": 10.0,
+      "seed": 940202,
+      "name": "chick-e2-end9",
+      "prompt": "The yellow crayon chick hops forward once and dips its beak down toward the grass, then lifts its head, its three tail feathers swaying. The movement is smooth and continuous from the first moment to the last. The drawing keeps its crayon strokes, colours and paper texture exactly as in the first frame. The camera remains static throughout.",
+      "end_image": "chick_end.png",
+      "end_strength": 0.9
+    }
+  ]
+}

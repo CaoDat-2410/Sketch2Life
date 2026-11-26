@@ -1,0 +1,125 @@
+{
+  "profile": {
+    "offload": "cpu"
+  },
+  "gpu": "NVIDIA L40S",
+  "scenes": [
+    {
+      "name": "warm-6s",
+      "seconds": 6.0,
+      "decode_and_encode_s": 0.25,
+      "render_s": 95.3,
+      "frames": 145,
+      "blocks": [
+        [
+          "text_encode",
+          12.84
+        ],
+        [
+          "image_conditioner",
+          0.38
+        ],
+        [
+          "stage",
+          31.73
+        ],
+        [
+          "upsampler",
+          0.59
+        ],
+        [
+          "image_conditioner",
+          0.22
+        ],
+        [
+          "stage",
+          29.32
+        ],
+        [
+          "audio_decoder",
+          1.38
+        ]
+      ],
+      "peak_gpu_gb": 18.2
+    },
+    {
+      "name": "again-6s",
+      "seconds": 6.0,
+      "decode_and_encode_s": 0.32,
+      "render_s": 82.5,
+      "frames": 145,
+      "blocks": [
+        [
+          "text_encode",
+          8.72
+        ],
+        [
+          "image_conditioner",
+          0.24
+        ],
+        [
+          "stage",
+          24.23
+        ],
+        [
+          "upsampler",
+          0.5
+        ],
+        [
+          "image_conditioner",
+          0.23
+        ],
+        [
+          "stage",
+          30.66
+        ],
+        [
+          "audio_decoder",
+          0.83
+        ]
+      ],
+      "peak_gpu_gb": 18.2
+    },
+    {
+      "name": "long-10s",
+      "seconds": 10.0,
+      "decode_and_encode_s": 0.34,
+      "render_s": 120.1,
+      "frames": 241,
+      "blocks": [
+        [
+          "text_encode",
+          8.45
+        ],
+        [
+          "image_conditioner",
+          0.29
+        ],
+        [
+          "stage",
+          29.99
+        ],
+        [
+          "upsampler",
+          0.54
+        ],
+        [
+          "image_conditioner",
+          0.23
+        ],
+        [
+          "stage",
+          44.02
+        ],
+        [
+          "audio_decoder",
+          1.0
+        ]
+      ],
+      "peak_gpu_gb": 20.4
+    }
+  ],
+  "read_checkpoints_s": 40.6,
+  "default_image_crf": 18,
+  "ancestral_sampler": true
+}

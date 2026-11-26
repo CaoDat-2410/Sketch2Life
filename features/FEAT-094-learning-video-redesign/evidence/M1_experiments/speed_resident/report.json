@@ -1,0 +1,116 @@
+{
+  "profile": {
+    "offload": "none",
+    "resident": true,
+    "prompt_cache": true
+  },
+  "gpu": "NVIDIA L40S",
+  "scenes": [
+    {
+      "name": "warm-6s",
+      "seconds": 6.0,
+      "decode_and_encode_s": 0.29,
+      "render_s": 51.8,
+      "frames": 145,
+      "blocks": [
+        [
+          "image_conditioner",
+          0.44
+        ],
+        [
+          "stage",
+          13.53
+        ],
+        [
+          "upsampler",
+          0.79
+        ],
+        [
+          "image_conditioner",
+          0.33
+        ],
+        [
+          "stage",
+          15.9
+        ],
+        [
+          "audio_decoder",
+          1.75
+        ]
+      ],
+      "peak_gpu_gb": 36.3
+    },
+    {
+      "name": "again-6s",
+      "seconds": 6.0,
+      "decode_and_encode_s": 0.37,
+      "render_s": 50.0,
+      "frames": 145,
+      "blocks": [
+        [
+          "image_conditioner",
+          0.46
+        ],
+        [
+          "stage",
+          9.27
+        ],
+        [
+          "upsampler",
+          0.66
+        ],
+        [
+          "image_conditioner",
+          0.35
+        ],
+        [
+          "stage",
+          16.18
+        ],
+        [
+          "audio_decoder",
+          0.87
+        ]
+      ],
+      "peak_gpu_gb": 30.8
+    },
+    {
+      "name": "long-10s",
+      "seconds": 10.0,
+      "decode_and_encode_s": 0.41,
+      "render_s": 89.7,
+      "frames": 241,
+      "blocks": [
+        [
+          "image_conditioner",
+          0.36
+        ],
+        [
+          "stage",
+          15.43
+        ],
+        [
+          "upsampler",
+          0.73
+        ],
+        [
+          "image_conditioner",
+          0.3
+        ],
+        [
+          "stage",
+          30.36
+        ],
+        [
+          "audio_decoder",
+          1.08
+        ]
+      ],
+      "peak_gpu_gb": 31.8
+    }
+  ],
+  "read_checkpoints_s": 40.1,
+  "default_image_crf": 18,
+  "ancestral_sampler": true,
+  "prompt_cache_s": 12.8
+}

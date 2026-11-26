@@ -1,0 +1,22 @@
+{
+  "profile": {
+    "offload": "none",
+    "resident": true,
+    "prompt_cache": true,
+    "decode_mode": "combined_compile",
+    "compile": true
+  },
+  "gpu": "NVIDIA L40S",
+  "scenes": [
+    {
+      "name": "warm-6s",
+      "seconds": 6.0,
+      "error": "OutOfMemoryError: CUDA out of memory. Tried to allocate 2.44 GiB. GPU 0 has a total capacity of 44.44 GiB of which 2.34 GiB is free. Process 1 has 42.08 GiB memory in use. Of the allocated memory 38.80 GiB is allocated by PyTorch, and 2.75 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)"
+    }
+  ],
+  "read_checkpoints_s": 36.6,
+  "default_image_crf": 18,
+  "ancestral_sampler": true,
+  "prompt_cache_s": 12.7,
+  "natten": null
+}

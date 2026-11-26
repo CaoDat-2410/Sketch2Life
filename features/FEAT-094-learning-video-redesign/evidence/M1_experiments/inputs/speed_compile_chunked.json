@@ -1,0 +1,40 @@
+{
+  "profile": {
+    "offload": "none",
+    "resident": true,
+    "prompt_cache": true,
+    "compile": true,
+    "decode_mode": "chunked_compile",
+    "expandable": true
+  },
+  "scenes": [
+    {
+      "image": "chick_start.png",
+      "prompt": "The yellow crayon chick hops forward once and dips its beak down toward the grass, then lifts its head, its three tail feathers swaying. The movement is smooth and continuous from the first moment to the last. The drawing keeps its crayon strokes, colours and paper texture exactly as in the first frame. The camera remains static throughout.",
+      "seed": 940101,
+      "name": "warm-6s",
+      "seconds": 6.0
+    },
+    {
+      "image": "bike_start.png",
+      "prompt": "The red crayon bicycle rolls slowly to the right across the grass, both black wheels turning steadily, while the small yellow flower beside the back wheel nods gently. The movement is smooth and continuous from the first moment to the last. The drawing keeps its crayon strokes, colours and paper texture exactly as in the first frame. The camera remains static throughout.",
+      "seed": 940101,
+      "name": "again-6s",
+      "seconds": 6.0
+    },
+    {
+      "image": "chick_start.png",
+      "prompt": "The yellow crayon chick hops forward once and dips its beak down toward the grass, then lifts its head, its three tail feathers swaying. The movement is smooth and continuous from the first moment to the last. The drawing keeps its crayon strokes, colours and paper texture exactly as in the first frame. The camera remains static throughout.",
+      "seed": 940101,
+      "name": "long-10s",
+      "seconds": 10.0
+    },
+    {
+      "image": "chick_start.png",
+      "prompt": "The yellow crayon chick hops forward once and dips its beak down toward the grass, then lifts its head, its three tail feathers swaying. The movement is smooth and continuous from the first moment to the last. The drawing keeps its crayon strokes, colours and paper texture exactly as in the first frame. The camera remains static throughout.",
+      "seed": 940102,
+      "name": "long-10s-again",
+      "seconds": 10.0
+    }
+  ]
+}

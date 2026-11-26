@@ -1,0 +1,170 @@
+{
+  "profile": {
+    "offload": "none",
+    "resident": true,
+    "prompt_cache": true,
+    "compile": true,
+    "decode_mode": "chunked_compile",
+    "expandable": true
+  },
+  "gpu": "NVIDIA L40S",
+  "scenes": [
+    {
+      "name": "warm-6s",
+      "seconds": 6.0,
+      "decode_and_encode_s": 0.28,
+      "render_s": 72.3,
+      "frames": 145,
+      "blocks": [
+        [
+          "image_conditioner",
+          0.43
+        ],
+        [
+          "stage",
+          36.52
+        ],
+        [
+          "upsampler",
+          1.18
+        ],
+        [
+          "image_conditioner",
+          0.54
+        ],
+        [
+          "stage",
+          11.98
+        ],
+        [
+          "video_decoder",
+          19.27
+        ],
+        [
+          "audio_decoder",
+          2.12
+        ]
+      ],
+      "peak_gpu_gb": 36.3
+    },
+    {
+      "name": "again-6s",
+      "seconds": 6.0,
+      "decode_and_encode_s": 0.46,
+      "render_s": 44.7,
+      "frames": 145,
+      "blocks": [
+        [
+          "image_conditioner",
+          0.55
+        ],
+        [
+          "stage",
+          6.91
+        ],
+        [
+          "upsampler",
+          1.07
+        ],
+        [
+          "image_conditioner",
+          0.53
+        ],
+        [
+          "stage",
+          12.18
+        ],
+        [
+          "video_decoder",
+          21.76
+        ],
+        [
+          "audio_decoder",
+          1.26
+        ]
+      ],
+      "peak_gpu_gb": 30.8
+    },
+    {
+      "name": "long-10s",
+      "seconds": 10.0,
+      "decode_and_encode_s": 0.36,
+      "render_s": 78.6,
+      "frames": 241,
+      "blocks": [
+        [
+          "image_conditioner",
+          0.55
+        ],
+        [
+          "stage",
+          11.12
+        ],
+        [
+          "upsampler",
+          1.1
+        ],
+        [
+          "image_conditioner",
+          0.53
+        ],
+        [
+          "stage",
+          23.58
+        ],
+        [
+          "video_decoder",
+          39.89
+        ],
+        [
+          "audio_decoder",
+          1.4
+        ]
+      ],
+      "peak_gpu_gb": 35.2
+    },
+    {
+      "name": "long-10s-again",
+      "seconds": 10.0,
+      "decode_and_encode_s": 0.38,
+      "render_s": 79.2,
+      "frames": 241,
+      "blocks": [
+        [
+          "image_conditioner",
+          0.54
+        ],
+        [
+          "stage",
+          11.18
+        ],
+        [
+          "upsampler",
+          1.11
+        ],
+        [
+          "image_conditioner",
+          0.53
+        ],
+        [
+          "stage",
+          23.55
+        ],
+        [
+          "video_decoder",
+          40.47
+        ],
+        [
+          "audio_decoder",
+          1.39
+        ]
+      ],
+      "peak_gpu_gb": 31.8
+    }
+  ],
+  "read_checkpoints_s": 34.5,
+  "default_image_crf": 18,
+  "ancestral_sampler": true,
+  "prompt_cache_s": 12.9,
+  "natten": null
+}
