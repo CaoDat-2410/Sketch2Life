@@ -115,7 +115,7 @@ _SAFE_STORY_FIELD = re.compile(
     r"scenes\[\d{1,2}\](?:\.(?:title|action|visual_prompt|narration))?)\Z"
 )
 _SAFE_PARENT_ACTIVITY_FIELD = re.compile(
-    r"\Afallback_activities\[[0-3]\]\.(?:objective|preparation_text|observation_notes|"
+    r"\Afallback_activities\[[0-4]\]\.(?:objective|preparation_text|observation_notes|"
     r"safety_notes|steps\[[0-2]\]|"
     r"instructions_text\.(?:first_sentence|second_sentence))\Z"
 )

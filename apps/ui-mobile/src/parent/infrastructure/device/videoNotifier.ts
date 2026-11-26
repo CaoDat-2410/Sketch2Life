@@ -1,6 +1,6 @@
 /**
  * Local notifications for the video (FEAT-093): "ready" and "could not be made". They are scheduled on the device by the
- * app itself; no push token and no server is involved. ``expo-notifications`` is loaded lazily and only when present,
+ * app itself; no push token and no server is involved. ``expo-notifications`` is registered by the app shell only when its native code is part of the build,
  * so an app build without the native module keeps working (the in-app chip and badge still show the state).
  */
 type NotificationsModule = {
@@ -10,19 +10,21 @@ type NotificationsModule = {
   setNotificationHandler?(handler: { handleNotification: () => Promise<Record<string, boolean>> }): void;
 };
 
-let cached: NotificationsModule | null | undefined;
+let cached: NotificationsModule | null = null;
+
+/**
+ * Registers the native notifications module. The app shell does this once ``expo-notifications`` is part of the native
+ * build; until then nothing is registered and every call below is a no-op (the chip and badge still show the state).
+ * The module is not imported here on purpose: Metro would bundle it into builds that lack the native code.
+ */
+export function registerNotificationsModule(module: NotificationsModule | null): void {
+  cached = module;
+  cached?.setNotificationHandler?.({
+    handleNotification: async () => ({ shouldShowAlert: true, shouldPlaySound: false, shouldSetBadge: false }),
+  });
+}
 
 function load(): NotificationsModule | null {
-  if (cached !== undefined) return cached;
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    cached = require('expo-notifications') as NotificationsModule;
-    cached.setNotificationHandler?.({
-      handleNotification: async () => ({ shouldShowAlert: true, shouldPlaySound: false, shouldSetBadge: false }),
-    });
-  } catch {
-    cached = null;
-  }
   return cached;
 }
 

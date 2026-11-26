@@ -2,7 +2,7 @@
 
 The model writes the lines and the actions (no timestamps). This module places the lines on the master clock with the
 age band's speech rate, so every timestamp is deterministic and frame-exact, then validates the whole timeline with
-``parse_timeline``. If a rule fails the planner asks the model once more, naming the broken rule (never the content).
+``parse_timeline``. If a rule fails the planner asks the model again (three attempts in all), naming the broken rule (never the content).
 """
 
 from __future__ import annotations
@@ -27,7 +27,7 @@ LEAD_IN_MS: Final = 400
 VOICE_GAP_MS: Final = 300
 TAIL_MS: Final = 300
 MIN_LINE_MS: Final = 1_200
-MAX_ATTEMPTS: Final = 2
+MAX_ATTEMPTS: Final = 3
 
 
 class VideoTimelineGeneratorPort(Protocol):

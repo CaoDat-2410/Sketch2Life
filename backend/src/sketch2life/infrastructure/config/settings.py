@@ -144,6 +144,8 @@ class Settings(BaseSettings):
 
     # Provider calls stay backend-side; Modal is limited to local synthetic validation.
     ai_provider: Literal["disabled", "lightning_dev", "runpod", "modal_dev"] = "disabled"
+    # Checking an adult's own topic with the model (see .env.example); off unless enabled locally.
+    parent_topic_subject_ai_enabled: bool = False
     lightning_ai_base_url: str = ""
     lightning_ai_token_file: Path | None = None
     lightning_model_profile: str = "live-p2-understanding-v1"

@@ -3,8 +3,8 @@
 The legacy route ``/api/parent/v1/ai/story-runs/{id}/story-revisions`` (a synchronous Modal call)
 and the SRS route ``POST /v1/story-runs/{id}/story-rewrites`` (a generator port after the 202) hand
 the raw draft to ``complete_generated_story``. The checks are the ones the legacy route always ran
-(the draft schema, the butterfly life-cycle fact check, the canonical content hash); nothing about
-them changed when they moved here.
+(the draft schema and the canonical content hash). FEAT-093 Amendment C removed the subject-specific
+butterfly life-cycle check.
 """
 
 from __future__ import annotations
@@ -25,20 +25,9 @@ from sketch2life.application.ports.parent_story_runs import (
     ParentStoryRunRepositoryPort,
     TeacherStoryRunRecord,
 )
-from sketch2life.contracts.schemas.ai_story import (
-    StoryRevisionDraftV1,
-    validate_butterfly_lifecycle_v1,
-)
+from sketch2life.contracts.schemas.ai_story import StoryRevisionDraftV1
 
-EDUCATIONAL_FACT_CHECK_FAILED = "EDUCATIONAL_FACT_CHECK_FAILED"
 STORY_OUTPUT_INVALID = "STORY_OUTPUT_INVALID"
-_FACT_CHECK_MESSAGES = frozenset(
-    {
-        "EDUCATIONAL_FACT_FORBIDDEN_CLAIM",
-        "EDUCATIONAL_FACT_STAGE_MISSING",
-        "EDUCATIONAL_FACT_ORDER_INVALID",
-    }
-)
 
 
 class StoryOutputInvalid(RuntimeError):
@@ -55,14 +44,8 @@ def normalize_story_output(
     """The validated draft as plain JSON and its canonical SHA-256, or ``StoryOutputInvalid``."""
     try:
         story = StoryRevisionDraftV1.model_validate(raw_story)
-        validate_butterfly_lifecycle_v1(story, confirmed_subject=confirmed_subject)
-    except (ValidationError, ValueError) as exc:
-        code = (
-            EDUCATIONAL_FACT_CHECK_FAILED
-            if str(exc) in _FACT_CHECK_MESSAGES
-            else (STORY_OUTPUT_INVALID)
-        )
-        raise StoryOutputInvalid(code) from None
+    except (ValidationError, ValueError):
+        raise StoryOutputInvalid(STORY_OUTPUT_INVALID) from None
     normalized = story.model_dump(mode="json")
     story_hash = hashlib.sha256(
         json.dumps(
@@ -124,7 +107,6 @@ def complete_generated_story(
 
 
 __all__ = [
-    "EDUCATIONAL_FACT_CHECK_FAILED",
     "STORY_OUTPUT_INVALID",
     "StoryOutputInvalid",
     "complete_generated_story",

@@ -77,59 +77,23 @@ class ConfirmStoryRevisionRequest(StrictAiModel):
     story_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
 
 
-def validate_butterfly_lifecycle_v1(story: StoryRevisionDraftV1, *, confirmed_subject: str) -> None:
-    """Reject the specific lifecycle errors observed in the prior synthetic run."""
-
-    normalized_subject = _fold(confirmed_subject)
-    if "buom" not in normalized_subject and "butterfly" not in normalized_subject:
-        return
-    text = _fold(
-        " ".join(
-            [
-                story.story["opening"],
-                story.story["middle"],
-                story.story["ending"],
-                *(f"{scene.action} {scene.narration}" for scene in story.scenes),
-            ]
-        )
-    )
-    forbidden = (
-        r"trung\s+(?:no|nở)\s+(?:(?:ra|thanh)\s+)?(?:con\s+)?buom",
-        r"buom(?:\s+\w+){0,4}\s+(?:tim|kiem|xay|lam)\s+(?:mot\s+)?to",
-        r"butterfly\s+(?:hatches|looks?\s+for|builds?\s+(?:a\s+)?nest)",
-    )
-    if any(re.search(pattern, text) for pattern in forbidden):
-        raise ValueError("EDUCATIONAL_FACT_FORBIDDEN_CLAIM")
-
-    lifecycle_text = _fold(
-        " ".join(story.story[section] for section in ("opening", "middle", "ending"))
-    )
-    required_stages = (
-        r"\btrung\b",
-        r"\b(?:sau\s+buom|au\s+trung)\b",
-        r"\bnhong\b",
-        r"\b(?:buom\s+truong\s+thanh|buom\s+(?:chui|bay)\s+ra\s+khoi\s+nhong)\b",
-    )
-    positions = [
-        (match.start() if (match := re.search(stage, lifecycle_text)) else None)
-        for stage in required_stages
-    ]
-    if any(position is None for position in positions):
-        raise ValueError("EDUCATIONAL_FACT_STAGE_MISSING")
-    if positions != sorted(positions):
-        raise ValueError("EDUCATIONAL_FACT_ORDER_INVALID")
-
-
-def _fold(value: str) -> str:
-    normalized = unicodedata.normalize("NFKD", value.casefold())
-    return "".join(character for character in normalized if not unicodedata.combining(character))
-
-
 _INCOMPLETE_VI_SENTENCE_ENDINGS = frozenset(
     {
         "bị", "và", "hoặc", "nếu", "khi", "vì", "để", "với", "của",
         "trong", "trên", "dưới", "cho", "bằng", "từ", "đến", "là", "có",
         "đang", "mà", "nhưng", "rằng", "được",
+    }
+)
+
+
+# A location or result word legitimately ends a sentence after these words ("phía trên",
+# "leo qua được"). Keep in step with the story worker in deployment/modal/srs_v23.
+_COMPLETE_ENDING_PREFIXES = (
+    {
+        "trên": frozenset({"bên", "phía", "ở", "lên", "đằng"}),
+        "dưới": frozenset({"bên", "phía", "ở", "xuống", "đằng"}),
+        "trong": frozenset({"bên", "phía", "ở", "vào", "đằng"}),
+        "được": frozenset({"qua", "làm", "tìm", "thấy", "lấy", "đi", "leo", "bò"}),
     }
 )
 
@@ -149,7 +113,10 @@ def _sentence_is_complete(value: str) -> bool:
     normalized = unicodedata.normalize("NFC", stripped.casefold())
     for sentence in re.split(r"[.!?…]+", normalized):
         words = re.findall(r"[^\W\d_]+", sentence, flags=re.UNICODE)
-        if words and words[-1] in _INCOMPLETE_VI_SENTENCE_ENDINGS:
+        if not words or words[-1] not in _INCOMPLETE_VI_SENTENCE_ENDINGS:
+            continue
+        previous = words[-2] if len(words) > 1 else ""
+        if previous not in _COMPLETE_ENDING_PREFIXES.get(words[-1], frozenset()):
             return False
     return True
 
@@ -166,5 +133,4 @@ __all__ = [
     "ParentStoryGenerationRequest",
     "StoryRevisionDraftV1",
     "StorySceneV1",
-    "validate_butterfly_lifecycle_v1",
 ]

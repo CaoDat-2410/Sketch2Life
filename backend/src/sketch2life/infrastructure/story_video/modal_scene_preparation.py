@@ -31,7 +31,7 @@ MANIFEST_SCHEMA: Final = "sketch2life.modal.ai-request.v1"
 WORKER_INPUT_SCHEMA: Final = "sketch2life.modal.worker-input.v1"
 WORKER_OUTPUT_SCHEMA: Final = "sketch2life.modal.worker-output.v1"
 WORKLOAD: Final = "video.scene.prepare"
-WAIT_TIMEOUT_SECONDS: Final = 900
+WAIT_TIMEOUT_SECONDS: Final = 1_800  # queue behind the warm-up plus a cold start
 BACKGROUNDS: Final = frozenset({"AI", "PAPER"})
 
 
@@ -52,6 +52,14 @@ class ModalScenePreparation:
         self._function = function
         self._timeout = timeout_seconds
         self._sleep = sleep
+
+    def warm_up(self) -> None:
+        """Ask Modal to start the preparation container and load the models; a dispatch failure only costs time."""
+
+        try:
+            self._resolve_function().spawn({"warmup": True})
+        except Exception:  # noqa: BLE001
+            return
 
     def prepare(self, job: ScenePrepJob) -> PreparedScene:
         if not job.drawing_png or job.staging is None:

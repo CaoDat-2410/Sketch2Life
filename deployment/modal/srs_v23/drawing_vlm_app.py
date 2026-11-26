@@ -11,6 +11,7 @@ import sys
 import unicodedata
 from copy import deepcopy
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 import modal
@@ -257,16 +258,18 @@ def analyze_drawing(payload: dict[str, Any]) -> dict[str, Any]:
         drawing = opened.convert("RGB")
 
     prompt = _drawing_prompt()
+    # The vLLM engine takes the prompt text and the image; transformers takes the processed tensors.
+    engine_takes_images = getattr(model, "accepts_images", False) is True
     with worker_phase("prompt_encode"):
         messages = _drawing_messages(drawing, prompt)
-        inputs = processor.apply_chat_template(
+        encoded_prompt = processor.apply_chat_template(
             messages,
-            tokenize=True,
+            tokenize=not engine_takes_images,
             add_generation_prompt=True,
             enable_thinking=False,
-            return_dict=True,
-            return_tensors="pt",
-        ).to(model.device)
+            **({} if engine_takes_images else {"return_dict": True, "return_tensors": "pt"}),
+        )
+        inputs = None if engine_takes_images else encoded_prompt.to(model.device)
 
     import torch
 
@@ -287,11 +290,21 @@ def analyze_drawing(payload: dict[str, Any]) -> dict[str, Any]:
             tokenizer, eos_token_id=model_eos_token_id
         )
     with worker_phase("model_inference"), torch.inference_mode():
-        output_ids = model.generate(
-            **inputs,
-            generation_config=generation_config,
-            prefix_allowed_tokens_fn=prefix_allowed_tokens_fn,
-        )
+        if engine_takes_images:
+            input_ids, output_ids = model.generate_from_image(
+                encoded_prompt,
+                drawing,
+                schema=prefix_allowed_tokens_fn.schema,
+                max_new_tokens=MAX_OUTPUT_UNITS,
+                min_new_tokens=generation_config.min_new_tokens,
+            )
+            inputs = SimpleNamespace(input_ids=input_ids)
+        else:
+            output_ids = model.generate(
+                **inputs,
+                generation_config=generation_config,
+                prefix_allowed_tokens_fn=prefix_allowed_tokens_fn,
+            )
     answer_ids = output_ids[0][inputs.input_ids.shape[-1] :]
     generated_token_count = int(answer_ids.shape[-1])
     generated_ids = [int(token_id) for token_id in answer_ids.tolist()]
@@ -434,10 +447,11 @@ _CACHED_QWEN_EOS_IDS: tuple[int, ...] | None = None
 
 def _drawing_prompt() -> str:
     return (
-        "Quan sát ảnh tranh đường nét đen trên nền trắng. Chỉ mô tả những gì nhìn thấy "
+        "Quan sát ảnh bức tranh trẻ vẽ. Chỉ mô tả những gì nhìn thấy "
         "trực tiếp trong ảnh. Không suy đoán tuổi, danh tính, cảm xúc, năng lực hay hoàn "
         "cảnh của người vẽ. Trả về một JSON gồm main_subject, secondary_subjects và confidence. "
-        "Mọi label và visible_features phải viết bằng tiếng Việt có dấu, không dùng tiếng Anh. "
+        "Mọi label và visible_features phải viết bằng tiếng Việt có dấu, không dùng tiếng Anh kể cả tên bộ phận "
+        "(viết 'yên xe', không viết 'saddle'). "
         "main_subject là chủ thể chính: vật lớn nhất hoặc ở trung tâm, ưu tiên sinh vật có thể "
         "hành động; gồm label (tên ngắn), visible_features (1 đến 4 mô tả ngắn, cụ thể), "
         "facing (left, right hoặc front: chủ thể quay mặt về phía nào trong ảnh) và box. "
@@ -563,6 +577,10 @@ def _build_drawing_prefix_allowed_tokens_fn(
     """Constrain Qwen3.8 to the exact VLM result schema at generation time."""
 
     global _CACHED_QWEN_VOCAB_DATA, _CACHED_QWEN_EOS_IDS
+    if os.environ.get("SKETCH2LIFE_QWEN_ENGINE") == "vllm":
+        import qwen_vllm
+
+        return qwen_vllm.JsonSchemaConstraint(_drawing_output_json_schema())
     os.environ["LMFE_DEFAULT_ALPHABET"] = LMFE_VIETNAMESE_JSON_ALPHABET
     try:
         from lmformatenforcer import JsonSchemaParser

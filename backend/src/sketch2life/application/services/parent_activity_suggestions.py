@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import re
 import unicodedata
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from difflib import SequenceMatcher
-from typing import Any
+from typing import Any, TypeVar
 
 from pydantic import ValidationError
 
@@ -103,6 +103,12 @@ _INCOMPLETE_VI_SENTENCE_TAIL_PHRASES = frozenset(
     {"hình lục", "hoặc hình", "để trẻ", "hoặc có", "nếu có", "và có"}
 )
 _VIETNAMESE_CONSONANTS = frozenset("bcdfghjklmnpqrstvwxz")
+# A unit after a number ("dài khoảng 5 cm") ends a sentence; keep in step with the activity worker.
+_MEASURE_UNITS = frozenset({"cm", "mm", "m", "kg", "g", "l", "km"})
+_GENERATION_ATTEMPTS = 2
+# SRS: when the catalog has no match, the Parent is offered exactly three generated drafts.
+_FALLBACK_ACTIVITY_COUNT = 3
+_Answer = TypeVar("_Answer")
 
 
 class ParentActivitySuggestionError(ValueError):
@@ -120,6 +126,26 @@ def classify_parent_activity_worker_failure(
     if worker_error_code == "MODAL_MODEL_OUTPUT_INCOMPLETE_TEXT":
         return "PARENT_ACTIVITY_QUALITY_GATE_REJECTED", "ACTIVITY_TEXT_INCOMPLETE"
     return worker_error_code, None
+
+
+def generate_activity_suggestions(
+    invoke: Callable[[], _Answer],
+    resolve: Callable[[_Answer], dict[str, Any]],
+    *,
+    on_rejected: Callable[[ParentActivitySuggestionError], None] | None = None,
+) -> tuple[_Answer, dict[str, Any]]:
+    """Ask the model, check the answer, and ask once more when only the quality gate refused it."""
+
+    for attempt in range(1, _GENERATION_ATTEMPTS + 1):
+        answer = invoke()
+        try:
+            return answer, resolve(answer)
+        except ParentActivitySuggestionError as error:
+            if on_rejected is not None:
+                on_rejected(error)
+            if attempt == _GENERATION_ATTEMPTS or error.code != "PARENT_ACTIVITY_QUALITY_GATE_REJECTED":
+                raise
+    raise AssertionError("unreachable")
 
 
 @dataclass(frozen=True)
@@ -187,7 +213,11 @@ def _has_incomplete_vietnamese_sentence_tail(value: str) -> bool:
             for character in decomposed
             if unicodedata.category(character) != "Mn"
         ).replace("đ", "d")
-        if len(consonant_form) <= 2 and set(consonant_form) <= _VIETNAMESE_CONSONANTS:
+        if (
+            len(consonant_form) <= 2
+            and set(consonant_form) <= _VIETNAMESE_CONSONANTS
+            and not (consonant_form in _MEASURE_UNITS and any(character.isdigit() for character in sentence))
+        ):
             return True
         if (
             len(words) >= 2
@@ -383,6 +413,106 @@ def _lesson_from_pin(pin: Mapping[str, Any]) -> ParentActivityLesson:
         access_source="PINNED_LESSON",
         activities=tuple(pin["activities"]),
     )
+
+
+def _distinct_content(activity: Any) -> str:
+    return _fold(
+        " ".join(
+            (
+                activity.title,
+                activity.objective,
+                activity.materials_text,
+                activity.preparation_text,
+                activity.instructions_text,
+            )
+        )
+    )
+
+
+def _title_key(activity: Any) -> str:
+    return " ".join(sorted(_tokens(activity.title)))
+
+
+def _draft_rejection_reason(
+    activity: Any,
+    *,
+    context_terms: frozenset[str],
+    accepted: Sequence[Any],
+    reference_texts: Sequence[str],
+) -> str | None:
+    """Return why one generated draft may not be shown, or None when it passes."""
+
+    text = " ".join(
+        (
+            activity.title,
+            activity.objective,
+            activity.materials_text,
+            activity.preparation_text,
+            activity.instructions_text,
+            activity.observation_notes,
+            activity.safety_notes,
+        )
+    )
+    folded = _fold(text)
+    distinct_content = _distinct_content(activity)
+    instructions = _fold(" ".join((activity.instructions_text, activity.preparation_text)))
+    materials_and_steps = _fold(
+        " ".join(
+            (activity.materials_text, activity.preparation_text, activity.instructions_text)
+        )
+    )
+    safety = _fold(activity.safety_notes)
+    title_key = _title_key(activity)
+    if any(
+        value.strip()
+        and (
+            not value.strip().endswith(_SENTENCE_ENDINGS)
+            or _has_incomplete_vietnamese_sentence_tail(value)
+        )
+        for value in (
+            activity.objective,
+            activity.preparation_text,
+            activity.instructions_text,
+            activity.safety_notes,
+        )
+    ):
+        return "ACTIVITY_TEXT_INCOMPLETE"
+    if activity.activity_kind != "outdoor":
+        return "ACTIVITY_NOT_OUTDOOR"
+    if len(activity.instructions_text.strip()) < 40:
+        return "ACTIVITY_INSTRUCTIONS_TOO_SHORT"
+    if len(activity.safety_notes.strip()) < 12:
+        return "SAFETY_NOTE_TOO_SHORT"
+    if not _has_explicit_outdoor_setting(instructions):
+        return "OUTDOOR_SETTING_NOT_EXPLICIT"
+    if not _has_child_agency(instructions):
+        return "CHILD_AGENCY_NOT_EXPLICIT"
+    if not _has_explicit_exploration(instructions):
+        return "EXPLORATION_NOT_EXPLICIT"
+    if not any(marker in instructions for marker in _ADULT_SUPPORT_MARKERS):
+        return "ADULT_SUPPORT_NOT_EXPLICIT"
+    if not any(marker in safety for marker in _SAFETY_MARKERS):
+        return "SAFETY_NOTE_MISSING"
+    if _contains_unsafe_action(materials_and_steps):
+        return "UNSAFE_ACTION_TEXT"
+    if not (context_terms & _tokens(text)):
+        return "ACTIVITY_CONTEXT_MISMATCH"
+    if not title_key or title_key in {_title_key(item) for item in accepted}:
+        return "ACTIVITY_TITLE_DUPLICATE"
+    if _PII_EMAIL.search(text) or _PII_PHONE.search(text) or _PII_URL.search(text):
+        return "PERSONAL_CONTACT_DATA_PRESENT"
+    if _contains_non_latin_letter(text):
+        return "NON_VIETNAMESE_SCRIPT"
+    if any(
+        SequenceMatcher(None, distinct_content, _distinct_content(item)).ratio() >= 0.88
+        for item in accepted
+    ):
+        return "ACTIVITIES_TOO_SIMILAR"
+    if any(
+        SequenceMatcher(None, folded, prior).ratio() >= 0.82 for prior in reference_texts
+    ):
+        return "DUPLICATES_CATALOG_ACTIVITY"
+    return None
 
 
 class ParentActivitySuggestionService:
@@ -636,7 +766,7 @@ class ParentActivitySuggestionService:
                 )
             selection_mode = "CATALOG_SELECTION"
         else:
-            self._quality_gate(
+            passing_drafts = self._quality_gate(
                 activities=result.fallback_activities,
                 age_band=prepared.worker_input["age_band_months"],
                 context_terms=prepared.context_terms,
@@ -654,7 +784,7 @@ class ParentActivitySuggestionService:
                     source_activity_index=None,
                     match_reason=result.no_match_reason.strip(),
                 )
-                for item in result.fallback_activities
+                for item in passing_drafts
             ]
             selection_mode = "AI_GENERATED_FALLBACK"
 
@@ -739,118 +869,35 @@ class ParentActivitySuggestionService:
         context_terms: frozenset[str],
         candidates: Sequence[_EligibleCandidate],
         excluded_activities: Sequence[Mapping[str, Any]] = (),
-    ) -> None:
-        def reject(reason: str) -> None:
-            raise ParentActivitySuggestionError(
-                "PARENT_ACTIVITY_QUALITY_GATE_REJECTED",
-                diagnostic_code=reason,
-            )
+    ) -> list[Any]:
+        """Check each draft on its own and return the first three that pass every rule."""
 
-        if len(activities) != 3:
-            reject("FALLBACK_COUNT_INVALID")
-        normalized_titles: set[str] = set()
-        distinct_content_texts: list[str] = []
-        candidate_texts = [
-            _fold(" ".join(candidate.activity.values()))
-            for candidate in candidates
+        reference_texts = [
+            *(_fold(" ".join(candidate.activity.values())) for candidate in candidates),
+            *(
+                _fold(" ".join(str(value) for value in activity.values()))
+                for activity in excluded_activities
+            ),
         ]
-        excluded_texts = [
-            _fold(" ".join(str(value) for value in activity.values()))
-            for activity in excluded_activities
-        ]
+        accepted: list[Any] = []
+        first_reason: str | None = None
         for activity in activities:
-            text = " ".join(
-                (
-                    activity.title,
-                    activity.objective,
-                    activity.materials_text,
-                    activity.preparation_text,
-                    activity.instructions_text,
-                    activity.observation_notes,
-                    activity.safety_notes,
-                )
+            reason = _draft_rejection_reason(
+                activity,
+                context_terms=context_terms,
+                accepted=accepted,
+                reference_texts=reference_texts,
             )
-            folded = _fold(text)
-            distinct_content = _fold(
-                " ".join(
-                    (
-                        activity.title,
-                        activity.objective,
-                        activity.materials_text,
-                        activity.preparation_text,
-                        activity.instructions_text,
-                    )
-                )
-            )
-            instructions = _fold(
-                " ".join((activity.instructions_text, activity.preparation_text))
-            )
-            adult_role = _fold(
-                " ".join((activity.instructions_text, activity.preparation_text))
-            )
-            materials_and_steps = _fold(
-                " ".join(
-                    (
-                        activity.materials_text,
-                        activity.preparation_text,
-                        activity.instructions_text,
-                    )
-                )
-            )
-            safety = _fold(activity.safety_notes)
-            title_key = " ".join(sorted(_tokens(activity.title)))
-            if any(
-                value.strip()
-                and (
-                    not value.strip().endswith(_SENTENCE_ENDINGS)
-                    or _has_incomplete_vietnamese_sentence_tail(value)
-                )
-                for value in (
-                    activity.objective,
-                    activity.preparation_text,
-                    activity.instructions_text,
-                    activity.safety_notes,
-                )
-            ):
-                reject("ACTIVITY_TEXT_INCOMPLETE")
-            if activity.activity_kind != "outdoor":
-                reject("ACTIVITY_NOT_OUTDOOR")
-            if len(activity.instructions_text.strip()) < 40:
-                reject("ACTIVITY_INSTRUCTIONS_TOO_SHORT")
-            if len(activity.safety_notes.strip()) < 12:
-                reject("SAFETY_NOTE_TOO_SHORT")
-            if not _has_explicit_outdoor_setting(instructions):
-                reject("OUTDOOR_SETTING_NOT_EXPLICIT")
-            if not _has_child_agency(instructions):
-                reject("CHILD_AGENCY_NOT_EXPLICIT")
-            if not _has_explicit_exploration(instructions):
-                reject("EXPLORATION_NOT_EXPLICIT")
-            if not any(marker in adult_role for marker in _ADULT_SUPPORT_MARKERS):
-                reject("ADULT_SUPPORT_NOT_EXPLICIT")
-            if not any(marker in safety for marker in _SAFETY_MARKERS):
-                reject("SAFETY_NOTE_MISSING")
-            if _contains_unsafe_action(materials_and_steps):
-                reject("UNSAFE_ACTION_TEXT")
-            if not (context_terms & _tokens(text)):
-                reject("ACTIVITY_CONTEXT_MISMATCH")
-            if not title_key or title_key in normalized_titles:
-                reject("ACTIVITY_TITLE_DUPLICATE")
-            if _PII_EMAIL.search(text) or _PII_PHONE.search(text) or _PII_URL.search(text):
-                reject("PERSONAL_CONTACT_DATA_PRESENT")
-            if _contains_non_latin_letter(text):
-                reject("NON_VIETNAMESE_SCRIPT")
-            if any(
-                SequenceMatcher(None, distinct_content, prior).ratio() >= 0.88
-                for prior in distinct_content_texts
-            ):
-                reject("ACTIVITIES_TOO_SIMILAR")
-            if any(
-                SequenceMatcher(None, folded, prior).ratio() >= 0.82
-                for prior in (*candidate_texts, *excluded_texts)
-            ):
-                reject("DUPLICATES_CATALOG_ACTIVITY")
-            normalized_titles.add(title_key)
-            distinct_content_texts.append(distinct_content)
+            if reason is not None:
+                first_reason = first_reason or reason
+                continue
+            accepted.append(activity)
+            if len(accepted) == _FALLBACK_ACTIVITY_COUNT:
+                return accepted
+        raise ParentActivitySuggestionError(
+            "PARENT_ACTIVITY_QUALITY_GATE_REJECTED",
+            diagnostic_code=first_reason or "FALLBACK_COUNT_INVALID",
+        )
 
 
 __all__ = [

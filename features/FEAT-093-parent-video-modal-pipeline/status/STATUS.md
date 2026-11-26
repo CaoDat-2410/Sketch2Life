@@ -1,6 +1,22 @@
 # FEAT-093 status
 
-**State:** APPROVED (offline backend pipeline built; live path and app not done)
+**State:** live path working in dev; remaining quality, content and speed work moved to FEAT-094 (APPROVED Rev 2).
+
+## 2026-11-26
+
+- Amendments C (vLLM serving, reliability) and D (failure audit) implemented and deployed to Modal dev.
+- Run 1 (synthetic bicycle drawing, warm containers) produced the first READY video playable in the app: understanding
+  about 20 s, activity 40 s, story about 10 s, video planning 31 s, scene preparation about 12 s per scene, about 3.5
+  minutes waiting for an L40S, LTX warm-up 50 s, about 115 s per 6 s scene, total about 14 minutes for 30 s of video.
+  Evidence: `evidence/M13_run1/` (the MP4 stays local).
+- Defects seen in that video: subject floating, a child who was not drawn, paper residue inside the cut-out, white
+  bands above and below, captions that teach very little. Fixed in code but not verified live: grounding, person guard,
+  16:9 output.
+- Run 2 (synthetic chick drawing) stopped at the activity step: both answers failed the backend gate
+  `EXPLORATION_NOT_EXPLICIT`. Fixed in FEAT-094 phase 0 (each draft is judged on its own); not verified live.
+- `deployment/modal/srs_v23/tests`: 390 passed, 5 skipped on 2026-11-26.
+
+The sections below describe the state before the live runs.
 
 Previous state line: APPROVED (Rev 2 + Amendment A + Amendment B, 2026-11-25). M0 partly done; M1 and M2 implemented (not yet live-checked).
 

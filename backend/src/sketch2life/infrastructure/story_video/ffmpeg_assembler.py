@@ -1,6 +1,6 @@
 """CPU assembler of the Parent video (FEAT-093): scene clips + narration chunks -> one MP4 on the master clock.
 
-Each LTX clip is normalised to 1280x768 at 24 fps, cut to its planned frames and extended by holding its last frame when
+Each LTX clip fills a 1280x720 (16:9) frame at 24 fps, cut to its planned frames and extended by holding its last frame when
 the narration needs more time. Narration chunks are trimmed to their speech and placed at their start times on a 48 kHz
 track that is loudness-normalised. The container is faststart. Commands run through an injected runner, so the structure is
 unit-tested without ffmpeg; the real runner calls the executable without a shell.
@@ -18,7 +18,7 @@ from sketch2life.application.video_pipeline.age_profile import FPS
 from sketch2life.application.video_pipeline.ports import AssembleJob, VideoPipelineError
 
 WIDTH: Final = 1280
-HEIGHT: Final = 768
+HEIGHT: Final = 720
 SAMPLE_RATE: Final = 48_000
 TARGET_LUFS: Final = -16
 Runner = Callable[[Sequence[str]], None]
@@ -65,8 +65,8 @@ class FfmpegAssembler:
     def _scene_command(self, source: Path, target: Path, frames: int, hold: int) -> list[str]:
         filters = [
             f"fps={FPS}",
-            f"scale={WIDTH}:{HEIGHT}:force_original_aspect_ratio=decrease",
-            f"pad={WIDTH}:{HEIGHT}:(ow-iw)/2:(oh-ih)/2:color=white",
+            f"scale={WIDTH}:{HEIGHT}:force_original_aspect_ratio=increase",
+            f"crop={WIDTH}:{HEIGHT}",
             "setsar=1",
             f"trim=end_frame={frames}",
             "setpts=PTS-STARTPTS",

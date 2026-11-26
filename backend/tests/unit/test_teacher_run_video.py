@@ -143,6 +143,7 @@ OWNER_AGNOSTIC = {
     "pending_compute_closures",
     "open_generations",
     "orphaned_in_flight",
+    "runnable_generations",
 }
 
 

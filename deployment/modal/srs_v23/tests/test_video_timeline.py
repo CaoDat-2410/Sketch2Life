@@ -72,7 +72,7 @@ def test_the_prompt_states_the_age_numbers_and_the_format_rules() -> None:
 
     assert "đúng 5 cảnh" in prompt and "tối đa 9 từ" in prompt and "tối đa 1 lời thoại" in prompt
     assert "KHÔNG nhắc tên nhân vật" in prompt and "consume" in prompt
-    assert "\n" not in prompt  # real newlines, not escaped ones
+    assert "\n" in prompt and "\\n" not in prompt  # real newlines, not escaped ones
     assert "Chú thỏ và củ cà rốt" in prompt  # the format example
 
 

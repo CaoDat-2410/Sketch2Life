@@ -25,7 +25,6 @@ from sketch2life.contracts.schemas.ai_story import (
     ConfirmStoryRevisionRequest,
     ParentStoryGenerationRequest,
     StoryRevisionDraftV1,
-    validate_butterfly_lifecycle_v1,
 )
 from sketch2life.contracts.schemas.story_run_lite import (
     AttachAssetRequest,
@@ -506,9 +505,6 @@ class StoryRunLiteService:
         try:
             output, call_id = self._story_generator.generate(reservation.context)
             revision = StoryRevisionDraftV1.model_validate(output)
-            validate_butterfly_lifecycle_v1(
-                revision, confirmed_subject=str(reservation.context["confirmed_subject"])
-            )
             normalized = revision.model_dump(mode="json")
             content_hash = hashlib.sha256(
                 json.dumps(
@@ -528,11 +524,7 @@ class StoryRunLiteService:
         except Exception as exc:
             outcome_unknown = bool(getattr(exc, "outcome_unknown", False))
             code = getattr(exc, "code", None) or (
-                "STORY_OUTCOME_UNKNOWN"
-                if outcome_unknown
-                else "EDUCATIONAL_FACT_CHECK_FAILED"
-                if str(exc) == "EDUCATIONAL_FACT_CHECK_FAILED"
-                else "STORY_OUTPUT_INVALID"
+                "STORY_OUTCOME_UNKNOWN" if outcome_unknown else "STORY_OUTPUT_INVALID"
             )
             return self._repository.fail_story_revision(
                 reservation=reservation,

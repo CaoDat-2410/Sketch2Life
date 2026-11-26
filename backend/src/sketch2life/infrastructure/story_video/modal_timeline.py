@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any, Final
 
+from sketch2life.application.video_pipeline.ports import VideoPipelineError
 from sketch2life.infrastructure.ai.modal_function_client import (
     ModalFunctionExecutionFailed,
     ModalFunctionOutcomeUnknown,
@@ -15,11 +16,10 @@ WORKLOAD: Final = "video.timeline.generate"
 OUTPUT_SCHEMA: Final = "sketch2life.video-timeline-draft.v1"
 
 
-class VideoPlanningUnavailable(RuntimeError):
+class VideoPlanningUnavailable(VideoPipelineError):
     """The timeline worker failed or its outcome is unknown; the code is safe to store and show."""
 
     def __init__(self, code: str, *, outcome_unknown: bool = False) -> None:
-        self.code = code
         self.outcome_unknown = outcome_unknown
         super().__init__(code)
 

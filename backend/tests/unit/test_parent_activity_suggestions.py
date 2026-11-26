@@ -172,6 +172,85 @@ def _fallbacks() -> list[dict[str, str]]:
     ]
 
 
+def _draft_without_exploration(title: str, creature: str) -> dict[str, str]:
+    """A draft that passes every content rule except explicit exploration."""
+
+    return {
+        **_activity(title),
+        "objective": f"Vẽ lại hình con {creature} theo ý thích của trẻ.",
+        "preparation_text": f"Người lớn đặt giấy vẽ cho hình con {creature} ở sân vườn.",
+        "instructions_text": (
+            f"Ở ngoài sân, trẻ tự chọn màu để vẽ con {creature}; "
+            "người lớn đi cùng và hỗ trợ khi trẻ cần."
+        ),
+    }
+
+
+def _resolve_drafts(activities: list[dict[str, str]]) -> dict:
+    service, prepared = _prepare(())
+    return service.resolve(
+        prepared=prepared,
+        raw_result=_worker_result(
+            decision="NO_MATCH",
+            reason="Không có hoạt động phù hợp.",
+            activities=activities,
+        ),
+        request_id="00000000-0000-0000-0000-000000000001",
+        story_run_id="00000000-0000-0000-0000-000000000002",
+        understanding_revision=1,
+        modal_call_id=None,
+    )
+
+
+def test_gate_drops_only_the_failing_drafts_and_keeps_the_first_three_passing():
+    good = _fallbacks()
+    drafts = [
+        good[0],
+        _draft_without_exploration("Vẽ bướm bằng màu sáp", "bướm"),
+        good[1],
+        _draft_without_exploration("Tô cánh chim trên giấy", "chim"),
+        good[2],
+    ]
+
+    response = _resolve_drafts(drafts)
+
+    assert [item["title"] for item in response["activities"]] == [
+        item["title"] for item in good
+    ]
+
+
+def test_gate_returns_at_most_three_activities_when_more_drafts_pass():
+    fourth = {
+        **_activity("Nghe tiếng chim ở góc vườn"),
+        "objective": "Lắng nghe âm thanh ngoài trời và kể lại điều trẻ nhận ra.",
+        "instructions_text": (
+            "Ở góc vườn yên tĩnh, trẻ tự chọn chỗ ngồi để lắng nghe tiếng chim; "
+            "người lớn ngồi bên hỗ trợ trẻ đếm số âm thanh khác nhau."
+        ),
+    }
+
+    response = _resolve_drafts([*_fallbacks(), fourth])
+
+    assert len(response["activities"]) == 3
+    assert fourth["title"] not in [item["title"] for item in response["activities"]]
+
+
+def test_gate_rejects_when_fewer_than_three_drafts_pass_and_names_the_first_reason():
+    good = _fallbacks()
+    drafts = [
+        good[0],
+        _draft_without_exploration("Vẽ bướm bằng màu sáp", "bướm"),
+        good[1],
+        _draft_without_exploration("Tô cánh chim trên giấy", "chim"),
+    ]
+
+    with pytest.raises(ParentActivitySuggestionError) as caught:
+        _resolve_drafts(drafts)
+
+    assert caught.value.code == "PARENT_ACTIVITY_QUALITY_GATE_REJECTED"
+    assert caught.value.diagnostic_code == "EXPLORATION_NOT_EXPLICIT"
+
+
 def _worker_result(*, decision: str, selections=None, reason="", activities=None):
     return {
         "schema_version": "sketch2life.parent-activity-suggestions.v2",

@@ -138,6 +138,7 @@ class FixtureVideoRunner:
                     expected_state=str(GenerationState.GENERATING),
                     target_state=str(GenerationState.FAILED),
                     safe_failure_code=rendered.failure_code or "VIDEO_VALIDATION_FAILED",
+                    return_to_script_review=True,
                 ),
             )
         self._rendered[record.generation_id] = rendered
@@ -187,6 +188,7 @@ class FixtureVideoRunner:
                     expected_state=str(GenerationState.SAFETY_VALIDATING),
                     target_state=str(GenerationState.FAILED),
                     safe_failure_code="STORAGE_UNAVAILABLE",
+                    return_to_script_review=True,
                 ),
             )
         self._write_asset(record, key, rendered)

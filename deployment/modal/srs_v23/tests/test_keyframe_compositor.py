@@ -359,3 +359,17 @@ def test_a_plate_needs_a_subject_to_place(scene) -> None:
 
     with pytest.raises(kc.KeyframeError):
         kc.apply_background_plate(empty, Image.new("RGB", (1280, 768), "white"))
+
+
+def test_a_grounded_subject_stands_at_the_bottom_with_its_neighbours(scene) -> None:
+    drawing, main, leaf = scene
+    keep = [{"entity_id": "sec-1", "state": "unchanged"}]
+    end = {**_main("center-middle"), "grounded": True}
+
+    frame = kc.build_keyframes(drawing, main, [leaf], _staging([(end, keep)] * 5), source_facing="right")[1]
+
+    _x0, _y0, _x1, bottom = kc.mask_bbox(frame.main_mask)
+    assert abs(bottom - round(H * kc.GROUND_LINE)) <= 2
+    before = kc.mask_bbox(leaf.mask)[3] - kc.mask_bbox(main.mask)[3]
+    after = kc.mask_bbox(frame.secondary_masks["sec-1"])[3] - bottom
+    assert abs(after - before) <= 2  # the leaf keeps its place relative to the turtle

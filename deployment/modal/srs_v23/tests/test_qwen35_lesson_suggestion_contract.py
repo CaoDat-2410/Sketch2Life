@@ -596,7 +596,8 @@ def test_every_text_model_generate_call_uses_validated_processor_inputs() -> Non
     ]
 
     # FEAT-087 M4 added the story staging pass (an 8th call, validated like the rest).
-    assert len(generate_calls) == 8
+    # FEAT-093 added the video timeline pass (the 9th).
+    assert len(generate_calls) == 9
     assert all(
         any(
             keyword.arg is None

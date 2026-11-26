@@ -306,3 +306,235 @@ def test_a_narration_failure_stops_the_run_before_every_scene_is_rendered() -> N
 
     assert error.value.code == "VIDEO_NARRATION_FAILED"
     assert len(render.calls) < 5
+
+
+class _FlakyRender(_Render):
+    def __init__(self, code: str, failures: int):
+        super().__init__()
+        self.code = code
+        self.failures = failures
+
+    def render(self, job):
+        if job.scene.index == 2 and self.failures:
+            self.failures -= 1
+            self.calls.append((job.scene.index, "failed"))
+            raise VideoPipelineError(self.code)
+        return super().render(job)
+
+
+@pytest.mark.parametrize("code", ["VIDEO_SCENE_RENDER_FAILED", "VIDEO_SCENE_TIMEOUT", "VIDEO_SCENE_OUTPUT_UNAVAILABLE"])
+def test_a_transient_render_failure_is_retried_once(code: str) -> None:
+    render = _FlakyRender(code, failures=1)
+    pipeline, _ = _pipeline(render=render)
+
+    result = pipeline.run(_source())
+
+    assert result.video == b"MP4-5"
+    assert [index for index, _thread in render.calls] == [1, 2, 2, 3, 4, 5]
+
+
+def test_a_second_render_failure_keeps_its_code() -> None:
+    render = _FlakyRender("VIDEO_SCENE_RENDER_FAILED", failures=2)
+    pipeline, _ = _pipeline(render=render)
+
+    with pytest.raises(VideoPipelineError) as error:
+        pipeline.run(_source())
+
+    assert error.value.code == "VIDEO_SCENE_RENDER_FAILED"
+    assert [index for index, _thread in render.calls] == [1, 2, 2]
+
+
+def test_an_unknown_dispatch_is_never_sent_twice() -> None:
+    render = _FlakyRender("VIDEO_SCENE_DISPATCH_UNKNOWN", failures=1)
+    pipeline, _ = _pipeline(render=render)
+
+    with pytest.raises(VideoPipelineError) as error:
+        pipeline.run(_source())
+
+    assert error.value.code == "VIDEO_SCENE_DISPATCH_UNKNOWN"
+    assert [index for index, _thread in render.calls] == [1, 2]
+
+
+def test_a_transient_preparation_failure_is_retried_once() -> None:
+    class _FlakyPrep(_Prep):
+        failed = False
+
+        def prepare(self, job):
+            if job.scene.index == 1 and not self.failed:
+                self.failed = True
+                self.calls.append((job.scene.index, "failed"))
+                raise VideoPipelineError("VIDEO_SCENE_PREPARE_FAILED")
+            return super().prepare(job)
+
+    prep = _FlakyPrep()
+    pipeline, _ = _pipeline(prep=prep)
+
+    pipeline.run(_source())
+
+    assert [index for index, _thread in prep.calls][:2] == [1, 1]
+
+
+def test_a_transient_narration_call_failure_is_retried_once() -> None:
+    class _FlakyNarration(_Narration):
+        failed = False
+
+        def synthesize(self, spoken):
+            if not self.failed:
+                self.failed = True
+                self.calls.append(spoken)
+                raise VideoPipelineError("VIDEO_NARRATION_FAILED")
+            return super().synthesize(spoken)
+
+    narration = _FlakyNarration()
+    pipeline, _ = _pipeline(narration=narration)
+
+    pipeline.run(_source())
+
+    assert narration.calls[0] == narration.calls[1]
+
+
+def test_a_planning_worker_failure_keeps_its_own_code() -> None:
+    from sketch2life.infrastructure.story_video.modal_timeline import VideoPlanningUnavailable
+
+    class _Unavailable(_Generator):
+        def generate(self, request):
+            raise VideoPlanningUnavailable("TIMELINE_DRAFT_SCENE_COUNT")
+
+    pipeline = VideoPipeline(
+        timeline_generator=_Unavailable({}), preparation=_Prep(), renderer=_Render(), narration=_Narration(),
+        assembler=_Assembler(), validator=_Validator(),
+    )
+
+    with pytest.raises(VideoPipelineError) as error:
+        pipeline.run(_source())
+
+    assert error.value.code == "TIMELINE_DRAFT_SCENE_COUNT"
+
+
+def test_the_timeline_gets_a_third_attempt() -> None:
+    broken = _draft()
+    broken["scenes"][0]["narration"] = "Rùa con đang bò và"
+
+    class _FixedOnThird(_Generator):
+        requests: list = []
+
+        def generate(self, request):
+            self.requests.append(request["previous_error"])
+            return _draft() if len(self.requests) == 3 else copy.deepcopy(broken)
+
+    generator = _FixedOnThird(broken)
+    pipeline = VideoPipeline(
+        timeline_generator=generator, preparation=_Prep(), renderer=_Render(), narration=_Narration(),
+        assembler=_Assembler(), validator=_Validator(),
+    )
+
+    pipeline.run(_source())
+
+    assert generator.requests == [None, "LINE_TEXT_DANGLING_WORD", "LINE_TEXT_DANGLING_WORD"]
+
+
+def test_both_gpu_containers_are_warmed_before_planning_starts() -> None:
+    events: list[str] = []
+
+    class _WarmPrep(_Prep):
+        def warm_up(self):
+            events.append("warm-prep")
+
+    class _WarmRender(_Render):
+        def warm_up(self):
+            events.append("warm-render")
+            raise RuntimeError("provider down")  # a failed warm-up never fails the run
+
+    class _Recording(_Generator):
+        def generate(self, request):
+            events.append("plan")
+            return super().generate(request)
+
+    pipeline = VideoPipeline(
+        timeline_generator=_Recording(_draft()), preparation=_WarmPrep(), renderer=_WarmRender(),
+        narration=_Narration(), assembler=_Assembler(), validator=_Validator(),
+    )
+
+    assert pipeline.run(_source()).video == b"MP4-5"
+    assert events == ["warm-prep", "warm-render", "plan"]
+
+
+def _captions_ok(result) -> None:
+    from sketch2life.application.video_pipeline.caption_plan import lint_cues
+
+    assert lint_cues(result.cues, duration_ms=result.plan.total_ms, max_cps=14.0) == []
+
+
+def test_a_very_fast_voice_still_gives_captions_a_child_can_read() -> None:
+    draft = _draft()
+    for scene in draft["scenes"]:
+        scene["narration"] = "Ồ, lá kìa, ăn thôi."
+        scene["dialogue"] = [{"speaker_ref": "rua", "text": "Đến nơi rồi."}]
+    pipeline, _ = _pipeline(draft=draft, narration=_Narration(seconds_per_letter=0.04))
+
+    _captions_ok(pipeline.run(_source()))
+
+
+def test_long_silence_at_the_edges_of_a_clip_is_trimmed_not_failed() -> None:
+    class _Padded(_Narration):
+        def synthesize(self, spoken):
+            seconds = max(0.6, sum(ch.isalnum() for ch in spoken) * 0.1)
+            rate = 24_000
+            frames = bytearray()
+            for i in range(int(rate * (seconds + 1.6))):
+                voiced = int(rate * 0.8) <= i < int(rate * (seconds + 0.8))
+                frames += struct.pack("<h", int(8000 * math.sin(2 * math.pi * 220 * i / rate)) if voiced else 0)
+            buffer = io.BytesIO()
+            with wave.open(buffer, "wb") as writer:
+                writer.setnchannels(1)
+                writer.setsampwidth(2)
+                writer.setframerate(rate)
+                writer.writeframes(bytes(frames))
+            return buffer.getvalue()
+
+    pipeline, _ = _pipeline(narration=_Padded())
+
+    _captions_ok(pipeline.run(_source()))
+
+
+def test_narration_does_not_wait_behind_scene_preparation() -> None:
+    voiced = threading.Event()
+
+    class _BlockedPrep(_Prep):
+        def prepare(self, job):
+            if job.scene.index == 1:
+                assert voiced.wait(5), "narration waited for scene preparation"
+            return super().prepare(job)
+
+    class _Signalling(_Narration):
+        def synthesize(self, spoken):
+            voiced.set()
+            return super().synthesize(spoken)
+
+    pipeline, _ = _pipeline(prep=_BlockedPrep(), narration=_Signalling())
+
+    assert pipeline.run(_source()).video == b"MP4-5"
+
+
+def test_the_renderer_never_receives_a_person_that_was_not_drawn() -> None:
+    draft = _draft()
+    draft["scenes"][4]["visual_prompt"] = "A child touches the turtle on the grass, crayon style."
+    prompts: list[str] = []
+    staged: list[dict] = []
+
+    class _Recording(_Render):
+        def render(self, job):
+            prompts.append(job.scene.visual_prompt)
+            return super().render(job)
+
+    class _Staged(_Prep):
+        def prepare(self, job):
+            staged.append(job.staging)
+            return super().prepare(job)
+
+    pipeline, _ = _pipeline(draft=draft, prep=_Staged(), render=_Recording())
+
+    pipeline.run(_source())
+
+    assert len(prompts) == 5 and not any("child" in prompt.lower() for prompt in prompts)
+    assert staged[0]["scenes"][0]["main_end"]["grounded"] is True

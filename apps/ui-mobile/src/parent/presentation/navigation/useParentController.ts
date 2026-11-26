@@ -1621,7 +1621,9 @@ export function useParentController(application: ParentApplicationModule) {
       setSelectedActivityIndex(selectedIndex >= 0 ? selectedIndex : null);
       adoptPolledRun(latest);
     } catch (cause) {
-      if (!(cause instanceof ParentApplicationError && cause.code === 'PARENT_ACTIVITY_OUTCOME_UNKNOWN')) {
+      const unknownOutcome = (cause instanceof ParentApplicationError && cause.code === 'PARENT_ACTIVITY_OUTCOME_UNKNOWN')
+        || (typeof cause === 'object' && cause !== null && ['REQUEST_TIMEOUT', 'NETWORK_ERROR'].includes(String((cause as { code?: unknown }).code)));
+      if (!unknownOutcome) {
         activitySuggestionAction.current = null;
       }
       setActivityError(safeParentFlowErrorMessage(cause));

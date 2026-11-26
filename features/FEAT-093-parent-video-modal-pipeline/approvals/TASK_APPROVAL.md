@@ -12,3 +12,11 @@
 - Plan changes after this point need a new revision and a new approval.
 - Amendment B (SRS BR-24 alignment: 30–90 s, 5–15 scenes, voice and captions always in the file, age table 5/7/9 scenes) approved by the owner
   on 2026-11-25 ("fix theo srs"). Recorded in plan section 16.
+- Amendment C (`plan/PLAN_AMENDMENT_C_SPEED_AND_RELIABILITY.md`): instructed by the owner in chat on 2026-11-26: "fix cả cái này đi, sao lại có
+  cái rule cố định cho 1 loại thế này? bỏ đi và cải thiện cái tạo vid cho bớt lỗi, chạy nhanh hơn; thử nén kv cache, giới hạn context, bật
+  speculative decoding/mtp, kiểm tra định dạng lượng tử hóa xem, nói chung là kiếm cách cho nó nhanh hơn […] fix cái vid và chuyện lại đi, đảm
+  bảo gen ra hợp lý, chuyên nghiệp, hạn chế khả năng failed" (spelling normalised). The numeric limits in the amendment (retry counts, GPU
+  budget, 3x adoption threshold) are the implementer's proposal and were not separately confirmed.
+- Amendment D (`plan/PLAN_AMENDMENT_D_FAILURE_AUDIT.md`): instructed by the owner in chat on 2026-11-26: "thử rà lại hết 1 lần cái tạo vid,
+  tạo câu chuyện, hoạt động đi, sài vllm, mấy cái như trên để tối ưu thời gian hết đi, ngoài ra thì rà lại, cái nào có thể gây lỗi, thì sửa
+  luôn 1 lần đi, rồi test lại" (spelling normalised).

@@ -74,10 +74,10 @@ def _render_fallback(preparation: str):
 def test_worker_contract_and_prompt_keep_three_realistic_bounded_drafts():
     schema = worker._parent_activity_suggestion_json_schema(has_candidates=False)
     activity_schema = schema["properties"]["fallback_activities"]["items"]["properties"]
-    # FEAT-092: the worker drafts four so a draft failing a quality gate can be dropped; at most
-    # three reach the backend contract.
-    assert schema["properties"]["fallback_activities"]["minItems"] == 4
-    assert schema["properties"]["fallback_activities"]["maxItems"] == 4
+    # FEAT-092/093: the worker drafts five so drafts failing a quality gate can be dropped; at
+    # most three reach the backend contract.
+    assert schema["properties"]["fallback_activities"]["minItems"] == 5
+    assert schema["properties"]["fallback_activities"]["maxItems"] == 5
     for field in ("preparation_text", "observation_notes", "safety_notes"):
         assert (
             activity_schema[field]["properties"]["body"]["maxLength"]
@@ -98,8 +98,8 @@ def test_worker_contract_and_prompt_keep_three_realistic_bounded_drafts():
         }
     )
     assert "đời sống thường ngày" in prompt
-    assert "3–5 bước" in prompt
-    assert "khoảng 180 ký tự" in prompt
+    assert "đúng 3 bước" in prompt
+    assert "tối đa 150 ký tự" in prompt
     assert "Không gợi ý ra đường" in prompt
 
 
@@ -139,8 +139,20 @@ def test_backend_worker_contract_rejects_detail_over_shared_ceiling():
 
 
 def test_worker_parser_still_rejects_dangling_tail():
+    dangling = "Người lớn chuẩn bị giấy và bút màu cho trẻ quan sát và"
+    result = _fallback_result(dangling)
+    for draft in result["fallback_activities"]:
+        draft["preparation_text"] = _sentence(dangling)
     with pytest.raises(RuntimeError, match="MODAL_MODEL_OUTPUT_INCOMPLETE_TEXT"):
-        _render_fallback("Người lớn chuẩn bị giấy và bút màu cho trẻ quan sát và")
+        worker._parse_parent_activity_suggestions(
+            json.dumps(result, ensure_ascii=False), expected_age_band="36-71"
+        )
+
+
+def test_measurement_unit_after_a_number_is_a_complete_ending():
+    tail = worker._parent_activity_incomplete_vietnamese_sentence_tail_reason
+    assert tail("Bé đo cánh bướm dài khoảng 5 cm") is None
+    assert tail("Bé đo cánh bướm dài khoảng năm cm") == "clipped_syllable"
 
 
 def test_worker_parser_selects_only_candidate_refs_for_catalog_match():
@@ -211,16 +223,34 @@ def test_selected_activity_snapshot_preserves_detail_over_old_limit():
     assert stored["preparation_text"] == preparation
 
 
-def test_backend_contract_accepts_one_to_three_fallback_drafts_and_rejects_four_or_none():
+def test_worker_parser_forwards_every_passing_draft_so_the_backend_can_choose():
+    result = _fallback_result("Người lớn đặt giấy và bút màu ở hiên nhà.")
+    first = result["fallback_activities"][0]
+    result["fallback_activities"] += [
+        {**first, "title": "Tìm vân trên mai rùa"},
+        {**first, "title": "Kể chuyện rùa con"},
+    ]
+
+    parsed = worker._parse_parent_activity_suggestions(
+        json.dumps(result, ensure_ascii=False), expected_age_band="36-71"
+    )
+
+    assert len(parsed["fallback_activities"]) == 5
+    ParentActivitySuggestionWorkerResponseV2.model_validate(
+        {"schema_version": "sketch2life.parent-activity-suggestions.v2", **parsed}
+    )
+
+
+def test_backend_contract_accepts_one_to_five_fallback_drafts_and_rejects_six_or_none():
     base = _render_fallback("Người lớn chuẩn bị giấy và bút màu ở hiên nhà để trẻ so sánh màu mai rùa.")
     payload = base.model_dump(mode="json")
     drafts = payload["fallback_activities"]
 
-    for count in (1, 2, 3):
+    for count in (1, 2, 3, 4, 5):
         ParentActivitySuggestionWorkerResponseV2.model_validate(
-            {**payload, "fallback_activities": drafts[:count]}
+            {**payload, "fallback_activities": (drafts + drafts)[:count]}
         )
-    for bad in ([], drafts + drafts[:1]):
+    for bad in ([], drafts + drafts):
         with pytest.raises(ValidationError):
             ParentActivitySuggestionWorkerResponseV2.model_validate(
                 {**payload, "fallback_activities": bad}

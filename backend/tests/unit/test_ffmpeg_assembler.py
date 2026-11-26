@@ -69,6 +69,17 @@ def test_scene_clips_are_cut_to_planned_frames_and_held() -> None:
     assert "libx264" in first and "-an" in first
 
 
+def test_the_video_is_16_by_9_and_fills_the_frame_without_white_bands() -> None:
+    runner = _Runner()
+
+    FfmpegAssembler(runner=runner).assemble(_job(_plan()))
+
+    command = next(c for c in runner.commands if c[-1].endswith("scene-1.mp4"))
+    filters = command[command.index("-vf") + 1]
+    assert "scale=1280:720:force_original_aspect_ratio=increase" in filters
+    assert "crop=1280:720" in filters and "pad=" not in filters
+
+
 def test_a_hold_extends_the_scene_by_cloning_the_last_frame() -> None:
     plan = apply_stretches(_plan(), {1: 36})
     held = next(s for s in plan.scenes if s.hold_frames > 0)

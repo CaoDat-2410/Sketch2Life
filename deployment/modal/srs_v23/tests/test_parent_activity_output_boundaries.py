@@ -90,7 +90,7 @@ def test_parent_activity_still_rejects_when_every_draft_has_a_dangling_tail() ->
         )
 
 
-def test_parent_activity_keeps_at_most_three_of_four_valid_drafts() -> None:
+def test_parent_activity_forwards_all_four_valid_drafts_for_the_backend_to_choose() -> None:
     result = _result("Người lớn chuẩn bị vật liệu trên hiên nhà trước khi trẻ bắt đầu.")
     extra = _activity(2, "Người lớn chuẩn bị vật liệu trên hiên nhà trước khi trẻ bắt đầu.")
     extra["title"] = "Tìm dấu chân rùa"
@@ -104,13 +104,14 @@ def test_parent_activity_keeps_at_most_three_of_four_valid_drafts() -> None:
         "Quan sát mai rùa",
         "So sánh màu sắc",
         "Bước chân rùa con",
+        "Tìm dấu chân rùa",
     ]
 
 
 def test_parent_activity_schema_asks_for_four_drafts_when_no_candidates() -> None:
     schema = worker._parent_activity_suggestion_json_schema(has_candidates=False)
     drafts = schema["properties"]["fallback_activities"]
-    assert drafts["minItems"] == 4 and drafts["maxItems"] == 4
+    assert drafts["minItems"] == 5 and drafts["maxItems"] == 5
 
 
 def test_parent_activity_prompt_requires_complete_preparation_sentence_endings() -> None:

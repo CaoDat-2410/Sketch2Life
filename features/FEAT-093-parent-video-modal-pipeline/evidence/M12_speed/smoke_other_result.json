@@ -1,0 +1,36 @@
+{
+  "warm-up": {
+    "seconds": 189.3
+  },
+  "activity: turtle": {
+    "seconds": 44.3,
+    "model_calls": 1
+  },
+  "activity: chick": {
+    "seconds": 36.8,
+    "model_calls": 1
+  },
+  "activity: bicycle": {
+    "seconds": 150.5,
+    "model_calls": 2
+  },
+  "topic-subjects.suggest": {
+    "seconds": 0.0,
+    "error": "ValueError:Modal workload is not enabled for this API"
+  },
+  "topic-subjects.validate": {
+    "seconds": 7.8
+  },
+  "timeline 36-71": {
+    "seconds": 40.1,
+    "scenes": 5
+  },
+  "timeline 72-107": {
+    "seconds": 47.2,
+    "scenes": 7
+  },
+  "timeline 108-120": {
+    "seconds": 26.4,
+    "scenes": 9
+  }
+}

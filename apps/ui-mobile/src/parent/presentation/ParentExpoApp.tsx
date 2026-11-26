@@ -68,6 +68,12 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
   const [pendingCaptureSource, setPendingCaptureSource] = React.useState<'camera' | 'gallery' | null>(null);
   const [drawingGuideEntryRequested, setDrawingGuideEntryRequested] = React.useState(false);
 
+  // The history screen is reached from the tab bar, the profile, the story and the video screens: load it on arrival.
+  React.useEffect(() => {
+    if (parent.step !== 'history') return;
+    void platform.loadRuns(parent.profile?.profile_id);
+  }, [parent.step, parent.profile?.profile_id, accountSubject]);
+
   React.useEffect(() => {
     if (!drawingGuideEntryRequested || parent.step !== 'topic') return;
     parent.setGuideEnabled(true);
@@ -77,7 +83,6 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
   function openHistory(returnStep: 'home' | 'profile' = 'profile'): void {
     setHistoryReturnStep(returnStep);
     parent.setStep('history');
-    void platform.loadRuns(parent.profile?.profile_id);
   }
 
   function openSharing(): void {
@@ -578,6 +583,7 @@ function renderLearningStep(
     rewriteInstruction={parent.rewriteInstruction}
     busy={parent.busy === 'story' || parent.busy === 'rewrite' || parent.busy === 'confirm-story'}
     attempted={parent.storyAttempted}
+    generating={parent.busy === 'story'}
     canConfirm={canConfirmStory}
     error={parent.error}
     confirmed={parent.storyConfirmed}

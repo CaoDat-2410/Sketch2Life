@@ -92,3 +92,13 @@ def test_missing_boxes_are_reported() -> None:
         build_staging(plan, subject_boxes={"main": (2, 6, 11, 17)}, secondary_ids=("sec-1",))
 
     assert error.value.code == "STAGING_SUBJECT_BOX_MISSING"
+
+
+def test_a_grounded_subject_is_marked_in_every_scene() -> None:
+    plan = _plan({})
+
+    staging = build_staging(plan, subject_boxes=BOXES, secondary_ids=("sec-1",), grounded=True)
+
+    assert all(scene["main_end"]["grounded"] is True for scene in staging["scenes"])
+    flying = build_staging(plan, subject_boxes=BOXES, secondary_ids=("sec-1",))
+    assert all("grounded" not in scene["main_end"] for scene in flying["scenes"])

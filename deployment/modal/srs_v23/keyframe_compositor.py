@@ -28,6 +28,7 @@ _MIN_SECONDARY_PIXELS = 16
 _ERASE_RADIUS = 4
 _RESIDUE_RADIUS = 8  # anti-aliased edge ink left right next to a cut-out
 _PARTLY_KEEP = 0.5
+GROUND_LINE = 0.98  # share of the page height where a standing subject's lowest pixel rests
 
 
 class KeyframeError(ValueError):
@@ -317,6 +318,11 @@ def build_keyframes(
     secondary_position = {
         key: (sprite.origin[0], sprite.origin[1]) for key, sprite in sprites.items()
     }
+    # FEAT-093: a subject that stands on the ground goes to the ground line; the others move down with it.
+    ground = page[1] + GROUND_LINE * (page[3] - page[1])
+    if scenes[0]["main_end"].get("grounded"):
+        drop = ground - (main_sprite.origin[1] + main_sprite.mask.shape[0])
+        secondary_position = {key: (x, y + drop) for key, (x, y) in secondary_position.items()}
     partly_side: dict[str, str] = {}
     for scene in scenes:
         main_end = scene["main_end"]
@@ -326,6 +332,8 @@ def build_keyframes(
         )
         placed_main = main_sprite.transformed(mirror=mirrored, scale=scale)
         main_top_left = _centered(placed_main, cell_center(main_end["position"], page))
+        if main_end.get("grounded"):
+            main_top_left = (main_top_left[0], ground - placed_main.mask.shape[0])
         frame = background.copy()
         secondary_masks: dict[str, np.ndarray] = {}
         main_center_x = main_top_left[0] + placed_main.mask.shape[1] / 2

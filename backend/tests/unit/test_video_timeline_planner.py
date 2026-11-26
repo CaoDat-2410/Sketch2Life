@@ -7,7 +7,7 @@ import copy
 import pytest
 
 from sketch2life.application.video_pipeline.age_profile import profile_for_age_months
-from sketch2life.application.video_pipeline.story_timeline import TimelineError
+from sketch2life.application.video_pipeline.story_timeline import TimelineError, check_line_text
 from sketch2life.application.video_pipeline.timeline_planner import (
     PlannerSubject,
     assign_timing,
@@ -122,15 +122,15 @@ def test_the_planner_retries_once_with_the_broken_rule_code() -> None:
     assert generator.requests[1]["previous_error"] == "LINE_TEXT_DANGLING_WORD"
 
 
-def test_the_planner_gives_up_after_two_attempts_with_the_last_code() -> None:
+def test_the_planner_gives_up_after_three_attempts_with_the_last_code() -> None:
     broken = copy.deepcopy(_draft())
     broken["scenes"][0]["narration"] = "Rùa con đang bò và"
-    generator = _Generator(broken, copy.deepcopy(broken))
+    generator = _Generator(broken, copy.deepcopy(broken), copy.deepcopy(broken))
 
     with pytest.raises(TimelineError) as error:
         plan_timeline(profile=PROFILE, story={}, subjects=SUBJECTS, activity={}, topic="", generator=generator)
 
-    assert error.value.code == "LINE_TEXT_DANGLING_WORD" and len(generator.requests) == 2
+    assert error.value.code == "LINE_TEXT_DANGLING_WORD" and len(generator.requests) == 3
 
 
 def test_the_request_carries_the_age_numbers_and_roles_only() -> None:
@@ -142,3 +142,8 @@ def test_the_request_carries_the_age_numbers_and_roles_only() -> None:
     assert request["age_band"]["scene_count"] == 5 and request["age_band"]["narration_max_words"] == 7
     assert request["subjects"][0] == {"entity_id": "main", "label": "con rùa", "role": "main"}
     assert set(request["activity"]) == {"title", "objective"}
+
+
+@pytest.mark.parametrize("text", ["Đến nơi rồi.", "Xong rồi!"])
+def test_a_line_ending_in_the_particle_for_done_is_complete(text: str) -> None:
+    assert check_line_text(text) == text

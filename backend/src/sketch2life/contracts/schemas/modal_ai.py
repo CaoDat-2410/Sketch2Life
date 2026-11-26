@@ -100,7 +100,8 @@ class ParentActivitySuggestionWorkerResponseV2(StrictRequest):
     selected_candidates: list[ParentActivityCandidateSelectionV2] = Field(max_length=5)
     no_match_reason: str = Field(max_length=120)
     age_band_months: Literal["36-71", "72-107", "108-120"]
-    fallback_activities: list[ParentActivityFallbackDraftV1] = Field(max_length=3)
+    # The worker forwards every draft that passed its text checks; the backend picks three.
+    fallback_activities: list[ParentActivityFallbackDraftV1] = Field(max_length=5)
 
     @model_validator(mode="after")
     def decision_shape(self) -> ParentActivitySuggestionWorkerResponseV2:
@@ -109,11 +110,11 @@ class ParentActivitySuggestionWorkerResponseV2(StrictRequest):
                 raise ValueError("catalog match requires selections and no fallback drafts")
         elif (
             self.selected_candidates
-            or not 1 <= len(self.fallback_activities) <= 3
+            or not 1 <= len(self.fallback_activities) <= 5
             or not self.no_match_reason
         ):
             raise ValueError(
-                "no match requires a reason and one to three fallback drafts"
+                "no match requires a reason and one to five fallback drafts"
             )
         if len({item.candidate_ref for item in self.selected_candidates}) != len(
             self.selected_candidates

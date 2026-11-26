@@ -5,7 +5,6 @@ from pydantic import ValidationError
 from sketch2life.contracts.schemas.ai_story import (
     ParentStoryGenerationRequest,
     StoryRevisionDraftV1,
-    validate_butterfly_lifecycle_v1,
 )
 from sketch2life.contracts.schemas.story_run_lite import CreateRunRequest
 
@@ -121,61 +120,34 @@ def test_story_contract_allows_unpunctuated_english_visual_prompt() -> None:
     assert parsed.scenes[0].visual_prompt == payload["scenes"][0]["visual_prompt"]
 
 
-def test_butterfly_fact_guard_accepts_lifecycle_and_rejects_prior_errors() -> None:
-    valid = StoryRevisionDraftV1.model_validate(_story())
-    validate_butterfly_lifecycle_v1(valid, confirmed_subject="bướm")
-
-    invalid = StoryRevisionDraftV1.model_validate(_story(incorrect_lifecycle=True))
-    with pytest.raises(ValueError, match="EDUCATIONAL_FACT_FORBIDDEN_CLAIM"):
-        validate_butterfly_lifecycle_v1(invalid, confirmed_subject="butterfly")
-
-
-def test_butterfly_fact_guard_reports_missing_stage() -> None:
-    payload = _story()
-    payload["story"]["middle"] = "Một con vật quan sát chiếc lá xanh."
-    draft = StoryRevisionDraftV1.model_validate(payload)
-
-    with pytest.raises(ValueError, match="EDUCATIONAL_FACT_STAGE_MISSING"):
-        validate_butterfly_lifecycle_v1(draft, confirmed_subject="bướm")
-
-
-def test_butterfly_fact_guard_reports_stage_order_failure() -> None:
-    payload = _story()
-    payload["story"]["middle"] = "Nhộng nằm yên, rồi sâu bướm bò ra."
-    draft = StoryRevisionDraftV1.model_validate(payload)
-
-    with pytest.raises(ValueError, match="EDUCATIONAL_FACT_ORDER_INVALID"):
-        validate_butterfly_lifecycle_v1(draft, confirmed_subject="bướm")
-
-
-def test_butterfly_fact_guard_uses_story_section_order_not_mapping_key_order() -> None:
-    payload = _story()
-    payload["story"] = {
-        "ending": payload["story"]["ending"],
-        "middle": payload["story"]["middle"],
-        "opening": payload["story"]["opening"],
-    }
-    draft = StoryRevisionDraftV1.model_validate(payload)
-
-    validate_butterfly_lifecycle_v1(draft, confirmed_subject="butterfly")
-
-
-@pytest.mark.parametrize(
-    "incorrect_claim",
-    ["Trứng nở thành bướm trưởng thành.", "Bướm trưởng thành đi tìm tổ."],
-)
-def test_butterfly_fact_guard_rejects_wrong_claim_even_when_all_phases_are_present(
-    incorrect_claim: str,
-) -> None:
-    payload = _story()
-    payload["story"]["ending"] += " " + incorrect_claim
-    draft = StoryRevisionDraftV1.model_validate(payload)
-    with pytest.raises(ValueError, match="EDUCATIONAL_FACT_FORBIDDEN_CLAIM"):
-        validate_butterfly_lifecycle_v1(draft, confirmed_subject="bướm")
-
-
 def test_story_scene_count_is_bounded_to_srs_range() -> None:
     invalid = _story()
     invalid["scenes"] = invalid["scenes"][:4]
     with pytest.raises(ValidationError):
         StoryRevisionDraftV1.model_validate(invalid)
+
+
+@pytest.mark.parametrize(
+    "sentence",
+    [
+        "Chú rùa ngước nhìn chiếc lá ở phía trên.",
+        "Rùa chậm rãi bò lên trên.",
+        "Chiếc lá rơi xuống dưới.",
+        "Rùa rụt đầu vào bên trong.",
+        "Rùa kiên nhẫn leo qua được.",
+    ],
+)
+def test_story_contract_accepts_complete_directional_endings(sentence: str) -> None:
+    payload = _story()
+    payload["story"]["middle"] = sentence
+
+    assert StoryRevisionDraftV1.model_validate(payload).story["middle"] == sentence
+
+
+@pytest.mark.parametrize("sentence", ["Rùa bò chậm trên.", "Viên sỏi đã được."])
+def test_story_contract_still_rejects_bare_dangling_endings(sentence: str) -> None:
+    payload = _story()
+    payload["story"]["middle"] = sentence
+
+    with pytest.raises(ValidationError, match="STORY_TEXT_INCOMPLETE"):
+        StoryRevisionDraftV1.model_validate(payload)

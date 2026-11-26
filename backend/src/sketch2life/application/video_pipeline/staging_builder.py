@@ -70,8 +70,11 @@ def build_staging(
     *,
     subject_boxes: Mapping[str, tuple[int, int, int, int]],
     secondary_ids: tuple[str, ...],
+    grounded: bool = False,
 ) -> dict[str, Any]:
-    """Staging for every scene; ``subject_boxes`` are the 20x20 grid boxes of the drawing's subjects."""
+    """Staging for every scene; ``subject_boxes`` are the 20x20 grid boxes of the drawing's subjects.
+
+    ``grounded`` marks a main subject that does not fly or float: the compositor stands it on the ground."""
 
     main_id = plan.main_entity_id
     if main_id not in subject_boxes or any(item not in subject_boxes for item in secondary_ids):
@@ -112,7 +115,10 @@ def build_staging(
         scenes.append(
             {
                 "scene_index": scene.index,
-                "main_end": {"position": _name(main_cell), "facing": facing, "scale": "same"},
+                "main_end": {
+                    "position": _name(main_cell), "facing": facing, "scale": "same",
+                    **({"grounded": True} if grounded else {}),
+                },
                 "secondary_end": entries,
             }
         )

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { StoryDraft } from '../../domain/types';
 import { Card, Field, Notice, PrimaryButton, SecondaryButton, ScreenFrame, SectionTitle, palette } from '../components/ui';
@@ -31,6 +31,8 @@ type Props = {
   onRewrite: () => void;
   onConfirm: () => void;
   onRefresh: () => void;
+  /** The first story is being written; there is nothing to check or resend yet. */
+  generating?: boolean;
   onOpenHistory: () => void;
   onBack: () => void;
 };
@@ -53,7 +55,16 @@ export function StoryScreen(props: Props): React.JSX.Element {
       {props.rewriting ? <Notice variant="creative" text="Đang viết lại câu chuyện. Câu chuyện hiện tại vẫn được giữ cho đến khi bản mới sẵn sàng." tone="info" /> : null}
       {props.rewriteNotice ? <Notice variant="creative" text={props.rewriteNotice} tone="warning" /> : null}
 
-      {!props.story ? (
+      {!props.story && props.generating ? (
+        <Card variant="creative" style={styles.generationCard}>
+          <ActivityIndicator color={palette.creativePrimary} />
+          <View style={styles.generationCopy}>
+            <Text style={styles.eyebrow}>TỪ BỨC TRANH CỦA BÉ</Text>
+            <SectionTitle variant="creative">Đang viết câu chuyện</SectionTitle>
+            <Text style={styles.bodyText}>Câu chuyện sẽ hiện ra ngay tại đây, thường trong khoảng một phút.</Text>
+          </View>
+        </Card>
+      ) : !props.story ? (
         <Card variant="creative" style={styles.generationCard}>
           <View style={styles.generationCopy}>
             <Text style={styles.eyebrow}>TỪ BỨC TRANH CỦA BÉ</Text>
@@ -117,7 +128,7 @@ export function StoryScreen(props: Props): React.JSX.Element {
           {!props.onlyCancel && (!props.confirmed || props.confirmationRequired) ? (
             <Card variant="creative" style={styles.revisionCard}>
               <SectionTitle variant="creative">Muốn đổi một chi tiết?</SectionTitle>
-              <Text style={styles.bodyText}>{props.confirmationRequired
+              <Text style={styles.bodyText}>{props.rewriteAfterVideo
                 ? 'Video lần trước chưa dùng được. Bạn có thể xác nhận lại câu chuyện này hoặc viết lại.'
                 : 'Thêm gợi ý để tạo bản câu chuyện mới.'}</Text>
               {props.rewritesLeft > 0 ? (
@@ -142,7 +153,7 @@ export function StoryScreen(props: Props): React.JSX.Element {
               {!props.confirmed || props.confirmationRequired ? (
                 <PrimaryButton
                   variant="creative"
-                  label={props.confirmationRequired ? 'Xác nhận lại câu chuyện này' : 'Xác nhận câu chuyện này'}
+                  label={props.rewriteAfterVideo ? 'Xác nhận lại câu chuyện này' : 'Xác nhận câu chuyện này'}
                   busy={props.busy}
                   disabled={!props.storyReady || !props.canConfirm || !props.story.revisionId || !props.story.sha256}
                   onPress={props.onConfirm}

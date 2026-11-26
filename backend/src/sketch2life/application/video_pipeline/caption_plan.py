@@ -23,6 +23,7 @@ HOLD_MS: Final = 200  # a cue may stay up this long after its audio, never past 
 MIN_CUE_MS: Final = 1_200
 MAX_LINES: Final = 2
 MAX_LINE_CHARS: Final = 32
+CUE_GAP_MS: Final = 40  # between the end of one cue and the start of the next
 _CLAUSE_END = re.compile(r"(?<=[,;:.!?…])\s+|\s+[—–-]\s+")
 
 
@@ -43,6 +44,8 @@ class LineAudio:
     lane: str
     placed_start_ms: int
     clause_durations_ms: tuple[int, ...] | None = None
+    # How long each clause owns the screen when the assembler leaves room for reading (``clause_slot_ms``).
+    clause_slots_ms: tuple[int, ...] | None = None
 
 
 class CaptionError(ValueError):
@@ -105,6 +108,23 @@ def _split_to_fit(text: str) -> list[str]:
     return [" ".join(group) for group in groups]
 
 
+def caption_prefix(lane: str, speaker_ref: str | None, labels: Mapping[str, str]) -> str:
+    """The speaker name shown before the first cue of a dialogue line."""
+
+    return f"{labels[speaker_ref]}: " if lane == "dialogue" and speaker_ref in labels else ""
+
+
+def _piece_needs_ms(pieces: Sequence[str], max_cps: float) -> list[int]:
+    return [max(MIN_CUE_MS, math.ceil(len(piece) / max_cps * 1000)) for piece in pieces]
+
+
+def clause_slot_ms(text: str, audio_ms: int, *, max_cps: float) -> int:
+    """Time a clause needs on the clock: its voice, and every caption piece long enough to be read."""
+
+    reading = sum(_piece_needs_ms(_split_to_fit(text), max_cps)) + CUE_GAP_MS
+    return max(audio_ms + CLAUSE_GAP_MS, reading)
+
+
 def _shares(total_ms: int, weights: Sequence[int]) -> list[int]:
     weight_sum = sum(weights) or 1
     shares = [total_ms * weight // weight_sum for weight in weights]
@@ -113,7 +133,7 @@ def _shares(total_ms: int, weights: Sequence[int]) -> list[int]:
 
 
 def build_cues(
-    lines: Sequence[LineAudio], *, speaker_labels: Mapping[str, str] | None = None
+    lines: Sequence[LineAudio], *, speaker_labels: Mapping[str, str] | None = None, max_cps: float | None = None
 ) -> list[Cue]:
     """Cues for every placed line, in time order."""
 
@@ -139,9 +159,21 @@ def build_cues(
                 spans.append((cursor, cursor + duration))
                 cursor += duration
         window_end = placed.line.end_ms if placed.clause_durations_ms is None else max(spans[-1][1], placed.line.end_ms)
-        prefix = ""
-        if placed.lane == "dialogue" and placed.line.speaker_ref in labels:
-            prefix = f"{labels[placed.line.speaker_ref]}: "
+        prefix = caption_prefix(placed.lane, placed.line.speaker_ref, labels)
+        if placed.clause_slots_ms is not None:
+            if max_cps is None or len(placed.clause_slots_ms) != len(clauses):
+                raise CaptionError("CLAUSE_SLOTS_MISMATCH")
+            cursor = placed.placed_start_ms
+            for position, (clause, slot) in enumerate(zip(clauses, placed.clause_slots_ms, strict=True)):
+                pieces = _split_to_fit(f"{prefix}{clause}" if position == 0 else clause)
+                lengths = _piece_needs_ms(pieces, max_cps)
+                lengths[-1] += max(0, slot - CUE_GAP_MS - sum(lengths))
+                offset = cursor
+                for piece, length in zip(pieces, lengths, strict=True):
+                    cues.append(Cue(offset, offset + length, piece, placed.lane, placed.line.speaker_ref))
+                    offset += length
+                cursor += slot
+            continue
         for position, (clause, (start, end)) in enumerate(zip(clauses, spans, strict=True)):
             next_start = spans[position + 1][0] if position + 1 < len(spans) else window_end
             end = min(end + HOLD_MS, max(end, next_start)) if placed.clause_durations_ms is not None else end
@@ -229,6 +261,8 @@ def to_webvtt(cues: Sequence[Cue]) -> str:
 __all__ = [
     "CLAUSE_GAP_MS",
     "CaptionError",
+    "caption_prefix",
+    "clause_slot_ms",
     "Cue",
     "LineAudio",
     "build_cues",

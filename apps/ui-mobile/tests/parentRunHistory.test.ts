@@ -100,6 +100,15 @@ describe('FEAT-081 C3b copy (the UI-copy validator does not scan src/parent)', (
     expect(controller).toContain('requestNumber !== runsRequest.current');
   });
 
+  it('loads the list whenever the history screen is shown, whichever way the Parent got there', () => {
+    const app = readFileSync(new URL('../src/parent/presentation/ParentExpoApp.tsx', import.meta.url), 'utf8');
+    expect(app).toContain("if (parent.step !== 'history') return;");
+    expect(app).toContain('}, [parent.step, parent.profile?.profile_id, accountSubject]);');
+    // One loader only: the entry points set the step and the effect loads.
+    const open = app.slice(app.indexOf('function openHistory'), app.indexOf('function openSharing'));
+    expect(open).not.toContain('loadRuns');
+  });
+
   it('offers a completed-row watch action that fetches the full run before playback', () => {
     expect(screen).toContain("run.run_state === 'COMPLETED'");
     expect(screen).toContain('Xem lại video');

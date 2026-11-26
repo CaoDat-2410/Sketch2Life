@@ -1,6 +1,6 @@
 """Technical validation of the finished Parent video (FEAT-093); implements ``VideoValidatorPort``.
 
-Checks, from ffprobe facts only: one H.264 video stream at 1280x768 and 24 fps, one AAC audio stream, container duration
+Checks, from ffprobe facts only: one H.264 video stream at 1280x720 and 24 fps, one AAC audio stream, container duration
 within one frame of the plan and inside the SRS window (30-90 s), faststart. The vision-based consistency and final-safety
 checks run on C2 in a later increment; until then this validator reports ``VIDEO_VISION_CHECKS_PENDING`` as a finding
 (``consistency_ok`` / ``safety_ok`` stay True) so the open gap is visible in the job instead of silently assumed.
@@ -20,9 +20,10 @@ from sketch2life.application.video_pipeline.ports import ValidationReport, Video
 from sketch2life.application.video_pipeline.video_plan import VideoPlan
 
 WIDTH: Final = 1280
-HEIGHT: Final = 768
+HEIGHT: Final = 720
 MIN_SECONDS: Final = 30.0
 MAX_SECONDS: Final = 90.0
+DURATION_TOLERANCE: Final = 1 / FPS + 0.05  # one frame plus the audio stream's rounding
 Probe = Callable[[Path], dict[str, Any]]
 
 
@@ -69,9 +70,9 @@ class TechnicalVideoValidator:
             seconds = float(facts.get("format", {}).get("duration", 0))
         except (TypeError, ValueError):
             seconds = 0.0
-        if abs(seconds - plan.total_frames / FPS) > 1 / FPS + 0.05:
+        if abs(seconds - plan.total_frames / FPS) > DURATION_TOLERANCE:
             findings.append("VIDEO_VALIDATE_DURATION_MISMATCH")
-        if not MIN_SECONDS <= seconds <= MAX_SECONDS:
+        if not MIN_SECONDS - DURATION_TOLERANCE <= seconds <= MAX_SECONDS + DURATION_TOLERANCE:
             findings.append("VIDEO_VALIDATE_OUTSIDE_SRS_WINDOW")
         if not _faststart(video):
             findings.append("VIDEO_VALIDATE_NOT_FASTSTART")

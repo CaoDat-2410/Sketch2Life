@@ -29,7 +29,7 @@ def _plan():
 def _facts(plan, **override):
     facts = {
         "streams": [
-            {"codec_type": "video", "codec_name": "h264", "width": 1280, "height": 768, "avg_frame_rate": "24/1"},
+            {"codec_type": "video", "codec_name": "h264", "width": 1280, "height": 720, "avg_frame_rate": "24/1"},
             {"codec_type": "audio", "codec_name": "aac"},
         ],
         "format": {"duration": f"{plan.total_frames / 24:.3f}"},
@@ -65,3 +65,11 @@ def test_each_technical_rule_has_its_own_code() -> None:
         report = _validate(plan, facts)
         assert not report.technical_ok and code in report.finding_codes, code
     assert "VIDEO_VALIDATE_NOT_FASTSTART" in _validate(plan, good, SLOW).finding_codes
+
+
+def test_a_container_one_frame_off_the_window_edge_still_passes() -> None:
+    plan = _plan()  # 30 s, the lower edge of the SRS window
+
+    report = _validate(plan, {**_facts(plan), "format": {"duration": "29.98"}})
+
+    assert report.technical_ok, report.finding_codes

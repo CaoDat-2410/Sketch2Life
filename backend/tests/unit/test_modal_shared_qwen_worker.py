@@ -27,7 +27,7 @@ def test_drawing_and_json_workloads_call_the_shared_function() -> None:
 def test_modal_app_routes_every_workload_the_backend_sends_to_the_shared_worker() -> None:
     source = MODAL_APP.read_text(encoding="utf-8")
     assert 'name="qwen-worker"' in source
-    assert "SHARED_QWEN_SCALEDOWN_SECONDS = 300" in source
+    assert "SHARED_QWEN_SCALEDOWN_SECONDS = 600" in source  # owner's request of 2026-11-26: ten warm minutes
     assert "scaledown_window=SHARED_QWEN_SCALEDOWN_SECONDS" in source
     for workload in ROUTED_WORKLOADS:
         assert f'"{workload}":' in source

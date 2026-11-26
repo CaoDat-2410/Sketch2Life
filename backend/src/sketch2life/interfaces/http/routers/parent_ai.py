@@ -44,6 +44,7 @@ from sketch2life.application.services.parent_activity_suggestions import (
     ParentActivitySuggestionError,
     ParentActivitySuggestionService,
     classify_parent_activity_worker_failure,
+    generate_activity_suggestions,
 )
 from sketch2life.application.services.story_output import (
     StoryOutputInvalid,
@@ -678,20 +679,30 @@ def suggest_parent_activities(
                 ),
             )
             workload_started = True
-            modal_result = ModalJsonFunctionClient().invoke(
-                "parent.activity.suggest", prepared.worker_input
-            )
-            raw_result = modal_result.output.get("result")
-            if not isinstance(raw_result, dict):
-                raise ParentActivitySuggestionError("MODAL_OUTPUT_CONTRACT_INVALID")
-            result = service.resolve(
-                prepared=prepared,
-                raw_result=raw_result,
-                request_id=request_id,
-                story_run_id=str(run_id),
-                understanding_revision=reservation.understanding_revision,
-                modal_call_id=modal_result.call_id,
-                excluded_activities=reservation.excluded_activities,
+
+            def resolve_answer(answer: Any) -> dict[str, Any]:
+                raw_result = answer.output.get("result")
+                if not isinstance(raw_result, dict):
+                    raise ParentActivitySuggestionError("MODAL_OUTPUT_CONTRACT_INVALID")
+                return service.resolve(
+                    prepared=prepared,
+                    raw_result=raw_result,
+                    request_id=request_id,
+                    story_run_id=str(run_id),
+                    understanding_revision=reservation.understanding_revision,
+                    modal_call_id=answer.call_id,
+                    excluded_activities=reservation.excluded_activities,
+                )
+
+            modal_result, result = generate_activity_suggestions(
+                lambda: ModalJsonFunctionClient().invoke("parent.activity.suggest", prepared.worker_input),
+                resolve_answer,
+                on_rejected=lambda error: _LOGGER.warning(
+                    "parent_activity_suggestions_answer_rejected",
+                    request_id=request_id,
+                    error_code=error.code,
+                    diagnostic_code=error.diagnostic_code,
+                ),
             )
 
         result["contract"] = "ParentActivitySuggestionSetV1"

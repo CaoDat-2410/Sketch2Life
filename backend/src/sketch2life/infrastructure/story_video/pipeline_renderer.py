@@ -8,6 +8,7 @@ forwarded to optional callables so the worker process can project them into the 
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Callable
 from typing import Protocol
 
@@ -20,6 +21,7 @@ from sketch2life.application.video_pipeline.ports import (
     VideoSource,
 )
 
+_LOG = logging.getLogger(__name__)
 VIDEO_MEDIA_TYPE = "video/mp4"
 CANCELLED_CODE = "VIDEO_CANCELLED"
 UNEXPECTED_CODE = "VIDEO_PIPELINE_UNEXPECTED_ERROR"
@@ -62,7 +64,8 @@ class PipelineVideoRenderer:
             return _failed(CANCELLED_CODE)
         except VideoPipelineError as error:
             return _failed(error.code)
-        except Exception:  # noqa: BLE001 - never leak provider text into the job
+        except Exception as error:  # noqa: BLE001 - never leak provider text into the job
+            _LOG.warning("video_pipeline_unexpected_error kind=%s", type(error).__name__)
             return _failed(UNEXPECTED_CODE)
         if self._on_result is not None:
             self._on_result(request, result)

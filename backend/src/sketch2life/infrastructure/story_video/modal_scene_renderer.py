@@ -36,7 +36,7 @@ INPUT_SCHEMA: Final = "sketch2life.modal.video-scene-input.v1"
 WORKER_INPUT_SCHEMA: Final = "sketch2life.modal.worker-input.v1"
 OUTPUT_SCHEMA: Final = "sketch2life.modal.video-scene-output.v1"
 WORKLOAD: Final = "video.scene.generate"
-WAIT_TIMEOUT_SECONDS: Final = 1_700
+WAIT_TIMEOUT_SECONDS: Final = 2_700  # queue behind the warm-up plus a cold start
 
 
 def _canonical(value: Any) -> bytes:
@@ -72,6 +72,14 @@ class ModalSceneRenderer:
             timeout_seconds=self._timeout,
             sleep=self._sleep,
         )
+
+    def warm_up(self) -> None:
+        """Ask Modal to start the render container and load the model; a dispatch failure only costs time."""
+
+        try:
+            self._resolve_function().spawn({"warmup": True})
+        except Exception:  # noqa: BLE001
+            return
 
     def render(self, job: SceneRenderJob) -> SceneClip:
         scene = job.scene

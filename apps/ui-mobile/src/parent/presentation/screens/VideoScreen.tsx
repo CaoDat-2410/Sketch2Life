@@ -78,7 +78,7 @@ export function VideoScreen(props: Props): React.JSX.Element {
       <Card variant="creative" style={styles.statusCard}>
         <Notice variant="creative" text={panel.headline} tone={panel.tone} />
         {panel.detail ? <Text style={styles.bodyText}>{panel.detail}</Text> : null}
-        {panel.requestsRemaining !== null && !panel.closed ? (
+        {panel.requestsRemaining !== null && !panel.closed && !panel.detail?.includes('lượt tạo video') ? (
           <Text style={styles.metaText}>Còn {panel.requestsRemaining} lượt tạo video cho buổi học này.</Text>
         ) : null}
         {panel.scenes.length > 0 ? (

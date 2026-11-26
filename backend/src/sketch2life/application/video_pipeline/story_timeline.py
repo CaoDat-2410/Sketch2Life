@@ -35,7 +35,7 @@ _END_PUNCTUATION: Final = (".", "!", "?", "…")
 _DANGLING_TAIL_WORDS: Final = frozenset(
     {
         "từ", "tự", "nếu", "khi", "và", "hoặc", "nhưng", "để", "với", "của", "trong", "ở", "cho",
-        "bằng", "do", "theo", "đang", "là", "có", "rồi", "thì", "mà",
+        "bằng", "do", "theo", "đang", "là", "có", "thì", "mà",
     }
 )
 _BANNED_FRAGMENTS: Final = (

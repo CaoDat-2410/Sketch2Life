@@ -32,7 +32,6 @@ from sketch2life.application.ports.parent_story_runs import (
     ParentStoryRunRecord,
 )
 from sketch2life.application.services.story_output import (
-    EDUCATIONAL_FACT_CHECK_FAILED,
     STORY_OUTPUT_INVALID,
     StoryOutputInvalid,
     complete_generated_story,
@@ -67,9 +66,9 @@ def valid_story(*, subject_text: str = "con rồng nhỏ") -> dict[str, Any]:
         {
             "scene_index": index,
             "title": f"Cảnh {index}",
-            "action": f"{subject_text} làm việc {index}",
+            "action": f"{subject_text} làm việc {index}.",
             "visual_prompt": f"visual {index}",
-            "narration": f"lời kể {index}",
+            "narration": f"lời kể {index}.",
             "start_ms": (index - 1) * 8_000,
             "duration_ms": 8_000,
             "character_anchors": ["đôi cánh nhỏ"],
@@ -80,7 +79,7 @@ def valid_story(*, subject_text: str = "con rồng nhỏ") -> dict[str, Any]:
         "schema_version": "sketch2life.story-revision.v1",
         "language": "vi",
         "title": "Rồng nhỏ biết chia sẻ",
-        "story": {"opening": "Mở đầu", "middle": "Giữa truyện", "ending": "Kết thúc"},
+        "story": {"opening": "Mở đầu.", "middle": "Giữa truyện.", "ending": "Kết thúc."},
         "duration_ms": 40_000,
         "scenes": scenes,
     }
@@ -113,16 +112,15 @@ def test_an_invalid_draft_is_story_output_invalid(mutate: Any) -> None:
     assert refused.value.code == STORY_OUTPUT_INVALID
 
 
-def test_a_butterfly_draft_that_breaks_the_life_cycle_is_a_fact_check_failure() -> None:
+def test_a_story_about_a_butterfly_has_no_extra_subject_rule() -> None:
     story = valid_story(subject_text="bướm")
     story["story"] = {
-        "opening": "Một chú bướm tìm kiếm một cái tổ",
-        "middle": "Trứng nở ra bướm",
-        "ending": "Hết",
+        "opening": "Một chú bướm đậu trên lá.",
+        "middle": "Bướm bay quanh bông hoa.",
+        "ending": "Bướm nghỉ trên cành.",
     }
-    with pytest.raises(StoryOutputInvalid) as refused:
-        normalize_story_output(story, confirmed_subject="con bướm")
-    assert refused.value.code == EDUCATIONAL_FACT_CHECK_FAILED
+    normalized, _digest = normalize_story_output(story, confirmed_subject="con bướm")
+    assert normalized["story"]["middle"] == "Bướm bay quanh bông hoa."
 
 
 class _Repository:
@@ -240,7 +238,6 @@ def test_a_lifecycle_projection_from_the_store_is_never_served() -> None:
 def test_the_legacy_route_and_the_service_share_one_implementation() -> None:
     source = Path(str(parent_ai_module.__file__)).read_text(encoding="utf-8")
     assert "complete_generated_story" in source
-    assert "validate_butterfly_lifecycle_v1" not in source
     assert "StoryRevisionDraftV1" not in source
 
 

@@ -262,7 +262,7 @@ def test_story_failure_diagnostics_do_not_require_visual_prompt_punctuation() ->
     assert visual_metric == {
         "field": "scenes[2].visual_prompt",
         "character_count": 27,
-        "max_length": 900,
+        "max_length": 320,
     }
     assert "A child studies a butterfly" not in json.dumps(diagnostics)
 
@@ -364,7 +364,7 @@ def test_parent_story_generation_schema_uses_compact_fields_with_srs_scene_count
     scene_fields = scene_schema["items"]["properties"]
 
     assert scene_schema["minItems"] == scene_schema["maxItems"] == 5
-    assert scene_fields["visual_prompt"]["maxLength"] == 900
+    assert scene_fields["visual_prompt"]["maxLength"] == 320
     assert scene_fields["action"]["properties"]["body"]["maxLength"] == 140
     assert scene_fields["narration"]["properties"]["body"]["maxLength"] == 120
     opening_schema = schema["properties"]["story"]["properties"]["opening"]
@@ -386,8 +386,9 @@ def test_parent_story_generation_schema_uses_compact_fields_with_srs_scene_count
     assert "Mỗi action nêu một hành động chính có đối tượng/hướng/kết quả rõ khi phù hợp" in prompt
     assert "Mỗi narration bổ sung một chi tiết hữu ích, không chép lại action" in prompt
     assert "Không lặp cùng hành động ở hai cảnh" in prompt
-    assert "3–4 câu tự nhiên" in prompt
-    assert "tối đa 900 ký tự" in prompt
+    assert "1–2 câu ngắn" in prompt
+    assert "tối đa 320 ký tự" in prompt
+    assert "900" not in prompt
     assert "pattern" not in scene_fields["narration"]
     assert scene_fields["character_anchors"]["maxItems"] == 3
     assert story_worker.STORY_GENERATION_BUDGET == 4_096
@@ -395,16 +396,16 @@ def test_parent_story_generation_schema_uses_compact_fields_with_srs_scene_count
 
 def test_visual_prompt_accepts_structured_motion_detail_within_new_bound() -> None:
     content = _valid_content()
-    content["scenes"][0]["visual_prompt"] = "A" * 900
+    content["scenes"][0]["visual_prompt"] = "A" * 320
 
     parsed = _parse_content(content)
 
-    assert len(parsed["scenes"][0]["visual_prompt"]) == 900
+    assert len(parsed["scenes"][0]["visual_prompt"]) == 320
 
 
 def test_visual_prompt_rejects_content_over_new_bound() -> None:
     content = _valid_content()
-    content["scenes"][0]["visual_prompt"] = "A" * 901
+    content["scenes"][0]["visual_prompt"] = "A" * 321
 
     with pytest.raises(story_worker.StoryOutputValidationError) as error:
         _parse_content(content)
@@ -643,22 +644,15 @@ def test_parser_rejects_contract_violations(mutate: Any, reason: str) -> None:
     _assert_rejected(payload, reason)
 
 
-def test_parser_rejects_butterfly_fact_failure_separately() -> None:
+@pytest.mark.parametrize(
+    "middle",
+    ["Một con vật quan sát chiếc lá xanh.", "Nhộng nằm yên, rồi sâu bướm bò ra."],
+)
+def test_parser_has_no_subject_specific_story_rule(middle: str) -> None:
     payload = _valid_story()
-    payload["story"]["ending"] = "Trứng nở thành bướm. Bướm đi tìm tổ."
-    _assert_rejected(payload, "EDUCATIONAL_FACT_FORBIDDEN_CLAIM")
+    payload["story"]["middle"] = middle
 
-
-def test_parser_reports_missing_butterfly_stage_without_echoing_story_text() -> None:
-    payload = _valid_story()
-    payload["story"]["middle"] = "Một con vật quan sát chiếc lá xanh."
-    _assert_rejected(payload, "EDUCATIONAL_FACT_STAGE_MISSING")
-
-
-def test_parser_reports_butterfly_stages_in_wrong_order() -> None:
-    payload = _valid_story()
-    payload["story"]["middle"] = "Nhộng nằm yên, rồi sâu bướm bò ra."
-    _assert_rejected(payload, "EDUCATIONAL_FACT_ORDER_INVALID")
+    assert _parse(payload)["story"]["middle"] == middle
 
 
 def test_fact_validation_uses_canonical_story_section_order() -> None:
@@ -738,7 +732,7 @@ def test_constrained_decoder_receives_worker_story_schema(
         schema["properties"]["scenes"]["items"]["properties"]["visual_prompt"][
             "maxLength"
         ]
-        == 900
+        == 320
     )
     assert "scene_index" not in schema["properties"]["scenes"]["items"]["properties"]
     assert "start_ms" not in schema["properties"]["scenes"]["items"]["properties"]
@@ -830,7 +824,7 @@ def test_transformers5_compatible_prefix_adapter_enforces_json_tokens(
     assert tokenizer.ids["t"] not in terminal_allowed
 
 
-def test_parent_story_prompt_spells_out_timeline_and_butterfly_order() -> None:
+def test_parent_story_prompt_spells_out_timeline_without_subject_specific_rules() -> None:
     activity = {
         "title": "Quan sát lá",
         "objective": "Nhận biết hình dạng và gân lá.",
@@ -859,7 +853,9 @@ def test_parent_story_prompt_spells_out_timeline_and_butterfly_order() -> None:
     assert "Không cắt câu để đạt giới hạn" in prompt
     assert "thời gian, số thứ tự hay key khác; hệ thống sẽ bổ sung" in prompt
     assert "start_ms lần lượt" not in prompt
-    assert "trứng → sâu bướm ăn lá → nhộng → bướm trưởng thành" in prompt
+    assert "Kiến thức đã xác minh" not in prompt
+    assert "nhộng" not in prompt
+    assert "không bịa sự thật khoa học" in prompt
     assert "không được kể như thể trẻ đã làm xong" in prompt
     assert "Nhân vật trung tâm phải là đúng chủ thể người lớn đã xác nhận trong tranh" in prompt
     assert "không dùng chữ Hán, Nhật, Hàn" in prompt
@@ -877,7 +873,7 @@ def test_parent_story_prompt_spells_out_timeline_and_butterfly_order() -> None:
             "primary_activity": activity,
         }
     )
-    assert "trứng”" not in generic_prompt
+    assert "Kiến thức đã xác minh" not in generic_prompt
 
 
 _SECONDARY = [{"entity_id": "sec-1", "label": "chiếc lá", "visible_features": ["màu xanh"]}]
@@ -986,3 +982,73 @@ def test_staging_for_story_never_raises_when_the_generator_fails() -> None:
 
     envelope = story_worker._staging_for_story(_story_for_staging(), _prompt_request(), boom)
     assert envelope == {"staging": None, "staging_issue": "STAGING_PASS_FAILED"}
+
+
+_COMPLETE_DIRECTIONAL_ENDINGS = [
+    "Chú rùa ngước nhìn chiếc lá ở phía trên",
+    "Rùa chậm rãi bò lên trên",
+    "Chiếc lá rơi xuống dưới",
+    "Rùa rụt đầu vào bên trong",
+    "Rùa kiên nhẫn leo qua được",
+]
+
+
+@pytest.mark.parametrize("body", _COMPLETE_DIRECTIONAL_ENDINGS)
+def test_story_parser_accepts_complete_directional_endings(body: str) -> None:
+    content = _valid_content()
+    content["story"]["middle"] = {"body": body, "terminator": "."}
+
+    assert _parse_content(content)["story"]["middle"] == f"{body}."
+
+
+@pytest.mark.parametrize(
+    "body", ["Rùa đặt viên sỏi lên mặt trên", "Rùa bò chậm trên", "Viên sỏi đã được"]
+)
+def test_story_parser_still_rejects_bare_dangling_endings(body: str) -> None:
+    content = _valid_content()
+    content["story"]["middle"] = {"body": body, "terminator": "."}
+
+    with pytest.raises(story_worker.StoryOutputValidationError) as error:
+        _parse_content(content)
+
+    assert error.value.reason_code == "STORY_TEXT_INCOMPLETE"
+
+
+def test_story_prompt_lists_words_a_sentence_must_not_end_with() -> None:
+    prompt = story_worker._parent_story_prompt(_prompt_request())
+
+    assert "body không được kết thúc bằng các từ:" in prompt
+    assert all(word in prompt for word in story_worker._STORY_DANGLING_VI_ENDINGS)
+
+
+def test_story_diagnostics_name_the_dangling_word_without_the_sentence() -> None:
+    content = _valid_content()
+    content["scenes"][2]["action"] = {"body": "Rùa bí mật bò chậm trên", "terminator": "."}
+
+    diagnostics = story_worker._story_output_field_diagnostics(
+        json.dumps(content, ensure_ascii=False)
+    )
+
+    metric = next(
+        item
+        for item in diagnostics["story_text_field_metrics"]
+        if item["field"] == "scenes[3].action"
+    )
+    assert metric["dangling_ending_word"] == "trên"
+    assert "bí mật" not in json.dumps(diagnostics, ensure_ascii=False)
+
+
+def test_story_prompt_asks_for_a_character_driven_story_not_a_picture_description() -> None:
+    prompt = story_worker._parent_story_prompt(_prompt_request())
+
+    assert "một cách gọi nhất quán" in prompt
+    assert "không tả lại bức tranh" in prompt
+    assert "Mỗi đặc điểm nhìn thấy chỉ nhắc một lần" in prompt
+    assert "không giải thích công dụng của bộ phận cơ thể" in prompt
+
+
+def test_story_prompt_keeps_the_drawn_thing_as_the_protagonist() -> None:
+    prompt = story_worker._parent_story_prompt(_prompt_request())
+
+    assert "kể cả khi đó là đồ vật hay xe cộ" in prompt
+    assert "trẻ và người lớn không phải nhân vật chính" in prompt

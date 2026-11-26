@@ -9,7 +9,7 @@ import unicodedata
 from typing import Annotated, Any
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Path, Query
 from structlog import get_logger
 from sqlalchemy.orm import Session
 
@@ -28,6 +28,7 @@ from sketch2life.infrastructure.ai.modal_function_client import (
     ModalFunctionOutcomeUnknown,
     ModalJsonFunctionClient,
 )
+from sketch2life.infrastructure.ai.modal_qwen_warm_up import QwenWarmUp
 from sketch2life.infrastructure.config.settings import get_settings
 from sketch2life.infrastructure.persistence.be1_models import AdultIdentityModel
 from sketch2life.infrastructure.persistence.parent_topic_rotation_repository import (
@@ -38,6 +39,7 @@ from sketch2life.application.ports.identity import VerifiedPrincipal
 
 router = APIRouter(prefix="/api/parent/v1", tags=["Parent topic suggestions v1"])
 _LOGGER = get_logger(__name__)
+_QWEN_WARM_UP = QwenWarmUp()
 _PRIVATE_TOPIC_PATTERNS = (
     re.compile(r"\b[^\s@]+@[^\s@]+\.[A-Za-z]{2,}\b"),
     re.compile(r"(?<!\d)(?:\+?\d[\d .()\-]{7,}\d)(?!\d)"),
@@ -205,11 +207,15 @@ def _invoke_topic_subject_worker(
 def get_topic_suggestions(
     draft_id: UUID,
     request_id: UUID,
+    background: BackgroundTasks,
     exclude_set_ids: Annotated[list[str], Query(max_length=16)] = [],
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
 ) -> dict[str, object]:
     account_id = _require_parent(db, principal)
+    if get_settings().ai_provider == "modal_dev":
+        # The drawing is analysed a minute or two from now; start the model while the parent chooses.
+        background.add_task(_QWEN_WARM_UP.request)
     _validate_excluded_set_ids(exclude_set_ids, prefix="pts")
     try:
         service = ParentTopicSuggestionService()

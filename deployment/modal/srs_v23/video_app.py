@@ -527,7 +527,7 @@ def diagnose_ltx25_runtime() -> dict[str, Any]:
     },
     min_containers=0,
     max_containers=1,
-    scaledown_window=60,
+    scaledown_window=300,
     timeout=1_800,
     retries=0,
 )
@@ -541,6 +541,8 @@ def diagnose_ltx25_runtime() -> dict[str, Any]:
 def generate_video_scene(payload: dict[str, Any]) -> dict[str, Any]:
     """Generate one isolated image-conditioned scene candidate with LTX-2.5."""
 
+    if payload == {"warmup": True}:
+        return _warm_up_scene_renderer()
     with worker_phase("input_envelope"):
         request = parse_worker_input(payload, execution_group="l40s-video")
     worker_stage("workload_gate")
@@ -1493,6 +1495,23 @@ def _prepare_drawing(
     return len(raw)
 
 
+def _warm_up_scene_renderer() -> dict[str, Any]:
+    """Read the checkpoint files and build the pipeline before the first scene arrives; no job data is read."""
+
+    started = time.perf_counter()
+    with worker_phase("checkpoint_preflight"):
+        _require_model_ready()
+    with worker_phase("model_load"):
+        for name in MODEL_FILES:
+            with (Path(MODEL_ROOT) / name).open("rb") as handle:
+                while handle.read(64 * 1024 * 1024):
+                    pass
+        _load_pipeline()
+    seconds = round(time.perf_counter() - started, 1)
+    print(json.dumps({"event": "scene_warm_up", "seconds": seconds}), flush=True)
+    return {"warmed": True, "seconds": seconds}
+
+
 def _load_pipeline() -> Any:
     import torch
     from ltx_core.quantization.fp8_cast import build_policy as build_fp8_cast_policy
@@ -1884,11 +1903,20 @@ def _extract_continuity_frame(
         raise RuntimeError("VIDEO_CONTINUITY_FRAME_EXTRACTION_FAILED")
 
 
+_VERIFIED_MODEL_MANIFEST: dict[str, Any] | None = None
+
+
 def _require_model_ready() -> dict[str, Any]:
+    """The verified manifest of the pinned checkpoint; checked once per container (the model mount is read-only)."""
+
+    global _VERIFIED_MODEL_MANIFEST
+    if _VERIFIED_MODEL_MANIFEST is not None:
+        return _VERIFIED_MODEL_MANIFEST
     model_volume.reload()
     marker = _read_model_manifest(Path(MODEL_MARKER))
     if marker is None or not _verify_model_manifest(Path(MODEL_ROOT), marker):
         raise RuntimeError("LTX_MODEL_NOT_STAGED")
+    _VERIFIED_MODEL_MANIFEST = marker
     return marker
 
 

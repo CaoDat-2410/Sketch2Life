@@ -198,3 +198,9 @@ def test_box_object_missing_an_edge_is_still_a_contract_violation() -> None:
     }
     with pytest.raises(RuntimeError, match="MODAL_MODEL_OUTPUT_INVALID"):
         worker._parse_candidate(json.dumps(bad))
+
+
+def test_prompt_does_not_assume_black_lines_and_shows_how_to_avoid_english_parts() -> None:
+    prompt = worker._drawing_prompt()
+    assert "đường nét đen" not in prompt
+    assert "viết 'yên xe', không viết 'saddle'" in prompt
