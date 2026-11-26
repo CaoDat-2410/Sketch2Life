@@ -1,0 +1,90 @@
+{
+  "card_id": "vi.animals.turtle",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "con rùa",
+    "rùa",
+    "rùa con"
+  ],
+  "topic_ids": [
+    "animals"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Rùa là con vật mang trên lưng một chiếc mai.",
+      "key_terms": [
+        "rùa",
+        "mai"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "mai",
+      "min_age_months": 36,
+      "text": "Mai cứng che chở cơ thể rùa.",
+      "key_terms": [
+        "mai",
+        "che chở"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "đầu",
+      "min_age_months": 36,
+      "text": "Gặp nguy hiểm, nhiều loài rùa rụt đầu vào mai.",
+      "key_terms": [
+        "rụt đầu",
+        "mai"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "chân",
+      "min_age_months": 36,
+      "text": "Chân rùa ngắn nên rùa bò chậm trên cạn.",
+      "key_terms": [
+        "chân",
+        "chậm"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "miệng",
+      "min_age_months": 72,
+      "text": "Rùa không có răng, chúng cắn bằng mỏ cứng.",
+      "key_terms": [
+        "răng",
+        "mỏ cứng"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Rùa ăn rong, cỏ hoặc con vật nhỏ trong thiên nhiên.",
+      "key_terms": [
+        "rùa",
+        "ăn"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "rùa bò chậm",
+    "rùa thò đầu"
+  ],
+  "setting": "bãi cỏ cạnh ao",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

@@ -1,0 +1,89 @@
+{
+  "card_id": "vi.insects.ladybug",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "con bọ rùa",
+    "bọ rùa"
+  ],
+  "topic_ids": [
+    "insects"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Bọ rùa là côn trùng nhỏ có thân tròn.",
+      "key_terms": [
+        "bọ rùa",
+        "tròn"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "cánh cứng",
+      "min_age_months": 36,
+      "text": "Hai cánh cứng che đôi cánh mỏng bên dưới.",
+      "key_terms": [
+        "cánh cứng",
+        "cánh mỏng"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "chấm",
+      "min_age_months": 36,
+      "text": "Nhiều bọ rùa có chấm đen trên lưng.",
+      "key_terms": [
+        "chấm đen",
+        "lưng"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "chân",
+      "min_age_months": 36,
+      "text": "Bọ rùa có sáu chân để bò trên lá.",
+      "key_terms": [
+        "sáu chân",
+        "lá"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "râu",
+      "min_age_months": 36,
+      "text": "Đôi râu giúp bọ rùa tìm đường và tìm mồi.",
+      "key_terms": [
+        "râu",
+        "tìm"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Nhiều bọ rùa ăn rệp, giúp cây khỏe mạnh.",
+      "key_terms": [
+        "rệp",
+        "cây"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "bọ rùa bò",
+    "bọ rùa xòe cánh"
+  ],
+  "setting": "chiếc lá trong vườn",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

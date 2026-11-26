@@ -1,0 +1,89 @@
+{
+  "card_id": "vi.insects.bee",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "con ong",
+    "ong"
+  ],
+  "topic_ids": [
+    "insects"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Ong là côn trùng chăm chỉ sống thành đàn.",
+      "key_terms": [
+        "ong",
+        "đàn"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "cánh",
+      "min_age_months": 36,
+      "text": "Đôi cánh mỏng đập rất nhanh giúp ong bay.",
+      "key_terms": [
+        "cánh",
+        "bay"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "vòi",
+      "min_age_months": 36,
+      "text": "Ong dùng vòi để hút mật hoa.",
+      "key_terms": [
+        "vòi",
+        "mật hoa"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "chân",
+      "min_age_months": 36,
+      "text": "Ong mang phấn hoa trên hai chân sau.",
+      "key_terms": [
+        "phấn hoa",
+        "chân sau"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "ngòi",
+      "min_age_months": 36,
+      "text": "Ong có ngòi để tự vệ nên ta nhìn từ xa.",
+      "key_terms": [
+        "ngòi",
+        "từ xa"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Ong làm ra mật và giúp cây đậu quả.",
+      "key_terms": [
+        "mật",
+        "đậu quả"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "ong bay vòng",
+    "ong đậu hoa"
+  ],
+  "setting": "vườn hoa nắng",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

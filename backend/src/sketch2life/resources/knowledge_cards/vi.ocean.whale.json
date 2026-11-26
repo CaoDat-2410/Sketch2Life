@@ -1,0 +1,89 @@
+{
+  "card_id": "vi.ocean.whale",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "con cá voi",
+    "cá voi"
+  ],
+  "topic_ids": [
+    "ocean"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Cá voi là con vật rất lớn sống ở biển.",
+      "key_terms": [
+        "cá voi",
+        "biển"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "lỗ thở",
+      "min_age_months": 36,
+      "text": "Cá voi thở không khí qua lỗ trên đỉnh đầu.",
+      "key_terms": [
+        "thở",
+        "đỉnh đầu"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "đuôi",
+      "min_age_months": 36,
+      "text": "Cá voi quẫy đuôi lên xuống để bơi.",
+      "key_terms": [
+        "đuôi",
+        "bơi"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "vây",
+      "min_age_months": 36,
+      "text": "Hai vây trước giúp cá voi đổi hướng.",
+      "key_terms": [
+        "vây",
+        "hướng"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "sữa",
+      "min_age_months": 72,
+      "text": "Cá voi con bú sữa mẹ.",
+      "key_terms": [
+        "bú sữa",
+        "mẹ"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Cá voi là một phần quan trọng của đại dương.",
+      "key_terms": [
+        "cá voi",
+        "đại dương"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "cá voi lặn",
+    "cá voi phun nước"
+  ],
+  "setting": "biển xanh rộng",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

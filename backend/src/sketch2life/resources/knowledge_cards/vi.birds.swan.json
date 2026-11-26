@@ -1,0 +1,89 @@
+{
+  "card_id": "vi.birds.swan",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "con thiên nga",
+    "thiên nga"
+  ],
+  "topic_ids": [
+    "birds"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Thiên nga là loài chim lớn bơi trên hồ.",
+      "key_terms": [
+        "thiên nga",
+        "hồ"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "cổ",
+      "min_age_months": 36,
+      "text": "Chiếc cổ dài giúp thiên nga tìm cây dưới nước.",
+      "key_terms": [
+        "cổ dài",
+        "dưới nước"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "chân",
+      "min_age_months": 36,
+      "text": "Chân có màng giúp thiên nga bơi nhẹ nhàng.",
+      "key_terms": [
+        "chân có màng",
+        "bơi"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "cánh",
+      "min_age_months": 36,
+      "text": "Đôi cánh rộng giúp thiên nga bay xa.",
+      "key_terms": [
+        "cánh rộng",
+        "bay"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "lông",
+      "min_age_months": 36,
+      "text": "Lông dày giúp thiên nga giữ ấm trên nước.",
+      "key_terms": [
+        "lông",
+        "ấm"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Thiên nga ăn cây thủy sinh và làm hồ thêm đẹp.",
+      "key_terms": [
+        "thiên nga",
+        "hồ"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "thiên nga lướt nước",
+    "thiên nga cúi cổ"
+  ],
+  "setting": "hồ nước phẳng lặng",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

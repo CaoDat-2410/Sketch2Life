@@ -1,0 +1,100 @@
+{
+  "card_id": "vi.transport.bicycle",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "chiếc xe đạp",
+    "xe đạp"
+  ],
+  "topic_ids": [
+    "transport"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Xe đạp là xe chạy nhờ người đạp bằng chân.",
+      "key_terms": [
+        "xe đạp",
+        "đạp"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "bánh xe",
+      "min_age_months": 36,
+      "text": "Hai bánh xe lăn đưa xe tiến tới.",
+      "key_terms": [
+        "bánh xe",
+        "lăn"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "tay lái",
+      "min_age_months": 36,
+      "text": "Tay lái giúp xe rẽ trái hoặc rẽ phải.",
+      "key_terms": [
+        "tay lái",
+        "rẽ"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "yên xe",
+      "min_age_months": 36,
+      "text": "Yên xe là chỗ để người ngồi.",
+      "key_terms": [
+        "yên xe",
+        "ngồi"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "dây xích",
+      "min_age_months": 72,
+      "text": "Dây xích truyền sức đạp tới bánh sau.",
+      "key_terms": [
+        "dây xích",
+        "bánh sau"
+      ]
+    },
+    {
+      "id": "part-5",
+      "kind": "PART",
+      "part": "phanh",
+      "min_age_months": 36,
+      "text": "Bóp phanh giúp xe chạy chậm rồi dừng lại.",
+      "key_terms": [
+        "phanh",
+        "dừng"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Người ta đi xe đạp tới trường hoặc đi dạo.",
+      "key_terms": [
+        "xe đạp",
+        "đi dạo"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "bánh xe lăn",
+    "xe tiến nhẹ"
+  ],
+  "setting": "đường nhỏ trong công viên",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

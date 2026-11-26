@@ -1,0 +1,89 @@
+{
+  "card_id": "vi.insects.dragonfly",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "con chuồn chuồn",
+    "chuồn chuồn"
+  ],
+  "topic_ids": [
+    "insects"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Chuồn chuồn là côn trùng bay rất giỏi.",
+      "key_terms": [
+        "chuồn chuồn",
+        "bay"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "cánh",
+      "min_age_months": 36,
+      "text": "Bốn cánh mỏng giúp chuồn chuồn bay và đứng yên trên không.",
+      "key_terms": [
+        "bốn cánh",
+        "đứng yên"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "mắt",
+      "min_age_months": 36,
+      "text": "Đôi mắt to giúp chuồn chuồn nhìn gần như khắp phía.",
+      "key_terms": [
+        "mắt to",
+        "nhìn"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "đuôi",
+      "min_age_months": 36,
+      "text": "Thân sau dài giúp chuồn chuồn giữ thăng bằng.",
+      "key_terms": [
+        "thân sau",
+        "thăng bằng"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "trứng",
+      "min_age_months": 72,
+      "text": "Chuồn chuồn đẻ trứng ở nơi có nước.",
+      "key_terms": [
+        "trứng",
+        "nước"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Chuồn chuồn bắt muỗi và các côn trùng nhỏ.",
+      "key_terms": [
+        "chuồn chuồn",
+        "bắt muỗi"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "chuồn chuồn lượn",
+    "cánh rung"
+  ],
+  "setting": "mặt ao có sen",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

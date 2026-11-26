@@ -1,0 +1,89 @@
+{
+  "card_id": "vi.birds.sparrow",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "con chim sẻ",
+    "chim sẻ"
+  ],
+  "topic_ids": [
+    "birds"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Chim sẻ là loài chim nhỏ sống gần người.",
+      "key_terms": [
+        "chim sẻ",
+        "chim nhỏ"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "mỏ",
+      "min_age_months": 36,
+      "text": "Mỏ ngắn và chắc giúp chim sẻ nhặt hạt.",
+      "key_terms": [
+        "mỏ",
+        "hạt"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "cánh",
+      "min_age_months": 36,
+      "text": "Đôi cánh giúp chim sẻ bay từ cành này sang cành khác.",
+      "key_terms": [
+        "cánh",
+        "bay"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "chân",
+      "min_age_months": 36,
+      "text": "Ngón chân bám chặt giúp chim đậu trên cành.",
+      "key_terms": [
+        "chân",
+        "đậu"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "lông",
+      "min_age_months": 36,
+      "text": "Bộ lông giúp chim giữ ấm cơ thể.",
+      "key_terms": [
+        "lông",
+        "ấm"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Chim sẻ ăn hạt và bắt sâu trong vườn.",
+      "key_terms": [
+        "hạt",
+        "bắt sâu"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "chim nhảy nhót",
+    "chim vỗ cánh"
+  ],
+  "setting": "sân nhà buổi sáng",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

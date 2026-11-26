@@ -1,0 +1,94 @@
+{
+  "card_id": "vi.birds.chicken",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "con gà",
+    "gà",
+    "gà mái",
+    "con gà mái",
+    "gà con",
+    "con gà con"
+  ],
+  "topic_ids": [
+    "birds",
+    "farm"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Gà là loài chim được người nuôi ở nhiều nơi.",
+      "key_terms": [
+        "gà",
+        "nuôi"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "mỏ",
+      "min_age_months": 36,
+      "text": "Gà dùng mỏ nhọn để mổ hạt.",
+      "key_terms": [
+        "mỏ",
+        "hạt"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "chân",
+      "min_age_months": 36,
+      "text": "Chân có móng giúp gà bới đất tìm mồi.",
+      "key_terms": [
+        "chân",
+        "bới"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "mào",
+      "min_age_months": 36,
+      "text": "Mào đỏ nằm trên đầu gà.",
+      "key_terms": [
+        "mào",
+        "đầu"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "cánh",
+      "min_age_months": 36,
+      "text": "Gà mẹ xòe cánh ủ ấm cho gà con.",
+      "key_terms": [
+        "cánh",
+        "ủ ấm"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Gà đẻ trứng cho người và bắt sâu trong vườn.",
+      "key_terms": [
+        "trứng",
+        "bắt sâu"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "gà bới đất",
+    "gà mổ hạt"
+  ],
+  "setting": "sân trại có cỏ",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

@@ -1,0 +1,89 @@
+{
+  "card_id": "vi.ocean.starfish",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "con sao biển",
+    "sao biển"
+  ],
+  "topic_ids": [
+    "ocean"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Sao biển là con vật sống dưới đáy biển.",
+      "key_terms": [
+        "sao biển",
+        "đáy biển"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "cánh",
+      "min_age_months": 36,
+      "text": "Nhiều loài sao biển có năm cánh như ngôi sao.",
+      "key_terms": [
+        "năm cánh",
+        "ngôi sao"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "chân ống",
+      "min_age_months": 36,
+      "text": "Dưới thân có nhiều chân ống nhỏ để di chuyển.",
+      "key_terms": [
+        "chân ống",
+        "di chuyển"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "miệng",
+      "min_age_months": 36,
+      "text": "Miệng sao biển nằm ở mặt dưới thân.",
+      "key_terms": [
+        "miệng",
+        "mặt dưới"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "tái sinh",
+      "min_age_months": 72,
+      "text": "Nhiều sao biển mọc lại được cánh đã mất.",
+      "key_terms": [
+        "mọc lại",
+        "cánh"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Sao biển là một phần của sự sống dưới biển.",
+      "key_terms": [
+        "sao biển",
+        "sự sống"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "sao biển bò chậm",
+    "rong lay động"
+  ],
+  "setting": "đáy biển có cát",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

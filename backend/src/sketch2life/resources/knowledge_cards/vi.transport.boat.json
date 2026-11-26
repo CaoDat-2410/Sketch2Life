@@ -1,0 +1,91 @@
+{
+  "card_id": "vi.transport.boat",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "chiếc thuyền",
+    "thuyền",
+    "thuyền nhỏ",
+    "tàu thủy"
+  ],
+  "topic_ids": [
+    "transport"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Thuyền là phương tiện đi lại trên mặt nước.",
+      "key_terms": [
+        "thuyền",
+        "mặt nước"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "thân thuyền",
+      "min_age_months": 36,
+      "text": "Thân thuyền rỗng giúp thuyền nổi trên nước.",
+      "key_terms": [
+        "thân thuyền",
+        "nổi"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "buồm",
+      "min_age_months": 36,
+      "text": "Cánh buồm đón gió đẩy thuyền đi.",
+      "key_terms": [
+        "buồm",
+        "gió"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "mái chèo",
+      "min_age_months": 36,
+      "text": "Mái chèo khua nước đưa thuyền tiến lên.",
+      "key_terms": [
+        "mái chèo",
+        "nước"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "bánh lái",
+      "min_age_months": 36,
+      "text": "Bánh lái giúp thuyền đổi hướng.",
+      "key_terms": [
+        "bánh lái",
+        "hướng"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Thuyền chở người và hàng qua sông, qua biển.",
+      "key_terms": [
+        "thuyền",
+        "chở"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "thuyền trôi",
+    "sóng nhấp nhô"
+  ],
+  "setting": "dòng sông êm",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

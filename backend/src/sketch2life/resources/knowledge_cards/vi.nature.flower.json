@@ -1,0 +1,90 @@
+{
+  "card_id": "vi.nature.flower",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "bông hoa",
+    "hoa",
+    "một bông hoa"
+  ],
+  "topic_ids": [
+    "nature"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Hoa là phần của cây có nhiều cánh xinh.",
+      "key_terms": [
+        "hoa",
+        "cánh"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "cánh hoa",
+      "min_age_months": 36,
+      "text": "Cánh hoa nhiều màu mời ong bướm ghé thăm.",
+      "key_terms": [
+        "cánh hoa",
+        "ong bướm"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "nhụy",
+      "min_age_months": 36,
+      "text": "Nhụy nằm giữa hoa và giúp tạo ra hạt.",
+      "key_terms": [
+        "nhụy",
+        "hạt"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "cuống",
+      "min_age_months": 36,
+      "text": "Cuống đỡ bông hoa và đưa nước lên.",
+      "key_terms": [
+        "cuống",
+        "nước"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "lá",
+      "min_age_months": 36,
+      "text": "Lá xanh đón nắng để làm thức ăn cho cây.",
+      "key_terms": [
+        "lá xanh",
+        "nắng"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Hoa tạo quả và hạt để mọc thành cây mới.",
+      "key_terms": [
+        "hạt",
+        "cây mới"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "hoa đung đưa",
+    "cánh hoa mở"
+  ],
+  "setting": "vườn cạnh lối đi",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

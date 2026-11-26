@@ -1,0 +1,89 @@
+{
+  "card_id": "vi.insects.ant",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "con kiến",
+    "kiến"
+  ],
+  "topic_ids": [
+    "insects"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Kiến là côn trùng nhỏ sống thành đàn đông.",
+      "key_terms": [
+        "kiến",
+        "đàn"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "râu",
+      "min_age_months": 36,
+      "text": "Kiến chạm râu để trao đổi tin cho nhau.",
+      "key_terms": [
+        "râu",
+        "tin"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "chân",
+      "min_age_months": 36,
+      "text": "Sáu chân giúp kiến đi nhanh và leo cao.",
+      "key_terms": [
+        "sáu chân",
+        "leo"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "hàm",
+      "min_age_months": 36,
+      "text": "Bộ hàm khỏe giúp kiến tha thức ăn.",
+      "key_terms": [
+        "hàm",
+        "thức ăn"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "tổ",
+      "min_age_months": 72,
+      "text": "Kiến thợ cùng nhau xây tổ và chăm kiến con.",
+      "key_terms": [
+        "kiến thợ",
+        "tổ"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Kiến dọn vụn thức ăn và làm đất tơi xốp.",
+      "key_terms": [
+        "kiến",
+        "đất"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "kiến nối đuôi",
+    "kiến vác mồi"
+  ],
+  "setting": "lối đi của đàn kiến",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

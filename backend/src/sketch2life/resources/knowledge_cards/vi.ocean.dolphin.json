@@ -1,0 +1,89 @@
+{
+  "card_id": "vi.ocean.dolphin",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "con cá heo",
+    "cá heo"
+  ],
+  "topic_ids": [
+    "ocean"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Cá heo là con vật thông minh sống dưới biển.",
+      "key_terms": [
+        "cá heo",
+        "biển"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "lỗ thở",
+      "min_age_months": 36,
+      "text": "Cá heo ngoi lên để thở bằng lỗ trên đầu.",
+      "key_terms": [
+        "thở",
+        "đầu"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "đuôi",
+      "min_age_months": 36,
+      "text": "Chiếc đuôi khỏe đẩy cá heo bật khỏi mặt nước.",
+      "key_terms": [
+        "đuôi",
+        "mặt nước"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "vây",
+      "min_age_months": 36,
+      "text": "Vây trên lưng giúp cá heo bơi vững.",
+      "key_terms": [
+        "vây",
+        "bơi"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "tai",
+      "min_age_months": 72,
+      "text": "Cá heo phát tiếng kêu rồi nghe âm vọng lại.",
+      "key_terms": [
+        "tiếng kêu",
+        "âm vọng"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Cá heo sống theo đàn và giúp nhau kiếm ăn.",
+      "key_terms": [
+        "đàn",
+        "kiếm ăn"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "cá heo nhảy",
+    "sóng vỗ"
+  ],
+  "setting": "sóng biển lấp lánh",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

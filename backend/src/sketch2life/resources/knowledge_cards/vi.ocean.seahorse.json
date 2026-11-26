@@ -1,0 +1,89 @@
+{
+  "card_id": "vi.ocean.seahorse",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "con cá ngựa",
+    "cá ngựa"
+  ],
+  "topic_ids": [
+    "ocean"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Cá ngựa là loài cá nhỏ có đầu giống đầu ngựa.",
+      "key_terms": [
+        "cá ngựa",
+        "đầu ngựa"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "đuôi",
+      "min_age_months": 36,
+      "text": "Đuôi cong giúp cá ngựa quấn chặt vào rong.",
+      "key_terms": [
+        "đuôi",
+        "rong"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "vây",
+      "min_age_months": 36,
+      "text": "Vây nhỏ trên lưng rung nhanh để bơi.",
+      "key_terms": [
+        "vây",
+        "bơi"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "miệng",
+      "min_age_months": 36,
+      "text": "Miệng dài như chiếc ống giúp hút mồi nhỏ.",
+      "key_terms": [
+        "miệng",
+        "hút"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "túi",
+      "min_age_months": 72,
+      "text": "Cá ngựa bố mang trứng trong chiếc túi ở bụng.",
+      "key_terms": [
+        "cá ngựa bố",
+        "túi"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Cá ngựa sống nhờ rong biển và rạn san hô.",
+      "key_terms": [
+        "cá ngựa",
+        "rong biển"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "cá ngựa lắc lư",
+    "rong đung đưa"
+  ],
+  "setting": "rừng rong biển",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

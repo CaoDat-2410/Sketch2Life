@@ -1,0 +1,90 @@
+{
+  "card_id": "vi.animals.fish",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "con cá",
+    "cá",
+    "cá nhỏ"
+  ],
+  "topic_ids": [
+    "animals"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Cá là con vật sống và bơi dưới nước.",
+      "key_terms": [
+        "cá",
+        "dưới nước"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "mang",
+      "min_age_months": 36,
+      "text": "Cá dùng mang để thở trong nước.",
+      "key_terms": [
+        "mang",
+        "thở"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "vây",
+      "min_age_months": 36,
+      "text": "Vây giúp cá giữ thăng bằng và đổi hướng.",
+      "key_terms": [
+        "vây",
+        "thăng bằng"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "đuôi",
+      "min_age_months": 36,
+      "text": "Cá quẫy đuôi để đẩy mình bơi tới.",
+      "key_terms": [
+        "đuôi",
+        "bơi"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "vảy",
+      "min_age_months": 36,
+      "text": "Lớp vảy mỏng bảo vệ thân cá.",
+      "key_terms": [
+        "vảy",
+        "bảo vệ"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Cá góp phần làm sông hồ thêm sự sống.",
+      "key_terms": [
+        "cá",
+        "sông hồ"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "cá quẫy đuôi",
+    "cá bơi"
+  ],
+  "setting": "dưới ao có rong",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

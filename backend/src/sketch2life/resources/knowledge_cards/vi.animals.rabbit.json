@@ -1,0 +1,90 @@
+{
+  "card_id": "vi.animals.rabbit",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "con thỏ",
+    "thỏ",
+    "thỏ con"
+  ],
+  "topic_ids": [
+    "animals"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Thỏ là con vật nhỏ có bộ lông mềm.",
+      "key_terms": [
+        "thỏ",
+        "lông mềm"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "tai",
+      "min_age_months": 36,
+      "text": "Đôi tai dài giúp thỏ nghe rất thính.",
+      "key_terms": [
+        "tai dài",
+        "nghe"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "chân",
+      "min_age_months": 36,
+      "text": "Hai chân sau khỏe giúp thỏ nhảy xa.",
+      "key_terms": [
+        "chân sau",
+        "nhảy"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "răng",
+      "min_age_months": 72,
+      "text": "Răng cửa của thỏ mọc dài suốt đời.",
+      "key_terms": [
+        "răng cửa",
+        "mọc"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "đuôi",
+      "min_age_months": 36,
+      "text": "Đuôi thỏ ngắn và tròn như cục bông.",
+      "key_terms": [
+        "đuôi",
+        "ngắn"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Thỏ ăn cỏ, rau và làm bạn đáng yêu.",
+      "key_terms": [
+        "thỏ",
+        "ăn cỏ"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "thỏ nhảy",
+    "thỏ vểnh tai"
+  ],
+  "setting": "vườn rau xanh",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

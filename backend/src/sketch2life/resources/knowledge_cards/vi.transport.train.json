@@ -1,0 +1,90 @@
+{
+  "card_id": "vi.transport.train",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "đoàn tàu",
+    "tàu hỏa",
+    "xe lửa"
+  ],
+  "topic_ids": [
+    "transport"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Tàu hỏa gồm nhiều toa nối với nhau.",
+      "key_terms": [
+        "tàu hỏa",
+        "toa"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "đầu máy",
+      "min_age_months": 36,
+      "text": "Đầu máy kéo cả đoàn tàu đi.",
+      "key_terms": [
+        "đầu máy",
+        "kéo"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "bánh tàu",
+      "min_age_months": 36,
+      "text": "Bánh tàu bằng thép lăn trên đường ray.",
+      "key_terms": [
+        "bánh tàu",
+        "đường ray"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "toa",
+      "min_age_months": 36,
+      "text": "Mỗi toa chở hành khách hoặc hàng hóa.",
+      "key_terms": [
+        "toa",
+        "chở"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "còi",
+      "min_age_months": 36,
+      "text": "Còi tàu kêu to để báo tàu sắp tới.",
+      "key_terms": [
+        "còi",
+        "báo"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Tàu hỏa chở nhiều người và hàng đi rất xa.",
+      "key_terms": [
+        "tàu hỏa",
+        "chở"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "tàu chạy dọc ray",
+    "bánh tàu quay"
+  ],
+  "setting": "đường ray qua đồng lúa",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

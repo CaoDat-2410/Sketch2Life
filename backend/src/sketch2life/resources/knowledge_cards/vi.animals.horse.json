@@ -1,0 +1,90 @@
+{
+  "card_id": "vi.animals.horse",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "con ngựa",
+    "ngựa",
+    "ngựa con"
+  ],
+  "topic_ids": [
+    "animals"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Ngựa là con vật to, khỏe và chạy nhanh.",
+      "key_terms": [
+        "ngựa",
+        "chạy nhanh"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "móng",
+      "min_age_months": 36,
+      "text": "Móng cứng đỡ chân ngựa khi chạy.",
+      "key_terms": [
+        "móng",
+        "chạy"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "bờm",
+      "min_age_months": 36,
+      "text": "Bờm là hàng lông dài trên cổ ngựa.",
+      "key_terms": [
+        "bờm",
+        "cổ"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "đuôi",
+      "min_age_months": 36,
+      "text": "Ngựa vẫy đuôi dài để xua ruồi muỗi.",
+      "key_terms": [
+        "đuôi",
+        "xua"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "chân",
+      "min_age_months": 72,
+      "text": "Ngựa có thể ngủ trong khi đang đứng.",
+      "key_terms": [
+        "ngủ",
+        "đứng"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Ngựa giúp người chở hàng và kéo xe.",
+      "key_terms": [
+        "ngựa",
+        "kéo xe"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "ngựa chạy",
+    "bờm bay"
+  ],
+  "setting": "đồng cỏ rộng",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

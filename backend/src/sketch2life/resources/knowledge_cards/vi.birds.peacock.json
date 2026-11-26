@@ -1,0 +1,91 @@
+{
+  "card_id": "vi.birds.peacock",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "con công",
+    "công",
+    "chim công",
+    "con chim công"
+  ],
+  "topic_ids": [
+    "birds"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Công là loài chim lớn, nổi bật với màu lông đẹp.",
+      "key_terms": [
+        "công",
+        "lông"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "đuôi",
+      "min_age_months": 36,
+      "text": "Công đực xòe bộ lông đuôi dài như chiếc quạt.",
+      "key_terms": [
+        "công đực",
+        "đuôi"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "chân",
+      "min_age_months": 36,
+      "text": "Đôi chân khỏe giúp công đi và chạy trên đất.",
+      "key_terms": [
+        "chân",
+        "chạy"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "mỏ",
+      "min_age_months": 36,
+      "text": "Công dùng mỏ nhặt hạt và bắt côn trùng.",
+      "key_terms": [
+        "mỏ",
+        "hạt"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "mào",
+      "min_age_months": 36,
+      "text": "Trên đầu công có chùm lông nhỏ như vương miện.",
+      "key_terms": [
+        "đầu",
+        "chùm lông"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Công đực xòe đuôi để thu hút công mái.",
+      "key_terms": [
+        "xòe đuôi",
+        "công mái"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "công xòe đuôi",
+    "công bước chậm"
+  ],
+  "setting": "vườn cây rộng",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

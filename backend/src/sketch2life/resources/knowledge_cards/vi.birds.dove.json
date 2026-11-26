@@ -1,0 +1,89 @@
+{
+  "card_id": "vi.birds.dove",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "con chim bồ câu",
+    "chim bồ câu",
+    "bồ câu"
+  ],
+  "topic_ids": [
+    "birds"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Bồ câu là loài chim hiền, thường sống gần người.",
+      "key_terms": [
+        "bồ câu",
+        "gần người"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "cánh",
+      "min_age_months": 36,
+      "text": "Cánh khỏe giúp bồ câu bay đường dài.",
+      "key_terms": [
+        "cánh",
+        "bay"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "mỏ",
+      "min_age_months": 36,
+      "text": "Bồ câu dùng mỏ nhỏ nhặt hạt.",
+      "key_terms": [
+        "mỏ",
+        "hạt"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "chân",
+      "min_age_months": 36,
+      "text": "Bồ câu bước đi và gật gù cái đầu.",
+      "key_terms": [
+        "bước",
+        "đầu"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "diều",
+      "min_age_months": 72,
+      "text": "Bồ câu bố mẹ đều nuôi con bằng sữa diều.",
+      "key_terms": [
+        "sữa diều"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Bồ câu giỏi tìm đường về tổ từ rất xa.",
+      "key_terms": [
+        "bồ câu",
+        "về tổ"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "bồ câu gật đầu",
+    "bồ câu cất cánh"
+  ],
+  "setting": "quảng trường rộng",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

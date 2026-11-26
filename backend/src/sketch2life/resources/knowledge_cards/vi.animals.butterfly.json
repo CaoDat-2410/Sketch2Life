@@ -1,0 +1,90 @@
+{
+  "card_id": "vi.animals.butterfly",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "con bướm",
+    "bướm"
+  ],
+  "topic_ids": [
+    "animals",
+    "insects"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Bướm là côn trùng có đôi cánh nhiều màu.",
+      "key_terms": [
+        "bướm",
+        "cánh"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "cánh",
+      "min_age_months": 36,
+      "text": "Cánh bướm phủ nhiều vảy nhỏ tạo màu sắc.",
+      "key_terms": [
+        "cánh",
+        "vảy"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "vòi",
+      "min_age_months": 36,
+      "text": "Bướm dùng chiếc vòi dài để hút mật hoa.",
+      "key_terms": [
+        "vòi",
+        "mật hoa"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "râu",
+      "min_age_months": 36,
+      "text": "Đôi râu giúp bướm nhận ra mùi hương.",
+      "key_terms": [
+        "râu",
+        "mùi"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "chân",
+      "min_age_months": 72,
+      "text": "Bướm có thể nếm thức ăn bằng chân.",
+      "key_terms": [
+        "nếm",
+        "chân"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Bướm giúp mang phấn từ hoa này sang hoa khác.",
+      "key_terms": [
+        "phấn",
+        "hoa"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "bướm vỗ cánh",
+    "bướm đậu hoa"
+  ],
+  "setting": "vườn hoa",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

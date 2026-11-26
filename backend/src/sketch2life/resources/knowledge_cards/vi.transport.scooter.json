@@ -1,0 +1,89 @@
+{
+  "card_id": "vi.transport.scooter",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "chiếc xe máy",
+    "xe máy"
+  ],
+  "topic_ids": [
+    "transport"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Xe máy là xe hai bánh chạy bằng động cơ.",
+      "key_terms": [
+        "xe máy",
+        "động cơ"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "bánh xe",
+      "min_age_months": 36,
+      "text": "Hai bánh xe lăn đưa xe máy đi tới.",
+      "key_terms": [
+        "bánh xe",
+        "lăn"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "đèn",
+      "min_age_months": 36,
+      "text": "Đèn xe giúp nhìn rõ đường khi trời tối.",
+      "key_terms": [
+        "đèn xe",
+        "đường"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "gương",
+      "min_age_months": 36,
+      "text": "Gương giúp người lái nhìn phía sau.",
+      "key_terms": [
+        "gương",
+        "phía sau"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "còi",
+      "min_age_months": 36,
+      "text": "Còi xe kêu để báo cho người khác biết.",
+      "key_terms": [
+        "còi",
+        "báo"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Người lớn đi xe máy và ai cũng đội mũ bảo hiểm.",
+      "key_terms": [
+        "xe máy",
+        "mũ bảo hiểm"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "bánh xe lăn",
+    "xe chạy tới"
+  ],
+  "setting": "con phố quen",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

@@ -1,0 +1,92 @@
+{
+  "card_id": "vi.transport.bus",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "chiếc xe buýt",
+    "xe buýt",
+    "xe đưa đón",
+    "xe buýt đưa đón"
+  ],
+  "topic_ids": [
+    "transport",
+    "school"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Xe buýt là xe lớn có nhiều chỗ ngồi.",
+      "key_terms": [
+        "xe buýt",
+        "chỗ ngồi"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "cửa",
+      "min_age_months": 36,
+      "text": "Cửa xe mở để hành khách lên và xuống.",
+      "key_terms": [
+        "cửa xe",
+        "hành khách"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "cửa sổ",
+      "min_age_months": 36,
+      "text": "Cửa sổ giúp người ngồi ngắm đường phố.",
+      "key_terms": [
+        "cửa sổ",
+        "ngắm"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "bánh xe",
+      "min_age_months": 36,
+      "text": "Bánh xe lớn đỡ chiếc xe chở nhiều người.",
+      "key_terms": [
+        "bánh xe",
+        "chở"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "biển số tuyến",
+      "min_age_months": 72,
+      "text": "Số tuyến trên xe cho biết xe đi đường nào.",
+      "key_terms": [
+        "số tuyến",
+        "đường"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Xe buýt chở nhiều người đi chung một chuyến.",
+      "key_terms": [
+        "xe buýt",
+        "đi chung"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "xe chạy",
+    "cửa xe mở"
+  ],
+  "setting": "trạm xe bên đường",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

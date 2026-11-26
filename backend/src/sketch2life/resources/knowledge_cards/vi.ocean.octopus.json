@@ -1,0 +1,88 @@
+{
+  "card_id": "vi.ocean.octopus",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "con bạch tuộc",
+    "bạch tuộc"
+  ],
+  "topic_ids": [
+    "ocean"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Bạch tuộc là con vật biển có thân mềm.",
+      "key_terms": [
+        "bạch tuộc",
+        "thân mềm"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "xúc tu",
+      "min_age_months": 36,
+      "text": "Bạch tuộc có tám xúc tu để bò và bắt mồi.",
+      "key_terms": [
+        "tám xúc tu",
+        "bắt mồi"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "giác hút",
+      "min_age_months": 36,
+      "text": "Giác hút trên xúc tu giúp bám và giữ đồ vật.",
+      "key_terms": [
+        "giác hút",
+        "bám"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "da",
+      "min_age_months": 36,
+      "text": "Bạch tuộc đổi màu da để ẩn mình.",
+      "key_terms": [
+        "đổi màu",
+        "ẩn"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "tim",
+      "min_age_months": 72,
+      "text": "Bạch tuộc có tới ba trái tim.",
+      "key_terms": [
+        "ba trái tim"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Bạch tuộc phun mực để trốn khi gặp nguy hiểm.",
+      "key_terms": [
+        "phun mực",
+        "trốn"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "xúc tu uốn lượn",
+    "bạch tuộc trôi"
+  ],
+  "setting": "khe đá dưới biển",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

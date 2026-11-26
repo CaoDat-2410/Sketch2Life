@@ -1,0 +1,88 @@
+{
+  "card_id": "vi.transport.ambulance",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "xe cứu thương"
+  ],
+  "topic_ids": [
+    "transport"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Xe cứu thương là xe chở người bệnh.",
+      "key_terms": [
+        "xe cứu thương",
+        "người bệnh"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "còi",
+      "min_age_months": 36,
+      "text": "Còi hú báo mọi người nhường đường.",
+      "key_terms": [
+        "còi hú",
+        "nhường đường"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "đèn",
+      "min_age_months": 36,
+      "text": "Đèn nhấp nháy giúp mọi người nhìn thấy xe từ xa.",
+      "key_terms": [
+        "đèn nhấp nháy",
+        "nhìn thấy"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "cáng",
+      "min_age_months": 36,
+      "text": "Cáng giúp đưa người bệnh lên xe nhẹ nhàng.",
+      "key_terms": [
+        "cáng",
+        "người bệnh"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "dấu chữ thập",
+      "min_age_months": 72,
+      "text": "Dấu chữ thập giúp nhận ra xe y tế.",
+      "key_terms": [
+        "chữ thập",
+        "y tế"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Xe cứu thương đưa người bệnh tới bệnh viện thật nhanh.",
+      "key_terms": [
+        "bệnh viện",
+        "nhanh"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "đèn xe nhấp nháy",
+    "xe chạy nhanh"
+  ],
+  "setting": "đường tới bệnh viện",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

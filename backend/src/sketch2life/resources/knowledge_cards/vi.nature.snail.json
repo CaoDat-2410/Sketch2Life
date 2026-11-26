@@ -1,0 +1,89 @@
+{
+  "card_id": "vi.nature.snail",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "con ốc sên",
+    "ốc sên"
+  ],
+  "topic_ids": [
+    "nature"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Ốc sên là con vật thân mềm mang vỏ trên lưng.",
+      "key_terms": [
+        "ốc sên",
+        "vỏ"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "vỏ",
+      "min_age_months": 36,
+      "text": "Ốc sên rúc vào vỏ khi gặp nguy hiểm.",
+      "key_terms": [
+        "vỏ",
+        "rúc"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "râu",
+      "min_age_months": 36,
+      "text": "Trên đầu ốc sên có râu, mắt nằm ở đầu râu.",
+      "key_terms": [
+        "râu",
+        "mắt"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "chân",
+      "min_age_months": 36,
+      "text": "Ốc sên trườn bằng một chiếc chân rộng dưới thân.",
+      "key_terms": [
+        "chân",
+        "trườn"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "nhớt",
+      "min_age_months": 72,
+      "text": "Chất nhớt giúp ốc sên trườn êm trên đường gồ ghề.",
+      "key_terms": [
+        "nhớt",
+        "trườn"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Ốc sên ăn lá mục và góp phần làm đất tốt.",
+      "key_terms": [
+        "lá mục",
+        "đất"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "ốc sên bò chậm",
+    "râu ốc rung"
+  ],
+  "setting": "chiếc lá ướt sau mưa",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

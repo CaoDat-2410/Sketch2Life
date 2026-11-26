@@ -1,0 +1,91 @@
+{
+  "card_id": "vi.animals.deer",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "con hươu",
+    "hươu",
+    "hươu con",
+    "nai"
+  ],
+  "topic_ids": [
+    "animals"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Hươu là con vật ăn cỏ sống trong rừng.",
+      "key_terms": [
+        "hươu",
+        "rừng"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "chân",
+      "min_age_months": 36,
+      "text": "Chân dài và thon giúp hươu chạy rất nhanh.",
+      "key_terms": [
+        "chân",
+        "chạy"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "sừng",
+      "min_age_months": 72,
+      "text": "Nhiều hươu đực có sừng và thay sừng theo mùa.",
+      "key_terms": [
+        "sừng",
+        "mùa"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "tai",
+      "min_age_months": 36,
+      "text": "Tai hươu xoay được để nghe ngóng xung quanh.",
+      "key_terms": [
+        "tai",
+        "nghe"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "mắt",
+      "min_age_months": 36,
+      "text": "Mắt ở hai bên đầu giúp hươu nhìn rộng.",
+      "key_terms": [
+        "mắt",
+        "nhìn rộng"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Hươu ăn lá non và là một phần của khu rừng.",
+      "key_terms": [
+        "lá non",
+        "rừng"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "hươu bước nhẹ",
+    "hươu quay đầu"
+  ],
+  "setting": "bìa rừng buổi sớm",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

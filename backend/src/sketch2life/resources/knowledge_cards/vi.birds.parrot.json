@@ -1,0 +1,89 @@
+{
+  "card_id": "vi.birds.parrot",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "con vẹt",
+    "vẹt"
+  ],
+  "topic_ids": [
+    "birds"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Vẹt là loài chim có bộ lông nhiều màu.",
+      "key_terms": [
+        "vẹt",
+        "lông"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "mỏ",
+      "min_age_months": 36,
+      "text": "Mỏ cong, khỏe giúp vẹt tách vỏ hạt.",
+      "key_terms": [
+        "mỏ cong",
+        "hạt"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "chân",
+      "min_age_months": 36,
+      "text": "Chân vẹt vừa bám cành vừa cầm thức ăn.",
+      "key_terms": [
+        "chân",
+        "cầm"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "cánh",
+      "min_age_months": 36,
+      "text": "Đôi cánh giúp vẹt bay giữa các tán cây.",
+      "key_terms": [
+        "cánh",
+        "bay"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "lưỡi",
+      "min_age_months": 72,
+      "text": "Một số loài vẹt bắt chước được tiếng người.",
+      "key_terms": [
+        "bắt chước",
+        "tiếng"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Vẹt ăn quả, hạt và giúp phát tán hạt giống.",
+      "key_terms": [
+        "vẹt",
+        "hạt"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "vẹt nghiêng đầu",
+    "vẹt vỗ cánh"
+  ],
+  "setting": "cành cây trong vườn",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

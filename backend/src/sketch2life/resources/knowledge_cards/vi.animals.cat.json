@@ -1,0 +1,90 @@
+{
+  "card_id": "vi.animals.cat",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "con mèo",
+    "mèo",
+    "bạn mèo"
+  ],
+  "topic_ids": [
+    "animals"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Mèo là vật nuôi nhỏ, đi bằng bốn chân.",
+      "key_terms": [
+        "mèo",
+        "bốn chân"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "ria",
+      "min_age_months": 36,
+      "text": "Ria giúp mèo biết khe hở rộng hay hẹp.",
+      "key_terms": [
+        "ria",
+        "mèo"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "tai",
+      "min_age_months": 36,
+      "text": "Đôi tai mèo nghe được tiếng động rất khẽ.",
+      "key_terms": [
+        "tai",
+        "nghe"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "chân",
+      "min_age_months": 36,
+      "text": "Đệm thịt dưới chân giúp mèo đi thật êm.",
+      "key_terms": [
+        "đệm thịt",
+        "êm"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "đuôi",
+      "min_age_months": 72,
+      "text": "Cái đuôi giúp mèo giữ thăng bằng khi leo trèo.",
+      "key_terms": [
+        "đuôi",
+        "thăng bằng"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Mèo làm bạn trong nhà và hay bắt chuột.",
+      "key_terms": [
+        "mèo",
+        "bắt chuột"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "mèo vẫy đuôi",
+    "mèo bước nhẹ"
+  ],
+  "setting": "sân nhà có nắng",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

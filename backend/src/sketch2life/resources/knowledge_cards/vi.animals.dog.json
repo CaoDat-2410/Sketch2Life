@@ -1,0 +1,89 @@
+{
+  "card_id": "vi.animals.dog",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "con chó",
+    "chú chó",
+    "chó"
+  ],
+  "topic_ids": [
+    "animals"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Chó là vật nuôi thân thiết với con người.",
+      "key_terms": [
+        "chó",
+        "vật nuôi"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "mũi",
+      "min_age_months": 36,
+      "text": "Mũi chó đánh hơi rất giỏi.",
+      "key_terms": [
+        "mũi",
+        "đánh hơi"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "tai",
+      "min_age_months": 36,
+      "text": "Tai chó nghe được cả âm thanh ở xa.",
+      "key_terms": [
+        "tai",
+        "nghe"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "đuôi",
+      "min_age_months": 36,
+      "text": "Chó thường vẫy đuôi khi gặp người quen.",
+      "key_terms": [
+        "vẫy đuôi"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "chân",
+      "min_age_months": 36,
+      "text": "Bốn chân khỏe giúp chó chạy nhanh.",
+      "key_terms": [
+        "chân",
+        "chạy nhanh"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Chó giúp trông nhà và làm bạn với mọi người.",
+      "key_terms": [
+        "trông nhà",
+        "bạn"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "chó vẫy đuôi",
+    "chó chạy"
+  ],
+  "setting": "trước cửa nhà",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

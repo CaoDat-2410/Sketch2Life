@@ -1,0 +1,90 @@
+{
+  "card_id": "vi.insects.caterpillar",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "con sâu bướm",
+    "sâu bướm",
+    "con sâu"
+  ],
+  "topic_ids": [
+    "insects"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Sâu bướm là bạn bướm khi còn nhỏ.",
+      "key_terms": [
+        "sâu bướm",
+        "bướm"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "miệng",
+      "min_age_months": 36,
+      "text": "Sâu bướm gặm lá suốt ngày để lớn nhanh.",
+      "key_terms": [
+        "lá",
+        "lớn"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "chân",
+      "min_age_months": 36,
+      "text": "Nhiều chân ngắn giúp sâu bám chắc vào cành.",
+      "key_terms": [
+        "chân",
+        "bám"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "da",
+      "min_age_months": 36,
+      "text": "Khi lớn lên, sâu lột lớp da cũ.",
+      "key_terms": [
+        "lột",
+        "da"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "kén",
+      "min_age_months": 72,
+      "text": "Sâu hóa nhộng rồi biến thành bướm.",
+      "key_terms": [
+        "nhộng",
+        "bướm"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Sâu bướm lớn lên thành bướm giúp hoa thụ phấn.",
+      "key_terms": [
+        "bướm",
+        "thụ phấn"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "sâu bò uốn mình",
+    "lá rung"
+  ],
+  "setting": "cành lá non",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

@@ -1,0 +1,89 @@
+{
+  "card_id": "vi.transport.car",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "chiếc ô tô",
+    "ô tô",
+    "xe hơi"
+  ],
+  "topic_ids": [
+    "transport"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Ô tô là xe có bốn bánh chạy trên đường.",
+      "key_terms": [
+        "ô tô",
+        "bốn bánh"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "bánh xe",
+      "min_age_months": 36,
+      "text": "Bánh xe quay đưa ô tô tiến tới.",
+      "key_terms": [
+        "bánh xe",
+        "quay"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "đèn",
+      "min_age_months": 36,
+      "text": "Đèn pha chiếu sáng đường khi trời tối.",
+      "key_terms": [
+        "đèn pha",
+        "sáng"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "vô lăng",
+      "min_age_months": 36,
+      "text": "Người lái xoay vô lăng để xe đổi hướng.",
+      "key_terms": [
+        "vô lăng",
+        "đổi hướng"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "dây an toàn",
+      "min_age_months": 36,
+      "text": "Dây an toàn giữ người ngồi trên xe được an toàn.",
+      "key_terms": [
+        "dây an toàn"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Ô tô chở người và đồ đi xa.",
+      "key_terms": [
+        "ô tô",
+        "chở"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "bánh xe lăn",
+    "xe chạy tới"
+  ],
+  "setting": "con đường rộng",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

@@ -1,0 +1,89 @@
+{
+  "card_id": "vi.ocean.crab",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "con cua",
+    "cua",
+    "cua nhỏ"
+  ],
+  "topic_ids": [
+    "ocean"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Cua là con vật có lớp vỏ cứng.",
+      "key_terms": [
+        "cua",
+        "vỏ cứng"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "càng",
+      "min_age_months": 36,
+      "text": "Cua dùng hai càng để gắp thức ăn và tự vệ.",
+      "key_terms": [
+        "càng",
+        "tự vệ"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "chân",
+      "min_age_months": 36,
+      "text": "Nhiều chân giúp cua bò ngang trên cát.",
+      "key_terms": [
+        "chân",
+        "bò ngang"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "mắt",
+      "min_age_months": 36,
+      "text": "Mắt cua nằm trên cuống để nhìn xung quanh.",
+      "key_terms": [
+        "mắt",
+        "cuống"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "vỏ",
+      "min_age_months": 72,
+      "text": "Khi lớn lên, cua lột vỏ cũ để thay vỏ mới.",
+      "key_terms": [
+        "lột vỏ"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Cua dọn thức ăn thừa, giúp bãi biển sạch hơn.",
+      "key_terms": [
+        "cua",
+        "sạch"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "cua bò ngang",
+    "cua giơ càng"
+  ],
+  "setting": "bãi cát ven biển",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

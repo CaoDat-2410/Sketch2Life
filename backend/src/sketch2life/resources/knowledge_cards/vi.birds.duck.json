@@ -1,0 +1,91 @@
+{
+  "card_id": "vi.birds.duck",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "con vịt",
+    "vịt",
+    "vịt con"
+  ],
+  "topic_ids": [
+    "birds",
+    "farm"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Vịt là loài chim bơi rất giỏi.",
+      "key_terms": [
+        "vịt",
+        "bơi"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "chân",
+      "min_age_months": 36,
+      "text": "Chân có màng giúp vịt đạp nước.",
+      "key_terms": [
+        "chân có màng",
+        "đạp nước"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "mỏ",
+      "min_age_months": 36,
+      "text": "Mỏ dẹt giúp vịt mò thức ăn trong nước.",
+      "key_terms": [
+        "mỏ dẹt",
+        "thức ăn"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "lông",
+      "min_age_months": 36,
+      "text": "Lông vịt trơn nên khó thấm nước.",
+      "key_terms": [
+        "lông",
+        "nước"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "cánh",
+      "min_age_months": 72,
+      "text": "Nhiều loài vịt trời bay được rất xa.",
+      "key_terms": [
+        "vịt trời",
+        "bay"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Vịt được người nuôi để lấy trứng và thịt.",
+      "key_terms": [
+        "vịt",
+        "trứng"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "vịt bơi",
+    "vịt lắc đuôi"
+  ],
+  "setting": "mặt ao",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

@@ -1,0 +1,90 @@
+{
+  "card_id": "vi.nature.tree",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "cây xanh",
+    "cây",
+    "cái cây"
+  ],
+  "topic_ids": [
+    "nature"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Cây xanh là thực vật có thân và tán lá.",
+      "key_terms": [
+        "cây xanh",
+        "tán lá"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "rễ",
+      "min_age_months": 36,
+      "text": "Rễ bám vào đất và hút nước cho cây.",
+      "key_terms": [
+        "rễ",
+        "hút nước"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "thân",
+      "min_age_months": 36,
+      "text": "Thân cây đỡ cành lá và dẫn nước lên.",
+      "key_terms": [
+        "thân cây",
+        "nước"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "lá",
+      "min_age_months": 36,
+      "text": "Lá đón nắng để làm thức ăn cho cây.",
+      "key_terms": [
+        "lá",
+        "nắng"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "cành",
+      "min_age_months": 36,
+      "text": "Cành cây vươn ra để lá đón được nhiều nắng.",
+      "key_terms": [
+        "cành",
+        "nắng"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Cây cho bóng mát và làm không khí trong lành.",
+      "key_terms": [
+        "bóng mát",
+        "không khí"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "tán lá lay động",
+    "lá rơi nhẹ"
+  ],
+  "setting": "sân trường",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

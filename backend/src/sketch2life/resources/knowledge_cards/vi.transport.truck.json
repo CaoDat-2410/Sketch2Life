@@ -1,0 +1,89 @@
+{
+  "card_id": "vi.transport.truck",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "chiếc xe tải",
+    "xe tải"
+  ],
+  "topic_ids": [
+    "transport"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Xe tải là xe lớn dùng để chở hàng.",
+      "key_terms": [
+        "xe tải",
+        "chở hàng"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "thùng xe",
+      "min_age_months": 36,
+      "text": "Thùng xe phía sau đựng được rất nhiều hàng.",
+      "key_terms": [
+        "thùng xe",
+        "hàng"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "bánh xe",
+      "min_age_months": 36,
+      "text": "Nhiều bánh xe to giúp đỡ hàng nặng.",
+      "key_terms": [
+        "bánh xe",
+        "nặng"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "buồng lái",
+      "min_age_months": 36,
+      "text": "Bác tài ngồi trong buồng lái phía trước.",
+      "key_terms": [
+        "buồng lái",
+        "bác tài"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "gương",
+      "min_age_months": 36,
+      "text": "Gương lớn giúp bác tài nhìn hai bên xe.",
+      "key_terms": [
+        "gương",
+        "bên xe"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Xe tải đưa rau quả và hàng hóa đến mọi nơi.",
+      "key_terms": [
+        "xe tải",
+        "hàng hóa"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "xe chạy",
+    "bánh xe quay"
+  ],
+  "setting": "đường ra chợ",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}

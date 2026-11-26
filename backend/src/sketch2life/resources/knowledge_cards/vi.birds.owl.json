@@ -1,0 +1,90 @@
+{
+  "card_id": "vi.birds.owl",
+  "version": 1,
+  "status": "DRAFT",
+  "subject_labels": [
+    "con cú mèo",
+    "cú mèo",
+    "cú"
+  ],
+  "topic_ids": [
+    "birds"
+  ],
+  "facts": [
+    {
+      "id": "what",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Cú mèo là loài chim thường hoạt động ban đêm.",
+      "key_terms": [
+        "cú mèo",
+        "ban đêm"
+      ]
+    },
+    {
+      "id": "part-1",
+      "kind": "PART",
+      "part": "mắt",
+      "min_age_months": 36,
+      "text": "Đôi mắt to giúp cú nhìn rõ khi trời tối.",
+      "key_terms": [
+        "mắt to",
+        "tối"
+      ]
+    },
+    {
+      "id": "part-2",
+      "kind": "PART",
+      "part": "cổ",
+      "min_age_months": 36,
+      "text": "Cú xoay được đầu rất xa để nhìn quanh.",
+      "key_terms": [
+        "xoay",
+        "đầu"
+      ]
+    },
+    {
+      "id": "part-3",
+      "kind": "PART",
+      "part": "cánh",
+      "min_age_months": 36,
+      "text": "Lông cánh mềm giúp cú bay rất êm.",
+      "key_terms": [
+        "cánh",
+        "êm"
+      ]
+    },
+    {
+      "id": "part-4",
+      "kind": "PART",
+      "part": "tai",
+      "min_age_months": 72,
+      "text": "Đôi tai thính giúp cú tìm mồi trong đêm.",
+      "key_terms": [
+        "tai",
+        "đêm"
+      ]
+    },
+    {
+      "id": "use",
+      "kind": "USE",
+      "part": null,
+      "min_age_months": 36,
+      "text": "Cú mèo bắt chuột, giúp bảo vệ mùa màng.",
+      "key_terms": [
+        "bắt chuột",
+        "mùa màng"
+      ]
+    }
+  ],
+  "motion_hints": [
+    "cú quay đầu",
+    "cú chớp mắt"
+  ],
+  "setting": "cành cây đêm trăng",
+  "sources": [],
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "approved_sha256": null
+}
