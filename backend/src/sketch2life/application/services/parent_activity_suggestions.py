@@ -7,7 +7,7 @@ import unicodedata
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from difflib import SequenceMatcher
-from typing import Any, TypeVar
+from typing import Any
 
 from pydantic import ValidationError
 
@@ -108,7 +108,6 @@ _MEASURE_UNITS = frozenset({"cm", "mm", "m", "kg", "g", "l", "km"})
 _GENERATION_ATTEMPTS = 2
 # SRS: when the catalog has no match, the Parent is offered exactly three generated drafts.
 _FALLBACK_ACTIVITY_COUNT = 3
-_Answer = TypeVar("_Answer")
 
 
 class ParentActivitySuggestionError(ValueError):
@@ -128,12 +127,12 @@ def classify_parent_activity_worker_failure(
     return worker_error_code, None
 
 
-def generate_activity_suggestions(
-    invoke: Callable[[], _Answer],
-    resolve: Callable[[_Answer], dict[str, Any]],
+def generate_activity_suggestions[Answer](
+    invoke: Callable[[], Answer],
+    resolve: Callable[[Answer], dict[str, Any]],
     *,
     on_rejected: Callable[[ParentActivitySuggestionError], None] | None = None,
-) -> tuple[_Answer, dict[str, Any]]:
+) -> tuple[Answer, dict[str, Any]]:
     """Ask the model, check the answer, and ask once more when only the quality gate refused it."""
 
     for attempt in range(1, _GENERATION_ATTEMPTS + 1):
@@ -143,7 +142,8 @@ def generate_activity_suggestions(
         except ParentActivitySuggestionError as error:
             if on_rejected is not None:
                 on_rejected(error)
-            if attempt == _GENERATION_ATTEMPTS or error.code != "PARENT_ACTIVITY_QUALITY_GATE_REJECTED":
+            gate_refusal = error.code == "PARENT_ACTIVITY_QUALITY_GATE_REJECTED"
+            if attempt == _GENERATION_ATTEMPTS or not gate_refusal:
                 raise
     raise AssertionError("unreachable")
 
@@ -216,7 +216,10 @@ def _has_incomplete_vietnamese_sentence_tail(value: str) -> bool:
         if (
             len(consonant_form) <= 2
             and set(consonant_form) <= _VIETNAMESE_CONSONANTS
-            and not (consonant_form in _MEASURE_UNITS and any(character.isdigit() for character in sentence))
+            and not (
+                consonant_form in _MEASURE_UNITS
+                and any(character.isdigit() for character in sentence)
+            )
         ):
             return True
         if (
