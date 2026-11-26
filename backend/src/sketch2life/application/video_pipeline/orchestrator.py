@@ -201,6 +201,7 @@ class VideoPipeline:
                 for scene in plan.scenes
             ),
         )
+        self._prime([scene.visual_prompt for scene in plan.scenes])
         secondary_ids = tuple(item.entity_id for item in source.subjects if item.entity_id != main)
         try:
             staging = build_staging(
@@ -277,6 +278,14 @@ class VideoPipeline:
             if callable(warm_up):
                 with contextlib.suppress(Exception):
                     warm_up()
+
+    def _prime(self, prompts: list[str]) -> None:
+        """Give the renderer every scene prompt as soon as the plan exists (best effort)."""
+
+        prime = getattr(self._renderer, "prime", None)
+        if callable(prime):
+            with contextlib.suppress(Exception):
+                prime(prompts)
 
     # ----------------------------------------------------------------- C2 work
     def _prepare(

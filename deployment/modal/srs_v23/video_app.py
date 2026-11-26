@@ -33,6 +33,13 @@ from contracts import (
     WorkerContractError,
     parse_worker_input,
 )
+from ltx_speed import (
+    FAST,
+    ProfileSwitch,
+    PromptCache,
+    render_with_fallback,
+    warm_up_prompts,
+)
 from keyframe_plan import (
     KeyframePlanError,
     scene_conditioning,
@@ -116,6 +123,7 @@ scratch_volume = modal.Volume.from_name(
 _contracts_file = _MODULE_DIR / "contracts.py"
 _observability_file = _MODULE_DIR / "worker_observability.py"
 _story_visual_plan_file = _MODULE_DIR / "story_visual_plan.py"
+_ltx_speed_file = _MODULE_DIR / "ltx_speed.py"
 _keyframe_modules = (
     "keyframe_compositor.py",
     "keyframe_metrics.py",
@@ -169,14 +177,22 @@ _inference_image = (
             "HF_HOME": f"{MODEL_MOUNT}/huggingface-cache",
             "HF_HUB_OFFLINE": "1",
             "TOKENIZERS_PARALLELISM": "false",
+            # FEAT-094: the fast profile runs close to the memory limit.
+            "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True",
         }
     )
 )
 
 
+def _with_speed_module(image: modal.Image) -> modal.Image:
+    """Mount ``ltx_speed`` as the last layer; every function of this app imports it with this module."""
+
+    return image.add_local_file(str(_ltx_speed_file), "/root/ltx_speed.py")
+
+
 @app.function(
     name="health",
-    image=_worker_base_image,
+    image=_with_speed_module(_worker_base_image),
     min_containers=0,
     max_containers=1,
     scaledown_window=30,
@@ -196,7 +212,7 @@ def health() -> dict[str, Any]:
 
 @app.function(
     name="check-ltx25-model-access",
-    image=_download_image,
+    image=_with_speed_module(_download_image),
     secrets=[
         modal.Secret.from_name(
             HF_CREDENTIAL_RESOURCE_NAME,
@@ -303,7 +319,7 @@ def check_ltx25_model_access() -> dict[str, Any]:
 
 @app.function(
     name="download-ltx25-pinned-model",
-    image=_download_image,
+    image=_with_speed_module(_download_image),
     secrets=[
         modal.Secret.from_name(
             HF_CREDENTIAL_RESOURCE_NAME,
@@ -423,7 +439,7 @@ def download_ltx25_pinned_model() -> dict[str, Any]:
 
 @app.function(
     name="ltx25-model-status",
-    image=_download_image,
+    image=_with_speed_module(_download_image),
     volumes={MODEL_MOUNT: model_volume.with_mount_options(read_only=True)},
     cpu=1.0,
     memory=2_048,
@@ -452,7 +468,7 @@ def ltx25_model_status() -> dict[str, Any]:
 
 @app.function(
     name="diagnose-ltx25-runtime",
-    image=_inference_image,
+    image=_with_speed_module(_inference_image),
     volumes={MODEL_MOUNT: model_volume.with_mount_options(read_only=True)},
     cpu=4.0,
     memory=16_384,
@@ -517,7 +533,7 @@ def diagnose_ltx25_runtime() -> dict[str, Any]:
 
 @app.function(
     name="generate-video-scene",
-    image=_inference_image,
+    image=_with_speed_module(_inference_image),
     gpu="L40S",
     cpu=8.0,
     memory=65_536,
@@ -541,8 +557,12 @@ def diagnose_ltx25_runtime() -> dict[str, Any]:
 def generate_video_scene(payload: dict[str, Any]) -> dict[str, Any]:
     """Generate one isolated image-conditioned scene candidate with LTX-2.5."""
 
-    if payload == {"warmup": True}:
-        return _warm_up_scene_renderer()
+    if payload.get("warmup") is True:
+        try:
+            prompts = warm_up_prompts(payload)
+        except ValueError as error:
+            raise WorkerContractError(str(error)) from None
+        return _warm_up_scene_renderer(prompts or [])
     with worker_phase("input_envelope"):
         request = parse_worker_input(payload, execution_group="l40s-video")
     worker_stage("workload_gate")
@@ -579,14 +599,13 @@ def generate_video_scene(payload: dict[str, Any]) -> dict[str, Any]:
         torch.cuda.reset_peak_memory_stats()
         model_load_started = time.perf_counter()
         with worker_phase("model_load"):
-            pipeline = _load_pipeline()
+            _load_pipeline()
         model_load_duration_ms = round(
             (time.perf_counter() - model_load_started) * 1000
         )
         inference_started = time.perf_counter()
         with worker_phase("model_inference"):
-            frame_plan = _run_ltx(
-                pipeline=pipeline,
+            frame_plan = _render_scene(
                 image_path=image_path,
                 output_path=raw_path,
                 visual_prompt=manifest["visual_prompt"],
@@ -749,7 +768,7 @@ def _build_silent_story_output_payload(
 
 @app.function(
     name="generate-silent-story-video",
-    image=_inference_image,
+    image=_with_speed_module(_inference_image),
     gpu="L40S",
     cpu=8.0,
     memory=65_536,
@@ -822,7 +841,7 @@ def generate_silent_story_video(payload: dict[str, Any]) -> dict[str, Any]:
         pipeline_cache_hit = _PIPELINE is not None
         model_load_started = time.perf_counter()
         with worker_phase("model_load"):
-            pipeline = _load_pipeline()
+            _load_pipeline()
         model_load_duration_ms = round(
             (time.perf_counter() - model_load_started) * 1000
         )
@@ -856,8 +875,7 @@ def generate_silent_story_video(payload: dict[str, Any]) -> dict[str, Any]:
             worker_stage(f"scene_{scene_index:02d}_started")
             inference_started = time.perf_counter()
             with worker_phase(f"scene_{scene_index:02d}_inference"):
-                generated_frame_plan = _run_ltx(
-                    pipeline=pipeline,
+                generated_frame_plan = _render_scene(
                     image_path=render_inputs["start_path"],
                     output_path=raw_path,
                     visual_prompt=compiled_prompt,
@@ -1320,6 +1338,8 @@ def _assemble_silent_story(
         f"fps={int(FPS)},trim=end_frame={target_frame_count},setpts=N/({int(FPS)}*TB)",
         "-frames:v",
         str(target_frame_count),
+        "-r",
+        str(int(FPS)),
         "-c:v",
         "libx264",
         "-preset",
@@ -1495,21 +1515,88 @@ def _prepare_drawing(
     return len(raw)
 
 
-def _warm_up_scene_renderer() -> dict[str, Any]:
-    """Read the checkpoint files and build the pipeline before the first scene arrives; no job data is read."""
+def _warm_up_scene_renderer(prompts: list[str] | None = None) -> dict[str, Any]:
+    """Prepare the container before the first scene; no job data is read.
+
+    Reads the checkpoint files, builds the pipeline, compiles the decoder with a one second blank render and, when the
+    backend already knows the scene prompts, encodes them all in one text-encoder load.
+    """
+
+    global _DECODER_COMPILED
 
     started = time.perf_counter()
     with worker_phase("checkpoint_preflight"):
         _require_model_ready()
     with worker_phase("model_load"):
-        for name in MODEL_FILES:
-            with (Path(MODEL_ROOT) / name).open("rb") as handle:
-                while handle.read(64 * 1024 * 1024):
-                    pass
-        _load_pipeline()
+        if not _DECODER_COMPILED:
+            for name in MODEL_FILES:
+                with (Path(MODEL_ROOT) / name).open("rb") as handle:
+                    while handle.read(64 * 1024 * 1024):
+                        pass
+        pipeline = _load_pipeline()
+    if prompts and isinstance(pipeline.prompt_encoder, PromptCache):
+        import torch
+
+        with worker_phase("prompt_encoding"), torch.inference_mode():
+            pipeline.prompt_encoder.prepare([_ltx_animation_prompt(prompt) for prompt in prompts])
+    if not _DECODER_COMPILED:
+        with worker_phase("decoder_compile"):
+            _compile_decoder()
+        _DECODER_COMPILED = True
     seconds = round(time.perf_counter() - started, 1)
-    print(json.dumps({"event": "scene_warm_up", "seconds": seconds}), flush=True)
+    print(
+        json.dumps({"event": "scene_warm_up", "seconds": seconds, "speed_profile": _PROFILES.current}),
+        flush=True,
+    )
     return {"warmed": True, "seconds": seconds}
+
+
+def _compile_decoder() -> None:
+    """Pay the first-render compilation with a blank one second clip; a failure only costs time later."""
+
+    if _PROFILES.current != FAST:
+        return
+    from PIL import Image
+
+    with tempfile.TemporaryDirectory(prefix="sketch2life-ltx-warm-") as directory:
+        blank = Path(directory) / "blank.png"
+        Image.new("RGB", (OUTPUT_WIDTH, MODEL_FRAME_HEIGHT), "white").save(blank, format="PNG")
+        try:
+            _render_scene(
+                image_path=blank,
+                output_path=Path(directory) / "warm.mp4",
+                visual_prompt="A blank sheet of paper.",
+                seed=1,
+                target_duration=1.0,
+            )
+        except Exception as error:  # noqa: BLE001 - the warm-up never fails the first job
+            print(
+                json.dumps({"event": "scene_warm_up_render_failed", "error_type": type(error).__name__}),
+                flush=True,
+            )
+
+
+def _render_scene(**arguments: Any) -> dict[str, int | float]:
+    """``_run_ltx`` on the current speed profile, falling back to the safe one when memory runs out."""
+
+    return render_with_fallback(
+        _PROFILES,
+        lambda: _run_ltx(pipeline=_load_pipeline(), **arguments),
+        release=_release_pipeline,
+    )
+
+
+def _release_pipeline() -> None:
+    global _PIPELINE
+
+    _PIPELINE = None
+    gc.collect()
+    import torch
+
+    empty_cache = getattr(torch.cuda, "empty_cache", None)
+    if empty_cache is not None:
+        empty_cache()
+    print(json.dumps({"event": "scene_speed_fallback", "speed_profile": _PROFILES.current}), flush=True)
 
 
 def _load_pipeline() -> Any:
@@ -1554,13 +1641,27 @@ def _load_pipeline() -> Any:
     upsampler = model_root / next(
         name for name, part in MODEL_FILES.items() if part == "spatial_upsampler"
     )
-    _PIPELINE = DistilledPipeline(
+    fast = _PROFILES.current == FAST
+    options: dict[str, Any] = {}
+    if fast:
+        from ltx_core.model.video_vae.transformer import DiffVAEMode
+
+        options["diffvae_optimization"] = DiffVAEMode("combined_compile")
+    pipeline = DistilledPipeline(
         model_paths=paths,
         spatial_upsampler_path=str(upsampler),
         loras=[],
         quantization=quantization_policy,
-        offload_mode=OffloadMode.CPU,
+        offload_mode=OffloadMode.NONE if fast else OffloadMode.CPU,
+        **options,
     )
+    if fast:
+        # ADR-0026. Gemma loaded whole ran out of memory, so it alone keeps streaming through the CPU.
+        pipeline.prompt_encoder._offload_mode = OffloadMode.CPU
+        pipeline.prompt_encoder = PromptCache(pipeline.prompt_encoder)
+        # One transformer allocation stays on the GPU between calls (pinned LTX v1.6.2 attribute).
+        pipeline.stage._active_weights = {}
+    _PIPELINE = pipeline
     return _PIPELINE
 
 
@@ -1704,22 +1805,21 @@ def _end_frame_conditioning(
 
 
 def _ltx_animation_prompt(visual_prompt: str) -> str:
-    """Animate one approved action from the supplied artwork without inventing an inset."""
+    """One motion-only paragraph: the action first, then how it moves, then the static camera.
 
-    direction = visual_prompt.strip()
+    FEAT-094 E1: the earlier wrapper listed prohibitions and allowed named props; the model drew extra
+    objects and zoomed. What must not appear is checked on the output, not written into the prompt.
+    """
+
+    direction = " ".join(visual_prompt.split())
     if not direction:
         raise WorkerContractError("VIDEO_SCENE_DIRECTION_REQUIRED")
+    if not direction.endswith((".", "!", "?")):
+        direction = f"{direction}."
     return (
-        "Image-to-video, one continuous shot. From the supplied artwork, show this one "
-        "approved action with a clear start, visible movement, and result: "
-        f"{direction} "
-        "Preserve the exact source subject, silhouette, proportions, palette, hand-drawn "
-        "line quality, paper texture, position, and scale. Do not redraw, clean up, smooth, "
-        "recolor, or restyle it. Add only a prop explicitly named in the approved action, "
-        "once and beside the subject. Keep the camera and paper fixed. Never show the "
-        "source artwork as a duplicate, thumbnail, picture-in-picture, card, screen, or "
-        "frame; no cuts, extra objects, readable text, captions, logos, or watermarks. "
-        "Do not generate speech, narration, subtitles, music, sound, or any audio."
+        f"{direction} The movement is smooth and continuous from the first moment to the last. "
+        "The drawing keeps its crayon strokes, colours and paper texture exactly as in the first "
+        "frame. The camera remains static throughout."
     )
 
 
@@ -1759,6 +1859,9 @@ def _normalize_silent_clip(
         ),
         "-frames:v",
         str(target_frame_count),
+        # ffmpeg 7.1 forgets the rate after setpts and would write 25 frames per second.
+        "-r",
+        str(int(FPS)),
         "-c:v",
         "libx264",
         "-preset",
@@ -2063,3 +2166,5 @@ def _read_ltx_dependency_lock_sha256() -> str | None:
 
 
 _PIPELINE: Any | None = None
+_PROFILES = ProfileSwitch()
+_DECODER_COMPILED = False

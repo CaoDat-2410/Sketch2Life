@@ -81,6 +81,15 @@ class ModalSceneRenderer:
         except Exception:  # noqa: BLE001
             return
 
+    def prime(self, prompts: list[str]) -> None:
+        """Let the render container encode all scene prompts at once; it queues ahead of the first scene."""
+
+        payload = {"warmup": True, "prompts": [prompt[:1_200] for prompt in prompts]}
+        try:
+            self._resolve_function().spawn(payload)
+        except Exception:  # noqa: BLE001 - only a speed-up, a scene encodes its own prompt otherwise
+            return
+
     def render(self, job: SceneRenderJob) -> SceneClip:
         scene = job.scene
         keyframe = job.keyframe_png

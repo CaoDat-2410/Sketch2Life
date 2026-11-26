@@ -538,3 +538,23 @@ def test_the_renderer_never_receives_a_person_that_was_not_drawn() -> None:
 
     assert len(prompts) == 5 and not any("child" in prompt.lower() for prompt in prompts)
     assert staged[0]["scenes"][0]["main_end"]["grounded"] is True
+
+
+def test_the_renderer_gets_every_scene_prompt_before_the_first_render() -> None:
+    events: list[tuple[str, object]] = []
+
+    class _Priming(_Render):
+        def prime(self, prompts):
+            events.append(("prime", tuple(prompts)))
+            raise RuntimeError("provider down")  # priming is only a speed-up
+
+        def render(self, job):
+            events.append(("render", job.scene.visual_prompt))
+            return super().render(job)
+
+    pipeline, _prep = _pipeline(render=_Priming())
+
+    result = pipeline.run(_source())
+
+    assert events[0] == ("prime", tuple(scene.visual_prompt for scene in result.plan.scenes))
+    assert [name for name, _ in events[1:]] == ["render"] * 5

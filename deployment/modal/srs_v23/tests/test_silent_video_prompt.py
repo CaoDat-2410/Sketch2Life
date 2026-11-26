@@ -19,29 +19,31 @@ video_worker = importlib.util.module_from_spec(MODULE_SPEC)
 MODULE_SPEC.loader.exec_module(video_worker)
 
 
-def test_ltx_prompt_keeps_source_art_and_only_allows_scripted_props() -> None:
-    prompt = video_worker._ltx_animation_prompt(
-        "The turtle looks at the leaf named in the adult-confirmed scene."
-    )
+def test_ltx_prompt_opens_with_the_action_and_describes_only_motion() -> None:
+    action = "The yellow chick hops forward once and dips its beak toward the grass."
 
-    assert "exact source subject, silhouette" in prompt
-    assert "Add only a prop explicitly named in the approved action" in prompt
-    assert "Never show the source artwork as a duplicate, thumbnail" in prompt
-    assert "one continuous shot" in prompt
-    assert "The turtle looks at the leaf named in the adult-confirmed scene." in prompt
+    prompt = video_worker._ltx_animation_prompt(action)
 
-
-def test_ltx_prompt_forbids_every_audio_track() -> None:
-    prompt = video_worker._ltx_animation_prompt("The approved character waves once.")
-
-    assert "Do not generate speech, narration, subtitles, music, sound, or any audio." in prompt
+    assert prompt.startswith(action)
+    assert "smooth and continuous" in prompt
+    assert "crayon strokes, colours and paper texture exactly as in the first frame" in prompt
+    assert prompt.endswith("The camera remains static throughout.")
+    assert "\n" not in prompt and len(prompt.split()) <= 200
 
 
-def test_ltx_prompt_keeps_subject_clear_and_background_unmarked() -> None:
+def test_ltx_prompt_names_nothing_the_model_should_not_draw() -> None:
+    # FEAT-094 E1: a prompt full of prohibitions and "add a prop" lines made the model draw an extra object.
     prompt = video_worker._ltx_animation_prompt("The turtle looks at a leaf.")
+    lowered = prompt.lower()
 
-    assert "Keep the camera and paper fixed" in prompt
-    assert "no cuts, extra objects, readable text" in prompt
+    for word in ("do not", "never", " no ", "prop", "watermark", "audio", "duplicate"):
+        assert word not in lowered, word
+
+
+def test_ltx_prompt_ends_an_unfinished_action_sentence() -> None:
+    prompt = video_worker._ltx_animation_prompt("  The turtle crawls to the leaf  ")
+
+    assert prompt.startswith("The turtle crawls to the leaf. The movement")
 
 
 def test_ltx_prompt_rejects_an_empty_scene_direction() -> None:
