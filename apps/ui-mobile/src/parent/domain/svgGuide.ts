@@ -1,3 +1,84 @@
+export type SvgGuideLevel = 'beginner' | 'simple';
+
+type Point = Readonly<{ x: number; y: number }>;
+
+/** Where a child puts the pencil down and which way it goes (FEAT-097). */
+export type StrokeStartMarker = Readonly<{ start: Point; arrow: Point; angle: number }>;
+
+/**
+ * Reads the absolute M, L, C and Q commands the drawing recipes use. Returns null for a dot (too small to need a
+ * direction) and for any path it cannot read.
+ */
+export function strokeStartMarker(pathData: string, canvasSize: number): StrokeStartMarker | null {
+  const tokens = pathData.match(/[MLCQ]|[-+]?(?:\d+(?:\.\d*)?|\.\d+)/g) ?? [];
+  if (!tokens.length || tokens.join('') !== pathData.replace(/[\s,]+/g, '')) return null;
+  const arity: Record<string, number> = { M: 2, L: 2, C: 6, Q: 4 };
+  const points: Point[] = [];
+  let index = 0;
+  let command = '';
+  while (index < tokens.length) {
+    if (arity[tokens[index]]) command = tokens[index++];
+    const count = arity[command];
+    if (!count || index + count > tokens.length) return null;
+    const values = tokens.slice(index, index + count).map(Number);
+    if (values.some((value) => !Number.isFinite(value))) return null;
+    index += count;
+    if (command === 'M' || command === 'L') {
+      if (command === 'M' && points.length) return null;
+      points.push({ x: values[0], y: values[1] });
+      command = 'L';
+      continue;
+    }
+    const from = points[points.length - 1];
+    if (!from) return null;
+    for (let sample = 1; sample <= 16; sample += 1) {
+      const t = sample / 16;
+      const u = 1 - t;
+      const at = (offset: 0 | 1) => {
+        const origin = offset === 0 ? from.x : from.y;
+        return command === 'C'
+          ? u ** 3 * origin + 3 * u * u * t * values[offset] + 3 * u * t * t * values[offset + 2] + t ** 3 * values[offset + 4]
+          : u * u * origin + 2 * u * t * values[offset] + t * t * values[offset + 2];
+      };
+      points.push({ x: at(0), y: at(1) });
+    }
+  }
+  if (points.length < 2) return null;
+  const xs = points.map((point) => point.x);
+  const ys = points.map((point) => point.y);
+  if (Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)) < canvasSize * 0.065) return null;
+
+  const lengths = points.slice(1).map((point, i) => Math.hypot(point.x - points[i].x, point.y - points[i].y));
+  const total = lengths.reduce((sum, length) => sum + length, 0);
+  const target = Math.min(total * 0.45, canvasSize * 0.09);
+  let travelled = 0;
+  let segment = 0;
+  while (segment < lengths.length - 1 && travelled + lengths[segment] < target) {
+    travelled += lengths[segment];
+    segment += 1;
+  }
+  const a = points[segment];
+  const b = points[segment + 1];
+  const ratio = lengths[segment] > 0 ? (target - travelled) / lengths[segment] : 0;
+  return {
+    start: points[0],
+    arrow: { x: a.x + (b.x - a.x) * ratio, y: a.y + (b.y - a.y) * ratio },
+    angle: Math.atan2(b.y - a.y, b.x - a.x),
+  };
+}
+
+/** The start marks of one step. Strokes are numbered only when there are at least two to put in order. */
+export function stageStartMarkers(
+  paths: ReadonlyArray<Readonly<{ path_id: string; d: string }>>,
+  canvasSize: number,
+): Array<Readonly<{ pathId: string; marker: StrokeStartMarker; number: number | null }>> {
+  const marked = paths.flatMap((path) => {
+    const marker = strokeStartMarker(path.d, canvasSize);
+    return marker ? [{ pathId: path.path_id, marker }] : [];
+  });
+  return marked.map((item, index) => ({ ...item, number: marked.length > 1 ? index + 1 : null }));
+}
+
 export type SvgPathV1 = Readonly<{
   path_id: string;
   d: string;
@@ -109,13 +190,13 @@ export type SvgTopicStrokeGuideSourceDraftV1 = Readonly<{
     engine_revision: string;
     source_guide_uri?: string | null;
     source_guide_sha256?: string | null;
-    method: 'MANUAL_HEN_DRAWING_SEQUENCE_V5' | 'REFERENCE_ALIGNED_CHILD_DRAWING_SEQUENCE_V6' | 'EXACT_SOURCE_PATH_SEQUENCE_V7' | 'OPENMOJI_SOURCE_SHAPE_TO_PATH_V1' | 'OPENCLIPART_SOURCE_CONTOUR_TO_DRAW_PATH_V1' | 'QWEN_OPENCLIPART_SOURCE_PATH_SEQUENCE_V1';
+    method: 'MANUAL_HEN_DRAWING_SEQUENCE_V5' | 'REFERENCE_ALIGNED_CHILD_DRAWING_SEQUENCE_V6' | 'EXACT_SOURCE_PATH_SEQUENCE_V7' | 'OPENMOJI_SOURCE_SHAPE_TO_PATH_V1' | 'OPENCLIPART_SOURCE_CONTOUR_TO_DRAW_PATH_V1' | 'QWEN_OPENCLIPART_SOURCE_PATH_SEQUENCE_V1' | 'AUTHORED_SHAPE_RECIPE_V1';
     source_path_count: number;
     path_lineage: ReadonlyArray<Readonly<{
       derived_path_id: string;
       source_path_ids: ReadonlyArray<string>;
       feature_vi: string;
-      operation: 'MANUAL_HEN_DRAWING_SEQUENCE_V5' | 'REFERENCE_ALIGNED_CHILD_DRAWING_SEQUENCE_V6' | 'EXACT_SOURCE_PATH_SEQUENCE_V7' | 'OPENMOJI_SOURCE_SHAPE_TO_PATH_V1' | 'OPENCLIPART_SOURCE_CONTOUR_TO_DRAW_PATH_V1' | 'QWEN_OPENCLIPART_SOURCE_PATH_SEQUENCE_V1';
+      operation: 'MANUAL_HEN_DRAWING_SEQUENCE_V5' | 'REFERENCE_ALIGNED_CHILD_DRAWING_SEQUENCE_V6' | 'EXACT_SOURCE_PATH_SEQUENCE_V7' | 'OPENMOJI_SOURCE_SHAPE_TO_PATH_V1' | 'OPENCLIPART_SOURCE_CONTOUR_TO_DRAW_PATH_V1' | 'QWEN_OPENCLIPART_SOURCE_PATH_SEQUENCE_V1' | 'AUTHORED_SHAPE_RECIPE_V1';
     }>>;
   }>;
   reference_source: SvgReferenceSourceProvenanceV1;

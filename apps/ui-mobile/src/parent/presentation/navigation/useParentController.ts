@@ -7,8 +7,8 @@ import type { ParentActionIdentity } from '../../application/ports/ParentPorts';
 import type { ParentApplicationModule } from '../../application/ports/ParentApplicationModule';
 import { parseStoryDraft } from '../../domain/storyDraft';
 import { resolveResumeProfile, waitForPendingResult } from '../../application/parentResilience';
-import type { SvgTopicStrokeGuideDraftV1 } from '../../domain/svgGuide';
-import { sketchGuideFailureMessage, sketchGuideRequestSubject } from './sketchGuideFlow';
+import type { SvgGuideLevel, SvgTopicStrokeGuideDraftV1 } from '../../domain/svgGuide';
+import { guideLevelForAge, sketchGuideFailureMessage, sketchGuideRequestSubject } from './sketchGuideFlow';
 import { isResolvedTopicConsistent } from '../../domain/topicMatching';
 import {
   buildSubjectRolesRequest,
@@ -168,6 +168,7 @@ export function useParentController(application: ParentApplicationModule) {
   const [guideBase64, setGuideBase64] = useState('');
   const [guideBusy, setGuideBusy] = useState(false);
   const [guideDraft, setGuideDraft] = useState<SvgTopicStrokeGuideDraftV1 | null>(null);
+  const [guideLevel, setGuideLevel] = useState<SvgGuideLevel>('beginner');
   const [guideError, setGuideError] = useState('');
   const [drawingGuideIndex, setDrawingGuideIndex] = useState(0);
   const [photo, setPhotoValue] = useState<SelectedPhoto | null>(null);
@@ -929,7 +930,7 @@ export function useParentController(application: ParentApplicationModule) {
     }
   }
 
-  async function createGuide(): Promise<void> {
+  async function createGuide(level?: SvgGuideLevel): Promise<void> {
     if (!guideEnabled || guideBusy) return;
     const guideTopic = topic.trim();
     if (guideTopic.length < 2) return;
@@ -937,7 +938,9 @@ export function useParentController(application: ParentApplicationModule) {
     setGuideError('');
     setGuideBusy(true);
     try {
-      const draft = await application.learning.generateSketchGuide(guideTopic, sketchGuideRequestSubject(idea));
+      const chosen = level ?? guideLevelForAge(profile?.age_months);
+      setGuideLevel(chosen);
+      const draft = await application.learning.generateSketchGuide(guideTopic, sketchGuideRequestSubject(intendedDrawingSubject.trim() || idea), chosen);
       setGuideDraft(draft);
       setStep('sketch-guide');
     } catch (cause) {
@@ -2853,7 +2856,7 @@ export function useParentController(application: ParentApplicationModule) {
     selectDrawingSubject, setCustomSubject, validateCustomDrawingSubject, refreshSubjectSuggestions,
     continueFromSubjectSelection,
     galleryMode, galleryLesson, lessonInvitations, groupInvitations, accountError, guideEnabled, setGuideEnabled,
-    guideBase64, guideDraft, guideBusy, guideError, photo, setPhoto, audio, setAudio,
+    guideBase64, guideDraft, guideLevel, guideBusy, guideError, photo, setPhoto, audio, setAudio,
     contextRun, contextConfirmed, candidate, subject, setSubject, subjectConfirmed, understandingRevision,
     activitySuggestions, selectedActivityIndex, activityBusy, activityAttempted, activityError,
     requestActivityList, chooseActivity, selectActivity, cancelEmptyActivityRun,

@@ -450,6 +450,8 @@ function renderLearningStep(
     topic={parent.topic}
     layout={null}
     draft={parent.guideDraft}
+    level={parent.guideLevel}
+    onLevelChange={(level) => void parent.createGuide(level)}
     catalogChecked
     busy={parent.guideBusy}
     error={parent.guideError}

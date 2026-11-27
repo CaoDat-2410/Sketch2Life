@@ -121,7 +121,7 @@ export interface ParentApiPort {
     requestId: string;
   }): Promise<ParentDrawingSubjectSuggestionSetV1>;
   validateCustomSubject(input: { topicId: string; topic: string; subject: string }): Promise<ParentCustomSubjectValidationV1>;
-  generateSketchGuide(topic: string, intendedSubject?: string): Promise<SketchGuideResult>;
+  generateSketchGuide(topic: string, intendedSubject?: string, difficulty?: 'beginner' | 'simple'): Promise<SketchGuideResult>;
   createStoryRun(input: StoryRunCreateInput): Promise<{ request_id: string; story_run: StoryRun }>;
   createStoryRunV1(input: ParentStoryRunCreateV1, actionIdentity: ParentActionIdentity): Promise<ParentStoryRunEnvelopeV1>;
   confirmStoryRunContextV1(runId: string, input: ParentStoryContextConfirmationV1, actionIdentity: ParentActionIdentity): Promise<ParentStoryRunEnvelopeV1>;

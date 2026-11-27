@@ -4,6 +4,7 @@ import type {
   ParentSvgGuidePageV1,
   ProgressiveStrokeGuideV1,
   SvgDocumentV1,
+  SvgGuideLevel,
   SvgTopicStrokeGuideDraftV1,
 } from '../../domain/svgGuide';
 import { Card, Notice, PrimaryButton, ScreenFrame, SecondaryButton, palette } from '../components/ui';
@@ -16,6 +17,8 @@ type Props = {
   catalogChecked: boolean;
   busy: boolean;
   error: string;
+  level?: SvgGuideLevel;
+  onLevelChange?: (level: SvgGuideLevel) => void;
   onFindCatalog: () => void;
   onGenerateDraft: () => void;
   onSkip: () => void;
@@ -43,6 +46,8 @@ export function SketchGuideScreen(props: Props): React.JSX.Element {
       || props.draft.derivation.method === 'QWEN_OPENCLIPART_SOURCE_PATH_SEQUENCE_V1'
     );
   const isDraft = props.draft !== null;
+  const isRecipe = props.draft?.contract === 'SvgTopicStrokeGuideSourceDraftV1'
+    && props.draft.derivation.method === 'AUTHORED_SHAPE_RECIPE_V1';
   const stage = guide?.stages[stageIndex] ?? null;
   const stageCount = guide?.stages.length ?? 0;
   const guideValid = Boolean(
@@ -61,7 +66,7 @@ export function SketchGuideScreen(props: Props): React.JSX.Element {
   }, [props.topic, props.layout, props.draft?.request_id]);
 
   const title = props.draft?.guide.title_vi || selected?.title_vi || props.topic || 'Gợi ý nét vẽ';
-  const showFinalReferenceAlongside = Boolean(referenceIllustration && stageIndex === stageCount - 1);
+  const showFinalReferenceAlongside = Boolean(!isRecipe && referenceIllustration && stageIndex === stageCount - 1);
   const referenceSource = referenceDraft?.reference_source ?? null;
   const stageLabel = stage?.part_ids
     .map((partId) => guide?.parts.find((part) => part.part_id === partId)?.label_vi)
@@ -85,12 +90,22 @@ export function SketchGuideScreen(props: Props): React.JSX.Element {
           })}
         </View>
       </Card> : null}
+      {isRecipe && props.onLevelChange ? <View style={{ flexDirection: 'row', gap: 8 }}>
+        {([['beginner', 'Bé 3–5 tuổi'], ['simple', 'Bé 6–10 tuổi']] as const).map(([value, label]) => (
+          <View key={value} style={{ flex: 1 }}>
+            {props.level === value ? <PrimaryButton variant="creative" label={`✓ ${label}`} onPress={() => undefined} />
+              : <SecondaryButton variant="creative" label={label} disabled={props.busy} onPress={() => props.onLevelChange?.(value)} />}
+          </View>
+        ))}
+      </View> : null}
       {guideValid && document && guide && stage ? <Card variant="creative">
         {isDraft ? <View style={{ borderRadius: 12, backgroundColor: '#FFF7E6', padding: 12, marginBottom: 12 }}>
           <Text style={{ color: '#8A4B08', fontWeight: '800' }}>
             {draftAccepted
               ? 'Đã duyệt · trẻ có thể xem'
-              : props.draft?.contract === 'SvgTopicStrokeGuideConstructionDraftV1'
+              : isRecipe
+                ? 'Mẫu vẽ của Sketch2Life · người lớn xem trước'
+                : props.draft?.contract === 'SvgTopicStrokeGuideConstructionDraftV1'
                 ? 'AI dựng lại nét từ hình mẫu · người lớn xem trước'
                 : props.draft?.contract === 'SvgTopicStrokeGuideSourceDraftV1'
                 ? props.draft.generation_source === 'QWEN_SOURCE_PATH_DERIVATION'
@@ -98,10 +113,10 @@ export function SketchGuideScreen(props: Props): React.JSX.Element {
                   : 'Bản nháp từ SVG nguồn · người lớn xem trước'
                 : 'Bản nháp AI · người lớn xem trước'}
           </Text>
-          <Text style={{ color: '#765226', lineHeight: 20, marginTop: 4 }}>
+          {isRecipe ? null : <Text style={{ color: '#765226', lineHeight: 20, marginTop: 4 }}>
             Chỉ dùng bản nháp sau khi người lớn kiểm tra hình và thứ tự nét.
-          </Text>
-          {props.draft?.reference_source ? <Text style={{ color: '#765226', lineHeight: 18, marginTop: 6 }}>
+          </Text>}
+          {!isRecipe && props.draft?.reference_source ? <Text style={{ color: '#765226', lineHeight: 18, marginTop: 6 }}>
             Tham chiếu: {props.draft.reference_source.dataset_name} · {props.draft.reference_source.license_id}
           </Text> : null}
         </View> : null}

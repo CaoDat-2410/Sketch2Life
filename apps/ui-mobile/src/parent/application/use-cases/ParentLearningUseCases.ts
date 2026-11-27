@@ -60,8 +60,8 @@ export class ParentLearningUseCases {
   validateCustomSubject(input: { topicId: string; topic: string; subject: string }): Promise<ParentCustomSubjectValidationV1> {
     return this.api.validateCustomSubject(input);
   }
-  generateSketchGuide(topic: string, intendedSubject?: string) {
-    return this.api.generateSketchGuide(topic, intendedSubject);
+  generateSketchGuide(topic: string, intendedSubject?: string, difficulty?: 'beginner' | 'simple') {
+    return this.api.generateSketchGuide(topic, intendedSubject, difficulty);
   }
   async createRunBeforeDrawingV1(input: {
     profileId: string;

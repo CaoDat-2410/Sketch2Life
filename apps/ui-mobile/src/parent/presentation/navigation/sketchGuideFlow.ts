@@ -1,9 +1,15 @@
 import { ParentApplicationError } from '../../application/ParentApplicationError';
+import type { SvgGuideLevel } from '../../domain/svgGuide';
 
 /** The adult's free-text idea narrows the curated lookup; blank means "topic only". */
 export function sketchGuideRequestSubject(idea: string): string | undefined {
   const trimmed = idea.trim();
   return trimmed.length > 0 ? trimmed : undefined;
+}
+
+/** FEAT-097: the profile's age picks the level; only the level is sent to the server (FR-AI-15). */
+export function guideLevelForAge(ageMonths: number | null | undefined): SvgGuideLevel {
+  return typeof ageMonths === 'number' && ageMonths >= 72 ? 'simple' : 'beginner';
 }
 
 export function sketchGuideFailureMessage(cause: unknown): string {

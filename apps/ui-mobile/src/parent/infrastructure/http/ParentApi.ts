@@ -613,12 +613,12 @@ export class ParentApi implements ParentApiPort {
     );
   }
 
-  generateSketchGuide(topic: string, intendedSubject?: string) {
+  generateSketchGuide(topic: string, intendedSubject?: string, difficulty: 'beginner' | 'simple' = 'beginner') {
     return this.request<SvgTopicStrokeGuideDraftV1>('/api/parent/v1/ai/sketch-guides', 'POST', {
       contract: 'SvgTopicStrokeGuideRequestV1',
       topic,
       intended_subject: intendedSubject,
-      difficulty: 'beginner',
+      difficulty,
     }, 60_000);
   }
 
