@@ -43,7 +43,7 @@ export function ActivityScreen(props: Props): React.JSX.Element {
       </Card>
 
       {props.loading && !props.activities ? (
-        <Card variant="creative" style={styles.stateCard}><ActivityIndicator color={palette.creativePrimary} /><Text style={styles.description}>Đang tải danh sách hoạt động…</Text></Card>
+        <Card variant="creative" style={styles.stateCard}><ActivityIndicator color={palette.creativePrimary} /><Text style={styles.description}>Đang soạn danh sách hoạt động…</Text><Text style={styles.description}>Lần đầu có thể mất vài phút. Bạn không cần bấm lại.</Text></Card>
       ) : !props.activities ? (
         <Card variant="creative" style={styles.stateCard}>
           <SectionTitle variant="creative">Chưa tải được hoạt động</SectionTitle>

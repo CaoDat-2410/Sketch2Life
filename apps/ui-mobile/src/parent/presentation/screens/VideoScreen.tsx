@@ -3,7 +3,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ResizeMode, Video } from 'expo-av';
 import type { ParentPlaybackSourceV1, ParentVideoReasonCodeV1 } from '../../domain/types';
 import { VIDEO_REASON_CODES, VIDEO_REASON_LABELS, type VideoPanel } from '../../application/parentPhaseB';
-import { captionAt, formatEta, videoStageRows } from '../../application/videoWait';
+import { captionAt, formatEta, videoProgressFraction, videoStageRows } from '../../application/videoWait';
 import {
   DEFAULT_CAPTION_OPTIONS,
   loadCaptionOptions,
@@ -90,6 +90,13 @@ export function VideoScreen(props: Props): React.JSX.Element {
         ) : null}
         {panel.inFlight && panel.progress ? (
           <View style={styles.stageList} accessibilityLabel="Các bước tạo video">
+            <View
+              accessibilityRole="progressbar"
+              accessibilityValue={{ min: 0, max: 100, now: Math.round(videoProgressFraction(panel.progress) * 100) }}
+              style={styles.progressTrack}
+            >
+              <View style={[styles.progressFill, { width: `${Math.round(videoProgressFraction(panel.progress) * 100)}%` }]} />
+            </View>
             {videoStageRows(panel.progress).map((row) => (
               <Text key={row.id} style={[styles.stageRow, row.status === 'active' ? styles.stageActive : null, row.status === 'done' ? styles.stageDone : null]}>
                 {row.status === 'done' ? '✓ ' : row.status === 'active' ? '● ' : '○ '}{row.label}
@@ -220,7 +227,9 @@ function OptionToggle(props: { label: string; on: boolean; onPress: () => void }
 
 const styles = StyleSheet.create({
   stageList: { gap: 5 },
-  stageRow: { color: palette.creativeMuted, fontSize: 12, lineHeight: 18 },
+  progressTrack: { height: 10, borderRadius: 5, backgroundColor: palette.creativeLavender, overflow: 'hidden', marginBottom: 4 },
+  progressFill: { height: '100%', borderRadius: 5, backgroundColor: palette.creativePrimary },
+  stageRow: { color: palette.creativeMuted, fontSize: 13, lineHeight: 20 },
   stageActive: { color: palette.creativeInk, fontWeight: '800' },
   stageDone: { color: palette.creativePrimary },
   captionLayer: { position: 'absolute', left: 8, right: 8, bottom: 38, alignItems: 'center' },

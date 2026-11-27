@@ -278,7 +278,15 @@ export type ParentLessonDeliveryPage = {
   next_cursor: string | null;
 };
 
+/** FEAT-094: what the child learns from a story, and how far a person had checked those facts. */
+export type StoryLearning = {
+  fact_source: 'CARD' | 'LESSON' | 'AI_DRAFT';
+  verified: boolean;
+  points: string[];
+};
+
 export type StoryDraft = {
+  learning?: StoryLearning;
   schema_version: 'sketch2life.story-revision.v1';
   language: 'vi';
   revisionId?: string;
@@ -582,6 +590,7 @@ export type ParentDrawingCandidateV1 = {
 };
 
 export type ParentStoryDisplayV1 = {
+  learning?: StoryLearning | null;
   schema_version: 'sketch2life.story-revision.v1';
   language: 'vi';
   title: string;

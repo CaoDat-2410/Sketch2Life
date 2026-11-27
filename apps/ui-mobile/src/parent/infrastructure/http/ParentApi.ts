@@ -220,7 +220,8 @@ export class ParentApi implements ParentApiPort {
     return this.request<ParentActivitySuggestionSetV1>(
       `/api/parent/v1/ai/story-runs/${encodeURIComponent(runId)}/activity-suggestions`,
       'POST',
-      { expected_understanding_revision: expectedUnderstandingRevision },
+      // A reopened app or a reload takes the set the run already has instead of generating a second one.
+      { expected_understanding_revision: expectedUnderstandingRevision, reuse_latest: true },
       1_850_000,
       { 'Idempotency-Key': actionIdentity },
     );

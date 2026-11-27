@@ -6,6 +6,7 @@ import { createParentActionIdentity } from '../../application/ports/ParentPorts'
 import type { ParentActionIdentity } from '../../application/ports/ParentPorts';
 import type { ParentApplicationModule } from '../../application/ports/ParentApplicationModule';
 import { parseStoryDraft } from '../../domain/storyDraft';
+import { resolveResumeProfile, waitForPendingResult } from '../../application/parentResilience';
 import type { SvgTopicStrokeGuideDraftV1 } from '../../domain/svgGuide';
 import { sketchGuideFailureMessage, sketchGuideRequestSubject } from './sketchGuideFlow';
 import { isResolvedTopicConsistent } from '../../domain/topicMatching';
@@ -245,6 +246,8 @@ export function useParentController(application: ParentApplicationModule) {
   const playbackOpenedAt = useRef(0);
   const playbackAutoRetries = useRef(0);
   const retakeUsed = useRef(false);
+  const resumedProfile = useRef<ParentProfileViewV1 | null>(null);
+  const activityWaitStopped = useRef(false);
   const busyEpoch = useRef(0);
   /** Set when the adult leaves a waiting screen: a chain that was already running may not start another wait. */
   const waitsBlocked = useRef(false);
@@ -758,7 +761,9 @@ export function useParentController(application: ParentApplicationModule) {
     setStep('idea');
   }
 
-  function ensureLearningProfileAllowed(target: ParentProfileViewV1 | null): boolean {
+  function ensureLearningProfileAllowed(candidateProfile: ParentProfileViewV1 | null): boolean {
+    // FEAT-094: steps started by a resume still see the profile state from before it was set.
+    const target = candidateProfile ?? resumedProfile.current;
     if (!target) {
       setError('Chọn một hồ sơ để kiểm tra điều kiện bắt đầu.');
       return false;
@@ -1598,11 +1603,20 @@ export function useParentController(application: ParentApplicationModule) {
         activitySuggestionAction,
         JSON.stringify([run.run_id, sourceRevision]),
       );
-      const response = await timeRequest('activity-suggestions', () => application.learning.suggestActivitiesV1(
-        run.run_id,
-        sourceRevision,
-        suggestionAction,
-      ));
+      activityWaitStopped.current = false;
+      const response = await waitForPendingResult(
+        () => timeRequest('activity-suggestions', () => application.learning.suggestActivitiesV1(
+          run.run_id,
+          sourceRevision,
+          suggestionAction,
+        )),
+        {
+          // The same action identity every time: a slow first request is picked up, never started twice.
+          isPending: (cause) => ['PARENT_ACTIVITY_SUGGESTION_IN_PROGRESS', 'REQUEST_TIMEOUT', 'NETWORK_ERROR']
+            .includes(String((cause as { code?: unknown } | null)?.code)),
+          stopped: () => activityWaitStopped.current,
+        },
+      );
       const suggestionSet = readParentActivitySuggestionSetV1(response, {
         runId: run.run_id,
         understandingRevision: sourceRevision,
@@ -1963,9 +1977,10 @@ export function useParentController(application: ParentApplicationModule) {
       return;
     }
     const run = preflight.activeRun;
-    const selected = selectProfileById(profiles, run.parent_profile_id);
+    const selected = await resolveResumeProfile(profiles, run.parent_profile_id, (id) => application.profiles.getV1(id));
     if (!ensureLearningProfileAllowed(selected)) return;
     resetWorkflow();
+    resumedProfile.current = selected;
     retakeUsed.current = hasUsedDrawingRetake(run.current_input_revision);
     setRetakeAvailable(false);
     if (selected) {
@@ -2784,6 +2799,8 @@ export function useParentController(application: ParentApplicationModule) {
   }
 
   function resetWorkflow(): void {
+    resumedProfile.current = null;
+    activityWaitStopped.current = true;
     setTopic(''); setIdea(''); setLesson(null); setPhotoValue(null); setCandidate(null); setSubject('');
     setSelectedTopicId(''); setTopicDraftId(''); setTopicSuggestionSets([]); setTopicSuggestions([]);
     setTopicSuggestionBusy(false); setTopicSuggestionError(''); topicSuggestionRequestId.current = '';

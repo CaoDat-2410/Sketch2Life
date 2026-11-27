@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import type { StoryDraft } from '../../domain/types';
+import { learningNote } from '../../domain/storyDraft';
+import type { StoryDraft, StoryLearning } from '../../domain/types';
 import { Card, Field, Notice, PrimaryButton, SecondaryButton, ScreenFrame, SectionTitle, palette } from '../components/ui';
 
 type Props = {
@@ -87,11 +88,24 @@ export function StoryScreen(props: Props): React.JSX.Element {
                 <Text style={styles.storyTitle}>{props.story.title}</Text>
               </View>
             </View>
-            <View style={styles.storySection}>
-              <Text style={styles.storyBody}>{props.story.story.opening}</Text>
-              <Text style={styles.storyBody}>{props.story.story.middle}</Text>
-              <Text style={styles.storyBody}>{props.story.story.ending}</Text>
-            </View>
+            {props.story.learning ? (
+              // FEAT-094: a learning script is confirmed line by line: exactly these words are spoken in the video.
+              <View style={styles.storySection}>
+                <Text style={styles.scriptHint}>Video sẽ đọc đúng các câu dưới đây.</Text>
+                {props.story.scenes.map((scene) => (
+                  <View key={scene.scene_index} style={styles.scriptLine}>
+                    <View style={styles.sceneNumber}><Text style={styles.sceneNumberText}>{scene.scene_index}</Text></View>
+                    <Text style={styles.scriptText}>{scene.narration}</Text>
+                  </View>
+                ))}
+              </View>
+            ) : (
+              <View style={styles.storySection}>
+                <Text style={styles.storyBody}>{props.story.story.opening}</Text>
+                <Text style={styles.storyBody}>{props.story.story.middle}</Text>
+                <Text style={styles.storyBody}>{props.story.story.ending}</Text>
+              </View>
+            )}
             <TouchableOpacity
               accessibilityRole="button"
               accessibilityLabel={detailsVisible ? 'Ẩn thông tin phiên bản' : 'Xem thông tin phiên bản'}
@@ -111,19 +125,21 @@ export function StoryScreen(props: Props): React.JSX.Element {
             ) : null}
           </Card>
 
-          <Card variant="creative" style={styles.scenesCard}>
-            <SectionTitle variant="creative">Các cảnh trong câu chuyện</SectionTitle>
-            {props.story.scenes.map((scene) => (
-              <View key={scene.scene_index} style={styles.scene}>
-                <View style={styles.sceneNumber}><Text style={styles.sceneNumberText}>{scene.scene_index}</Text></View>
-                <View style={styles.sceneCopy}>
-                  <Text style={styles.sceneTitle}>{scene.title}</Text>
-                  <Text style={styles.sceneBody}>{scene.action}</Text>
-                  <Text style={styles.sceneNarration}>{scene.narration}</Text>
+          {props.story.learning ? <LearningPoints learning={props.story.learning} /> : (
+            <Card variant="creative" style={styles.scenesCard}>
+              <SectionTitle variant="creative">Các cảnh trong câu chuyện</SectionTitle>
+              {props.story.scenes.map((scene) => (
+                <View key={scene.scene_index} style={styles.scene}>
+                  <View style={styles.sceneNumber}><Text style={styles.sceneNumberText}>{scene.scene_index}</Text></View>
+                  <View style={styles.sceneCopy}>
+                    <Text style={styles.sceneTitle}>{scene.title}</Text>
+                    <Text style={styles.sceneBody}>{scene.action}</Text>
+                    <Text style={styles.sceneNarration}>{scene.narration}</Text>
+                  </View>
                 </View>
-              </View>
-            ))}
-          </Card>
+              ))}
+            </Card>
+          )}
 
           {!props.onlyCancel && (!props.confirmed || props.confirmationRequired) ? (
             <Card variant="creative" style={styles.revisionCard}>
@@ -176,6 +192,22 @@ export function StoryScreen(props: Props): React.JSX.Element {
   );
 }
 
+function LearningPoints(props: { learning: StoryLearning }): React.JSX.Element {
+  const note = learningNote(props.learning);
+  return (
+    <Card variant="creative" style={styles.scenesCard}>
+      <SectionTitle variant="creative">Con sẽ học được</SectionTitle>
+      {note ? <Notice variant="creative" text={note} tone="warning" /> : null}
+      {props.learning.points.map((point) => (
+        <View key={point} style={styles.pointRow}>
+          <Ionicons name="bulb-outline" size={18} color={palette.creativePrimary} />
+          <Text style={styles.scriptText}>{point}</Text>
+        </View>
+      ))}
+    </Card>
+  );
+}
+
 function StoryIllustration(): React.JSX.Element {
   return (
     <View style={styles.illustrationCanvas}>
@@ -205,6 +237,10 @@ const styles = StyleSheet.create({
   storyHeadingCopy: { flex: 1, minWidth: 0, gap: 4 },
   storyTitle: { color: palette.creativeInk, fontSize: 19, lineHeight: 25, fontWeight: '800', flexShrink: 1 },
   storySection: { gap: 11, borderRadius: 17, padding: 13, backgroundColor: '#FBF8FF' },
+  scriptHint: { color: palette.creativeMuted, fontSize: 12, lineHeight: 18 },
+  scriptLine: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  scriptText: { flex: 1, minWidth: 0, color: palette.creativeInk, fontSize: 15, lineHeight: 23 },
+  pointRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   storyBody: { color: palette.creativeInk, fontSize: 14, lineHeight: 22 },
   detailsToggle: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 3 },
   detailsLabel: { color: palette.creativePrimary, fontSize: 12, lineHeight: 17, fontWeight: '700' },

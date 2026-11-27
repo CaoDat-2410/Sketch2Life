@@ -25,12 +25,34 @@ export function videoStageRows(progress: ParentVideoProgressV1 | null | undefine
   const activeIndex = progress ? ORDER.indexOf(progress.stage) : -1;
   return ORDER.map((id, index) => {
     let label = LABELS[id];
-    if (id === 'RENDERING' && progress && progress.scene_index !== null && progress.scene_count > 0) {
+    const counted = id === 'RENDERING' || id === 'PREPARING_SCENES';
+    if (counted && progress && progress.stage === id && progress.scene_index !== null && progress.scene_count > 0) {
       label = `${label} (${Math.min(progress.scene_index, progress.scene_count)}/${progress.scene_count})`;
     }
     const status: StageStatus = activeIndex < 0 ? 'pending' : index < activeIndex ? 'done' : index === activeIndex ? 'active' : 'pending';
     return { id, label, status };
   });
+}
+
+// Share of the whole wait at which each stage starts and ends (measured on the live runs: rendering dominates).
+const SPAN: Record<VideoStageId, readonly [number, number]> = {
+  PLANNING: [0.03, 0.08],
+  PREPARING_SCENES: [0.08, 0.2],
+  RENDERING: [0.2, 0.9],
+  NARRATING: [0.9, 0.93],
+  ASSEMBLING: [0.93, 0.96],
+  CHECKING: [0.96, 0.98],
+};
+
+/** How far along the video is, between 0 and 1, from the server's stage and scene numbers; never 1 while working. */
+export function videoProgressFraction(progress: ParentVideoProgressV1 | null | undefined): number {
+  if (!progress) return 0;
+  const [from, to] = SPAN[progress.stage];
+  const scenes = progress.scene_count;
+  const inside = progress.scene_index !== null && scenes > 0
+    ? (Math.min(Math.max(progress.scene_index, 1), scenes) - 1) / scenes
+    : 0;
+  return from + (to - from) * inside;
 }
 
 /** "khoảng 4 phút" — an estimate, rounded up to the minute, never a promise. */

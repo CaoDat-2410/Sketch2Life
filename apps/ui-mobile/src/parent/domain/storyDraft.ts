@@ -1,4 +1,4 @@
-import type { StoryDraft } from './types';
+import type { StoryDraft, StoryLearning } from './types';
 
 const STORY_SCHEMA_VERSION = 'sketch2life.story-revision.v1';
 const MIN_SCENES = 5;
@@ -38,7 +38,10 @@ export function parseStoryDraft(value: unknown): StoryDraft | null {
   }
 
   if (cursor !== value.duration_ms || cursor < MIN_DURATION_MS || cursor > MAX_DURATION_MS) return null;
+  const learning = parseLearning(value.learning);
+  if (learning === null) return null;
   return {
+    ...(learning ? { learning } : {}),
     schema_version: STORY_SCHEMA_VERSION,
     language: 'vi',
     title: value.title,
@@ -46,6 +49,24 @@ export function parseStoryDraft(value: unknown): StoryDraft | null {
     duration_ms: cursor,
     scenes,
   };
+}
+
+/** `undefined`: the story has no learning script; `null`: it has one that cannot be shown honestly. */
+function parseLearning(value: unknown): StoryLearning | undefined | null {
+  if (value === undefined || value === null) return undefined;
+  if (!isRecord(value) || typeof value.verified !== 'boolean' || !Array.isArray(value.points)) return null;
+  const source = value.fact_source;
+  if (source !== 'CARD' && source !== 'LESSON' && source !== 'AI_DRAFT') return null;
+  if (value.points.length === 0 || !value.points.every(isNonEmptyString)) return null;
+  return { fact_source: source, verified: value.verified, points: [...value.points] };
+}
+
+/** What to tell the adult before they confirm facts nobody has checked; `null` for checked facts. */
+export function learningNote(learning: StoryLearning): string | null {
+  if (learning.verified) return null;
+  return learning.fact_source === 'LESSON'
+    ? 'Soạn từ ghi chú bài học. Hãy đọc lại trước khi xác nhận.'
+    : 'Thông tin do AI soạn, chưa được kiểm chứng. Hãy kiểm tra từng ý trước khi xác nhận.';
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

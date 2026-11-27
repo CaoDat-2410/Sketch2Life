@@ -416,7 +416,8 @@ const styles = StyleSheet.create({
   creativeCard: { backgroundColor: '#FFFEFF', borderWidth: 1.4, borderColor: palette.creativeBorder, shadowColor: '#492474', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.08, shadowRadius: 16, elevation: 2 },
   primaryButton: { minHeight: touchTargets.primary, borderTopLeftRadius: 14, borderTopRightRadius: 16, borderBottomRightRadius: 13, borderBottomLeftRadius: 15, borderWidth: outlineWidths.primary, borderColor: palette.outline, backgroundColor: palette.ink, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 9, shadowColor: palette.ink, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.08, shadowRadius: 9, elevation: 2 },
   creativePrimaryButton: { borderColor: palette.creativePrimary, backgroundColor: palette.creativePrimary, borderRadius: 18, shadowColor: palette.creativePrimary, shadowOpacity: 0.2, shadowRadius: 10, elevation: 4 },
-  primaryButtonText: { color: palette.white, fontSize: 13, lineHeight: 18, fontWeight: '800', textAlign: 'center', flexShrink: 1 },
+  // alignSelf stretch: Android measures bold centred text too narrow and cuts the last word of a label.
+  primaryButtonText: { alignSelf: 'stretch', color: palette.white, fontSize: 13, lineHeight: 18, fontWeight: '800', textAlign: 'center', flexShrink: 1 },
   creativePrimaryButtonText: { color: '#FFFFFF' },
   disabledButton: { backgroundColor: palette.disabledSurface, borderColor: palette.outline },
   disabledLabel: { color: palette.disabledText },
