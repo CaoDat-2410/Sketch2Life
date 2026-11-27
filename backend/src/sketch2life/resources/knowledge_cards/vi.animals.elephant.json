@@ -83,7 +83,18 @@
     "voi đưa vòi"
   ],
   "setting": "bờ suối trong rừng",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Voi",
+      "url": "https://vi.wikipedia.org/wiki/Voi",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Elephant",
+      "url": "https://en.wikipedia.org/wiki/Elephant",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

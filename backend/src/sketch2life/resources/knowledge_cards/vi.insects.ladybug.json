@@ -82,7 +82,18 @@
     "bọ rùa xòe cánh"
   ],
   "setting": "chiếc lá trong vườn",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Họ Bọ rùa",
+      "url": "https://vi.wikipedia.org/wiki/B%E1%BB%8D_r%C3%B9a",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Coccinellidae",
+      "url": "https://en.wikipedia.org/wiki/Coccinellidae",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

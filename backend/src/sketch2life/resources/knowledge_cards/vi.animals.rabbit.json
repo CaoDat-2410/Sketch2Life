@@ -83,7 +83,18 @@
     "thỏ vểnh tai"
   ],
   "setting": "vườn rau xanh",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Thỏ",
+      "url": "https://vi.wikipedia.org/wiki/Th%E1%BB%8F",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Rabbit",
+      "url": "https://en.wikipedia.org/wiki/Rabbit",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

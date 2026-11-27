@@ -82,7 +82,18 @@
     "cua giơ càng"
   ],
   "setting": "bãi cát ven biển",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Phân thứ bộ Cua",
+      "url": "https://vi.wikipedia.org/wiki/Cua",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Crab",
+      "url": "https://en.wikipedia.org/wiki/Crab",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

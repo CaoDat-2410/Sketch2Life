@@ -32,7 +32,7 @@ def test_a_running_generation_shows_stage_scene_and_an_estimate() -> None:
     video = compose_video(RUN, "VIDEO_GENERATING", rows)
 
     assert video is not None and video["progress"]["stage"] == "RENDERING"
-    assert video["progress"]["scene_index"] == 2 and video["progress"]["eta_seconds"] == 4 * 100 + 120
+    assert video["progress"]["scene_index"] == 2 and video["progress"]["eta_seconds"] == 4 * 90 + 60
     assert video["captions"] is None
     ParentStoryRunVideoV1.model_validate(video)
 
@@ -57,3 +57,12 @@ def test_estimates_shrink_as_the_worker_advances() -> None:
     middle = estimate_eta_seconds("RENDERING", 3, 5)
     end = estimate_eta_seconds("CHECKING", None, 5)
     assert first > middle > end > 0
+    # FEAT-094: one GPU prepares every frame before it renders, so the wait only falls from stage to stage.
+    walk = [
+        estimate_eta_seconds(stage, scene, 5)
+        for stage, scene in (
+            ("PLANNING", None), ("PREPARING_SCENES", 1), ("PREPARING_SCENES", 5), ("RENDERING", 1),
+            ("RENDERING", 2), ("RENDERING", 5), ("NARRATING", None), ("CHECKING", None),
+        )
+    ]
+    assert walk == sorted(walk, reverse=True)

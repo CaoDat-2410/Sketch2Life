@@ -6,7 +6,7 @@ import hashlib
 import hmac
 import json
 from collections.abc import Mapping
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from io import BytesIO
 from typing import Any, cast
 from uuid import UUID, uuid4, uuid5
@@ -92,6 +92,9 @@ from sketch2life.application.services.story_review_rules import (
 )
 from sketch2life.application.services.story_run_detail import compose_timeline, compose_video
 from sketch2life.application.story_staging import pack_story_content, unpack_sections
+from sketch2life.domain.learning_script import learning_view
+from sketch2life.infrastructure.config.settings import get_settings
+from sketch2life.infrastructure.knowledge.learning_request import build_learning_request
 from sketch2life.domain.story_teacher import TEACHER_PIN_SCHEMA, teacher_lesson_direction
 from sketch2life.domain.story_video.model import (
     MAX_ACCEPTED_REQUESTS,
@@ -252,6 +255,9 @@ def story_task_audit_scope(run: Mapping[Any, Any]) -> dict[str, Any]:
         }
     return {"owner_scope_ref": ref}
 
+
+# Longer than the longest request of the app: after that a pending request is considered lost.
+_ABANDONED_SUGGESTION_AFTER = timedelta(minutes=35)
 
 class SqlParentStoryRunRepository:
     """With no ``actor`` every method is the Parent repository of before T-4a1 (T-4a1-DEC-5).
@@ -578,6 +584,9 @@ class SqlParentStoryRunRepository:
                     for scene in scenes
                 ],
             }
+            learning_points = learning_view(latest_story["story_content"].get("learning"))
+            if learning_points is not None:
+                story_content["learning"] = learning_points
         # T-1c: one bounded Story-owned read (the accepted rows and the pending intent, at most
         # four, and the scenes of the current one); nothing at all while no request exists.
         video_rows = read_run_video(
@@ -1502,8 +1511,13 @@ class SqlParentStoryRunRepository:
         run_id: str,
         expected_understanding_revision: int,
         idempotency_key: str,
+        reuse_latest: bool = False,
     ) -> ParentActivitySuggestionReservation:
-        """Reserve one immutable AI suggestion set after the adult confirmed the drawing subject."""
+        """Reserve one immutable AI suggestion set after the adult confirmed the drawing subject.
+
+        ``reuse_latest``: a reopened app takes the set it already has, or waits for the one still being written, instead
+        of starting a second one with its new key.
+        """
         run = self._owned_run(principal, run_id, lock=True)
         self._require_activity_state(run)
         activity_context = self._activity_context(principal, run)
@@ -1572,6 +1586,25 @@ class SqlParentStoryRunRepository:
                 replay_body=body,
             )
 
+        if reuse_latest:
+            reused = self._latest_suggestion_reply(
+                principal=principal, operation=operation, run_id=run_id, fingerprint=fingerprint
+            )
+            if reused is not None:
+                receipt_id, body = reused
+                self._session.commit()
+                return ParentActivitySuggestionReservation(
+                    run_id=run_id,
+                    suggestion_set_id=body["suggestion_set_id"],
+                    set_revision=body["set_revision"],
+                    **context,
+                    excluded_candidate_keys=(),
+                    excluded_activities=(),
+                    receipt_id=receipt_id,
+                    replayed=True,
+                    replay_body=body,
+                )
+
         sets = story_tables.parent_activity_suggestion_sets
         previous_sets = self._session.execute(
             select(sets)
@@ -1626,6 +1659,53 @@ class SqlParentStoryRunRepository:
             excluded_candidate_keys=tuple(sorted(excluded_keys)),
             excluded_activities=tuple(excluded_activities),
             receipt_id=receipt_id,
+        )
+
+    def _latest_suggestion_reply(
+        self, *, principal: VerifiedPrincipal, operation: str, run_id: str, fingerprint: str
+    ) -> tuple[str, dict[str, Any]] | None:
+        """The newest finished reply for this understanding revision; 409 while the newest request still runs."""
+
+        receipts = self._suggestion_receipts(
+            principal=principal, operation=operation, run_id=run_id, fingerprint=fingerprint
+        )
+        if receipts and receipts[0]["state"] == "PENDING":
+            if datetime.now(UTC) - receipts[0]["created_at"] < _ABANDONED_SUGGESTION_AFTER:
+                raise ParentStoryRunError(409, "PARENT_ACTIVITY_SUGGESTION_IN_PROGRESS")
+        for receipt in receipts:
+            body = receipt["response_body"]
+            if (
+                receipt["state"] != "PENDING"
+                and isinstance(body, dict)
+                and isinstance(body.get("suggestion_set_id"), str)
+                and type(body.get("set_revision")) is int
+            ):
+                return str(receipt["receipt_id"]), body
+        return None
+
+    def _suggestion_receipts(
+        self, *, principal: VerifiedPrincipal, operation: str, run_id: str, fingerprint: str
+    ) -> list[Mapping[str, Any]]:
+        """This adult's suggestion requests for the run and revision, newest first."""
+
+        command_kind, command_ref = self._command_scope(principal)
+        receipts = story_tables.story_command_receipts
+        return list(
+            self._session.execute(
+                select(receipts)
+                .where(
+                    receipts.c.actor_scope_kind == command_kind,
+                    receipts.c.actor_scope_ref == command_ref,
+                    receipts.c.operation == operation,
+                    receipts.c.idempotency_scope_kind == "STORY_RUN",
+                    receipts.c.idempotency_scope_ref == run_id,
+                    receipts.c.request_fingerprint_sha256 == fingerprint,
+                )
+                .order_by(receipts.c.created_at.desc())
+                .limit(20)
+            )
+            .mappings()
+            .all()
         )
 
     def complete_activity_suggestion_set(
@@ -3269,6 +3349,15 @@ class SqlParentStoryRunRepository:
                 }
                 for item in approved_secondaries
             ]
+        learning_request = build_learning_request(
+            context=context,
+            subject=worker_input["confirmed_subject"],
+            visible_features=visible_features,
+            lesson_notes=lesson_subject_learning_notes,
+            enabled=get_settings().story_learning,
+        )
+        if learning_request is not None:
+            worker_input["learning"] = learning_request
         request_hash = _sha256_json(worker_input)
         revision_no = int(latest_story["revision_no"]) + 1 if latest_story is not None else 1
         now = datetime.now(UTC)
@@ -3662,6 +3751,7 @@ class SqlParentStoryRunRepository:
         model_revision: str,
         staging: dict[str, Any] | None = None,
         staging_issue: str | None = None,
+        learning: dict[str, Any] | None = None,
     ) -> ParentStoryRunView:
         run = self._owned_run(principal, reservation.run_id, lock=True, job_side_ok=True)
         if run["run_state"] in PURGE_STATES:
@@ -3695,7 +3785,7 @@ class SqlParentStoryRunRepository:
                     language=story["language"],
                     title=story["title"],
                     duration_ms=story["duration_ms"],
-                    story_content=pack_story_content(sections, staging, staging_issue),
+                    story_content=pack_story_content(sections, staging, staging_issue, learning),
                     model_id=model_id,
                     model_revision=model_revision,
                     provider_call_id=provider_call_id,

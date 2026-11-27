@@ -82,7 +82,18 @@
     "râu ốc rung"
   ],
   "setting": "chiếc lá ướt sau mưa",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Ốc sên",
+      "url": "https://vi.wikipedia.org/wiki/%E1%BB%90c_s%C3%AAn",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Snail",
+      "url": "https://en.wikipedia.org/wiki/Snail",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

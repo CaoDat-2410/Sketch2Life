@@ -82,7 +82,18 @@
     "kiến vác mồi"
   ],
   "setting": "lối đi của đàn kiến",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Kiến",
+      "url": "https://vi.wikipedia.org/wiki/Ki%E1%BA%BFn",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Ant",
+      "url": "https://en.wikipedia.org/wiki/Ant",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

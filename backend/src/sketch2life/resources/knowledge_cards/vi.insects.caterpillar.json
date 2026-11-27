@@ -83,7 +83,23 @@
     "lá rung"
   ],
   "setting": "cành lá non",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Sâu bướm",
+      "url": "https://vi.wikipedia.org/wiki/S%C3%A2u_b%C6%B0%E1%BB%9Bm",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Ong",
+      "url": "https://vi.wikipedia.org/wiki/Ong",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Caterpillar",
+      "url": "https://en.wikipedia.org/wiki/Caterpillar",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

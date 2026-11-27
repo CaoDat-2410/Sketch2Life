@@ -113,6 +113,7 @@ def test_the_clip_is_staged_rendered_verified_and_returned() -> None:
     assert manifest["schema_version"] == INPUT_SCHEMA and manifest["scene_id"] == "scene-1"
     assert manifest["source_drawing_sha256"] == hashlib.sha256(b"keyframe-png").hexdigest()
     assert manifest["target_duration_seconds"] == scene.target_frames / 24 and manifest["scene_count"] == 5
+    assert manifest["end_guide_strength"] == 0.7
     assert volume.files[f"/{prefix}input/drawing.png"] == b"keyframe-png"
     assert worker_input["input_bytes"] == len(b"keyframe-png") + len(volume.files[f"/{prefix}input/manifest.json"])
     assert worker_input["workload"] == "video.scene.generate"

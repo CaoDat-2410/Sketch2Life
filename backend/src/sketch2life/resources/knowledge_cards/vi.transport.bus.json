@@ -85,7 +85,18 @@
     "cửa xe mở"
   ],
   "setting": "trạm xe bên đường",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Xe buýt",
+      "url": "https://vi.wikipedia.org/wiki/Xe_bu%C3%BDt",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Bus",
+      "url": "https://en.wikipedia.org/wiki/Bus",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

@@ -93,7 +93,18 @@
     "xe tiến nhẹ"
   ],
   "setting": "đường nhỏ trong công viên",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Xe đạp",
+      "url": "https://vi.wikipedia.org/wiki/Xe_%C4%91%E1%BA%A1p",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Bicycle",
+      "url": "https://en.wikipedia.org/wiki/Bicycle",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

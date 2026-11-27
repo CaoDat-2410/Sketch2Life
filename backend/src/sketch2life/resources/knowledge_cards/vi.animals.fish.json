@@ -83,7 +83,18 @@
     "cá bơi"
   ],
   "setting": "dưới ao có rong",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Cá",
+      "url": "https://vi.wikipedia.org/wiki/C%C3%A1",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Fish",
+      "url": "https://en.wikipedia.org/wiki/Fish",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

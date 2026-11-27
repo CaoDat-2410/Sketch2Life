@@ -130,6 +130,16 @@ class ParentStorySceneDisplayV1(BaseModel):
     duration_ms: int = Field(ge=1_000, le=20_000)
 
 
+class ParentStoryLearningV1(BaseModel):
+    """FEAT-094: what the child learns from this story and whether a person had checked those facts."""
+
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    fact_source: Literal["CARD", "LESSON", "AI_DRAFT"]
+    verified: bool
+    points: list[str] = Field(min_length=1, max_length=5)
+
+
 class ParentStoryDisplayV1(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
 
@@ -139,6 +149,7 @@ class ParentStoryDisplayV1(BaseModel):
     story: ParentStorySectionsV1
     duration_ms: int = Field(ge=30_000, le=90_000)
     scenes: list[ParentStorySceneDisplayV1] = Field(min_length=5, max_length=15)
+    learning: ParentStoryLearningV1 | None = None
 
 
 ParentStoryRunStateV1 = Literal[

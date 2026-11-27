@@ -13,7 +13,7 @@ from math import isfinite
 from typing import Annotated, Any, Literal
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Request, Response
 from pydantic import ValidationError
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -83,6 +83,7 @@ from sketch2life.infrastructure.persistence.parent_story_repository import (
 from sketch2life.infrastructure.lesson_library.parent_activity_catalog import (
     LessonLibraryParentActivityCatalogAdapter,
 )
+from sketch2life.infrastructure.story_video.modal_video_warm_up import VideoWarmUp
 from sketch2life.interfaces.http.be1_runtime import get_db, get_verified_adult
 from sketch2life.interfaces.http.routers.lesson_library import get_lesson_library_service
 from sketch2life.interfaces.http.routers.parent_story_runs import story_run_response
@@ -90,6 +91,18 @@ from sketch2life.interfaces.http.routers.parent_story_runs import story_run_resp
 router = APIRouter(prefix="/api/parent/v1/ai", tags=["Parent AI v1"])
 _LOGGER = get_logger(__name__)
 _STORY_PROMPT_VERSION = "parent-story-v2.2026-11-10"
+_LEARNING_PROMPT_VERSION = "parent-learning-v1.2026-11-26"  # FEAT-094
+_VIDEO_WARM_UP = VideoWarmUp()
+
+
+def _warm_up_video_container(background: BackgroundTasks) -> None:
+    settings = get_settings()
+    if (
+        settings.story_video_warm_up
+        and settings.ai_provider == "modal_dev"
+        and settings.story_video_adapters != "unconfigured"
+    ):
+        background.add_task(_VIDEO_WARM_UP.request)
 
 
 def _require_parent(db: Session, principal: VerifiedPrincipal) -> AdultIdentityModel:
@@ -457,6 +470,7 @@ def generate_story_revision(
     run_id: UUID,
     payload: ParentStoryRequestV1,
     response: Response,
+    background: BackgroundTasks,
     idempotency_key: Annotated[
         str, Header(alias="Idempotency-Key", min_length=1, max_length=200)
     ],
@@ -477,7 +491,9 @@ def generate_story_revision(
             idempotency_key=idempotency_key,
             model_id=STORY_MODEL_ID,
             model_revision=STORY_MODEL_REVISION,
-            prompt_version=_STORY_PROMPT_VERSION,
+            prompt_version=(
+                _LEARNING_PROMPT_VERSION if get_settings().story_learning else _STORY_PROMPT_VERSION
+            ),
             # T-2e-a D9: the dev-only first-story route needs the adult's main activity first; the
             # refusal is 409 ``PARENT_ACTIVITY_SELECTION_REQUIRED`` (passed through as the code).
             require_activity_selection=True,
@@ -590,6 +606,7 @@ def generate_story_revision(
         workload="story.generate",
         revision_no=reservation.revision_no,
     )
+    _warm_up_video_container(background)
     return {
         "request_id": request_id,
         "modal_call_id": modal_call_id,
@@ -627,6 +644,7 @@ def suggest_parent_activities(
             run_id=str(run_id),
             expected_understanding_revision=payload.expected_understanding_revision,
             idempotency_key=idempotency_key,
+            reuse_latest=payload.reuse_latest,
         )
     except ParentStoryRunError as exc:
         raise HTTPException(status_code=exc.status_code, detail={"code": exc.code}) from None

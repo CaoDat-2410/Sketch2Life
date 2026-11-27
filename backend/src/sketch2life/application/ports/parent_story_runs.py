@@ -544,6 +544,7 @@ class ParentStoryRunRepositoryPort(Protocol):
         model_revision: str,
         staging: dict[str, Any] | None = None,
         staging_issue: str | None = None,
+        learning: dict[str, Any] | None = None,
     ) -> ParentStoryRunView: ...
 
     def fail_story_revision(

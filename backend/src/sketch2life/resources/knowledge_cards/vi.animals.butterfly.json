@@ -83,7 +83,18 @@
     "bướm đậu hoa"
   ],
   "setting": "vườn hoa",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Bướm",
+      "url": "https://vi.wikipedia.org/wiki/B%C6%B0%E1%BB%9Bm",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Butterfly",
+      "url": "https://en.wikipedia.org/wiki/Butterfly",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

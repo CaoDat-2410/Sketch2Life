@@ -83,7 +83,13 @@
     "bờm bay"
   ],
   "setting": "đồng cỏ rộng",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Horse",
+      "url": "https://en.wikipedia.org/wiki/Horse",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

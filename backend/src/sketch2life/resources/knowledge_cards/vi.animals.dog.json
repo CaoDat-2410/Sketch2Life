@@ -82,7 +82,18 @@
     "chó chạy"
   ],
   "setting": "trước cửa nhà",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Chó",
+      "url": "https://vi.wikipedia.org/wiki/Ch%C3%B3",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Dog",
+      "url": "https://en.wikipedia.org/wiki/Dog",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

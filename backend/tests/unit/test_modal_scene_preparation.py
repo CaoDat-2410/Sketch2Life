@@ -104,9 +104,17 @@ def test_the_request_is_staged_and_the_keyframe_returned() -> None:
     request = json.loads(volume.files[f"/{prefix}input/request.json"])
     assert request["main"]["box"] == [2, 6, 11, 17] and request["secondaries"][0]["entity_id"] == "sec-1"
     assert request["plate_prompt"].startswith("A sunny garden")
+    assert request["source_facing"] == "unknown"  # the drawing is never mirrored
     assert request["drawing_sha256"] == hashlib.sha256(b"drawing-bytes").hexdigest()
     assert base64.b64decode(request["drawing_png_b64"]) == b"drawing-bytes"
     assert function.inputs[0]["workload"] == "video.scene.prepare"
+
+
+def test_preparation_and_rendering_call_the_same_function_so_they_share_one_gpu_container() -> None:
+    from sketch2life.infrastructure.story_video import modal_scene_preparation as preparation
+    from sketch2life.infrastructure.story_video import modal_scene_renderer as renderer
+
+    assert (preparation.APP_NAME, preparation.FUNCTION_NAME) == (renderer.APP_NAME, renderer.FUNCTION_NAME)
 
 
 def test_a_paper_fallback_is_reported_not_hidden() -> None:
@@ -133,3 +141,14 @@ def test_a_job_without_the_drawing_or_staging_is_rejected() -> None:
         with pytest.raises(VideoPipelineError) as error:
             _adapter()[0].prepare(bad)
         assert error.value.code == "VIDEO_SCENE_PREPARE_INPUT_INVALID"
+
+
+def test_only_a_repainted_background_names_a_new_seed() -> None:
+    seeds = []
+    for attempt in (0, 1, 2):
+        adapter, volume, _function = _adapter()
+        adapter.prepare(_job(plate_attempt=attempt))
+        request = next(data for path, data in volume.files.items() if path.endswith("input/request.json"))
+        seeds.append(json.loads(request).get("plate_seed"))
+
+    assert seeds == [None, 1016, 2025]

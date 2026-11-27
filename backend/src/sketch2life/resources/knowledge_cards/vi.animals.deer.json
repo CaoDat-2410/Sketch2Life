@@ -84,7 +84,18 @@
     "hươu quay đầu"
   ],
   "setting": "bìa rừng buổi sớm",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Họ Hươu nai",
+      "url": "https://vi.wikipedia.org/wiki/H%C6%B0%C6%A1u",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Deer",
+      "url": "https://en.wikipedia.org/wiki/Deer",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

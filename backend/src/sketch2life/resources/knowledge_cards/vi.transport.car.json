@@ -82,7 +82,18 @@
     "xe chạy tới"
   ],
   "setting": "con đường rộng",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Xe hơi",
+      "url": "https://vi.wikipedia.org/wiki/%C3%94_t%C3%B4",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Car",
+      "url": "https://en.wikipedia.org/wiki/Car",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

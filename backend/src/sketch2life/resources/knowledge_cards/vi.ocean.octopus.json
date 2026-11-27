@@ -81,7 +81,18 @@
     "bạch tuộc trôi"
   ],
   "setting": "khe đá dưới biển",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Bạch tuộc",
+      "url": "https://vi.wikipedia.org/wiki/B%E1%BA%A1ch_tu%E1%BB%99c",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Octopus",
+      "url": "https://en.wikipedia.org/wiki/Octopus",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

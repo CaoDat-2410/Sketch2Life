@@ -255,6 +255,12 @@ def _sanitize_interest_context(value: str) -> list[str]:
     return _tags_from_user_text(sanitized)
 
 
+def interest_tags(value: str) -> list[str]:
+    """The allow-listed interest tags in an adult's text; the only profile interest data a model may receive."""
+
+    return _sanitize_interest_context(value)
+
+
 def _sanitize_context_label(value: str, *, limit: int) -> str:
     sanitized = _NAME_PHRASE.sub(" ", value)
     sanitized = _PII_PHONE.sub(" ", sanitized)

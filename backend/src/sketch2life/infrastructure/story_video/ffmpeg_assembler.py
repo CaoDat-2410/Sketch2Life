@@ -1,7 +1,7 @@
 """CPU assembler of the Parent video (FEAT-093): scene clips + narration chunks -> one MP4 on the master clock.
 
 Each LTX clip fills a 1280x720 (16:9) frame at 24 fps, cut to its planned frames and extended by holding its last frame when
-the narration needs more time. Narration chunks are trimmed to their speech and placed at their start times on a 48 kHz
+the narration needs more time. A scene that teaches a part shows the part's name over its first seconds. Narration chunks are trimmed to their speech and placed at their start times on a 48 kHz
 track that is loudness-normalised. The container is faststart. Commands run through an injected runner, so the structure is
 unit-tested without ffmpeg; the real runner calls the executable without a shell.
 """
@@ -21,6 +21,9 @@ WIDTH: Final = 1280
 HEIGHT: Final = 720
 SAMPLE_RATE: Final = 48_000
 TARGET_LUFS: Final = -16
+LABEL_FONT: Final = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"  # covers Vietnamese
+LABEL_FROM_SECONDS: Final = 0.4
+LABEL_TO_SECONDS: Final = 4.4
 Runner = Callable[[Sequence[str]], None]
 
 
@@ -33,10 +36,19 @@ def subprocess_runner(command: Sequence[str]) -> None:
         raise VideoPipelineError("VIDEO_ASSEMBLE_FFMPEG_FAILED") from None
 
 
+def _filter_path(path: Path | str) -> str:
+    """A path inside a filter graph: forward slashes, and the drive colon escaped (Windows)."""
+
+    return str(path).replace(chr(92), "/").replace(":", chr(92) + ":")
+
+
 class FfmpegAssembler:
-    def __init__(self, *, executable: str = "ffmpeg", runner: Runner = subprocess_runner) -> None:
+    def __init__(
+        self, *, executable: str = "ffmpeg", runner: Runner = subprocess_runner, label_font: str = LABEL_FONT
+    ) -> None:
         self._exe = executable
         self._run = runner
+        self._font = label_font
 
     def assemble(self, job: AssembleJob) -> bytes:
         plan = job.plan
@@ -50,7 +62,8 @@ class FfmpegAssembler:
                 source = work / f"clip-{scene.index}.mp4"
                 source.write_bytes(clips[scene.index].video)
                 target = work / f"scene-{scene.index}.mp4"
-                self._run(self._scene_command(source, target, scene.target_frames, scene.hold_frames))
+                label = self._label_filter(work, scene.index, job.part_labels.get(scene.index))
+                self._run(self._scene_command(source, target, scene.target_frames, scene.hold_frames, label))
                 normalised.append(target)
             listing = work / "scenes.txt"
             listing.write_text("".join(f"file '{path.name}'\n" for path in normalised), encoding="utf-8")
@@ -62,7 +75,18 @@ class FfmpegAssembler:
                 raise VideoPipelineError("VIDEO_ASSEMBLE_OUTPUT_MISSING")
             return output.read_bytes()
 
-    def _scene_command(self, source: Path, target: Path, frames: int, hold: int) -> list[str]:
+    def _label_filter(self, work: Path, scene_index: int, text: str | None) -> str | None:
+        if not text or not Path(self._font).is_file():
+            return None  # a label is a help, never a reason to lose the video
+        path = work / f"label-{scene_index}.txt"
+        path.write_text(text, encoding="utf-8")
+        return (
+            f"drawtext=fontfile={_filter_path(self._font)}:textfile={_filter_path(path)}:expansion=none:"
+            "fontsize=52:fontcolor=0x1F2937:box=1:boxcolor=white@0.85:boxborderw=18:x=56:y=48:"
+            f"enable=between(t\\,{LABEL_FROM_SECONDS}\\,{LABEL_TO_SECONDS})"
+        )
+
+    def _scene_command(self, source: Path, target: Path, frames: int, hold: int, label: str | None = None) -> list[str]:
         filters = [
             f"fps={FPS}",
             f"scale={WIDTH}:{HEIGHT}:force_original_aspect_ratio=increase",
@@ -71,6 +95,8 @@ class FfmpegAssembler:
             f"trim=end_frame={frames}",
             "setpts=PTS-STARTPTS",
         ]
+        if label:
+            filters.append(label)
         if hold > 0:
             filters.append(f"tpad=stop_mode=clone:stop={hold}")
         return [

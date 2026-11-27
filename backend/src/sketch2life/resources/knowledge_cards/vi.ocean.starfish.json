@@ -82,7 +82,18 @@
     "rong lay động"
   ],
   "setting": "đáy biển có cát",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Sao biển",
+      "url": "https://vi.wikipedia.org/wiki/Sao_bi%E1%BB%83n",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Starfish",
+      "url": "https://en.wikipedia.org/wiki/Starfish",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

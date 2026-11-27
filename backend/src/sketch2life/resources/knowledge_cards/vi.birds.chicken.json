@@ -87,7 +87,18 @@
     "gà mổ hạt"
   ],
   "setting": "sân trại có cỏ",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Gà",
+      "url": "https://vi.wikipedia.org/wiki/G%C3%A0",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Chicken",
+      "url": "https://en.wikipedia.org/wiki/Chicken",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

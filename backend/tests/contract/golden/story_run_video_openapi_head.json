@@ -1157,6 +1157,16 @@
     "title": {
      "title": "Title",
      "type": "string"
+    },
+    "learning": {
+     "anyOf": [
+      {
+       "$ref": "#/components/schemas/ParentStoryLearningV1"
+      },
+      {
+       "type": "null"
+      }
+     ]
     }
    },
    "required": [

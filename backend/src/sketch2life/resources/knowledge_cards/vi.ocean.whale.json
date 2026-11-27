@@ -82,7 +82,18 @@
     "cá voi phun nước"
   ],
   "setting": "biển xanh rộng",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Cá voi",
+      "url": "https://vi.wikipedia.org/wiki/C%C3%A1_voi",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Whale",
+      "url": "https://en.wikipedia.org/wiki/Whale",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

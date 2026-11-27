@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import threading
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from typing import Any, Final
 
 from structlog import get_logger
@@ -20,16 +20,22 @@ _LOGGER = get_logger(__name__)
 
 
 class QwenWarmUp:
+    APP: str = APP_NAME
+    FUNCTION: str = FUNCTION_NAME
+    PAYLOAD: Mapping[str, Any] = {"warmup": True}
+    EVENT: str = "qwen_warm_up_not_dispatched"
+    WINDOW: float = WINDOW_SECONDS
+
     def __init__(
         self,
         *,
         function: Any | None = None,
         clock: Callable[[], float] = time.monotonic,
-        window_seconds: float = WINDOW_SECONDS,
+        window_seconds: float | None = None,
     ) -> None:
         self._function = function
         self._clock = clock
-        self._window = window_seconds
+        self._window = self.WINDOW if window_seconds is None else window_seconds
         self._requested_at: float | None = None
         self._lock = threading.Lock()
 
@@ -41,9 +47,9 @@ class QwenWarmUp:
             if self._requested_at is not None and now - self._requested_at < self._window:
                 return False
             try:
-                self._resolve_function().spawn({"warmup": True})
+                self._resolve_function().spawn(dict(self.PAYLOAD))
             except Exception as error:  # noqa: BLE001 - optional speed-up, never a user-facing failure
-                _LOGGER.warning("qwen_warm_up_not_dispatched", error_type=type(error).__name__)
+                _LOGGER.warning(self.EVENT, error_type=type(error).__name__)
                 return False
             self._requested_at = now
             return True
@@ -52,7 +58,7 @@ class QwenWarmUp:
         if self._function is None:
             import modal
 
-            self._function = modal.Function.from_name(APP_NAME, FUNCTION_NAME, environment_name=ENVIRONMENT_NAME)
+            self._function = modal.Function.from_name(self.APP, self.FUNCTION, environment_name=ENVIRONMENT_NAME)
         return self._function
 
 

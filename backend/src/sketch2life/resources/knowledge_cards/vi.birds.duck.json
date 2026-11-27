@@ -84,7 +84,18 @@
     "vịt lắc đuôi"
   ],
   "setting": "mặt ao",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Vịt",
+      "url": "https://vi.wikipedia.org/wiki/V%E1%BB%8Bt",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Duck",
+      "url": "https://en.wikipedia.org/wiki/Duck",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

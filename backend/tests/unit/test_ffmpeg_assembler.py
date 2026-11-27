@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
@@ -118,3 +119,42 @@ def test_missing_clips_missing_narration_and_ffmpeg_failures_are_reported() -> N
         with pytest.raises(VideoPipelineError) as error:
             assembler.assemble(bad)
         assert error.value.code == code
+
+
+def _labelled(labels: dict[int, str], font: Path) -> tuple[list[str], dict[str, str]]:
+    written: dict[str, str] = {}
+
+    class _Reading(_Runner):
+        def __call__(self, command):
+            filters = command[command.index("-vf") + 1] if "-vf" in command else ""
+            for found in re.findall(r"textfile=(.+?):expansion", filters):
+                path = Path(found.replace(chr(92) + ":", ":"))
+                written[path.name] = path.read_text(encoding="utf-8")
+            super().__call__(command)
+
+    runner = _Reading()
+    plan = _plan()
+    job = _job(plan)
+    FfmpegAssembler(runner=runner, label_font=str(font)).assemble(
+        AssembleJob(plan=plan, clips=job.clips, chunks=job.chunks, cues=job.cues, part_labels=labels)
+    )
+    scenes = [c for c in runner.commands if "-vf" in c]
+    return [c[c.index("-vf") + 1] for c in scenes], written
+
+
+def test_a_part_name_is_written_over_the_start_of_its_scene(tmp_path: Path) -> None:
+    font = tmp_path / "font.ttf"
+    font.write_bytes(b"font")
+
+    filters, written = _labelled({2: "Mỏ cam: 100%"}, font)
+
+    assert "drawtext" not in filters[0] and "drawtext" in filters[1]
+    assert "expansion=none" in filters[1] and "between(t\\,0.4\\,4.4)" in filters[1]
+    assert filters[1].index("setpts") < filters[1].index("drawtext")
+    assert list(written.values()) == ["Mỏ cam: 100%"]
+
+
+def test_a_missing_font_leaves_the_video_without_labels(tmp_path: Path) -> None:
+    filters, _written = _labelled({2: "Mỏ"}, tmp_path / "absent.ttf")
+
+    assert all("drawtext" not in item for item in filters)

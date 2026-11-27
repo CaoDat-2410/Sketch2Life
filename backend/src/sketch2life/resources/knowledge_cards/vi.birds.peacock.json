@@ -84,7 +84,18 @@
     "công bước chậm"
   ],
   "setting": "vườn cây rộng",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Công (chim)",
+      "url": "https://vi.wikipedia.org/wiki/C%C3%B4ng_(chim)",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Peafowl",
+      "url": "https://en.wikipedia.org/wiki/Peafowl",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

@@ -82,7 +82,18 @@
     "ong đậu hoa"
   ],
   "setting": "vườn hoa nắng",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Ong",
+      "url": "https://vi.wikipedia.org/wiki/Ong",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Bee",
+      "url": "https://en.wikipedia.org/wiki/Bee",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

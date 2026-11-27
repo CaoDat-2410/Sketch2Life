@@ -83,7 +83,18 @@
     "bánh tàu quay"
   ],
   "setting": "đường ray qua đồng lúa",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Tàu hỏa",
+      "url": "https://vi.wikipedia.org/wiki/T%C3%A0u_h%E1%BB%8Fa",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Train",
+      "url": "https://en.wikipedia.org/wiki/Train",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

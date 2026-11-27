@@ -82,7 +82,18 @@
     "bồ câu cất cánh"
   ],
   "setting": "quảng trường rộng",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Họ Bồ câu",
+      "url": "https://vi.wikipedia.org/wiki/B%E1%BB%93_c%C3%A2u",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Columbidae",
+      "url": "https://en.wikipedia.org/wiki/Columbidae",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

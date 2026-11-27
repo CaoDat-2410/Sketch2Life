@@ -82,7 +82,18 @@
     "xe chạy tới"
   ],
   "setting": "con phố quen",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Xe máy",
+      "url": "https://vi.wikipedia.org/wiki/Xe_m%C3%A1y",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Motorcycle",
+      "url": "https://en.wikipedia.org/wiki/Motorcycle",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

@@ -82,7 +82,18 @@
     "bánh xe quay"
   ],
   "setting": "đường ra chợ",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Xe tải",
+      "url": "https://vi.wikipedia.org/wiki/Xe_t%E1%BA%A3i",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Truck",
+      "url": "https://en.wikipedia.org/wiki/Truck",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

@@ -1,4 +1,4 @@
-"""FEAT-093 Amendment C: the GPU adapters ask Modal to start their containers early."""
+"""FEAT-093/FEAT-094: the video adapters ask Modal to start and fill the one video container early."""
 
 from __future__ import annotations
 
@@ -18,17 +18,15 @@ class _Function:
         return object()
 
 
-def test_the_renderer_and_preparation_spawn_a_content_free_warm_up() -> None:
-    render, prepare = _Function(), _Function()
+def test_preparation_spawns_a_content_free_warm_up() -> None:
+    prepare = _Function()
 
-    ModalSceneRenderer(function=render).warm_up()
     ModalScenePreparation(function=prepare).warm_up()
 
-    assert render.payloads == [{"warmup": True}] and prepare.payloads == [{"warmup": True}]
+    assert prepare.payloads == [{"prepare_warmup": True}]
 
 
 def test_a_warm_up_that_cannot_be_dispatched_is_ignored() -> None:
-    ModalSceneRenderer(function=_Function(RuntimeError("x"))).warm_up()
     ModalScenePreparation(function=_Function(RuntimeError("x"))).warm_up()
 
 

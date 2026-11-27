@@ -15,6 +15,8 @@ class ParentActivitySuggestionsRequestV1(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
 
     expected_understanding_revision: int = Field(ge=1)
+    # A reopened app takes the set it already has instead of asking the model for a second one.
+    reuse_latest: bool = False
 
 
 class ParentActivitySuggestionSetV1(BaseModel):

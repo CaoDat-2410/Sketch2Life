@@ -1,4 +1,4 @@
-"""FEAT-093 block C: the orchestrator with fake ports (two containers, pipelining, narration, captions)."""
+"""FEAT-093 block C: the orchestrator with fake ports (one video container, narration, captions)."""
 
 from __future__ import annotations
 
@@ -95,24 +95,18 @@ class _Generator:
 class _Prep:
     def __init__(self):
         self.calls = []
-        self.events = {i: threading.Event() for i in range(1, 10)}
 
     def prepare(self, job):
         self.calls.append((job.scene.index, threading.current_thread().name))
-        self.events[job.scene.index].set()
         return PreparedScene(keyframe_png=b"png", background="AI")
 
 
 class _Render:
-    def __init__(self, prep=None):
+    def __init__(self):
         self.calls = []
-        self.prep = prep
 
     def render(self, job):
         self.calls.append((job.scene.index, threading.current_thread().name))
-        if job.scene.index == 1 and self.prep is not None:
-            # proves C2 prepares scene 2 while C1 is still rendering scene 1
-            assert self.prep.events[2].wait(5), "scene 2 was not prepared while scene 1 rendered"
         return SceneClip(job.scene.index, b"clip", job.scene.model_frames)
 
 
@@ -181,17 +175,40 @@ def test_the_happy_path_returns_video_cues_and_a_frame_exact_plan() -> None:
     assert set(result.backgrounds.values()) == {"AI"}
 
 
-def test_c1_only_renders_and_c2_prepares_scene_two_while_scene_one_renders() -> None:
-    prep = _Prep()
-    render = _Render(prep)
-    pipeline, _ = _pipeline(prep=prep, render=render)
+def test_every_scene_is_prepared_before_the_first_render_so_one_container_never_switches_back() -> None:
+    order: list[tuple[str, int]] = []
+
+    class _OrderedPrep(_Prep):
+        def prepare(self, job):
+            order.append(("prepare", job.scene.index))
+            return super().prepare(job)
+
+    class _OrderedRender(_Render):
+        def render(self, job):
+            order.append(("render", job.scene.index))
+            return super().render(job)
+
+    pipeline, _ = _pipeline(prep=_OrderedPrep(), render=_OrderedRender())
 
     pipeline.run(_source())
 
-    assert [index for index, _thread in render.calls] == [1, 2, 3, 4, 5]
-    assert all(thread == render.calls[0][1] for _index, thread in render.calls)  # one render thread (C1)
-    assert all(thread.startswith("video-c2") for _index, thread in prep.calls)  # preparation on the C2 thread
-    assert prep.calls[0][0] == 1
+    assert order == [("prepare", i) for i in range(1, 6)] + [("render", i) for i in range(1, 6)]
+
+
+def test_a_scene_that_cannot_be_prepared_stops_the_run_before_any_render() -> None:
+    class _Broken(_Prep):
+        def prepare(self, job):
+            if job.scene.index == 4:
+                raise VideoPipelineError("VIDEO_SCENE_PREPARE_OUTPUT_INVALID_INPUT")
+            return super().prepare(job)
+
+    render = _Render()
+    pipeline, _ = _pipeline(prep=_Broken(), render=render)
+
+    with pytest.raises(VideoPipelineError):
+        pipeline.run(_source())
+
+    assert render.calls == []
 
 
 def test_progress_reports_every_stage_in_order() -> None:
@@ -202,6 +219,7 @@ def test_progress_reports_every_stage_in_order() -> None:
 
     names = [stage for stage, _scene, _count in stages]
     assert names[0] == STAGE_PLANNING and names[1] == STAGE_PREPARING
+    assert [scene for stage, scene, _ in stages if stage == STAGE_PREPARING] == [1, 2, 3, 4, 5]
     assert names.count(STAGE_RENDERING) == 5 and names[-2:] == [STAGE_ASSEMBLING, STAGE_CHECKING]
     assert [scene for stage, scene, _ in stages if stage == STAGE_RENDERING] == [1, 2, 3, 4, 5]
     assert all(count == 5 for _stage, _scene, count in stages)
@@ -433,17 +451,17 @@ def test_the_timeline_gets_a_third_attempt() -> None:
     assert generator.requests == [None, "LINE_TEXT_DANGLING_WORD", "LINE_TEXT_DANGLING_WORD"]
 
 
-def test_both_gpu_containers_are_warmed_before_planning_starts() -> None:
+def test_only_preparation_is_warmed_before_planning_because_it_runs_first() -> None:
     events: list[str] = []
 
     class _WarmPrep(_Prep):
         def warm_up(self):
             events.append("warm-prep")
+            raise RuntimeError("provider down")  # a failed warm-up never fails the run
 
     class _WarmRender(_Render):
         def warm_up(self):
-            events.append("warm-render")
-            raise RuntimeError("provider down")  # a failed warm-up never fails the run
+            events.append("warm-render")  # loading the renderer now would be undone by preparation
 
     class _Recording(_Generator):
         def generate(self, request):
@@ -456,7 +474,7 @@ def test_both_gpu_containers_are_warmed_before_planning_starts() -> None:
     )
 
     assert pipeline.run(_source()).video == b"MP4-5"
-    assert events == ["warm-prep", "warm-render", "plan"]
+    assert events == ["warm-prep", "plan"]
 
 
 def _captions_ok(result) -> None:
@@ -540,8 +558,13 @@ def test_the_renderer_never_receives_a_person_that_was_not_drawn() -> None:
     assert staged[0]["scenes"][0]["main_end"]["grounded"] is True
 
 
-def test_the_renderer_gets_every_scene_prompt_before_the_first_render() -> None:
+def test_the_renderer_gets_every_scene_prompt_after_preparation_and_before_the_first_render() -> None:
     events: list[tuple[str, object]] = []
+
+    class _Logged(_Prep):
+        def prepare(self, job):
+            events.append(("prepare", job.scene.index))
+            return super().prepare(job)
 
     class _Priming(_Render):
         def prime(self, prompts):
@@ -552,9 +575,9 @@ def test_the_renderer_gets_every_scene_prompt_before_the_first_render() -> None:
             events.append(("render", job.scene.visual_prompt))
             return super().render(job)
 
-    pipeline, _prep = _pipeline(render=_Priming())
+    pipeline, _prep = _pipeline(prep=_Logged(), render=_Priming())
 
     result = pipeline.run(_source())
 
-    assert events[0] == ("prime", tuple(scene.visual_prompt for scene in result.plan.scenes))
-    assert [name for name, _ in events[1:]] == ["render"] * 5
+    assert [name for name, _ in events] == ["prepare"] * 5 + ["prime"] + ["render"] * 5
+    assert events[5] == ("prime", tuple(scene.visual_prompt for scene in result.plan.scenes))

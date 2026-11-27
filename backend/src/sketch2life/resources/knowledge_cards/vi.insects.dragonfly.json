@@ -82,7 +82,18 @@
     "cánh rung"
   ],
   "setting": "mặt ao có sen",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Chuồn chuồn",
+      "url": "https://vi.wikipedia.org/wiki/Chu%E1%BB%93n_chu%E1%BB%93n",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Odonata",
+      "url": "https://en.wikipedia.org/wiki/Odonata",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

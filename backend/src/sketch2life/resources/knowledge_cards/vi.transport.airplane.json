@@ -82,7 +82,18 @@
     "mây trôi"
   ],
   "setting": "bầu trời có mây",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Máy bay",
+      "url": "https://vi.wikipedia.org/wiki/M%C3%A1y_bay",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Airplane",
+      "url": "https://en.wikipedia.org/wiki/Airplane",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

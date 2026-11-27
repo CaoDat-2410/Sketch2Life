@@ -82,7 +82,18 @@
     "thiên nga cúi cổ"
   ],
   "setting": "hồ nước phẳng lặng",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Thiên nga",
+      "url": "https://vi.wikipedia.org/wiki/Thi%C3%AAn_nga",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Swan",
+      "url": "https://en.wikipedia.org/wiki/Swan",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

@@ -25,6 +25,9 @@ class _Result:
     def one_or_none(self):
         return self.row
 
+    def all(self):
+        return self.row
+
 
 class _Session:
     def __init__(self, rows):
@@ -98,6 +101,26 @@ def test_a_confirmed_story_becomes_a_video_source() -> None:
     assert source.subject_boxes == {"main": (2, 6, 11, 17), "sec-1": (13, 9, 19, 15)}  # sec-2 was not approved
     assert source.story["middle"] == "Rùa ăn lá." and source.activity["title"] == "Tìm lá"
     assert source.drawing_png == DRAWING and source.drawing_sha256 == SHA
+
+
+def test_a_learning_script_brings_the_confirmed_narration_of_every_scene() -> None:
+    rows = _rows()
+    rows[0]["story_content"] = {
+        **rows[0]["story_content"],
+        "learning": {"scenes": [{"scene_index": 1, "action_en": "It walks.", "setting_en": "A park."}]},
+    }
+    rows.append([{"scene_index": 1, "title": "Cảnh đầu", "narration": "Rùa là một loài bò sát."}])
+
+    source = _read(rows)
+
+    assert source is not None and source.learning == {
+        "title": "Rùa con",
+        "scenes": [
+            {"scene_index": 1, "action_en": "It walks.", "setting_en": "A park.", "title": "Cảnh đầu",
+             "narration": "Rùa là một loài bò sát."}
+        ],
+    }
+    assert _read(_rows()).learning is None
 
 
 def test_missing_or_inconsistent_data_answers_none() -> None:

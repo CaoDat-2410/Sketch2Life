@@ -90,19 +90,26 @@ def compose_video(
     }
 
 
-SECONDS_PER_SCENE = 100  # measured LTX time per scene on L40S (FEAT-093 M0)
-PLANNING_SECONDS = 150
-FINISHING_SECONDS = 120
+# FEAT-094, one L40S: every frame is prepared first, then the renderer loads and renders scene by scene.
+SECONDS_PER_SCENE = 90  # a 10 s learning scene
+PREPARE_SECONDS = 15
+RENDERER_LOAD_SECONDS = 100
+PLANNING_SECONDS = 60
+FINISHING_SECONDS = 60
 
 
 def estimate_eta_seconds(stage: str, scene_index: int | None, scene_count: int) -> int:
     """A rough remaining time for the waiting screen; it is an estimate, never a promise."""
 
     scenes_left = max(0, scene_count - (scene_index or 1) + 1)
+    rendering = RENDERER_LOAD_SECONDS + scene_count * SECONDS_PER_SCENE + FINISHING_SECONDS
     if stage == "PLANNING":
-        return PLANNING_SECONDS + scene_count * SECONDS_PER_SCENE + FINISHING_SECONDS
-    if stage in ("PREPARING_SCENES", "RENDERING"):
-        return scenes_left * SECONDS_PER_SCENE + FINISHING_SECONDS
+        return PLANNING_SECONDS + scene_count * PREPARE_SECONDS + rendering
+    if stage == "PREPARING_SCENES":
+        return scenes_left * PREPARE_SECONDS + rendering
+    if stage == "RENDERING":
+        load = RENDERER_LOAD_SECONDS if (scene_index or 1) <= 1 else 0
+        return load + scenes_left * SECONDS_PER_SCENE + FINISHING_SECONDS
     if stage == "NARRATING":
         return FINISHING_SECONDS
     return 45

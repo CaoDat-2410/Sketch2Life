@@ -116,15 +116,20 @@ _SECTION_KEYS = ("opening", "middle", "ending")
 
 
 def pack_story_content(
-    sections: dict[str, Any], staging: dict[str, Any] | None, issue: str | None
+    sections: dict[str, Any],
+    staging: dict[str, Any] | None,
+    issue: str | None,
+    learning: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Story JSONB: the three visible sections plus hidden staging (or why it was dropped)."""
+    """Story JSONB: the visible sections, hidden staging (or why it was dropped) and the learning script."""
 
     packed = {key: sections[key] for key in _SECTION_KEYS}
     if staging is not None:
         packed["staging"] = staging
     elif issue is not None:
         packed["staging_issue"] = issue
+    if learning is not None:
+        packed["learning"] = learning  # FEAT-094
     return packed
 
 

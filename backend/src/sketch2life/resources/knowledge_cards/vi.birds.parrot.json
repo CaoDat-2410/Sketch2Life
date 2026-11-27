@@ -82,7 +82,18 @@
     "vẹt vỗ cánh"
   ],
   "setting": "cành cây trong vườn",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Bộ Vẹt",
+      "url": "https://vi.wikipedia.org/wiki/V%E1%BA%B9t",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Parrot",
+      "url": "https://en.wikipedia.org/wiki/Parrot",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

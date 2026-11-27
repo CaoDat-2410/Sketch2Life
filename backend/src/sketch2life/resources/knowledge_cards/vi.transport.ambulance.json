@@ -81,7 +81,18 @@
     "xe chạy nhanh"
   ],
   "setting": "đường tới bệnh viện",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Xe cứu thương",
+      "url": "https://vi.wikipedia.org/wiki/Xe_c%E1%BB%A9u_th%C6%B0%C6%A1ng",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Ambulance",
+      "url": "https://en.wikipedia.org/wiki/Ambulance",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

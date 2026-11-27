@@ -122,7 +122,9 @@ class SqlVideoSourceReader:
         context = input_row["context_snapshot"] or {}
         sections = unpack_sections(revision["story_content"])
         activity_snapshot = selection["activity_snapshot"] or {}
+        learning = self._learning(session, revision, request.story_revision_id)
         return VideoSource(
+            learning=learning,
             run_id=request.run_id,
             story_sha256=str(revision["story_sha256"]),
             story={"title": revision["title"] or "", **sections},
@@ -134,6 +136,30 @@ class SqlVideoSourceReader:
             drawing_sha256=str(input_row["original_sha256"]),
             subject_boxes=boxes,
         )
+
+    def _learning(self, session: Session, revision: Any, revision_id: str) -> dict[str, Any] | None:
+        """The stored learning script with the confirmed spoken text of every scene (FEAT-094)."""
+
+        stored = revision["story_content"].get("learning")
+        if not stored:
+            return None
+        scenes = story_tables.story_scenes
+        rows = (
+            session.execute(
+                select(scenes)
+                .where(scenes.c.story_revision_id == revision_id)
+                .order_by(scenes.c.scene_index)
+            )
+            .mappings()
+            .all()
+        )
+        planned = {entry["scene_index"]: entry for entry in stored["scenes"]}
+        return {
+            "title": revision["title"] or "",
+            "scenes": [
+                {**planned[row["scene_index"]], "title": row["title"], "narration": row["narration"]} for row in rows
+            ],
+        }
 
     def _drawing(self, key: str, expected_sha256: str) -> bytes | None:
         stored = self._storage.get_object(key)

@@ -82,7 +82,18 @@
     "sóng vỗ"
   ],
   "setting": "sóng biển lấp lánh",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Cá heo",
+      "url": "https://vi.wikipedia.org/wiki/C%C3%A1_heo",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Dolphin",
+      "url": "https://en.wikipedia.org/wiki/Dolphin",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

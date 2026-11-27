@@ -8,7 +8,7 @@ validator's vision checks). The assembler and caption work run on the CPU of the
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Protocol
 
 from sketch2life.application.video_pipeline.caption_plan import Cue
@@ -42,6 +42,8 @@ class VideoSource:
     drawing_png: bytes
     drawing_sha256: str
     subject_boxes: Mapping[str, tuple[int, int, int, int]]  # entity id -> 20x20 grid box
+    # FEAT-094: {"title", "scenes": [{"title", "narration", "action_en", "setting_en", ...}]} of a learning script.
+    learning: Mapping[str, Any] | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -54,6 +56,7 @@ class ScenePrepJob:
     drawing_png: bytes = b""
     staging: Mapping[str, Any] | None = None  # ``sketch2life.story-staging.v1`` for the whole plan
     secondary_ids: tuple[str, ...] = ()
+    plate_attempt: int = 0  # above 0: paint the background again with another seed
 
 
 @dataclass(frozen=True, slots=True)
@@ -94,6 +97,7 @@ class AssembleJob:
     clips: Sequence[SceneClip]
     chunks: Sequence[PlacedChunk]
     cues: Sequence[Cue]
+    part_labels: Mapping[int, str] = field(default_factory=dict)  # scene index -> name of the part it teaches
 
 
 @dataclass(frozen=True, slots=True)
@@ -111,6 +115,14 @@ class ScenePreparationPort(Protocol):
 
 class SceneRenderPort(Protocol):
     def render(self, job: SceneRenderJob) -> SceneClip: ...
+
+
+class SceneCheckPort(Protocol):
+    def check(self, clip: SceneClip, keyframe_png: bytes) -> tuple[str, ...]:
+        """Problem codes seen in one rendered scene; raises ``VideoPipelineError`` when it cannot look."""
+
+    def check_keyframe(self, drawing_png: bytes, keyframe_png: bytes) -> tuple[str, ...]:
+        """Problem codes seen in one composed first frame, before it is rendered."""
 
 
 class NarrationPort(Protocol):
@@ -135,6 +147,8 @@ class PipelineResult:
     plan: VideoPlan
     report: ValidationReport
     backgrounds: Mapping[int, str]
+    # FEAT-094: scene index -> problem codes seen by the visual check (empty when it is off or found nothing).
+    findings: Mapping[int, tuple[str, ...]] = field(default_factory=dict)
 
 
 __all__ = [
@@ -144,6 +158,7 @@ __all__ = [
     "PipelineResult",
     "PlacedChunk",
     "PreparedScene",
+    "SceneCheckPort",
     "SceneClip",
     "ScenePrepJob",
     "ScenePreparationPort",

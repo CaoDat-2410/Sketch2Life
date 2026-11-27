@@ -82,7 +82,23 @@
     "chim vỗ cánh"
   ],
   "setting": "sân nhà buổi sáng",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Sẻ nhà",
+      "url": "https://vi.wikipedia.org/wiki/S%E1%BA%BB_nh%C3%A0",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Bộ Sẻ",
+      "url": "https://vi.wikipedia.org/wiki/Chim_s%E1%BA%BB",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "House sparrow",
+      "url": "https://en.wikipedia.org/wiki/House_sparrow",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

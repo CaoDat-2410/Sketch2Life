@@ -25,7 +25,9 @@ from sketch2life.application.ports.parent_story_runs import (
     ParentStoryRunRepositoryPort,
     TeacherStoryRunRecord,
 )
+from sketch2life.application.video_pipeline.story_timeline import TimelineError, check_line_text
 from sketch2life.contracts.schemas.ai_story import StoryRevisionDraftV1
+from sketch2life.domain.learning_script import LearningScriptError, check_learning_script
 
 STORY_OUTPUT_INVALID = "STORY_OUTPUT_INVALID"
 
@@ -75,10 +77,23 @@ def complete_generated_story(
     ``ParentStoryRunError`` from the repository (a purged run, a store fault) propagates to the
     caller, which decides how to report it.
     """
+    draft = dict(raw_story)
+    answered_learning = draft.pop("_learning", None)
+    requested = reservation.worker_input.get("learning")
+    learning: dict[str, Any] | None = None
     try:
-        normalized, story_hash = normalize_story_output(
-            raw_story, confirmed_subject=str(reservation.worker_input["confirmed_subject"])
-        )
+        subject = str(reservation.worker_input["confirmed_subject"])
+        normalized, story_hash = normalize_story_output(draft, confirmed_subject=subject)
+        if requested is not None:
+            try:
+                learning = check_learning_script(
+                    normalized, answered_learning, request=requested, subject=subject
+                )
+                # The video speaks this text as confirmed, so its line rules apply before the adult sees it.
+                for scene in normalized["scenes"]:
+                    check_line_text(scene["narration"])
+            except (LearningScriptError, TimelineError):
+                raise StoryOutputInvalid(STORY_OUTPUT_INVALID) from None
     except StoryOutputInvalid as invalid:
         repository.fail_story_revision(
             principal=principal,
@@ -97,6 +112,7 @@ def complete_generated_story(
         model_revision=model_revision,
         staging=staging,
         staging_issue=staging_issue,
+        learning=learning,
     )
     if isinstance(record, ParentStoryLifecycleRecord):
         # complete_story_revision refuses a purged run; a projection here is never served.

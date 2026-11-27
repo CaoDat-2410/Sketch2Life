@@ -1,10 +1,9 @@
-"""C2 adapter: prepare one scene's keyframe (child's subjects over a crayon background plate) (FEAT-093).
+"""Prepare one scene's keyframe (child's subjects over a crayon background plate) (FEAT-093, FEAT-094).
 
-Implements ``ScenePreparationPort`` against the ``prepare-video-scene`` function. It has its own L40S container: the live run
-showed FLUX cannot load next to the resident Qwen 27B in ``qwen-worker`` (the plate failed and the scene fell back to paper),
-so the plate runs beside it, not inside it (a deviation from the two-container plan, recorded in FEAT-093). The drawing and the request travel as one
-JSON asset on the scratch volume; the worker answers with the keyframe PNG. The worker degrades to the paper background
-by itself; this adapter only maps transport failures to ``VideoPipelineError`` codes.
+Implements ``ScenePreparationPort`` against ``generate-video-scene``, the function that also renders: one L40S container
+prepares every frame and then runs LTX-2.5, so the video flow needs at most two GPU containers (ADR-0026). The drawing
+and the request travel as one JSON asset on the scratch volume; the worker answers with the keyframe PNG. The worker
+degrades to the paper background by itself; this adapter only maps transport failures to ``VideoPipelineError`` codes.
 """
 
 from __future__ import annotations
@@ -19,20 +18,20 @@ from collections.abc import Callable
 from typing import Any, Final
 
 from sketch2life.application.video_pipeline.ports import PreparedScene, ScenePrepJob, VideoPipelineError
-from sketch2life.infrastructure.ai.modal_function_client import APP_NAME as LANGUAGE_AUDIO_APP_NAME
 from sketch2life.infrastructure.ai.modal_silent_story_video import (
     _ENVIRONMENT,
     _SCRATCH_VOLUME,
     _VOLUME_VERSION,
 )
-
-FUNCTION_NAME: Final = "prepare-video-scene"
+from sketch2life.infrastructure.story_video.modal_scene_renderer import APP_NAME, FUNCTION_NAME
 MANIFEST_SCHEMA: Final = "sketch2life.modal.ai-request.v1"
 WORKER_INPUT_SCHEMA: Final = "sketch2life.modal.worker-input.v1"
 WORKER_OUTPUT_SCHEMA: Final = "sketch2life.modal.worker-output.v1"
 WORKLOAD: Final = "video.scene.prepare"
 WAIT_TIMEOUT_SECONDS: Final = 1_800  # queue behind the warm-up plus a cold start
 BACKGROUNDS: Final = frozenset({"AI", "PAPER"})
+PLATE_SEED: Final = 7  # the worker's default
+PLATE_SEED_STEP: Final = 1009
 
 
 def _canonical(value: Any) -> bytes:
@@ -54,10 +53,10 @@ class ModalScenePreparation:
         self._sleep = sleep
 
     def warm_up(self) -> None:
-        """Ask Modal to start the preparation container and load the models; a dispatch failure only costs time."""
+        """Ask Modal to start the video container and load the preparation models; a failure only costs time."""
 
         try:
-            self._resolve_function().spawn({"warmup": True})
+            self._resolve_function().spawn({"prepare_warmup": True})
         except Exception:  # noqa: BLE001
             return
 
@@ -69,8 +68,10 @@ class ModalScenePreparation:
             {"entity_id": entity_id, "label": job.subject_labels.get(entity_id, ""), "box": list(job.subject_boxes[entity_id])}
             for entity_id in (job.main_entity_id, *job.secondary_ids)
         ]
+        repaint = {"plate_seed": PLATE_SEED + job.plate_attempt * PLATE_SEED_STEP} if job.plate_attempt else {}
         request_bytes = _canonical(
             {
+                **repaint,
                 "scene_id": scene.scene_id,
                 "scene_index": scene.index,
                 "drawing_png_b64": base64.b64encode(job.drawing_png).decode("ascii"),
@@ -79,7 +80,7 @@ class ModalScenePreparation:
                 "secondaries": entities[1:],
                 "staging": job.staging,
                 "plate_prompt": scene.background_prompt[:1_200],
-                "source_facing": "right",
+                "source_facing": "unknown",  # FEAT-094: a child's drawing is never mirrored
             }
         )
         manifest_bytes = _canonical(
@@ -158,9 +159,7 @@ class ModalScenePreparation:
         if self._function is None:
             import modal
 
-            self._function = modal.Function.from_name(
-                LANGUAGE_AUDIO_APP_NAME, FUNCTION_NAME, environment_name=_ENVIRONMENT
-            )
+            self._function = modal.Function.from_name(APP_NAME, FUNCTION_NAME, environment_name=_ENVIRONMENT)
         return self._function
 
 

@@ -34,6 +34,9 @@ def test_show_prints_every_fact_for_the_reviewer(tmp_path, capsys) -> None:
 
 def test_approve_needs_a_source_then_makes_the_card_servable(tmp_path, capsys) -> None:
     card_id = _copy_card(tmp_path)
+    path = tmp_path / f"{card_id}.json"
+    unsourced = {**json.loads(path.read_text(encoding="utf-8")), "sources": []}
+    path.write_text(json.dumps(unsourced, ensure_ascii=False), encoding="utf-8")
     base = [
         "--directory",
         str(tmp_path),
@@ -63,3 +66,12 @@ def test_list_shows_the_status_of_each_card(tmp_path, capsys) -> None:
     assert tool.main(["--directory", str(tmp_path), "list"]) == 0
 
     assert f"{card_id}\tDRAFT" in capsys.readouterr().out
+
+
+def test_every_card_names_the_pages_it_was_compared_with_and_stays_a_draft() -> None:
+    cards = KnowledgeCardRepository().all_cards()
+
+    assert len(cards) == 40
+    for card in cards:
+        assert card.status == "DRAFT" and card.reviewed_by is None, card.card_id
+        assert card.sources and all(source.url.startswith("https://") for source in card.sources), card.card_id

@@ -82,7 +82,18 @@
     "rong đung đưa"
   ],
   "setting": "rừng rong biển",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Cá ngựa",
+      "url": "https://vi.wikipedia.org/wiki/C%C3%A1_ng%E1%BB%B1a",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Seahorse",
+      "url": "https://en.wikipedia.org/wiki/Seahorse",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

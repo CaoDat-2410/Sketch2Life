@@ -83,7 +83,13 @@
     "rùa thò đầu"
   ],
   "setting": "bãi cỏ cạnh ao",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Turtle",
+      "url": "https://en.wikipedia.org/wiki/Turtle",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

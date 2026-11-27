@@ -83,7 +83,18 @@
     "cú chớp mắt"
   ],
   "setting": "cành cây đêm trăng",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Bộ Cú",
+      "url": "https://vi.wikipedia.org/wiki/C%C3%BA_m%C3%A8o",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Owl",
+      "url": "https://en.wikipedia.org/wiki/Owl",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

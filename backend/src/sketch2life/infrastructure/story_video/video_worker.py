@@ -34,6 +34,7 @@ from sketch2life.infrastructure.story_video.composition import build_story_video
 from sketch2life.infrastructure.story_video.ffmpeg_assembler import FfmpegAssembler
 from sketch2life.infrastructure.story_video.fixture_runner import FixtureVideoRunner
 from sketch2life.infrastructure.story_video.modal_narration import ModalNarrationSynthesizer
+from sketch2life.infrastructure.story_video.modal_scene_check import ModalSceneCheck
 from sketch2life.infrastructure.story_video.modal_scene_preparation import ModalScenePreparation
 from sketch2life.infrastructure.story_video.modal_scene_renderer import ModalSceneRenderer
 from sketch2life.infrastructure.story_video.modal_timeline import ModalVideoTimelineGenerator
@@ -48,8 +49,10 @@ LOCK_NAME = "sketch2life.video-worker.v1"
 BATCH = 5
 
 
-def build_modal_pipeline() -> VideoPipeline:
+def build_modal_pipeline(check_mode: str = "off") -> VideoPipeline:
     return VideoPipeline(
+        scene_check=ModalSceneCheck(),
+        check_mode=check_mode,
         timeline_generator=ModalVideoTimelineGenerator(),
         preparation=ModalScenePreparation(),
         renderer=ModalSceneRenderer(),
@@ -71,6 +74,8 @@ def build_runner(
         progress.record(request.generation_id, stage, scene, count)
 
     def on_result(request: VideoRenderRequest, result: PipelineResult) -> None:
+        if result.findings:  # scene numbers and codes only
+            _LOG.warning("video_scene_findings generation=%s findings=%s", request.generation_id, dict(result.findings))
         progress.record_captions(request.generation_id, result.captions_vtt, result.cues)
 
     def is_cancelled(request: VideoRenderRequest) -> bool:
@@ -144,7 +149,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         sessions = create_core_session_factory(engine)
         worker = VideoWorker(
-            sessions, build_runner(sessions, storage, build_story_video_adapters(settings), build_modal_pipeline())
+            sessions,
+            build_runner(
+                sessions,
+                storage,
+                build_story_video_adapters(settings),
+                build_modal_pipeline(settings.story_video_scene_check),
+            ),
         )
         if args.once:
             worker.run_once()

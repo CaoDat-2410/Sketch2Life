@@ -83,7 +83,18 @@
     "lá rơi nhẹ"
   ],
   "setting": "sân trường",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Cây",
+      "url": "https://vi.wikipedia.org/wiki/C%C3%A2y",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Tree",
+      "url": "https://en.wikipedia.org/wiki/Tree",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null

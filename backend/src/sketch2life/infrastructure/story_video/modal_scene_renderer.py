@@ -1,6 +1,6 @@
 """C1 adapter: render one scene with LTX-2.5 through the deployed ``generate-video-scene`` function (FEAT-093).
 
-C1 never runs anything else. The prepared keyframe is staged as the scene's source drawing together with a manifest; the
+The same container prepares the scene frames first (FEAT-094). The prepared keyframe is staged as the scene's source drawing together with a manifest; the
 call blocks until the clip exists (the video worker process runs this outside any request) and the clip is read back
 from the scratch volume. Nothing provider-specific reaches the caller: failures are ``VideoPipelineError`` codes.
 """
@@ -37,6 +37,7 @@ WORKER_INPUT_SCHEMA: Final = "sketch2life.modal.worker-input.v1"
 OUTPUT_SCHEMA: Final = "sketch2life.modal.video-scene-output.v1"
 WORKLOAD: Final = "video.scene.generate"
 WAIT_TIMEOUT_SECONDS: Final = 2_700  # queue behind the warm-up plus a cold start
+END_GUIDE_STRENGTH: Final = 0.7  # FEAT-094 E2: holds the camera and the subject without freezing the scene
 
 
 def _canonical(value: Any) -> bytes:
@@ -73,14 +74,6 @@ class ModalSceneRenderer:
             sleep=self._sleep,
         )
 
-    def warm_up(self) -> None:
-        """Ask Modal to start the render container and load the model; a dispatch failure only costs time."""
-
-        try:
-            self._resolve_function().spawn({"warmup": True})
-        except Exception:  # noqa: BLE001
-            return
-
     def prime(self, prompts: list[str]) -> None:
         """Let the render container encode all scene prompts at once; it queues ahead of the first scene."""
 
@@ -107,6 +100,7 @@ class ModalSceneRenderer:
             "visual_prompt": scene.visual_prompt[:1_200],
             "target_duration_seconds": scene.target_frames / FPS,
             "seed": scene.seed,
+            "end_guide_strength": END_GUIDE_STRENGTH,
         }
         manifest_bytes = _canonical(manifest)
         if len(manifest_bytes) > _MAX_MANIFEST_BYTES:

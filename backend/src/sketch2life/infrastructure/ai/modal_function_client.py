@@ -1035,7 +1035,8 @@ class ModalStoryFunctionClient:
         }
         if (
             not isinstance(worker_input, dict)
-            or set(worker_input) - {"secondary_subjects"} != expected
+            or set(worker_input) - {"secondary_subjects", "learning"} != expected
+            or ("learning" in worker_input and not isinstance(worker_input["learning"], dict))
         ):
             raise ValueError("Modal story request does not match the approved input contract")
         if "secondary_subjects" in worker_input and not secondary_subjects_are_valid(
@@ -1357,6 +1358,11 @@ class ModalStoryFunctionClient:
                 if staging is not None or staging_issue is not None
                 else "STAGING_ABSENT",
             }
+            if "learning" in worker_input:
+                # FEAT-094: a requested learning script that is not answered makes the story unusable.
+                if not isinstance(output.get("learning"), dict):
+                    raise ModalFunctionExecutionFailed("STORY_OUTPUT_INVALID")
+                result["_learning"] = output["learning"]
             _LOGGER.info(
                 "modal_story_generation_completed",
                 modal_call_id=call_id,

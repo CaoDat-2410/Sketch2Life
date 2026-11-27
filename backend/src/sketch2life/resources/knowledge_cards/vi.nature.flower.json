@@ -83,7 +83,18 @@
     "cánh hoa mở"
   ],
   "setting": "vườn cạnh lối đi",
-  "sources": [],
+  "sources": [
+    {
+      "title": "Hoa",
+      "url": "https://vi.wikipedia.org/wiki/Hoa",
+      "checked_on": "2026-11-27"
+    },
+    {
+      "title": "Flower",
+      "url": "https://en.wikipedia.org/wiki/Flower",
+      "checked_on": "2026-11-27"
+    }
+  ],
   "reviewed_by": null,
   "reviewed_on": null,
   "approved_sha256": null
