@@ -8,6 +8,7 @@ playable. Those decisions remain owned by the backend.
 
 from __future__ import annotations
 
+import functools
 import gc
 import hashlib
 import inspect
@@ -19,6 +20,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 from pathlib import Path
 from typing import Any
@@ -44,6 +46,12 @@ from keyframe_plan import (
     KeyframePlanError,
     scene_conditioning,
     validate_keyframe_plan,
+)
+from scene_prepare_host import (
+    PrepWorker,
+    PrepWorkerError,
+    child_environment,
+    read_prepare_request,
 )
 from story_visual_plan import (
     KEYFRAME_PROMPT_TEMPLATE_VERSION,
@@ -79,6 +87,12 @@ MODEL_ROOT = f"{MODEL_MOUNT}/ltx-2.5/{MODEL_REVISION}"
 SAM2_REPOSITORY_COMMIT = "2b90b9f5ceec907a1c18123530e92e794ad901a4"
 SAM2_CHECKPOINT = Path(MODEL_MOUNT) / "sam2.1_hiera_small" / SAM2_REPOSITORY_COMMIT / "sam2.1_hiera_small.pt"
 SAM2_MODEL_CONFIG = "configs/sam2.1/sam2.1_hiera_s.yaml"
+# FEAT-094 phase 2: scene preparation runs in this container, in its own environment (ADR-0026).
+PREPARE_PYTHON = "/opt/prep-venv/bin/python"
+PREPARE_SERVER = "/root/scene_prepare_server.py"
+PREPARE_TIMEOUT_SECONDS = 600
+PLATE_MODEL_ID = "black-forest-labs/flux-3-image-klein"
+PLATE_MODEL_REVISION = "09561231f44e41381c461caf53d5452005a60ac9"
 MODEL_MARKER = f"{MODEL_ROOT}/sketch2life-model-manifest.json"
 
 INPUT_SCHEMA = "sketch2life.modal.video-scene-input.v1"
@@ -123,7 +137,8 @@ scratch_volume = modal.Volume.from_name(
 _contracts_file = _MODULE_DIR / "contracts.py"
 _observability_file = _MODULE_DIR / "worker_observability.py"
 _story_visual_plan_file = _MODULE_DIR / "story_visual_plan.py"
-_ltx_speed_file = _MODULE_DIR / "ltx_speed.py"
+_lock_dir = _MODULE_DIR / "locks"
+_RUNTIME_MODULES = ("ltx_speed.py", "scene_prepare.py", "scene_prepare_host.py", "scene_prepare_server.py")
 _keyframe_modules = (
     "keyframe_compositor.py",
     "keyframe_metrics.py",
@@ -153,13 +168,17 @@ _download_image = _worker_base_image.uv_pip_install("huggingface_hub==1.32.0").e
 # The official inference code is installed from a pinned Lightricks release tag.
 # Use the official split-checkpoint pipeline, not Diffusers, ComfyUI, Wan or a
 # third-party LTX wrapper. The backend remains the only dispatcher.
+# FEAT-094: both Python environments install from committed locks, so a rebuild brings the same packages.
 _inference_image = (
     _worker_base_image.apt_install("ffmpeg", "git")
     .pip_install("uv==0.9.8")
+    .add_local_file(str(_lock_dir / "ltx-2.5-v1.6.2.uv.lock"), "/opt/locks/ltx.uv.lock", copy=True)
+    .add_local_file(str(_lock_dir / "scene-prepare.txt"), "/opt/locks/scene-prepare.txt", copy=True)
     .run_commands(
         "git clone --filter=blob:none --depth 1 --branch v1.6.2 "
         "https://github.com/Lightricks/LTX-2.git /opt/LTX-2",
-        "cd /opt/LTX-2 && uv lock && uv sync --frozen --package ltx-pipelines",
+        "cp /opt/locks/ltx.uv.lock /opt/LTX-2/uv.lock",
+        "cd /opt/LTX-2 && uv sync --frozen --package ltx-pipelines",
         "cd /opt/LTX-2 && git rev-parse HEAD > /opt/LTX-2/LTX_CODE_COMMIT "
         "&& sha256sum uv.lock | cut -d ' ' -f 1 > /opt/LTX-2/LTX_UV_LOCK_SHA256",
         f'test "$(cat /opt/LTX-2/LTX_CODE_COMMIT)" = "{PINNED_LTX_CODE_COMMIT}"',
@@ -167,7 +186,14 @@ _inference_image = (
         "SAM2_BUILD_CUDA=0 uv pip install --python /opt/LTX-2/.venv/bin/python --no-deps "
         f"git+https://github.com/facebookresearch/sam2.git@{SAM2_REPOSITORY_COMMIT}",
         "uv pip install --python /opt/LTX-2/.venv/bin/python hydra-core==1.3.2 iopath==0.1.10",
+        # Scene preparation (FLUX background plate and SAM masks) has its own interpreter.
+        "uv venv /opt/prep-venv --python /usr/local/bin/python3.12",
+        "uv pip install --python /opt/prep-venv/bin/python -r /opt/locks/scene-prepare.txt",
+        "SAM2_BUILD_CUDA=0 uv pip install --python /opt/prep-venv/bin/python --no-deps "
+        f"git+https://github.com/facebookresearch/sam2.git@{SAM2_REPOSITORY_COMMIT}",
     )
+    # FEAT-094: Debian packages are not locked; refuse an ffmpeg series other than the one the checks ran with.
+    .run_commands("ffmpeg -version | head -1 | grep -q 'ffmpeg version 7[.]1[.]'")
     .env(
         {
             "PATH": "/opt/LTX-2/.venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
@@ -184,15 +210,111 @@ _inference_image = (
 )
 
 
-def _with_speed_module(image: modal.Image) -> modal.Image:
-    """Mount ``ltx_speed`` as the last layer; every function of this app imports it with this module."""
+def _with_runtime_modules(image: modal.Image) -> modal.Image:
+    """Mount the runtime modules as the last layers, so that editing them never rebuilds a dependency layer."""
 
-    return image.add_local_file(str(_ltx_speed_file), "/root/ltx_speed.py")
+    for name in _RUNTIME_MODULES:
+        image = image.add_local_file(str(_MODULE_DIR / name), f"/root/{name}")
+    return image
+
+
+# The model mount is read-only, so the child keeps its small Hugging Face files in the container.
+_PREPARATION = PrepWorker(
+    [PREPARE_PYTHON, PREPARE_SERVER], env=child_environment({**os.environ, "HF_HOME": "/tmp/prepare-hf"})
+)
+
+
+def _with_scene_preparation(render: Any) -> Any:
+    """Route preparation calls to their own handler; one container serves both, one call at a time."""
+
+    @functools.wraps(render)
+    def entry(payload: dict[str, Any]) -> dict[str, Any]:
+        if payload.get("prepare_warmup") is True:
+            return _warm_up_scene_preparation()
+        if payload.get("workload") == "video.scene.prepare":
+            return _prepare_scene_job(payload)
+        return render(payload)
+
+    return entry
+
+
+def _start_preparation() -> None:
+    """Make room for the preparation child. The checkpoint check comes first: it reloads the model volume, which
+    fails once another process holds files on it."""
+
+    if _PREPARATION.running:
+        return
+    try:
+        _require_model_ready()
+    except Exception as error:  # noqa: BLE001 - preparation does not need the renderer checkpoint
+        print(json.dumps({"event": "scene_model_check_failed", "error_type": type(error).__name__}), flush=True)
+    _unload_pipeline()
+
+
+def _warm_up_scene_preparation() -> dict[str, Any]:
+    """Load the plate and mask models and start reading the renderer checkpoint; no job data is read."""
+
+    _start_preparation()
+    try:
+        loaded = _PREPARATION.request("warmup", {}, timeout=PREPARE_TIMEOUT_SECONDS).get("loaded", [])
+    except PrepWorkerError as error:
+        print(json.dumps({"event": "scene_preparation_warm_up_failed", "code": str(error)}), flush=True)
+        return {"warmed": False, "loaded": []}
+    _start_checkpoint_prefetch()
+    return {"warmed": True, "loaded": loaded}
+
+
+@observed_worker(
+    workload="video.scene.prepare",
+    model_id=PLATE_MODEL_ID,
+    model_revision=PLATE_MODEL_REVISION,
+    gpu_class="L40S",
+    timeout_seconds=1_800,
+)
+def _prepare_scene_job(payload: dict[str, Any]) -> dict[str, Any]:
+    """FEAT-093: one scene keyframe, the child's subjects over a crayon background plate (paper fallback)."""
+
+    with worker_phase("input_envelope"):
+        request = parse_worker_input(payload, execution_group="l40s-video")
+    refresh_worker_volume(scratch_volume)
+    attempt_root = _safe_attempt_root(request.attempt_prefix)
+    with worker_phase("input_manifest_read"):
+        try:
+            drawing, fields = read_prepare_request(
+                attempt_root, manifest_sha256=request.input_manifest_sha256, input_bytes=request.input_bytes
+            )
+        except ValueError as error:
+            raise WorkerContractError(str(error)) from None
+    with tempfile.TemporaryDirectory(prefix="sketch2life-prepare-") as directory:
+        (Path(directory) / "drawing.png").write_bytes(drawing)
+        with worker_phase("scene_prepare"):
+            _start_preparation()
+            outcome = _PREPARATION.request(
+                "prepare", {"directory": directory, "request": fields}, timeout=PREPARE_TIMEOUT_SECONDS
+            )
+        keyframe = (Path(directory) / "keyframe.png").read_bytes()
+    if not keyframe or len(keyframe) > MAX_DRAWING_BYTES:
+        raise RuntimeError("MODAL_OUTPUT_LIMIT_EXCEEDED")
+    return {
+        "schema_version": "sketch2life.modal.worker-output.v1",
+        "workload": "video.scene.prepare",
+        "job_id": request.job_id,
+        "generation_id": request.generation_id,
+        "attempt_id": request.attempt_id,
+        "model": {"id": PLATE_MODEL_ID, "revision": PLATE_MODEL_REVISION},
+        "asset": {
+            "content_type": "image/png",
+            "size_bytes": len(keyframe),
+            "sha256": hashlib.sha256(keyframe).hexdigest(),
+            "bytes": keyframe,
+        },
+        "prepare": {"background": outcome["background"], "reason": outcome["reason"]},
+    }
 
 
 @app.function(
     name="health",
-    image=_with_speed_module(_worker_base_image),
+    image=_with_runtime_modules(_worker_base_image),
     min_containers=0,
     max_containers=1,
     scaledown_window=30,
@@ -212,7 +334,7 @@ def health() -> dict[str, Any]:
 
 @app.function(
     name="check-ltx25-model-access",
-    image=_with_speed_module(_download_image),
+    image=_with_runtime_modules(_download_image),
     secrets=[
         modal.Secret.from_name(
             HF_CREDENTIAL_RESOURCE_NAME,
@@ -319,7 +441,7 @@ def check_ltx25_model_access() -> dict[str, Any]:
 
 @app.function(
     name="download-ltx25-pinned-model",
-    image=_with_speed_module(_download_image),
+    image=_with_runtime_modules(_download_image),
     secrets=[
         modal.Secret.from_name(
             HF_CREDENTIAL_RESOURCE_NAME,
@@ -439,7 +561,7 @@ def download_ltx25_pinned_model() -> dict[str, Any]:
 
 @app.function(
     name="ltx25-model-status",
-    image=_with_speed_module(_download_image),
+    image=_with_runtime_modules(_download_image),
     volumes={MODEL_MOUNT: model_volume.with_mount_options(read_only=True)},
     cpu=1.0,
     memory=2_048,
@@ -468,7 +590,7 @@ def ltx25_model_status() -> dict[str, Any]:
 
 @app.function(
     name="diagnose-ltx25-runtime",
-    image=_with_speed_module(_inference_image),
+    image=_with_runtime_modules(_inference_image),
     volumes={MODEL_MOUNT: model_volume.with_mount_options(read_only=True)},
     cpu=4.0,
     memory=16_384,
@@ -533,7 +655,7 @@ def diagnose_ltx25_runtime() -> dict[str, Any]:
 
 @app.function(
     name="generate-video-scene",
-    image=_with_speed_module(_inference_image),
+    image=_with_runtime_modules(_inference_image),
     gpu="L40S",
     cpu=8.0,
     memory=65_536,
@@ -547,6 +669,7 @@ def diagnose_ltx25_runtime() -> dict[str, Any]:
     timeout=1_800,
     retries=0,
 )
+@_with_scene_preparation
 @observed_worker(
     workload="video.scene.generate",
     model_id=MODEL_ID,
@@ -611,6 +734,7 @@ def generate_video_scene(payload: dict[str, Any]) -> dict[str, Any]:
                 visual_prompt=manifest["visual_prompt"],
                 seed=manifest["seed"],
                 target_duration=manifest["target_duration_seconds"],
+                **_end_guide_arguments(manifest, image_path),
             )
         torch.cuda.synchronize()
         inference_duration_ms = round((time.perf_counter() - inference_started) * 1000)
@@ -768,7 +892,7 @@ def _build_silent_story_output_payload(
 
 @app.function(
     name="generate-silent-story-video",
-    image=_with_speed_module(_inference_image),
+    image=_with_runtime_modules(_inference_image),
     gpu="L40S",
     cpu=8.0,
     memory=65_536,
@@ -1437,8 +1561,11 @@ def _parse_scene_input(raw: bytes) -> dict[str, Any]:
         "target_duration_seconds",
         "seed",
     }
-    if not isinstance(payload, dict) or set(payload) != expected:
+    if not isinstance(payload, dict) or set(payload) - {"end_guide_strength"} != expected:
         raise WorkerContractError("VIDEO_INPUT_MANIFEST_INVALID")
+    guide = payload.get("end_guide_strength", 0.7)
+    if type(guide) not in (int, float) or not 0.1 <= guide <= 1.0:
+        raise WorkerContractError("VIDEO_INPUT_NOT_ALLOWED")
     scene_id = payload.get("scene_id")
     scene_match = _SCENE_ID.fullmatch(scene_id) if isinstance(scene_id, str) else None
     scene_index = payload.get("scene_index")
@@ -1529,10 +1656,7 @@ def _warm_up_scene_renderer(prompts: list[str] | None = None) -> dict[str, Any]:
         _require_model_ready()
     with worker_phase("model_load"):
         if not _DECODER_COMPILED:
-            for name in MODEL_FILES:
-                with (Path(MODEL_ROOT) / name).open("rb") as handle:
-                    while handle.read(64 * 1024 * 1024):
-                        pass
+            _ensure_checkpoints_read()
         pipeline = _load_pipeline()
     if prompts and isinstance(pipeline.prompt_encoder, PromptCache):
         import torch
@@ -1587,6 +1711,13 @@ def _render_scene(**arguments: Any) -> dict[str, int | float]:
 
 
 def _release_pipeline() -> None:
+    _unload_pipeline()
+    print(json.dumps({"event": "scene_speed_fallback", "speed_profile": _PROFILES.current}), flush=True)
+
+
+def _unload_pipeline() -> None:
+    """Give the renderer's GPU memory back, including what a half-finished load left behind."""
+
     global _PIPELINE
 
     _PIPELINE = None
@@ -1596,7 +1727,43 @@ def _release_pipeline() -> None:
     empty_cache = getattr(torch.cuda, "empty_cache", None)
     if empty_cache is not None:
         empty_cache()
-    print(json.dumps({"event": "scene_speed_fallback", "speed_profile": _PROFILES.current}), flush=True)
+
+
+def _read_checkpoints() -> None:
+    """Read every checkpoint file once so that loading the pipeline finds it in the page cache."""
+
+    for name in MODEL_FILES:
+        with (Path(MODEL_ROOT) / name).open("rb") as handle:
+            while handle.read(64 * 1024 * 1024):
+                pass
+
+
+def _start_checkpoint_prefetch() -> None:
+    """Read the checkpoint in the background while scene frames are prepared."""
+
+    global _PREFETCH
+
+    if _CHECKPOINTS_READ.is_set() or (_PREFETCH is not None and _PREFETCH.is_alive()):
+        return
+
+    def read() -> None:
+        try:
+            _read_checkpoints()
+        except OSError as error:
+            print(json.dumps({"event": "checkpoint_prefetch_failed", "error_type": type(error).__name__}), flush=True)
+        else:
+            _CHECKPOINTS_READ.set()
+
+    _PREFETCH = threading.Thread(target=read, name="checkpoint-prefetch", daemon=True)
+    _PREFETCH.start()
+
+
+def _ensure_checkpoints_read() -> None:
+    if _PREFETCH is not None:
+        _PREFETCH.join()
+    if not _CHECKPOINTS_READ.is_set():
+        _read_checkpoints()
+        _CHECKPOINTS_READ.set()
 
 
 def _load_pipeline() -> Any:
@@ -1609,6 +1776,7 @@ def _load_pipeline() -> Any:
     global _PIPELINE
     if _PIPELINE is not None:
         return _PIPELINE
+    _PREPARATION.stop()  # the preparation models and the renderer do not fit on the GPU together
     if _read_ltx_code_commit() != PINNED_LTX_CODE_COMMIT:
         raise RuntimeError("LTX_CODE_REVISION_MISMATCH")
     if _read_ltx_dependency_lock_sha256() is None:
@@ -1782,6 +1950,13 @@ def _scene_render_inputs(
         "start_keyframe": cond["start_keyframe"],
         "end_keyframe": end_keyframe,
     }
+
+
+def _end_guide_arguments(manifest: dict[str, Any], image_path: Path) -> dict[str, Any]:
+    """FEAT-094: guiding the last frame with the first one holds the camera and keeps the subject in the frame."""
+
+    strength = manifest.get("end_guide_strength")
+    return {} if strength is None else {"end_image_path": image_path, "end_strength": strength}
 
 
 def _end_frame_conditioning(
@@ -2168,3 +2343,5 @@ def _read_ltx_dependency_lock_sha256() -> str | None:
 _PIPELINE: Any | None = None
 _PROFILES = ProfileSwitch()
 _DECODER_COMPILED = False
+_PREFETCH: threading.Thread | None = None
+_CHECKPOINTS_READ = threading.Event()

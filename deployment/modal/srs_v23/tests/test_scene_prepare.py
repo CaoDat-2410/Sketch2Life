@@ -123,3 +123,38 @@ def test_a_gone_secondary_is_absent_from_the_keyframe() -> None:
     result = _run(state="gone")
 
     assert (_pixels(result) == np.array([120, 30, 30])).all(axis=2).sum() == 0
+
+
+def _framed_plate(border: int = 28) -> Image.Image:
+    """A painted plate that kept a pale page margin, as in the second live run."""
+
+    plate = _plate("")
+    page = Image.new("RGB", plate.size, (236, 229, 215))
+    inner = plate.crop((border, border, plate.width - border, plate.height - border))
+    page.paste(inner, (border, border))
+    return page
+
+
+def test_a_pale_page_edge_is_cut_off_the_plate() -> None:
+    trimmed = np.asarray(sp.trim_page_edge(_framed_plate()))
+
+    assert trimmed.shape == (768, 1280, 3)
+    for strip in (trimmed[:4], trimmed[-4:], trimmed[:, :4], trimmed[:, -4:]):
+        assert float(strip.min(axis=2).mean()) < 200
+
+
+def test_every_plate_loses_its_outer_strip_where_page_edges_are_painted() -> None:
+    pixels = np.asarray(_plate("")).copy()
+    pixels[:, :60] = np.where((np.arange(768) % 3 == 0)[:, None, None], pixels[:, :60], (238, 229, 205))  # a ragged tear
+
+    trimmed = np.asarray(sp.trim_page_edge(Image.fromarray(pixels)))
+
+    assert trimmed.shape == (768, 1280, 3)
+    assert float(((trimmed[:, :8].min(axis=2) > 185)).mean()) < 0.05
+
+
+def test_the_prepared_frame_uses_the_trimmed_plate() -> None:
+    result = _run(plate=lambda _prompt: _framed_plate())
+
+    pixels = _pixels(result)
+    assert result["background"] == "AI" and float(pixels[:4].min(axis=2).mean()) < 200

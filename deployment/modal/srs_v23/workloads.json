@@ -204,14 +204,14 @@
     },
     {
       "id": "video.scene.prepare",
-      "execution_group": "l4",
+      "execution_group": "l40s-video",
       "candidate": "FLUX.3 klein background plate plus SAM 2.1 hiera-small masks and the CPU keyframe compositor",
       "candidate_status": "FEAT-093 source only; not deployed or run for this revision.",
       "enabled": false,
       "inputs": "the adult-approved drawing, subject boxes and staging, and a background prompt; no child identifier",
       "human_gate": "the finished video is reviewed by the adult before use",
       "quota_owner": "backend admission and AI Policy reservation of the video request",
-      "implementation_status": "Core logic unit-tested offline; FLUX and SAM weights must be downloaded; disabled pending live verification (FEAT-093 M10)."
+      "implementation_status": "FEAT-094: runs as a child process of the generate-video-scene container, so preparation and rendering share one L40S; disabled pending live verification."
     }
   ]
 }

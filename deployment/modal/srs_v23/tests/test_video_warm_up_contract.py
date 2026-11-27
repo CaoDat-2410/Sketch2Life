@@ -1,4 +1,4 @@
-"""FEAT-093 Amendment C: both video GPU functions answer a warm-up before they parse a job."""
+"""FEAT-093 Amendment C: the video GPU function answers a warm-up before it parses a job."""
 
 from __future__ import annotations
 
@@ -15,7 +15,6 @@ MODAL_DIR = Path(__file__).resolve().parents[1]
     [
         # FEAT-094: the renderer's warm-up may also carry the scene prompts.
         ("video_app.py", "generate_video_scene", "payload.get('warmup') is True"),
-        ("language_audio_app.py", "prepare_video_scene", "payload == {'warmup': True}"),
     ],
 )
 def test_warm_up_is_the_first_branch_and_loads_nothing_from_the_job(

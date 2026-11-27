@@ -32,10 +32,9 @@ L4_WORKLOADS = frozenset(
         "tts.narration.generate",
         "video.final-safety.validate",
         "video.timeline.generate",
-        "video.scene.prepare",
     }
 )
-L40S_WORKLOADS = frozenset({"video.scene.generate", "video.story.generate"})
+L40S_WORKLOADS = frozenset({"video.scene.prepare", "video.scene.generate", "video.story.generate"})
 _OPAQUE_ID = re.compile(r"\A[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}\Z")
 _SHA256 = re.compile(r"\A[0-9a-f]{64}\Z")
 

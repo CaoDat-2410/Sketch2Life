@@ -39,6 +39,18 @@ def plate_problem(plate: Image.Image) -> str | None:
     return None
 
 
+# The image model often paints a ragged page edge; the measured strip was about 3 to 5 percent wide.
+PAGE_EDGE_ZOOM = 0.06
+
+
+def trim_page_edge(plate: Image.Image) -> Image.Image:
+    """The plate without its outer strip (FEAT-094): a background loses nothing, a painted page edge disappears."""
+
+    dx, dy = round(plate.width * PAGE_EDGE_ZOOM), round(plate.height * PAGE_EDGE_ZOOM)
+    inside = plate.crop((dx, dy, plate.width - dx, plate.height - dy))
+    return inside.resize(plate.size, Image.Resampling.LANCZOS)
+
+
 def _png(image: Image.Image) -> bytes:
     buffer = io.BytesIO()
     image.save(buffer, format="PNG")
@@ -89,7 +101,7 @@ def prepare_scene(
         return {"keyframe_png": _png(canvas), "background": "PAPER", "reason": "SCENE_PREPARE_UNEXPECTED_ERROR"}
 
     try:
-        plate = generate_plate(plate_prompt)
+        plate = trim_page_edge(generate_plate(plate_prompt))
         problem = plate_problem(plate)
         if problem is not None:
             return {"keyframe_png": _png(frame.image), "background": "PAPER", "reason": problem}

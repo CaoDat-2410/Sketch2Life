@@ -28,6 +28,7 @@ _MIN_SECONDARY_PIXELS = 16
 _ERASE_RADIUS = 4
 _RESIDUE_RADIUS = 8  # anti-aliased edge ink left right next to a cut-out
 _PARTLY_KEEP = 0.5
+SHADOW_DARKNESS = 0.22
 GROUND_LINE = 0.98  # share of the page height where a standing subject's lowest pixel rests
 
 
@@ -238,6 +239,18 @@ def _paper_colour(canvas: np.ndarray, masks: list[np.ndarray]) -> tuple[int, int
     return tuple(int(v) for v in np.median(outside, axis=0))  # type: ignore[return-value]
 
 
+def _contact_shadow(plate: np.ndarray, subject: np.ndarray) -> np.ndarray:
+    """A soft flat ellipse under a standing subject, so it does not float on the painted ground."""
+
+    x0, _y0, x1, y1 = mask_bbox(subject)
+    half_width = max((x1 - x0) * 0.45, 8.0)
+    half_height = max(half_width * 0.14, 6.0)
+    yy, xx = np.mgrid[: plate.shape[0], : plate.shape[1]]
+    distance = ((xx - (x0 + x1) / 2) / half_width) ** 2 + ((yy - (y1 + 2)) / half_height) ** 2
+    darkness = SHADOW_DARKNESS * np.clip(1.0 - distance, 0.0, 1.0) ** 0.5
+    return np.rint(plate * (1.0 - darkness)[..., None]).astype(np.uint8)
+
+
 def apply_background_plate(keyframe: Keyframe, plate: Image.Image) -> Image.Image:
     """FEAT-093: put the child's real subjects (main and approved secondaries) on a background plate.
 
@@ -255,6 +268,8 @@ def apply_background_plate(keyframe: Keyframe, plate: Image.Image) -> Image.Imag
         occupied |= mask
     if not occupied.any():
         raise KeyframeError("KEYFRAME_NO_SUBJECT_TO_PLACE")
+    if keyframe.notes.get("grounded"):
+        base = _contact_shadow(base, keyframe.main_mask)
     occupied = _dilate(occupied, 2)
     base[occupied] = frame[occupied]
     return Image.fromarray(base)
@@ -377,6 +392,7 @@ def build_keyframes(
                     "secondary_states": states,
                     "overlap": overlap,
                     "paper": paper,
+                    "grounded": bool(main_end.get("grounded")),
                 },
             )
         )

@@ -385,6 +385,11 @@ _story_text_image = _text_image.env(
         "LMFE_STRICT_JSON_FIELD_ORDER": "true",
     }
 )
+# FEAT-094: mounted as the last layer, so that editing the module never rebuilds a dependency layer.
+_learning_story_file = _MODULE_DIR / "learning_story.py"
+_story_text_image = _story_text_image.add_local_file(str(_learning_story_file), "/root/learning_story.py")
+_scene_check_file = _MODULE_DIR / "scene_check.py"
+_story_text_image = _story_text_image.add_local_file(str(_scene_check_file), "/root/scene_check.py")
 # FEAT-093 Amendment C / ADR-0025: the shared Qwen worker serves the same checkpoint with vLLM.
 _qwen_vllm_image = (
     modal.Image.debian_slim(python_version="3.11")
@@ -394,7 +399,10 @@ _qwen_vllm_image = (
     .add_local_file(str(_MODULE_DIR / "story_staging_worker.py"), "/root/story_staging_worker.py", copy=True)
     .add_local_file(str(_MODULE_DIR / "video_timeline.py"), "/root/video_timeline.py", copy=True)
     .add_local_file(str(_MODULE_DIR / "qwen_vllm.py"), "/root/qwen_vllm.py", copy=True)
-    .uv_pip_install("vllm==0.34.0")
+    # FEAT-094: the whole environment is pinned, so a rebuild brings the packages that were measured.
+    .pip_install("uv==0.9.8")
+    .add_local_file(str(_MODULE_DIR / "locks" / "qwen-vllm.txt"), "/opt/locks/qwen-vllm.txt", copy=True)
+    .run_commands("uv pip install --system -r /opt/locks/qwen-vllm.txt")
     .env(
         {
             "SKETCH2LIFE_QWEN_ENGINE": "vllm",
@@ -601,6 +609,47 @@ def check_qwen38_readiness() -> dict[str, Any]:
     }
 
 
+def _learning_story_response(
+    request: ModalWorkerInputV1, data: dict[str, Any], generate_json: Any
+) -> dict[str, Any]:
+    """FEAT-094: the learning script is the story; there is no second rewrite for the video."""
+
+    import learning_story
+
+    try:
+        with worker_phase("learning_script"):
+            story, learning = learning_story.generate_learning_story(data, generate_json)
+        with worker_phase("business_rule_validation"):
+            result = _parse_story_output(json.dumps(story, ensure_ascii=False), data)
+    except (learning_story.LearningStoryError, StoryOutputValidationError) as exc:
+        reason = getattr(exc, "reason_code", None) or str(exc)
+        print(json.dumps({"event": "story_output_rejected", "reason_code": reason}, sort_keys=True), flush=True)
+        raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID") from exc
+    print(
+        json.dumps(
+            {
+                "event": "learning_script_ready",
+                "scene_count": len(result["scenes"]),
+                "fact_source": learning["fact_source"],
+            },
+            sort_keys=True,
+        ),
+        flush=True,
+    )
+    return {
+        "schema_version": WORKER_OUTPUT_SCHEMA,
+        "workload": request.workload,
+        "job_id": request.job_id,
+        "generation_id": request.generation_id,
+        "attempt_id": request.attempt_id,
+        "model": {"id": TEXT_MODEL_ID, "revision": TEXT_MODEL_REVISION},
+        "result": result,
+        "staging": None,
+        "staging_issue": "STAGING_NOT_USED",
+        "learning": learning,
+    }
+
+
 @app.function(
     name="generate-story-and-storyboard",
     image=_story_text_image,
@@ -654,8 +703,13 @@ def generate_story_and_storyboard(payload: dict[str, Any]) -> dict[str, Any]:
         "primary_activity",
         "primary_activity_sha256",
     }
-    if set(data) - {"secondary_subjects"} != expected:
+    if set(data) - {"secondary_subjects", "learning"} != expected:
         raise WorkerContractError("MODAL_INPUT_MANIFEST_INVALID")
+    if "learning" in data:
+        import learning_story
+
+        if not learning_story.request_valid(data["learning"]):
+            raise WorkerContractError("MODAL_INPUT_NOT_ALLOWED")
     if "secondary_subjects" in data and not _secondary_subjects_valid(
         data["secondary_subjects"]
     ):
@@ -781,6 +835,40 @@ def generate_story_and_storyboard(payload: dict[str, Any]) -> dict[str, Any]:
         ),
         flush=True,
     )
+    def _generate_constrained(
+        system_prompt: str, user_prompt: str, schema: dict[str, Any], max_new_tokens: int
+    ) -> str:
+        encoded_prompt = processor.apply_chat_template(
+            [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
+            tokenize=True,
+            add_generation_prompt=True,
+            enable_thinking=False,
+            return_tensors="pt",
+            return_dict=True,
+        ).to(model.device)
+        allowed_tokens = _build_json_prefix_allowed_tokens_fn(
+            tokenizer,
+            schema,
+            eos_token_id=model.generation_config.eos_token_id,
+        )
+        config = deepcopy(model.generation_config)
+        config.do_sample = False
+        config.temperature = 1.0
+        config.top_p = 1.0
+        config.top_k = 50
+        config.max_new_tokens = max_new_tokens
+        config.pad_token_id = _generation_pad_token_id(model, tokenizer)
+        with torch.inference_mode():
+            tokens = model.generate(
+                **_qwen_text_model_generation_inputs(encoded_prompt),
+                generation_config=config,
+                prefix_allowed_tokens_fn=allowed_tokens,
+            )
+        return tokenizer.decode(tokens[0, encoded_prompt["input_ids"].shape[-1] :], skip_special_tokens=True)
+
+    if "learning" in data:
+        return _learning_story_response(request, data, _generate_constrained)
+
     prompt = _parent_story_prompt(data)
     messages = [
         {
@@ -935,41 +1023,8 @@ def generate_story_and_storyboard(payload: dict[str, Any]) -> dict[str, Any]:
     def _generate_staging_text(
         staging_prompt: str, schema: dict[str, Any], max_new_tokens: int
     ) -> str:
-        staging_encoded = processor.apply_chat_template(
-            [
-                {
-                    "role": "system",
-                    "content": "Bạn là đạo diễn bố cục cho truyện tranh vẽ tay, chỉ trả JSON.",
-                },
-                {"role": "user", "content": staging_prompt},
-            ],
-            tokenize=True,
-            add_generation_prompt=True,
-            enable_thinking=False,
-            return_tensors="pt",
-            return_dict=True,
-        ).to(model.device)
-        staging_fn = _build_json_prefix_allowed_tokens_fn(
-            tokenizer,
-            schema,
-            eos_token_id=model.generation_config.eos_token_id,
-        )
-        staging_config = deepcopy(model.generation_config)
-        staging_config.do_sample = False
-        staging_config.temperature = 1.0
-        staging_config.top_p = 1.0
-        staging_config.top_k = 50
-        staging_config.max_new_tokens = max_new_tokens
-        staging_config.pad_token_id = _generation_pad_token_id(model, tokenizer)
-        with torch.inference_mode():
-            staging_generated = model.generate(
-                **_qwen_text_model_generation_inputs(staging_encoded),
-                generation_config=staging_config,
-                prefix_allowed_tokens_fn=staging_fn,
-            )
-        return tokenizer.decode(
-            staging_generated[0, staging_encoded["input_ids"].shape[-1] :],
-            skip_special_tokens=True,
+        return _generate_constrained(
+            "Bạn là đạo diễn bố cục cho truyện tranh vẽ tay, chỉ trả JSON.", staging_prompt, schema, max_new_tokens
         )
 
     with worker_phase("staging_pass"):
@@ -3113,209 +3168,6 @@ def synthesize_vietnamese_narration(payload: dict[str, Any]) -> dict[str, Any]:
             "audio/wav",
             output_bytes,
         )
-
-
-SCENE_PREPARE_SAM_COMMIT = "2b90b9f5ceec907a1c18123530e92e794ad901a4"
-SCENE_PREPARE_SAM_CHECKPOINT = (
-    Path(MODEL_MOUNT) / "sam2.1_hiera_small" / SCENE_PREPARE_SAM_COMMIT / "sam2.1_hiera_small.pt"
-)
-SCENE_PREPARE_SAM_CONFIG = "configs/sam2.1/sam2.1_hiera_s.yaml"
-_scene_flux_pipeline: Any = None
-_scene_sam_predictor: Any = None
-
-
-def _scene_flux_dir() -> str:
-    root = Path(MODEL_MOUNT) / "flux_3_image_klein"
-    revisions = (
-        sorted(path for path in root.iterdir() if (path / "image" / "modular_model_index.json").is_file())
-        if root.is_dir()
-        else []
-    )
-    if not revisions:
-        raise RuntimeError("PLATE_MODEL_UNAVAILABLE")
-    return str(revisions[-1] / "image")
-
-
-def _scene_plate(prompt: str) -> Any:
-    """A 1280x768 crayon-style background plate from FLUX.3 klein; failures degrade to the paper background."""
-
-    import torch
-
-    pipeline = _load_scene_flux()
-    with torch.inference_mode():
-        image = pipeline(
-            prompt=prompt,
-            height=768,
-            width=1280,
-            generator=torch.Generator(device="cuda").manual_seed(7),
-            output="images",
-        )[0]
-    return image
-
-
-def _load_scene_flux() -> Any:
-    global _scene_flux_pipeline
-    import gc
-
-    import torch
-
-    if _scene_flux_pipeline is None:
-        from diffusers import ModularPipeline
-
-        model_dir = _scene_flux_dir()
-        spec = ModularPipeline.from_pretrained(model_dir, local_files_only=True)
-        blocks = spec.blocks
-        blocks.sub_blocks.pop("prompt_upsampler", None)
-        pipeline = blocks.init_pipeline(model_dir)
-        pipeline.load_components(dtype={"vae": torch.float32, "default": torch.bfloat16}, local_files_only=True)
-        pipeline.to("cuda")
-        _scene_flux_pipeline = pipeline
-        gc.collect()
-    return _scene_flux_pipeline
-
-
-def _warm_up_scene_preparation() -> dict[str, Any]:
-    """Load the plate and mask models; no job data is read and a load failure leaves the paper fallback."""
-
-    loaded = []
-    for name, load in (("plate", _load_scene_flux), ("mask", _scene_sam)):
-        try:
-            load()
-        except Exception as error:  # noqa: BLE001
-            print(
-                json.dumps({"event": "scene_warm_up_failed", "model": name, "error_type": type(error).__name__}),
-                flush=True,
-            )
-        else:
-            loaded.append(name)
-    print(json.dumps({"event": "scene_warm_up", "loaded": loaded}), flush=True)
-    return {"warmed": True, "loaded": loaded}
-
-
-def _logged_scene_plate(prompt: str) -> Any:
-    """``_scene_plate`` that records why a plate failed (library error text only; the prompt is never logged)."""
-
-    try:
-        return _scene_plate(prompt)
-    except Exception as error:  # noqa: BLE001
-        print(
-            json.dumps(
-                {
-                    "event": "scene_plate_failed",
-                    "error_type": type(error).__name__,
-                    "error_text": re.sub(r"\s+", " ", str(error))[:300],
-                },
-                sort_keys=True,
-            ),
-            flush=True,
-        )
-        raise
-
-
-def _scene_sam() -> Any:
-    global _scene_sam_predictor
-    if _scene_sam_predictor is None:
-        import sam_masks
-
-        if not SCENE_PREPARE_SAM_CHECKPOINT.is_file():
-            raise sam_masks.MaskError("SAM_CHECKPOINT_UNAVAILABLE")
-        import torch
-        from sam2.build_sam import build_sam2
-        from sam2.sam2_image_predictor import SAM2ImagePredictor
-
-        model = build_sam2(
-            SCENE_PREPARE_SAM_CONFIG,
-            str(SCENE_PREPARE_SAM_CHECKPOINT),
-            device="cuda" if torch.cuda.is_available() else "cpu",
-            apply_postprocessing=False,
-        )
-        _scene_sam_predictor = SAM2ImagePredictor(model)
-    return _scene_sam_predictor
-
-
-@app.function(
-    name="prepare-video-scene",
-    image=_story_text_image,
-    gpu="L40S",
-    cpu=4.0,
-    memory=32_768,
-    volumes={
-        MODEL_MOUNT: model_volume.with_mount_options(read_only=True),
-        SCRATCH_MOUNT: scratch_volume.with_mount_options(read_only=True),
-    },
-    min_containers=0,
-    max_containers=1,
-    scaledown_window=300,
-    timeout=900,
-    retries=0,
-)
-@observed_worker(
-    workload="video.scene.prepare",
-    model_id=TEXT_MODEL_ID,
-    model_revision=TEXT_MODEL_REVISION,
-    gpu_class="L40S",
-    timeout_seconds=900,
-)
-def prepare_video_scene(payload: dict[str, Any]) -> dict[str, Any]:
-    """FEAT-093: one scene keyframe, the child's subjects over a crayon background plate (paper fallback)."""
-
-    if payload == {"warmup": True}:
-        return _warm_up_scene_preparation()
-    import base64
-    import binascii
-
-    import scene_prepare as _scene_prepare  # imported in the container: needs numpy and PIL
-
-    with worker_phase("input_envelope"):
-        request = parse_worker_input(payload, execution_group="l4")
-    if request.workload != "video.scene.prepare":
-        raise WorkerContractError("MODAL_WORKLOAD_NOT_ALLOWED")
-    refresh_worker_volume(scratch_volume)
-    with worker_phase("input_manifest_read"):
-        data = _read_json_asset(request, expected_asset="input/request.json")
-    with worker_phase("scene_prepare_request"):
-        try:
-            drawing = base64.b64decode(data["drawing_png_b64"], validate=True)
-            if hashlib.sha256(drawing).hexdigest() != data["drawing_sha256"] or len(drawing) > 20 * 1024 * 1024:
-                raise ValueError("drawing")
-            main = data["main"]
-            secondaries = data["secondaries"]
-            staging = data["staging"]
-            scene_index = int(data["scene_index"])
-            plate_prompt = str(data["plate_prompt"])[:1_200]
-            if not isinstance(secondaries, list) or len(secondaries) > 3 or not 1 <= scene_index <= 15:
-                raise ValueError("shape")
-        except (KeyError, ValueError, TypeError, binascii.Error):
-            raise WorkerContractError("MODAL_INPUT_MANIFEST_INVALID") from None
-    with worker_phase("scene_prepare"):
-        outcome = _scene_prepare.prepare_scene(
-            drawing,
-            main=main,
-            secondaries=secondaries,
-            staging=staging,
-            scene_index=scene_index,
-            source_facing=str(data.get("source_facing", "right")),
-            plate_prompt=plate_prompt,
-            generate_plate=_logged_scene_plate,
-            predictor_factory=_scene_sam,
-        )
-    print(
-        json.dumps(
-            {
-                "event": "scene_prepared",
-                "scene_index": scene_index,
-                "background": outcome["background"],
-                "reason": outcome["reason"],
-            },
-            sort_keys=True,
-        ),
-        flush=True,
-    )
-    response = _media_response(
-        request, "video.scene.prepare", TEXT_MODEL_ID, TEXT_MODEL_REVISION, "image/png", outcome["keyframe_png"]
-    )
-    response["prepare"] = {"background": outcome["background"], "reason": outcome["reason"]}
-    return response
 
 
 _NARRATION_VOICE = "Hải Đăng"
@@ -5537,6 +5389,79 @@ def _shared_drawing_model() -> tuple[Any, Any]:
 _drawing_worker._load_model = _shared_drawing_model
 
 
+@app.function(
+    name="check-video-scene",
+    image=_story_text_image,
+    gpu="L40S",
+    cpu=4.0,
+    memory=32_768,
+    volumes={
+        MODEL_MOUNT: model_volume.with_mount_options(read_only=True),
+        SCRATCH_MOUNT: scratch_volume.with_mount_options(read_only=True),
+    },
+    min_containers=0,
+    max_containers=1,
+    scaledown_window=30,
+    timeout=600,
+    retries=0,
+)
+@observed_worker(
+    workload="video.scene.validate",
+    model_id=TEXT_MODEL_ID,
+    model_revision=TEXT_MODEL_REVISION,
+    gpu_class="L40S",
+    timeout_seconds=600,
+)
+def check_video_scene(payload: dict[str, Any]) -> dict[str, Any]:
+    """FEAT-094: look at one rendered scene. Reached through ``qwen-worker``, which holds the loaded engine."""
+
+    import io
+
+    import scene_check
+
+    with worker_phase("input_envelope"):
+        request = parse_worker_input(payload, execution_group="l4")
+    if request.workload != "video.scene.validate":
+        raise WorkerContractError("MODAL_WORKLOAD_NOT_ALLOWED")
+    refresh_worker_volume(scratch_volume)
+    with worker_phase("input_manifest_read"):
+        data = _read_json_asset(request, expected_asset="input/request.json")
+    try:
+        sheet, question = scene_check.read_sheet(data)
+    except ValueError as error:
+        raise WorkerContractError(str(error)) from None
+    with worker_phase("model_load"):
+        processor, model = _load_text_model()
+    if getattr(model, "accepts_images", False) is not True:
+        raise RuntimeError("MODAL_VISION_CHECK_UNAVAILABLE")
+    from PIL import Image
+
+    with Image.open(io.BytesIO(sheet)) as opened:
+        picture = opened.convert("RGB")
+    prompt = processor.apply_chat_template(
+        [{"role": "user", "content": [{"type": "image", "image": picture}, {"type": "text", "text": question}]}],
+        tokenize=False,
+        add_generation_prompt=True,
+        enable_thinking=False,
+    )
+    with worker_phase("model_inference"):
+        input_ids, output_ids = model.generate_from_image(
+            prompt, picture, schema=scene_check.SCHEMA, max_new_tokens=120
+        )
+    found = scene_check.problems(
+        processor.tokenizer.decode(output_ids[0][input_ids.shape[-1] :], skip_special_tokens=True)
+    )
+    print(json.dumps({"event": "video_scene_checked", "problems": found}, sort_keys=True), flush=True)
+    return {
+        "schema_version": WORKER_OUTPUT_SCHEMA,
+        "workload": request.workload,
+        "job_id": request.job_id,
+        "generation_id": request.generation_id,
+        "attempt_id": request.attempt_id,
+        "check": {"problems": found},
+    }
+
+
 def _shared_qwen_routes() -> dict[str, Any]:
     return {
         # ``Function.local`` runs the original callable inside this container; ``get_raw_f`` is not part
@@ -5547,7 +5472,12 @@ def _shared_qwen_routes() -> dict[str, Any]:
         "parent.topic-subjects.suggest": suggest_parent_topic_subjects.local,
         "parent.topic-subjects.validate": validate_parent_topic_subject.local,
         "video.timeline.generate": generate_video_timeline.local,
+        "video.scene.validate": check_video_scene.local,
     }
+
+
+_qwen_vllm_image = _qwen_vllm_image.add_local_file(str(_learning_story_file), "/root/learning_story.py")
+_qwen_vllm_image = _qwen_vllm_image.add_local_file(str(_scene_check_file), "/root/scene_check.py")
 
 
 @app.function(

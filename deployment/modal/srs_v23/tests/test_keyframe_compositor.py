@@ -373,3 +373,30 @@ def test_a_grounded_subject_stands_at_the_bottom_with_its_neighbours(scene) -> N
     before = kc.mask_bbox(leaf.mask)[3] - kc.mask_bbox(main.mask)[3]
     after = kc.mask_bbox(frame.secondary_masks["sec-1"])[3] - bottom
     assert abs(after - before) <= 2  # the leaf keeps its place relative to the turtle
+
+
+def _on_plate(scene, grounded: bool) -> tuple[kc.Keyframe, np.ndarray]:
+    drawing, main, leaf = scene
+    keep = [{"entity_id": "sec-1", "state": "unchanged"}]
+    end = {**_main("center-middle"), "grounded": grounded}
+    keyframe = kc.build_keyframes(drawing, main, [leaf], _staging([(end, keep)] * 5), source_facing="right")[1]
+    plate = Image.new("RGB", (1280, 768), (120, 200, 120))
+    return keyframe, np.asarray(kc.apply_background_plate(keyframe, plate)).astype(int)
+
+
+def test_a_standing_subject_casts_a_light_shadow_on_the_ground(scene) -> None:
+    keyframe, out = _on_plate(scene, grounded=True)
+
+    x0, _y0, x1, bottom = kc.mask_bbox(keyframe.main_mask)
+    under = out[bottom + 5, (x0 + x1) // 2]
+    assert (under < np.array([120, 200, 120])).all() and under[1] > 140  # darker, still the ground's colour
+    assert (out[20, 20] == np.array([120, 200, 120])).all()
+    occupied = keyframe.main_mask
+    assert np.array_equal(out[occupied], np.asarray(keyframe.image)[occupied]), "the child's pixels changed"
+
+
+def test_a_flying_subject_casts_no_shadow(scene) -> None:
+    keyframe, out = _on_plate(scene, grounded=False)
+
+    x0, _y0, x1, bottom = kc.mask_bbox(keyframe.main_mask)
+    assert (out[bottom + 5, (x0 + x1) // 2] == np.array([120, 200, 120])).all()

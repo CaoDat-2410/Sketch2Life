@@ -65,11 +65,3 @@ def test_the_assembled_story_names_its_output_frame_rate(monkeypatch: pytest.Mon
     assert output_options[output_options.index("-r") + 1] == "24"
 
 
-def test_the_speed_module_is_mounted_last_so_the_pinned_image_layers_are_kept() -> None:
-    # A new file in an early layer rebuilds everything after it, including the unlocked dependency resolve that
-    # brought in a different ffmpeg.
-    source = (MODAL_DIR / "video_app.py").read_text(encoding="utf-8")
-    base = source[source.index("_worker_base_image = (") : source.index("_download_image = ")]
-
-    assert "_ltx_speed_file" not in base
-    assert source.count("image=_with_speed_module(") == source.count("    image=")
