@@ -1,6 +1,7 @@
 # FEAT-097: drawing guides a child can follow
 
-- **Status:** AWAITING_APPROVAL (plan `plan/PLAN_REV1.md`). No product code changed.
+- **Status:** APPROVED for phases 0 to 2 and amendment A (`plan/PLAN_REV1.md`, `plan/AMENDMENT_A.md`): see
+  `approvals/TASK_APPROVAL.md` and `status/STATUS.md`.
 - **Opened:** 2026-11-27, from the owner's chat: the guide strokes of the SVG engine do not suit children.
 - **SRS:** FEAT-063 v2.7-draft: §6.2.1, BR-42, BR-46, FR-P-11, FR-AI-14, FR-AI-15, AC-44, AT-18.
 
