@@ -34,7 +34,7 @@ def _block(**changes: Any) -> dict[str, Any]:
         "schema_version": "sketch2life.learning-request.v1",
         "scene_count": 5,
         "scene_seconds": 10,
-        "max_words": 18,
+        "max_words": 16,
         "fact_count": 3,
         "facts": FACTS,
         "fact_source": "CARD",
@@ -59,6 +59,16 @@ def _data(**changes: Any) -> dict[str, Any]:
     }
 
 
+def _sentences(narration: str) -> dict[str, str]:
+    """The three sentence fields of a narration; missing ones stay empty."""
+
+    parts = [part.strip() + "." for part in narration.rstrip(".").split(".")]
+    if len(parts) > 3:
+        parts = [parts[0], parts[1], " ".join(parts[2:])]
+    parts += [""] * (3 - len(parts))
+    return {f"sentence_{number}": part for number, part in enumerate(parts, start=1)}
+
+
 def _script(narrations: list[str] = NARRATIONS) -> str:
     return json.dumps(
         {
@@ -66,7 +76,7 @@ def _script(narrations: list[str] = NARRATIONS) -> str:
             "scenes": [
                 {
                     "title": f"Cảnh vườn {index}",
-                    "narration": text,
+                    **_sentences(text),
                     "key_term": "gà",
                     "action_en": "The chick pecks the ground gently.",
                     "setting_en": "A sunny farm yard with green grass.",
@@ -99,6 +109,8 @@ def test_the_request_block_is_checked_before_any_model_call() -> None:
         _block(scene_count=4),
         _block(max_words=60),
         _block(fact_count=1),
+        _block(max_words=33),
+        _block(fact_count=8, facts=[], fact_source="AI_DRAFT"),
         _block(fact_source="WEB"),
         _block(facts=FACTS[:2]),
         _block(schema_version="other"),
@@ -112,9 +124,15 @@ def test_the_request_block_is_checked_before_any_model_call() -> None:
 @pytest.mark.parametrize(
     "scenes, facts, expected",
     [
-        (5, 3, ["what", "p1", None, "use", None]),
-        (6, 4, ["what", "p1", "p2", None, "use", None]),
-        (7, 5, ["what", "p1", "p2", "p3", None, "use", None]),
+        # Fewer facts than telling scenes (the earlier numbers): as before.
+        (5, 3, [["what"], ["p1"], [], ["use"], []]),
+        (6, 4, [["what"], ["p1"], ["p2"], [], ["use"], []]),
+        (7, 5, [["what"], ["p1"], ["p2"], ["p3"], [], ["use"], []]),
+        # FEAT-098: more facts; one telling scene carries two of them, the last scene only repeats.
+        (5, 5, [["what"], ["p1", "p2"], ["p3"], ["use"], []]),
+        (6, 6, [["what"], ["p1", "p2"], ["p3"], ["p4"], ["use"], []]),
+        (7, 7, [["what"], ["p1", "p2"], ["p3"], ["p4"], ["p5"], ["use"], []]),
+        (7, 6, [["what"], ["p1"], ["p2"], ["p3"], ["p4"], ["use"], []]),
     ],
 )
 def test_the_code_decides_which_scene_tells_which_fact(scenes: int, facts: int, expected: list[Any]) -> None:
@@ -122,7 +140,7 @@ def test_the_code_decides_which_scene_tells_which_fact(scenes: int, facts: int, 
 
     assigned = learning.assign_facts(scenes, chosen)
 
-    assert [fact and fact["id"] for fact in assigned] == expected
+    assert [[fact["id"] for fact in told] for told in assigned] == expected
 
 
 def test_a_script_from_approved_facts_needs_one_writing_call_and_one_claim_check() -> None:
@@ -140,7 +158,8 @@ def test_a_script_from_approved_facts_needs_one_writing_call_and_one_claim_check
     assert block["fact_source"] == "CARD" and block["facts"] == FACTS
     assert [entry["fact_id"] for entry in block["scenes"]] == ["what", "beak", None, "use", None]
     assert block["scenes"][1]["part"] == "mỏ"
-    assert "Gà dùng mỏ để mổ thóc." in model.prompts[0] and "18" in model.prompts[0]
+    assert "Gà dùng mỏ để mổ thóc." in model.prompts[0] and "16" in model.prompts[0]
+    assert "sentence_3" in model.prompts[0]
 
 
 def test_a_broken_rule_is_named_to_the_model_and_the_script_written_again() -> None:
@@ -173,7 +192,7 @@ def test_lines_well_under_the_word_cap_are_asked_for_again() -> None:
     story, _block_out = learning.generate_learning_story(_data(), model)
 
     assert story["scenes"][2]["narration"] == NARRATIONS[2]
-    assert "LEARNING_NARRATION_TOO_THIN" in model.prompts[1] and "14 đến 18 từ" in model.prompts[0]
+    assert "LEARNING_NARRATION_TOO_THIN" in model.prompts[1] and "13 đến 16 từ" in model.prompts[0]
 
 
 @pytest.mark.parametrize("action", ["The chick flaps its wings.", "The chick jumps up high.", "The chick spins around."])
@@ -287,7 +306,7 @@ def test_the_length_is_asked_for_sentence_by_sentence() -> None:
     learning.generate_learning_story(_data(), model)
 
     # The writer ignored a total word range in the live run; counts per sentence are easier to follow.
-    assert "mỗi câu từ 7 đến 9 từ" in model.prompts[0]
+    assert "mỗi câu từ 4 đến 5 từ" in model.prompts[0]
 
 
 @pytest.mark.parametrize("setting", ["Close-up of the chicken near grains.", "A yard with two dogs and grass."])
@@ -300,3 +319,84 @@ def test_a_background_that_names_an_animal_is_written_again(setting: str) -> Non
 
     assert block["scenes"][1]["setting_en"] == "A sunny farm yard with green grass."
     assert "LEARNING_SETTING_HAS_ANIMAL" in model.prompts[1]
+
+
+# ------------------------------------------------------------------ FEAT-098: more words and more facts
+FIVE = [
+    FACTS[0],
+    FACTS[1],
+    {"id": "tail", "kind": "PART", "part": "đuôi", "text": "Đuôi gà giúp giữ thăng bằng.", "key_terms": ["đuôi"]},
+    {"id": "feet", "kind": "PART", "part": "chân", "text": "Chân gà dùng để bới đất.", "key_terms": ["bới đất"]},
+    FACTS[2],
+]
+LONG = [  # 22 to 25 words each
+    "Gà Vàng là một loài chim đáng yêu. Bạn sống ở sân vườn rộng rãi. Sáng nào bạn cũng dậy thật sớm.",
+    "Gà Vàng dùng chiếc mỏ để mổ thóc. Đuôi gà giúp giữ thăng bằng thật tốt. Bạn đi chậm rãi giữa sân rộng.",
+    "Chân gà khỏe dùng để bới đất. Gà Vàng bới đất tìm con mồi nhỏ. Bạn thấy một hạt thóc vàng tươi.",
+    "Gà mái đẻ trứng vào ổ rơm. Gà Vàng ngắm quả trứng tròn xinh. Bạn nằm xuống ấp trứng thật êm ái.",
+    "Gà Vàng có mỏ, có đuôi, có chân. Cả ngày bạn chơi trong vườn thật vui. Tối đến bạn đi ngủ ngon lành.",
+]
+
+
+def _long_data() -> dict[str, Any]:
+    return _data(learning=_block(max_words=25, fact_count=5, facts=FIVE))
+
+
+def test_five_facts_are_told_with_two_of_them_in_one_scene() -> None:
+    model = _Model(_script(LONG), NO_CLAIMS)
+
+    story, block = learning.generate_learning_story(_long_data(), model)
+
+    assert [scene["narration"] for scene in story["scenes"]] == LONG
+    told = [(entry["fact_id"], entry.get("also_fact_id"), entry["part"]) for entry in block["scenes"]]
+    assert told == [
+        ("what", None, None), ("beak", "tail", "mỏ"), ("feet", None, "chân"), ("use", None, None), (None, None, None),
+    ]
+    assert "also_fact_id" not in block["scenes"][0]
+    assert sum(len(scene["narration"].split()) for scene in story["scenes"]) >= 110
+
+
+def test_the_writer_is_asked_for_three_sentence_fields_with_a_minimum_length() -> None:
+    model = _Model(_script(LONG), NO_CLAIMS)
+
+    learning.generate_learning_story(_long_data(), model)
+
+    scene = model.schemas[0]["properties"]["scenes"]["items"]["properties"]
+    assert "narration" not in scene
+    assert all(scene[f"sentence_{number}"]["minLength"] >= 20 for number in (1, 2, 3))
+    assert "22 đến 25 từ" in model.prompts[0] and "mỗi câu từ 7 đến 8 từ" in model.prompts[0]
+
+
+def test_a_second_fact_of_a_scene_must_be_told_too() -> None:
+    missing = list(LONG)
+    missing[1] = "Gà Vàng dùng mỏ để mổ thóc. Bạn đi chậm rãi giữa sân vườn. Bạn ngắm trời xanh trong vắt."
+    model = _Model(_script(missing), _script(LONG), NO_CLAIMS)
+
+    learning.generate_learning_story(_long_data(), model)
+
+    assert "LEARNING_FACT_TERM_MISSING" in model.prompts[1]
+
+
+def test_a_story_sentence_is_dropped_rather_than_losing_a_script_that_stays_too_long() -> None:
+    long = list(LONG)
+    long[0] = "Gà Vàng là một loài chim đáng yêu. Bạn sống ở sân vườn rộng rãi. Sáng nào bạn cũng dậy thật là sớm để đi chơi."
+    model = _Model(_script(long), _script(long), _script(long))
+
+    story, _block_out = learning.generate_learning_story(_long_data(), model)
+
+    assert story["scenes"][0]["narration"] == "Gà Vàng là một loài chim đáng yêu. Bạn sống ở sân vườn rộng rãi."
+
+
+def test_fewer_drafted_facts_are_accepted_on_the_last_draft() -> None:
+    few = [{k: v for k, v in fact.items() if k != "id"} for fact in (FIVE[0], FIVE[1], FIVE[2], FIVE[4])]
+    draft = json.dumps({"facts": few}, ensure_ascii=False)
+    # With four facts the second scene tells the beak and the third the tail.
+    tail = "Đuôi gà giúp giữ thăng bằng thật tốt. Gà Vàng đi tìm bóng mát dưới gốc cây. Bạn nghỉ chân một lát."
+    four = [LONG[0], LONG[1], tail, LONG[3], LONG[4]]
+    model = _Model(draft, json.dumps({"doubtful": []}), draft, json.dumps({"doubtful": []}), _script(four), NO_CLAIMS)
+
+    _story, block = learning.generate_learning_story(
+        _data(learning=_block(max_words=25, fact_count=5, facts=[], fact_source="AI_DRAFT")), model
+    )
+
+    assert len(block["facts"]) == 4

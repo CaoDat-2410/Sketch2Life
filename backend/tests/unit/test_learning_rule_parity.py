@@ -71,7 +71,7 @@ def test_what_the_worker_assembles_passes_every_later_check() -> None:
 
 
 UNSPEAKABLE = [
-    "Buổi trưa, Gà Vàng sung sướng tìm bóng mát dưới cây.",
+    "Buổi trưa, Gà Vàng thấy khẩu súng đồ chơi dưới cây.",  # FEAT-098: "sung sướng" is allowed now
     "Buổi trưa, Gà Vàng nằm im như đã chết dưới cây.",
     "Buổi trưa, Gà Vàng đi tìm bóng mát mà.",
     "Buổi trưa, Gà Vàng đi tìm bóng mát ở.",

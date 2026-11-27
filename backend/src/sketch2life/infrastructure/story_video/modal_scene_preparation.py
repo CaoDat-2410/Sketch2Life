@@ -60,7 +60,17 @@ class ModalScenePreparation:
         except Exception:  # noqa: BLE001
             return
 
+    def prepare_ahead(self, job: ScenePrepJob) -> None:
+        """Send one preparation and do not wait: the worker keeps the picture for the video run
+        (FEAT-098)."""
+
+        self._dispatch(job)
+
     def prepare(self, job: ScenePrepJob) -> PreparedScene:
+        call, job_id, attempt_id = self._dispatch(job)
+        return self._collect(call, job_id, attempt_id)
+
+    def _dispatch(self, job: ScenePrepJob) -> tuple[Any, str, str]:
         if not job.drawing_png or job.staging is None:
             raise VideoPipelineError("VIDEO_SCENE_PREPARE_INPUT_INVALID")
         scene = job.scene
@@ -118,6 +128,9 @@ class ModalScenePreparation:
             call = self._resolve_function().spawn(worker_input)
         except Exception:  # noqa: BLE001
             raise VideoPipelineError("VIDEO_SCENE_PREPARE_DISPATCH_UNKNOWN") from None
+        return call, job_id, attempt_id
+
+    def _collect(self, call: Any, job_id: str, attempt_id: str) -> PreparedScene:
         deadline = time.monotonic() + self._timeout
         while True:
             try:

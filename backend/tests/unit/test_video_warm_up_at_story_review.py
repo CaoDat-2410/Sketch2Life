@@ -84,4 +84,39 @@ def test_the_story_route_warms_the_container_after_the_story_is_stored() -> None
     source = inspect.getsource(parent_ai.generate_story_revision)
 
     assert "background: BackgroundTasks" in source
-    assert source.index("complete_generated_story(") < source.index("_warm_up_video_container(background)")
+    assert source.index("complete_generated_story(") < source.index("_start_video_early(")
+
+
+def _warm_up_switched_on(monkeypatch: pytest.MonkeyPatch) -> None:
+    settings = SimpleNamespace(
+        story_video_warm_up=True, ai_provider="modal_dev", story_video_adapters="local_test"
+    )
+    monkeypatch.setattr(parent_ai, "get_settings", lambda: settings)
+
+
+def test_preparing_ahead_replaces_the_warm_up_when_composed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _warm_up_switched_on(monkeypatch)
+    background = _Background()
+    service = SimpleNamespace(request=lambda *_: True)
+    calls: list[Any] = []
+    background.add_task = lambda task, *args: calls.append((task, args))
+    state = SimpleNamespace(video_prepare_ahead=service)
+    request = SimpleNamespace(app=SimpleNamespace(state=state))
+
+    parent_ai._start_video_early(request, background, "run-1", "rev-1")
+
+    assert calls == [(service.request, ("run-1", "rev-1"))]
+
+
+def test_without_preparing_ahead_the_container_is_only_warmed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _warm_up_switched_on(monkeypatch)
+    background = _Background()
+    request = SimpleNamespace(app=SimpleNamespace(state=SimpleNamespace()))
+
+    parent_ai._start_video_early(request, background, "run-1", "rev-1")
+
+    assert len(background.tasks) == 1

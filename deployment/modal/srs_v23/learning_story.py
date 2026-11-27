@@ -20,8 +20,14 @@ FACT_SOURCES = ("CARD", "LESSON", "AI_DRAFT")
 ATTEMPTS = 3
 DRAFT_ATTEMPTS = 2
 MIN_NARRATION_WORDS = 5
-SPARE_WORDS = 5  # a narration further under the age's word cap is asked for again
-ASKED_SPARE_WORDS = 4  # the lower bound named in the writing prompt
+SPARE_WORDS = 3  # a narration further under the age's word cap is asked for again
+ASKED_SPARE_WORDS = 3  # the lower bound named in the writing prompt
+# FEAT-098: one string per sentence with a minimum length; the model ignored a word target for the whole narration.
+SENTENCES = ("sentence_1", "sentence_2", "sentence_3")
+MIN_CHARS_PER_ASKED_WORD = 3.2
+MAX_CHARS_PER_WORD = 4  # generous: a sentence cut by the schema would end in the middle
+MIN_FACTS = 3
+MAX_FACTS = 7
 MAX_FACT_WORDS = 14
 _KINDS = ("WHAT_IT_IS", "PART", "USE")
 _CLASSIFIERS = frozenset({"con", "chiếc", "cái"})
@@ -34,8 +40,10 @@ _DANGLING = frozenset(
         "là", "có", "đang", "mà", "nhưng", "rằng", "được", "tự", "ở", "do", "theo", "thì",
     }
 )
-_BANNED_FRAGMENTS = (
-    "giet", "mau me", "sung ", "chet", "ma quy", "kinh di", "tu tu", "danh nhau", "bao luc", "ruou", "thuoc la",
+# The video's own list (a test compares the behaviour): whole words with their accents ("quỉ" is the older spelling).
+_BANNED_WORDS = (
+    "giết", "máu me", "súng", "chết", "ma quỷ", "ma quỉ", "kinh dị", "tự tử", "đánh nhau", "bạo lực", "rượu",
+    "thuốc lá",
 )
 _PEOPLE_EN = re.compile(
     r"\b(child|children|kid|kids|boy|boys|girl|girls|baby|toddler|person|people|man|woman|mother|father|mom|dad|"
@@ -105,7 +113,7 @@ def request_valid(block: Any) -> bool:
     if any(type(number) is not int for number in numbers):
         return False
     scenes, seconds, words, facts = numbers
-    if not (5 <= scenes <= 7 and seconds == 10 and 12 <= words <= 26 and 3 <= facts <= 5 and facts <= scenes - 2):
+    if not (5 <= scenes <= 7 and seconds == 10 and 12 <= words <= 32 and MIN_FACTS <= facts <= min(MAX_FACTS, scenes)):
         return False
     given = block["facts"]
     if not isinstance(given, list) or (given and (len(given) != facts or not all(map(_fact_valid, given)))):
@@ -119,14 +127,22 @@ def request_valid(block: Any) -> bool:
     )
 
 
-def assign_facts(scene_count: int, facts: Sequence[dict[str, Any]]) -> list[dict[str, Any] | None]:
-    """Name first, parts next, the use in the second to last scene; the last scene repeats without a new fact."""
+def assign_facts(scene_count: int, facts: Sequence[dict[str, Any]]) -> list[list[dict[str, Any]]]:
+    """The facts each scene tells: the name first, parts next, the use in the second to last scene.
 
-    assigned: list[dict[str, Any] | None] = [None] * scene_count
-    assigned[0] = facts[0]
-    for offset, fact in enumerate(facts[1:-1], start=1):
-        assigned[offset] = fact
-    assigned[scene_count - 2] = facts[-1]
+    The last scene only repeats. With more parts than middle scenes, the earliest middle scenes tell two.
+    """
+
+    assigned: list[list[dict[str, Any]]] = [[] for _ in range(scene_count)]
+    assigned[0].append(facts[0])
+    middle = range(1, scene_count - 2)
+    parts = list(facts[1:-1])
+    extra = max(0, len(parts) - len(middle))
+    for index in middle:
+        take = 2 if extra else 1
+        extra -= take - 1
+        assigned[index], parts = parts[:take], parts[take:]
+    assigned[scene_count - 2] = [*parts, facts[-1]]
     return assigned
 
 
@@ -144,6 +160,18 @@ def _plain(value: str) -> str:
     decomposed = unicodedata.normalize("NFD", value.casefold().replace("đ", "d"))
     stripped = "".join(ch for ch in decomposed if unicodedata.category(ch) != "Mn")
     return " ".join("".join(ch if ch.isalnum() else " " for ch in stripped).split())
+
+
+def has_banned_word(text: str) -> bool:
+    """Is a listed word spoken? Accents tell "sừng" (horn) from "súng" (gun); a text typed without any accent is
+    compared without them."""
+
+    folded = f" {_plain(text)} "
+    composed = unicodedata.normalize("NFC", text.casefold())
+    spoken = f" {' '.join(''.join(ch if ch.isalnum() else ' ' for ch in composed).split())} "
+    if spoken == folded:
+        return any(f" {_plain(word)} " in folded for word in _BANNED_WORDS)
+    return any(f" {word} " in spoken for word in _BANNED_WORDS)
 
 
 def _load(text: str) -> dict[str, Any]:
@@ -217,7 +245,11 @@ def _usable_fact(value: Any) -> bool:
     )
 
 
-def _choose_facts(candidates: Sequence[dict[str, Any]], count: int, features: Sequence[str]) -> list[dict[str, Any]] | None:
+def _choose_facts(
+    candidates: Sequence[dict[str, Any]], count: int, features: Sequence[str], *, fewest: int
+) -> list[dict[str, Any]] | None:
+    """The name, up to ``count - 2`` different parts (seen ones first) and the use, at least ``fewest`` facts."""
+
     names = [fact for fact in candidates if fact["kind"] == "WHAT_IT_IS"]
     uses = [fact for fact in candidates if fact["kind"] == "USE"]
     seen = _normal(" ".join(features))
@@ -226,7 +258,7 @@ def _choose_facts(candidates: Sequence[dict[str, Any]], count: int, features: Se
         if fact["kind"] == "PART":
             parts.setdefault(_normal(fact["part"]), fact)
     ordered = sorted(parts.items(), key=lambda item: item[0] not in seen)
-    if not names or not uses or len(ordered) < count - 2:
+    if not names or not uses or len(ordered) < fewest - 2:
         return None
     chosen = [names[0], *(fact for _part, fact in ordered[: count - 2]), uses[0]]
     return [
@@ -243,9 +275,9 @@ def _choose_facts(candidates: Sequence[dict[str, Any]], count: int, features: Se
 
 def _draft_facts(data: Mapping[str, Any], block: Mapping[str, Any], generate_json: GenerateJson) -> list[dict[str, Any]]:
     count = block["fact_count"] + 2
-    for _attempt in range(DRAFT_ATTEMPTS):
+    for attempt in range(1, DRAFT_ATTEMPTS + 1):
         prompt = _facts_prompt(data, block)
-        candidates = _load(generate_json(_WRITER, prompt, _facts_schema(count), 900)).get("facts")
+        candidates = _load(generate_json(_WRITER, prompt, _facts_schema(count), 1_600)).get("facts")
         if not isinstance(candidates, list):
             continue
         listed = [{"number": number, "text": fact.get("text")} for number, fact in enumerate(candidates, start=1)
@@ -266,7 +298,9 @@ def _draft_facts(data: Mapping[str, Any], block: Mapping[str, Any], generate_jso
         usable = [
             fact for number, fact in enumerate(candidates, start=1) if number not in doubtful and _usable_fact(fact)
         ]
-        chosen = _choose_facts(usable, block["fact_count"], data["visible_features"])
+        # The full number is asked for until the last draft; fewer sure facts are better than no story.
+        fewest = MIN_FACTS if attempt == DRAFT_ATTEMPTS else block["fact_count"]
+        chosen = _choose_facts(usable, block["fact_count"], data["visible_features"], fewest=fewest)
         if chosen:
             return chosen
     raise LearningStoryError("LEARNING_FACTS_UNAVAILABLE")
@@ -274,10 +308,12 @@ def _draft_facts(data: Mapping[str, Any], block: Mapping[str, Any], generate_jso
 
 # ----------------------------------------------------------------- script
 def _script_schema(scene_count: int, max_words: int) -> dict[str, Any]:
+    asked = (max_words - ASKED_SPARE_WORDS) // len(SENTENCES)
+    sentence = _string(max_words * MAX_CHARS_PER_WORD, max(20, int(asked * MIN_CHARS_PER_ASKED_WORD)))
     scene = _object(
         {
             "title": _string(40),
-            "narration": _string(max_words * 7, 12),
+            **{name: dict(sentence) for name in SENTENCES},
             "key_term": _string(40),
             "action_en": _string(220, 8),
             "setting_en": _string(200, 8),
@@ -288,36 +324,72 @@ def _script_schema(scene_count: int, max_words: int) -> dict[str, Any]:
     )
 
 
+def _sentence(value: Any) -> str:
+    text = " ".join(str(value or "").split())
+    return f"{text}." if text and not text.endswith((".", "!", "?", "…")) else text
+
+
+def _compose(script: Mapping[str, Any]) -> dict[str, Any]:
+    """The script with each scene's sentences joined into the one narration that is shown and spoken."""
+
+    scenes = script.get("scenes")
+    if not isinstance(scenes, list):
+        return dict(script)
+    composed = []
+    for scene in scenes:
+        if isinstance(scene, dict) and any(name in scene for name in SENTENCES):
+            sentences = [_sentence(scene.get(name)) for name in SENTENCES]
+            scene = {**scene, "narration": " ".join(item for item in sentences if item)}
+        composed.append(scene)
+    return {**script, "scenes": composed}
+
+
+def _shortened(script: Mapping[str, Any], assigned: Sequence[Sequence[Mapping[str, Any]]], max_words: int) -> dict[str, Any]:
+    """Long scenes without their last sentence, where every fact term of the scene stays."""
+
+    composed = []
+    for scene, told in zip(script["scenes"], assigned, strict=False):
+        if len(scene.get("narration", "").split()) > max_words:
+            narration = " ".join(item for item in (_sentence(scene.get(name)) for name in SENTENCES[:-1]) if item)
+            if all(_normal(term) in _normal(narration) for fact in told for term in fact["key_terms"]):
+                scene = {**scene, "narration": narration}
+        composed.append(scene)
+    return {**script, "scenes": composed}
+
+
 def _script_prompt(
     data: Mapping[str, Any],
     block: Mapping[str, Any],
-    assigned: Sequence[Mapping[str, Any] | None],
+    assigned: Sequence[Sequence[Mapping[str, Any]]],
     previous_error: str | None,
 ) -> str:
     plan = [
         {
             "scene": index,
-            "fact": None if fact is None else {"text": fact["text"], "must_contain": fact["key_terms"], "part": fact["part"]},
+            "facts": [
+                {"text": fact["text"], "must_contain": fact["key_terms"], "part": fact["part"]} for fact in told
+            ],
             "role": "mở truyện" if index == 1 else "kết ấm áp và nhắc lại tên cùng các bộ phận" if index == len(assigned)
             else "diễn biến",
         }
-        for index, fact in enumerate(assigned, start=1)
+        for index, told in enumerate(assigned, start=1)
     ]
-    longest = block["max_words"] // 2  # two sentences share the word cap
-    sentence = f"mỗi câu từ {longest - 2} đến {longest} từ"
+    longest = block["max_words"] // len(SENTENCES)
+    sentence = f"mỗi câu từ {longest - 1} đến {longest} từ"
     repair = (
         f"\nBản trước bị lỗi {previous_error}. Viết lại toàn bộ và sửa đúng lỗi đó.\n" if previous_error else ""
     )
     return (
         "Viết MỘT câu chuyện liền mạch mà nhân vật chính là đúng sự vật trong tranh. Mỗi cảnh đẩy truyện một bước.\n"
-        f"Đúng {len(assigned)} cảnh theo kế hoạch. Cảnh có fact thì narration phải nói đúng sự thật đó và chứa nguyên văn "
-        "mọi từ trong must_contain; cảnh không có fact thì không nêu thêm kiến thức nào.\n"
-        f"narration: đúng 2 câu rõ ý, {sentence} (đếm từng tiếng cách nhau bởi dấu cách), tổng từ "
-        f"{block['max_words'] - ASKED_SPARE_WORDS} đến {block['max_words']} từ, kết thúc bằng dấu chấm. Cảnh có fact: một câu nói trọn ý "
-        "của fact, một câu kể nhân vật đang làm gì để nối sang cảnh sau. Cảnh không có fact: kể một việc có nguyên nhân "
-        "và kết quả. Cảnh cuối: kết ấm áp và nhắc lại tên cùng các bộ phận đã học. Đặt cho nhân vật một tên gọi thân "
-        "mật có chữ chỉ chủ thể và dùng lại ở ít nhất 3 cảnh. title đặt theo nhân vật và việc nó làm. Không đặt câu hỏi "
-        "cho trẻ, không lấy trẻ làm nhân vật.\n"
+        f"Đúng {len(assigned)} cảnh theo kế hoạch. Mỗi cảnh có đúng 3 câu: sentence_1, sentence_2, sentence_3; {sentence} "
+        "(đếm từng tiếng cách nhau bởi dấu cách), mỗi câu trọn ý và kết thúc bằng dấu chấm; cả cảnh từ "
+        f"{block['max_words'] - ASKED_SPARE_WORDS} đến {block['max_words']} từ.\n"
+        "Cảnh có 2 facts: sentence_1 nói đúng fact thứ nhất, sentence_2 nói đúng fact thứ hai, sentence_3 kể nhân vật "
+        "đang làm gì. Cảnh có 1 fact: sentence_1 nói đúng fact đó, sentence_2 và sentence_3 kể nhân vật dùng điều đó "
+        "trong truyện. Mỗi fact phải chứa nguyên văn mọi từ trong must_contain. Cảnh không có fact: ba câu kể việc có "
+        "nguyên nhân và kết quả. Ngoài facts không nêu thêm kiến thức nào. Cảnh cuối: kết ấm áp và nhắc lại tên cùng "
+        "các bộ phận đã học. Đặt cho nhân vật một tên gọi thân mật có chữ chỉ chủ thể và dùng lại ở ít nhất 3 cảnh. "
+        "title đặt theo nhân vật và việc nó làm. Không đặt câu hỏi cho trẻ, không lấy trẻ làm nhân vật.\n"
         "action_en: tiếng Anh, một câu tả đúng một chuyển động nhỏ và chậm của vật đã vẽ, ưu tiên bộ phận đang nói tới; "
         "không vỗ cánh, nhảy, xoay hay rung vì hình vẽ sẽ bị nhòe; không người, không đạo cụ hay con vật mới; vật "
         "không rời khỏi khung hình.\n"
@@ -344,7 +416,7 @@ def _script_prompt(
 
 def check_script(
     script: Mapping[str, Any],
-    assigned: Sequence[Mapping[str, Any] | None],
+    assigned: Sequence[Sequence[Mapping[str, Any]]],
     *,
     subject: str,
     max_words: int,
@@ -358,7 +430,7 @@ def check_script(
     core = " ".join(word for word in words if word not in _CLASSIFIERS) or " ".join(words)
     person = bool(_PERSON_WORDS & set(words))
     named = 0
-    for scene, fact in zip(scenes, assigned, strict=True):
+    for scene, told in zip(scenes, assigned, strict=True):
         if not isinstance(scene, dict) or any(
             not isinstance(scene.get(key), str) or not scene[key].strip()
             for key in ("title", "narration", "key_term", "action_en", "setting_en")
@@ -368,13 +440,13 @@ def check_script(
         count = len(narration.split())
         if count > max_words:
             return "LEARNING_NARRATION_TOO_LONG"
-        if fact is not None and any(_normal(term) not in _normal(narration) for term in fact["key_terms"]):
+        if any(_normal(term) not in _normal(narration) for fact in told for term in fact["key_terms"]):
             return "LEARNING_FACT_TERM_MISSING"
         if count < MIN_NARRATION_WORDS:
             return "LEARNING_NARRATION_TOO_SHORT"
         if not narration.endswith((".", "!")) or "?" in narration:
             return "LEARNING_NARRATION_NOT_A_STATEMENT"
-        if any(fragment in f"{_plain(narration)} " for fragment in _BANNED_FRAGMENTS):
+        if has_banned_word(narration):
             return "LEARNING_WORD_NOT_ALLOWED"
         if any((tokens := _words(sentence)) and tokens[-1] in _DANGLING for sentence in re.split(r"[.!…]+", narration)):
             return "LEARNING_NARRATION_UNFINISHED"
@@ -414,7 +486,7 @@ def _unlisted_claims(
 
 def assemble(
     script: Mapping[str, Any],
-    assigned: Sequence[Mapping[str, Any] | None],
+    assigned: Sequence[Sequence[Mapping[str, Any]]],
     facts: list[dict[str, Any]],
     *,
     source: str,
@@ -452,13 +524,14 @@ def assemble(
         "scenes": [
             {
                 "scene_index": index,
-                "fact_id": None if fact is None else fact["id"],
+                "fact_id": told[0]["id"] if told else None,
+                **({"also_fact_id": told[1]["id"]} if len(told) > 1 else {}),
                 "key_term": scene["key_term"].strip(),
-                "part": None if fact is None else fact["part"],
+                "part": next((fact["part"] for fact in told if fact["part"]), None),
                 "action_en": scene["action_en"].strip(),
                 "setting_en": scene["setting_en"].strip(),
             }
-            for index, (scene, fact) in enumerate(zip(script["scenes"], assigned, strict=True), start=1)
+            for index, (scene, told) in enumerate(zip(script["scenes"], assigned, strict=True), start=1)
         ],
     }
     return story, block
@@ -471,7 +544,7 @@ def _thin(script: Mapping[str, Any], max_words: int) -> bool:
 def _worth_a_rewrite(script: Mapping[str, Any], max_words: int) -> str | None:
     """A rule that improves the video but is never worth losing the story over."""
 
-    if _thin(script, max_words):  # short lines leave most of a 10 s scene silent
+    if _thin(script, max_words):  # short lines leave much of a 10 s scene silent
         return "LEARNING_NARRATION_TOO_THIN"
     if any(_FAST_MOTION.search(scene["action_en"]) for scene in script["scenes"]):
         return "LEARNING_ACTION_TOO_FAST"
@@ -489,8 +562,11 @@ def generate_learning_story(
     schema = _script_schema(block["scene_count"], block["max_words"])
     error: str | None = None
     for attempt in range(1, ATTEMPTS + 1):
-        script = _load(generate_json(_WRITER, _script_prompt(data, block, assigned, error), schema, 2_400))
+        script = _compose(_load(generate_json(_WRITER, _script_prompt(data, block, assigned, error), schema, 3_200)))
         error = check_script(script, assigned, subject=str(data["confirmed_subject"]), max_words=block["max_words"])
+        if error == "LEARNING_NARRATION_TOO_LONG" and attempt == ATTEMPTS:
+            script = _shortened(script, assigned, block["max_words"])
+            error = check_script(script, assigned, subject=str(data["confirmed_subject"]), max_words=block["max_words"])
         if error is None and attempt < ATTEMPTS and (error := _worth_a_rewrite(script, block["max_words"])):
             continue
         if error is None:

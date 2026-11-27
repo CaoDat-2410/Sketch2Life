@@ -35,11 +35,13 @@ _ANIMAL: Final = re.compile(
 # "On paper" gave the backgrounds a white page edge, and one clip then grew a hand over the page.
 STYLE_PREFIX: Final = "Full-frame crayon illustration to every edge, waxy strokes. Empty scenery with nothing alive:"
 
-# Narration only, one adult voice (BR-24); 10 s scenes (plan 6.2). The speech and caption rates are the age bands'.
+# Narration only, one adult voice (BR-24); 10 s scenes (plan 6.2). The caption rates are the age
+# bands'. The speech rate is what the voice measured in the live runs (about 16 letters a second);
+# it only plans the line windows, and the measured audio places every line (FEAT-098).
 LEARNING_PROFILES: Final = (
-    AgeBandProfile("36-71", 36, 71, 5, 10, 18, 0, 0, 3, 8.0, 11.0, 14.0),
-    AgeBandProfile("72-107", 72, 107, 6, 10, 22, 0, 0, 3, 10.0, 15.0, 18.0),
-    AgeBandProfile("108-120", 108, 120, 7, 10, 24, 0, 0, 3, 11.0, 15.0, 18.0),
+    AgeBandProfile("36-71", 36, 71, 5, 10, 25, 0, 0, 3, 14.0, 18.0, 14.0),
+    AgeBandProfile("72-107", 72, 107, 6, 10, 32, 0, 0, 3, 14.0, 18.0, 18.0),
+    AgeBandProfile("108-120", 108, 120, 7, 10, 32, 0, 0, 3, 14.0, 18.0, 18.0),
 )
 
 

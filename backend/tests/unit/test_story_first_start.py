@@ -23,6 +23,7 @@ from sqlalchemy.sql import Insert, Select, Update
 from sketch2life.application.ports.identity import VerifiedPrincipal
 from sketch2life.application.ports.parent_story_runs import ParentStoryRunError
 from sketch2life.domain.story_teacher import TEACHER_PIN_SCHEMA, teacher_pin_ready
+from sketch2life.infrastructure.persistence import story_first_start
 from sketch2life.infrastructure.persistence.parent_story_repository import (
     SqlParentStoryRunRepository,
     _live_run,
@@ -322,6 +323,56 @@ def test_the_parent_worker_input_is_the_v3_shape_with_the_primary_activity() -> 
     assert "activity" not in worker and "adult_rewrite_hint" not in worker
     canonical = json.dumps(worker, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
     assert reservation.request_sha256 == hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def _learning_switched_on(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        story_first_start, "get_settings", lambda: SimpleNamespace(story_learning=True)
+    )
+
+
+def test_the_first_parent_story_asks_for_a_learning_script_when_it_is_on(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """FEAT-098: the app's first story starts by itself, so it must ask for the script there."""
+
+    _learning_switched_on(monkeypatch)
+
+    reservation = _starter(_Session()).start_if_ready(RUN_ID, PRINCIPAL, NOW)
+
+    assert reservation is not None
+    worker = reservation.worker_input
+    learning = worker["learning"]
+    assert (learning["scene_count"], learning["fact_count"], learning["fact_source"]) == (
+        5,
+        5,
+        "AI_DRAFT",
+    )
+    canonical = json.dumps(worker, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    assert reservation.request_sha256 == hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def test_a_pinned_lesson_is_the_source_of_the_first_learning_script(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _learning_switched_on(monkeypatch)
+    pin = {"subject_learning_notes": "La cay quang hop.", "script_following_allowed": False}
+
+    starter = _starter(_Session(), probe=lambda _p, _r, _u: _basis(pin))
+    reservation = starter.start_if_ready(RUN_ID, PRINCIPAL, NOW)
+
+    assert reservation is not None
+    assert reservation.worker_input["learning"]["fact_source"] == "LESSON"
+
+
+def test_a_teacher_first_story_asks_for_no_learning_script(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _learning_switched_on(monkeypatch)
+
+    reservation = _teacher_starter(_teacher_session()).start_if_ready(RUN_ID, PRINCIPAL, NOW)
+
+    assert reservation is not None and "learning" not in reservation.worker_input
 
 
 def test_the_first_story_reuses_the_rewrite_identifiers() -> None:

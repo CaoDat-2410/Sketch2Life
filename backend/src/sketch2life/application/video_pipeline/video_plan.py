@@ -119,6 +119,42 @@ def apply_stretches(plan: VideoPlan, extra_frames: dict[int, int]) -> VideoPlan:
     return replace(plan, total_frames=total, scenes=tuple(scenes))
 
 
+def apply_extensions(plan: VideoPlan, extra_frames: dict[int, int]) -> VideoPlan:
+    """A plan in which the given scenes (by index) are rendered longer, so that motion covers the
+    voice (FEAT-098).
+
+    Later scenes and their lines shift by the same time. The total must stay inside the SRS window
+    and each scene inside the worker's frame limit, otherwise ``ValueError`` names the rule.
+    """
+
+    scenes: list[ScenePlan] = []
+    shift_frames = 0
+    for scene in plan.scenes:
+        extra = max(0, extra_frames.get(scene.index, 0))
+        target = scene.target_frames + extra
+        if target > MAX_SCENE_FRAMES:
+            raise ValueError("SCENE_STRETCH_TOO_LONG")
+        shift_ms = round(shift_frames * 1000 / FPS)
+        lines = tuple(
+            replace(line, start_ms=line.start_ms + shift_ms, end_ms=line.end_ms + shift_ms)
+            for line in scene.lines
+        )
+        scenes.append(
+            replace(
+                scene,
+                start_frame=scene.start_frame + shift_frames,
+                target_frames=target,
+                model_frames=min(nearest_model_frames(target), MAX_SCENE_FRAMES),
+                lines=lines,
+            )
+        )
+        shift_frames += extra
+    total = plan.total_frames + shift_frames
+    if total > MAX_TOTAL_SECONDS * FPS:
+        raise ValueError("PLAN_STRETCH_EXCEEDS_SRS_WINDOW")
+    return replace(plan, total_frames=total, scenes=tuple(scenes))
+
+
 def _seed(story_sha256: str, index: int) -> int:
     digest = hashlib.sha256(f"{story_sha256}:{index}".encode("ascii")).digest()
     return int.from_bytes(digest[:4], "big") & 0x7FFFFFFF

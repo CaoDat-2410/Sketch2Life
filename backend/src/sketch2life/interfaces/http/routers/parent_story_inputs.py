@@ -158,6 +158,21 @@ def schedule_first_story(
         runner = ParentStoryRewriteRunner(runtime.session_factory, generator)
         extra = job_actor(actor) if actor is not None else ()
         background_tasks.add_task(runner.run, principal, reservation, *extra)
+        _prepare_video_ahead(state, background_tasks, actor, reservation)
+
+
+def _prepare_video_ahead(
+    state: Any,
+    background_tasks: BackgroundTasks,
+    actor: RunActor | None,
+    reservation: ParentStoryRevisionReservation,
+) -> None:
+    """FEAT-098: prepare the video of a written story while the Parent reads it (best effort)."""
+
+    ahead = getattr(state, "video_prepare_ahead", None)
+    if ahead is None or (actor is not None and actor.is_teacher):
+        return
+    background_tasks.add_task(ahead.request, reservation.run_id, reservation.story_revision_id)
 
 
 def _http_error(exc: ParentStoryRunError) -> HTTPException:
@@ -629,6 +644,7 @@ def rewrite_parent_run_story(
     ):
         runner = ParentStoryRewriteRunner(runtime.session_factory, generator)
         background_tasks.add_task(runner.run, principal, outcome.reservation, *job_actor(actor))
+        _prepare_video_ahead(state, background_tasks, actor, outcome.reservation)
     return _rewrite_accepted(run_id, outcome)
 
 

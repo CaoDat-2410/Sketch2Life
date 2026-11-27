@@ -8,6 +8,7 @@ import math
 import struct
 import threading
 import wave
+from dataclasses import replace
 
 import pytest
 
@@ -581,3 +582,80 @@ def test_the_renderer_gets_every_scene_prompt_after_preparation_and_before_the_f
 
     assert [name for name, _ in events] == ["prepare"] * 5 + ["prime"] + ["render"] * 5
     assert events[5] == ("prime", tuple(scene.visual_prompt for scene in result.plan.scenes))
+
+
+# ------------------------------------ FEAT-098: the picture is as long as the voice
+LEARNING_LINES = [
+    "Rùa con là bò sát. Rùa có cái mai cứng. Bạn bò chậm trong vườn.",
+    "Rùa rút đầu vào mai. Mai che thân rất kỹ. Bạn nghỉ dưới bóng cây.",
+    "Rùa ăn lá rau non. Miệng rùa không có răng. Bạn nhai thật chậm rãi.",
+    "Chân rùa ngắn và khỏe. Bốn chân giúp rùa bò đi. Bạn đi về phía hồ.",
+    "Rùa con có mai và chân. Cả ngày bạn rất vui. Tối đến bạn đi ngủ.",
+]
+
+
+def _learning_source() -> VideoSource:
+    scenes = [
+        {
+            "title": f"Cảnh {index}",
+            "narration": text,
+            "action_en": "The turtle walks slowly on the grass.",
+            "setting_en": "A sunny garden with soft green grass.",
+        }
+        for index, text in enumerate(LEARNING_LINES, start=1)
+    ]
+    return replace(_source(), learning={"title": "Rùa con và cái mai", "scenes": scenes})
+
+
+def _run_learning(seconds_per_letter: float):
+    order: list[str] = []
+    jobs = []
+
+    class _Voice(_Narration):
+        def synthesize(self, spoken):
+            order.append("voice")
+            return super().synthesize(spoken)
+
+    class _Seen(_Render):
+        def render(self, job):
+            order.append("render")
+            jobs.append(job)
+            return super().render(job)
+
+    assembler = _Assembler()
+    voice = _Voice(seconds_per_letter)
+    pipeline, _ = _pipeline(render=_Seen(), narration=voice, assembler=assembler)
+    return pipeline.run(_learning_source()), jobs, order
+
+
+def test_a_short_voice_leaves_every_scene_at_ten_seconds() -> None:
+    result, jobs, _order = _run_learning(0.02)
+
+    assert [job.scene.target_frames for job in jobs] == [240] * 5
+    assert result.plan.total_frames == 1200
+    assert all(scene.hold_frames == 0 for scene in result.plan.scenes)
+
+
+def test_a_longer_voice_is_rendered_as_longer_motion_not_a_frozen_frame() -> None:
+    result, jobs, order = _run_learning(0.15)
+
+    lengths = [job.scene.target_frames for job in jobs]
+    assert any(length > 240 for length in lengths)
+    assert all(240 <= length <= 288 for length in lengths)
+    assert all(job.scene.model_frames % 8 == 1 for job in jobs)
+    assert all(abs(job.scene.model_frames - job.scene.target_frames) <= 4 for job in jobs)
+    assert lengths == [scene.target_frames for scene in result.plan.scenes]
+    assert all(scene.hold_frames == 0 for scene in result.plan.scenes if scene.target_frames < 288)
+    clock = [scene.target_frames + scene.hold_frames for scene in result.plan.scenes]
+    assert result.plan.total_frames == sum(clock)
+    starts = [scene.start_frame for scene in result.plan.scenes]
+    assert starts == [sum(clock[:i]) for i in range(5)]
+    assert order.index("render") > max(i for i, step in enumerate(order) if step == "voice")
+
+
+def test_only_the_voice_beyond_twelve_seconds_holds_the_last_frame() -> None:
+    result, jobs, _order = _run_learning(0.19)
+
+    assert max(job.scene.target_frames for job in jobs) == 288
+    held = [scene for scene in result.plan.scenes if scene.hold_frames]
+    assert held and all(scene.target_frames == 288 for scene in held)

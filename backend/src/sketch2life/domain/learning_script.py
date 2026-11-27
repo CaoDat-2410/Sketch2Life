@@ -13,10 +13,10 @@ from dataclasses import dataclass
 from typing import Any, Final
 
 SCENE_SECONDS: Final = 10
+MIN_FACTS: Final = 3  # drafted facts may fall short of the band's number, never below this
 FACT_SOURCES: Final = ("CARD", "LESSON", "AI_DRAFT")
 _VERIFIED_SOURCES: Final = ("CARD",)
 _FACT_KEYS: Final = ("id", "kind", "part", "text", "key_terms")
-_SCENE_KEYS: Final = ("scene_index", "fact_id", "key_term", "part", "action_en", "setting_en")
 _CLASSIFIERS: Final = frozenset({"con", "chiếc", "cái"})
 _PERSON_WORDS: Final = frozenset({"bé", "người", "mẹ", "bố", "bà", "ông", "gái", "trai"})
 _CHILD_OPENINGS: Final = ("bé ", "em bé ", "con yêu ")
@@ -46,9 +46,11 @@ class LearningBand:
 
 
 BANDS: Final = (
-    LearningBand(36, 71, 5, SCENE_SECONDS, 18, 3),
-    LearningBand(72, 107, 6, SCENE_SECONDS, 22, 4),
-    LearningBand(108, 120, 7, SCENE_SECONDS, 24, 5),
+    # FEAT-098: about twice the words and more facts in the same scene length. The word caps keep
+    # today's caption reading speed inside a 10 s scene.
+    LearningBand(36, 71, 5, SCENE_SECONDS, 25, 5),
+    LearningBand(72, 107, 6, SCENE_SECONDS, 32, 6),
+    LearningBand(108, 120, 7, SCENE_SECONDS, 32, 7),
 )
 
 
@@ -157,25 +159,33 @@ def check_learning_script(
         if not subject_is_person and _normal(narration).startswith(_CHILD_OPENINGS):
             raise LearningScriptError("LEARNING_CHILD_AS_PROTAGONIST")
         named += _contains(narration, core)
-        fact_id = entry.get("fact_id")
-        if fact_id is not None:
-            if fact_id not in by_id:
+        fact_id, also = entry.get("fact_id"), entry.get("also_fact_id")
+        if also is not None and fact_id is None:
+            raise LearningScriptError("LEARNING_SHAPE_INVALID")  # a second fact needs a first one
+        for told_id in (fact_id, also):
+            if told_id is None:
+                continue
+            if told_id not in by_id:
                 raise LearningScriptError("LEARNING_FACT_UNKNOWN")
-            told.append(fact_id)
-            if any(_normal(term) not in _normal(narration) for term in by_id[fact_id]["key_terms"]):
+            told.append(told_id)
+            if any(_normal(term) not in _normal(narration) for term in by_id[told_id]["key_terms"]):
                 raise LearningScriptError("LEARNING_FACT_TERM_MISSING")
         part = entry.get("part")
         checked.append(
             {
                 "scene_index": index,
                 "fact_id": fact_id,
+                **({} if also is None else {"also_fact_id": also}),
                 "key_term": _text(entry.get("key_term"), limit=60),
                 "part": None if part is None else _text(part, limit=60),
                 "action_en": _prompt(entry.get("action_en")),
                 "setting_en": _prompt(entry.get("setting_en")),
             }
         )
-    if sorted(told) != sorted(by_id) or len(by_id) != request["fact_count"]:
+    # Facts from a card or the lesson are all told; drafted facts may be fewer than asked, never
+    # more.
+    fewest = len(given) if given else MIN_FACTS
+    if sorted(told) != sorted(by_id) or not fewest <= len(by_id) <= request["fact_count"]:
         raise LearningScriptError("LEARNING_FACT_NOT_TOLD_ONCE")
     if named < 3:
         raise LearningScriptError("LEARNING_SUBJECT_NOT_REPEATED")

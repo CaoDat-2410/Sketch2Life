@@ -46,6 +46,12 @@ The steps below describe initial setup for a new Modal workspace. The current de
 
 For temporary code iteration, use `modal serve` only when you later have an approved runnable handler. A persistent deployment is not required for local environment setup.
 
+**Video speed options (FEAT-098).** The video app is deployed with `conv_vae,small` (convolution video VAE, 960x576 render scaled to 720p) unless `SKETCH2LIFE_VIDEO_OPTIONS` names others (`none` for all off). In a new workspace, stage the convolution VAE once before the first video, after the pinned model download:
+
+```powershell
+modal run --env=dev deployment/modal/srs_v23/video_app.py::download_ltx25_conv_vae
+```
+
 ## Historical Qwen3.5 Modal validation (not evidence for the current Qwen3.8 pin)
 
 As of the 2026-11-05 Rev45 run, the FEAT-063 dev pin was `Qwen/Qwen3.5-9B@c202236235762e1c871ad0ccb60c8ee5ba337b9a`, loaded with Transformers 5.22.1 using `AutoProcessor` and `AutoModelForMultimodalLM`. This is historical evidence only; the current source pin is the Qwen3.8-27B-FP8 revision documented above. Synthetic inputs were staged under unique attempt prefixes and removed after terminal outcomes. Rev45 worker results and limits are in the linked execution report. Neither model pin is a production default or safety/quality approval.

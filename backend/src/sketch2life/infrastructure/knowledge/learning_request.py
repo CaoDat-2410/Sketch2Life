@@ -37,6 +37,7 @@ def build_learning_request(
     except LearningScriptError:
         return None
     facts: list[dict[str, Any]] = []
+    fact_count = band.fact_count
     motion: list[str] = []
     setting = ""
     source = "LESSON" if lesson_notes else "AI_DRAFT"
@@ -45,7 +46,8 @@ def build_learning_request(
             card = (cards or KnowledgeCardRepository()).approved_for_subject(subject)
             if card is not None:
                 chosen = facts_for_child(card, age_months=age, visible_features=visible_features)
-                if len(chosen) == band.fact_count:
+                if chosen and len(chosen) <= band.fact_count:
+                    fact_count = len(chosen)
                     facts = [
                         {
                             "id": fact.id,
@@ -66,7 +68,7 @@ def build_learning_request(
         "scene_count": band.scene_count,
         "scene_seconds": band.scene_seconds,
         "max_words": band.max_words,
-        "fact_count": band.fact_count,
+        "fact_count": fact_count,
         "facts": facts,
         "fact_source": source,
         "motion_hints": motion,

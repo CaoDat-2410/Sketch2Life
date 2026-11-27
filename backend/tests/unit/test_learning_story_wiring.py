@@ -39,6 +39,10 @@ def _card() -> Any:
          "key_terms": ["loài chim"]},
         {"id": "beak", "kind": "PART", "part": "mỏ", "min_age_months": 36, "text": "Gà dùng mỏ để mổ thóc.",
          "key_terms": ["mỏ"]},
+        {"id": "tail", "kind": "PART", "part": "đuôi", "min_age_months": 36,
+         "text": "Đuôi gà giúp giữ thăng bằng.", "key_terms": ["đuôi"]},
+        {"id": "feet", "kind": "PART", "part": "chân", "min_age_months": 36,
+         "text": "Chân gà dùng để bới đất.", "key_terms": ["bới đất"]},
         {"id": "use", "kind": "USE", "min_age_months": 36, "text": "Gà mái đẻ trứng.", "key_terms": ["trứng"]},
     ]
     card = parse_card(
@@ -68,7 +72,8 @@ def test_the_request_carries_the_age_numbers_and_only_controlled_interest_tags()
     block = _build()
 
     assert block is not None
-    assert (block["scene_count"], block["scene_seconds"], block["max_words"], block["fact_count"]) == (5, 10, 18, 3)
+    names = ("scene_count", "scene_seconds", "max_words", "fact_count")
+    assert tuple(block[name] for name in names) == (5, 10, 25, 5)
     assert block["fact_source"] == "AI_DRAFT" and block["facts"] == []
     sent = str(block)
     assert "Minh" not in sent and "0900000000" not in sent and "tên" not in sent
@@ -79,7 +84,8 @@ def test_an_approved_card_gives_the_facts_motion_and_setting() -> None:
     block = _build(cards=_Cards(_card()))
 
     assert block["fact_source"] == "CARD"
-    assert block["facts"] == FACTS
+    assert [fact["id"] for fact in block["facts"]] == ["what", "beak", "tail", "feet", "use"]
+    assert block["facts"][:2] == FACTS[:2] and block["fact_count"] == 5
     assert block["motion_hints"] == ["con gà mổ thóc"] and block["setting"] == "sân vườn"
 
 
@@ -90,9 +96,15 @@ def test_lesson_notes_come_before_the_card() -> None:
 
 
 def test_a_card_without_enough_facts_falls_back_to_drafting() -> None:
+    block = _build(cards=_Cards(_card()), context={"age_months": 110})
+
+    assert block["fact_source"] == "AI_DRAFT" and block["facts"] == [] and block["fact_count"] == 7
+
+
+def test_a_card_one_fact_short_is_used_with_the_facts_it_has() -> None:
     block = _build(cards=_Cards(_card()), context={"age_months": 100})
 
-    assert block["fact_source"] == "AI_DRAFT" and block["facts"] == [] and block["fact_count"] == 4
+    assert block["fact_source"] == "CARD" and block["fact_count"] == len(block["facts"]) == 5
 
 
 @pytest.mark.parametrize("changes", [{"enabled": False}, {"context": {"age_months": 20}}, {"context": {}}])

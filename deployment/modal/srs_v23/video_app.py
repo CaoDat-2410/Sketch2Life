@@ -35,6 +35,8 @@ from contracts import (
     WorkerContractError,
     parse_worker_input,
 )
+import render_options
+import scene_cache
 from ltx_speed import (
     FAST,
     ProfileSwitch,
@@ -121,6 +123,10 @@ MODEL_FILES = {
     "vae/ltx-2.5-audio-vae-bf16.safetensors": "audio_vae",
     "latent_upscale_models/ltx-2.5-latent-spatial-upscaler-x2-bf16-1.0.safetensors": "spatial_upsampler",
 }
+# FEAT-098: staged on its own (``download-ltx25-conv-vae``) and read only when the ``conv_vae`` option is on.
+CONV_VAE_FILE = "vae/ltx-2.5-video-vae-conv-bf16.safetensors"
+# FEAT-098: speed options of this container (set in the image; none when the setting is absent).
+_OPTIONS = render_options.parse_options(os.environ.get(render_options.OPTIONS_ENV, ""))
 
 app = modal.App(APP_NAME)
 model_volume = modal.Volume.from_name(
@@ -138,7 +144,14 @@ _contracts_file = _MODULE_DIR / "contracts.py"
 _observability_file = _MODULE_DIR / "worker_observability.py"
 _story_visual_plan_file = _MODULE_DIR / "story_visual_plan.py"
 _lock_dir = _MODULE_DIR / "locks"
-_RUNTIME_MODULES = ("ltx_speed.py", "scene_prepare.py", "scene_prepare_host.py", "scene_prepare_server.py")
+_RUNTIME_MODULES = (
+    "ltx_speed.py",
+    "render_options.py",
+    "scene_cache.py",
+    "scene_prepare.py",
+    "scene_prepare_host.py",
+    "scene_prepare_server.py",
+)
 _keyframe_modules = (
     "keyframe_compositor.py",
     "keyframe_metrics.py",
@@ -179,6 +192,10 @@ _inference_image = (
         "https://github.com/Lightricks/LTX-2.git /opt/LTX-2",
         "cp /opt/locks/ltx.uv.lock /opt/LTX-2/uv.lock",
         "cd /opt/LTX-2 && uv sync --frozen --package ltx-pipelines",
+        # FEAT-098: natten is the fastest video decoder on this GPU generation. The extra belongs to ltx-core and is in
+        # the committed lock; --inexact keeps what the pipelines package installed.
+        "cd /opt/LTX-2 && uv sync --frozen --package ltx-core --extra natten --inexact",
+        "/opt/LTX-2/.venv/bin/python -c 'import natten'",
         "cd /opt/LTX-2 && git rev-parse HEAD > /opt/LTX-2/LTX_CODE_COMMIT "
         "&& sha256sum uv.lock | cut -d ' ' -f 1 > /opt/LTX-2/LTX_UV_LOCK_SHA256",
         f'test "$(cat /opt/LTX-2/LTX_CODE_COMMIT)" = "{PINNED_LTX_CODE_COMMIT}"',
@@ -205,6 +222,8 @@ _inference_image = (
             "TOKENIZERS_PARALLELISM": "false",
             # FEAT-094: the fast profile runs close to the memory limit.
             "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True",
+            # FEAT-098: the speed options named at deploy time, else the accepted ones ("none": all off).
+            render_options.OPTIONS_ENV: os.environ.get(render_options.OPTIONS_ENV, render_options.ACCEPTED),
         }
     )
 )
@@ -252,8 +271,14 @@ def _start_preparation() -> None:
 
 
 def _warm_up_scene_preparation() -> dict[str, Any]:
-    """Load the plate and mask models and start reading the renderer checkpoint; no job data is read."""
+    """Load the plate and mask models and start reading the renderer checkpoint; no job data is read.
 
+    A loaded renderer is left alone (FEAT-098): the pictures may already be waiting in the cache, and unloading it
+    would cost the next scene the whole model load again.
+    """
+
+    if _PIPELINE is not None:
+        return {"warmed": False, "loaded": []}
     _start_preparation()
     try:
         loaded = _PREPARATION.request("warmup", {}, timeout=PREPARE_TIMEOUT_SECONDS).get("loaded", [])
@@ -285,16 +310,27 @@ def _prepare_scene_job(payload: dict[str, Any]) -> dict[str, Any]:
             )
         except ValueError as error:
             raise WorkerContractError(str(error)) from None
-    with tempfile.TemporaryDirectory(prefix="sketch2life-prepare-") as directory:
-        (Path(directory) / "drawing.png").write_bytes(drawing)
-        with worker_phase("scene_prepare"):
-            _start_preparation()
-            outcome = _PREPARATION.request(
-                "prepare", {"directory": directory, "request": fields}, timeout=PREPARE_TIMEOUT_SECONDS
-            )
-        keyframe = (Path(directory) / "keyframe.png").read_bytes()
-    if not keyframe or len(keyframe) > MAX_DRAWING_BYTES:
-        raise RuntimeError("MODAL_OUTPUT_LIMIT_EXCEEDED")
+    cache_root = Path(SCRATCH_MOUNT) / "sketch2life" / "dev" / "prepare-cache"
+    cache_key = scene_cache.cache_key(request.input_manifest_sha256, PLATE_MODEL_REVISION)
+    kept = scene_cache.lookup(cache_root, cache_key, now=time.time())
+    if kept is not None:
+        # FEAT-098: prepared while the adult reviewed the script; the renderer stays loaded.
+        keyframe, prepared = kept
+        print(json.dumps({"event": "scene_prepared_from_cache"}), flush=True)
+    else:
+        with tempfile.TemporaryDirectory(prefix="sketch2life-prepare-") as directory:
+            (Path(directory) / "drawing.png").write_bytes(drawing)
+            with worker_phase("scene_prepare"):
+                _start_preparation()
+                outcome = _PREPARATION.request(
+                    "prepare", {"directory": directory, "request": fields}, timeout=PREPARE_TIMEOUT_SECONDS
+                )
+            keyframe = (Path(directory) / "keyframe.png").read_bytes()
+        if not keyframe or len(keyframe) > MAX_DRAWING_BYTES:
+            raise RuntimeError("MODAL_OUTPUT_LIMIT_EXCEEDED")
+        prepared = {"background": outcome["background"], "reason": outcome["reason"]}
+        if prepared["background"] == "AI":  # a paper fallback gets another try next time
+            _keep_prepared_scene(cache_root, cache_key, keyframe, prepared)
     return {
         "schema_version": "sketch2life.modal.worker-output.v1",
         "workload": "video.scene.prepare",
@@ -308,8 +344,18 @@ def _prepare_scene_job(payload: dict[str, Any]) -> dict[str, Any]:
             "sha256": hashlib.sha256(keyframe).hexdigest(),
             "bytes": keyframe,
         },
-        "prepare": {"background": outcome["background"], "reason": outcome["reason"]},
+        "prepare": prepared,
     }
+
+
+def _keep_prepared_scene(root: Path, key: str, keyframe: bytes, prepared: dict[str, Any]) -> None:
+    """Failing to keep a picture only costs preparing it again."""
+
+    try:
+        scene_cache.store(root, key, keyframe, prepared, now=time.time())
+        scratch_volume.commit()
+    except Exception as error:  # noqa: BLE001
+        print(json.dumps({"event": "scene_cache_store_failed", "error_type": type(error).__name__}), flush=True)
 
 
 @app.function(
@@ -556,6 +602,57 @@ def download_ltx25_pinned_model() -> dict[str, Any]:
         "model_revision": MODEL_REVISION,
         "file_count": len(entries),
         "total_bytes": total_bytes,
+    }
+
+
+@app.function(
+    name="download-ltx25-conv-vae",
+    image=_with_runtime_modules(_download_image),
+    secrets=[
+        modal.Secret.from_name(
+            HF_CREDENTIAL_RESOURCE_NAME,
+            required_keys=[HF_AUTH_ENV_KEY],
+        )
+    ],
+    volumes={MODEL_MOUNT: model_volume},
+    cpu=2.0,
+    memory=4_096,
+    min_containers=0,
+    max_containers=1,
+    scaledown_window=30,
+    timeout=1_800,
+    retries=0,
+)
+def download_ltx25_conv_vae() -> dict[str, Any]:
+    """Stage the optional convolution video VAE of the pinned model revision (FEAT-098)."""
+
+    from huggingface_hub import hf_hub_download
+
+    token = os.environ.get(HF_AUTH_ENV_KEY)
+    if not token:
+        raise RuntimeError("HF_TOKEN_MISSING")
+    model_volume.reload()
+    path = _safe_model_path(Path(MODEL_ROOT), CONV_VAE_FILE)
+    status = "already_staged"
+    if not path.is_file():
+        try:
+            hf_hub_download(
+                repo_id=MODEL_ID,
+                revision=MODEL_REVISION,
+                filename=CONV_VAE_FILE,
+                local_dir=MODEL_ROOT,
+                token=token,
+            )
+        except Exception as error:  # noqa: BLE001 - keep URLs, headers and tokens out of the log
+            return {"status": "failed", "reason_code": "HF_MODEL_DOWNLOAD_FAILED", "error_type": type(error).__name__}
+        model_volume.commit()
+        status = "downloaded"
+    return {
+        "status": status,
+        "model_revision": MODEL_REVISION,
+        "file": CONV_VAE_FILE,
+        "size_bytes": path.stat().st_size,
+        "sha256": _sha256_file(path),
     }
 
 
@@ -1729,10 +1826,19 @@ def _unload_pipeline() -> None:
         empty_cache()
 
 
+def _checkpoint_names() -> list[str]:
+    """The checkpoint files the renderer will load."""
+
+    return [
+        CONV_VAE_FILE if _OPTIONS.conv_vae and part == "video_vae" else name
+        for name, part in MODEL_FILES.items()
+    ]
+
+
 def _read_checkpoints() -> None:
     """Read every checkpoint file once so that loading the pipeline finds it in the page cache."""
 
-    for name in MODEL_FILES:
+    for name in _checkpoint_names():
         with (Path(MODEL_ROOT) / name).open("rb") as handle:
             while handle.read(64 * 1024 * 1024):
                 pass
@@ -1787,6 +1893,11 @@ def _load_pipeline() -> Any:
     transformer_path = model_root / next(
         name for name, part in MODEL_FILES.items() if part == "transformer"
     )
+    video_vae_path = model_root / next(name for name, part in MODEL_FILES.items() if part == "video_vae")
+    if _OPTIONS.conv_vae:
+        video_vae_path = model_root / CONV_VAE_FILE
+        if not video_vae_path.is_file():
+            raise RuntimeError("LTX_CONV_VAE_NOT_STAGED")
     try:
         quantization_policy = build_fp8_cast_policy(str(transformer_path))
     except AttributeError:
@@ -1797,10 +1908,7 @@ def _load_pipeline() -> Any:
             model_root
             / next(name for name, part in MODEL_FILES.items() if part == "text_encoder")
         ),
-        video_vae_path=str(
-            model_root
-            / next(name for name, part in MODEL_FILES.items() if part == "video_vae")
-        ),
+        video_vae_path=str(video_vae_path),
         audio_vae_path=str(
             model_root
             / next(name for name, part in MODEL_FILES.items() if part == "audio_vae")
@@ -1811,7 +1919,7 @@ def _load_pipeline() -> Any:
     )
     fast = _PROFILES.current == FAST
     options: dict[str, Any] = {}
-    if fast:
+    if fast and not _OPTIONS.conv_vae:  # the decoding modes belong to the diffusion VAE
         from ltx_core.model.video_vae.transformer import DiffVAEMode
 
         options["diffvae_optimization"] = DiffVAEMode("combined_compile")
@@ -1850,9 +1958,15 @@ def _run_ltx(
     from ltx_pipelines.utils.types import ImageConditioningInput
 
     frame_plan = plan_scene_frames(target_duration)
-    num_frames = int(frame_plan["generated_frame_count"])
-    if num_frames > MAX_VIDEO_SECONDS * FPS + 8:
+    # FEAT-098: the delivered frame count stays at 24 a second; the model may render at a lower rate.
+    num_frames = int(plan_scene_frames(target_duration, frame_rate=_OPTIONS.fps)["generated_frame_count"])
+    if num_frames > MAX_VIDEO_SECONDS * _OPTIONS.fps + 8:
         raise WorkerContractError("VIDEO_SCENE_DURATION_LIMIT_EXCEEDED")
+    frame_plan = {
+        **frame_plan,
+        "generated_frame_count": num_frames,
+        "temporal_scale": (frame_plan["target_frame_count"] / FPS) / (num_frames / _OPTIONS.fps),
+    }
     prompt = (
         visual_prompt if prompt_is_compiled else _ltx_animation_prompt(visual_prompt)
     )
@@ -1870,16 +1984,16 @@ def _run_ltx(
         result = pipeline(
             prompt=prompt,
             seed=seed,
-            height=MODEL_FRAME_HEIGHT,
-            width=OUTPUT_WIDTH,
-            frame_rate=FPS,
+            height=_OPTIONS.height,
+            width=_OPTIONS.width,
+            frame_rate=float(_OPTIONS.fps),
             images=[conditioning, *end_conditioning],
             num_frames=num_frames,
         )
         # LTX audio is intentionally discarded; this delivery produces silent MP4 only.
         encode_video(
             result.video,
-            FPS,
+            _OPTIONS.fps,
             None,
             str(output_path),
             video_chunks_number=None,
@@ -2012,7 +2126,6 @@ def _normalize_silent_clip(
         or (generated_frame_count - 1) % 8 != 0
     ):
         raise WorkerContractError("VIDEO_SCENE_FRAME_PLAN_INVALID")
-    time_scale = target_frame_count / generated_frame_count
     command = [
         "ffmpeg",
         "-nostdin",
@@ -2026,11 +2139,8 @@ def _normalize_silent_clip(
         "0:v:0",
         "-an",
         "-vf",
-        (
-            f"setpts=PTS*{time_scale:.12f},"
-            f"crop={OUTPUT_WIDTH}:{OUTPUT_HEIGHT}:0:24,"
-            f"fps={int(FPS)},trim=end_frame={target_frame_count},"
-            f"setpts=N/({int(FPS)}*TB)"
+        _OPTIONS.video_filter(
+            target_frame_count=target_frame_count, generated_frame_count=generated_frame_count
         ),
         "-frames:v",
         str(target_frame_count),

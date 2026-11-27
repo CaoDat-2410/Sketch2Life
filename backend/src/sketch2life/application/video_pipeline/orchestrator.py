@@ -68,6 +68,7 @@ from sketch2life.application.video_pipeline.visual_prompt_guard import (
 from sketch2life.application.video_pipeline.video_plan import (
     ScenePlan,
     VideoPlan,
+    apply_extensions,
     apply_stretches,
     build_video_plan,
 )
@@ -77,15 +78,19 @@ NARRATION_ATTEMPTS = 2
 _TOLERATED_AUDIO_PROBLEMS = frozenset({"AUDIO_SPEECH_RATE_OUT_OF_BAND", "AUDIO_EDGE_SILENCE"})
 LINE_GAP_MS = 300
 SENTENCE_PAUSE_MS = 800
+# FEAT-098: a learning scene is rendered as long as its voice, up to this; beyond it the last frame
+# is held.
+MAX_MOTION_SCENE_SECONDS = 12
 MAX_LABEL_CHARS = 24
 FRAME_WAIT_SECONDS = 90  # a cold checking model is not worth more waiting than this
-# FEAT-094 phase 5 (FR-AI-06): a scene the check rejects is rendered again with a new seed at most this often.
+# FEAT-094 phase 5 (FR-AI-06): a scene the check rejects is rendered again with a new seed at most
+# this often.
 VISUAL_REGENERATIONS = 2
 VISUAL_CHECK_MODES = ("off", "report", "enforce")
 REPORT_WAIT_SECONDS = 45.0  # report mode never holds a finished video back for a cold checker
 _SEED_STEP = 7_919
-# FEAT-093 Amendment C: one more try for a call that failed with a known outcome. An unknown dispatch outcome is
-# never sent again, and input errors would only fail the same way.
+# FEAT-093 Amendment C: one more try for a call that failed with a known outcome. An unknown
+# dispatch outcome is never sent again, and input errors would only fail the same way.
 STEP_ATTEMPTS = 2
 _RETRYABLE_CODE_ENDINGS = ("_FAILED", "_TIMEOUT", "_OUTPUT_INVALID", "_OUTPUT_UNAVAILABLE", "_HASH_MISMATCH")
 
@@ -116,6 +121,7 @@ def _retried(call: Callable[[], _Result], *, before_retry: Callable[[], None] | 
 class _LineAudioResult:
     line: TimelineLine
     lane: str
+    scene_index: int
     chunks: tuple[tuple[bytes, int, int, int], ...]  # (wav, trim_head, trim_tail, speech_ms) per clause
 
     @property
@@ -148,6 +154,86 @@ def _speaker_labels(source: VideoSource) -> dict[str, str]:
             if token != "con" and len(token) > 1:
                 labels.setdefault(token, subject.label.removeprefix("con ").strip().capitalize())
     return labels
+
+
+def _lay_out(
+    source: VideoSource, timeline: Any, main: str
+) -> tuple[VideoPlan, dict[str, str], tuple[dict[str, Any], tuple[str, ...]]]:
+    """The scene plan (drawn-only prompts), the subject names and the staging of every scene."""
+
+    plan = build_video_plan(timeline, story_sha256=source.story_sha256, main_entity_id=main)
+    labels = {item.entity_id: item.label for item in source.subjects}
+    person_drawn = person_is_drawn(labels.values())
+    plan = replace(
+        plan,
+        scenes=tuple(
+            replace(
+                scene,
+                visual_prompt=drawn_only_prompt(scene.visual_prompt, person_drawn=person_drawn),
+                background_prompt=drawn_only_prompt(
+                    scene.background_prompt, person_drawn=person_drawn
+                ),
+            )
+            for scene in plan.scenes
+        ),
+    )
+    secondary_ids = tuple(item.entity_id for item in source.subjects if item.entity_id != main)
+    try:
+        staging = build_staging(
+            plan,
+            subject_boxes=source.subject_boxes,
+            secondary_ids=secondary_ids,
+            grounded=not is_airborne(labels[main]),
+        )
+    except StagingError as error:
+        raise VideoPipelineError(f"VIDEO_{error.code}") from None
+    return plan, labels, (staging, secondary_ids)
+
+
+def _prep_job(
+    scene: ScenePlan,
+    source: VideoSource,
+    labels: dict[str, str],
+    main: str,
+    staged: tuple[dict[str, Any], tuple[str, ...]],
+    plate_attempt: int = 0,
+) -> ScenePrepJob:
+    return ScenePrepJob(
+        scene=scene,
+        drawing_sha256=source.drawing_sha256,
+        subject_labels=labels,
+        subject_boxes=source.subject_boxes,
+        main_entity_id=main,
+        drawing_png=source.drawing_png,
+        staging=staged[0],
+        secondary_ids=staged[1],
+        plate_attempt=plate_attempt,
+    )
+
+
+def prepare_ahead(source: VideoSource, preparation: Any, renderer: Any) -> int:
+    """FEAT-098: while the adult reviews a learning script, ask for the scene pictures its video
+    will need and load the renderer. Nothing is waited for; the number of pictures asked for is
+    returned.
+
+    Only a learning script is planned without a model, so its pictures can be asked for exactly as
+    the run will.
+    """
+
+    if not source.learning:
+        return 0
+    main = next((item.entity_id for item in source.subjects if item.role == "main"), None)
+    if main is None:
+        raise VideoPipelineError("VIDEO_MAIN_SUBJECT_MISSING")
+    try:
+        timeline = timeline_from_learning(source)
+    except TimelineError as error:
+        raise VideoPipelineError(f"VIDEO_PLAN_{error.code}") from None
+    plan, labels, staged = _lay_out(source, timeline, main)
+    for scene in plan.scenes:
+        preparation.prepare_ahead(_prep_job(scene, source, labels, main, staged))
+    renderer.prime([scene.visual_prompt for scene in plan.scenes])
+    return len(plan.scenes)
 
 
 class VideoPipeline:
@@ -202,7 +288,8 @@ class VideoPipeline:
         check_cancel()
         self._warm_up()
         try:
-            # FEAT-094: a learning script is spoken as the adult confirmed it; older stories are planned by a model.
+            # FEAT-094: a learning script is spoken as the adult confirmed it; older stories are
+            # planned by a model.
             timeline = (
                 timeline_from_learning(source)
                 if source.learning
@@ -217,32 +304,8 @@ class VideoPipeline:
             )
         except TimelineError as error:
             raise VideoPipelineError(f"VIDEO_PLAN_{error.code}") from None
-        plan = build_video_plan(timeline, story_sha256=source.story_sha256, main_entity_id=main)
+        plan, labels, staged = _lay_out(source, timeline, main)
         count = len(plan.scenes)
-        labels = {item.entity_id: item.label for item in source.subjects}
-        person_drawn = person_is_drawn(labels.values())
-        plan = replace(
-            plan,
-            scenes=tuple(
-                replace(
-                    scene,
-                    visual_prompt=drawn_only_prompt(scene.visual_prompt, person_drawn=person_drawn),
-                    background_prompt=drawn_only_prompt(scene.background_prompt, person_drawn=person_drawn),
-                )
-                for scene in plan.scenes
-            ),
-        )
-        secondary_ids = tuple(item.entity_id for item in source.subjects if item.entity_id != main)
-        try:
-            staging = build_staging(
-                plan,
-                subject_boxes=source.subject_boxes,
-                secondary_ids=secondary_ids,
-                grounded=not is_airborne(labels[main]),
-            )
-        except StagingError as error:
-            raise VideoPipelineError(f"VIDEO_{error.code}") from None
-        staged = (staging, secondary_ids)
 
         looker = ThreadPoolExecutor(max_workers=1, thread_name_prefix="video-check")
         c2 = ThreadPoolExecutor(max_workers=1, thread_name_prefix="video-prepare")
@@ -278,6 +341,13 @@ class VideoPipeline:
             backgrounds = {index: item.background for index, item in prepared.items()}
             # Sent only now: it loads the renderer, which takes the GPU from preparation.
             self._prime([scene.visual_prompt for scene in plan.scenes])
+            if source.learning:
+                # FEAT-098: the voice is known before anything is rendered, so the motion can be as
+                # long as it.
+                check_step()
+                if not narration_future.done():
+                    report(STAGE_NARRATING, None, count)
+                plan = self._lengthened(plan, profile, narration_future.result(), source)
             clips: list[SceneClip] = []
             jobs: dict[int, SceneRenderJob] = {}
             checks: dict[int, Future[tuple[str, ...]]] = {}
@@ -413,17 +483,7 @@ class VideoPipeline:
         staged: tuple[dict[str, Any], tuple[str, ...]],
         plate_attempt: int = 0,
     ) -> PreparedScene:
-        job = ScenePrepJob(
-            scene=scene,
-            drawing_sha256=source.drawing_sha256,
-            subject_labels=labels,
-            subject_boxes=source.subject_boxes,
-            main_entity_id=main,
-            drawing_png=source.drawing_png,
-            staging=staged[0],
-            secondary_ids=staged[1],
-            plate_attempt=plate_attempt,
-        )
+        job = _prep_job(scene, source, labels, main, staged, plate_attempt)
         return _retried(lambda: self._preparation.prepare(job))
 
     def _narrate_all(self, plan: VideoPlan, profile: AgeBandProfile, source: VideoSource) -> list[_LineAudioResult]:
@@ -434,7 +494,11 @@ class VideoPipeline:
                 chunks = []
                 for clause in split_clauses(line.text):
                     chunks.append(self._synthesize_checked(clause, profile))
-                results.append(_LineAudioResult(line=line, lane=lane, chunks=tuple(chunks)))
+                results.append(
+                    _LineAudioResult(
+                        line=line, lane=lane, scene_index=scene.index, chunks=tuple(chunks)
+                    )
+                )
         return results
 
     def _synthesize_checked(self, clause: str, profile: AgeBandProfile) -> tuple[bytes, int, int, int]:
@@ -458,6 +522,29 @@ class VideoPipeline:
         raise VideoPipelineError(f"VIDEO_NARRATION_{last_problem}")
 
     # ----------------------------------------------------------- placement
+    def _lengthened(
+        self,
+        plan: VideoPlan,
+        profile: AgeBandProfile,
+        line_audio: Sequence[_LineAudioResult],
+        source: VideoSource,
+    ) -> VideoPlan:
+        """The plan with each scene as long as its voice, up to the longest rendered motion."""
+
+        needed = _frames_needed(plan, _slots(line_audio, profile, source))
+        longest = MAX_MOTION_SCENE_SECONDS * FPS
+        extra = {
+            scene.index: min(needed[scene.index], longest - scene.target_frames)
+            for scene in plan.scenes
+            if scene.index in needed and scene.target_frames < longest
+        }
+        if not extra:
+            return plan
+        try:
+            return apply_extensions(plan, extra)
+        except ValueError as error:
+            raise VideoPipelineError(f"VIDEO_NARRATION_{error}") from None
+
     def _place(
         self,
         plan: VideoPlan,
@@ -465,34 +552,23 @@ class VideoPipeline:
         line_audio: Sequence[_LineAudioResult],
         source: VideoSource,
     ) -> tuple[VideoPlan, list[PlacedChunk], list]:
-        by_line = {(result.line.start_ms, result.line.text): result for result in line_audio}
         labels = _speaker_labels(source)
-        pause = SENTENCE_PAUSE_MS if source.learning else 0  # FEAT-094: the child gets a breath between two ideas
-        slots = {key: result.slots(labels, profile.caption_max_cps, pause) for key, result in by_line.items()}
-        # Pass 1: how much does each scene's narration need beyond the clip?
-        extra: dict[int, int] = {}
-        for scene in plan.scenes:
-            cursor = scene.start_ms
-            for line in scene.lines:
-                start = max(line.start_ms, cursor)
-                cursor = start + sum(slots[(line.start_ms, line.text)]) + LINE_GAP_MS
-            needed_ms = cursor - LINE_GAP_MS + TAIL_AFTER_VOICE_MS - (scene.start_ms + scene.duration_ms)
-            if needed_ms > 0:
-                extra[scene.index] = math.ceil(needed_ms * FPS / 1000)
+        slots = _slots(line_audio, profile, source)
+        # Pass 1: what the voice still needs beyond the clip is held on the last frame.
+        extra = _frames_needed(plan, slots)
         try:
             plan = apply_stretches(plan, extra) if extra else plan
         except ValueError as error:
             raise VideoPipelineError(f"VIDEO_NARRATION_{error}") from None
 
-        # Pass 2: absolute placement on the final clock (the stretch moved later scenes and their lines).
+        # Pass 2: absolute placement on the final clock (longer scenes moved the later ones and
+        # their lines).
         placements: list[LineAudio] = []
         chunks: list[PlacedChunk] = []
         for scene in plan.scenes:
             cursor = scene.start_ms
             for line in scene.lines:
-                original_start = line.start_ms - _shift_for(plan, scene)
-                result = by_line[(original_start, line.text)]
-                line_slots = slots[(original_start, line.text)]
+                result, line_slots = slots[(scene.index, line.text)]
                 start = max(line.start_ms, cursor)
                 placements.append(
                     LineAudio(
@@ -516,6 +592,42 @@ class VideoPipeline:
         return plan, chunks, cues
 
 
+_Slots = dict[tuple[int, str], tuple[_LineAudioResult, tuple[int, ...]]]
+
+
+def _slots(
+    line_audio: Sequence[_LineAudioResult], profile: AgeBandProfile, source: VideoSource
+) -> _Slots:
+    """The clock time of every clause of every line, by scene and line text."""
+
+    labels = _speaker_labels(source)
+    # FEAT-094: the child gets a breath between two ideas.
+    pause = SENTENCE_PAUSE_MS if source.learning else 0
+    return {
+        (result.scene_index, result.line.text): (
+            result,
+            result.slots(labels, profile.caption_max_cps, pause),
+        )
+        for result in line_audio
+    }
+
+
+def _frames_needed(plan: VideoPlan, slots: _Slots) -> dict[int, int]:
+    """Frames each scene lacks for its voice and the breath after it (fitting scenes left out)."""
+
+    needed: dict[int, int] = {}
+    for scene in plan.scenes:
+        cursor = scene.start_ms
+        for line in scene.lines:
+            start = max(line.start_ms, cursor)
+            cursor = start + sum(slots[(scene.index, line.text)][1]) + LINE_GAP_MS
+        voice_end_ms = cursor - LINE_GAP_MS + TAIL_AFTER_VOICE_MS
+        missing_ms = voice_end_ms - (scene.start_ms + scene.duration_ms)
+        if missing_ms > 0:
+            needed[scene.index] = math.ceil(missing_ms * FPS / 1000)
+    return needed
+
+
 def _part_labels(source: VideoSource) -> dict[int, str]:
     """FEAT-094 D1: the name of the part a learning scene teaches (no arrows: part positions are unknown)."""
 
@@ -525,15 +637,6 @@ def _part_labels(source: VideoSource) -> dict[int, str]:
         if part and len(part) <= MAX_LABEL_CHARS:
             labels[scene["scene_index"]] = part[0].upper() + part[1:]
     return labels
-
-
-def _shift_for(plan: VideoPlan, scene: ScenePlan) -> int:
-    """Milliseconds by which earlier stretches moved this scene's lines (start of the scene versus its unstretched start)."""
-
-    unstretched_start_frames = scene.start_frame - sum(
-        earlier.hold_frames for earlier in plan.scenes if earlier.index < scene.index
-    )
-    return round((scene.start_frame - unstretched_start_frames) * 1000 / FPS)
 
 
 __all__ = [

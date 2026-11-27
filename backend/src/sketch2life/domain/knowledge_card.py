@@ -20,7 +20,7 @@ STATUSES: Final = ("DRAFT", "APPROVED")
 # One fact has to fit inside one scene's narration together with the story sentence around it.
 MAX_FACT_WORDS: Final = 14
 # Age in months -> number of facts in one video (plan 6.2).
-_FACTS_BY_AGE: Final = ((36, 71, 3), (72, 107, 4), (108, 120, 5))
+_FACTS_BY_AGE: Final = ((36, 71, 5), (72, 107, 6), (108, 120, 7))  # FEAT-098
 _SENTENCE_ENDINGS: Final = (".", "!")
 
 
@@ -207,7 +207,10 @@ def card_for_subject(cards: Iterable[KnowledgeCard], subject_label: str) -> Know
 def facts_for_child(
     card: KnowledgeCard, *, age_months: int, visible_features: Sequence[str]
 ) -> tuple[KnowledgeFact, ...]:
-    """The facts of one video in story order: name, parts (seen ones first), then the use."""
+    """The facts of one video in story order: name, parts (seen ones first), then the use.
+
+    A card may hold one fact fewer than the age asks for; further short and it is not used.
+    """
 
     count = next((n for low, high, n in _FACTS_BY_AGE if low <= age_months <= high), None)
     if count is None:
@@ -224,7 +227,7 @@ def facts_for_child(
             -fact.min_age_months,
         ),
     )
-    if not names or not uses or len(parts) < count - 2:
+    if not names or not uses or len(parts) < count - 3:
         raise KnowledgeCardError("KNOWLEDGE_CARD_TOO_FEW_FACTS", detail=card.card_id)
     return (names[0], *parts[: count - 2], uses[0])
 

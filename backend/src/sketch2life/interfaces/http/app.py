@@ -122,7 +122,11 @@ from sketch2life.infrastructure.story_inputs.modal_adapters import (
 )
 from sketch2life.infrastructure.story_run_lite.composition import runtime_lifespan
 from sketch2life.infrastructure.story_video.composition import build_story_video_adapters
+from sketch2life.infrastructure.story_video.modal_scene_preparation import ModalScenePreparation
+from sketch2life.infrastructure.story_video.modal_scene_renderer import ModalSceneRenderer
 from sketch2life.infrastructure.story_video.playback_tokens import build_playback_codec
+from sketch2life.infrastructure.story_video.prepare_ahead import VideoPrepareAhead
+from sketch2life.infrastructure.story_video.sql_source_reader import SqlVideoSourceReader
 from sketch2life.infrastructure.vision_analysis.pilot_composition import (
     build_default_pilot_vision,
 )
@@ -1195,6 +1199,7 @@ def create_app(
     # l.394, l.1413); this switch turns the rerun off (recorded deviation DEV-1: the edit is
     # recorded and confirmed at once).
     application.state.story_generator = None
+    application.state.video_prepare_ahead = None
     application.state.subject_edit_reruns_vlm = True
     # FEAT-066 T-1a (OD-03): the video admission ports. None unless the flag story_video_adapters is
     # "local_test" (refused outside local/test by Settings); with none the route answers 503
@@ -1282,6 +1287,15 @@ def create_app(
         application.state.drawing_analyzer = ModalParentDrawingAnalyzer(storage)
         application.state.story_generator = ModalParentStoryGenerator()
         application.state.parent_drawing_recovery_enabled = True
+        if (
+            storage_example_settings.story_video_prepare_ahead
+            and storage_example_settings.story_video_adapters != "unconfigured"
+        ):
+            application.state.video_prepare_ahead = VideoPrepareAhead(
+                SqlVideoSourceReader(runtime.session_factory, storage),
+                ModalScenePreparation(),
+                ModalSceneRenderer(),
+            )
         _LOGGER.info(
             "parent_modal_workers_composed env=%s drawing=true story=true",
             storage_example_settings.env,

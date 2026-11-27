@@ -38,8 +38,11 @@ _DANGLING_TAIL_WORDS: Final = frozenset(
         "bằng", "do", "theo", "đang", "là", "có", "thì", "mà",
     }
 )
-_BANNED_FRAGMENTS: Final = (
-    "giet", "mau me", "sung ", "chet", "ma quy", "kinh di", "tu tu", "danh nhau", "bao luc", "ruou", "thuoc la",
+# Words a child's narration never speaks, matched as whole words with their accents ("quỉ" is the
+# older spelling).
+_BANNED_WORDS: Final = (
+    "giết", "máu me", "súng", "chết", "ma quỷ", "ma quỉ", "kinh dị", "tự tử", "đánh nhau",
+    "bạo lực", "rượu", "thuốc lá",
 )
 
 
@@ -117,6 +120,18 @@ def _has_non_latin_letter(text: str) -> bool:
     return any(ch.isalpha() and "LATIN" not in unicodedata.name(ch, "") for ch in text)
 
 
+def has_banned_word(text: str) -> bool:
+    """Is a listed word spoken? Accents tell "sừng" (horn) from "súng" (gun); a text typed without
+    any accent is compared without them."""
+
+    folded = f" {_fold(text)} "
+    composed = unicodedata.normalize("NFC", text.casefold())
+    spoken = f" {' '.join(''.join(ch if ch.isalnum() else ' ' for ch in composed).split())} "
+    if spoken == folded:
+        return any(f" {_fold(word)} " in folded for word in _BANNED_WORDS)
+    return any(f" {word} " in spoken for word in _BANNED_WORDS)
+
+
 def check_line_text(text: Any) -> str:
     """The cleaned text of one spoken line, or a TimelineError."""
 
@@ -129,8 +144,7 @@ def check_line_text(text: Any) -> str:
         raise TimelineError("LINE_TEXT_CONTROL_CHARACTER")
     if _has_non_latin_letter(cleaned):
         raise TimelineError("LINE_TEXT_NON_LATIN_SCRIPT")
-    folded = _fold(cleaned)
-    if any(fragment in f"{folded} " for fragment in _BANNED_FRAGMENTS):
+    if has_banned_word(cleaned):
         raise TimelineError("LINE_TEXT_NOT_ALLOWED")
     body = cleaned.rstrip("".join(_END_PUNCTUATION)).rstrip(" ,;:-")
     words = body.split()

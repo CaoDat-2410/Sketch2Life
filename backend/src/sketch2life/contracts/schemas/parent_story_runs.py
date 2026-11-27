@@ -137,7 +137,7 @@ class ParentStoryLearningV1(BaseModel):
 
     fact_source: Literal["CARD", "LESSON", "AI_DRAFT"]
     verified: bool
-    points: list[str] = Field(min_length=1, max_length=5)
+    points: list[str] = Field(min_length=1, max_length=7)
 
 
 class ParentStoryDisplayV1(BaseModel):

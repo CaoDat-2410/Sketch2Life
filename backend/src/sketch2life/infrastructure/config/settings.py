@@ -56,6 +56,9 @@ class Settings(BaseSettings):
     story_video_renderer: Literal["fixture", "modal_dev"] = "fixture"
     # FEAT-094 S6: start the video GPU while the adult reviews the story (costs idle time when abandoned).
     story_video_warm_up: bool = False
+    # FEAT-098: while the adult reviews a learning script, prepare its scene pictures and load the
+    # renderer (costs GPU time when the script is abandoned). Replaces the warm-up when on.
+    story_video_prepare_ahead: bool = False
     # FEAT-094 phase 4: the story is one learning script (facts, interests, spoken text).
     story_learning: bool = False
     # FEAT-094 phase 5: "report" logs what the visual check sees; "enforce" also renders bad scenes again.

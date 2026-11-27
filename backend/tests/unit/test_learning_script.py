@@ -69,7 +69,14 @@ def _check(story: dict[str, Any] | None = None, learning: dict[str, Any] | None 
 
 @pytest.mark.parametrize(
     "months, expected",
-    [(36, (5, 18, 3)), (71, (5, 18, 3)), (72, (6, 22, 4)), (107, (6, 22, 4)), (108, (7, 24, 5)), (120, (7, 24, 5))],
+    [
+        (36, (5, 25, 5)),
+        (71, (5, 25, 5)),
+        (72, (6, 32, 6)),
+        (107, (6, 32, 6)),
+        (108, (7, 32, 7)),
+        (120, (7, 32, 7)),
+    ],
 )
 def test_the_age_table_of_the_plan(months: int, expected: tuple[int, int, int]) -> None:
     band = band_for_age_months(months)
@@ -176,3 +183,63 @@ def test_the_adult_sees_the_learning_points_and_whether_they_were_checked() -> N
     }
     assert learning_view({**_check(), "fact_source": "CARD"})["verified"] is True
     assert learning_view(None) is None
+
+
+def _two_facts() -> tuple[dict[str, Any], dict[str, Any]]:
+    """Four facts, the second scene telling two."""
+
+    story, learning = _story(), _learning()
+    learning["facts"].append(
+        {
+            "id": "tail",
+            "kind": "PART",
+            "part": "đuôi",
+            "text": "Đuôi gà giúp giữ thăng bằng.",
+            "key_terms": ["đuôi"],
+        }
+    )
+    learning["scenes"][1]["also_fact_id"] = "tail"
+    story["scenes"][1]["narration"] = "Gà Vàng dùng mỏ để mổ thóc. Đuôi gà giữ thăng bằng."
+    return story, learning
+
+
+def test_a_scene_may_tell_two_facts() -> None:
+    story, learning = _two_facts()
+
+    checked = _check(story, learning, fact_count=5)
+
+    assert checked["scenes"][1]["also_fact_id"] == "tail"
+    assert "also_fact_id" not in checked["scenes"][0]
+
+
+@pytest.mark.parametrize(
+    "damage, code",
+    [
+        ("term", "LEARNING_FACT_TERM_MISSING"),
+        ("unknown", "LEARNING_FACT_UNKNOWN"),
+        ("alone", "LEARNING_SHAPE_INVALID"),
+        ("again", "LEARNING_FACT_NOT_TOLD_ONCE"),
+    ],
+)
+def test_a_second_fact_follows_the_same_rules(damage: str, code: str) -> None:
+    story, learning = _two_facts()
+    if damage == "term":
+        story["scenes"][1]["narration"] = "Gà Vàng dùng mỏ để mổ thóc trong sân vườn."
+    elif damage == "unknown":
+        learning["scenes"][1]["also_fact_id"] = "wings"
+    elif damage == "alone":
+        learning["scenes"][2]["also_fact_id"] = "tail"
+        del learning["scenes"][1]["also_fact_id"]
+    else:
+        learning["scenes"][1]["also_fact_id"] = "beak"
+
+    with pytest.raises(LearningScriptError, match=code):
+        _check(story, learning, fact_count=5)
+
+
+def test_more_facts_than_asked_for_are_refused_and_given_facts_must_all_be_told() -> None:
+    story, learning = _two_facts()
+    with pytest.raises(LearningScriptError, match="LEARNING_FACT_NOT_TOLD_ONCE"):
+        _check(story, learning, fact_count=3)
+    with pytest.raises(LearningScriptError, match="LEARNING_FACT_NOT_TOLD_ONCE"):
+        _check(facts=[*_learning()["facts"], _two_facts()[1]["facts"][-1]], fact_count=5)

@@ -91,7 +91,7 @@ from sketch2life.interfaces.http.routers.parent_story_runs import story_run_resp
 router = APIRouter(prefix="/api/parent/v1/ai", tags=["Parent AI v1"])
 _LOGGER = get_logger(__name__)
 _STORY_PROMPT_VERSION = "parent-story-v2.2026-11-10"
-_LEARNING_PROMPT_VERSION = "parent-learning-v1.2026-11-26"  # FEAT-094
+_LEARNING_PROMPT_VERSION = "parent-learning-v2.2026-11-27"  # FEAT-098
 _VIDEO_WARM_UP = VideoWarmUp()
 
 
@@ -103,6 +103,19 @@ def _warm_up_video_container(background: BackgroundTasks) -> None:
         and settings.story_video_adapters != "unconfigured"
     ):
         background.add_task(_VIDEO_WARM_UP.request)
+
+
+def _start_video_early(
+    request: Request, background: BackgroundTasks, run_id: str, story_revision_id: str
+) -> None:
+    """FEAT-098: prepare the video while the adult reads the script when that is composed, else only
+    warm up the container."""
+
+    ahead = getattr(request.app.state, "video_prepare_ahead", None)
+    if ahead is None:
+        _warm_up_video_container(background)
+    else:
+        background.add_task(ahead.request, run_id, story_revision_id)
 
 
 def _require_parent(db: Session, principal: VerifiedPrincipal) -> AdultIdentityModel:
@@ -472,6 +485,7 @@ def generate_story_revision(
     payload: ParentStoryRequestV1,
     response: Response,
     background: BackgroundTasks,
+    request: Request,
     idempotency_key: Annotated[
         str, Header(alias="Idempotency-Key", min_length=1, max_length=200)
     ],
@@ -607,7 +621,7 @@ def generate_story_revision(
         workload="story.generate",
         revision_no=reservation.revision_no,
     )
-    _warm_up_video_container(background)
+    _start_video_early(request, background, str(run_id), reservation.story_revision_id)
     return {
         "request_id": request_id,
         "modal_call_id": modal_call_id,

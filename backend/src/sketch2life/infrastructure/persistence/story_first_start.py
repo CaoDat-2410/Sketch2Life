@@ -36,6 +36,8 @@ from sketch2life.application.ports.parent_story_runs import (
     ParentStoryRunError,
 )
 from sketch2life.domain.story_teacher import teacher_lesson_direction, teacher_pin_ready
+from sketch2life.infrastructure.config.settings import get_settings
+from sketch2life.infrastructure.knowledge.learning_request import build_learning_request
 from sketch2life.infrastructure.story_run_lite import tables as story_tables
 
 FIRST_STORY_INPUT_SCHEMA = "sketch2life.story-generation-input.v2"
@@ -290,7 +292,7 @@ def _parent_worker_input_v3(
                 and len(direction) <= 2000
             ):
                 lesson_direction = direction
-    return {
+    worker_input = {
         "schema_version": "sketch2life.story-generation-input.v3",
         "role": "PARENT",
         "language": "vi",
@@ -312,6 +314,18 @@ def _parent_worker_input_v3(
             ).encode("utf-8")
         ).hexdigest(),
     }
+    # FEAT-098: the app's first story starts here, so the learning script is asked for here too
+    # (as on the story-revisions route).
+    learning_request = build_learning_request(
+        context=context,
+        subject=worker_input["confirmed_subject"],
+        visible_features=visible_features,
+        lesson_notes=lesson_notes,
+        enabled=get_settings().story_learning,
+    )
+    if learning_request is not None:
+        worker_input["learning"] = learning_request
+    return worker_input
 
 
 __all__ = [

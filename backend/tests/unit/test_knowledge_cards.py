@@ -127,7 +127,8 @@ def test_each_fact_is_one_short_sentence_with_its_terms(change, code) -> None:
     assert caught.value.code == code
 
 
-@pytest.mark.parametrize(("age", "count"), [(48, 3), (84, 4), (114, 5)])
+# FEAT-098: five, six and seven facts; a card may be one fact short (here it has four parts).
+@pytest.mark.parametrize(("age", "count"), [(48, 5), (84, 6), (114, 6)])
 def test_the_child_gets_the_name_then_parts_then_the_use(age: int, count: int) -> None:
     facts = facts_for_child(parse_card(_card()), age_months=age, visible_features=[])
 
@@ -142,7 +143,7 @@ def test_parts_seen_in_the_drawing_come_first_and_older_facts_are_withheld() -> 
     young = facts_for_child(card, age_months=48, visible_features=["yên xe màu đen", "hai bánh"])
     old = facts_for_child(card, age_months=114, visible_features=["dây xích"])
 
-    assert [fact.id for fact in young] == ["what", "saddle", "use"]
+    assert [fact.id for fact in young][:2] == ["what", "saddle"] and young[-1].id == "use"
     assert old[1].id == "chain"
     assert "chain" not in [
         fact.id for fact in facts_for_child(card, age_months=60, visible_features=["dây xích"])
@@ -204,7 +205,8 @@ def test_every_card_shipped_with_the_backend_is_valid_and_has_unique_labels() ->
     labels = [label.casefold() for card in cards for label in card.subject_labels]
     assert len(labels) == len(set(labels))
     for card in cards:
-        assert len(facts_for_child(card, age_months=48, visible_features=[])) == 3, card.card_id
-        assert len(facts_for_child(card, age_months=114, visible_features=[])) == 5, card.card_id
+        assert len(facts_for_child(card, age_months=48, visible_features=[])) == 5, card.card_id
+        told = facts_for_child(card, age_months=114, visible_features=[])
+        assert len(told) in (6, 7), card.card_id
         if card.status == "APPROVED":
             assert card.approved_sha256 == content_sha256(card), card.card_id

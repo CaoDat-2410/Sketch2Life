@@ -99,7 +99,7 @@ def _job(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, app: Any) -> dict[str,
     prefix = "sketch2life/dev/job1/gen1/att1/"
     digest, size = _stage(tmp_path / prefix, _data())
     monkeypatch.setattr(app, "SCRATCH_MOUNT", str(tmp_path))
-    monkeypatch.setattr(app, "scratch_volume", types.SimpleNamespace(reload=lambda: None))
+    monkeypatch.setattr(app, "scratch_volume", types.SimpleNamespace(reload=lambda: None, commit=lambda: None))
     return {
         "schema_version": "sketch2life.modal.worker-input.v1",
         "environment": "dev",
@@ -251,6 +251,9 @@ def test_no_other_app_still_prepares_scenes_on_a_gpu_of_its_own() -> None:
 def test_the_image_installs_both_environments_from_committed_locks() -> None:
     assert "uv lock" not in SOURCE
     assert "uv sync --frozen --package ltx-pipelines" in SOURCE
+    # FEAT-098 S1: the extra belongs to ltx-core; adding it must keep what the pipelines brought, and be importable.
+    assert "uv sync --frozen --package ltx-core --extra natten --inexact" in SOURCE
+    assert "/opt/LTX-2/.venv/bin/python -c 'import natten'" in SOURCE
     assert "ltx-2.5-v1.6.2.uv.lock" in SOURCE and "scene-prepare.txt" in SOURCE
     assert (MODAL_DIR / "locks" / "ltx-2.5-v1.6.2.uv.lock").stat().st_size > 100_000
     pinned = [
@@ -271,5 +274,62 @@ def test_the_preparation_modules_are_mounted_after_the_dependency_layers() -> No
             if isinstance(node, ast.Assign) and getattr(node.targets[0], "id", "") == "_RUNTIME_MODULES"
         )
     )
-    assert set(mounted) == {"ltx_speed.py", "scene_prepare.py", "scene_prepare_host.py", "scene_prepare_server.py"}
+    assert set(mounted) == {
+        "ltx_speed.py", "render_options.py", "scene_cache.py", "scene_prepare.py", "scene_prepare_host.py",
+        "scene_prepare_server.py",
+    }
     assert SOURCE.count("image=_with_runtime_modules(") == SOURCE.count("    image=")
+
+
+# ------------------------------------------------------------------- FEAT-098: pictures prepared during review
+def test_a_scene_prepared_before_is_answered_from_the_cache_without_touching_the_gpu(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    app, _child, events = _wired(monkeypatch)
+    payload = _job(tmp_path, monkeypatch, app)
+
+    first = app.generate_video_scene.local(payload)
+    events.clear()
+    second = app.generate_video_scene.local(payload)
+
+    assert second["asset"] == first["asset"] and second["prepare"] == first["prepare"]
+    assert events == []  # no model check, no unloading of the renderer, no child call
+
+
+def test_an_old_cache_entry_is_prepared_again(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    app, _child, events = _wired(monkeypatch)
+    payload = _job(tmp_path, monkeypatch, app)
+    clock = [1_000.0]
+    monkeypatch.setattr(app.time, "time", lambda: clock[0])
+
+    app.generate_video_scene.local(payload)
+    clock[0] += 2 * 60 * 60 + 1
+    events.clear()
+    app.generate_video_scene.local(payload)
+
+    assert "child:prepare" in events
+
+
+def test_a_paper_background_is_not_kept(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    app, child, events = _wired(monkeypatch)
+    payload = _job(tmp_path, monkeypatch, app)
+    original = child.request
+
+    def paper(op: str, body: dict[str, Any], *, timeout: float) -> dict[str, Any]:
+        return {**original(op, body, timeout=timeout), "background": "PAPER", "reason": "PLATE_FAILED"}
+
+    monkeypatch.setattr(child, "request", paper)
+
+    app.generate_video_scene.local(payload)
+    events.clear()
+    app.generate_video_scene.local(payload)
+
+    assert "child:prepare" in events
+
+
+def test_the_warm_up_leaves_a_loaded_renderer_alone(monkeypatch: pytest.MonkeyPatch) -> None:
+    app, _child, events = _wired(monkeypatch)
+    monkeypatch.setattr(app, "_PIPELINE", object())
+
+    assert app.generate_video_scene.local({"prepare_warmup": True}) == {"warmed": False, "loaded": []}
+    assert events == []
