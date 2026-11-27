@@ -1,0 +1,77 @@
+{
+  "scenes": [
+    [
+      1,
+      "Con hươu có bốn chân dài. Nó đứng vững trên mặt đất. Hươu Nâu nhìn quanh khu rừng."
+    ],
+    [
+      2,
+      "Sừng hươu mọc ngay trên đầu. Chân hươu rất dài và khỏe. Nó bước đi nhẹ nhàng trên cỏ."
+    ],
+    [
+      3,
+      "Mắt hươu nhìn rất tinh và rõ. Nó thấy lá cây rơi xuống. Hươu Nâu nghiêng đầu quan sát kỹ."
+    ],
+    [
+      4,
+      "Hươu chạy nhanh trên cánh đồng. Nó lướt qua những bụi cây. Hươu Nâu vui vẻ đuổi theo gió."
+    ],
+    [
+      5,
+      "Hươu Nâu có sừng và bốn chân. Nó dùng mắt nhìn về phía trước. Con hươu đứng yên dưới gốc cây."
+    ]
+  ],
+  "fact_source": "AI_DRAFT",
+  "facts": [
+    {
+      "id": "f1",
+      "kind": "WHAT_IT_IS",
+      "part": null,
+      "text": "Hươu là con vật có bốn chân.",
+      "key_terms": [
+        "hươu",
+        "bốn chân"
+      ]
+    },
+    {
+      "id": "f2",
+      "kind": "PART",
+      "part": "sừng",
+      "text": "Sừng của hươu mọc trên đầu.",
+      "key_terms": [
+        "sừng",
+        "đầu"
+      ]
+    },
+    {
+      "id": "f3",
+      "kind": "PART",
+      "part": "chân",
+      "text": "Chân hươu rất dài và khỏe.",
+      "key_terms": [
+        "chân",
+        "dài"
+      ]
+    },
+    {
+      "id": "f4",
+      "kind": "PART",
+      "part": "mắt",
+      "text": "Mắt hươu nhìn rất tinh.",
+      "key_terms": [
+        "mắt",
+        "nhìn"
+      ]
+    },
+    {
+      "id": "f5",
+      "kind": "USE",
+      "part": null,
+      "text": "Hươu chạy nhanh trên cánh đồng.",
+      "key_terms": [
+        "chạy",
+        "nhanh"
+      ]
+    }
+  ]
+}

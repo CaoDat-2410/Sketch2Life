@@ -1,0 +1,80 @@
+{
+  "age-4y": {
+    "words": 115,
+    "words_per_scene": [
+      24,
+      23,
+      23,
+      23,
+      22
+    ],
+    "total_seconds": 50.88,
+    "voice_seconds": 23.8,
+    "voice_share": 0.468,
+    "scene_seconds": [
+      10.42,
+      10.12,
+      10.0,
+      10.0,
+      10.33
+    ],
+    "held_seconds": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "planned_frames": 1221,
+    "captions": 19,
+    "file": {
+      "frames": 1221,
+      "size": "1280x720",
+      "tb": "1/24",
+      "duration": "00:00:50.88",
+      "audio": true
+    }
+  },
+  "age-9y": {
+    "words": 182,
+    "words_per_scene": [
+      28,
+      28,
+      28,
+      25,
+      24,
+      26,
+      23
+    ],
+    "total_seconds": 70.0,
+    "voice_seconds": 36.86,
+    "voice_share": 0.527,
+    "scene_seconds": [
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0
+    ],
+    "held_seconds": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "planned_frames": 1680,
+    "captions": 22,
+    "file": {
+      "frames": 1680,
+      "size": "1280x720",
+      "tb": "1/24",
+      "duration": "00:01:10.00",
+      "audio": true
+    }
+  }
+}

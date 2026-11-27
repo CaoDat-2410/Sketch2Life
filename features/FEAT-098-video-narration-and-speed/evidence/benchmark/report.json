@@ -1,0 +1,130 @@
+{
+  "keyframe": "features/FEAT-094-learning-video-redesign/evidence/M1_experiments/inputs/chick_start.png",
+  "seed": 940101,
+  "seconds": 10.0,
+  "base_image": {
+    "gpu": "NVIDIA L40S",
+    "variants": [
+      {
+        "name": "base",
+        "options": "",
+        "renders": [
+          {
+            "render_s": 76.5,
+            "normalize_s": 0.5,
+            "frames_generated": 241,
+            "peak_gpu_gb": 34.4
+          },
+          {
+            "render_s": 74.2,
+            "normalize_s": 0.5,
+            "frames_generated": 241,
+            "peak_gpu_gb": 34.4
+          }
+        ],
+        "read_checkpoints_s": 46.2,
+        "load_s": 8.4,
+        "prompt_s": 14.9,
+        "compile_s": 65.8,
+        "speed_profile": "fast"
+      }
+    ],
+    "natten": null
+  },
+  "new_image": {
+    "gpu": "NVIDIA L40S",
+    "variants": [
+      {
+        "name": "natten",
+        "options": "",
+        "renders": [
+          {
+            "render_s": 73.7,
+            "normalize_s": 0.5,
+            "frames_generated": 241,
+            "peak_gpu_gb": 34.5
+          },
+          {
+            "render_s": 71.7,
+            "normalize_s": 0.5,
+            "frames_generated": 241,
+            "peak_gpu_gb": 34.5
+          }
+        ],
+        "read_checkpoints_s": 39.9,
+        "load_s": 5.5,
+        "prompt_s": 13.0,
+        "compile_s": 55.2,
+        "speed_profile": "fast"
+      },
+      {
+        "name": "conv_vae",
+        "options": "conv_vae",
+        "renders": [
+          {
+            "render_s": 55.8,
+            "normalize_s": 0.4,
+            "frames_generated": 241,
+            "peak_gpu_gb": 22.0
+          },
+          {
+            "render_s": 56.5,
+            "normalize_s": 0.4,
+            "frames_generated": 241,
+            "peak_gpu_gb": 22.0
+          }
+        ],
+        "read_checkpoints_s": 24.7,
+        "load_s": 0.1,
+        "prompt_s": 9.9,
+        "compile_s": 22.1,
+        "speed_profile": "fast"
+      },
+      {
+        "name": "small",
+        "options": "small",
+        "renders": [
+          {
+            "render_s": 36.5,
+            "normalize_s": 0.5,
+            "frames_generated": 241,
+            "peak_gpu_gb": 32.3
+          },
+          {
+            "render_s": 36.4,
+            "normalize_s": 0.5,
+            "frames_generated": 241,
+            "peak_gpu_gb": 32.3
+          }
+        ],
+        "load_s": 0.1,
+        "prompt_s": 9.4,
+        "compile_s": 24.0,
+        "speed_profile": "fast"
+      },
+      {
+        "name": "fps16",
+        "options": "fps16",
+        "renders": [
+          {
+            "render_s": 45.9,
+            "normalize_s": 53.4,
+            "frames_generated": 161,
+            "peak_gpu_gb": 33.2
+          },
+          {
+            "render_s": 45.1,
+            "normalize_s": 54.5,
+            "frames_generated": 161,
+            "peak_gpu_gb": 33.2
+          }
+        ],
+        "load_s": 0.1,
+        "prompt_s": 9.4,
+        "compile_s": 23.0,
+        "speed_profile": "fast"
+      }
+    ],
+    "natten": "0.21.7"
+  }
+}
