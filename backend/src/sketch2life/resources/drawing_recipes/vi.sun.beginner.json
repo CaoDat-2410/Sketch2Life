@@ -1,0 +1,149 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "sun",
+ "level": "beginner",
+ "title_vi": "Vẽ mặt trời",
+ "aliases": [
+  "mặt trời",
+  "ông mặt trời",
+  "sun"
+ ],
+ "steps": [
+  {
+   "part": "mặt trời",
+   "instruction_vi": "Vẽ hình tròn to làm mặt trời.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      50
+     ],
+     "radius": 23
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm hai chấm làm mắt.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      42,
+      44
+     ],
+     "radius": 2.4
+    },
+    {
+     "shape": "dot",
+     "center": [
+      58,
+      44
+     ],
+     "radius": 2.4
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ một nét cong làm miệng.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      52
+     ],
+     "radius": 10,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  },
+  {
+   "part": "tia dọc",
+   "instruction_vi": "Vẽ hai tia dọc.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      27
+     ],
+     "to": [
+      50,
+      7
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      50,
+      73
+     ],
+     "to": [
+      50,
+      93
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tia chéo",
+   "instruction_vi": "Vẽ hai tia chéo.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      30,
+      38
+     ],
+     "to": [
+      13,
+      28
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      70,
+      62
+     ],
+     "to": [
+      87,
+      72
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tia nữa",
+   "instruction_vi": "Vẽ thêm hai tia nữa.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      70,
+      38
+     ],
+     "to": [
+      87,
+      28
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      30,
+      62
+     ],
+     "to": [
+      13,
+      72
+     ]
+    }
+   ]
+  }
+ ]
+}

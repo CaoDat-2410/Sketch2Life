@@ -1,0 +1,101 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "planet",
+ "level": "beginner",
+ "title_vi": "Vẽ hành tinh",
+ "aliases": [
+  "hành tinh",
+  "planet"
+ ],
+ "steps": [
+  {
+   "part": "hành tinh",
+   "instruction_vi": "Vẽ hình tròn to làm hành tinh.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      50
+     ],
+     "radius": 30
+    }
+   ]
+  },
+  {
+   "part": "vành đai",
+   "instruction_vi": "Vẽ bầu dục dẹt làm vành đai.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      59
+     ],
+     "rx": 45,
+     "ry": 9
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm hai chấm làm mắt.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      42,
+      35
+     ],
+     "radius": 2.4
+    },
+    {
+     "shape": "dot",
+     "center": [
+      58,
+      35
+     ],
+     "radius": 2.4
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ một nét cong làm miệng.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      39
+     ],
+     "radius": 7,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  },
+  {
+   "part": "chấm",
+   "instruction_vi": "Vẽ hai hình tròn làm chấm.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      40,
+      74
+     ],
+     "radius": 5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      61,
+      73
+     ],
+     "radius": 4
+    }
+   ]
+  }
+ ]
+}

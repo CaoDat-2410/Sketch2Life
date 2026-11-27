@@ -1,0 +1,231 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "backpack",
+ "level": "simple",
+ "title_vi": "Vẽ chiếc ba lô",
+ "aliases": [
+  "ba lô",
+  "chiếc ba lô",
+  "balo",
+  "cặp sách",
+  "chiếc cặp",
+  "backpack"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ thân ba lô.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       24,
+       90
+      ],
+      [
+       18,
+       40
+      ],
+      [
+       28,
+       16
+      ],
+      [
+       50,
+       16
+      ],
+      [
+       72,
+       16
+      ],
+      [
+       82,
+       40
+      ],
+      [
+       76,
+       90
+      ]
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      24,
+      90
+     ],
+     "to": [
+      76,
+      90
+     ]
+    }
+   ]
+  },
+  {
+   "part": "quai",
+   "instruction_vi": "Vẽ quai xách.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       40,
+       17
+      ],
+      [
+       40,
+       3
+      ],
+      [
+       60,
+       3
+      ],
+      [
+       60,
+       17
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "nắp",
+   "instruction_vi": "Vẽ nắp cong.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       24,
+       38
+      ],
+      [
+       38,
+       50
+      ],
+      [
+       62,
+       50
+      ],
+      [
+       76,
+       38
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "túi",
+   "instruction_vi": "Vẽ túi trước.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       32,
+       62
+      ],
+      [
+       32,
+       82
+      ],
+      [
+       68,
+       82
+      ],
+      [
+       68,
+       62
+      ],
+      [
+       32,
+       62
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "khóa",
+   "instruction_vi": "Vẽ đường khóa kéo.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      32,
+      69
+     ],
+     "to": [
+      68,
+      69
+     ]
+    }
+   ]
+  },
+  {
+   "part": "dây đeo",
+   "instruction_vi": "Vẽ hai dây đeo.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       22,
+       46
+      ],
+      [
+       6,
+       50
+      ],
+      [
+       6,
+       76
+      ],
+      [
+       23,
+       83
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       78,
+       46
+      ],
+      [
+       94,
+       50
+      ],
+      [
+       94,
+       76
+      ],
+      [
+       77,
+       83
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "khuy",
+   "instruction_vi": "Vẽ khuy cài.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      45,
+      43
+     ],
+     "width": 10,
+     "height": 11
+    }
+   ]
+  }
+ ]
+}

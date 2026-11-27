@@ -1,0 +1,107 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "tree",
+ "level": "beginner",
+ "title_vi": "Vẽ cái cây",
+ "aliases": [
+  "cây",
+  "cái cây",
+  "cây xanh",
+  "cây to",
+  "cây ăn quả",
+  "tree"
+ ],
+ "steps": [
+  {
+   "part": "tán lá",
+   "instruction_vi": "Vẽ một hình tròn thật to làm tán lá.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      34
+     ],
+     "radius": 29,
+     "start": "bottom"
+    }
+   ]
+  },
+  {
+   "part": "thân cây",
+   "instruction_vi": "Vẽ hình chữ nhật làm thân cây.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      42,
+      63
+     ],
+     "width": 16,
+     "height": 30
+    }
+   ]
+  },
+  {
+   "part": "quả",
+   "instruction_vi": "Vẽ hai hình tròn làm quả.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      37,
+      28
+     ],
+     "radius": 6.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      63,
+      38
+     ],
+     "radius": 6.5
+    }
+   ]
+  },
+  {
+   "part": "quả nữa",
+   "instruction_vi": "Vẽ thêm hai quả nữa.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      58,
+      19
+     ],
+     "radius": 6.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      39,
+      47
+     ],
+     "radius": 6.5
+    }
+   ]
+  },
+  {
+   "part": "mặt đất",
+   "instruction_vi": "Vẽ một đường thẳng làm mặt đất.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      12,
+      93
+     ],
+     "to": [
+      88,
+      93
+     ]
+    }
+   ]
+  }
+ ]
+}

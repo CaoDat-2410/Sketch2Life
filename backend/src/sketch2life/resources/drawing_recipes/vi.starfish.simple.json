@@ -1,0 +1,210 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "starfish",
+ "level": "simple",
+ "title_vi": "Vẽ sao biển",
+ "aliases": [
+  "sao biển",
+  "con sao biển",
+  "ngôi sao biển",
+  "starfish"
+ ],
+ "steps": [
+  {
+   "part": "ba cánh",
+   "instruction_vi": "Vẽ ba cánh tròn phía trên.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       31.9,
+       58.9
+      ],
+      [
+       -1.4,
+       44.9
+      ],
+      [
+       3.7,
+       29.4
+      ],
+      [
+       38.8,
+       37.6
+      ],
+      [
+       41.9,
+       1.6
+      ],
+      [
+       58.1,
+       1.6
+      ],
+      [
+       61.2,
+       37.6
+      ],
+      [
+       96.3,
+       29.4
+      ],
+      [
+       101.4,
+       44.9
+      ],
+      [
+       68.1,
+       58.9
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "hai cánh",
+   "instruction_vi": "Vẽ hai cánh dưới cho kín.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       68.1,
+       58.9
+      ],
+      [
+       86.8,
+       89.8
+      ],
+      [
+       73.6,
+       99.3
+      ],
+      [
+       50.0,
+       72.0
+      ],
+      [
+       26.4,
+       99.3
+      ],
+      [
+       13.2,
+       89.8
+      ],
+      [
+       31.9,
+       58.9
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Vẽ hai mắt tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      43,
+      47
+     ],
+     "radius": 4
+    },
+    {
+     "shape": "circle",
+     "center": [
+      57,
+      47
+     ],
+     "radius": 4
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Chấm con ngươi và vẽ miệng.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      43,
+      47
+     ],
+     "radius": 1.5
+    },
+    {
+     "shape": "dot",
+     "center": [
+      57,
+      47
+     ],
+     "radius": 1.5
+    },
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      50
+     ],
+     "radius": 8,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  },
+  {
+   "part": "chấm",
+   "instruction_vi": "Vẽ ba chấm tròn trên cánh.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      27
+     ],
+     "radius": 3
+    },
+    {
+     "shape": "circle",
+     "center": [
+      24,
+      45
+     ],
+     "radius": 3
+    },
+    {
+     "shape": "circle",
+     "center": [
+      76,
+      45
+     ],
+     "radius": 3
+    }
+   ]
+  },
+  {
+   "part": "chấm nữa",
+   "instruction_vi": "Vẽ thêm hai chấm nữa.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      35,
+      74
+     ],
+     "radius": 3
+    },
+    {
+     "shape": "circle",
+     "center": [
+      65,
+      74
+     ],
+     "radius": 3
+    }
+   ]
+  }
+ ]
+}

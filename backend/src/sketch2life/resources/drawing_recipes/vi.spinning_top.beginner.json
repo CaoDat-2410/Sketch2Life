@@ -1,0 +1,114 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "spinning_top",
+ "level": "beginner",
+ "title_vi": "Vẽ con quay",
+ "aliases": [
+  "con quay",
+  "chiếc con quay",
+  "con cù",
+  "spinning top"
+ ],
+ "steps": [
+  {
+   "part": "thân quay",
+   "instruction_vi": "Vẽ tam giác to làm thân quay.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       19,
+       44
+      ],
+      [
+       81,
+       44
+      ],
+      [
+       50,
+       85
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "nắp",
+   "instruction_vi": "Vẽ nửa bầu dục làm nắp.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      44
+     ],
+     "radius": 31,
+     "from_deg": 180,
+     "to_deg": 360,
+     "radius_y": 19
+    }
+   ]
+  },
+  {
+   "part": "cán",
+   "instruction_vi": "Vẽ hình chữ nhật làm cán.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      45,
+      9
+     ],
+     "width": 10,
+     "height": 16
+    }
+   ]
+  },
+  {
+   "part": "mũi",
+   "instruction_vi": "Vẽ đường ngắn làm mũi.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      85
+     ],
+     "to": [
+      50,
+      95
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vạch",
+   "instruction_vi": "Vẽ hai vạch ngang.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      28,
+      55
+     ],
+     "to": [
+      72,
+      55
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      36,
+      66
+     ],
+     "to": [
+      64,
+      66
+     ]
+    }
+   ]
+  }
+ ]
+}

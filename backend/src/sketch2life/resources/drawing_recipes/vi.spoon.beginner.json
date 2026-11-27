@@ -1,0 +1,105 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "spoon",
+ "level": "beginner",
+ "title_vi": "Vẽ chiếc thìa",
+ "aliases": [
+  "chiếc thìa",
+  "thìa",
+  "cái thìa",
+  "muỗng",
+  "cái muỗng",
+  "spoon"
+ ],
+ "steps": [
+  {
+   "part": "lòng thìa",
+   "instruction_vi": "Vẽ bầu dục to làm lòng thìa.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      29
+     ],
+     "rx": 19,
+     "ry": 23,
+     "start": "bottom"
+    }
+   ]
+  },
+  {
+   "part": "cán",
+   "instruction_vi": "Vẽ hình chữ nhật dài làm cán.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      45,
+      52
+     ],
+     "width": 10,
+     "height": 34
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ hình tròn làm đuôi.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      89
+     ],
+     "radius": 6
+    }
+   ]
+  },
+  {
+   "part": "bóng",
+   "instruction_vi": "Vẽ nét cong làm bóng sáng.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      29
+     ],
+     "radius": 11,
+     "from_deg": 150,
+     "to_deg": 250
+    }
+   ]
+  },
+  {
+   "part": "vạch",
+   "instruction_vi": "Vẽ hai vạch trên cán.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      45,
+      63
+     ],
+     "to": [
+      55,
+      63
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      45,
+      74
+     ],
+     "to": [
+      55,
+      74
+     ]
+    }
+   ]
+  }
+ ]
+}

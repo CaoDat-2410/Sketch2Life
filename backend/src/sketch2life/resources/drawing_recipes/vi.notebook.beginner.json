@@ -1,0 +1,116 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "notebook",
+ "level": "beginner",
+ "title_vi": "Vẽ quyển vở",
+ "aliases": [
+  "quyển vở",
+  "vở",
+  "cuốn vở",
+  "notebook"
+ ],
+ "steps": [
+  {
+   "part": "bìa",
+   "instruction_vi": "Vẽ hình chữ nhật to làm bìa.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      24,
+      11
+     ],
+     "width": 56,
+     "height": 78
+    }
+   ]
+  },
+  {
+   "part": "gáy xoắn",
+   "instruction_vi": "Vẽ hai hình tròn làm gáy xoắn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      24,
+      23
+     ],
+     "radius": 5.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      24,
+      41
+     ],
+     "radius": 5.5
+    }
+   ]
+  },
+  {
+   "part": "xoắn nữa",
+   "instruction_vi": "Vẽ thêm hai vòng xoắn nữa.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      24,
+      59
+     ],
+     "radius": 5.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      24,
+      77
+     ],
+     "radius": 5.5
+    }
+   ]
+  },
+  {
+   "part": "nhãn",
+   "instruction_vi": "Vẽ hình chữ nhật làm nhãn.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      39,
+      23
+     ],
+     "width": 31,
+     "height": 17
+    }
+   ]
+  },
+  {
+   "part": "dòng chữ",
+   "instruction_vi": "Vẽ hai dòng chữ.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      37,
+      56
+     ],
+     "to": [
+      70,
+      56
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      37,
+      70
+     ],
+     "to": [
+      70,
+      70
+     ]
+    }
+   ]
+  }
+ ]
+}

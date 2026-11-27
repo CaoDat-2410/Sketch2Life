@@ -1,0 +1,241 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "scarf",
+ "level": "simple",
+ "title_vi": "Vẽ khăn quàng",
+ "aliases": [
+  "khăn quàng",
+  "khăn",
+  "khăn quàng cổ",
+  "chiếc khăn",
+  "scarf"
+ ],
+ "steps": [
+  {
+   "part": "khăn",
+   "instruction_vi": "Vẽ vòng khăn quấn cổ.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       18,
+       24
+      ],
+      [
+       28,
+       6
+      ],
+      [
+       72,
+       6
+      ],
+      [
+       82,
+       24
+      ],
+      [
+       74,
+       46
+      ],
+      [
+       26,
+       46
+      ],
+      [
+       18,
+       24
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "nếp",
+   "instruction_vi": "Vẽ nếp khăn bên trong.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       30,
+       22
+      ],
+      [
+       40,
+       31
+      ],
+      [
+       60,
+       31
+      ],
+      [
+       70,
+       22
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vạt",
+   "instruction_vi": "Vẽ vạt khăn dài.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       34,
+       39
+      ],
+      [
+       26,
+       84
+      ],
+      [
+       44,
+       87
+      ],
+      [
+       48,
+       41
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vạt ngắn",
+   "instruction_vi": "Vẽ vạt ngắn bên cạnh.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       53,
+       41
+      ],
+      [
+       58,
+       73
+      ],
+      [
+       74,
+       69
+      ],
+      [
+       66,
+       39
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tua",
+   "instruction_vi": "Vẽ ba tua dài.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      29,
+      85
+     ],
+     "to": [
+      27,
+      95
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      35,
+      86
+     ],
+     "to": [
+      34,
+      96
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      41,
+      87
+     ],
+     "to": [
+      41,
+      96
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tua ngắn",
+   "instruction_vi": "Vẽ hai tua ngắn.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      62,
+      72
+     ],
+     "to": [
+      63,
+      82
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      70,
+      70
+     ],
+     "to": [
+      72,
+      80
+     ]
+    }
+   ]
+  },
+  {
+   "part": "sọc",
+   "instruction_vi": "Vẽ ba đường sọc.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      29,
+      68
+     ],
+     "to": [
+      45,
+      71
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      31,
+      57
+     ],
+     "to": [
+      46,
+      60
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      56,
+      61
+     ],
+     "to": [
+      71,
+      57
+     ]
+    }
+   ]
+  }
+ ]
+}

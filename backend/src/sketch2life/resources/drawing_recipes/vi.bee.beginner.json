@@ -1,0 +1,159 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "bee",
+ "level": "beginner",
+ "title_vi": "Vẽ con ong",
+ "aliases": [
+  "ong",
+  "con ong",
+  "chú ong",
+  "ong mật",
+  "bee"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ một hình bầu dục to làm thân.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      48,
+      62
+     ],
+     "rx": 28,
+     "ry": 19
+    }
+   ]
+  },
+  {
+   "part": "vạch",
+   "instruction_vi": "Vẽ hai vạch thẳng trên thân.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      40,
+      44
+     ],
+     "to": [
+      40,
+      80
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      55,
+      43.5
+     ],
+     "to": [
+      55,
+      80.5
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cánh",
+   "instruction_vi": "Vẽ hai bầu dục làm cánh.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      37,
+      30
+     ],
+     "rx": 10,
+     "ry": 14,
+     "start": "bottom"
+    },
+    {
+     "shape": "oval",
+     "center": [
+      59,
+      29
+     ],
+     "rx": 10,
+     "ry": 14,
+     "start": "bottom"
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm mắt và vẽ miệng cười.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      66,
+      56
+     ],
+     "radius": 2.5
+    },
+    {
+     "shape": "arc",
+     "center": [
+      66,
+      63
+     ],
+     "radius": 6,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  },
+  {
+   "part": "râu",
+   "instruction_vi": "Vẽ hai đường thẳng làm râu.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      68,
+      49
+     ],
+     "to": [
+      78,
+      29
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      73,
+      53
+     ],
+     "to": [
+      91,
+      40
+     ]
+    }
+   ]
+  },
+  {
+   "part": "ngòi",
+   "instruction_vi": "Vẽ tam giác nhỏ làm ngòi.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       20,
+       56
+      ],
+      [
+       6,
+       62
+      ],
+      [
+       20,
+       68
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,150 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "pig",
+ "level": "beginner",
+ "title_vi": "Vẽ con lợn",
+ "aliases": [
+  "con lợn",
+  "lợn",
+  "con heo",
+  "lợn con",
+  "chú lợn",
+  "heo con",
+  "pig"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ bầu dục to làm thân.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      41,
+      60
+     ],
+     "rx": 28,
+     "ry": 22
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ hình tròn làm đầu.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      71,
+      46
+     ],
+     "radius": 19,
+     "start": "left"
+    }
+   ]
+  },
+  {
+   "part": "mũi",
+   "instruction_vi": "Vẽ mũi tròn, chấm mắt.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      80,
+      52
+     ],
+     "rx": 10,
+     "ry": 8
+    },
+    {
+     "shape": "dot",
+     "center": [
+      73,
+      37
+     ],
+     "radius": 2.8
+    }
+   ]
+  },
+  {
+   "part": "tai",
+   "instruction_vi": "Vẽ hai tam giác làm tai.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       58,
+       33
+      ],
+      [
+       56,
+       16
+      ],
+      [
+       70,
+       27
+      ]
+     ]
+    },
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       76,
+       27
+      ],
+      [
+       90,
+       16
+      ],
+      [
+       86,
+       33
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai hình dài làm chân.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      25,
+      80
+     ],
+     "width": 9,
+     "height": 14
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      47,
+      80
+     ],
+     "width": 9,
+     "height": 14
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ vòng cong làm đuôi.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      11,
+      52
+     ],
+     "radius": 6,
+     "from_deg": 0,
+     "to_deg": 320
+    }
+   ]
+  }
+ ]
+}

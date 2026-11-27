@@ -1,0 +1,123 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "maracas",
+ "level": "beginner",
+ "title_vi": "Vẽ đôi maracas",
+ "aliases": [
+  "đôi maracas",
+  "maracas",
+  "lục lạc"
+ ],
+ "steps": [
+  {
+   "part": "quả lắc",
+   "instruction_vi": "Vẽ bầu dục to làm quả lắc.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      29,
+      31
+     ],
+     "rx": 21,
+     "ry": 25
+    }
+   ]
+  },
+  {
+   "part": "cán",
+   "instruction_vi": "Vẽ hình dài làm cán.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      25,
+      56
+     ],
+     "width": 9,
+     "height": 38
+    }
+   ]
+  },
+  {
+   "part": "lắc nữa",
+   "instruction_vi": "Vẽ thêm một bầu dục lắc nữa.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      71,
+      31
+     ],
+     "rx": 21,
+     "ry": 25
+    }
+   ]
+  },
+  {
+   "part": "cán nữa",
+   "instruction_vi": "Vẽ thêm một cán nữa.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      66,
+      56
+     ],
+     "width": 9,
+     "height": 38
+    }
+   ]
+  },
+  {
+   "part": "sọc",
+   "instruction_vi": "Vẽ hai sọc ngang.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      10,
+      27
+     ],
+     "to": [
+      48,
+      27
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      52,
+      27
+     ],
+     "to": [
+      90,
+      27
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chấm",
+   "instruction_vi": "Chấm hai chấm trang trí.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      29,
+      42
+     ],
+     "radius": 3
+    },
+    {
+     "shape": "dot",
+     "center": [
+      71,
+      42
+     ],
+     "radius": 3
+    }
+   ]
+  }
+ ]
+}

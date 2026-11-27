@@ -1,0 +1,114 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "bowl",
+ "level": "beginner",
+ "title_vi": "Vẽ cái bát",
+ "aliases": [
+  "cái bát",
+  "bát",
+  "chén",
+  "cái chén",
+  "bowl"
+ ],
+ "steps": [
+  {
+   "part": "thân bát",
+   "instruction_vi": "Vẽ nửa bầu dục làm thân bát.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      50
+     ],
+     "radius": 40,
+     "from_deg": 0,
+     "to_deg": 180,
+     "radius_y": 34
+    },
+    {
+     "shape": "line",
+     "from": [
+      10,
+      50
+     ],
+     "to": [
+      90,
+      50
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đế",
+   "instruction_vi": "Vẽ hình dẹt làm đế.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      37,
+      83
+     ],
+     "width": 26,
+     "height": 9
+    }
+   ]
+  },
+  {
+   "part": "cơm",
+   "instruction_vi": "Vẽ nửa bầu dục làm cơm.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      50
+     ],
+     "radius": 29,
+     "from_deg": 180,
+     "to_deg": 360,
+     "radius_y": 19
+    }
+   ]
+  },
+  {
+   "part": "hạt",
+   "instruction_vi": "Chấm hai hạt cơm.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      42,
+      41
+     ],
+     "radius": 2.4
+    },
+    {
+     "shape": "dot",
+     "center": [
+      58,
+      41
+     ],
+     "radius": 2.4
+    }
+   ]
+  },
+  {
+   "part": "hoa văn",
+   "instruction_vi": "Vẽ một đường hoa văn.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      18,
+      64
+     ],
+     "to": [
+      82,
+      64
+     ]
+    }
+   ]
+  }
+ ]
+}

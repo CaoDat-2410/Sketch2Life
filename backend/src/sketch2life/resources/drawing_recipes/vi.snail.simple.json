@@ -1,0 +1,241 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "snail",
+ "level": "simple",
+ "title_vi": "Vẽ con ốc sên",
+ "aliases": [
+  "ốc sên",
+  "con ốc sên",
+  "chú ốc sên",
+  "ốc",
+  "snail"
+ ],
+ "steps": [
+  {
+   "part": "vỏ",
+   "instruction_vi": "Vẽ một hình tròn to làm vỏ.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      39,
+      44
+     ],
+     "radius": 31,
+     "start": "bottom"
+    }
+   ]
+  },
+  {
+   "part": "xoắn ốc",
+   "instruction_vi": "Vẽ đường xoắn ốc trong vỏ.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       39,
+       75
+      ],
+      [
+       14,
+       70
+      ],
+      [
+       13,
+       26
+      ],
+      [
+       41,
+       23
+      ],
+      [
+       63,
+       22
+      ],
+      [
+       66,
+       57
+      ],
+      [
+       46,
+       60
+      ],
+      [
+       30,
+       62
+      ],
+      [
+       27,
+       40
+      ],
+      [
+       41,
+       37
+      ],
+      [
+       53,
+       36
+      ],
+      [
+       54,
+       50
+      ],
+      [
+       43,
+       50
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ thân mềm và đầu.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       7,
+       85
+      ],
+      [
+       28,
+       94
+      ],
+      [
+       74,
+       94
+      ],
+      [
+       87,
+       83
+      ],
+      [
+       96,
+       73
+      ],
+      [
+       95,
+       55
+      ],
+      [
+       84,
+       52
+      ],
+      [
+       73,
+       50
+      ],
+      [
+       70,
+       62
+      ],
+      [
+       66,
+       71
+      ],
+      [
+       54,
+       82
+      ],
+      [
+       28,
+       70
+      ],
+      [
+       7,
+       85
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "râu",
+   "instruction_vi": "Vẽ hai chiếc râu.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      79,
+      52
+     ],
+     "to": [
+      76,
+      36
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      89,
+      53
+     ],
+     "to": [
+      92,
+      38
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Vẽ hai mắt tròn trên râu.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      75.5,
+      32.5
+     ],
+     "radius": 3.5,
+     "start": "bottom"
+    },
+    {
+     "shape": "circle",
+     "center": [
+      92,
+      34.5
+     ],
+     "radius": 3.5,
+     "start": "bottom"
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ miệng cười.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      83,
+      66
+     ],
+     "radius": 6,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  },
+  {
+   "part": "cỏ",
+   "instruction_vi": "Vẽ một đường làm cỏ.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      5,
+      94
+     ],
+     "to": [
+      95,
+      94
+     ]
+    }
+   ]
+  }
+ ]
+}

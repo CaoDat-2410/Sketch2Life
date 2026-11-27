@@ -1,0 +1,216 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "puddle",
+ "level": "simple",
+ "title_vi": "Vẽ vũng nước",
+ "aliases": [
+  "vũng nước",
+  "vũng nước mưa",
+  "puddle"
+ ],
+ "steps": [
+  {
+   "part": "vũng nước",
+   "instruction_vi": "Vẽ viền vũng nước lượn sóng.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       12,
+       76
+      ],
+      [
+       8,
+       62
+      ],
+      [
+       30,
+       62
+      ],
+      [
+       40,
+       66
+      ],
+      [
+       52,
+       56
+      ],
+      [
+       74,
+       58
+      ],
+      [
+       76,
+       68
+      ],
+      [
+       94,
+       66
+      ],
+      [
+       96,
+       82
+      ],
+      [
+       78,
+       86
+      ],
+      [
+       66,
+       96
+      ],
+      [
+       30,
+       94
+      ],
+      [
+       24,
+       86
+      ],
+      [
+       8,
+       90
+      ],
+      [
+       6,
+       80
+      ],
+      [
+       12,
+       76
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "gợn sóng",
+   "instruction_vi": "Vẽ hai gợn sóng tròn.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      38,
+      77
+     ],
+     "rx": 15,
+     "ry": 6
+    },
+    {
+     "shape": "oval",
+     "center": [
+      68,
+      79
+     ],
+     "rx": 10,
+     "ry": 4.5
+    }
+   ]
+  },
+  {
+   "part": "nước bắn",
+   "instruction_vi": "Vẽ nước bắn hai bên.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       38,
+       65
+      ],
+      [
+       32,
+       50
+      ],
+      [
+       24,
+       48
+      ],
+      [
+       19,
+       56
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       62,
+       63
+      ],
+      [
+       68,
+       48
+      ],
+      [
+       77,
+       46
+      ],
+      [
+       83,
+       56
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vệt rơi",
+   "instruction_vi": "Vẽ một vệt rơi.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      63
+     ],
+     "to": [
+      50,
+      44
+     ]
+    }
+   ]
+  },
+  {
+   "part": "giọt mưa",
+   "instruction_vi": "Vẽ giọt mưa đang rơi.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       20
+      ],
+      [
+       45,
+       30
+      ],
+      [
+       40,
+       42
+      ],
+      [
+       50,
+       44
+      ],
+      [
+       60,
+       42
+      ],
+      [
+       55,
+       30
+      ],
+      [
+       50,
+       20
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,275 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "castle",
+ "level": "simple",
+ "title_vi": "Vẽ lâu đài",
+ "aliases": [
+  "lâu đài",
+  "tòa lâu đài",
+  "castle"
+ ],
+ "steps": [
+  {
+   "part": "tường",
+   "instruction_vi": "Vẽ tường thành có răng cưa.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       28,
+       93
+      ],
+      [
+       28,
+       44
+      ],
+      [
+       35,
+       44
+      ],
+      [
+       35,
+       51
+      ],
+      [
+       43,
+       51
+      ],
+      [
+       43,
+       44
+      ],
+      [
+       57,
+       44
+      ],
+      [
+       57,
+       51
+      ],
+      [
+       65,
+       51
+      ],
+      [
+       65,
+       44
+      ],
+      [
+       72,
+       44
+      ],
+      [
+       72,
+       93
+      ],
+      [
+       28,
+       93
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tháp",
+   "instruction_vi": "Vẽ hai tòa tháp.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      10,
+      32
+     ],
+     "width": 18,
+     "height": 61
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      72,
+      32
+     ],
+     "width": 18,
+     "height": 61
+    }
+   ]
+  },
+  {
+   "part": "mái",
+   "instruction_vi": "Vẽ hai mái nhọn.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       8,
+       32
+      ],
+      [
+       19,
+       11
+      ],
+      [
+       30,
+       32
+      ],
+      [
+       8,
+       32
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       92,
+       32
+      ],
+      [
+       81,
+       11
+      ],
+      [
+       70,
+       32
+      ],
+      [
+       92,
+       32
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cửa",
+   "instruction_vi": "Vẽ cửa vòm.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       40,
+       93
+      ],
+      [
+       40,
+       65
+      ],
+      [
+       60,
+       65
+      ],
+      [
+       60,
+       93
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cửa sổ",
+   "instruction_vi": "Vẽ ba cửa sổ.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      15,
+      44
+     ],
+     "width": 8,
+     "height": 12
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      77,
+      44
+     ],
+     "width": 8,
+     "height": 12
+    },
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      61
+     ],
+     "radius": 5
+    }
+   ]
+  },
+  {
+   "part": "cờ trái",
+   "instruction_vi": "Vẽ cờ trái trên đỉnh.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      19,
+      11
+     ],
+     "to": [
+      19,
+      4
+     ]
+    },
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       19,
+       4
+      ],
+      [
+       29,
+       7
+      ],
+      [
+       19,
+       10
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cờ phải",
+   "instruction_vi": "Vẽ cờ phải trên đỉnh.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      81,
+      11
+     ],
+     "to": [
+      81,
+      4
+     ]
+    },
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       81,
+       4
+      ],
+      [
+       91,
+       7
+      ],
+      [
+       81,
+       10
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

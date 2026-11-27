@@ -1,0 +1,203 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "moon",
+ "level": "simple",
+ "title_vi": "Vẽ mặt trăng",
+ "aliases": [
+  "mặt trăng",
+  "trăng",
+  "ông trăng",
+  "moon"
+ ],
+ "steps": [
+  {
+   "part": "lưng trăng",
+   "instruction_vi": "Vẽ lưng trăng cong tròn.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       66,
+       14
+      ],
+      [
+       20,
+       4
+      ],
+      [
+       4,
+       56
+      ],
+      [
+       28,
+       78
+      ],
+      [
+       40,
+       92
+      ],
+      [
+       60,
+       92
+      ],
+      [
+       74,
+       82
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "bụng trăng",
+   "instruction_vi": "Vẽ bụng trăng cong vào.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       74,
+       82
+      ],
+      [
+       38,
+       80
+      ],
+      [
+       28,
+       30
+      ],
+      [
+       66,
+       14
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Vẽ mắt đang ngủ.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       27,
+       44
+      ],
+      [
+       30,
+       49
+      ],
+      [
+       34,
+       49
+      ],
+      [
+       37,
+       44
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ miệng cười nhỏ.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       29,
+       61
+      ],
+      [
+       33,
+       67
+      ],
+      [
+       39,
+       67
+      ],
+      [
+       42,
+       62
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "má",
+   "instruction_vi": "Vẽ một má tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      22,
+      55
+     ],
+     "radius": 4
+    }
+   ]
+  },
+  {
+   "part": "sao",
+   "instruction_vi": "Vẽ ngôi sao bên cạnh.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       74,
+       8
+      ],
+      [
+       77,
+       15
+      ],
+      [
+       85,
+       15
+      ],
+      [
+       79,
+       20
+      ],
+      [
+       81,
+       28
+      ],
+      [
+       74,
+       23
+      ],
+      [
+       67,
+       28
+      ],
+      [
+       69,
+       20
+      ],
+      [
+       63,
+       15
+      ],
+      [
+       71,
+       15
+      ],
+      [
+       74,
+       8
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

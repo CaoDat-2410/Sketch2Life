@@ -1,0 +1,139 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "dog",
+ "level": "beginner",
+ "title_vi": "Vẽ chú chó",
+ "aliases": [
+  "chó",
+  "con chó",
+  "chú chó",
+  "cún",
+  "cún con",
+  "chó nhà",
+  "dog"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ một hình bầu dục to làm thân.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      42,
+      62
+     ],
+     "rx": 24,
+     "ry": 15
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ một hình tròn làm đầu.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      68,
+      37
+     ],
+     "radius": 15,
+     "start": "left"
+    }
+   ]
+  },
+  {
+   "part": "tai",
+   "instruction_vi": "Vẽ hình bầu dục làm tai, chấm mắt.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      58,
+      36
+     ],
+     "rx": 5.5,
+     "ry": 12
+    },
+    {
+     "shape": "dot",
+     "center": [
+      73,
+      32
+     ],
+     "radius": 1.4
+    }
+   ]
+  },
+  {
+   "part": "mõm",
+   "instruction_vi": "Vẽ bầu dục nhỏ làm mõm, thêm mũi.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      83,
+      44
+     ],
+     "rx": 9,
+     "ry": 6.5,
+     "start": "left"
+    },
+    {
+     "shape": "dot",
+     "center": [
+      90,
+      42
+     ],
+     "radius": 2.2
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai đường thẳng làm chân.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      30,
+      75
+     ],
+     "to": [
+      30,
+      93
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      54,
+      75
+     ],
+     "to": [
+      54,
+      93
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ một đường thẳng làm đuôi.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      20,
+      56
+     ],
+     "to": [
+      8,
+      40
+     ]
+    }
+   ]
+  }
+ ]
+}

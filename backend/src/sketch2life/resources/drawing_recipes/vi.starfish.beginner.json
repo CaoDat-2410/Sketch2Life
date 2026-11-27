@@ -1,0 +1,169 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "starfish",
+ "level": "beginner",
+ "title_vi": "Vẽ sao biển",
+ "aliases": [
+  "sao biển",
+  "con sao biển",
+  "ngôi sao biển",
+  "starfish"
+ ],
+ "steps": [
+  {
+   "part": "giữa",
+   "instruction_vi": "Vẽ một hình tròn làm phần giữa.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      54
+     ],
+     "radius": 17
+    }
+   ]
+  },
+  {
+   "part": "cánh trên",
+   "instruction_vi": "Vẽ một tam giác làm cánh trên.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       37,
+       43
+      ],
+      [
+       50,
+       8
+      ],
+      [
+       63,
+       43
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cánh bên",
+   "instruction_vi": "Vẽ hai tam giác làm cánh bên.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       35,
+       47
+      ],
+      [
+       5,
+       40
+      ],
+      [
+       37,
+       66
+      ]
+     ]
+    },
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       65,
+       47
+      ],
+      [
+       95,
+       40
+      ],
+      [
+       63,
+       66
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cánh dưới",
+   "instruction_vi": "Vẽ hai tam giác làm cánh dưới.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       37,
+       66
+      ],
+      [
+       24,
+       94
+      ],
+      [
+       52,
+       71
+      ]
+     ]
+    },
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       63,
+       66
+      ],
+      [
+       76,
+       94
+      ],
+      [
+       48,
+       71
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm hai chấm làm mắt.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      44,
+      51
+     ],
+     "radius": 2.8
+    },
+    {
+     "shape": "dot",
+     "center": [
+      56,
+      51
+     ],
+     "radius": 2.8
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ một nét cong làm miệng.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      56
+     ],
+     "radius": 8,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  }
+ ]
+}

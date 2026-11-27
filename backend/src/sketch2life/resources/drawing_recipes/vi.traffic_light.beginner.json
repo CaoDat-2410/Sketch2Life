@@ -1,0 +1,105 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "traffic_light",
+ "level": "beginner",
+ "title_vi": "Vẽ đèn giao thông",
+ "aliases": [
+  "đèn giao thông",
+  "cột đèn giao thông",
+  "đèn xanh đèn đỏ",
+  "traffic light"
+ ],
+ "steps": [
+  {
+   "part": "hộp đèn",
+   "instruction_vi": "Vẽ hình chữ nhật cao làm hộp đèn.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      31,
+      7
+     ],
+     "width": 38,
+     "height": 68
+    }
+   ]
+  },
+  {
+   "part": "đèn đỏ",
+   "instruction_vi": "Vẽ hình tròn làm đèn đỏ.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      19
+     ],
+     "radius": 9.5
+    }
+   ]
+  },
+  {
+   "part": "đèn vàng",
+   "instruction_vi": "Vẽ hình tròn làm đèn vàng.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      41
+     ],
+     "radius": 9.5
+    }
+   ]
+  },
+  {
+   "part": "đèn xanh",
+   "instruction_vi": "Vẽ hình tròn làm đèn xanh.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      63
+     ],
+     "radius": 9.5
+    }
+   ]
+  },
+  {
+   "part": "cột",
+   "instruction_vi": "Vẽ một đường làm cột.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      75
+     ],
+     "to": [
+      50,
+      94
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đế",
+   "instruction_vi": "Vẽ một đường làm đế.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      32,
+      94
+     ],
+     "to": [
+      68,
+      94
+     ]
+    }
+   ]
+  }
+ ]
+}

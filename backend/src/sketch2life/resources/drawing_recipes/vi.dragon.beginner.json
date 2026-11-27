@@ -1,0 +1,151 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "dragon",
+ "level": "beginner",
+ "title_vi": "Vẽ con rồng",
+ "aliases": [
+  "con rồng",
+  "rồng",
+  "rồng con",
+  "chú rồng",
+  "dragon"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ bầu dục to làm thân.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      44,
+      62
+     ],
+     "rx": 24,
+     "ry": 17
+    }
+   ]
+  },
+  {
+   "part": "cổ",
+   "instruction_vi": "Vẽ hai đường làm cổ.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      54,
+      47
+     ],
+     "to": [
+      61,
+      38
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      66,
+      55
+     ],
+     "to": [
+      74,
+      48
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ đầu tròn, chấm mắt.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      72,
+      34
+     ],
+     "radius": 15,
+     "start": "bottom"
+    },
+    {
+     "shape": "dot",
+     "center": [
+      76,
+      29
+     ],
+     "radius": 3
+    }
+   ]
+  },
+  {
+   "part": "cánh",
+   "instruction_vi": "Vẽ tam giác làm cánh.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       28,
+       50
+      ],
+      [
+       20,
+       20
+      ],
+      [
+       50,
+       46
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ tam giác làm đuôi.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       21,
+       57
+      ],
+      [
+       5,
+       78
+      ],
+      [
+       24,
+       71
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai hình chữ nhật làm chân.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      30,
+      77
+     ],
+     "width": 9,
+     "height": 15
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      50,
+      77
+     ],
+     "width": 9,
+     "height": 15
+    }
+   ]
+  }
+ ]
+}

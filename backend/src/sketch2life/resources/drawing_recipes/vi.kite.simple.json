@@ -1,0 +1,222 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "kite",
+ "level": "simple",
+ "title_vi": "Vẽ con diều",
+ "aliases": [
+  "con diều",
+  "diều",
+  "cánh diều",
+  "kite"
+ ],
+ "steps": [
+  {
+   "part": "diều",
+   "instruction_vi": "Vẽ khung diều bốn cạnh.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       50,
+       6
+      ],
+      [
+       82,
+       38
+      ],
+      [
+       50,
+       74
+      ],
+      [
+       18,
+       38
+      ],
+      [
+       50,
+       6
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "khung",
+   "instruction_vi": "Vẽ hai thanh khung.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      6
+     ],
+     "to": [
+      50,
+      74
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      18,
+      38
+     ],
+     "to": [
+      82,
+      38
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm hai mắt.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      40,
+      29
+     ],
+     "radius": 2.4
+    },
+    {
+     "shape": "dot",
+     "center": [
+      60,
+      29
+     ],
+     "radius": 2.4
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ miệng cười.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      44
+     ],
+     "radius": 12,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ đuôi lượn sóng.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       74
+      ],
+      [
+       36,
+       80
+      ],
+      [
+       66,
+       88
+      ],
+      [
+       48,
+       95
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "nơ",
+   "instruction_vi": "Vẽ ba chiếc nơ.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       39,
+       74
+      ],
+      [
+       46,
+       79
+      ],
+      [
+       39,
+       84
+      ]
+     ]
+    },
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       58,
+       79
+      ],
+      [
+       51,
+       84
+      ],
+      [
+       58,
+       89
+      ]
+     ]
+    },
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       41,
+       88
+      ],
+      [
+       48,
+       94
+      ],
+      [
+       41,
+       96
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "dây",
+   "instruction_vi": "Vẽ dây cầm diều.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       38
+      ],
+      [
+       70,
+       56
+      ],
+      [
+       78,
+       72
+      ],
+      [
+       93,
+       90
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

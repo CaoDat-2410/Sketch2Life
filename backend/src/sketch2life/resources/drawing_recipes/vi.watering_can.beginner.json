@@ -1,0 +1,104 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "watering_can",
+ "level": "beginner",
+ "title_vi": "Vẽ bình tưới cây",
+ "aliases": [
+  "bình tưới cây",
+  "bình tưới",
+  "bình tưới nước",
+  "ô doa",
+  "watering can"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ hình chữ nhật to làm thân.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      27,
+      42
+     ],
+     "width": 36,
+     "height": 46
+    }
+   ]
+  },
+  {
+   "part": "vòi",
+   "instruction_vi": "Vẽ hai đường làm vòi.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      63,
+      66
+     ],
+     "to": [
+      85,
+      38
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      63,
+      80
+     ],
+     "to": [
+      90,
+      46
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu vòi",
+   "instruction_vi": "Vẽ hình tròn làm đầu vòi.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      87,
+      41
+     ],
+     "radius": 8
+    }
+   ]
+  },
+  {
+   "part": "quai trên",
+   "instruction_vi": "Vẽ nét cong làm quai trên.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      45,
+      42
+     ],
+     "radius": 15,
+     "from_deg": 180,
+     "to_deg": 360
+    }
+   ]
+  },
+  {
+   "part": "quai sau",
+   "instruction_vi": "Vẽ nét cong làm quai sau.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      27,
+      63
+     ],
+     "radius": 16,
+     "from_deg": 90,
+     "to_deg": 270
+    }
+   ]
+  }
+ ]
+}

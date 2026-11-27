@@ -1,0 +1,124 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "hay_bale",
+ "level": "beginner",
+ "title_vi": "Vẽ cuộn rơm",
+ "aliases": [
+  "cuộn rơm",
+  "rơm",
+  "đống rơm",
+  "bó rơm",
+  "hay bale"
+ ],
+ "steps": [
+  {
+   "part": "mặt tròn",
+   "instruction_vi": "Vẽ hình tròn to làm mặt tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      63,
+      55
+     ],
+     "radius": 29
+    }
+   ]
+  },
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ hai đường làm thân.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      63,
+      26
+     ],
+     "to": [
+      28,
+      26
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      63,
+      84
+     ],
+     "to": [
+      28,
+      84
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu cong",
+   "instruction_vi": "Vẽ nét làm đầu cong phía sau.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      28,
+      55
+     ],
+     "radius": 20,
+     "from_deg": 90,
+     "to_deg": 270,
+     "radius_y": 29
+    }
+   ]
+  },
+  {
+   "part": "vòng trong",
+   "instruction_vi": "Vẽ hai vòng trong.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      63,
+      55
+     ],
+     "radius": 18
+    },
+    {
+     "shape": "circle",
+     "center": [
+      63,
+      55
+     ],
+     "radius": 7
+    }
+   ]
+  },
+  {
+   "part": "cọng rơm",
+   "instruction_vi": "Vẽ hai cọng rơm.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      30,
+      42
+     ],
+     "to": [
+      46,
+      42
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      24,
+      66
+     ],
+     "to": [
+      44,
+      66
+     ]
+    }
+   ]
+  }
+ ]
+}

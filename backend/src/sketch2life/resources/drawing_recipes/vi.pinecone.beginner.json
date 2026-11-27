@@ -1,0 +1,113 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "pinecone",
+ "level": "beginner",
+ "title_vi": "Vẽ quả thông",
+ "aliases": [
+  "quả thông",
+  "trái thông",
+  "pinecone"
+ ],
+ "steps": [
+  {
+   "part": "quả thông",
+   "instruction_vi": "Vẽ một bầu dục làm quả thông.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      56
+     ],
+     "rx": 25,
+     "ry": 34
+    }
+   ]
+  },
+  {
+   "part": "cuống",
+   "instruction_vi": "Vẽ một đường thẳng làm cuống.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      22
+     ],
+     "to": [
+      50,
+      8
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vảy trên",
+   "instruction_vi": "Vẽ một vảy trên cùng.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      34
+     ],
+     "radius": 12,
+     "from_deg": 20,
+     "to_deg": 160
+    }
+   ]
+  },
+  {
+   "part": "vảy giữa",
+   "instruction_vi": "Vẽ hai vảy giữa.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      38,
+      50
+     ],
+     "radius": 11,
+     "from_deg": 20,
+     "to_deg": 160
+    },
+    {
+     "shape": "arc",
+     "center": [
+      62,
+      50
+     ],
+     "radius": 11,
+     "from_deg": 20,
+     "to_deg": 160
+    }
+   ]
+  },
+  {
+   "part": "vảy dưới",
+   "instruction_vi": "Vẽ hai vảy dưới.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      40,
+      68
+     ],
+     "radius": 10,
+     "from_deg": 20,
+     "to_deg": 160
+    },
+    {
+     "shape": "arc",
+     "center": [
+      60,
+      68
+     ],
+     "radius": 10,
+     "from_deg": 20,
+     "to_deg": 160
+    }
+   ]
+  }
+ ]
+}

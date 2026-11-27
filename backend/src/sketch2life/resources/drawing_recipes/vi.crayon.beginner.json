@@ -1,0 +1,96 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "crayon",
+ "level": "beginner",
+ "title_vi": "Vẽ bút sáp màu",
+ "aliases": [
+  "bút sáp màu",
+  "bút sáp",
+  "bút màu",
+  "sáp màu",
+  "crayon"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ hình chữ nhật dài làm thân.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      35,
+      29
+     ],
+     "width": 30,
+     "height": 64
+    }
+   ]
+  },
+  {
+   "part": "đầu nhọn",
+   "instruction_vi": "Vẽ tam giác làm đầu nhọn.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       35,
+       29
+      ],
+      [
+       65,
+       29
+      ],
+      [
+       50,
+       6
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vạch",
+   "instruction_vi": "Vẽ hai vạch ngang.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      35,
+      43
+     ],
+     "to": [
+      65,
+      43
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      35,
+      79
+     ],
+     "to": [
+      65,
+      79
+     ]
+    }
+   ]
+  },
+  {
+   "part": "nhãn",
+   "instruction_vi": "Vẽ bầu dục làm nhãn.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      61
+     ],
+     "rx": 10,
+     "ry": 12
+    }
+   ]
+  }
+ ]
+}

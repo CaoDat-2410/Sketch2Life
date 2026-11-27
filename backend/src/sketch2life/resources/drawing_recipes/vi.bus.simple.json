@@ -1,0 +1,224 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "bus",
+ "level": "simple",
+ "title_vi": "Vẽ xe buýt",
+ "aliases": [
+  "xe buýt",
+  "chiếc xe buýt",
+  "xe bus",
+  "xe buýt đưa đón",
+  "bus"
+ ],
+ "steps": [
+  {
+   "part": "thân xe",
+   "instruction_vi": "Vẽ thân xe dài bo góc.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       7,
+       72
+      ],
+      [
+       7,
+       32
+      ],
+      [
+       13,
+       25
+      ],
+      [
+       87,
+       25
+      ],
+      [
+       93,
+       32
+      ],
+      [
+       93,
+       72
+      ],
+      [
+       7,
+       72
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "bánh xe",
+   "instruction_vi": "Vẽ hai bánh xe tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      25,
+      76
+     ],
+     "radius": 9
+    },
+    {
+     "shape": "circle",
+     "center": [
+      75,
+      76
+     ],
+     "radius": 9
+    }
+   ]
+  },
+  {
+   "part": "trục",
+   "instruction_vi": "Vẽ trục giữa mỗi bánh.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      25,
+      76
+     ],
+     "radius": 3.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      75,
+      76
+     ],
+     "radius": 3.5
+    }
+   ]
+  },
+  {
+   "part": "cửa sổ",
+   "instruction_vi": "Vẽ ba cửa sổ.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      13,
+      33
+     ],
+     "width": 14,
+     "height": 16
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      31,
+      33
+     ],
+     "width": 14,
+     "height": 16
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      49,
+      33
+     ],
+     "width": 14,
+     "height": 16
+    }
+   ]
+  },
+  {
+   "part": "cửa xe",
+   "instruction_vi": "Vẽ cửa xe hai cánh.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      69,
+      33
+     ],
+     "width": 16,
+     "height": 39
+    },
+    {
+     "shape": "line",
+     "from": [
+      77,
+      33
+     ],
+     "to": [
+      77,
+      72
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vạch",
+   "instruction_vi": "Vẽ vạch trang trí ngang.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      7,
+      57
+     ],
+     "to": [
+      69,
+      57
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      85,
+      57
+     ],
+     "to": [
+      93,
+      57
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đèn",
+   "instruction_vi": "Vẽ hai đèn tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      13,
+      65
+     ],
+     "radius": 3.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      89,
+      65
+     ],
+     "radius": 3
+    }
+   ]
+  },
+  {
+   "part": "đường",
+   "instruction_vi": "Vẽ một đường thẳng làm đường.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      5,
+      87
+     ],
+     "to": [
+      95,
+      87
+     ]
+    }
+   ]
+  }
+ ]
+}

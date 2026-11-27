@@ -1,0 +1,148 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "peacock",
+ "level": "beginner",
+ "title_vi": "Vẽ con công",
+ "aliases": [
+  "công",
+  "con công",
+  "chim công",
+  "con chim công",
+  "peacock"
+ ],
+ "steps": [
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ một hình tròn thật to làm đuôi.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      42
+     ],
+     "radius": 37,
+     "start": "bottom"
+    }
+   ]
+  },
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ bầu dục làm thân.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      65
+     ],
+     "rx": 11,
+     "ry": 19
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ hình tròn làm đầu, thêm mỏ.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      38
+     ],
+     "radius": 9
+    },
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       46,
+       41
+      ],
+      [
+       54,
+       41
+      ],
+      [
+       50,
+       48
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm hai chấm làm mắt.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      46.5,
+      36
+     ],
+     "radius": 1.6
+    },
+    {
+     "shape": "dot",
+     "center": [
+      53.5,
+      36
+     ],
+     "radius": 1.6
+    }
+   ]
+  },
+  {
+   "part": "vòng tròn",
+   "instruction_vi": "Trang trí hai vòng tròn trên đuôi.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      27,
+      32
+     ],
+     "radius": 8
+    },
+    {
+     "shape": "circle",
+     "center": [
+      73,
+      32
+     ],
+     "radius": 8
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai đường thẳng làm chân.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      45,
+      83
+     ],
+     "to": [
+      43,
+      95
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      55,
+      83
+     ],
+     "to": [
+      57,
+      95
+     ]
+    }
+   ]
+  }
+ ]
+}

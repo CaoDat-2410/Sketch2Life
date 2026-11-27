@@ -1,0 +1,107 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "pencil",
+ "level": "beginner",
+ "title_vi": "Vẽ bút chì",
+ "aliases": [
+  "bút chì",
+  "chiếc bút chì",
+  "cây bút chì",
+  "pencil"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ hình chữ nhật dài làm thân.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      37,
+      22
+     ],
+     "width": 26,
+     "height": 56
+    }
+   ]
+  },
+  {
+   "part": "ngòi",
+   "instruction_vi": "Vẽ tam giác làm ngòi.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       37,
+       78
+      ],
+      [
+       63,
+       78
+      ],
+      [
+       50,
+       95
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tẩy",
+   "instruction_vi": "Vẽ hình dẹt làm tẩy.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      37,
+      8
+     ],
+     "width": 26,
+     "height": 14
+    }
+   ]
+  },
+  {
+   "part": "sọc",
+   "instruction_vi": "Vẽ một đường sọc.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      22
+     ],
+     "to": [
+      50,
+      78
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu chì",
+   "instruction_vi": "Vẽ tam giác nhỏ làm đầu chì.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       45,
+       88
+      ],
+      [
+       55,
+       88
+      ],
+      [
+       50,
+       95
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,124 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "umbrella",
+ "level": "beginner",
+ "title_vi": "Vẽ chiếc ô",
+ "aliases": [
+  "chiếc ô",
+  "cái ô",
+  "ô",
+  "chiếc dù",
+  "cái dù",
+  "dù",
+  "cây dù",
+  "umbrella"
+ ],
+ "steps": [
+  {
+   "part": "tán ô",
+   "instruction_vi": "Vẽ nửa bầu dục làm tán ô.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      48
+     ],
+     "radius": 41,
+     "from_deg": 180,
+     "to_deg": 360,
+     "radius_y": 36
+    },
+    {
+     "shape": "line",
+     "from": [
+      9,
+      48
+     ],
+     "to": [
+      91,
+      48
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cán",
+   "instruction_vi": "Vẽ một đường làm cán.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      48
+     ],
+     "to": [
+      50,
+      83
+     ]
+    }
+   ]
+  },
+  {
+   "part": "móc",
+   "instruction_vi": "Vẽ nét cong làm móc cầm.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      41,
+      83
+     ],
+     "radius": 9,
+     "from_deg": 0,
+     "to_deg": 180
+    }
+   ]
+  },
+  {
+   "part": "nan",
+   "instruction_vi": "Vẽ hai đường làm nan ô.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      12
+     ],
+     "to": [
+      30,
+      48
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      50,
+      12
+     ],
+     "to": [
+      70,
+      48
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đỉnh",
+   "instruction_vi": "Vẽ một đường làm đỉnh ô.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      12
+     ],
+     "to": [
+      50,
+      4
+     ]
+    }
+   ]
+  }
+ ]
+}

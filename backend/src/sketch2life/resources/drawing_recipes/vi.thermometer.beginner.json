@@ -1,0 +1,101 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "thermometer",
+ "level": "beginner",
+ "title_vi": "Vẽ nhiệt kế",
+ "aliases": [
+  "nhiệt kế",
+  "chiếc nhiệt kế",
+  "thermometer"
+ ],
+ "steps": [
+  {
+   "part": "ống",
+   "instruction_vi": "Vẽ hình chữ nhật dài làm ống.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      39,
+      7
+     ],
+     "width": 22,
+     "height": 61
+    }
+   ]
+  },
+  {
+   "part": "bầu",
+   "instruction_vi": "Vẽ hình tròn to làm bầu.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      79
+     ],
+     "radius": 15
+    }
+   ]
+  },
+  {
+   "part": "ruột bầu",
+   "instruction_vi": "Vẽ hình tròn nhỏ làm ruột bầu.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      79
+     ],
+     "radius": 7
+    }
+   ]
+  },
+  {
+   "part": "cột đỏ",
+   "instruction_vi": "Vẽ một đường làm cột đỏ.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      72
+     ],
+     "to": [
+      50,
+      32
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vạch",
+   "instruction_vi": "Vẽ hai vạch đo.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      61,
+      22
+     ],
+     "to": [
+      76,
+      22
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      61,
+      42
+     ],
+     "to": [
+      76,
+      42
+     ]
+    }
+   ]
+  }
+ ]
+}

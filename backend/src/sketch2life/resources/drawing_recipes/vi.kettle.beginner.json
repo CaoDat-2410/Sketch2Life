@@ -1,0 +1,118 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "kettle",
+ "level": "beginner",
+ "title_vi": "Vẽ ấm đun nước",
+ "aliases": [
+  "ấm đun nước",
+  "chiếc ấm đun nước",
+  "ấm nước",
+  "cái ấm",
+  "ấm",
+  "kettle"
+ ],
+ "steps": [
+  {
+   "part": "thân ấm",
+   "instruction_vi": "Vẽ bầu dục to làm thân ấm.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      45,
+      62
+     ],
+     "rx": 28,
+     "ry": 26
+    }
+   ]
+  },
+  {
+   "part": "nắp",
+   "instruction_vi": "Vẽ nửa bầu dục làm nắp.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      45,
+      38
+     ],
+     "radius": 17,
+     "from_deg": 180,
+     "to_deg": 360,
+     "radius_y": 11
+    }
+   ]
+  },
+  {
+   "part": "núm",
+   "instruction_vi": "Vẽ hình tròn làm núm.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      45,
+      21
+     ],
+     "radius": 6
+    }
+   ]
+  },
+  {
+   "part": "vòi",
+   "instruction_vi": "Vẽ tam giác làm vòi.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       69,
+       52
+      ],
+      [
+       94,
+       34
+      ],
+      [
+       73,
+       68
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "quai",
+   "instruction_vi": "Vẽ nét cong làm quai.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      19,
+      58
+     ],
+     "radius": 14,
+     "from_deg": 90,
+     "to_deg": 270
+    }
+   ]
+  },
+  {
+   "part": "đế",
+   "instruction_vi": "Vẽ một đường làm đế.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      25,
+      89
+     ],
+     "to": [
+      65,
+      89
+     ]
+    }
+   ]
+  }
+ ]
+}

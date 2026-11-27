@@ -1,0 +1,94 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "hat",
+ "level": "beginner",
+ "title_vi": "Vẽ chiếc mũ",
+ "aliases": [
+  "chiếc mũ",
+  "mũ",
+  "cái mũ",
+  "nón",
+  "cái nón",
+  "hat"
+ ],
+ "steps": [
+  {
+   "part": "chóp mũ",
+   "instruction_vi": "Vẽ nửa bầu dục làm chóp mũ.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      62
+     ],
+     "radius": 27,
+     "from_deg": 180,
+     "to_deg": 360,
+     "radius_y": 36
+    }
+   ]
+  },
+  {
+   "part": "vành",
+   "instruction_vi": "Vẽ bầu dục dẹt làm vành.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      63
+     ],
+     "rx": 44,
+     "ry": 11
+    }
+   ]
+  },
+  {
+   "part": "dải mũ",
+   "instruction_vi": "Vẽ một đường làm dải mũ.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      26,
+      48
+     ],
+     "to": [
+      74,
+      48
+     ]
+    }
+   ]
+  },
+  {
+   "part": "quả bông",
+   "instruction_vi": "Vẽ hình tròn làm quả bông.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      19
+     ],
+     "radius": 8,
+     "start": "bottom"
+    }
+   ]
+  },
+  {
+   "part": "hoa",
+   "instruction_vi": "Vẽ hình tròn làm hoa.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      65,
+      40
+     ],
+     "radius": 6.5
+    }
+   ]
+  }
+ ]
+}

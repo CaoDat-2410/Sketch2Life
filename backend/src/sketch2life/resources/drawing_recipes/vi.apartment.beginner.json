@@ -1,0 +1,117 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "apartment",
+ "level": "beginner",
+ "title_vi": "Vẽ tòa nhà chung cư",
+ "aliases": [
+  "tòa nhà chung cư",
+  "tòa nhà",
+  "toà nhà",
+  "chung cư",
+  "apartment"
+ ],
+ "steps": [
+  {
+   "part": "tòa nhà",
+   "instruction_vi": "Vẽ hình chữ nhật cao làm tòa nhà.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      22,
+      10
+     ],
+     "width": 56,
+     "height": 84
+    }
+   ]
+  },
+  {
+   "part": "cửa sổ trên",
+   "instruction_vi": "Vẽ hai cửa sổ trên.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      30,
+      19
+     ],
+     "width": 14,
+     "height": 12
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      56,
+      19
+     ],
+     "width": 14,
+     "height": 12
+    }
+   ]
+  },
+  {
+   "part": "cửa sổ giữa",
+   "instruction_vi": "Vẽ hai cửa sổ giữa.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      30,
+      38
+     ],
+     "width": 14,
+     "height": 12
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      56,
+      38
+     ],
+     "width": 14,
+     "height": 12
+    }
+   ]
+  },
+  {
+   "part": "cửa sổ dưới",
+   "instruction_vi": "Vẽ hai cửa sổ dưới.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      30,
+      57
+     ],
+     "width": 14,
+     "height": 12
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      56,
+      57
+     ],
+     "width": 14,
+     "height": 12
+    }
+   ]
+  },
+  {
+   "part": "cửa chính",
+   "instruction_vi": "Vẽ hình chữ nhật làm cửa chính.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      42,
+      76
+     ],
+     "width": 16,
+     "height": 18
+    }
+   ]
+  }
+ ]
+}

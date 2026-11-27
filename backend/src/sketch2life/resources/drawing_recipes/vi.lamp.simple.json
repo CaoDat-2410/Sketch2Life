@@ -1,0 +1,222 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "lamp",
+ "level": "simple",
+ "title_vi": "Vẽ đèn bàn",
+ "aliases": [
+  "đèn bàn",
+  "chiếc đèn bàn",
+  "đèn",
+  "cái đèn",
+  "đèn học",
+  "lamp"
+ ],
+ "steps": [
+  {
+   "part": "chụp đèn",
+   "instruction_vi": "Vẽ chụp đèn loe.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       30,
+       14
+      ],
+      [
+       70,
+       14
+      ],
+      [
+       82,
+       44
+      ],
+      [
+       18,
+       44
+      ],
+      [
+       30,
+       14
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "viền",
+   "instruction_vi": "Vẽ ba đường viền lượn.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      31,
+      44
+     ],
+     "radius": 10,
+     "from_deg": 0,
+     "to_deg": 180
+    },
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      44
+     ],
+     "radius": 9,
+     "from_deg": 0,
+     "to_deg": 180
+    },
+    {
+     "shape": "arc",
+     "center": [
+      69,
+      44
+     ],
+     "radius": 10,
+     "from_deg": 0,
+     "to_deg": 180
+    }
+   ]
+  },
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ thân đèn cong.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       46,
+       53
+      ],
+      [
+       38,
+       62
+      ],
+      [
+       42,
+       74
+      ],
+      [
+       45,
+       80
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       54,
+       53
+      ],
+      [
+       62,
+       62
+      ],
+      [
+       58,
+       74
+      ],
+      [
+       55,
+       80
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đế",
+   "instruction_vi": "Vẽ đế đèn.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       28,
+       91
+      ],
+      [
+       30,
+       77
+      ],
+      [
+       70,
+       77
+      ],
+      [
+       72,
+       91
+      ]
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      28,
+      91
+     ],
+     "to": [
+      72,
+      91
+     ]
+    }
+   ]
+  },
+  {
+   "part": "dây kéo",
+   "instruction_vi": "Vẽ dây kéo có nút.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      64,
+      53
+     ],
+     "to": [
+      64,
+      68
+     ]
+    },
+    {
+     "shape": "dot",
+     "center": [
+      64,
+      70
+     ],
+     "radius": 2.5
+    }
+   ]
+  },
+  {
+   "part": "tia sáng",
+   "instruction_vi": "Vẽ hai tia sáng.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      22,
+      49
+     ],
+     "to": [
+      10,
+      61
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      78,
+      49
+     ],
+     "to": [
+      90,
+      61
+     ]
+    }
+   ]
+  }
+ ]
+}

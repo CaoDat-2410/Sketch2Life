@@ -204,6 +204,7 @@ def generate_sketch_guide(
         guide = build_parent_svg_guide(
             topic=payload.topic,
             intended_subject=payload.intended_subject,
+            difficulty=payload.difficulty,
             request_id=request_id,
         )
     except ParentSvgGuideUnavailable as exc:

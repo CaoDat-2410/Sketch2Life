@@ -1,0 +1,127 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "shop",
+ "level": "beginner",
+ "title_vi": "Vẽ cửa hàng nhỏ",
+ "aliases": [
+  "cửa hàng nhỏ",
+  "cửa hàng",
+  "tiệm",
+  "quán",
+  "shop"
+ ],
+ "steps": [
+  {
+   "part": "nhà",
+   "instruction_vi": "Vẽ hình chữ nhật to làm nhà.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      18,
+      42
+     ],
+     "width": 64,
+     "height": 51
+    }
+   ]
+  },
+  {
+   "part": "mái hiên",
+   "instruction_vi": "Vẽ hình dài làm mái hiên.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      12,
+      26
+     ],
+     "width": 76,
+     "height": 16
+    }
+   ]
+  },
+  {
+   "part": "viền hiên",
+   "instruction_vi": "Vẽ hai nét cong làm viền hiên.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      21,
+      42
+     ],
+     "radius": 9,
+     "from_deg": 0,
+     "to_deg": 180
+    },
+    {
+     "shape": "arc",
+     "center": [
+      40,
+      42
+     ],
+     "radius": 9,
+     "from_deg": 0,
+     "to_deg": 180
+    }
+   ]
+  },
+  {
+   "part": "viền nữa",
+   "instruction_vi": "Vẽ thêm hai nét viền nữa.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      60,
+      42
+     ],
+     "radius": 9,
+     "from_deg": 0,
+     "to_deg": 180
+    },
+    {
+     "shape": "arc",
+     "center": [
+      79,
+      42
+     ],
+     "radius": 9,
+     "from_deg": 0,
+     "to_deg": 180
+    }
+   ]
+  },
+  {
+   "part": "cửa",
+   "instruction_vi": "Vẽ hình chữ nhật làm cửa.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      56,
+      62
+     ],
+     "width": 18,
+     "height": 31
+    }
+   ]
+  },
+  {
+   "part": "cửa sổ",
+   "instruction_vi": "Vẽ hình chữ nhật làm cửa sổ.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      25,
+      60
+     ],
+     "width": 23,
+     "height": 19
+    }
+   ]
+  }
+ ]
+}

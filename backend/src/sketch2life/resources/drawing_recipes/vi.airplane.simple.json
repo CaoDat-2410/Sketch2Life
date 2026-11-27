@@ -1,0 +1,231 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "airplane",
+ "level": "simple",
+ "title_vi": "Vẽ máy bay",
+ "aliases": [
+  "máy bay",
+  "chiếc máy bay",
+  "phi cơ",
+  "airplane",
+  "plane"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ một nét dài làm thân.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       10,
+       47
+      ],
+      [
+       30,
+       38
+      ],
+      [
+       70,
+       38
+      ],
+      [
+       82,
+       41
+      ],
+      [
+       96,
+       46
+      ],
+      [
+       96,
+       58
+      ],
+      [
+       82,
+       61
+      ],
+      [
+       58,
+       65
+      ],
+      [
+       28,
+       62
+      ],
+      [
+       10,
+       47
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cánh",
+   "instruction_vi": "Vẽ cánh lớn phía dưới.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       44,
+       62
+      ],
+      [
+       26,
+       88
+      ],
+      [
+       40,
+       88
+      ],
+      [
+       66,
+       62
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cánh xa",
+   "instruction_vi": "Vẽ cánh xa phía trên.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       44,
+       41
+      ],
+      [
+       32,
+       18
+      ],
+      [
+       43,
+       18
+      ],
+      [
+       62,
+       40
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ đuôi đứng phía sau.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       12,
+       46
+      ],
+      [
+       7,
+       21
+      ],
+      [
+       18,
+       21
+      ],
+      [
+       30,
+       41
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cánh đuôi",
+   "instruction_vi": "Vẽ cánh đuôi nhỏ.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       14,
+       51
+      ],
+      [
+       5,
+       60
+      ],
+      [
+       14,
+       63
+      ],
+      [
+       27,
+       59
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cửa sổ",
+   "instruction_vi": "Vẽ ba cửa sổ tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      48,
+      51
+     ],
+     "radius": 3.8
+    },
+    {
+     "shape": "circle",
+     "center": [
+      60,
+      51
+     ],
+     "radius": 3.8
+    },
+    {
+     "shape": "circle",
+     "center": [
+      72,
+      51
+     ],
+     "radius": 3.8
+    }
+   ]
+  },
+  {
+   "part": "buồng lái",
+   "instruction_vi": "Vẽ kính buồng lái.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       81,
+       41
+      ],
+      [
+       80,
+       50
+      ],
+      [
+       86,
+       53
+      ],
+      [
+       94,
+       50
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

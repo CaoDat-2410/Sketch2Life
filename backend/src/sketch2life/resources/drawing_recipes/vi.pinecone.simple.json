@@ -1,0 +1,188 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "pinecone",
+ "level": "simple",
+ "title_vi": "Vẽ quả thông",
+ "aliases": [
+  "quả thông",
+  "trái thông",
+  "pinecone"
+ ],
+ "steps": [
+  {
+   "part": "viền",
+   "instruction_vi": "Vẽ viền quả thông.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       18
+      ],
+      [
+       82,
+       22
+      ],
+      [
+       82,
+       72
+      ],
+      [
+       50,
+       93
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       18
+      ],
+      [
+       18,
+       22
+      ],
+      [
+       18,
+       72
+      ],
+      [
+       50,
+       93
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cuống",
+   "instruction_vi": "Vẽ cuống ở trên.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       50,
+       18
+      ],
+      [
+       48,
+       9
+      ],
+      [
+       58,
+       6
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vảy trên",
+   "instruction_vi": "Vẽ hai vảy trên.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      40,
+      32
+     ],
+     "radius": 10,
+     "from_deg": 20,
+     "to_deg": 160
+    },
+    {
+     "shape": "arc",
+     "center": [
+      60,
+      32
+     ],
+     "radius": 10,
+     "from_deg": 20,
+     "to_deg": 160
+    }
+   ]
+  },
+  {
+   "part": "vảy giữa",
+   "instruction_vi": "Vẽ ba vảy giữa.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      33,
+      48
+     ],
+     "radius": 10,
+     "from_deg": 20,
+     "to_deg": 160
+    },
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      48
+     ],
+     "radius": 10,
+     "from_deg": 20,
+     "to_deg": 160
+    },
+    {
+     "shape": "arc",
+     "center": [
+      67,
+      48
+     ],
+     "radius": 10,
+     "from_deg": 20,
+     "to_deg": 160
+    }
+   ]
+  },
+  {
+   "part": "vảy dưới",
+   "instruction_vi": "Vẽ hai vảy dưới.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      41,
+      64
+     ],
+     "radius": 10,
+     "from_deg": 20,
+     "to_deg": 160
+    },
+    {
+     "shape": "arc",
+     "center": [
+      59,
+      64
+     ],
+     "radius": 10,
+     "from_deg": 20,
+     "to_deg": 160
+    }
+   ]
+  },
+  {
+   "part": "vảy cuối",
+   "instruction_vi": "Vẽ một vảy cuối cùng.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      78
+     ],
+     "radius": 9,
+     "from_deg": 20,
+     "to_deg": 160
+    }
+   ]
+  }
+ ]
+}

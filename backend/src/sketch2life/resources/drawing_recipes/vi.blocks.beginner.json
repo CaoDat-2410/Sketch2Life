@@ -1,0 +1,113 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "blocks",
+ "level": "beginner",
+ "title_vi": "Vẽ khối xếp hình",
+ "aliases": [
+  "khối xếp hình",
+  "các khối xếp hình",
+  "bộ xếp hình",
+  "blocks"
+ ],
+ "steps": [
+  {
+   "part": "khối dưới",
+   "instruction_vi": "Vẽ hai hình vuông làm khối dưới.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      14,
+      59
+     ],
+     "width": 33,
+     "height": 33
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      49,
+      59
+     ],
+     "width": 33,
+     "height": 33
+    }
+   ]
+  },
+  {
+   "part": "khối trên",
+   "instruction_vi": "Vẽ hình vuông làm khối trên.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      31,
+      26
+     ],
+     "width": 33,
+     "height": 33
+    }
+   ]
+  },
+  {
+   "part": "mái",
+   "instruction_vi": "Vẽ tam giác làm mái.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       31,
+       26
+      ],
+      [
+       47.5,
+       7
+      ],
+      [
+       64,
+       26
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "hình tròn",
+   "instruction_vi": "Vẽ hình tròn trên khối.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      30,
+      75
+     ],
+     "radius": 9
+    }
+   ]
+  },
+  {
+   "part": "hình nhọn",
+   "instruction_vi": "Vẽ tam giác làm hình nhọn.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       56,
+       84
+      ],
+      [
+       65.5,
+       67
+      ],
+      [
+       75,
+       84
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

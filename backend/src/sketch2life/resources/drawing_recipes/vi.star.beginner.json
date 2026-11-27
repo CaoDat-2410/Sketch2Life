@@ -1,0 +1,98 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "star",
+ "level": "beginner",
+ "title_vi": "Vẽ ngôi sao",
+ "aliases": [
+  "ngôi sao",
+  "sao",
+  "ông sao",
+  "star"
+ ],
+ "steps": [
+  {
+   "part": "tam giác trên",
+   "instruction_vi": "Vẽ tam giác trên thật to.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       50,
+       8
+      ],
+      [
+       84,
+       68
+      ],
+      [
+       16,
+       68
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tam giác dưới",
+   "instruction_vi": "Vẽ tam giác dưới chồng lên.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       16,
+       32
+      ],
+      [
+       84,
+       32
+      ],
+      [
+       50,
+       92
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm hai chấm làm mắt.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      43,
+      46
+     ],
+     "radius": 2.4
+    },
+    {
+     "shape": "dot",
+     "center": [
+      57,
+      46
+     ],
+     "radius": 2.4
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ một nét cong làm miệng.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      51
+     ],
+     "radius": 8,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  }
+ ]
+}

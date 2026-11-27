@@ -1,0 +1,384 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "goat",
+ "level": "simple",
+ "title_vi": "Vẽ con dê",
+ "aliases": [
+  "con dê",
+  "dê",
+  "dê con",
+  "chú dê",
+  "goat"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ thân dê.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       18,
+       52
+      ],
+      [
+       30,
+       42
+      ],
+      [
+       50,
+       44
+      ],
+      [
+       62,
+       50
+      ],
+      [
+       72,
+       58
+      ],
+      [
+       66,
+       72
+      ],
+      [
+       52,
+       74
+      ],
+      [
+       38,
+       76
+      ],
+      [
+       22,
+       76
+      ],
+      [
+       18,
+       66
+      ],
+      [
+       14,
+       60
+      ],
+      [
+       14,
+       56
+      ],
+      [
+       18,
+       52
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cổ",
+   "instruction_vi": "Vẽ hai nét làm cổ.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       54,
+       46
+      ],
+      [
+       60,
+       38
+      ],
+      [
+       62,
+       30
+      ],
+      [
+       68,
+       25
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       66,
+       55
+      ],
+      [
+       76,
+       50
+      ],
+      [
+       78,
+       44
+      ],
+      [
+       80,
+       39
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ đầu mõm dài.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       68,
+       25
+      ],
+      [
+       76,
+       17
+      ],
+      [
+       85,
+       21
+      ],
+      [
+       89,
+       29
+      ],
+      [
+       95,
+       36
+      ],
+      [
+       93,
+       45
+      ],
+      [
+       86,
+       44
+      ],
+      [
+       83,
+       43
+      ],
+      [
+       81,
+       41
+      ],
+      [
+       80,
+       39
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "sừng",
+   "instruction_vi": "Vẽ hai chiếc sừng cong.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       73,
+       20
+      ],
+      [
+       70,
+       7
+      ],
+      [
+       58,
+       6
+      ],
+      [
+       53,
+       14
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       79,
+       20
+      ],
+      [
+       82,
+       7
+      ],
+      [
+       72,
+       3
+      ],
+      [
+       66,
+       7
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Vẽ tai, mắt và mũi.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       69,
+       26
+      ],
+      [
+       55,
+       31
+      ],
+      [
+       68,
+       34
+      ]
+     ]
+    },
+    {
+     "shape": "dot",
+     "center": [
+      80,
+      29
+     ],
+     "radius": 2
+    },
+    {
+     "shape": "dot",
+     "center": [
+      90,
+      39
+     ],
+     "radius": 1.5
+    }
+   ]
+  },
+  {
+   "part": "râu",
+   "instruction_vi": "Vẽ râu cằm và đuôi.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       83,
+       43
+      ],
+      [
+       85,
+       57
+      ],
+      [
+       90,
+       44
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       17,
+       53
+      ],
+      [
+       8,
+       43
+      ],
+      [
+       20,
+       48
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân trước",
+   "instruction_vi": "Vẽ hai chân trước.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       54,
+       74
+      ],
+      [
+       55,
+       93
+      ],
+      [
+       61,
+       93
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       64,
+       70
+      ],
+      [
+       68,
+       93
+      ],
+      [
+       74,
+       93
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân sau",
+   "instruction_vi": "Vẽ hai chân sau.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       24,
+       75
+      ],
+      [
+       22,
+       93
+      ],
+      [
+       28,
+       93
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       37,
+       76
+      ],
+      [
+       37,
+       93
+      ],
+      [
+       43,
+       93
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

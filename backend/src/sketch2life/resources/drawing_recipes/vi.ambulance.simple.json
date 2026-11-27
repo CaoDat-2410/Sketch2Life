@@ -1,0 +1,264 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "ambulance",
+ "level": "simple",
+ "title_vi": "Vẽ xe cứu thương",
+ "aliases": [
+  "xe cứu thương",
+  "chiếc xe cứu thương",
+  "xe cấp cứu",
+  "ambulance"
+ ],
+ "steps": [
+  {
+   "part": "thân xe",
+   "instruction_vi": "Vẽ thùng vuông làm thân xe.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      7,
+      32
+     ],
+     "width": 57,
+     "height": 40
+    }
+   ]
+  },
+  {
+   "part": "đầu xe",
+   "instruction_vi": "Vẽ đầu xe vát phía trước.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       64,
+       44
+      ],
+      [
+       80,
+       44
+      ],
+      [
+       93,
+       58
+      ],
+      [
+       93,
+       72
+      ],
+      [
+       64,
+       72
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "bánh xe",
+   "instruction_vi": "Vẽ hai bánh xe tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      24,
+      76
+     ],
+     "radius": 9
+    },
+    {
+     "shape": "circle",
+     "center": [
+      77,
+      76
+     ],
+     "radius": 9
+    }
+   ]
+  },
+  {
+   "part": "trục",
+   "instruction_vi": "Vẽ trục giữa mỗi bánh.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      24,
+      76
+     ],
+     "radius": 3.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      77,
+      76
+     ],
+     "radius": 3.5
+    }
+   ]
+  },
+  {
+   "part": "chữ thập",
+   "instruction_vi": "Vẽ chữ thập trên thân xe.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       31,
+       39
+      ],
+      [
+       41,
+       39
+      ],
+      [
+       41,
+       47
+      ],
+      [
+       49,
+       47
+      ],
+      [
+       49,
+       57
+      ],
+      [
+       41,
+       57
+      ],
+      [
+       41,
+       65
+      ],
+      [
+       31,
+       65
+      ],
+      [
+       31,
+       57
+      ],
+      [
+       23,
+       57
+      ],
+      [
+       23,
+       47
+      ],
+      [
+       31,
+       47
+      ],
+      [
+       31,
+       39
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cửa sổ",
+   "instruction_vi": "Vẽ cửa sổ ở đầu xe.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       69,
+       49
+      ],
+      [
+       78,
+       49
+      ],
+      [
+       87,
+       59
+      ],
+      [
+       69,
+       59
+      ],
+      [
+       69,
+       49
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đèn",
+   "instruction_vi": "Vẽ đèn và tia sáng.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       28,
+       32
+      ],
+      [
+       28,
+       19
+      ],
+      [
+       44,
+       19
+      ],
+      [
+       44,
+       32
+      ]
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      27,
+      25
+     ],
+     "to": [
+      18,
+      19
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      45,
+      25
+     ],
+     "to": [
+      54,
+      19
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đường",
+   "instruction_vi": "Vẽ một đường thẳng làm đường.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      5,
+      87
+     ],
+     "to": [
+      95,
+      87
+     ]
+    }
+   ]
+  }
+ ]
+}

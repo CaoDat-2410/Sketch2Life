@@ -1,0 +1,246 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "raincoat",
+ "level": "simple",
+ "title_vi": "Vẽ áo mưa",
+ "aliases": [
+  "áo mưa",
+  "chiếc áo mưa",
+  "raincoat"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ thân áo mưa.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       36,
+       36
+      ],
+      [
+       26,
+       62
+      ],
+      [
+       17,
+       91
+      ],
+      [
+       83,
+       91
+      ],
+      [
+       74,
+       62
+      ],
+      [
+       64,
+       36
+      ],
+      [
+       36,
+       36
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mũ",
+   "instruction_vi": "Vẽ mũ trùm đầu.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       36,
+       36
+      ],
+      [
+       24,
+       4
+      ],
+      [
+       76,
+       4
+      ],
+      [
+       64,
+       36
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "viền mũ",
+   "instruction_vi": "Vẽ viền mũ bầu dục.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      24
+     ],
+     "rx": 10,
+     "ry": 12,
+     "start": "bottom"
+    }
+   ]
+  },
+  {
+   "part": "tay",
+   "instruction_vi": "Vẽ hai tay áo.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       33,
+       44
+      ],
+      [
+       11,
+       61
+      ],
+      [
+       18,
+       70
+      ],
+      [
+       29,
+       56
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       67,
+       44
+      ],
+      [
+       89,
+       61
+      ],
+      [
+       82,
+       70
+      ],
+      [
+       71,
+       56
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "nẹp",
+   "instruction_vi": "Vẽ đường nẹp giữa.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      36
+     ],
+     "to": [
+      50,
+      91
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cúc",
+   "instruction_vi": "Vẽ ba chiếc cúc.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      57,
+      47
+     ],
+     "radius": 3
+    },
+    {
+     "shape": "circle",
+     "center": [
+      57,
+      60
+     ],
+     "radius": 3
+    },
+    {
+     "shape": "circle",
+     "center": [
+      57,
+      73
+     ],
+     "radius": 3
+    }
+   ]
+  },
+  {
+   "part": "túi",
+   "instruction_vi": "Vẽ hai túi áo.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       28,
+       72
+      ],
+      [
+       27,
+       83
+      ],
+      [
+       40,
+       83
+      ],
+      [
+       40,
+       72
+      ],
+      [
+       28,
+       72
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       72,
+       72
+      ],
+      [
+       73,
+       83
+      ],
+      [
+       60,
+       83
+      ],
+      [
+       60,
+       72
+      ],
+      [
+       72,
+       72
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

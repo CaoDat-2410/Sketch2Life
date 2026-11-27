@@ -1,0 +1,99 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "orange",
+ "level": "beginner",
+ "title_vi": "Vẽ quả cam",
+ "aliases": [
+  "quả cam",
+  "cam",
+  "trái cam",
+  "orange"
+ ],
+ "steps": [
+  {
+   "part": "quả cam",
+   "instruction_vi": "Vẽ hình tròn to làm quả cam.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      57
+     ],
+     "radius": 35
+    }
+   ]
+  },
+  {
+   "part": "cuống",
+   "instruction_vi": "Vẽ một đường làm cuống.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      22
+     ],
+     "to": [
+      50,
+      9
+     ]
+    }
+   ]
+  },
+  {
+   "part": "lá",
+   "instruction_vi": "Vẽ bầu dục dẹt làm lá.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      64,
+      13
+     ],
+     "rx": 14,
+     "ry": 7,
+     "start": "left"
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm hai chấm làm mắt.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      39,
+      52
+     ],
+     "radius": 2.4
+    },
+    {
+     "shape": "dot",
+     "center": [
+      61,
+      52
+     ],
+     "radius": 2.4
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ một nét cong làm miệng.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      62
+     ],
+     "radius": 13,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,147 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "duck",
+ "level": "beginner",
+ "title_vi": "Vẽ con vịt",
+ "aliases": [
+  "vịt",
+  "con vịt",
+  "chú vịt",
+  "vịt con",
+  "duck"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ một hình bầu dục to làm thân.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      42,
+      64
+     ],
+     "rx": 28,
+     "ry": 18
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ một hình tròn làm đầu.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      66,
+      37
+     ],
+     "radius": 15
+    }
+   ]
+  },
+  {
+   "part": "mỏ",
+   "instruction_vi": "Vẽ bầu dục dẹt làm mỏ, chấm mắt.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      87,
+      40
+     ],
+     "rx": 8,
+     "ry": 4.5,
+     "start": "left"
+    },
+    {
+     "shape": "dot",
+     "center": [
+      70,
+      33
+     ],
+     "radius": 2
+    }
+   ]
+  },
+  {
+   "part": "cánh",
+   "instruction_vi": "Vẽ nửa hình tròn làm cánh.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      40,
+      62
+     ],
+     "radius": 16,
+     "from_deg": 0,
+     "to_deg": 180,
+     "radius_y": 11
+    },
+    {
+     "shape": "line",
+     "from": [
+      24,
+      62
+     ],
+     "to": [
+      56,
+      62
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ tam giác nhỏ làm đuôi.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       16,
+       57
+      ],
+      [
+       5,
+       44
+      ],
+      [
+       22,
+       52
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai đường thẳng làm chân.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      34,
+      81
+     ],
+     "to": [
+      34,
+      93
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      50,
+      81
+     ],
+     "to": [
+      50,
+      93
+     ]
+    }
+   ]
+  }
+ ]
+}

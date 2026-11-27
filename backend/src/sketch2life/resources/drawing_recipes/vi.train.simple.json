@@ -1,0 +1,238 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "train",
+ "level": "simple",
+ "title_vi": "Vẽ tàu hỏa",
+ "aliases": [
+  "tàu hỏa",
+  "tàu hoả",
+  "đoàn tàu",
+  "tàu lửa",
+  "xe lửa",
+  "đoàn tàu đồ chơi",
+  "train"
+ ],
+ "steps": [
+  {
+   "part": "đầu tàu",
+   "instruction_vi": "Vẽ buồng lái và đầu tàu.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      8,
+      29
+     ],
+     "width": 29,
+     "height": 45
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       37,
+       47
+      ],
+      [
+       79,
+       47
+      ],
+      [
+       88,
+       55
+      ],
+      [
+       88,
+       74
+      ],
+      [
+       37,
+       74
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mái",
+   "instruction_vi": "Vẽ mái che buồng lái.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      5,
+      22
+     ],
+     "width": 35,
+     "height": 7
+    }
+   ]
+  },
+  {
+   "part": "cửa sổ",
+   "instruction_vi": "Vẽ cửa sổ vuông.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      15,
+      36
+     ],
+     "width": 15,
+     "height": 15
+    }
+   ]
+  },
+  {
+   "part": "ống khói",
+   "instruction_vi": "Vẽ ống khói loe miệng.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       60,
+       47
+      ],
+      [
+       60,
+       33
+      ],
+      [
+       56,
+       27
+      ],
+      [
+       75,
+       27
+      ],
+      [
+       71,
+       33
+      ],
+      [
+       71,
+       47
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "bánh xe",
+   "instruction_vi": "Vẽ ba bánh xe.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      23,
+      80
+     ],
+     "radius": 9
+    },
+    {
+     "shape": "circle",
+     "center": [
+      51,
+      82
+     ],
+     "radius": 8
+    },
+    {
+     "shape": "circle",
+     "center": [
+      75,
+      82
+     ],
+     "radius": 8
+    }
+   ]
+  },
+  {
+   "part": "trục",
+   "instruction_vi": "Vẽ trục giữa mỗi bánh.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      23,
+      80
+     ],
+     "radius": 3
+    },
+    {
+     "shape": "circle",
+     "center": [
+      51,
+      82
+     ],
+     "radius": 3
+    },
+    {
+     "shape": "circle",
+     "center": [
+      75,
+      82
+     ],
+     "radius": 3
+    }
+   ]
+  },
+  {
+   "part": "khói",
+   "instruction_vi": "Vẽ đám khói bay lên.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       65,
+       27
+      ],
+      [
+       56,
+       14
+      ],
+      [
+       68,
+       5
+      ],
+      [
+       76,
+       12
+      ],
+      [
+       84,
+       4
+      ],
+      [
+       96,
+       12
+      ],
+      [
+       86,
+       20
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đường ray",
+   "instruction_vi": "Vẽ đường ray thẳng.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      5,
+      92
+     ],
+     "to": [
+      95,
+      92
+     ]
+    }
+   ]
+  }
+ ]
+}

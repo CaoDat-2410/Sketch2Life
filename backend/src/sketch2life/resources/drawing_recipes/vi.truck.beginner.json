@@ -1,0 +1,97 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "truck",
+ "level": "beginner",
+ "title_vi": "Vẽ xe tải",
+ "aliases": [
+  "xe tải",
+  "chiếc xe tải",
+  "ô tô tải",
+  "chiếc ô tô tải",
+  "xe chở hàng",
+  "truck"
+ ],
+ "steps": [
+  {
+   "part": "thùng xe",
+   "instruction_vi": "Vẽ hình chữ nhật to làm thùng xe.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      6,
+      28
+     ],
+     "width": 55,
+     "height": 43
+    }
+   ]
+  },
+  {
+   "part": "đầu xe",
+   "instruction_vi": "Vẽ hình chữ nhật làm đầu xe.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      61,
+      44
+     ],
+     "width": 32,
+     "height": 27
+    }
+   ]
+  },
+  {
+   "part": "bánh xe",
+   "instruction_vi": "Vẽ hai hình tròn làm bánh xe.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      21,
+      76
+     ],
+     "radius": 10
+    },
+    {
+     "shape": "circle",
+     "center": [
+      77,
+      76
+     ],
+     "radius": 10
+    }
+   ]
+  },
+  {
+   "part": "bánh nữa",
+   "instruction_vi": "Vẽ thêm một bánh nữa.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      43,
+      76
+     ],
+     "radius": 10
+    }
+   ]
+  },
+  {
+   "part": "cửa sổ",
+   "instruction_vi": "Vẽ hình chữ nhật làm cửa sổ.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      69,
+      49
+     ],
+     "width": 18,
+     "height": 12
+    }
+   ]
+  }
+ ]
+}

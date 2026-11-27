@@ -1,0 +1,181 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "trousers",
+ "level": "simple",
+ "title_vi": "Vẽ quần dài",
+ "aliases": [
+  "chiếc quần dài",
+  "quần dài",
+  "quần",
+  "cái quần",
+  "chiếc quần",
+  "trousers"
+ ],
+ "steps": [
+  {
+   "part": "ống quần",
+   "instruction_vi": "Vẽ hai ống quần.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       28,
+       20
+      ],
+      [
+       72,
+       20
+      ],
+      [
+       79,
+       92
+      ],
+      [
+       57,
+       92
+      ],
+      [
+       50,
+       44
+      ],
+      [
+       43,
+       92
+      ],
+      [
+       21,
+       92
+      ],
+      [
+       28,
+       20
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cạp",
+   "instruction_vi": "Vẽ cạp quần.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      28,
+      9
+     ],
+     "width": 44,
+     "height": 11
+    }
+   ]
+  },
+  {
+   "part": "khóa",
+   "instruction_vi": "Vẽ đường khóa quần.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      20
+     ],
+     "to": [
+      50,
+      44
+     ]
+    }
+   ]
+  },
+  {
+   "part": "túi",
+   "instruction_vi": "Vẽ hai túi cong.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       28,
+       36
+      ],
+      [
+       36,
+       36
+      ],
+      [
+       40,
+       28
+      ],
+      [
+       40,
+       20
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       72,
+       36
+      ],
+      [
+       64,
+       36
+      ],
+      [
+       60,
+       28
+      ],
+      [
+       60,
+       20
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cúc",
+   "instruction_vi": "Vẽ chiếc cúc tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      14.5
+     ],
+     "radius": 3
+    }
+   ]
+  },
+  {
+   "part": "gấu",
+   "instruction_vi": "Vẽ hai đường gấu.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      22,
+      83
+     ],
+     "to": [
+      44,
+      83
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      56,
+      83
+     ],
+     "to": [
+      78,
+      83
+     ]
+    }
+   ]
+  }
+ ]
+}

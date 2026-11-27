@@ -1,0 +1,315 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "pumpkin",
+ "level": "simple",
+ "title_vi": "Vẽ quả bí ngô",
+ "aliases": [
+  "quả bí ngô",
+  "bí ngô",
+  "quả bí đỏ",
+  "bí đỏ",
+  "pumpkin"
+ ],
+ "steps": [
+  {
+   "part": "quả bí",
+   "instruction_vi": "Vẽ hai nét tròn làm quả bí.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       30
+      ],
+      [
+       28,
+       16
+      ],
+      [
+       8,
+       34
+      ],
+      [
+       10,
+       58
+      ],
+      [
+       12,
+       84
+      ],
+      [
+       34,
+       92
+      ],
+      [
+       50,
+       84
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       30
+      ],
+      [
+       72,
+       16
+      ],
+      [
+       92,
+       34
+      ],
+      [
+       90,
+       58
+      ],
+      [
+       88,
+       84
+      ],
+      [
+       66,
+       92
+      ],
+      [
+       50,
+       84
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "múi",
+   "instruction_vi": "Vẽ hai đường múi cong.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       30
+      ],
+      [
+       30,
+       42
+      ],
+      [
+       30,
+       74
+      ],
+      [
+       50,
+       84
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       30
+      ],
+      [
+       70,
+       42
+      ],
+      [
+       70,
+       74
+      ],
+      [
+       50,
+       84
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cuống",
+   "instruction_vi": "Vẽ cuống cong.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       45,
+       28
+      ],
+      [
+       43,
+       13
+      ],
+      [
+       53,
+       9
+      ],
+      [
+       57,
+       15
+      ],
+      [
+       52,
+       17
+      ],
+      [
+       55,
+       28
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "lá",
+   "instruction_vi": "Vẽ một chiếc lá nhỏ.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       54,
+       22
+      ],
+      [
+       64,
+       6
+      ],
+      [
+       82,
+       12
+      ],
+      [
+       78,
+       20
+      ],
+      [
+       72,
+       26
+      ],
+      [
+       62,
+       26
+      ],
+      [
+       54,
+       22
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "dây leo",
+   "instruction_vi": "Vẽ dây leo xoăn.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       45,
+       24
+      ],
+      [
+       34,
+       10
+      ],
+      [
+       24,
+       22
+      ],
+      [
+       20,
+       12
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Vẽ hai mắt tam giác.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       33,
+       52
+      ],
+      [
+       39,
+       43
+      ],
+      [
+       45,
+       52
+      ]
+     ]
+    },
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       67,
+       52
+      ],
+      [
+       61,
+       43
+      ],
+      [
+       55,
+       52
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ miệng răng cưa.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       34,
+       64
+      ],
+      [
+       40,
+       72
+      ],
+      [
+       45,
+       65
+      ],
+      [
+       50,
+       72
+      ],
+      [
+       55,
+       65
+      ],
+      [
+       60,
+       72
+      ],
+      [
+       66,
+       64
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

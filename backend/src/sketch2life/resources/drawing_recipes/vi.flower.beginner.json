@@ -1,0 +1,120 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "flower",
+ "level": "beginner",
+ "title_vi": "Vẽ bông hoa",
+ "aliases": [
+  "hoa",
+  "bông hoa",
+  "đóa hoa",
+  "cây hoa",
+  "hoa cúc",
+  "flower"
+ ],
+ "steps": [
+  {
+   "part": "nhị hoa",
+   "instruction_vi": "Vẽ một hình tròn làm nhị hoa.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      34
+     ],
+     "radius": 12
+    }
+   ]
+  },
+  {
+   "part": "cánh",
+   "instruction_vi": "Vẽ cánh tròn ở trên và dưới.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      14
+     ],
+     "radius": 9,
+     "start": "bottom"
+    },
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      54
+     ],
+     "radius": 9
+    }
+   ]
+  },
+  {
+   "part": "cánh bên",
+   "instruction_vi": "Vẽ hai cánh bên tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      30,
+      34
+     ],
+     "radius": 9.5,
+     "start": "right"
+    },
+    {
+     "shape": "circle",
+     "center": [
+      70,
+      34
+     ],
+     "radius": 9.5,
+     "start": "left"
+    }
+   ]
+  },
+  {
+   "part": "cuống",
+   "instruction_vi": "Vẽ một đường thẳng làm cuống.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      63
+     ],
+     "to": [
+      50,
+      95
+     ]
+    }
+   ]
+  },
+  {
+   "part": "lá",
+   "instruction_vi": "Vẽ hai bầu dục làm lá.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      37,
+      81
+     ],
+     "rx": 12.5,
+     "ry": 6,
+     "start": "right"
+    },
+    {
+     "shape": "oval",
+     "center": [
+      63,
+      74
+     ],
+     "rx": 12.5,
+     "ry": 6,
+     "start": "left"
+    }
+   ]
+  }
+ ]
+}

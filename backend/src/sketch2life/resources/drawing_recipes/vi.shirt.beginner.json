@@ -1,0 +1,131 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "shirt",
+ "level": "beginner",
+ "title_vi": "Vẽ chiếc áo",
+ "aliases": [
+  "chiếc áo",
+  "áo",
+  "cái áo",
+  "áo sơ mi",
+  "áo phông",
+  "shirt"
+ ],
+ "steps": [
+  {
+   "part": "thân áo",
+   "instruction_vi": "Vẽ hình chữ nhật to làm thân áo.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      30,
+      27
+     ],
+     "width": 40,
+     "height": 64
+    }
+   ]
+  },
+  {
+   "part": "tay áo",
+   "instruction_vi": "Vẽ hai tam giác làm tay áo.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       30,
+       27
+      ],
+      [
+       7,
+       48
+      ],
+      [
+       30,
+       56
+      ]
+     ]
+    },
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       70,
+       27
+      ],
+      [
+       93,
+       48
+      ],
+      [
+       70,
+       56
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cổ",
+   "instruction_vi": "Vẽ tam giác làm cổ áo.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       39,
+       27
+      ],
+      [
+       50,
+       43
+      ],
+      [
+       61,
+       27
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cúc",
+   "instruction_vi": "Chấm hai chấm làm cúc.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      50,
+      55
+     ],
+     "radius": 3
+    },
+    {
+     "shape": "dot",
+     "center": [
+      50,
+      72
+     ],
+     "radius": 3
+    }
+   ]
+  },
+  {
+   "part": "túi",
+   "instruction_vi": "Vẽ hình vuông làm túi.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      55,
+      56
+     ],
+     "width": 11,
+     "height": 12
+    }
+   ]
+  }
+ ]
+}

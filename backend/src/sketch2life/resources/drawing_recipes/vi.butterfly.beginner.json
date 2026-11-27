@@ -1,0 +1,143 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "butterfly",
+ "level": "beginner",
+ "title_vi": "Vẽ con bướm",
+ "aliases": [
+  "bướm",
+  "con bướm",
+  "bươm bướm",
+  "butterfly"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ một hình bầu dục dài làm thân.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      55
+     ],
+     "rx": 8,
+     "ry": 28
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ một hình tròn nhỏ làm đầu.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      22
+     ],
+     "radius": 8
+    }
+   ]
+  },
+  {
+   "part": "cánh to",
+   "instruction_vi": "Vẽ hai hình tròn làm cánh to.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      29,
+      40
+     ],
+     "radius": 14,
+     "start": "right"
+    },
+    {
+     "shape": "circle",
+     "center": [
+      71,
+      40
+     ],
+     "radius": 14,
+     "start": "left",
+     "clockwise": false
+    }
+   ]
+  },
+  {
+   "part": "cánh nhỏ",
+   "instruction_vi": "Vẽ hai hình tròn bé làm cánh nhỏ.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      33,
+      66
+     ],
+     "radius": 11,
+     "start": "right"
+    },
+    {
+     "shape": "circle",
+     "center": [
+      67,
+      66
+     ],
+     "radius": 11,
+     "start": "left",
+     "clockwise": false
+    }
+   ]
+  },
+  {
+   "part": "râu",
+   "instruction_vi": "Vẽ hai đường thẳng làm râu.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      46,
+      15
+     ],
+     "to": [
+      38,
+      6
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      54,
+      15
+     ],
+     "to": [
+      62,
+      6
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm hai chấm làm mắt.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      47,
+      21
+     ],
+     "radius": 1.4
+    },
+    {
+     "shape": "dot",
+     "center": [
+      53,
+      21
+     ],
+     "radius": 1.4
+    }
+   ]
+  }
+ ]
+}

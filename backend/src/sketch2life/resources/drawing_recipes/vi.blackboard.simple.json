@@ -1,0 +1,183 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "blackboard",
+ "level": "simple",
+ "title_vi": "Vẽ bảng lớp",
+ "aliases": [
+  "bảng lớp",
+  "chiếc bảng lớp",
+  "bảng đen",
+  "cái bảng",
+  "blackboard"
+ ],
+ "steps": [
+  {
+   "part": "khung",
+   "instruction_vi": "Vẽ khung bảng.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      7,
+      12
+     ],
+     "width": 86,
+     "height": 62
+    }
+   ]
+  },
+  {
+   "part": "mặt bảng",
+   "instruction_vi": "Vẽ mặt bảng bên trong.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      13,
+      18
+     ],
+     "width": 74,
+     "height": 48
+    }
+   ]
+  },
+  {
+   "part": "khay",
+   "instruction_vi": "Vẽ khay phấn.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      22,
+      74
+     ],
+     "width": 56,
+     "height": 6
+    }
+   ]
+  },
+  {
+   "part": "nhà",
+   "instruction_vi": "Vẽ ngôi nhà bằng phấn.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       22,
+       58
+      ],
+      [
+       22,
+       42
+      ],
+      [
+       33,
+       30
+      ],
+      [
+       44,
+       42
+      ],
+      [
+       44,
+       58
+      ],
+      [
+       22,
+       58
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mặt trời",
+   "instruction_vi": "Vẽ mặt trời và tia.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      68,
+      36
+     ],
+     "radius": 7
+    },
+    {
+     "shape": "line",
+     "from": [
+      77,
+      36
+     ],
+     "to": [
+      84,
+      36
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      68,
+      45
+     ],
+     "to": [
+      68,
+      53
+     ]
+    }
+   ]
+  },
+  {
+   "part": "phấn",
+   "instruction_vi": "Vẽ hai viên phấn.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      32,
+      67
+     ],
+     "width": 12,
+     "height": 7
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      52,
+      67
+     ],
+     "width": 12,
+     "height": 7
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai chân bảng.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      28,
+      80
+     ],
+     "to": [
+      19,
+      95
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      72,
+      80
+     ],
+     "to": [
+      81,
+      95
+     ]
+    }
+   ]
+  }
+ ]
+}

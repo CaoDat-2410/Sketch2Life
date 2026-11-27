@@ -1,0 +1,116 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "pumpkin",
+ "level": "beginner",
+ "title_vi": "Vẽ quả bí ngô",
+ "aliases": [
+  "quả bí ngô",
+  "bí ngô",
+  "quả bí đỏ",
+  "bí đỏ",
+  "pumpkin"
+ ],
+ "steps": [
+  {
+   "part": "quả bí",
+   "instruction_vi": "Vẽ bầu dục to làm quả bí.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      58
+     ],
+     "rx": 39,
+     "ry": 31
+    }
+   ]
+  },
+  {
+   "part": "múi",
+   "instruction_vi": "Vẽ bầu dục hẹp làm múi.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      58
+     ],
+     "rx": 20,
+     "ry": 31
+    }
+   ]
+  },
+  {
+   "part": "cuống",
+   "instruction_vi": "Vẽ hình chữ nhật làm cuống.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      45,
+      14
+     ],
+     "width": 10,
+     "height": 13
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Vẽ hai tam giác làm mắt.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       30,
+       52
+      ],
+      [
+       37,
+       42
+      ],
+      [
+       44,
+       52
+      ]
+     ]
+    },
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       70,
+       52
+      ],
+      [
+       63,
+       42
+      ],
+      [
+       56,
+       52
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ một nét cong làm miệng.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      62
+     ],
+     "radius": 17,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,286 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "rice_cooker",
+ "level": "simple",
+ "title_vi": "Vẽ nồi cơm điện",
+ "aliases": [
+  "nồi cơm điện",
+  "nồi cơm",
+  "rice cooker"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ thân nồi bo đáy.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       18,
+       46
+      ],
+      [
+       20,
+       98
+      ],
+      [
+       80,
+       98
+      ],
+      [
+       82,
+       46
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "nắp",
+   "instruction_vi": "Vẽ nắp vòm và viền.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       18,
+       46
+      ],
+      [
+       20,
+       20
+      ],
+      [
+       80,
+       20
+      ],
+      [
+       82,
+       46
+      ]
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      18,
+      46
+     ],
+     "to": [
+      82,
+      46
+     ]
+    }
+   ]
+  },
+  {
+   "part": "quai",
+   "instruction_vi": "Vẽ quai trên nắp.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       36,
+       28
+      ],
+      [
+       36,
+       13
+      ],
+      [
+       64,
+       13
+      ],
+      [
+       64,
+       28
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "bảng",
+   "instruction_vi": "Vẽ bảng điều khiển.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      36,
+      55
+     ],
+     "width": 28,
+     "height": 17
+    }
+   ]
+  },
+  {
+   "part": "nút",
+   "instruction_vi": "Vẽ hai nút tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      43,
+      63
+     ],
+     "radius": 3.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      57,
+      63
+     ],
+     "radius": 3.5
+    }
+   ]
+  },
+  {
+   "part": "hơi",
+   "instruction_vi": "Vẽ hai làn hơi.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       24,
+       30
+      ],
+      [
+       18,
+       24
+      ],
+      [
+       28,
+       18
+      ],
+      [
+       22,
+       10
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       76,
+       30
+      ],
+      [
+       82,
+       24
+      ],
+      [
+       72,
+       18
+      ],
+      [
+       78,
+       10
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tai nồi",
+   "instruction_vi": "Vẽ hai tai nồi.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       18,
+       54
+      ],
+      [
+       6,
+       54
+      ],
+      [
+       6,
+       64
+      ],
+      [
+       20,
+       64
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       82,
+       54
+      ],
+      [
+       94,
+       54
+      ],
+      [
+       94,
+       64
+      ],
+      [
+       80,
+       64
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai chân đế.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       28,
+       82
+      ],
+      [
+       27,
+       94
+      ],
+      [
+       37,
+       94
+      ],
+      [
+       36,
+       84
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       72,
+       82
+      ],
+      [
+       73,
+       94
+      ],
+      [
+       63,
+       94
+      ],
+      [
+       64,
+       84
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

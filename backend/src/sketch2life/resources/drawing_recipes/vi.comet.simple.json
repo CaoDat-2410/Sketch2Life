@@ -1,0 +1,210 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "comet",
+ "level": "simple",
+ "title_vi": "Vẽ sao chổi",
+ "aliases": [
+  "sao chổi",
+  "comet"
+ ],
+ "steps": [
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ đầu tròn của sao chổi.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      66,
+      64
+     ],
+     "radius": 23
+    }
+   ]
+  },
+  {
+   "part": "ngôi sao",
+   "instruction_vi": "Vẽ ngôi sao ở trong.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       66,
+       51
+      ],
+      [
+       69,
+       60
+      ],
+      [
+       78,
+       60
+      ],
+      [
+       71,
+       66
+      ],
+      [
+       74,
+       75
+      ],
+      [
+       66,
+       69
+      ],
+      [
+       58,
+       75
+      ],
+      [
+       61,
+       66
+      ],
+      [
+       54,
+       60
+      ],
+      [
+       63,
+       60
+      ],
+      [
+       66,
+       51
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đuôi giữa",
+   "instruction_vi": "Vẽ đuôi giữa dài.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       48
+      ],
+      [
+       36,
+       30
+      ],
+      [
+       20,
+       18
+      ],
+      [
+       6,
+       10
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đuôi trên",
+   "instruction_vi": "Vẽ đuôi trên dài.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       62,
+       42
+      ],
+      [
+       52,
+       24
+      ],
+      [
+       40,
+       12
+      ],
+      [
+       28,
+       6
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đuôi dưới",
+   "instruction_vi": "Vẽ đuôi dưới dài.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       44,
+       58
+      ],
+      [
+       30,
+       46
+      ],
+      [
+       18,
+       40
+      ],
+      [
+       6,
+       40
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vệt sáng",
+   "instruction_vi": "Vẽ hai vệt sáng nhỏ.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       46,
+       44
+      ],
+      [
+       38,
+       34
+      ],
+      [
+       30,
+       28
+      ],
+      [
+       24,
+       24
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       44,
+       52
+      ],
+      [
+       32,
+       42
+      ],
+      [
+       24,
+       38
+      ],
+      [
+       18,
+       36
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

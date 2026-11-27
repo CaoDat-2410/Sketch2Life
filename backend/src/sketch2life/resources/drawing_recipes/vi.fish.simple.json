@@ -1,0 +1,256 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "fish",
+ "level": "simple",
+ "title_vi": "Vẽ con cá",
+ "aliases": [
+  "cá",
+  "cá vàng",
+  "cá biển",
+  "con cá biển",
+  "cá nhỏ",
+  "cá cảnh",
+  "fish"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ hai nét cong làm thân.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       14,
+       50
+      ],
+      [
+       28,
+       22
+      ],
+      [
+       62,
+       24
+      ],
+      [
+       74,
+       48
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       74,
+       52
+      ],
+      [
+       62,
+       76
+      ],
+      [
+       28,
+       78
+      ],
+      [
+       14,
+       50
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ chiếc đuôi xòe.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       74,
+       48
+      ],
+      [
+       93,
+       30
+      ],
+      [
+       87,
+       50
+      ],
+      [
+       93,
+       70
+      ],
+      [
+       74,
+       52
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mang",
+   "instruction_vi": "Vẽ một nét cong làm mang.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       34,
+       35
+      ],
+      [
+       44,
+       44
+      ],
+      [
+       44,
+       56
+      ],
+      [
+       34,
+       65
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Vẽ mắt tròn, chấm giữa, thêm miệng.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      26,
+      44
+     ],
+     "radius": 4.5
+    },
+    {
+     "shape": "dot",
+     "center": [
+      26,
+      44
+     ],
+     "radius": 1.8
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       15,
+       53
+      ],
+      [
+       18,
+       57
+      ],
+      [
+       23,
+       57
+      ],
+      [
+       26,
+       54
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vây trên",
+   "instruction_vi": "Vẽ vây trên.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       38,
+       31
+      ],
+      [
+       44,
+       13
+      ],
+      [
+       62,
+       13
+      ],
+      [
+       60,
+       33
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vây dưới",
+   "instruction_vi": "Vẽ vây dưới.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       38,
+       69
+      ],
+      [
+       44,
+       87
+      ],
+      [
+       62,
+       87
+      ],
+      [
+       60,
+       67
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vảy",
+   "instruction_vi": "Vẽ ba nét cong làm vảy.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      48,
+      43
+     ],
+     "radius": 7,
+     "from_deg": 300,
+     "to_deg": 420
+    },
+    {
+     "shape": "arc",
+     "center": [
+      48,
+      58
+     ],
+     "radius": 7,
+     "from_deg": 300,
+     "to_deg": 420
+    },
+    {
+     "shape": "arc",
+     "center": [
+      53,
+      50
+     ],
+     "radius": 7,
+     "from_deg": 300,
+     "to_deg": 420
+    }
+   ]
+  }
+ ]
+}

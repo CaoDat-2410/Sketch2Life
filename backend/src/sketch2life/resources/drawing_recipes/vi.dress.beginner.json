@@ -1,0 +1,120 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "dress",
+ "level": "beginner",
+ "title_vi": "Vẽ chiếc váy",
+ "aliases": [
+  "chiếc váy",
+  "váy",
+  "cái váy",
+  "váy đầm",
+  "đầm",
+  "dress"
+ ],
+ "steps": [
+  {
+   "part": "chân váy",
+   "instruction_vi": "Vẽ nửa bầu dục làm chân váy.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      90
+     ],
+     "radius": 34,
+     "from_deg": 180,
+     "to_deg": 360,
+     "radius_y": 45
+    },
+    {
+     "shape": "line",
+     "from": [
+      16,
+      90
+     ],
+     "to": [
+      84,
+      90
+     ]
+    }
+   ]
+  },
+  {
+   "part": "thân trên",
+   "instruction_vi": "Vẽ hình chữ nhật làm thân trên.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      40,
+      17
+     ],
+     "width": 20,
+     "height": 29
+    }
+   ]
+  },
+  {
+   "part": "tay",
+   "instruction_vi": "Vẽ hai hình tròn làm tay phồng.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      33,
+      23
+     ],
+     "radius": 7.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      67,
+      23
+     ],
+     "radius": 7.5
+    }
+   ]
+  },
+  {
+   "part": "thắt lưng",
+   "instruction_vi": "Vẽ một đường làm thắt lưng.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      35,
+      54
+     ],
+     "to": [
+      65,
+      54
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chấm",
+   "instruction_vi": "Vẽ hai hình tròn làm chấm.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      40,
+      74
+     ],
+     "radius": 5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      60,
+      74
+     ],
+     "radius": 5
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,128 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "rocket",
+ "level": "beginner",
+ "title_vi": "Vẽ tên lửa",
+ "aliases": [
+  "tên lửa",
+  "chiếc tên lửa",
+  "rocket"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ hình chữ nhật làm thân.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      36,
+      32
+     ],
+     "width": 28,
+     "height": 46
+    }
+   ]
+  },
+  {
+   "part": "mũi",
+   "instruction_vi": "Vẽ tam giác làm mũi.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       36,
+       32
+      ],
+      [
+       50,
+       7
+      ],
+      [
+       64,
+       32
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cánh",
+   "instruction_vi": "Vẽ hai tam giác làm cánh.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       36,
+       58
+      ],
+      [
+       18,
+       84
+      ],
+      [
+       36,
+       76
+      ]
+     ]
+    },
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       64,
+       58
+      ],
+      [
+       82,
+       84
+      ],
+      [
+       64,
+       76
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cửa sổ",
+   "instruction_vi": "Vẽ hình tròn làm cửa sổ.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      48
+     ],
+     "radius": 9
+    }
+   ]
+  },
+  {
+   "part": "lửa",
+   "instruction_vi": "Vẽ tam giác làm lửa.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       40,
+       78
+      ],
+      [
+       50,
+       95
+      ],
+      [
+       60,
+       78
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

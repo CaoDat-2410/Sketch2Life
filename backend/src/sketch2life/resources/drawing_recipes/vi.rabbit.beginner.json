@@ -1,0 +1,151 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "rabbit",
+ "level": "beginner",
+ "title_vi": "Vẽ con thỏ",
+ "aliases": [
+  "thỏ",
+  "con thỏ",
+  "chú thỏ",
+  "thỏ con",
+  "thỏ trắng",
+  "rabbit",
+  "bunny"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ một hình bầu dục to làm thân.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      76
+     ],
+     "rx": 23,
+     "ry": 18
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ một hình tròn làm đầu.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      44
+     ],
+     "radius": 16
+    }
+   ]
+  },
+  {
+   "part": "tai",
+   "instruction_vi": "Vẽ hai bầu dục dài làm tai.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      41,
+      18
+     ],
+     "rx": 5.5,
+     "ry": 13,
+     "start": "bottom"
+    },
+    {
+     "shape": "oval",
+     "center": [
+      59,
+      18
+     ],
+     "rx": 5.5,
+     "ry": 13,
+     "start": "bottom"
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm hai chấm làm mắt.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      44,
+      41
+     ],
+     "radius": 2
+    },
+    {
+     "shape": "dot",
+     "center": [
+      56,
+      41
+     ],
+     "radius": 2
+    }
+   ]
+  },
+  {
+   "part": "mũi",
+   "instruction_vi": "Vẽ mũi tam giác và miệng cười.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       46,
+       46
+      ],
+      [
+       54,
+       46
+      ],
+      [
+       50,
+       51
+      ]
+     ]
+    },
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      51
+     ],
+     "radius": 5,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai bầu dục nhỏ làm chân.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      37,
+      90
+     ],
+     "rx": 9,
+     "ry": 5
+    },
+    {
+     "shape": "oval",
+     "center": [
+      63,
+      90
+     ],
+     "rx": 9,
+     "ry": 5
+    }
+   ]
+  }
+ ]
+}

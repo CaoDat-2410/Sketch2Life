@@ -1,0 +1,102 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "lightning",
+ "level": "beginner",
+ "title_vi": "Vẽ tia chớp",
+ "aliases": [
+  "tia chớp",
+  "sấm sét",
+  "sét",
+  "tia sét",
+  "lightning"
+ ],
+ "steps": [
+  {
+   "part": "mây",
+   "instruction_vi": "Vẽ hình tròn to làm mây.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      28
+     ],
+     "radius": 22
+    }
+   ]
+  },
+  {
+   "part": "hai bên",
+   "instruction_vi": "Vẽ hai hình tròn ở hai bên.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      26,
+      36
+     ],
+     "radius": 15
+    },
+    {
+     "shape": "circle",
+     "center": [
+      74,
+      36
+     ],
+     "radius": 15
+    }
+   ]
+  },
+  {
+   "part": "tia chớp",
+   "instruction_vi": "Vẽ đường xiên làm tia chớp.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      54,
+      50
+     ],
+     "to": [
+      36,
+      71
+     ]
+    }
+   ]
+  },
+  {
+   "part": "gấp khúc",
+   "instruction_vi": "Vẽ đường ngang gấp khúc.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      36,
+      71
+     ],
+     "to": [
+      57,
+      71
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mũi nhọn",
+   "instruction_vi": "Vẽ đường xiên làm mũi nhọn.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      57,
+      71
+     ],
+     "to": [
+      40,
+      95
+     ]
+    }
+   ]
+  }
+ ]
+}

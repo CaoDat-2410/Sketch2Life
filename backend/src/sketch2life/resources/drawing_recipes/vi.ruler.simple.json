@@ -1,0 +1,189 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "ruler",
+ "level": "simple",
+ "title_vi": "Vẽ chiếc thước kẻ",
+ "aliases": [
+  "thước kẻ",
+  "chiếc thước kẻ",
+  "thước",
+  "cái thước",
+  "ruler"
+ ],
+ "steps": [
+  {
+   "part": "thước",
+   "instruction_vi": "Vẽ thước dài.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      5,
+      36
+     ],
+     "width": 90,
+     "height": 28
+    }
+   ]
+  },
+  {
+   "part": "vạch dài",
+   "instruction_vi": "Vẽ ba vạch dài.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      14,
+      36
+     ],
+     "to": [
+      14,
+      50
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      28,
+      36
+     ],
+     "to": [
+      28,
+      50
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      42,
+      36
+     ],
+     "to": [
+      42,
+      50
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vạch nữa",
+   "instruction_vi": "Vẽ ba vạch nữa.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      56,
+      36
+     ],
+     "to": [
+      56,
+      50
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      70,
+      36
+     ],
+     "to": [
+      70,
+      50
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      84,
+      36
+     ],
+     "to": [
+      84,
+      50
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vạch ngắn",
+   "instruction_vi": "Vẽ ba vạch ngắn.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      21,
+      36
+     ],
+     "to": [
+      21,
+      43
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      35,
+      36
+     ],
+     "to": [
+      35,
+      43
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      49,
+      36
+     ],
+     "to": [
+      49,
+      43
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vạch cuối",
+   "instruction_vi": "Vẽ hai vạch cuối.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      63,
+      36
+     ],
+     "to": [
+      63,
+      43
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      77,
+      36
+     ],
+     "to": [
+      77,
+      43
+     ]
+    }
+   ]
+  },
+  {
+   "part": "lỗ treo",
+   "instruction_vi": "Vẽ lỗ treo tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      87,
+      57
+     ],
+     "radius": 3.5
+    }
+   ]
+  }
+ ]
+}

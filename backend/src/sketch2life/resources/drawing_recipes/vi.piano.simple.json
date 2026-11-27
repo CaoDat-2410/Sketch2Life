@@ -1,0 +1,233 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "piano",
+ "level": "simple",
+ "title_vi": "Vẽ đàn piano",
+ "aliases": [
+  "đàn piano",
+  "piano",
+  "đàn dương cầm"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ thân đàn.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      8,
+      30
+     ],
+     "width": 84,
+     "height": 44
+    }
+   ]
+  },
+  {
+   "part": "nắp",
+   "instruction_vi": "Vẽ nắp đàn nghiêng.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       8,
+       30
+      ],
+      [
+       18,
+       17
+      ],
+      [
+       82,
+       17
+      ],
+      [
+       92,
+       30
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "bàn phím",
+   "instruction_vi": "Vẽ khung bàn phím.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      14,
+      52
+     ],
+     "width": 72,
+     "height": 18
+    }
+   ]
+  },
+  {
+   "part": "phím trắng",
+   "instruction_vi": "Vẽ ba vạch phím trắng.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      26,
+      52
+     ],
+     "to": [
+      26,
+      70
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      38,
+      52
+     ],
+     "to": [
+      38,
+      70
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      50,
+      52
+     ],
+     "to": [
+      50,
+      70
+     ]
+    }
+   ]
+  },
+  {
+   "part": "phím nữa",
+   "instruction_vi": "Vẽ hai vạch phím nữa.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      62,
+      52
+     ],
+     "to": [
+      62,
+      70
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      74,
+      52
+     ],
+     "to": [
+      74,
+      70
+     ]
+    }
+   ]
+  },
+  {
+   "part": "phím đen",
+   "instruction_vi": "Vẽ ba phím đen.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      23,
+      52
+     ],
+     "width": 6,
+     "height": 10
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      35,
+      52
+     ],
+     "width": 6,
+     "height": 10
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      47,
+      52
+     ],
+     "width": 6,
+     "height": 10
+    }
+   ]
+  },
+  {
+   "part": "giá nhạc",
+   "instruction_vi": "Vẽ giá nhạc trên đàn.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      36,
+      32
+     ],
+     "width": 28,
+     "height": 14
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai chân đàn.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       13,
+       74
+      ],
+      [
+       13,
+       94
+      ],
+      [
+       20,
+       94
+      ],
+      [
+       20,
+       74
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       87,
+       74
+      ],
+      [
+       87,
+       94
+      ],
+      [
+       80,
+       94
+      ],
+      [
+       80,
+       74
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

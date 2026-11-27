@@ -1,0 +1,112 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "raindrop",
+ "level": "beginner",
+ "title_vi": "Vẽ hạt mưa",
+ "aliases": [
+  "hạt mưa",
+  "giọt mưa",
+  "giọt nước",
+  "raindrop"
+ ],
+ "steps": [
+  {
+   "part": "đáy tròn",
+   "instruction_vi": "Vẽ nửa hình tròn làm đáy tròn.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      62
+     ],
+     "radius": 28,
+     "from_deg": 0,
+     "to_deg": 180
+    }
+   ]
+  },
+  {
+   "part": "cạnh",
+   "instruction_vi": "Vẽ hai đường nhọn làm cạnh.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      22,
+      62
+     ],
+     "to": [
+      50,
+      8
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      78,
+      62
+     ],
+     "to": [
+      50,
+      8
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm hai chấm làm mắt.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      41,
+      58
+     ],
+     "radius": 3
+    },
+    {
+     "shape": "dot",
+     "center": [
+      59,
+      58
+     ],
+     "radius": 3
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ một nét cong làm miệng.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      65
+     ],
+     "radius": 10,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  },
+  {
+   "part": "ánh sáng",
+   "instruction_vi": "Vẽ nét cong làm ánh sáng.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      42,
+      66
+     ],
+     "radius": 12,
+     "from_deg": 90,
+     "to_deg": 180
+    }
+   ]
+  }
+ ]
+}

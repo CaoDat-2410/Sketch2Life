@@ -1,0 +1,131 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "drum",
+ "level": "beginner",
+ "title_vi": "Vẽ chiếc trống",
+ "aliases": [
+  "chiếc trống",
+  "trống",
+  "cái trống",
+  "drum"
+ ],
+ "steps": [
+  {
+   "part": "mặt trống",
+   "instruction_vi": "Vẽ bầu dục to làm mặt trống.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      42
+     ],
+     "rx": 37,
+     "ry": 12,
+     "start": "left"
+    }
+   ]
+  },
+  {
+   "part": "thành",
+   "instruction_vi": "Vẽ hai đường làm thành trống.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      13,
+      42
+     ],
+     "to": [
+      13,
+      77
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      87,
+      42
+     ],
+     "to": [
+      87,
+      77
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đáy",
+   "instruction_vi": "Vẽ nét cong làm đáy.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      77
+     ],
+     "radius": 37,
+     "from_deg": 0,
+     "to_deg": 180,
+     "radius_y": 12
+    }
+   ]
+  },
+  {
+   "part": "dây",
+   "instruction_vi": "Vẽ hai đường chéo làm dây.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      22,
+      51
+     ],
+     "to": [
+      50,
+      86
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      78,
+      51
+     ],
+     "to": [
+      50,
+      86
+     ]
+    }
+   ]
+  },
+  {
+   "part": "dùi",
+   "instruction_vi": "Vẽ hai đường làm dùi trống.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      32,
+      37
+     ],
+     "to": [
+      12,
+      10
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      68,
+      37
+     ],
+     "to": [
+      88,
+      10
+     ]
+    }
+   ]
+  }
+ ]
+}

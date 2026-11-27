@@ -1,0 +1,99 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "water_bottle",
+ "level": "beginner",
+ "title_vi": "Vẽ bình nước",
+ "aliases": [
+  "bình nước",
+  "chai nước",
+  "cái bình nước",
+  "water bottle"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ hình chữ nhật to làm thân.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      31,
+      34
+     ],
+     "width": 38,
+     "height": 60
+    }
+   ]
+  },
+  {
+   "part": "cổ",
+   "instruction_vi": "Vẽ hình chữ nhật làm cổ.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      40,
+      22
+     ],
+     "width": 20,
+     "height": 12
+    }
+   ]
+  },
+  {
+   "part": "nắp",
+   "instruction_vi": "Vẽ hình dẹt làm nắp.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      37,
+      11
+     ],
+     "width": 26,
+     "height": 11
+    }
+   ]
+  },
+  {
+   "part": "nhãn",
+   "instruction_vi": "Vẽ hình chữ nhật làm nhãn.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      31,
+      52
+     ],
+     "width": 38,
+     "height": 23
+    }
+   ]
+  },
+  {
+   "part": "giọt",
+   "instruction_vi": "Vẽ giọt nước trên nhãn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      66
+     ],
+     "radius": 6
+    },
+    {
+     "shape": "line",
+     "from": [
+      50,
+      53
+     ],
+     "to": [
+      50,
+      62
+     ]
+    }
+   ]
+  }
+ ]
+}

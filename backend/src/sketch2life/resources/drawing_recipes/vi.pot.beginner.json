@@ -1,0 +1,103 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "pot",
+ "level": "beginner",
+ "title_vi": "Vẽ chậu cây",
+ "aliases": [
+  "chậu cây",
+  "chậu",
+  "chậu hoa",
+  "cái chậu",
+  "pot"
+ ],
+ "steps": [
+  {
+   "part": "chậu",
+   "instruction_vi": "Vẽ hình chữ nhật to làm chậu.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      28,
+      65
+     ],
+     "width": 44,
+     "height": 28
+    }
+   ]
+  },
+  {
+   "part": "vành",
+   "instruction_vi": "Vẽ hình dẹt làm vành.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      23,
+      55
+     ],
+     "width": 54,
+     "height": 10
+    }
+   ]
+  },
+  {
+   "part": "thân cây",
+   "instruction_vi": "Vẽ một đường làm thân cây.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      55
+     ],
+     "to": [
+      50,
+      27
+     ]
+    }
+   ]
+  },
+  {
+   "part": "lá",
+   "instruction_vi": "Vẽ hai bầu dục làm lá.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      37,
+      43
+     ],
+     "rx": 13,
+     "ry": 7,
+     "start": "right"
+    },
+    {
+     "shape": "oval",
+     "center": [
+      63,
+      43
+     ],
+     "rx": 13,
+     "ry": 7,
+     "start": "right"
+    }
+   ]
+  },
+  {
+   "part": "bông hoa",
+   "instruction_vi": "Vẽ hình tròn làm bông hoa.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      17
+     ],
+     "radius": 10,
+     "start": "bottom"
+    }
+   ]
+  }
+ ]
+}

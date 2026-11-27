@@ -1,0 +1,192 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "barn",
+ "level": "simple",
+ "title_vi": "Vẽ nhà kho",
+ "aliases": [
+  "nhà kho",
+  "nhà kho nông trại",
+  "barn"
+ ],
+ "steps": [
+  {
+   "part": "khung",
+   "instruction_vi": "Vẽ khung nhà kho.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       14,
+       93
+      ],
+      [
+       14,
+       48
+      ],
+      [
+       24,
+       26
+      ],
+      [
+       50,
+       10
+      ],
+      [
+       76,
+       26
+      ],
+      [
+       86,
+       48
+      ],
+      [
+       86,
+       93
+      ],
+      [
+       14,
+       93
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vạch mái",
+   "instruction_vi": "Vẽ vạch mái nằm ngang.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      14,
+      48
+     ],
+     "to": [
+      86,
+      48
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cửa",
+   "instruction_vi": "Vẽ cửa lớn hai cánh.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      31,
+      61
+     ],
+     "width": 38,
+     "height": 32
+    },
+    {
+     "shape": "line",
+     "from": [
+      50,
+      61
+     ],
+     "to": [
+      50,
+      93
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chéo trái",
+   "instruction_vi": "Vẽ hai đường chéo trái.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      31,
+      61
+     ],
+     "to": [
+      50,
+      93
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      50,
+      61
+     ],
+     "to": [
+      31,
+      93
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chéo phải",
+   "instruction_vi": "Vẽ hai đường chéo phải.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      61
+     ],
+     "to": [
+      69,
+      93
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      69,
+      61
+     ],
+     "to": [
+      50,
+      93
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cửa sổ",
+   "instruction_vi": "Vẽ cửa sổ trên mái.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      42,
+      24
+     ],
+     "width": 16,
+     "height": 16
+    },
+    {
+     "shape": "line",
+     "from": [
+      50,
+      24
+     ],
+     "to": [
+      50,
+      40
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      42,
+      32
+     ],
+     "to": [
+      58,
+      32
+     ]
+    }
+   ]
+  }
+ ]
+}

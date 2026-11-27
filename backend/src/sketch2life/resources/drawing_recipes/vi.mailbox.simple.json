@@ -1,0 +1,240 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "mailbox",
+ "level": "simple",
+ "title_vi": "Vẽ hòm thư",
+ "aliases": [
+  "hòm thư",
+  "thùng thư",
+  "hộp thư",
+  "mailbox"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ thân hòm thư.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       22,
+       62
+      ],
+      [
+       22,
+       40
+      ],
+      [
+       18,
+       14
+      ],
+      [
+       50,
+       14
+      ],
+      [
+       82,
+       14
+      ],
+      [
+       78,
+       40
+      ],
+      [
+       78,
+       62
+      ]
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      22,
+      62
+     ],
+     "to": [
+      78,
+      62
+     ]
+    }
+   ]
+  },
+  {
+   "part": "khe",
+   "instruction_vi": "Vẽ khe bỏ thư.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      35,
+      50
+     ],
+     "width": 30,
+     "height": 6
+    }
+   ]
+  },
+  {
+   "part": "lá thư",
+   "instruction_vi": "Vẽ lá thư thò ra.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       40,
+       50
+      ],
+      [
+       40,
+       30
+      ],
+      [
+       64,
+       30
+      ],
+      [
+       64,
+       50
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       40,
+       30
+      ],
+      [
+       52,
+       41
+      ],
+      [
+       64,
+       30
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cột",
+   "instruction_vi": "Vẽ cột chống.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       44,
+       62
+      ],
+      [
+       44,
+       94
+      ],
+      [
+       56,
+       94
+      ],
+      [
+       56,
+       62
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cờ",
+   "instruction_vi": "Vẽ cờ báo thư.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      80,
+      48
+     ],
+     "to": [
+      80,
+      22
+     ]
+    },
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       80,
+       22
+      ],
+      [
+       94,
+       27
+      ],
+      [
+       80,
+       33
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cỏ",
+   "instruction_vi": "Vẽ hai bụi cỏ.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       24,
+       94
+      ],
+      [
+       28,
+       82
+      ],
+      [
+       32,
+       92
+      ],
+      [
+       38,
+       84
+      ],
+      [
+       44,
+       93
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       76,
+       94
+      ],
+      [
+       72,
+       82
+      ],
+      [
+       68,
+       92
+      ],
+      [
+       62,
+       84
+      ],
+      [
+       56,
+       93
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

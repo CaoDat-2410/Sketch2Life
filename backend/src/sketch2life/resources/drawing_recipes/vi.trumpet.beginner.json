@@ -1,0 +1,124 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "trumpet",
+ "level": "beginner",
+ "title_vi": "Vẽ chiếc kèn",
+ "aliases": [
+  "chiếc kèn",
+  "kèn",
+  "cái kèn",
+  "kèn đồng",
+  "trumpet"
+ ],
+ "steps": [
+  {
+   "part": "loa",
+   "instruction_vi": "Vẽ tam giác to làm loa kèn.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       66,
+       49
+      ],
+      [
+       93,
+       27
+      ],
+      [
+       93,
+       73
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "ống",
+   "instruction_vi": "Vẽ hình dài làm ống kèn.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      19,
+      44
+     ],
+     "width": 49,
+     "height": 10
+    }
+   ]
+  },
+  {
+   "part": "miệng thổi",
+   "instruction_vi": "Vẽ hình nhỏ làm miệng thổi.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      7,
+      41
+     ],
+     "width": 12,
+     "height": 16
+    }
+   ]
+  },
+  {
+   "part": "nút bấm",
+   "instruction_vi": "Vẽ hai hình làm nút bấm.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      29,
+      28
+     ],
+     "width": 9,
+     "height": 16
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      44,
+      28
+     ],
+     "width": 9,
+     "height": 16
+    }
+   ]
+  },
+  {
+   "part": "nút nữa",
+   "instruction_vi": "Vẽ thêm một nút nữa.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      55,
+      28
+     ],
+     "width": 9,
+     "height": 16
+    }
+   ]
+  },
+  {
+   "part": "vòng",
+   "instruction_vi": "Vẽ nét cong làm vòng kèn.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      43,
+      54
+     ],
+     "radius": 17,
+     "from_deg": 0,
+     "to_deg": 180,
+     "radius_y": 15
+    }
+   ]
+  }
+ ]
+}

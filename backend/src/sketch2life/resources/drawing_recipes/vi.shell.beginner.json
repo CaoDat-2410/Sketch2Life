@@ -1,0 +1,121 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "shell",
+ "level": "beginner",
+ "title_vi": "Vẽ vỏ sò",
+ "aliases": [
+  "vỏ sò",
+  "sò",
+  "con sò",
+  "shell"
+ ],
+ "steps": [
+  {
+   "part": "vỏ sò",
+   "instruction_vi": "Vẽ nửa bầu dục làm vỏ sò.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      64
+     ],
+     "radius": 40,
+     "from_deg": 180,
+     "to_deg": 360,
+     "radius_y": 48
+    }
+   ]
+  },
+  {
+   "part": "cạnh",
+   "instruction_vi": "Vẽ hai đường thẳng làm cạnh.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      10,
+      64
+     ],
+     "to": [
+      38,
+      84
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      90,
+      64
+     ],
+     "to": [
+      62,
+      84
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đáy",
+   "instruction_vi": "Vẽ một đường thẳng làm đáy.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      38,
+      84
+     ],
+     "to": [
+      62,
+      84
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đường giữa",
+   "instruction_vi": "Vẽ một đường giữa thẳng đứng.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      84
+     ],
+     "to": [
+      50,
+      16
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đường bên",
+   "instruction_vi": "Vẽ hai đường bên.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      84
+     ],
+     "to": [
+      24,
+      30
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      50,
+      84
+     ],
+     "to": [
+      76,
+      30
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,141 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "trousers",
+ "level": "beginner",
+ "title_vi": "Vẽ quần dài",
+ "aliases": [
+  "chiếc quần dài",
+  "quần dài",
+  "quần",
+  "cái quần",
+  "chiếc quần",
+  "trousers"
+ ],
+ "steps": [
+  {
+   "part": "cạp",
+   "instruction_vi": "Vẽ hình dài làm cạp quần.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      28,
+      10
+     ],
+     "width": 44,
+     "height": 12
+    }
+   ]
+  },
+  {
+   "part": "cạnh ngoài",
+   "instruction_vi": "Vẽ hai đường làm cạnh ngoài.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      28,
+      22
+     ],
+     "to": [
+      22,
+      92
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      72,
+      22
+     ],
+     "to": [
+      78,
+      92
+     ]
+    }
+   ]
+  },
+  {
+   "part": "gấu",
+   "instruction_vi": "Vẽ hai đường làm gấu quần.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      22,
+      92
+     ],
+     "to": [
+      42,
+      92
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      78,
+      92
+     ],
+     "to": [
+      58,
+      92
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cạnh trong",
+   "instruction_vi": "Vẽ hai đường làm cạnh trong.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      42,
+      92
+     ],
+     "to": [
+      50,
+      42
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      58,
+      92
+     ],
+     "to": [
+      50,
+      42
+     ]
+    }
+   ]
+  },
+  {
+   "part": "túi",
+   "instruction_vi": "Vẽ hai nét cong làm túi.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      28,
+      22
+     ],
+     "radius": 11,
+     "from_deg": 0,
+     "to_deg": 90
+    },
+    {
+     "shape": "arc",
+     "center": [
+      72,
+      22
+     ],
+     "radius": 11,
+     "from_deg": 180,
+     "to_deg": 90
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,194 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "banana",
+ "level": "simple",
+ "title_vi": "Vẽ quả chuối",
+ "aliases": [
+  "quả chuối",
+  "chuối",
+  "trái chuối",
+  "nải chuối",
+  "banana"
+ ],
+ "steps": [
+  {
+   "part": "bụng",
+   "instruction_vi": "Vẽ nét cong lớn làm bụng.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       14,
+       34
+      ],
+      [
+       16,
+       74
+      ],
+      [
+       50,
+       88
+      ],
+      [
+       90,
+       68
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "lưng",
+   "instruction_vi": "Vẽ nét cong làm lưng.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       17,
+       33
+      ],
+      [
+       32,
+       54
+      ],
+      [
+       58,
+       63
+      ],
+      [
+       90,
+       62
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cuống",
+   "instruction_vi": "Vẽ cuống ở đầu chuối.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       14,
+       34
+      ],
+      [
+       10,
+       20
+      ],
+      [
+       18,
+       18
+      ],
+      [
+       17,
+       33
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ đầu chuối nhỏ.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       90,
+       60
+      ],
+      [
+       95,
+       62
+      ],
+      [
+       90,
+       68
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vân",
+   "instruction_vi": "Vẽ đường vân giữa.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       18,
+       33
+      ],
+      [
+       26,
+       65
+      ],
+      [
+       52,
+       76
+      ],
+      [
+       90,
+       64
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "quả nữa",
+   "instruction_vi": "Vẽ thêm quả nữa.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       19,
+       29
+      ],
+      [
+       40,
+       40
+      ],
+      [
+       64,
+       42
+      ],
+      [
+       86,
+       32
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       86,
+       32
+      ],
+      [
+       82,
+       46
+      ],
+      [
+       74,
+       54
+      ],
+      [
+       66,
+       56
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,147 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "fish",
+ "level": "beginner",
+ "title_vi": "Vẽ con cá",
+ "aliases": [
+  "cá",
+  "cá vàng",
+  "cá biển",
+  "con cá biển",
+  "cá nhỏ",
+  "cá cảnh",
+  "fish"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ một hình bầu dục to làm thân.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      44,
+      50
+     ],
+     "rx": 28,
+     "ry": 19,
+     "start": "left"
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ một tam giác làm đuôi.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       72,
+       50
+      ],
+      [
+       93,
+       32
+      ],
+      [
+       93,
+       68
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm mắt và vẽ miệng.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      28,
+      44
+     ],
+     "radius": 3
+    },
+    {
+     "shape": "line",
+     "from": [
+      17,
+      55
+     ],
+     "to": [
+      28,
+      56
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vây",
+   "instruction_vi": "Vẽ hai tam giác làm vây.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       36,
+       33
+      ],
+      [
+       48,
+       17
+      ],
+      [
+       56,
+       33
+      ]
+     ]
+    },
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       36,
+       67
+      ],
+      [
+       48,
+       83
+      ],
+      [
+       56,
+       67
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vảy",
+   "instruction_vi": "Vẽ hai nét cong làm vảy.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      40,
+      50
+     ],
+     "radius": 10,
+     "from_deg": 300,
+     "to_deg": 420
+    },
+    {
+     "shape": "arc",
+     "center": [
+      54,
+      50
+     ],
+     "radius": 10,
+     "from_deg": 300,
+     "to_deg": 420
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,245 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "ball",
+ "level": "simple",
+ "title_vi": "Vẽ quả bóng",
+ "aliases": [
+  "quả bóng",
+  "bóng",
+  "trái bóng",
+  "quả banh",
+  "ball"
+ ],
+ "steps": [
+  {
+   "part": "quả bóng",
+   "instruction_vi": "Vẽ hình tròn to làm quả bóng.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      50
+     ],
+     "radius": 36
+    }
+   ]
+  },
+  {
+   "part": "ngũ giác",
+   "instruction_vi": "Vẽ ngũ giác ở giữa.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       50,
+       36
+      ],
+      [
+       63,
+       46
+      ],
+      [
+       58,
+       61
+      ],
+      [
+       42,
+       61
+      ],
+      [
+       37,
+       46
+      ],
+      [
+       50,
+       36
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đường nối",
+   "instruction_vi": "Vẽ ba đường nối.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      36
+     ],
+     "to": [
+      50,
+      24
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      63,
+      46
+     ],
+     "to": [
+      76,
+      40
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      37,
+      46
+     ],
+     "to": [
+      24,
+      40
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đường nữa",
+   "instruction_vi": "Vẽ hai đường nữa.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      58,
+      61
+     ],
+     "to": [
+      66,
+      74
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      42,
+      61
+     ],
+     "to": [
+      34,
+      74
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mảng trên",
+   "instruction_vi": "Vẽ ba mảng trên.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       40,
+       16
+      ],
+      [
+       50,
+       24
+      ],
+      [
+       60,
+       16
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       82,
+       29
+      ],
+      [
+       76,
+       40
+      ],
+      [
+       85,
+       51
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       18,
+       29
+      ],
+      [
+       24,
+       40
+      ],
+      [
+       15,
+       51
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mảng dưới",
+   "instruction_vi": "Vẽ hai mảng dưới.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       79,
+       75
+      ],
+      [
+       66,
+       74
+      ],
+      [
+       62,
+       84
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       21,
+       75
+      ],
+      [
+       34,
+       74
+      ],
+      [
+       38,
+       84
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mặt đất",
+   "instruction_vi": "Vẽ một đường làm mặt đất.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      8,
+      89
+     ],
+     "to": [
+      92,
+      89
+     ]
+    }
+   ]
+  }
+ ]
+}

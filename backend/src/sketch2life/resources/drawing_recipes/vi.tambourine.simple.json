@@ -1,0 +1,214 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "tambourine",
+ "level": "simple",
+ "title_vi": "Vẽ trống lắc",
+ "aliases": [
+  "trống lắc",
+  "chiếc trống lắc",
+  "tambourine"
+ ],
+ "steps": [
+  {
+   "part": "vành",
+   "instruction_vi": "Vẽ vành trống tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      50
+     ],
+     "radius": 37
+    }
+   ]
+  },
+  {
+   "part": "mặt",
+   "instruction_vi": "Vẽ mặt trống bên trong.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      50
+     ],
+     "radius": 27
+    }
+   ]
+  },
+  {
+   "part": "đĩa trên",
+   "instruction_vi": "Vẽ hai đĩa trên và dưới.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      18
+     ],
+     "rx": 9,
+     "ry": 3.5
+    },
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      82
+     ],
+     "rx": 9,
+     "ry": 3.5
+    }
+   ]
+  },
+  {
+   "part": "đĩa bên",
+   "instruction_vi": "Vẽ hai đĩa bên hông.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      18,
+      50
+     ],
+     "rx": 3.5,
+     "ry": 9
+    },
+    {
+     "shape": "oval",
+     "center": [
+      82,
+      50
+     ],
+     "rx": 3.5,
+     "ry": 9
+    }
+   ]
+  },
+  {
+   "part": "chốt",
+   "instruction_vi": "Vẽ hai chốt tròn chéo.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      27,
+      27
+     ],
+     "radius": 3.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      73,
+      27
+     ],
+     "radius": 3.5
+    }
+   ]
+  },
+  {
+   "part": "ngôi sao",
+   "instruction_vi": "Vẽ ngôi sao ở giữa.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       50,
+       35
+      ],
+      [
+       54,
+       46
+      ],
+      [
+       65,
+       46
+      ],
+      [
+       56,
+       53
+      ],
+      [
+       59,
+       64
+      ],
+      [
+       50,
+       57
+      ],
+      [
+       41,
+       64
+      ],
+      [
+       44,
+       53
+      ],
+      [
+       35,
+       46
+      ],
+      [
+       46,
+       46
+      ],
+      [
+       50,
+       35
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "nơ",
+   "instruction_vi": "Vẽ hai dải nơ rủ.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       24,
+       78
+      ],
+      [
+       14,
+       80
+      ],
+      [
+       18,
+       90
+      ],
+      [
+       6,
+       94
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       76,
+       78
+      ],
+      [
+       86,
+       80
+      ],
+      [
+       82,
+       90
+      ],
+      [
+       94,
+       94
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

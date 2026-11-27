@@ -1,0 +1,151 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "magic_book",
+ "level": "beginner",
+ "title_vi": "Vẽ sách phép thuật",
+ "aliases": [
+  "sách phép thuật",
+  "quyển sách phép thuật",
+  "cuốn sách phép thuật",
+  "magic book"
+ ],
+ "steps": [
+  {
+   "part": "trang",
+   "instruction_vi": "Vẽ hai hình chữ nhật làm trang.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      10,
+      36
+     ],
+     "width": 40,
+     "height": 48
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      50,
+      36
+     ],
+     "width": 40,
+     "height": 48
+    }
+   ]
+  },
+  {
+   "part": "dòng trái",
+   "instruction_vi": "Vẽ hai dòng trái.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      18,
+      50
+     ],
+     "to": [
+      42,
+      50
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      18,
+      66
+     ],
+     "to": [
+      42,
+      66
+     ]
+    }
+   ]
+  },
+  {
+   "part": "dòng phải",
+   "instruction_vi": "Vẽ hai dòng phải.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      58,
+      50
+     ],
+     "to": [
+      82,
+      50
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      58,
+      66
+     ],
+     "to": [
+      82,
+      66
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tia phép",
+   "instruction_vi": "Vẽ một đường làm tia phép.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      36
+     ],
+     "to": [
+      50,
+      22
+     ]
+    }
+   ]
+  },
+  {
+   "part": "ngôi sao",
+   "instruction_vi": "Vẽ hai tam giác làm ngôi sao.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       41,
+       22
+      ],
+      [
+       59,
+       22
+      ],
+      [
+       50,
+       6
+      ]
+     ]
+    },
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       41,
+       11
+      ],
+      [
+       59,
+       11
+      ],
+      [
+       50,
+       27
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,241 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "puzzle",
+ "level": "simple",
+ "title_vi": "Vẽ bộ ghép hình",
+ "aliases": [
+  "bộ ghép hình",
+  "ghép hình",
+  "tranh ghép",
+  "puzzle"
+ ],
+ "steps": [
+  {
+   "part": "khung",
+   "instruction_vi": "Vẽ khung vuông.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      12,
+      12
+     ],
+     "width": 76,
+     "height": 76
+    }
+   ]
+  },
+  {
+   "part": "đường dọc",
+   "instruction_vi": "Vẽ đường dọc có mấu.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       12
+      ],
+      [
+       50,
+       24
+      ],
+      [
+       64,
+       24
+      ],
+      [
+       64,
+       31
+      ],
+      [
+       64,
+       40
+      ],
+      [
+       50,
+       38
+      ],
+      [
+       50,
+       50
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       50
+      ],
+      [
+       50,
+       60
+      ],
+      [
+       36,
+       60
+      ],
+      [
+       36,
+       69
+      ],
+      [
+       36,
+       78
+      ],
+      [
+       50,
+       76
+      ],
+      [
+       50,
+       88
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đường ngang",
+   "instruction_vi": "Vẽ đường ngang có mấu.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       12,
+       50
+      ],
+      [
+       24,
+       50
+      ],
+      [
+       24,
+       36
+      ],
+      [
+       31,
+       36
+      ],
+      [
+       40,
+       36
+      ],
+      [
+       38,
+       50
+      ],
+      [
+       50,
+       50
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       50
+      ],
+      [
+       60,
+       50
+      ],
+      [
+       60,
+       64
+      ],
+      [
+       69,
+       64
+      ],
+      [
+       78,
+       64
+      ],
+      [
+       76,
+       50
+      ],
+      [
+       88,
+       50
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "hình tròn",
+   "instruction_vi": "Vẽ hình tròn ở một góc.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      27,
+      25
+     ],
+     "radius": 7
+    }
+   ]
+  },
+  {
+   "part": "tam giác",
+   "instruction_vi": "Vẽ tam giác ở góc dưới.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       66,
+       80
+      ],
+      [
+       74,
+       66
+      ],
+      [
+       82,
+       80
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "hình thoi",
+   "instruction_vi": "Vẽ hình thoi ở góc.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       74,
+       18
+      ],
+      [
+       80,
+       26
+      ],
+      [
+       74,
+       34
+      ],
+      [
+       68,
+       26
+      ],
+      [
+       74,
+       18
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

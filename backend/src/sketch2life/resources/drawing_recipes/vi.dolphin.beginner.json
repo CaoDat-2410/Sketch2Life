@@ -1,0 +1,140 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "dolphin",
+ "level": "beginner",
+ "title_vi": "Vẽ cá heo",
+ "aliases": [
+  "cá heo",
+  "con cá heo",
+  "chú cá heo",
+  "dolphin"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ một hình bầu dục dài làm thân.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      48,
+      52
+     ],
+     "rx": 30,
+     "ry": 16
+    }
+   ]
+  },
+  {
+   "part": "mỏ",
+   "instruction_vi": "Vẽ tam giác làm mỏ dài.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       76,
+       46
+      ],
+      [
+       95,
+       56
+      ],
+      [
+       76,
+       60
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ tam giác làm đuôi.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       19,
+       52
+      ],
+      [
+       5,
+       34
+      ],
+      [
+       5,
+       70
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vây",
+   "instruction_vi": "Vẽ hai tam giác làm vây.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       38,
+       37
+      ],
+      [
+       40,
+       18
+      ],
+      [
+       58,
+       37
+      ]
+     ]
+    },
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       44,
+       67
+      ],
+      [
+       42,
+       84
+      ],
+      [
+       58,
+       66
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm mắt và vẽ miệng.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      66,
+      47
+     ],
+     "radius": 2.6
+    },
+    {
+     "shape": "line",
+     "from": [
+      62,
+      59
+     ],
+     "to": [
+      76,
+      57
+     ]
+    }
+   ]
+  }
+ ]
+}

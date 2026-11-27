@@ -1,0 +1,318 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "parrot",
+ "level": "simple",
+ "title_vi": "Vẽ con vẹt",
+ "aliases": [
+  "vẹt",
+  "con vẹt",
+  "chim vẹt",
+  "con chim vẹt",
+  "parrot"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ một nét cong làm thân.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       46,
+       30
+      ],
+      [
+       30,
+       36
+      ],
+      [
+       24,
+       58
+      ],
+      [
+       32,
+       72
+      ],
+      [
+       38,
+       82
+      ],
+      [
+       52,
+       82
+      ],
+      [
+       58,
+       74
+      ],
+      [
+       69,
+       62
+      ],
+      [
+       69,
+       46
+      ],
+      [
+       62,
+       36
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ đầu tròn.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       46,
+       30
+      ],
+      [
+       42,
+       10
+      ],
+      [
+       68,
+       6
+      ],
+      [
+       72,
+       22
+      ],
+      [
+       74,
+       28
+      ],
+      [
+       70,
+       34
+      ],
+      [
+       62,
+       36
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mỏ",
+   "instruction_vi": "Vẽ mỏ cong to.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       71,
+       18
+      ],
+      [
+       86,
+       15
+      ],
+      [
+       93,
+       30
+      ],
+      [
+       79,
+       43
+      ],
+      [
+       81,
+       34
+      ],
+      [
+       77,
+       31
+      ],
+      [
+       70,
+       32
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Vẽ mắt tròn, chấm ở giữa.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      60,
+      22
+     ],
+     "radius": 4
+    },
+    {
+     "shape": "dot",
+     "center": [
+      60,
+      22
+     ],
+     "radius": 1.4
+    }
+   ]
+  },
+  {
+   "part": "mào",
+   "instruction_vi": "Vẽ mào cong trên đầu.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       53,
+       13
+      ],
+      [
+       46,
+       4
+      ],
+      [
+       36,
+       5
+      ],
+      [
+       31,
+       11
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       47,
+       19
+      ],
+      [
+       40,
+       13
+      ],
+      [
+       32,
+       15
+      ],
+      [
+       27,
+       22
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cánh",
+   "instruction_vi": "Vẽ một chiếc cánh.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       42,
+       44
+      ],
+      [
+       30,
+       56
+      ],
+      [
+       32,
+       72
+      ],
+      [
+       47,
+       77
+      ],
+      [
+       55,
+       64
+      ],
+      [
+       54,
+       52
+      ],
+      [
+       42,
+       44
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ đuôi dài xuống dưới.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       34,
+       74
+      ],
+      [
+       26,
+       82
+      ],
+      [
+       22,
+       90
+      ],
+      [
+       17,
+       95
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       44,
+       80
+      ],
+      [
+       36,
+       86
+      ],
+      [
+       33,
+       92
+      ],
+      [
+       28,
+       95
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cành",
+   "instruction_vi": "Vẽ một cành cây để đậu.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      22,
+      82
+     ],
+     "to": [
+      86,
+      82
+     ]
+    }
+   ]
+  }
+ ]
+}

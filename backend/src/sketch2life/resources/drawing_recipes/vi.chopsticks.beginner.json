@@ -1,0 +1,141 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "chopsticks",
+ "level": "beginner",
+ "title_vi": "Vẽ đôi đũa",
+ "aliases": [
+  "đôi đũa",
+  "đũa",
+  "chiếc đũa",
+  "chopsticks"
+ ],
+ "steps": [
+  {
+   "part": "đũa",
+   "instruction_vi": "Vẽ cạnh đũa và đáy đũa.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      30,
+      92
+     ],
+     "to": [
+      72,
+      8
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      22,
+      92
+     ],
+     "to": [
+      30,
+      92
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cạnh đũa",
+   "instruction_vi": "Vẽ cạnh đũa còn lại và đầu.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      22,
+      92
+     ],
+     "to": [
+      60,
+      8
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      60,
+      8
+     ],
+     "to": [
+      72,
+      8
+     ]
+    }
+   ]
+  },
+  {
+   "part": "gác đũa",
+   "instruction_vi": "Vẽ hình dẹt làm gác đũa.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      12,
+      62
+     ],
+     "width": 76,
+     "height": 10
+    }
+   ]
+  },
+  {
+   "part": "đũa nữa",
+   "instruction_vi": "Vẽ thêm hai cạnh đũa nữa.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      54,
+      92
+     ],
+     "to": [
+      86,
+      8
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      62,
+      92
+     ],
+     "to": [
+      94,
+      8
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu đũa",
+   "instruction_vi": "Vẽ hai nét đóng đầu đũa.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      54,
+      92
+     ],
+     "to": [
+      62,
+      92
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      86,
+      8
+     ],
+     "to": [
+      94,
+      8
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,186 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "spinning_top",
+ "level": "simple",
+ "title_vi": "Vẽ con quay",
+ "aliases": [
+  "con quay",
+  "chiếc con quay",
+  "con cù",
+  "spinning top"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ hai nét cong làm thân.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       22,
+       44
+      ],
+      [
+       20,
+       66
+      ],
+      [
+       42,
+       70
+      ],
+      [
+       50,
+       87
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       78,
+       44
+      ],
+      [
+       80,
+       66
+      ],
+      [
+       58,
+       70
+      ],
+      [
+       50,
+       87
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mặt trên",
+   "instruction_vi": "Vẽ mặt trên hình bầu dục.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      44
+     ],
+     "rx": 28,
+     "ry": 9
+    }
+   ]
+  },
+  {
+   "part": "núm",
+   "instruction_vi": "Vẽ cán và núm tròn.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      45,
+      21
+     ],
+     "width": 10,
+     "height": 15
+    },
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      15
+     ],
+     "radius": 6
+    }
+   ]
+  },
+  {
+   "part": "mũi",
+   "instruction_vi": "Vẽ mũi nhọn.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       46,
+       82
+      ],
+      [
+       50,
+       94
+      ],
+      [
+       54,
+       82
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vân",
+   "instruction_vi": "Vẽ hai đường vân cong.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       24,
+       57
+      ],
+      [
+       40,
+       64
+      ],
+      [
+       60,
+       64
+      ],
+      [
+       76,
+       57
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       34,
+       68
+      ],
+      [
+       44,
+       73
+      ],
+      [
+       56,
+       73
+      ],
+      [
+       66,
+       68
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vòng xoay",
+   "instruction_vi": "Vẽ vòng xoay dưới đất.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      92
+     ],
+     "rx": 24,
+     "ry": 4
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,224 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "chair",
+ "level": "simple",
+ "title_vi": "Vẽ chiếc ghế",
+ "aliases": [
+  "chiếc ghế",
+  "ghế",
+  "cái ghế",
+  "chair"
+ ],
+ "steps": [
+  {
+   "part": "lưng",
+   "instruction_vi": "Vẽ lưng ghế bo tròn.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       30,
+       46
+      ],
+      [
+       28,
+       4
+      ],
+      [
+       72,
+       4
+      ],
+      [
+       70,
+       46
+      ]
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      30,
+      46
+     ],
+     "to": [
+      70,
+      46
+     ]
+    }
+   ]
+  },
+  {
+   "part": "nan",
+   "instruction_vi": "Vẽ ba nan lưng.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      40,
+      17
+     ],
+     "to": [
+      40,
+      46
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      50,
+      15
+     ],
+     "to": [
+      50,
+      46
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      60,
+      17
+     ],
+     "to": [
+      60,
+      46
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mặt ghế",
+   "instruction_vi": "Vẽ mặt ghế dày.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       22,
+       58
+      ],
+      [
+       30,
+       50
+      ],
+      [
+       70,
+       50
+      ],
+      [
+       78,
+       58
+      ],
+      [
+       22,
+       58
+      ]
+     ]
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      22,
+      58
+     ],
+     "width": 56,
+     "height": 7
+    }
+   ]
+  },
+  {
+   "part": "chân trước",
+   "instruction_vi": "Vẽ hai chân trước.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       24,
+       65
+      ],
+      [
+       24,
+       93
+      ],
+      [
+       30,
+       93
+      ],
+      [
+       30,
+       65
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       76,
+       65
+      ],
+      [
+       76,
+       93
+      ],
+      [
+       70,
+       93
+      ],
+      [
+       70,
+       65
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân sau",
+   "instruction_vi": "Vẽ hai chân sau.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      38,
+      65
+     ],
+     "to": [
+      38,
+      83
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      62,
+      65
+     ],
+     "to": [
+      62,
+      83
+     ]
+    }
+   ]
+  },
+  {
+   "part": "thanh",
+   "instruction_vi": "Vẽ thanh ngang nối chân.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      30,
+      82
+     ],
+     "to": [
+      70,
+      82
+     ]
+    }
+   ]
+  }
+ ]
+}

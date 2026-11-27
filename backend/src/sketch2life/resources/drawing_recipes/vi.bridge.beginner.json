@@ -1,0 +1,147 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "bridge",
+ "level": "beginner",
+ "title_vi": "Vẽ cây cầu",
+ "aliases": [
+  "cây cầu",
+  "cầu",
+  "chiếc cầu",
+  "bridge"
+ ],
+ "steps": [
+  {
+   "part": "mặt cầu",
+   "instruction_vi": "Vẽ hình dài làm mặt cầu.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      6,
+      47
+     ],
+     "width": 88,
+     "height": 11
+    }
+   ]
+  },
+  {
+   "part": "vòm",
+   "instruction_vi": "Vẽ hai nét cong làm vòm.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      28,
+      81
+     ],
+     "radius": 19,
+     "from_deg": 180,
+     "to_deg": 360,
+     "radius_y": 23
+    },
+    {
+     "shape": "arc",
+     "center": [
+      72,
+      81
+     ],
+     "radius": 19,
+     "from_deg": 0,
+     "to_deg": -180,
+     "radius_y": 23
+    }
+   ]
+  },
+  {
+   "part": "nước",
+   "instruction_vi": "Vẽ một đường làm mặt nước.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      5,
+      83
+     ],
+     "to": [
+      95,
+      83
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cột",
+   "instruction_vi": "Vẽ hai đường làm cột.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      18,
+      47
+     ],
+     "to": [
+      18,
+      32
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      39,
+      47
+     ],
+     "to": [
+      39,
+      32
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tay vịn",
+   "instruction_vi": "Vẽ một đường làm tay vịn.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      12,
+      32
+     ],
+     "to": [
+      88,
+      32
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cột nữa",
+   "instruction_vi": "Vẽ thêm hai cột nữa.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      61,
+      47
+     ],
+     "to": [
+      61,
+      32
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      82,
+      47
+     ],
+     "to": [
+      82,
+      32
+     ]
+    }
+   ]
+  }
+ ]
+}

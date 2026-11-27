@@ -1,0 +1,209 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "eraser",
+ "level": "simple",
+ "title_vi": "Vẽ cục tẩy",
+ "aliases": [
+  "cục tẩy",
+  "tẩy",
+  "cục gôm",
+  "gôm",
+  "eraser"
+ ],
+ "steps": [
+  {
+   "part": "mặt trước",
+   "instruction_vi": "Vẽ mặt trước cục tẩy.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       12,
+       42
+      ],
+      [
+       74,
+       42
+      ],
+      [
+       74,
+       72
+      ],
+      [
+       12,
+       72
+      ],
+      [
+       12,
+       42
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mặt trên",
+   "instruction_vi": "Vẽ mặt trên nghiêng.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       12,
+       42
+      ],
+      [
+       28,
+       28
+      ],
+      [
+       90,
+       28
+      ],
+      [
+       74,
+       42
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mặt bên",
+   "instruction_vi": "Vẽ mặt bên phải.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       90,
+       28
+      ],
+      [
+       90,
+       56
+      ],
+      [
+       74,
+       72
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vỏ giấy",
+   "instruction_vi": "Vẽ hai viền vỏ giấy.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      34,
+      42
+     ],
+     "to": [
+      34,
+      72
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      62,
+      42
+     ],
+     "to": [
+      62,
+      72
+     ]
+    }
+   ]
+  },
+  {
+   "part": "sao",
+   "instruction_vi": "Vẽ ngôi sao trên vỏ.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       48,
+       46
+      ],
+      [
+       51,
+       54
+      ],
+      [
+       59,
+       54
+      ],
+      [
+       53,
+       59
+      ],
+      [
+       55,
+       67
+      ],
+      [
+       48,
+       62
+      ],
+      [
+       41,
+       67
+      ],
+      [
+       43,
+       59
+      ],
+      [
+       37,
+       54
+      ],
+      [
+       45,
+       54
+      ],
+      [
+       48,
+       46
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vụn tẩy",
+   "instruction_vi": "Vẽ ba vụn tẩy.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      21,
+      78
+     ],
+     "radius": 4
+    },
+    {
+     "shape": "circle",
+     "center": [
+      31,
+      82
+     ],
+     "radius": 4
+    },
+    {
+     "shape": "circle",
+     "center": [
+      42,
+      80
+     ],
+     "radius": 4
+    }
+   ]
+  }
+ ]
+}

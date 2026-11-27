@@ -1,0 +1,101 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "egg",
+ "level": "beginner",
+ "title_vi": "Vẽ quả trứng",
+ "aliases": [
+  "quả trứng",
+  "trứng",
+  "trái trứng",
+  "egg"
+ ],
+ "steps": [
+  {
+   "part": "trứng",
+   "instruction_vi": "Vẽ bầu dục to làm trứng.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      52
+     ],
+     "rx": 30,
+     "ry": 40
+    }
+   ]
+  },
+  {
+   "part": "vạch",
+   "instruction_vi": "Vẽ hai vạch ngang.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      24,
+      38
+     ],
+     "to": [
+      76,
+      38
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      21,
+      62
+     ],
+     "to": [
+      79,
+      62
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chấm trên",
+   "instruction_vi": "Vẽ hai hình tròn làm chấm trên.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      40,
+      27
+     ],
+     "radius": 5.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      60,
+      27
+     ],
+     "radius": 5.5
+    }
+   ]
+  },
+  {
+   "part": "chấm dưới",
+   "instruction_vi": "Vẽ hai hình tròn làm chấm dưới.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      38,
+      76
+     ],
+     "radius": 5.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      62,
+      76
+     ],
+     "radius": 5.5
+    }
+   ]
+  }
+ ]
+}

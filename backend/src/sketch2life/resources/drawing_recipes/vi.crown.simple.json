@@ -1,0 +1,165 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "crown",
+ "level": "simple",
+ "title_vi": "Vẽ vương miện",
+ "aliases": [
+  "vương miện",
+  "chiếc vương miện",
+  "crown"
+ ],
+ "steps": [
+  {
+   "part": "viền",
+   "instruction_vi": "Vẽ viền ba chóp.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       16,
+       78
+      ],
+      [
+       14,
+       30
+      ],
+      [
+       32,
+       52
+      ],
+      [
+       50,
+       20
+      ],
+      [
+       68,
+       52
+      ],
+      [
+       86,
+       30
+      ],
+      [
+       84,
+       78
+      ],
+      [
+       16,
+       78
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đai",
+   "instruction_vi": "Vẽ đai ngang.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      16,
+      66
+     ],
+     "to": [
+      84,
+      66
+     ]
+    }
+   ]
+  },
+  {
+   "part": "hạt đỉnh",
+   "instruction_vi": "Vẽ ba hạt đỉnh.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      14,
+      25
+     ],
+     "radius": 5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      15
+     ],
+     "radius": 5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      86,
+      25
+     ],
+     "radius": 5
+    }
+   ]
+  },
+  {
+   "part": "ngọc",
+   "instruction_vi": "Vẽ ba viên ngọc.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      30,
+      72
+     ],
+     "radius": 4
+    },
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      72
+     ],
+     "rx": 7,
+     "ry": 4.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      70,
+      72
+     ],
+     "radius": 4
+    }
+   ]
+  },
+  {
+   "part": "hoa văn",
+   "instruction_vi": "Vẽ hoa văn hình thoi.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       50,
+       38
+      ],
+      [
+       57,
+       49
+      ],
+      [
+       50,
+       60
+      ],
+      [
+       43,
+       49
+      ],
+      [
+       50,
+       38
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

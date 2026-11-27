@@ -1,0 +1,172 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "unicorn",
+ "level": "beginner",
+ "title_vi": "Vẽ con kỳ lân",
+ "aliases": [
+  "con kỳ lân",
+  "kỳ lân",
+  "ngựa một sừng",
+  "unicorn"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ bầu dục to làm thân.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      43,
+      60
+     ],
+     "rx": 25,
+     "ry": 15
+    }
+   ]
+  },
+  {
+   "part": "cổ",
+   "instruction_vi": "Vẽ hai đường làm cổ.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      54,
+      47
+     ],
+     "to": [
+      68,
+      25
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      68,
+      58
+     ],
+     "to": [
+      82,
+      39
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ bầu dục làm đầu.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      80,
+      30
+     ],
+     "rx": 14,
+     "ry": 10,
+     "start": "left"
+    }
+   ]
+  },
+  {
+   "part": "sừng",
+   "instruction_vi": "Vẽ sừng nhọn và bờm.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       76,
+       21
+      ],
+      [
+       93,
+       5
+      ],
+      [
+       85,
+       22
+      ]
+     ]
+    },
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       57,
+       43
+      ],
+      [
+       48,
+       24
+      ],
+      [
+       67,
+       25
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai đường làm chân.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      28,
+      72
+     ],
+     "to": [
+      25,
+      93
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      56,
+      73
+     ],
+     "to": [
+      59,
+      93
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ tam giác làm đuôi, chấm mắt.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       19,
+       55
+      ],
+      [
+       5,
+       72
+      ],
+      [
+       14,
+       82
+      ]
+     ]
+    },
+    {
+     "shape": "dot",
+     "center": [
+      82,
+      28
+     ],
+     "radius": 2.8
+    }
+   ]
+  }
+ ]
+}

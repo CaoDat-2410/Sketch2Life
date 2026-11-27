@@ -1,0 +1,173 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "horse",
+ "level": "beginner",
+ "title_vi": "Vẽ con ngựa",
+ "aliases": [
+  "ngựa",
+  "con ngựa",
+  "chú ngựa",
+  "ngựa con",
+  "horse"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ một hình bầu dục to làm thân.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      43,
+      60
+     ],
+     "rx": 25,
+     "ry": 15
+    }
+   ]
+  },
+  {
+   "part": "cổ",
+   "instruction_vi": "Vẽ hai đường thẳng làm cổ.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      54,
+      47
+     ],
+     "to": [
+      68,
+      22
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      68,
+      58
+     ],
+     "to": [
+      82,
+      36
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ bầu dục làm đầu, thêm tai nhọn.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      80,
+      27
+     ],
+     "rx": 14,
+     "ry": 10,
+     "start": "left"
+    },
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       72,
+       19
+      ],
+      [
+       72,
+       6
+      ],
+      [
+       81,
+       17
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "bờm",
+   "instruction_vi": "Vẽ tam giác làm bờm.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       56,
+       44
+      ],
+      [
+       48,
+       24
+      ],
+      [
+       67,
+       24
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai đường thẳng làm chân.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      28,
+      72
+     ],
+     "to": [
+      25,
+      93
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      56,
+      73
+     ],
+     "to": [
+      59,
+      93
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ tam giác làm đuôi, chấm mắt.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       19,
+       55
+      ],
+      [
+       5,
+       72
+      ],
+      [
+       14,
+       82
+      ]
+     ]
+    },
+    {
+     "shape": "dot",
+     "center": [
+      82,
+      25
+     ],
+     "radius": 2
+    }
+   ]
+  }
+ ]
+}

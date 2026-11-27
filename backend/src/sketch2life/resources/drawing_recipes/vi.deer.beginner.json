@@ -1,0 +1,167 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "deer",
+ "level": "beginner",
+ "title_vi": "Vẽ con hươu",
+ "aliases": [
+  "hươu",
+  "con hươu",
+  "hươu sao",
+  "nai",
+  "con nai",
+  "deer"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ một hình bầu dục to làm thân.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      44,
+      60
+     ],
+     "rx": 24,
+     "ry": 14
+    }
+   ]
+  },
+  {
+   "part": "cổ",
+   "instruction_vi": "Vẽ hai đường thẳng làm cổ.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      58,
+      49
+     ],
+     "to": [
+      66,
+      37
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      67,
+      55
+     ],
+     "to": [
+      78,
+      41
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ bầu dục nhỏ làm đầu, chấm mắt.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      76,
+      31
+     ],
+     "rx": 13,
+     "ry": 10,
+     "start": "left"
+    },
+    {
+     "shape": "dot",
+     "center": [
+      80,
+      29
+     ],
+     "radius": 2
+    }
+   ]
+  },
+  {
+   "part": "sừng",
+   "instruction_vi": "Vẽ hai đường thẳng làm sừng.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      71,
+      22
+     ],
+     "to": [
+      64,
+      6
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      82,
+      22
+     ],
+     "to": [
+      88,
+      6
+     ]
+    }
+   ]
+  },
+  {
+   "part": "nhánh sừng",
+   "instruction_vi": "Vẽ thêm hai nhánh sừng.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      67.5,
+      14
+     ],
+     "to": [
+      58,
+      12
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      85,
+      14
+     ],
+     "to": [
+      94,
+      12
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai đường thẳng làm chân.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      30,
+      72
+     ],
+     "to": [
+      28,
+      93
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      56,
+      72
+     ],
+     "to": [
+      58,
+      93
+     ]
+    }
+   ]
+  }
+ ]
+}

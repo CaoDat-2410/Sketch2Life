@@ -1,0 +1,123 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "tambourine",
+ "level": "beginner",
+ "title_vi": "Vẽ trống lắc",
+ "aliases": [
+  "trống lắc",
+  "chiếc trống lắc",
+  "tambourine"
+ ],
+ "steps": [
+  {
+   "part": "vành",
+   "instruction_vi": "Vẽ hình tròn to làm vành.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      50
+     ],
+     "radius": 39
+    }
+   ]
+  },
+  {
+   "part": "mặt trống",
+   "instruction_vi": "Vẽ hình tròn làm mặt trống.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      50
+     ],
+     "radius": 28
+    }
+   ]
+  },
+  {
+   "part": "chuông",
+   "instruction_vi": "Vẽ hai hình tròn làm chuông.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      16.5
+     ],
+     "radius": 5.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      83.5
+     ],
+     "radius": 5.5
+    }
+   ]
+  },
+  {
+   "part": "chuông nữa",
+   "instruction_vi": "Vẽ thêm hai chuông nữa.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      16.5,
+      50
+     ],
+     "radius": 5.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      83.5,
+      50
+     ],
+     "radius": 5.5
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm hai chấm làm mắt.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      41,
+      44
+     ],
+     "radius": 2.4
+    },
+    {
+     "shape": "dot",
+     "center": [
+      59,
+      44
+     ],
+     "radius": 2.4
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ một nét cong làm miệng.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      52
+     ],
+     "radius": 12,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  }
+ ]
+}

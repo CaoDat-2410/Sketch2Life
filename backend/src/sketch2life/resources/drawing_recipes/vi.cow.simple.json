@@ -1,0 +1,377 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "cow",
+ "level": "simple",
+ "title_vi": "Vẽ con bò",
+ "aliases": [
+  "con bò",
+  "bò",
+  "bò sữa",
+  "con bò sữa",
+  "chú bò",
+  "cow"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ thân bò tròn.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       16,
+       50
+      ],
+      [
+       24,
+       40
+      ],
+      [
+       52,
+       40
+      ],
+      [
+       64,
+       46
+      ],
+      [
+       74,
+       56
+      ],
+      [
+       70,
+       74
+      ],
+      [
+       56,
+       76
+      ],
+      [
+       40,
+       78
+      ],
+      [
+       22,
+       78
+      ],
+      [
+       16,
+       68
+      ],
+      [
+       12,
+       60
+      ],
+      [
+       12,
+       56
+      ],
+      [
+       16,
+       50
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ đầu to phía trước.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       63,
+       49
+      ],
+      [
+       56,
+       30
+      ],
+      [
+       62,
+       22
+      ],
+      [
+       76,
+       22
+      ],
+      [
+       90,
+       22
+      ],
+      [
+       95,
+       32
+      ],
+      [
+       90,
+       46
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mõm",
+   "instruction_vi": "Vẽ mõm và hai mắt.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      77,
+      49
+     ],
+     "rx": 14,
+     "ry": 8.5
+    },
+    {
+     "shape": "dot",
+     "center": [
+      70,
+      33
+     ],
+     "radius": 2
+    },
+    {
+     "shape": "dot",
+     "center": [
+      84,
+      33
+     ],
+     "radius": 2
+    }
+   ]
+  },
+  {
+   "part": "sừng",
+   "instruction_vi": "Vẽ hai chiếc sừng.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       67,
+       23
+      ],
+      [
+       57,
+       18
+      ],
+      [
+       62,
+       10
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       85,
+       24
+      ],
+      [
+       95,
+       18
+      ],
+      [
+       90,
+       10
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đốm",
+   "instruction_vi": "Vẽ hai đốm lang.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       26,
+       50
+      ],
+      [
+       40,
+       44
+      ],
+      [
+       44,
+       58
+      ],
+      [
+       36,
+       62
+      ],
+      [
+       26,
+       66
+      ],
+      [
+       22,
+       56
+      ],
+      [
+       26,
+       50
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       48,
+       66
+      ],
+      [
+       56,
+       58
+      ],
+      [
+       64,
+       66
+      ],
+      [
+       56,
+       72
+      ],
+      [
+       52,
+       76
+      ],
+      [
+       44,
+       72
+      ],
+      [
+       48,
+       66
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân trước",
+   "instruction_vi": "Vẽ hai chân trước.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       54,
+       76
+      ],
+      [
+       55,
+       93
+      ],
+      [
+       62,
+       93
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       65,
+       72
+      ],
+      [
+       68,
+       93
+      ],
+      [
+       75,
+       93
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân sau",
+   "instruction_vi": "Vẽ hai chân sau.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       24,
+       77
+      ],
+      [
+       22,
+       93
+      ],
+      [
+       29,
+       93
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       37,
+       78
+      ],
+      [
+       37,
+       93
+      ],
+      [
+       44,
+       93
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ đuôi có chùm lông.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       14,
+       54
+      ],
+      [
+       5,
+       56
+      ],
+      [
+       8,
+       68
+      ],
+      [
+       6,
+       76
+      ]
+     ]
+    },
+    {
+     "shape": "oval",
+     "center": [
+      7,
+      80
+     ],
+     "rx": 3,
+     "ry": 5
+    }
+   ]
+  }
+ ]
+}

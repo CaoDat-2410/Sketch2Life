@@ -1,0 +1,135 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "snail",
+ "level": "beginner",
+ "title_vi": "Vẽ con ốc sên",
+ "aliases": [
+  "ốc sên",
+  "con ốc sên",
+  "chú ốc sên",
+  "ốc",
+  "snail"
+ ],
+ "steps": [
+  {
+   "part": "vỏ",
+   "instruction_vi": "Vẽ một hình tròn thật to làm vỏ.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      40,
+      48
+     ],
+     "radius": 28,
+     "start": "bottom"
+    }
+   ]
+  },
+  {
+   "part": "vòng xoắn",
+   "instruction_vi": "Vẽ hai hình tròn nhỏ làm vòng xoắn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      42,
+      50
+     ],
+     "radius": 16,
+     "start": "bottom"
+    },
+    {
+     "shape": "circle",
+     "center": [
+      44,
+      52
+     ],
+     "radius": 6,
+     "start": "bottom"
+    }
+   ]
+  },
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ một bầu dục dẹt làm thân.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      52,
+      81
+     ],
+     "rx": 40,
+     "ry": 8,
+     "start": "left"
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ một hình tròn làm đầu.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      81,
+      62
+     ],
+     "radius": 13,
+     "start": "bottom"
+    }
+   ]
+  },
+  {
+   "part": "râu",
+   "instruction_vi": "Vẽ hai đường thẳng làm râu.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      77,
+      50
+     ],
+     "to": [
+      71,
+      31
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      88,
+      51
+     ],
+     "to": [
+      93,
+      31
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm hai chấm làm mắt.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      71,
+      29
+     ],
+     "radius": 3
+    },
+    {
+     "shape": "dot",
+     "center": [
+      93,
+      29
+     ],
+     "radius": 3
+    }
+   ]
+  }
+ ]
+}

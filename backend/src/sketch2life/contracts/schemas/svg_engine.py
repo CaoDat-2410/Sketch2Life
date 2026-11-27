@@ -164,6 +164,7 @@ class SvgTopicStrokeGuidePathLineageV1(StrictSvgModel):
         "OPENMOJI_SOURCE_SHAPE_TO_PATH_V1",
         "OPENCLIPART_SOURCE_CONTOUR_TO_DRAW_PATH_V1",
         "QWEN_OPENCLIPART_SOURCE_PATH_SEQUENCE_V1",
+        "AUTHORED_SHAPE_RECIPE_V1",
     ]
 
 
@@ -179,6 +180,7 @@ class SvgTopicStrokeGuideDerivationV1(StrictSvgModel):
         "OPENMOJI_SOURCE_SHAPE_TO_PATH_V1",
         "OPENCLIPART_SOURCE_CONTOUR_TO_DRAW_PATH_V1",
         "QWEN_OPENCLIPART_SOURCE_PATH_SEQUENCE_V1",
+        "AUTHORED_SHAPE_RECIPE_V1",
     ]
     source_path_count: int = Field(ge=1, le=5000)
     path_lineage: list[SvgTopicStrokeGuidePathLineageV1] = Field(min_length=1, max_length=400)

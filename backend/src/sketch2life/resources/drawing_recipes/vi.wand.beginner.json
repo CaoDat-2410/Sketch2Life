@@ -1,0 +1,133 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "wand",
+ "level": "beginner",
+ "title_vi": "Vẽ đũa phép",
+ "aliases": [
+  "đũa phép",
+  "chiếc đũa phép",
+  "gậy phép",
+  "wand"
+ ],
+ "steps": [
+  {
+   "part": "tam giác",
+   "instruction_vi": "Vẽ một tam giác thật to.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       62,
+       8
+      ],
+      [
+       87,
+       50
+      ],
+      [
+       37,
+       50
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tam giác nữa",
+   "instruction_vi": "Vẽ thêm tam giác nữa chồng lên.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       37,
+       22
+      ],
+      [
+       87,
+       22
+      ],
+      [
+       62,
+       64
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cán",
+   "instruction_vi": "Vẽ hai đường làm cán.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      52,
+      53
+     ],
+     "to": [
+      14,
+      88
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      58,
+      60
+     ],
+     "to": [
+      22,
+      94
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu cán",
+   "instruction_vi": "Vẽ một nét đóng đầu cán.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      14,
+      88
+     ],
+     "to": [
+      22,
+      94
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tia sáng",
+   "instruction_vi": "Vẽ hai tia sáng.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      37,
+      22
+     ],
+     "to": [
+      25,
+      12
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      87,
+      50
+     ],
+     "to": [
+      94,
+      62
+     ]
+    }
+   ]
+  }
+ ]
+}

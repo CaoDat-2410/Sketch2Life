@@ -1,0 +1,136 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "vase",
+ "level": "beginner",
+ "title_vi": "Vẽ lọ hoa",
+ "aliases": [
+  "lọ hoa",
+  "bình hoa",
+  "cái lọ",
+  "vase"
+ ],
+ "steps": [
+  {
+   "part": "thân lọ",
+   "instruction_vi": "Vẽ hình tròn to làm thân lọ.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      71
+     ],
+     "radius": 23
+    }
+   ]
+  },
+  {
+   "part": "cổ lọ",
+   "instruction_vi": "Vẽ hình chữ nhật làm cổ lọ.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      42,
+      36
+     ],
+     "width": 16,
+     "height": 14
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ một đường làm miệng lọ.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      34,
+      36
+     ],
+     "to": [
+      66,
+      36
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cành",
+   "instruction_vi": "Vẽ hai đường làm cành.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      46,
+      36
+     ],
+     "to": [
+      28,
+      22
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      54,
+      36
+     ],
+     "to": [
+      72,
+      22
+     ]
+    }
+   ]
+  },
+  {
+   "part": "hoa",
+   "instruction_vi": "Vẽ hai bông hoa tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      24,
+      17
+     ],
+     "radius": 8
+    },
+    {
+     "shape": "circle",
+     "center": [
+      76,
+      17
+     ],
+     "radius": 8
+    }
+   ]
+  },
+  {
+   "part": "cành giữa",
+   "instruction_vi": "Vẽ cành giữa và hoa.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      36
+     ],
+     "to": [
+      50,
+      20
+     ]
+    },
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      12
+     ],
+     "radius": 8,
+     "start": "bottom"
+    }
+   ]
+  }
+ ]
+}

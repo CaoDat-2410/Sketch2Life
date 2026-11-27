@@ -1,0 +1,124 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "elephant",
+ "level": "beginner",
+ "title_vi": "Vẽ con voi",
+ "aliases": [
+  "voi",
+  "con voi",
+  "chú voi",
+  "voi con",
+  "elephant"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ một hình bầu dục thật to làm thân.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      42,
+      52
+     ],
+     "rx": 28,
+     "ry": 22
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ một hình tròn làm đầu.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      70,
+      39
+     ],
+     "radius": 18,
+     "start": "left"
+    }
+   ]
+  },
+  {
+   "part": "tai",
+   "instruction_vi": "Vẽ bầu dục làm tai, chấm mắt.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      64,
+      42
+     ],
+     "rx": 7,
+     "ry": 12
+    },
+    {
+     "shape": "dot",
+     "center": [
+      79,
+      33
+     ],
+     "radius": 2
+    }
+   ]
+  },
+  {
+   "part": "vòi",
+   "instruction_vi": "Vẽ bầu dục dài làm vòi.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      86,
+      61
+     ],
+     "rx": 6,
+     "ry": 21
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai hình chữ nhật làm chân.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      24,
+      72
+     ],
+     "width": 11,
+     "height": 20
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      48,
+      73
+     ],
+     "width": 11,
+     "height": 19
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ một đường thẳng làm đuôi.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      15,
+      50
+     ],
+     "to": [
+      6,
+      70
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,105 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "backpack",
+ "level": "beginner",
+ "title_vi": "Vẽ chiếc ba lô",
+ "aliases": [
+  "ba lô",
+  "chiếc ba lô",
+  "balo",
+  "cặp sách",
+  "chiếc cặp",
+  "backpack"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ hình chữ nhật to làm thân.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      24,
+      36
+     ],
+     "width": 52,
+     "height": 56
+    }
+   ]
+  },
+  {
+   "part": "nắp",
+   "instruction_vi": "Vẽ nửa bầu dục làm nắp.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      36
+     ],
+     "radius": 26,
+     "from_deg": 180,
+     "to_deg": 360,
+     "radius_y": 19
+    }
+   ]
+  },
+  {
+   "part": "quai",
+   "instruction_vi": "Vẽ nửa hình tròn làm quai.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      17
+     ],
+     "radius": 10,
+     "from_deg": 180,
+     "to_deg": 360
+    }
+   ]
+  },
+  {
+   "part": "túi",
+   "instruction_vi": "Vẽ hình chữ nhật làm túi.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      34,
+      62
+     ],
+     "width": 32,
+     "height": 22
+    }
+   ]
+  },
+  {
+   "part": "dây đeo",
+   "instruction_vi": "Vẽ hai nét cong làm dây đeo.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      24,
+      63
+     ],
+     "radius": 13,
+     "from_deg": 90,
+     "to_deg": 270
+    },
+    {
+     "shape": "arc",
+     "center": [
+      76,
+      63
+     ],
+     "radius": 13,
+     "from_deg": 90,
+     "to_deg": -90
+    }
+   ]
+  }
+ ]
+}

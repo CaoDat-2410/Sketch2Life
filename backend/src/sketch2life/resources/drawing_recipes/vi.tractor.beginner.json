@@ -1,0 +1,103 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "tractor",
+ "level": "beginner",
+ "title_vi": "Vẽ chiếc máy kéo",
+ "aliases": [
+  "máy kéo",
+  "chiếc máy kéo",
+  "máy cày",
+  "tractor"
+ ],
+ "steps": [
+  {
+   "part": "bánh to",
+   "instruction_vi": "Vẽ hình tròn to làm bánh to.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      29,
+      70
+     ],
+     "radius": 23
+    }
+   ]
+  },
+  {
+   "part": "thân xe",
+   "instruction_vi": "Vẽ hình chữ nhật làm thân xe.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      50,
+      48
+     ],
+     "width": 42,
+     "height": 22
+    }
+   ]
+  },
+  {
+   "part": "bánh nhỏ",
+   "instruction_vi": "Vẽ hình tròn làm bánh nhỏ.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      76,
+      80
+     ],
+     "radius": 13
+    }
+   ]
+  },
+  {
+   "part": "buồng lái",
+   "instruction_vi": "Vẽ hình chữ nhật làm buồng lái.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      22,
+      19
+     ],
+     "width": 29,
+     "height": 29
+    }
+   ]
+  },
+  {
+   "part": "ống khói",
+   "instruction_vi": "Vẽ một đường làm ống khói.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      76,
+      48
+     ],
+     "to": [
+      76,
+      28
+     ]
+    }
+   ]
+  },
+  {
+   "part": "trục",
+   "instruction_vi": "Vẽ hình tròn làm trục bánh.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      29,
+      70
+     ],
+     "radius": 9
+    }
+   ]
+  }
+ ]
+}

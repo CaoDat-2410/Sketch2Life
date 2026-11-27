@@ -1,0 +1,140 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "doll",
+ "level": "beginner",
+ "title_vi": "Vẽ búp bê",
+ "aliases": [
+  "búp bê",
+  "con búp bê",
+  "em búp bê",
+  "doll"
+ ],
+ "steps": [
+  {
+   "part": "váy",
+   "instruction_vi": "Vẽ tam giác to làm váy.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       50,
+       44
+      ],
+      [
+       22,
+       81
+      ],
+      [
+       78,
+       81
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ hình tròn làm đầu.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      27
+     ],
+     "radius": 17,
+     "start": "bottom"
+    }
+   ]
+  },
+  {
+   "part": "tóc",
+   "instruction_vi": "Vẽ hai hình tròn làm tóc.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      26,
+      28
+     ],
+     "radius": 9
+    },
+    {
+     "shape": "circle",
+     "center": [
+      74,
+      28
+     ],
+     "radius": 9
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm hai chấm làm mắt.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      44,
+      24
+     ],
+     "radius": 2.8
+    },
+    {
+     "shape": "dot",
+     "center": [
+      56,
+      24
+     ],
+     "radius": 2.8
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ một nét cong làm miệng.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      28
+     ],
+     "radius": 8,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai đường làm chân.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      40,
+      81
+     ],
+     "to": [
+      40,
+      95
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      60,
+      81
+     ],
+     "to": [
+      60,
+      95
+     ]
+    }
+   ]
+  }
+ ]
+}

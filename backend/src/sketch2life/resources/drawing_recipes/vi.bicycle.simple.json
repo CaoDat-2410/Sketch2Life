@@ -1,0 +1,239 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "bicycle",
+ "level": "simple",
+ "title_vi": "Vẽ xe đạp",
+ "aliases": [
+  "xe đạp",
+  "chiếc xe đạp",
+  "bicycle",
+  "bike"
+ ],
+ "steps": [
+  {
+   "part": "bánh sau",
+   "instruction_vi": "Vẽ bánh sau và trục giữa.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      23,
+      66
+     ],
+     "radius": 18
+    },
+    {
+     "shape": "circle",
+     "center": [
+      23,
+      66
+     ],
+     "radius": 3
+    }
+   ]
+  },
+  {
+   "part": "khung",
+   "instruction_vi": "Vẽ khung xe hình tam giác.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       23,
+       66
+      ],
+      [
+       48,
+       66
+      ],
+      [
+       38,
+       42
+      ],
+      [
+       23,
+       66
+      ]
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      38,
+      42
+     ],
+     "to": [
+      65,
+      42
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      65,
+      42
+     ],
+     "to": [
+      48,
+      66
+     ]
+    }
+   ]
+  },
+  {
+   "part": "càng",
+   "instruction_vi": "Vẽ càng trước và tay lái.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       77,
+       66
+      ],
+      [
+       65,
+       42
+      ],
+      [
+       61,
+       29
+      ],
+      [
+       72,
+       26
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "bánh trước",
+   "instruction_vi": "Vẽ bánh trước và trục giữa.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      77,
+      66
+     ],
+     "radius": 18
+    },
+    {
+     "shape": "circle",
+     "center": [
+      77,
+      66
+     ],
+     "radius": 3
+    }
+   ]
+  },
+  {
+   "part": "yên",
+   "instruction_vi": "Vẽ cọc và yên xe.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      38,
+      42
+     ],
+     "to": [
+      38,
+      33
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       29,
+       35
+      ],
+      [
+       33,
+       31
+      ],
+      [
+       44,
+       31
+      ],
+      [
+       47,
+       35
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "bàn đạp",
+   "instruction_vi": "Vẽ đĩa và bàn đạp.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      48,
+      66
+     ],
+     "radius": 6
+    },
+    {
+     "shape": "line",
+     "from": [
+      48,
+      66
+     ],
+     "to": [
+      55,
+      79
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      50,
+      79
+     ],
+     "to": [
+      61,
+      79
+     ]
+    }
+   ]
+  },
+  {
+   "part": "giỏ",
+   "instruction_vi": "Vẽ chiếc giỏ phía trước.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       70,
+       29
+      ],
+      [
+       87,
+       29
+      ],
+      [
+       83,
+       41
+      ],
+      [
+       74,
+       41
+      ],
+      [
+       70,
+       29
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

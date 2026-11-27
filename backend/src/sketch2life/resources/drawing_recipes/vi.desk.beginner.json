@@ -1,0 +1,98 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "desk",
+ "level": "beginner",
+ "title_vi": "Vẽ bàn học",
+ "aliases": [
+  "bàn học",
+  "chiếc bàn học",
+  "cái bàn",
+  "bàn",
+  "desk"
+ ],
+ "steps": [
+  {
+   "part": "mặt bàn",
+   "instruction_vi": "Vẽ hình dài làm mặt bàn.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      7,
+      44
+     ],
+     "width": 86,
+     "height": 11
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai hình dài làm chân.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      14,
+      55
+     ],
+     "width": 8,
+     "height": 39
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      78,
+      55
+     ],
+     "width": 8,
+     "height": 39
+    }
+   ]
+  },
+  {
+   "part": "ngăn kéo",
+   "instruction_vi": "Vẽ hình chữ nhật làm ngăn kéo.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      52,
+      55
+     ],
+     "width": 26,
+     "height": 19
+    }
+   ]
+  },
+  {
+   "part": "núm",
+   "instruction_vi": "Vẽ hình tròn nhỏ làm núm.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      65,
+      64.5
+     ],
+     "radius": 4
+    }
+   ]
+  },
+  {
+   "part": "quyển sách",
+   "instruction_vi": "Vẽ hình chữ nhật làm quyển sách.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      22,
+      33
+     ],
+     "width": 26,
+     "height": 11
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,175 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "orange",
+ "level": "simple",
+ "title_vi": "Vẽ quả cam",
+ "aliases": [
+  "quả cam",
+  "cam",
+  "trái cam",
+  "orange"
+ ],
+ "steps": [
+  {
+   "part": "quả cam",
+   "instruction_vi": "Vẽ quả cam tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      38,
+      52
+     ],
+     "radius": 29
+    }
+   ]
+  },
+  {
+   "part": "cuống",
+   "instruction_vi": "Vẽ cuống và lá.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      38,
+      23
+     ],
+     "to": [
+      38,
+      12
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       38,
+       14
+      ],
+      [
+       46,
+       3
+      ],
+      [
+       62,
+       5
+      ],
+      [
+       66,
+       13
+      ],
+      [
+       58,
+       22
+      ],
+      [
+       46,
+       21
+      ],
+      [
+       38,
+       14
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "miếng cam",
+   "instruction_vi": "Vẽ miếng cam cắt ngang.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      72,
+      69
+     ],
+     "radius": 22
+    }
+   ]
+  },
+  {
+   "part": "vỏ trong",
+   "instruction_vi": "Vẽ vòng vỏ trong.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      72,
+      69
+     ],
+     "radius": 17
+    }
+   ]
+  },
+  {
+   "part": "múi",
+   "instruction_vi": "Vẽ ba đường chia múi.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      72,
+      52
+     ],
+     "to": [
+      72,
+      86
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      57,
+      61
+     ],
+     "to": [
+      87,
+      77
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      57,
+      77
+     ],
+     "to": [
+      87,
+      61
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chấm",
+   "instruction_vi": "Chấm ba chấm trên vỏ.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      24,
+      40
+     ],
+     "radius": 1.5
+    },
+    {
+     "shape": "dot",
+     "center": [
+      34,
+      33
+     ],
+     "radius": 1.5
+    },
+    {
+     "shape": "dot",
+     "center": [
+      22,
+      54
+     ],
+     "radius": 1.5
+    }
+   ]
+  }
+ ]
+}

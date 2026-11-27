@@ -1,0 +1,127 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "pillow",
+ "level": "beginner",
+ "title_vi": "Vẽ chiếc gối",
+ "aliases": [
+  "chiếc gối",
+  "gối",
+  "cái gối",
+  "pillow"
+ ],
+ "steps": [
+  {
+   "part": "gối",
+   "instruction_vi": "Vẽ hình chữ nhật to làm gối.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      18,
+      31
+     ],
+     "width": 64,
+     "height": 40
+    }
+   ]
+  },
+  {
+   "part": "góc trên",
+   "instruction_vi": "Vẽ hai góc trên.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      18,
+      31
+     ],
+     "to": [
+      8,
+      20
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      82,
+      31
+     ],
+     "to": [
+      92,
+      20
+     ]
+    }
+   ]
+  },
+  {
+   "part": "góc dưới",
+   "instruction_vi": "Vẽ hai góc dưới.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      18,
+      71
+     ],
+     "to": [
+      8,
+      83
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      82,
+      71
+     ],
+     "to": [
+      92,
+      83
+     ]
+    }
+   ]
+  },
+  {
+   "part": "sọc",
+   "instruction_vi": "Vẽ hai đường sọc.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      34,
+      31
+     ],
+     "to": [
+      34,
+      71
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      66,
+      31
+     ],
+     "to": [
+      66,
+      71
+     ]
+    }
+   ]
+  },
+  {
+   "part": "nút",
+   "instruction_vi": "Vẽ một nút tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      51
+     ],
+     "radius": 7
+    }
+   ]
+  }
+ ]
+}

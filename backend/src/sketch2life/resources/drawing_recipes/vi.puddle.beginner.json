@@ -1,0 +1,100 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "puddle",
+ "level": "beginner",
+ "title_vi": "Vẽ vũng nước",
+ "aliases": [
+  "vũng nước",
+  "vũng nước mưa",
+  "puddle"
+ ],
+ "steps": [
+  {
+   "part": "vũng nước",
+   "instruction_vi": "Vẽ bầu dục dẹt làm vũng nước.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      76
+     ],
+     "rx": 43,
+     "ry": 17
+    }
+   ]
+  },
+  {
+   "part": "gợn sóng",
+   "instruction_vi": "Vẽ bầu dục nhỏ làm gợn sóng.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      77
+     ],
+     "rx": 22,
+     "ry": 8
+    }
+   ]
+  },
+  {
+   "part": "nước bắn",
+   "instruction_vi": "Vẽ hai nét cong làm nước bắn.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      31,
+      61
+     ],
+     "radius": 11,
+     "from_deg": 180,
+     "to_deg": 360
+    },
+    {
+     "shape": "arc",
+     "center": [
+      69,
+      61
+     ],
+     "radius": 11,
+     "from_deg": 180,
+     "to_deg": 360
+    }
+   ]
+  },
+  {
+   "part": "vệt rơi",
+   "instruction_vi": "Vẽ một đường làm vệt rơi.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      60
+     ],
+     "to": [
+      50,
+      38
+     ]
+    }
+   ]
+  },
+  {
+   "part": "giọt nước",
+   "instruction_vi": "Vẽ hình tròn làm giọt nước.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      29
+     ],
+     "radius": 9
+    }
+   ]
+  }
+ ]
+}

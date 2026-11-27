@@ -1,0 +1,208 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "watermelon",
+ "level": "simple",
+ "title_vi": "Vẽ quả dưa hấu",
+ "aliases": [
+  "quả dưa hấu",
+  "dưa hấu",
+  "trái dưa hấu",
+  "watermelon"
+ ],
+ "steps": [
+  {
+   "part": "miếng",
+   "instruction_vi": "Vẽ miếng dưa cong.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       8,
+       34
+      ],
+      [
+       12,
+       68
+      ],
+      [
+       30,
+       84
+      ],
+      [
+       50,
+       84
+      ],
+      [
+       70,
+       84
+      ],
+      [
+       88,
+       68
+      ],
+      [
+       92,
+       34
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mặt cắt",
+   "instruction_vi": "Vẽ mặt cắt nằm ngang.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      8,
+      34
+     ],
+     "to": [
+      92,
+      34
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vỏ trong",
+   "instruction_vi": "Vẽ vỏ trong cong.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       17,
+       34
+      ],
+      [
+       21,
+       60
+      ],
+      [
+       34,
+       73
+      ],
+      [
+       50,
+       73
+      ],
+      [
+       66,
+       73
+      ],
+      [
+       79,
+       60
+      ],
+      [
+       83,
+       34
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "hạt",
+   "instruction_vi": "Chấm ba hạt dưa.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      32,
+      44
+     ],
+     "radius": 2.5
+    },
+    {
+     "shape": "dot",
+     "center": [
+      50,
+      42
+     ],
+     "radius": 2.5
+    },
+    {
+     "shape": "dot",
+     "center": [
+      68,
+      44
+     ],
+     "radius": 2.5
+    }
+   ]
+  },
+  {
+   "part": "hạt nữa",
+   "instruction_vi": "Chấm thêm ba hạt nữa.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      40,
+      58
+     ],
+     "radius": 2.5
+    },
+    {
+     "shape": "dot",
+     "center": [
+      50,
+      62
+     ],
+     "radius": 2.5
+    },
+    {
+     "shape": "dot",
+     "center": [
+      60,
+      58
+     ],
+     "radius": 2.5
+    }
+   ]
+  },
+  {
+   "part": "sọc vỏ",
+   "instruction_vi": "Vẽ ba sọc vỏ ở dưới.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      20,
+      69
+     ],
+     "to": [
+      28,
+      63
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      50,
+      84
+     ],
+     "to": [
+      50,
+      73
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      80,
+      69
+     ],
+     "to": [
+      72,
+      63
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,109 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "comet",
+ "level": "beginner",
+ "title_vi": "Vẽ sao chổi",
+ "aliases": [
+  "sao chổi",
+  "comet"
+ ],
+ "steps": [
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ hình tròn to làm đầu.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      66,
+      64
+     ],
+     "radius": 25
+    }
+   ]
+  },
+  {
+   "part": "đuôi giữa",
+   "instruction_vi": "Vẽ một đường làm đuôi giữa.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      49,
+      46
+     ],
+     "to": [
+      14,
+      10
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đuôi bên",
+   "instruction_vi": "Vẽ hai đường làm đuôi bên.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      42,
+      59
+     ],
+     "to": [
+      8,
+      39
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      62,
+      39
+     ],
+     "to": [
+      42,
+      7
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm hai chấm làm mắt.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      58,
+      58
+     ],
+     "radius": 2.4
+    },
+    {
+     "shape": "dot",
+     "center": [
+      74,
+      58
+     ],
+     "radius": 2.4
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ một nét cong làm miệng.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      66,
+      66
+     ],
+     "radius": 10,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  }
+ ]
+}

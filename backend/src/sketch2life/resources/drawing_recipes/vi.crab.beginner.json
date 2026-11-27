@@ -1,0 +1,160 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "crab",
+ "level": "beginner",
+ "title_vi": "Vẽ con cua",
+ "aliases": [
+  "cua",
+  "con cua",
+  "chú cua",
+  "cua biển",
+  "crab"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ một hình bầu dục to làm thân.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      60
+     ],
+     "rx": 28,
+     "ry": 19
+    }
+   ]
+  },
+  {
+   "part": "tay",
+   "instruction_vi": "Vẽ hai đường thẳng làm tay.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      29,
+      48
+     ],
+     "to": [
+      21,
+      39
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      71,
+      48
+     ],
+     "to": [
+      79,
+      39
+     ]
+    }
+   ]
+  },
+  {
+   "part": "càng",
+   "instruction_vi": "Vẽ hai hình tròn làm càng.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      18,
+      30
+     ],
+     "radius": 10,
+     "start": "bottom"
+    },
+    {
+     "shape": "circle",
+     "center": [
+      82,
+      30
+     ],
+     "radius": 10,
+     "start": "bottom"
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm hai chấm làm mắt.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      41,
+      55
+     ],
+     "radius": 3
+    },
+    {
+     "shape": "dot",
+     "center": [
+      59,
+      55
+     ],
+     "radius": 3
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai đường thẳng làm chân.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      28,
+      71
+     ],
+     "to": [
+      11,
+      84
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      72,
+      71
+     ],
+     "to": [
+      89,
+      84
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân nữa",
+   "instruction_vi": "Vẽ thêm hai chân nữa.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      40,
+      78
+     ],
+     "to": [
+      32,
+      94
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      60,
+      78
+     ],
+     "to": [
+      68,
+      94
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,297 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "doll",
+ "level": "simple",
+ "title_vi": "Vẽ búp bê",
+ "aliases": [
+  "búp bê",
+  "con búp bê",
+  "em búp bê",
+  "doll"
+ ],
+ "steps": [
+  {
+   "part": "váy",
+   "instruction_vi": "Vẽ váy xòe rộng.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       40,
+       50
+      ],
+      [
+       34,
+       64
+      ],
+      [
+       22,
+       76
+      ],
+      [
+       20,
+       84
+      ],
+      [
+       36,
+       91
+      ],
+      [
+       64,
+       91
+      ],
+      [
+       80,
+       84
+      ],
+      [
+       78,
+       76
+      ],
+      [
+       66,
+       64
+      ],
+      [
+       60,
+       50
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ đầu tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      32
+     ],
+     "radius": 18,
+     "start": "bottom"
+    }
+   ]
+  },
+  {
+   "part": "tóc mái",
+   "instruction_vi": "Vẽ tóc mái lượn.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       33,
+       26
+      ],
+      [
+       42,
+       30
+      ],
+      [
+       54,
+       18
+      ],
+      [
+       67,
+       28
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "bím tóc",
+   "instruction_vi": "Vẽ hai bím tóc.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       34,
+       22
+      ],
+      [
+       16,
+       22
+      ],
+      [
+       12,
+       40
+      ],
+      [
+       22,
+       52
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       66,
+       22
+      ],
+      [
+       84,
+       22
+      ],
+      [
+       88,
+       40
+      ],
+      [
+       78,
+       52
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mặt",
+   "instruction_vi": "Vẽ đôi mắt và miệng trên mặt.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      44,
+      33
+     ],
+     "radius": 1.8
+    },
+    {
+     "shape": "dot",
+     "center": [
+      56,
+      33
+     ],
+     "radius": 1.8
+    },
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      37
+     ],
+     "radius": 6,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  },
+  {
+   "part": "tay",
+   "instruction_vi": "Vẽ hai tay.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       40,
+       54
+      ],
+      [
+       28,
+       56
+      ],
+      [
+       22,
+       62
+      ],
+      [
+       18,
+       70
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       60,
+       54
+      ],
+      [
+       72,
+       56
+      ],
+      [
+       78,
+       62
+      ],
+      [
+       82,
+       70
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "nút áo",
+   "instruction_vi": "Vẽ hai nút áo.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      61
+     ],
+     "radius": 3
+    },
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      73
+     ],
+     "radius": 3
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai chân đi giày.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       42,
+       90
+      ],
+      [
+       42,
+       95
+      ],
+      [
+       34,
+       95
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       58,
+       90
+      ],
+      [
+       58,
+       95
+      ],
+      [
+       66,
+       95
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

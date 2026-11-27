@@ -1,0 +1,308 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "corn",
+ "level": "simple",
+ "title_vi": "Vẽ bắp ngô",
+ "aliases": [
+  "bắp ngô",
+  "ngô",
+  "bắp",
+  "trái bắp",
+  "corn"
+ ],
+ "steps": [
+  {
+   "part": "bắp",
+   "instruction_vi": "Vẽ hai nét làm bắp.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       6
+      ],
+      [
+       28,
+       10
+      ],
+      [
+       26,
+       58
+      ],
+      [
+       40,
+       80
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       6
+      ],
+      [
+       72,
+       10
+      ],
+      [
+       74,
+       58
+      ],
+      [
+       60,
+       80
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "hàng dọc",
+   "instruction_vi": "Vẽ ba hàng dọc.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      7
+     ],
+     "to": [
+      50,
+      80
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       42,
+       10
+      ],
+      [
+       36,
+       30
+      ],
+      [
+       36,
+       56
+      ],
+      [
+       42,
+       76
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       58,
+       10
+      ],
+      [
+       64,
+       30
+      ],
+      [
+       64,
+       56
+      ],
+      [
+       58,
+       76
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "hàng ngang",
+   "instruction_vi": "Vẽ ba hàng ngang.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      33,
+      24
+     ],
+     "to": [
+      67,
+      24
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      31,
+      42
+     ],
+     "to": [
+      69,
+      42
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      32,
+      60
+     ],
+     "to": [
+      68,
+      60
+     ]
+    }
+   ]
+  },
+  {
+   "part": "lá bẹ",
+   "instruction_vi": "Vẽ hai lá bẹ.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       33,
+       48
+      ],
+      [
+       14,
+       58
+      ],
+      [
+       12,
+       84
+      ],
+      [
+       46,
+       92
+      ],
+      [
+       42,
+       78
+      ],
+      [
+       36,
+       62
+      ],
+      [
+       33,
+       48
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       67,
+       48
+      ],
+      [
+       86,
+       58
+      ],
+      [
+       88,
+       84
+      ],
+      [
+       54,
+       92
+      ],
+      [
+       58,
+       78
+      ],
+      [
+       64,
+       62
+      ],
+      [
+       67,
+       48
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "gốc",
+   "instruction_vi": "Vẽ gốc bắp ngắn.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       45,
+       91
+      ],
+      [
+       44,
+       96
+      ],
+      [
+       56,
+       96
+      ],
+      [
+       55,
+       91
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "râu",
+   "instruction_vi": "Vẽ râu ngô xoăn.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       48,
+       7
+      ],
+      [
+       40,
+       4
+      ],
+      [
+       34,
+       12
+      ],
+      [
+       28,
+       8
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       52,
+       7
+      ],
+      [
+       60,
+       4
+      ],
+      [
+       66,
+       12
+      ],
+      [
+       72,
+       8
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

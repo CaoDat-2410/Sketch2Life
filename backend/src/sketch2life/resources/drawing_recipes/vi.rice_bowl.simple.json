@@ -1,0 +1,272 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "rice_bowl",
+ "level": "simple",
+ "title_vi": "Vẽ bát cơm",
+ "aliases": [
+  "bát cơm",
+  "chén cơm",
+  "bát cơm trắng",
+  "rice"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ thân bát.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       12,
+       54
+      ],
+      [
+       14,
+       78
+      ],
+      [
+       30,
+       86
+      ],
+      [
+       50,
+       86
+      ],
+      [
+       70,
+       86
+      ],
+      [
+       86,
+       78
+      ],
+      [
+       88,
+       54
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ miệng bát.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      12,
+      54
+     ],
+     "to": [
+      88,
+      54
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cơm",
+   "instruction_vi": "Vẽ cơm đầy bát.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       18,
+       54
+      ],
+      [
+       14,
+       38
+      ],
+      [
+       30,
+       34
+      ],
+      [
+       36,
+       38
+      ],
+      [
+       36,
+       22
+      ],
+      [
+       58,
+       20
+      ],
+      [
+       62,
+       32
+      ],
+      [
+       74,
+       24
+      ],
+      [
+       86,
+       38
+      ],
+      [
+       82,
+       54
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đế",
+   "instruction_vi": "Vẽ đế bát.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       36,
+       85
+      ],
+      [
+       34,
+       94
+      ],
+      [
+       66,
+       94
+      ],
+      [
+       64,
+       85
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "hoa văn",
+   "instruction_vi": "Vẽ hoa văn răng cưa.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       18,
+       64
+      ],
+      [
+       28,
+       73
+      ],
+      [
+       38,
+       64
+      ],
+      [
+       48,
+       73
+      ],
+      [
+       58,
+       64
+      ],
+      [
+       68,
+       73
+      ],
+      [
+       80,
+       64
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đũa",
+   "instruction_vi": "Vẽ đôi đũa.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      68,
+      31
+     ],
+     "to": [
+      90,
+      8
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      76,
+      35
+     ],
+     "to": [
+      95,
+      19
+     ]
+    }
+   ]
+  },
+  {
+   "part": "hơi nóng",
+   "instruction_vi": "Vẽ làn hơi nóng.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       34,
+       31
+      ],
+      [
+       26,
+       24
+      ],
+      [
+       40,
+       16
+      ],
+      [
+       33,
+       6
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "hạt",
+   "instruction_vi": "Chấm ba hạt cơm.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      32,
+      46
+     ],
+     "radius": 1.5
+    },
+    {
+     "shape": "dot",
+     "center": [
+      48,
+      36
+     ],
+     "radius": 1.5
+    },
+    {
+     "shape": "dot",
+     "center": [
+      66,
+      45
+     ],
+     "radius": 1.5
+    }
+   ]
+  }
+ ]
+}

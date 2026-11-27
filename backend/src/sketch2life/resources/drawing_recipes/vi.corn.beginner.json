@@ -1,0 +1,159 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "corn",
+ "level": "beginner",
+ "title_vi": "Vẽ bắp ngô",
+ "aliases": [
+  "bắp ngô",
+  "ngô",
+  "bắp",
+  "trái bắp",
+  "corn"
+ ],
+ "steps": [
+  {
+   "part": "bắp",
+   "instruction_vi": "Vẽ bầu dục dài làm bắp.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      45
+     ],
+     "rx": 20,
+     "ry": 38
+    }
+   ]
+  },
+  {
+   "part": "hàng dọc",
+   "instruction_vi": "Vẽ hai hàng dọc.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      40,
+      12
+     ],
+     "to": [
+      40,
+      78
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      60,
+      12
+     ],
+     "to": [
+      60,
+      78
+     ]
+    }
+   ]
+  },
+  {
+   "part": "hàng ngang",
+   "instruction_vi": "Vẽ hai hàng ngang.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      32,
+      32
+     ],
+     "to": [
+      68,
+      32
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      31,
+      53
+     ],
+     "to": [
+      69,
+      53
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cuống",
+   "instruction_vi": "Vẽ một đường làm cuống.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      83
+     ],
+     "to": [
+      50,
+      96
+     ]
+    }
+   ]
+  },
+  {
+   "part": "lá trái",
+   "instruction_vi": "Vẽ hai nét cong làm lá trái.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      50
+     ],
+     "radius": 32,
+     "from_deg": 90,
+     "to_deg": 180,
+     "radius_y": 40
+    },
+    {
+     "shape": "arc",
+     "center": [
+      18,
+      90
+     ],
+     "radius": 32,
+     "from_deg": 270,
+     "to_deg": 360,
+     "radius_y": 40
+    }
+   ]
+  },
+  {
+   "part": "lá phải",
+   "instruction_vi": "Vẽ hai nét cong làm lá phải.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      50
+     ],
+     "radius": 32,
+     "from_deg": 90,
+     "to_deg": 0,
+     "radius_y": 40
+    },
+    {
+     "shape": "arc",
+     "center": [
+      82,
+      90
+     ],
+     "radius": 32,
+     "from_deg": 270,
+     "to_deg": 180,
+     "radius_y": 40
+    }
+   ]
+  }
+ ]
+}

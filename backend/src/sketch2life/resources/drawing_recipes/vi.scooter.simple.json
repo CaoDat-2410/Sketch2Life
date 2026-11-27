@@ -1,0 +1,231 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "scooter",
+ "level": "simple",
+ "title_vi": "Vẽ xe máy",
+ "aliases": [
+  "xe máy",
+  "chiếc xe máy",
+  "xe gắn máy",
+  "scooter"
+ ],
+ "steps": [
+  {
+   "part": "bánh sau",
+   "instruction_vi": "Vẽ bánh sau và trục giữa.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      22,
+      72
+     ],
+     "radius": 17
+    },
+    {
+     "shape": "circle",
+     "center": [
+      22,
+      72
+     ],
+     "radius": 5
+    }
+   ]
+  },
+  {
+   "part": "thân xe",
+   "instruction_vi": "Vẽ thân xe phía sau.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       20,
+       56
+      ],
+      [
+       24,
+       47
+      ],
+      [
+       44,
+       47
+      ],
+      [
+       49,
+       58
+      ],
+      [
+       51,
+       68
+      ],
+      [
+       56,
+       70
+      ],
+      [
+       64,
+       70
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "yên xe",
+   "instruction_vi": "Vẽ yên xe êm.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       25,
+       51
+      ],
+      [
+       26,
+       40
+      ],
+      [
+       45,
+       40
+      ],
+      [
+       47,
+       54
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu xe",
+   "instruction_vi": "Vẽ đầu xe cong phía trước.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       64,
+       70
+      ],
+      [
+       69,
+       56
+      ],
+      [
+       66,
+       44
+      ],
+      [
+       66,
+       33
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       66,
+       33
+      ],
+      [
+       79,
+       40
+      ],
+      [
+       84,
+       48
+      ],
+      [
+       82,
+       58
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "bánh trước",
+   "instruction_vi": "Vẽ bánh trước và trục giữa.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      78,
+      72
+     ],
+     "radius": 17
+    },
+    {
+     "shape": "circle",
+     "center": [
+      78,
+      72
+     ],
+     "radius": 5
+    }
+   ]
+  },
+  {
+   "part": "tay lái",
+   "instruction_vi": "Vẽ tay lái.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      66,
+      33
+     ],
+     "to": [
+      61,
+      22
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      61,
+      22
+     ],
+     "to": [
+      49,
+      22
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đèn",
+   "instruction_vi": "Vẽ đèn tròn phía trước.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      72,
+      31
+     ],
+     "radius": 5
+    }
+   ]
+  },
+  {
+   "part": "đường",
+   "instruction_vi": "Vẽ một đường thẳng làm đường.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      5,
+      91
+     ],
+     "to": [
+      95,
+      91
+     ]
+    }
+   ]
+  }
+ ]
+}

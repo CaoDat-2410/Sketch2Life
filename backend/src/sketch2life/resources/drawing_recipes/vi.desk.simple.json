@@ -1,0 +1,219 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "desk",
+ "level": "simple",
+ "title_vi": "Vẽ bàn học",
+ "aliases": [
+  "bàn học",
+  "chiếc bàn học",
+  "cái bàn",
+  "bàn",
+  "desk"
+ ],
+ "steps": [
+  {
+   "part": "mặt bàn",
+   "instruction_vi": "Vẽ mặt bàn nghiêng.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       6,
+       40
+      ],
+      [
+       18,
+       30
+      ],
+      [
+       82,
+       30
+      ],
+      [
+       94,
+       40
+      ],
+      [
+       6,
+       40
+      ]
+     ]
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      6,
+      40
+     ],
+     "width": 88,
+     "height": 7
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai chân bàn.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       12,
+       47
+      ],
+      [
+       12,
+       94
+      ],
+      [
+       19,
+       94
+      ],
+      [
+       19,
+       47
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       88,
+       47
+      ],
+      [
+       88,
+       94
+      ],
+      [
+       81,
+       94
+      ],
+      [
+       81,
+       47
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "ngăn kéo",
+   "instruction_vi": "Vẽ hai ngăn kéo.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      55,
+      47
+     ],
+     "width": 26,
+     "height": 11
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      55,
+      58
+     ],
+     "width": 26,
+     "height": 11
+    }
+   ]
+  },
+  {
+   "part": "núm",
+   "instruction_vi": "Vẽ hai núm kéo.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      68,
+      52.5
+     ],
+     "radius": 3
+    },
+    {
+     "shape": "circle",
+     "center": [
+      68,
+      63.5
+     ],
+     "radius": 3
+    }
+   ]
+  },
+  {
+   "part": "sách",
+   "instruction_vi": "Vẽ chồng sách trên bàn.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      20,
+      22
+     ],
+     "width": 24,
+     "height": 8
+    }
+   ]
+  },
+  {
+   "part": "ống bút",
+   "instruction_vi": "Vẽ ống bút trên bàn.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       62,
+       30
+      ],
+      [
+       61,
+       15
+      ],
+      [
+       77,
+       15
+      ],
+      [
+       76,
+       30
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "bút",
+   "instruction_vi": "Vẽ hai cây bút.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      66,
+      15
+     ],
+     "to": [
+      62,
+      6
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      72,
+      15
+     ],
+     "to": [
+      77,
+      6
+     ]
+    }
+   ]
+  }
+ ]
+}

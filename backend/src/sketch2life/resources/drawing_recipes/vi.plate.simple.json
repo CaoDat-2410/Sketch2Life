@@ -1,0 +1,195 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "plate",
+ "level": "simple",
+ "title_vi": "Vẽ chiếc đĩa",
+ "aliases": [
+  "chiếc đĩa",
+  "đĩa",
+  "cái đĩa",
+  "plate"
+ ],
+ "steps": [
+  {
+   "part": "đĩa",
+   "instruction_vi": "Vẽ đĩa tròn to.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      52
+     ],
+     "radius": 38
+    }
+   ]
+  },
+  {
+   "part": "lòng đĩa",
+   "instruction_vi": "Vẽ vòng lòng đĩa.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      52
+     ],
+     "radius": 28
+    }
+   ]
+  },
+  {
+   "part": "trứng",
+   "instruction_vi": "Vẽ trứng ốp có lòng đỏ.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       38,
+       40
+      ],
+      [
+       54,
+       32
+      ],
+      [
+       66,
+       44
+      ],
+      [
+       58,
+       54
+      ],
+      [
+       50,
+       64
+      ],
+      [
+       30,
+       58
+      ],
+      [
+       38,
+       40
+      ]
+     ]
+    },
+    {
+     "shape": "circle",
+     "center": [
+      49,
+      48
+     ],
+     "radius": 5
+    }
+   ]
+  },
+  {
+   "part": "rau",
+   "instruction_vi": "Vẽ ba miếng rau.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      40,
+      68
+     ],
+     "radius": 5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      53,
+      70
+     ],
+     "radius": 5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      65,
+      63
+     ],
+     "radius": 5
+    }
+   ]
+  },
+  {
+   "part": "nĩa",
+   "instruction_vi": "Vẽ chiếc nĩa bên trái.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       5,
+       24
+      ],
+      [
+       5,
+       40
+      ],
+      [
+       11,
+       40
+      ],
+      [
+       11,
+       24
+      ]
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      8,
+      24
+     ],
+     "to": [
+      8,
+      90
+     ]
+    }
+   ]
+  },
+  {
+   "part": "dao",
+   "instruction_vi": "Vẽ con dao bên phải.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       92,
+       22
+      ],
+      [
+       86,
+       34
+      ],
+      [
+       86,
+       50
+      ],
+      [
+       92,
+       56
+      ]
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      92,
+      22
+     ],
+     "to": [
+      92,
+      90
+     ]
+    }
+   ]
+  }
+ ]
+}

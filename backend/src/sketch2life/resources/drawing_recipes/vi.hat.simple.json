@@ -1,0 +1,184 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "hat",
+ "level": "simple",
+ "title_vi": "Vẽ chiếc mũ",
+ "aliases": [
+  "chiếc mũ",
+  "mũ",
+  "cái mũ",
+  "nón",
+  "cái nón",
+  "hat"
+ ],
+ "steps": [
+  {
+   "part": "chóp",
+   "instruction_vi": "Vẽ chóp mũ và vành rộng.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       26,
+       62
+      ],
+      [
+       24,
+       18
+      ],
+      [
+       76,
+       18
+      ],
+      [
+       74,
+       62
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       26,
+       62
+      ],
+      [
+       2,
+       64
+      ],
+      [
+       4,
+       84
+      ],
+      [
+       50,
+       84
+      ],
+      [
+       96,
+       84
+      ],
+      [
+       98,
+       64
+      ],
+      [
+       74,
+       62
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "dải",
+   "instruction_vi": "Vẽ dải mũ cong.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       27,
+       51
+      ],
+      [
+       40,
+       58
+      ],
+      [
+       60,
+       58
+      ],
+      [
+       73,
+       51
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "nơ",
+   "instruction_vi": "Vẽ nơ hai cánh.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       66,
+       55
+      ],
+      [
+       53,
+       47
+      ],
+      [
+       53,
+       63
+      ]
+     ]
+    },
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       66,
+       55
+      ],
+      [
+       79,
+       47
+      ],
+      [
+       79,
+       63
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "nút nơ",
+   "instruction_vi": "Vẽ nút nơ tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      66,
+      55
+     ],
+     "radius": 3.5
+    }
+   ]
+  },
+  {
+   "part": "đường may",
+   "instruction_vi": "Vẽ đường may trên vành.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       14,
+       71
+      ],
+      [
+       30,
+       78
+      ],
+      [
+       70,
+       78
+      ],
+      [
+       86,
+       71
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

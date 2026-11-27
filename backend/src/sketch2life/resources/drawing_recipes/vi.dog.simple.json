@@ -1,0 +1,309 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "dog",
+ "level": "simple",
+ "title_vi": "Vẽ chú chó",
+ "aliases": [
+  "chó",
+  "con chó",
+  "chú chó",
+  "cún",
+  "cún con",
+  "chó nhà",
+  "dog"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ một vòng cong lớn làm thân.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       20,
+       52
+      ],
+      [
+       34,
+       43
+      ],
+      [
+       54,
+       43
+      ],
+      [
+       64,
+       52
+      ],
+      [
+       70,
+       60
+      ],
+      [
+       68,
+       69
+      ],
+      [
+       60,
+       72
+      ],
+      [
+       46,
+       77
+      ],
+      [
+       28,
+       75
+      ],
+      [
+       22,
+       68
+      ],
+      [
+       17,
+       63
+      ],
+      [
+       17,
+       56
+      ],
+      [
+       20,
+       52
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ đầu có mõm dài phía trước.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       60,
+       49
+      ],
+      [
+       58,
+       27
+      ],
+      [
+       77,
+       20
+      ],
+      [
+       83,
+       32
+      ],
+      [
+       94,
+       33
+      ],
+      [
+       96,
+       46
+      ],
+      [
+       86,
+       48
+      ],
+      [
+       80,
+       57
+      ],
+      [
+       69,
+       56
+      ],
+      [
+       63,
+       51
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tai",
+   "instruction_vi": "Vẽ một chiếc tai cụp.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       67,
+       28
+      ],
+      [
+       54,
+       25
+      ],
+      [
+       50,
+       47
+      ],
+      [
+       61,
+       47
+      ],
+      [
+       67,
+       46
+      ],
+      [
+       70,
+       37
+      ],
+      [
+       70,
+       30
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm mắt, mũi và vẽ miệng.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      76,
+      35
+     ],
+     "radius": 1.4
+    },
+    {
+     "shape": "dot",
+     "center": [
+      91,
+      39
+     ],
+     "radius": 2.2
+    },
+    {
+     "shape": "arc",
+     "center": [
+      84,
+      45
+     ],
+     "radius": 5,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  },
+  {
+   "part": "chân trước",
+   "instruction_vi": "Vẽ hai chân trước.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       56,
+       73
+      ],
+      [
+       56,
+       91
+      ],
+      [
+       62,
+       91
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       63,
+       71
+      ],
+      [
+       67,
+       91
+      ],
+      [
+       73,
+       91
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân sau",
+   "instruction_vi": "Vẽ hai chân sau.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       28,
+       74
+      ],
+      [
+       26,
+       91
+      ],
+      [
+       32,
+       91
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       40,
+       76
+      ],
+      [
+       40,
+       91
+      ],
+      [
+       46,
+       91
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ đuôi cong vểnh lên.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       20,
+       52
+      ],
+      [
+       9,
+       50
+      ],
+      [
+       6,
+       40
+      ],
+      [
+       12,
+       30
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

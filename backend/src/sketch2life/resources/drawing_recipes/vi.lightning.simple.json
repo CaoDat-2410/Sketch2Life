@@ -1,0 +1,198 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "lightning",
+ "level": "simple",
+ "title_vi": "Vẽ tia chớp",
+ "aliases": [
+  "tia chớp",
+  "sấm sét",
+  "sét",
+  "tia sét",
+  "lightning"
+ ],
+ "steps": [
+  {
+   "part": "viền mây",
+   "instruction_vi": "Vẽ viền mây đen.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       22,
+       46
+      ],
+      [
+       5,
+       46
+      ],
+      [
+       7,
+       26
+      ],
+      [
+       23,
+       28
+      ],
+      [
+       22,
+       10
+      ],
+      [
+       45,
+       7
+      ],
+      [
+       52,
+       19
+      ],
+      [
+       60,
+       4
+      ],
+      [
+       83,
+       11
+      ],
+      [
+       78,
+       28
+      ],
+      [
+       94,
+       27
+      ],
+      [
+       96,
+       46
+      ],
+      [
+       78,
+       46
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đáy mây",
+   "instruction_vi": "Vẽ đáy mây nằm ngang.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      22,
+      46
+     ],
+     "to": [
+      78,
+      46
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tia chớp",
+   "instruction_vi": "Vẽ tia chớp ngoằn ngoèo.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       52,
+       46
+      ],
+      [
+       34,
+       70
+      ],
+      [
+       48,
+       70
+      ],
+      [
+       38,
+       95
+      ],
+      [
+       68,
+       62
+      ],
+      [
+       54,
+       62
+      ],
+      [
+       64,
+       46
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm hai mắt.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      40,
+      28
+     ],
+     "radius": 2.4
+    },
+    {
+     "shape": "dot",
+     "center": [
+      60,
+      28
+     ],
+     "radius": 2.4
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ miệng tròn ngạc nhiên.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      35
+     ],
+     "radius": 4
+    }
+   ]
+  },
+  {
+   "part": "mưa",
+   "instruction_vi": "Vẽ hai hạt mưa rơi.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      25,
+      49
+     ],
+     "to": [
+      20,
+      64
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      75,
+      49
+     ],
+     "to": [
+      80,
+      64
+     ]
+    }
+   ]
+  }
+ ]
+}

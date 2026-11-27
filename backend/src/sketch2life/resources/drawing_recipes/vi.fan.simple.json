@@ -1,0 +1,249 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "fan",
+ "level": "simple",
+ "title_vi": "Vẽ chiếc quạt",
+ "aliases": [
+  "chiếc quạt",
+  "quạt",
+  "cái quạt",
+  "quạt máy",
+  "fan"
+ ],
+ "steps": [
+  {
+   "part": "lồng",
+   "instruction_vi": "Vẽ lồng quạt tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      37
+     ],
+     "radius": 31
+    }
+   ]
+  },
+  {
+   "part": "viền",
+   "instruction_vi": "Vẽ vòng viền bên trong.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      37
+     ],
+     "radius": 27
+    }
+   ]
+  },
+  {
+   "part": "trục",
+   "instruction_vi": "Vẽ trục tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      37
+     ],
+     "radius": 5
+    }
+   ]
+  },
+  {
+   "part": "cánh",
+   "instruction_vi": "Vẽ ba cánh quạt.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       37
+      ],
+      [
+       36,
+       29
+      ],
+      [
+       38,
+       12
+      ],
+      [
+       50,
+       12
+      ],
+      [
+       62,
+       12
+      ],
+      [
+       64,
+       29
+      ],
+      [
+       50,
+       37
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       37
+      ],
+      [
+       64,
+       30
+      ],
+      [
+       79,
+       41
+      ],
+      [
+       73,
+       51
+      ],
+      [
+       67,
+       61
+      ],
+      [
+       51,
+       52
+      ],
+      [
+       50,
+       37
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       37
+      ],
+      [
+       36,
+       30
+      ],
+      [
+       21,
+       41
+      ],
+      [
+       27,
+       51
+      ],
+      [
+       33,
+       61
+      ],
+      [
+       49,
+       52
+      ],
+      [
+       50,
+       37
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ chân đứng.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       46,
+       68
+      ],
+      [
+       44,
+       83
+      ],
+      [
+       56,
+       83
+      ],
+      [
+       54,
+       68
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đế",
+   "instruction_vi": "Vẽ đế quạt.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       27,
+       93
+      ],
+      [
+       28,
+       80
+      ],
+      [
+       72,
+       80
+      ],
+      [
+       73,
+       93
+      ]
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      27,
+      93
+     ],
+     "to": [
+      73,
+      93
+     ]
+    }
+   ]
+  },
+  {
+   "part": "nút",
+   "instruction_vi": "Chấm hai nút bấm.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      43,
+      88
+     ],
+     "radius": 2.5
+    },
+    {
+     "shape": "dot",
+     "center": [
+      57,
+      88
+     ],
+     "radius": 2.5
+    }
+   ]
+  }
+ ]
+}

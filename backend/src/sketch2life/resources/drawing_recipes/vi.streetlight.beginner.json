@@ -1,0 +1,116 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "streetlight",
+ "level": "beginner",
+ "title_vi": "Vẽ cột đèn đường",
+ "aliases": [
+  "cột đèn đường",
+  "đèn đường",
+  "cột đèn",
+  "streetlight"
+ ],
+ "steps": [
+  {
+   "part": "chụp",
+   "instruction_vi": "Vẽ nửa bầu dục làm chụp.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      28
+     ],
+     "radius": 23,
+     "from_deg": 180,
+     "to_deg": 360,
+     "radius_y": 20
+    },
+    {
+     "shape": "line",
+     "from": [
+      27,
+      28
+     ],
+     "to": [
+      73,
+      28
+     ]
+    }
+   ]
+  },
+  {
+   "part": "bóng đèn",
+   "instruction_vi": "Vẽ nửa hình tròn làm bóng đèn.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      28
+     ],
+     "radius": 11,
+     "from_deg": 0,
+     "to_deg": 180
+    }
+   ]
+  },
+  {
+   "part": "cột",
+   "instruction_vi": "Vẽ hình chữ nhật cao làm cột.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      45,
+      39
+     ],
+     "width": 10,
+     "height": 51
+    }
+   ]
+  },
+  {
+   "part": "đế",
+   "instruction_vi": "Vẽ hình dẹt làm đế.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      35,
+      86
+     ],
+     "width": 30,
+     "height": 9
+    }
+   ]
+  },
+  {
+   "part": "tia sáng",
+   "instruction_vi": "Vẽ hai tia sáng.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      27,
+      30
+     ],
+     "to": [
+      13,
+      50
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      73,
+      30
+     ],
+     "to": [
+      87,
+      50
+     ]
+    }
+   ]
+  }
+ ]
+}

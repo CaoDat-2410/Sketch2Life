@@ -1,0 +1,116 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "car",
+ "level": "beginner",
+ "title_vi": "Vẽ ô tô",
+ "aliases": [
+  "ô tô",
+  "chiếc ô tô",
+  "xe ô tô",
+  "xe hơi",
+  "ô tô đồ chơi",
+  "car"
+ ],
+ "steps": [
+  {
+   "part": "thân xe",
+   "instruction_vi": "Vẽ hình chữ nhật dài làm thân xe.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      6,
+      52
+     ],
+     "width": 88,
+     "height": 22
+    }
+   ]
+  },
+  {
+   "part": "mui xe",
+   "instruction_vi": "Vẽ nửa hình tròn làm mui xe.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      52
+     ],
+     "radius": 29,
+     "from_deg": 180,
+     "to_deg": 360,
+     "radius_y": 26
+    }
+   ]
+  },
+  {
+   "part": "bánh xe",
+   "instruction_vi": "Vẽ hai hình tròn làm bánh xe.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      27,
+      76
+     ],
+     "radius": 11
+    },
+    {
+     "shape": "circle",
+     "center": [
+      73,
+      76
+     ],
+     "radius": 11
+    }
+   ]
+  },
+  {
+   "part": "cửa sổ",
+   "instruction_vi": "Vẽ hai hình vuông làm cửa sổ.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      32,
+      33
+     ],
+     "width": 15,
+     "height": 15
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      53,
+      33
+     ],
+     "width": 15,
+     "height": 15
+    }
+   ]
+  },
+  {
+   "part": "đèn",
+   "instruction_vi": "Vẽ hai hình tròn làm đèn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      13,
+      61
+     ],
+     "radius": 4.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      87,
+      61
+     ],
+     "radius": 4.5
+    }
+   ]
+  }
+ ]
+}

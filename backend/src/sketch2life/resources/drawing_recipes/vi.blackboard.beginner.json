@@ -1,0 +1,115 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "blackboard",
+ "level": "beginner",
+ "title_vi": "Vẽ bảng lớp",
+ "aliases": [
+  "bảng lớp",
+  "chiếc bảng lớp",
+  "bảng đen",
+  "cái bảng",
+  "blackboard"
+ ],
+ "steps": [
+  {
+   "part": "khung",
+   "instruction_vi": "Vẽ hình chữ nhật to làm khung.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      7,
+      14
+     ],
+     "width": 86,
+     "height": 58
+    }
+   ]
+  },
+  {
+   "part": "lòng bảng",
+   "instruction_vi": "Vẽ hình chữ nhật làm lòng bảng.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      15,
+      22
+     ],
+     "width": 70,
+     "height": 42
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai đường làm chân.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      28,
+      72
+     ],
+     "to": [
+      19,
+      94
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      72,
+      72
+     ],
+     "to": [
+      81,
+      94
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chữ",
+   "instruction_vi": "Vẽ hai dòng chữ.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      24,
+      36
+     ],
+     "to": [
+      52,
+      36
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      24,
+      50
+     ],
+     "to": [
+      46,
+      50
+     ]
+    }
+   ]
+  },
+  {
+   "part": "hình tròn",
+   "instruction_vi": "Vẽ một hình tròn trên bảng.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      68,
+      44
+     ],
+     "radius": 9
+    }
+   ]
+  }
+ ]
+}

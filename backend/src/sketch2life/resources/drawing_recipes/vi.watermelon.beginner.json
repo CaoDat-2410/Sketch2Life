@@ -1,0 +1,117 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "watermelon",
+ "level": "beginner",
+ "title_vi": "Vẽ quả dưa hấu",
+ "aliases": [
+  "quả dưa hấu",
+  "dưa hấu",
+  "trái dưa hấu",
+  "watermelon"
+ ],
+ "steps": [
+  {
+   "part": "miếng dưa",
+   "instruction_vi": "Vẽ nửa bầu dục làm miếng dưa.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      34
+     ],
+     "radius": 43,
+     "from_deg": 0,
+     "to_deg": 180,
+     "radius_y": 50
+    },
+    {
+     "shape": "line",
+     "from": [
+      7,
+      34
+     ],
+     "to": [
+      93,
+      34
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vỏ",
+   "instruction_vi": "Vẽ nét cong làm vỏ trong.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      34
+     ],
+     "radius": 35,
+     "from_deg": 0,
+     "to_deg": 180,
+     "radius_y": 40
+    }
+   ]
+  },
+  {
+   "part": "hạt",
+   "instruction_vi": "Chấm hai hạt dưa.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      38,
+      46
+     ],
+     "radius": 3
+    },
+    {
+     "shape": "dot",
+     "center": [
+      62,
+      46
+     ],
+     "radius": 3
+    }
+   ]
+  },
+  {
+   "part": "hạt nữa",
+   "instruction_vi": "Chấm thêm hai hạt nữa.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      32,
+      58
+     ],
+     "radius": 3
+    },
+    {
+     "shape": "dot",
+     "center": [
+      68,
+      58
+     ],
+     "radius": 3
+    }
+   ]
+  },
+  {
+   "part": "hạt giữa",
+   "instruction_vi": "Chấm một hạt giữa.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      50,
+      59
+     ],
+     "radius": 3
+    }
+   ]
+  }
+ ]
+}

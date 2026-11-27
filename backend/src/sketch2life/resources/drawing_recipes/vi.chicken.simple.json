@@ -1,0 +1,325 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "chicken",
+ "level": "simple",
+ "title_vi": "Vẽ con gà",
+ "aliases": [
+  "gà",
+  "con gà",
+  "gà con",
+  "gà mái",
+  "gà trống",
+  "con gà mái",
+  "con gà trống",
+  "chicken",
+  "rooster",
+  "hen"
+ ],
+ "steps": [
+  {
+   "part": "bụng",
+   "instruction_vi": "Vẽ một nét cong dài làm bụng.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       25,
+       47
+      ],
+      [
+       17,
+       71
+      ],
+      [
+       24,
+       83
+      ],
+      [
+       47,
+       83
+      ],
+      [
+       69,
+       83
+      ],
+      [
+       78,
+       57
+      ],
+      [
+       75,
+       43
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ vòng cung tròn làm đầu.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       75,
+       43
+      ],
+      [
+       84,
+       27
+      ],
+      [
+       81,
+       18
+      ],
+      [
+       67,
+       18
+      ],
+      [
+       55,
+       19
+      ],
+      [
+       52,
+       28
+      ],
+      [
+       55,
+       43
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "lưng",
+   "instruction_vi": "Nối đầu với bụng bằng nét cong làm lưng.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       55,
+       43
+      ],
+      [
+       46,
+       51
+      ],
+      [
+       36,
+       52
+      ],
+      [
+       25,
+       47
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ ba chiếc lông cong làm đuôi.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       25,
+       47
+      ],
+      [
+       17,
+       44
+      ],
+      [
+       11,
+       38
+      ],
+      [
+       10,
+       28
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       25,
+       48
+      ],
+      [
+       17,
+       49
+      ],
+      [
+       9,
+       46
+      ],
+      [
+       6,
+       38
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       23,
+       52
+      ],
+      [
+       17,
+       56
+      ],
+      [
+       12,
+       57
+      ],
+      [
+       7,
+       53
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mào",
+   "instruction_vi": "Vẽ mào trên đầu, thêm mỏ nhọn và mắt.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       61,
+       19
+      ],
+      [
+       58,
+       7
+      ],
+      [
+       66,
+       8
+      ],
+      [
+       68,
+       17
+      ],
+      [
+       70,
+       7
+      ],
+      [
+       79,
+       9
+      ],
+      [
+       75,
+       21
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       79,
+       28
+      ],
+      [
+       92,
+       33
+      ],
+      [
+       79,
+       37
+      ]
+     ]
+    },
+    {
+     "shape": "dot",
+     "center": [
+      70,
+      29
+     ],
+     "radius": 1.4
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai chân có bàn chân.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       41,
+       83
+      ],
+      [
+       41,
+       93
+      ],
+      [
+       48,
+       93
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       56,
+       82
+      ],
+      [
+       57,
+       93
+      ],
+      [
+       64,
+       93
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cánh",
+   "instruction_vi": "Vẽ một nét cong làm cánh.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       35,
+       57
+      ],
+      [
+       44,
+       71
+      ],
+      [
+       55,
+       71
+      ],
+      [
+       64,
+       57
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

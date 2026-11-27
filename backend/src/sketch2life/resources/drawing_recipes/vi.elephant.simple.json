@@ -1,0 +1,328 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "elephant",
+ "level": "simple",
+ "title_vi": "Vẽ con voi",
+ "aliases": [
+  "voi",
+  "con voi",
+  "chú voi",
+  "voi con",
+  "elephant"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ lưng và bụng thành thân to.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       60,
+       34
+      ],
+      [
+       46,
+       22
+      ],
+      [
+       14,
+       24
+      ],
+      [
+       14,
+       50
+      ],
+      [
+       14,
+       66
+      ],
+      [
+       20,
+       72
+      ],
+      [
+       28,
+       72
+      ],
+      [
+       40,
+       76
+      ],
+      [
+       54,
+       74
+      ],
+      [
+       62,
+       68
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ một nét cong làm đầu.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       60,
+       34
+      ],
+      [
+       66,
+       18
+      ],
+      [
+       88,
+       20
+      ],
+      [
+       88,
+       50
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vòi",
+   "instruction_vi": "Vẽ chiếc vòi dài cong lên.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       88,
+       50
+      ],
+      [
+       88,
+       64
+      ],
+      [
+       84,
+       80
+      ],
+      [
+       95,
+       80
+      ]
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      95,
+      80
+     ],
+     "to": [
+      95,
+      88
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       95,
+       88
+      ],
+      [
+       76,
+       92
+      ],
+      [
+       76,
+       72
+      ],
+      [
+       75,
+       58
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cằm",
+   "instruction_vi": "Nối cằm, chấm mắt, thêm chiếc ngà.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       75,
+       58
+      ],
+      [
+       70,
+       66
+      ],
+      [
+       66,
+       68
+      ],
+      [
+       62,
+       68
+      ]
+     ]
+    },
+    {
+     "shape": "dot",
+     "center": [
+      77,
+      36
+     ],
+     "radius": 2
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       73,
+       63
+      ],
+      [
+       70,
+       76
+      ],
+      [
+       76,
+       80
+      ],
+      [
+       80,
+       74
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tai",
+   "instruction_vi": "Vẽ một chiếc tai to.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       62,
+       34
+      ],
+      [
+       48,
+       32
+      ],
+      [
+       44,
+       56
+      ],
+      [
+       55,
+       60
+      ],
+      [
+       66,
+       62
+      ],
+      [
+       72,
+       46
+      ],
+      [
+       66,
+       36
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân trước",
+   "instruction_vi": "Vẽ chân trước.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       48,
+       74
+      ],
+      [
+       48,
+       92
+      ],
+      [
+       58,
+       92
+      ],
+      [
+       58,
+       72
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân sau",
+   "instruction_vi": "Vẽ chân sau.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       20,
+       72
+      ],
+      [
+       20,
+       92
+      ],
+      [
+       31,
+       92
+      ],
+      [
+       31,
+       73
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ đuôi nhỏ ở phía sau.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       14,
+       48
+      ],
+      [
+       5,
+       52
+      ],
+      [
+       9,
+       62
+      ],
+      [
+       5,
+       71
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

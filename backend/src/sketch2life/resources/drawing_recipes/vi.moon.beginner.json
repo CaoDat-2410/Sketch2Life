@@ -1,0 +1,116 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "moon",
+ "level": "beginner",
+ "title_vi": "Vẽ mặt trăng",
+ "aliases": [
+  "mặt trăng",
+  "trăng",
+  "ông trăng",
+  "moon"
+ ],
+ "steps": [
+  {
+   "part": "lưng trăng",
+   "instruction_vi": "Vẽ một vòng cong lớn làm lưng trăng.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      50
+     ],
+     "radius": 38,
+     "from_deg": 60,
+     "to_deg": 300
+    }
+   ]
+  },
+  {
+   "part": "bụng trăng",
+   "instruction_vi": "Vẽ nét cong trong làm bụng trăng.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      82,
+      50
+     ],
+     "radius": 35.4,
+     "from_deg": 111.6,
+     "to_deg": 248.4
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm một chấm làm mắt.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      29,
+      42
+     ],
+     "radius": 3
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ một nét cong làm miệng.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      31,
+      55
+     ],
+     "radius": 8,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  },
+  {
+   "part": "sao",
+   "instruction_vi": "Vẽ hai tam giác làm sao.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       71,
+       17
+      ],
+      [
+       85,
+       17
+      ],
+      [
+       78,
+       5
+      ]
+     ]
+    },
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       71,
+       83
+      ],
+      [
+       85,
+       83
+      ],
+      [
+       78,
+       71
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

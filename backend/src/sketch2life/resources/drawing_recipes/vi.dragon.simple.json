@@ -1,0 +1,380 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "dragon",
+ "level": "simple",
+ "title_vi": "Vẽ con rồng",
+ "aliases": [
+  "con rồng",
+  "rồng",
+  "rồng con",
+  "chú rồng",
+  "dragon"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ thân rồi vẽ cổ và đầu.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       20,
+       62
+      ],
+      [
+       22,
+       46
+      ],
+      [
+       48,
+       44
+      ],
+      [
+       60,
+       54
+      ],
+      [
+       70,
+       62
+      ],
+      [
+       66,
+       80
+      ],
+      [
+       50,
+       82
+      ],
+      [
+       32,
+       84
+      ],
+      [
+       18,
+       76
+      ],
+      [
+       20,
+       62
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       49
+      ],
+      [
+       62,
+       40
+      ],
+      [
+       58,
+       18
+      ],
+      [
+       74,
+       18
+      ],
+      [
+       90,
+       16
+      ],
+      [
+       96,
+       28
+      ],
+      [
+       92,
+       36
+      ],
+      [
+       86,
+       44
+      ],
+      [
+       76,
+       36
+      ],
+      [
+       74,
+       42
+      ],
+      [
+       72,
+       50
+      ],
+      [
+       72,
+       58
+      ],
+      [
+       66,
+       64
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Vẽ mắt, mũi và miệng.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      78,
+      27
+     ],
+     "radius": 4
+    },
+    {
+     "shape": "dot",
+     "center": [
+      90,
+      28
+     ],
+     "radius": 1.5
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       79,
+       36
+      ],
+      [
+       83,
+       40
+      ],
+      [
+       88,
+       39
+      ],
+      [
+       91,
+       35
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "sừng",
+   "instruction_vi": "Vẽ hai chiếc sừng.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       68,
+       19
+      ],
+      [
+       63,
+       7
+      ],
+      [
+       74,
+       18
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       77,
+       18
+      ],
+      [
+       82,
+       6
+      ],
+      [
+       84,
+       20
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cánh",
+   "instruction_vi": "Vẽ cánh có răng cưa.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       30,
+       53
+      ],
+      [
+       14,
+       42
+      ],
+      [
+       12,
+       24
+      ],
+      [
+       24,
+       13
+      ],
+      [
+       26,
+       26
+      ],
+      [
+       36,
+       20
+      ],
+      [
+       37,
+       33
+      ],
+      [
+       46,
+       28
+      ],
+      [
+       49,
+       40
+      ],
+      [
+       46,
+       50
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ đuôi dài nhọn.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       20,
+       66
+      ],
+      [
+       8,
+       66
+      ],
+      [
+       4,
+       78
+      ],
+      [
+       6,
+       90
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       22,
+       76
+      ],
+      [
+       16,
+       80
+      ],
+      [
+       12,
+       88
+      ],
+      [
+       6,
+       90
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai chân mập.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       30,
+       80
+      ],
+      [
+       28,
+       93
+      ],
+      [
+       41,
+       93
+      ],
+      [
+       40,
+       83
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       50,
+       82
+      ],
+      [
+       50,
+       93
+      ],
+      [
+       63,
+       93
+      ],
+      [
+       61,
+       80
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "bụng",
+   "instruction_vi": "Vẽ vạch bụng cong.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       33,
+       66
+      ],
+      [
+       38,
+       76
+      ],
+      [
+       52,
+       76
+      ],
+      [
+       61,
+       66
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

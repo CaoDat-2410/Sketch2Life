@@ -1,0 +1,137 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "teddy_bear",
+ "level": "beginner",
+ "title_vi": "Vẽ gấu bông",
+ "aliases": [
+  "gấu bông",
+  "con gấu bông",
+  "chú gấu bông",
+  "teddy bear"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ bầu dục to làm thân.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      69
+     ],
+     "rx": 24,
+     "ry": 20
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ hình tròn làm đầu.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      33
+     ],
+     "radius": 19,
+     "start": "bottom"
+    }
+   ]
+  },
+  {
+   "part": "tai",
+   "instruction_vi": "Vẽ hai hình tròn làm tai.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      31,
+      17
+     ],
+     "radius": 9
+    },
+    {
+     "shape": "circle",
+     "center": [
+      69,
+      17
+     ],
+     "radius": 9
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm hai chấm làm mắt.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      43,
+      28
+     ],
+     "radius": 2.8
+    },
+    {
+     "shape": "dot",
+     "center": [
+      57,
+      28
+     ],
+     "radius": 2.8
+    }
+   ]
+  },
+  {
+   "part": "mõm",
+   "instruction_vi": "Vẽ mõm tròn, chấm mũi.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      41
+     ],
+     "rx": 10,
+     "ry": 8
+    },
+    {
+     "shape": "dot",
+     "center": [
+      50,
+      38
+     ],
+     "radius": 2.8
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai bầu dục làm chân.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      34,
+      87
+     ],
+     "rx": 13,
+     "ry": 8,
+     "start": "right"
+    },
+    {
+     "shape": "oval",
+     "center": [
+      66,
+      87
+     ],
+     "rx": 13,
+     "ry": 8,
+     "start": "right"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,122 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "airplane",
+ "level": "beginner",
+ "title_vi": "Vẽ máy bay",
+ "aliases": [
+  "máy bay",
+  "chiếc máy bay",
+  "phi cơ",
+  "airplane",
+  "plane"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ một hình bầu dục dài làm thân.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      52
+     ],
+     "rx": 42,
+     "ry": 12,
+     "start": "left"
+    }
+   ]
+  },
+  {
+   "part": "cánh",
+   "instruction_vi": "Vẽ tam giác lớn làm cánh.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       38,
+       63
+      ],
+      [
+       60,
+       63
+      ],
+      [
+       28,
+       90
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cánh trên",
+   "instruction_vi": "Vẽ tam giác làm cánh trên.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       42,
+       41
+      ],
+      [
+       60,
+       41
+      ],
+      [
+       32,
+       16
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ tam giác làm đuôi.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       11,
+       49
+      ],
+      [
+       7,
+       24
+      ],
+      [
+       28,
+       42
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cửa sổ",
+   "instruction_vi": "Vẽ hai hình tròn làm cửa sổ.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      62,
+      50
+     ],
+     "radius": 4.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      76,
+      50
+     ],
+     "radius": 4.5
+    }
+   ]
+  }
+ ]
+}

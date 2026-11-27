@@ -1,0 +1,292 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "cat",
+ "level": "simple",
+ "title_vi": "Vẽ con mèo",
+ "aliases": [
+  "mèo",
+  "con mèo",
+  "chú mèo",
+  "mèo con",
+  "mèo mướp",
+  "cat"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ một nét cong dài làm thân.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       38,
+       46
+      ],
+      [
+       24,
+       60
+      ],
+      [
+       20,
+       92
+      ],
+      [
+       50,
+       92
+      ],
+      [
+       80,
+       92
+      ],
+      [
+       76,
+       60
+      ],
+      [
+       62,
+       46
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ hình bầu dục làm đầu.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      32
+     ],
+     "rx": 19,
+     "ry": 16
+    }
+   ]
+  },
+  {
+   "part": "tai",
+   "instruction_vi": "Vẽ hai tai nhọn.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       34,
+       22
+      ],
+      [
+       32,
+       6
+      ],
+      [
+       45,
+       17
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       66,
+       22
+      ],
+      [
+       68,
+       6
+      ],
+      [
+       55,
+       17
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm hai mắt và vẽ mũi tam giác.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      43,
+      30
+     ],
+     "radius": 2
+    },
+    {
+     "shape": "dot",
+     "center": [
+      57,
+      30
+     ],
+     "radius": 2
+    },
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       47,
+       35
+      ],
+      [
+       53,
+       35
+      ],
+      [
+       50,
+       40
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ miệng cong sang hai bên.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       40
+      ],
+      [
+       50,
+       45
+      ],
+      [
+       45,
+       46
+      ],
+      [
+       43,
+       43
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       40
+      ],
+      [
+       50,
+       45
+      ],
+      [
+       55,
+       46
+      ],
+      [
+       57,
+       43
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "râu",
+   "instruction_vi": "Vẽ râu dài ở hai bên.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       22,
+       32
+      ],
+      [
+       38,
+       38
+      ],
+      [
+       23,
+       43
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       78,
+       32
+      ],
+      [
+       62,
+       38
+      ],
+      [
+       77,
+       43
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai chân trước.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      43,
+      68
+     ],
+     "to": [
+      43,
+      91
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      57,
+      68
+     ],
+     "to": [
+      57,
+      91
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ một nét cong làm đuôi.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       71,
+       80
+      ],
+      [
+       86,
+       86
+      ],
+      [
+       94,
+       72
+      ],
+      [
+       86,
+       62
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

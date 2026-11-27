@@ -1,0 +1,137 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "windmill",
+ "level": "beginner",
+ "title_vi": "Vẽ chong chóng gió",
+ "aliases": [
+  "chong chóng gió",
+  "chong chóng",
+  "cái chong chóng",
+  "windmill"
+ ],
+ "steps": [
+  {
+   "part": "cánh trên",
+   "instruction_vi": "Vẽ tam giác làm cánh trên.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       50,
+       40
+      ],
+      [
+       50,
+       8
+      ],
+      [
+       76,
+       20
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cánh phải",
+   "instruction_vi": "Vẽ tam giác làm cánh phải.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       50,
+       40
+      ],
+      [
+       82,
+       40
+      ],
+      [
+       70,
+       66
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cánh dưới",
+   "instruction_vi": "Vẽ tam giác làm cánh dưới.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       50,
+       40
+      ],
+      [
+       50,
+       72
+      ],
+      [
+       24,
+       60
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cánh trái",
+   "instruction_vi": "Vẽ tam giác làm cánh trái.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       50,
+       40
+      ],
+      [
+       18,
+       40
+      ],
+      [
+       30,
+       14
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "trục",
+   "instruction_vi": "Vẽ hình tròn nhỏ làm trục.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      40
+     ],
+     "radius": 6
+    }
+   ]
+  },
+  {
+   "part": "cán",
+   "instruction_vi": "Vẽ một đường thẳng làm cán.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      46
+     ],
+     "to": [
+      50,
+      95
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,146 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "dragonfly",
+ "level": "beginner",
+ "title_vi": "Vẽ chuồn chuồn",
+ "aliases": [
+  "chuồn chuồn",
+  "con chuồn chuồn",
+  "chú chuồn chuồn",
+  "dragonfly"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ một hình bầu dục dài làm thân.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      62
+     ],
+     "rx": 7,
+     "ry": 31
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ một hình tròn làm đầu.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      21
+     ],
+     "radius": 10,
+     "start": "bottom"
+    }
+   ]
+  },
+  {
+   "part": "cánh trên",
+   "instruction_vi": "Vẽ hai bầu dục làm cánh trên.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      26,
+      42
+     ],
+     "rx": 18,
+     "ry": 8,
+     "start": "right"
+    },
+    {
+     "shape": "oval",
+     "center": [
+      74,
+      42
+     ],
+     "rx": 18,
+     "ry": 8,
+     "start": "left"
+    }
+   ]
+  },
+  {
+   "part": "cánh dưới",
+   "instruction_vi": "Vẽ hai bầu dục làm cánh dưới.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      29,
+      60
+     ],
+     "rx": 15,
+     "ry": 7,
+     "start": "right"
+    },
+    {
+     "shape": "oval",
+     "center": [
+      71,
+      60
+     ],
+     "rx": 15,
+     "ry": 7,
+     "start": "left"
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm hai chấm làm mắt.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      46,
+      19
+     ],
+     "radius": 2.4
+    },
+    {
+     "shape": "dot",
+     "center": [
+      54,
+      19
+     ],
+     "radius": 2.4
+    }
+   ]
+  },
+  {
+   "part": "vạch",
+   "instruction_vi": "Vẽ hai vạch trên thân.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      44,
+      72
+     ],
+     "to": [
+      56,
+      72
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      45,
+      82
+     ],
+     "to": [
+      55,
+      82
+     ]
+    }
+   ]
+  }
+ ]
+}

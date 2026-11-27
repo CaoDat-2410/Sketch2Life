@@ -1,0 +1,229 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "shirt",
+ "level": "simple",
+ "title_vi": "Vẽ chiếc áo",
+ "aliases": [
+  "chiếc áo",
+  "áo",
+  "cái áo",
+  "áo sơ mi",
+  "áo phông",
+  "shirt"
+ ],
+ "steps": [
+  {
+   "part": "áo",
+   "instruction_vi": "Vẽ viền chiếc áo.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       36,
+       18
+      ],
+      [
+       22,
+       22
+      ],
+      [
+       6,
+       42
+      ],
+      [
+       18,
+       53
+      ],
+      [
+       28,
+       44
+      ],
+      [
+       28,
+       90
+      ],
+      [
+       72,
+       90
+      ],
+      [
+       72,
+       44
+      ],
+      [
+       82,
+       53
+      ],
+      [
+       94,
+       42
+      ],
+      [
+       78,
+       22
+      ],
+      [
+       64,
+       18
+      ],
+      [
+       36,
+       18
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cổ",
+   "instruction_vi": "Vẽ hai cổ áo nhọn.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       36,
+       18
+      ],
+      [
+       42,
+       33
+      ],
+      [
+       50,
+       23
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       64,
+       18
+      ],
+      [
+       58,
+       33
+      ],
+      [
+       50,
+       23
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "nẹp",
+   "instruction_vi": "Vẽ đường nẹp giữa.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      23
+     ],
+     "to": [
+      50,
+      90
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cúc",
+   "instruction_vi": "Vẽ ba chiếc cúc.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      42
+     ],
+     "radius": 3
+    },
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      58
+     ],
+     "radius": 3
+    },
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      74
+     ],
+     "radius": 3
+    }
+   ]
+  },
+  {
+   "part": "túi",
+   "instruction_vi": "Vẽ túi ngực.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       56,
+       48
+      ],
+      [
+       56,
+       58
+      ],
+      [
+       61,
+       62
+      ],
+      [
+       67,
+       58
+      ],
+      [
+       67,
+       48
+      ],
+      [
+       56,
+       48
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "gấu tay",
+   "instruction_vi": "Vẽ hai đường gấu tay.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      11,
+      37
+     ],
+     "to": [
+      23,
+      48
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      89,
+      37
+     ],
+     "to": [
+      77,
+      48
+     ]
+    }
+   ]
+  }
+ ]
+}

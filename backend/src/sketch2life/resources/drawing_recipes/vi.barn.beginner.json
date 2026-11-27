@@ -1,0 +1,141 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "barn",
+ "level": "beginner",
+ "title_vi": "Vẽ nhà kho",
+ "aliases": [
+  "nhà kho",
+  "nhà kho nông trại",
+  "barn"
+ ],
+ "steps": [
+  {
+   "part": "tường",
+   "instruction_vi": "Vẽ hình chữ nhật to làm tường.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      17,
+      46
+     ],
+     "width": 66,
+     "height": 47
+    }
+   ]
+  },
+  {
+   "part": "mái dưới",
+   "instruction_vi": "Vẽ hai đường làm mái dưới.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      17,
+      46
+     ],
+     "to": [
+      28,
+      24
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      83,
+      46
+     ],
+     "to": [
+      72,
+      24
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mái trên",
+   "instruction_vi": "Vẽ hai đường làm mái trên.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      28,
+      24
+     ],
+     "to": [
+      50,
+      10
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      72,
+      24
+     ],
+     "to": [
+      50,
+      10
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cửa",
+   "instruction_vi": "Vẽ hình chữ nhật làm cửa.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      35,
+      62
+     ],
+     "width": 30,
+     "height": 31
+    }
+   ]
+  },
+  {
+   "part": "chéo",
+   "instruction_vi": "Vẽ hai đường chéo trên cửa.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      35,
+      62
+     ],
+     "to": [
+      65,
+      93
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      65,
+      62
+     ],
+     "to": [
+      35,
+      93
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cửa sổ",
+   "instruction_vi": "Vẽ hình tròn làm cửa sổ.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      36
+     ],
+     "radius": 9
+    }
+   ]
+  }
+ ]
+}

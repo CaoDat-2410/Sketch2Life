@@ -1,0 +1,214 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "rock",
+ "level": "simple",
+ "title_vi": "Vẽ hòn đá",
+ "aliases": [
+  "hòn đá",
+  "đá",
+  "cục đá",
+  "rock"
+ ],
+ "steps": [
+  {
+   "part": "viền đá",
+   "instruction_vi": "Vẽ viền đá góc cạnh.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       14,
+       80
+      ],
+      [
+       18,
+       58
+      ],
+      [
+       34,
+       40
+      ],
+      [
+       56,
+       36
+      ],
+      [
+       74,
+       46
+      ],
+      [
+       84,
+       66
+      ],
+      [
+       80,
+       80
+      ],
+      [
+       14,
+       80
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đá nhỏ",
+   "instruction_vi": "Vẽ thêm một viên đá nhỏ.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       62,
+       80
+      ],
+      [
+       66,
+       68
+      ],
+      [
+       78,
+       62
+      ],
+      [
+       90,
+       68
+      ],
+      [
+       94,
+       80
+      ],
+      [
+       62,
+       80
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mặt đá",
+   "instruction_vi": "Vẽ các cạnh trên mặt đá.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       34,
+       40
+      ],
+      [
+       40,
+       55
+      ],
+      [
+       56,
+       36
+      ]
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      40,
+      55
+     ],
+     "to": [
+      34,
+      80
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       40,
+       55
+      ],
+      [
+       60,
+       58
+      ],
+      [
+       74,
+       46
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vết nứt",
+   "instruction_vi": "Vẽ một vết nứt.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       56,
+       66
+      ],
+      [
+       52,
+       72
+      ],
+      [
+       58,
+       77
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mặt đất",
+   "instruction_vi": "Vẽ một đường làm mặt đất.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      5,
+      82
+     ],
+     "to": [
+      95,
+      82
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cỏ",
+   "instruction_vi": "Vẽ bụi cỏ bên trái.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       5,
+       82
+      ],
+      [
+       8,
+       70
+      ],
+      [
+       11,
+       80
+      ],
+      [
+       15,
+       68
+      ],
+      [
+       18,
+       82
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

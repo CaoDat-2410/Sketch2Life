@@ -1,0 +1,257 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "apron",
+ "level": "simple",
+ "title_vi": "Vẽ chiếc tạp dề",
+ "aliases": [
+  "tạp dề",
+  "chiếc tạp dề",
+  "apron"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ thân tạp dề.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       38,
+       20
+      ],
+      [
+       62,
+       20
+      ],
+      [
+       62,
+       36
+      ],
+      [
+       76,
+       46
+      ],
+      [
+       80,
+       92
+      ],
+      [
+       20,
+       92
+      ],
+      [
+       24,
+       46
+      ],
+      [
+       38,
+       36
+      ],
+      [
+       38,
+       20
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "dây cổ",
+   "instruction_vi": "Vẽ dây cổ để đeo.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       38,
+       20
+      ],
+      [
+       34,
+       3
+      ],
+      [
+       66,
+       3
+      ],
+      [
+       62,
+       20
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "dây eo",
+   "instruction_vi": "Vẽ hai dây eo.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       24,
+       48
+      ],
+      [
+       14,
+       46
+      ],
+      [
+       6,
+       54
+      ],
+      [
+       6,
+       68
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       76,
+       48
+      ],
+      [
+       86,
+       46
+      ],
+      [
+       94,
+       54
+      ],
+      [
+       94,
+       68
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "túi",
+   "instruction_vi": "Vẽ túi rộng.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       34,
+       60
+      ],
+      [
+       34,
+       76
+      ],
+      [
+       40,
+       82
+      ],
+      [
+       60,
+       82
+      ],
+      [
+       66,
+       76
+      ],
+      [
+       66,
+       60
+      ],
+      [
+       34,
+       60
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vạch túi",
+   "instruction_vi": "Vẽ vạch túi ở giữa.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      60
+     ],
+     "to": [
+      50,
+      82
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tim",
+   "instruction_vi": "Vẽ trái tim trên ngực.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       38
+      ],
+      [
+       40,
+       31
+      ],
+      [
+       45,
+       24
+      ],
+      [
+       50,
+       30
+      ],
+      [
+       55,
+       24
+      ],
+      [
+       60,
+       31
+      ],
+      [
+       50,
+       38
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "viền",
+   "instruction_vi": "Vẽ viền lượn ở gấu.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       22,
+       86
+      ],
+      [
+       40,
+       82
+      ],
+      [
+       60,
+       90
+      ],
+      [
+       78,
+       86
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

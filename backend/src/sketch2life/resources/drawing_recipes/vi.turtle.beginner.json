@@ -1,0 +1,148 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "turtle",
+ "level": "beginner",
+ "title_vi": "Vẽ con rùa",
+ "aliases": [
+  "rùa",
+  "con rùa",
+  "rùa biển",
+  "con rùa biển",
+  "rùa xanh",
+  "turtle"
+ ],
+ "steps": [
+  {
+   "part": "mai",
+   "instruction_vi": "Vẽ nửa hình tròn to làm mai.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      46,
+      62
+     ],
+     "radius": 30,
+     "from_deg": 180,
+     "to_deg": 360,
+     "radius_y": 26
+    },
+    {
+     "shape": "line",
+     "from": [
+      76,
+      62
+     ],
+     "to": [
+      16,
+      62
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ một hình tròn nhỏ làm đầu.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      86,
+      58
+     ],
+     "radius": 10,
+     "start": "left"
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm một chấm làm mắt.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      89,
+      55
+     ],
+     "radius": 1.4
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai hình bầu dục làm chân.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      31,
+      71
+     ],
+     "rx": 7,
+     "ry": 9
+    },
+    {
+     "shape": "oval",
+     "center": [
+      61,
+      71
+     ],
+     "rx": 7,
+     "ry": 9
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ tam giác nhỏ làm đuôi.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       16,
+       62
+      ],
+      [
+       5,
+       66
+      ],
+      [
+       17,
+       71
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vạch",
+   "instruction_vi": "Vẽ hai vạch thẳng trên mai.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      34,
+      39
+     ],
+     "to": [
+      34,
+      62
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      58,
+      39
+     ],
+     "to": [
+      58,
+      62
+     ]
+    }
+   ]
+  }
+ ]
+}

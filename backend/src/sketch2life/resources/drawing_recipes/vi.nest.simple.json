@@ -1,0 +1,225 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "nest",
+ "level": "simple",
+ "title_vi": "Vẽ tổ chim",
+ "aliases": [
+  "tổ chim",
+  "cái tổ chim",
+  "nest"
+ ],
+ "steps": [
+  {
+   "part": "tổ",
+   "instruction_vi": "Vẽ thân tổ hình bát.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       12,
+       54
+      ],
+      [
+       14,
+       82
+      ],
+      [
+       32,
+       90
+      ],
+      [
+       50,
+       90
+      ],
+      [
+       68,
+       90
+      ],
+      [
+       86,
+       82
+      ],
+      [
+       88,
+       54
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "miệng tổ",
+   "instruction_vi": "Vẽ miệng tổ cong.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       12,
+       54
+      ],
+      [
+       26,
+       64
+      ],
+      [
+       74,
+       64
+      ],
+      [
+       88,
+       54
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "trứng",
+   "instruction_vi": "Vẽ ba quả trứng.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      34,
+      47
+     ],
+     "rx": 9,
+     "ry": 13
+    },
+    {
+     "shape": "oval",
+     "center": [
+      51,
+      44
+     ],
+     "rx": 9,
+     "ry": 15
+    },
+    {
+     "shape": "oval",
+     "center": [
+      67,
+      48
+     ],
+     "rx": 8,
+     "ry": 12
+    }
+   ]
+  },
+  {
+   "part": "rơm",
+   "instruction_vi": "Vẽ hai cọng rơm đan nhau.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       18,
+       66
+      ],
+      [
+       34,
+       72
+      ],
+      [
+       54,
+       82
+      ],
+      [
+       76,
+       70
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       24,
+       80
+      ],
+      [
+       44,
+       72
+      ],
+      [
+       66,
+       70
+      ],
+      [
+       84,
+       62
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cành",
+   "instruction_vi": "Vẽ cành cây đỡ tổ.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      5,
+      91
+     ],
+     "to": [
+      95,
+      91
+     ]
+    }
+   ]
+  },
+  {
+   "part": "lá",
+   "instruction_vi": "Vẽ hai chiếc lá nhỏ.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       14,
+       91
+      ],
+      [
+       4,
+       90
+      ],
+      [
+       5,
+       78
+      ],
+      [
+       14,
+       91
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       86,
+       91
+      ],
+      [
+       96,
+       90
+      ],
+      [
+       95,
+       78
+      ],
+      [
+       86,
+       91
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

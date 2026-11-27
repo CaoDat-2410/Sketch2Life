@@ -1,0 +1,89 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "plate",
+ "level": "beginner",
+ "title_vi": "Vẽ chiếc đĩa",
+ "aliases": [
+  "chiếc đĩa",
+  "đĩa",
+  "cái đĩa",
+  "plate"
+ ],
+ "steps": [
+  {
+   "part": "đĩa",
+   "instruction_vi": "Vẽ bầu dục to làm đĩa.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      54
+     ],
+     "rx": 44,
+     "ry": 31
+    }
+   ]
+  },
+  {
+   "part": "lòng đĩa",
+   "instruction_vi": "Vẽ bầu dục nhỏ làm lòng đĩa.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      54
+     ],
+     "rx": 31,
+     "ry": 20
+    }
+   ]
+  },
+  {
+   "part": "thức ăn",
+   "instruction_vi": "Vẽ hai hình tròn làm thức ăn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      40,
+      53
+     ],
+     "radius": 8
+    },
+    {
+     "shape": "circle",
+     "center": [
+      60,
+      58
+     ],
+     "radius": 8
+    }
+   ]
+  },
+  {
+   "part": "lá rau",
+   "instruction_vi": "Vẽ tam giác làm lá rau.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       50,
+       47
+      ],
+      [
+       60,
+       39
+      ],
+      [
+       66,
+       50
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

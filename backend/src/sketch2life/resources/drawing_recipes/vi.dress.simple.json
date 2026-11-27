@@ -1,0 +1,244 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "dress",
+ "level": "simple",
+ "title_vi": "Vẽ chiếc váy",
+ "aliases": [
+  "chiếc váy",
+  "váy",
+  "cái váy",
+  "váy đầm",
+  "đầm",
+  "dress"
+ ],
+ "steps": [
+  {
+   "part": "chân váy",
+   "instruction_vi": "Vẽ chân váy xòe.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       36,
+       42
+      ],
+      [
+       28,
+       62
+      ],
+      [
+       16,
+       80
+      ],
+      [
+       14,
+       90
+      ],
+      [
+       30,
+       97
+      ],
+      [
+       70,
+       97
+      ],
+      [
+       86,
+       90
+      ],
+      [
+       84,
+       80
+      ],
+      [
+       72,
+       62
+      ],
+      [
+       64,
+       42
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đai",
+   "instruction_vi": "Vẽ đai lưng.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      36,
+      36
+     ],
+     "width": 28,
+     "height": 7
+    }
+   ]
+  },
+  {
+   "part": "thân trên",
+   "instruction_vi": "Vẽ thân trên của váy.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       36,
+       36
+      ],
+      [
+       40,
+       14
+      ],
+      [
+       44,
+       22
+      ],
+      [
+       56,
+       22
+      ],
+      [
+       60,
+       14
+      ],
+      [
+       64,
+       36
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tay",
+   "instruction_vi": "Vẽ hai tay phồng.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       40,
+       15
+      ],
+      [
+       24,
+       10
+      ],
+      [
+       22,
+       30
+      ],
+      [
+       37,
+       30
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       60,
+       15
+      ],
+      [
+       76,
+       10
+      ],
+      [
+       78,
+       30
+      ],
+      [
+       63,
+       30
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "nơ",
+   "instruction_vi": "Vẽ nơ ở đai.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       50,
+       40
+      ],
+      [
+       41,
+       35
+      ],
+      [
+       41,
+       46
+      ]
+     ]
+    },
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       50,
+       40
+      ],
+      [
+       59,
+       35
+      ],
+      [
+       59,
+       46
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "nếp",
+   "instruction_vi": "Vẽ ba nếp váy.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      42,
+      52
+     ],
+     "to": [
+      32,
+      92
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      50,
+      52
+     ],
+     "to": [
+      50,
+      95
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      58,
+      52
+     ],
+     "to": [
+      68,
+      92
+     ]
+    }
+   ]
+  }
+ ]
+}

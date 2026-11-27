@@ -1,0 +1,307 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "sparrow",
+ "level": "simple",
+ "title_vi": "Vẽ chim sẻ",
+ "aliases": [
+  "chim sẻ",
+  "con chim sẻ",
+  "sẻ",
+  "con sẻ",
+  "sparrow"
+ ],
+ "steps": [
+  {
+   "part": "bụng",
+   "instruction_vi": "Vẽ một nét cong làm bụng.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       24,
+       56
+      ],
+      [
+       24,
+       78
+      ],
+      [
+       44,
+       83
+      ],
+      [
+       58,
+       80
+      ],
+      [
+       76,
+       76
+      ],
+      [
+       82,
+       60
+      ],
+      [
+       76,
+       46
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ đầu tròn rồi nối lưng.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       76,
+       46
+      ],
+      [
+       80,
+       30
+      ],
+      [
+       66,
+       20
+      ],
+      [
+       52,
+       30
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       52,
+       30
+      ],
+      [
+       44,
+       36
+      ],
+      [
+       36,
+       50
+      ],
+      [
+       24,
+       56
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mỏ",
+   "instruction_vi": "Vẽ mỏ nhọn và chấm mắt.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       76,
+       35
+      ],
+      [
+       91,
+       41
+      ],
+      [
+       77,
+       46
+      ]
+     ]
+    },
+    {
+     "shape": "dot",
+     "center": [
+      67,
+      38
+     ],
+     "radius": 1.8
+    }
+   ]
+  },
+  {
+   "part": "chỏm đầu",
+   "instruction_vi": "Vẽ một nét cong làm chỏm đầu.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       55,
+       29
+      ],
+      [
+       61,
+       35
+      ],
+      [
+       69,
+       34
+      ],
+      [
+       74,
+       31
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cánh",
+   "instruction_vi": "Vẽ một chiếc cánh.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       36,
+       54
+      ],
+      [
+       44,
+       76
+      ],
+      [
+       66,
+       72
+      ],
+      [
+       67,
+       57
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       36,
+       54
+      ],
+      [
+       48,
+       49
+      ],
+      [
+       60,
+       50
+      ],
+      [
+       67,
+       57
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vạch cánh",
+   "instruction_vi": "Vẽ hai vạch cánh.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      44,
+      58
+     ],
+     "to": [
+      55,
+      66
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      52,
+      55
+     ],
+     "to": [
+      62,
+      62
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ đuôi ở phía sau.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       24,
+       56
+      ],
+      [
+       6,
+       58
+      ],
+      [
+       11,
+       65
+      ],
+      [
+       7,
+       72
+      ],
+      [
+       28,
+       70
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai chân nhỏ.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       44,
+       81
+      ],
+      [
+       42,
+       93
+      ],
+      [
+       50,
+       93
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       58,
+       80
+      ],
+      [
+       60,
+       93
+      ],
+      [
+       68,
+       93
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

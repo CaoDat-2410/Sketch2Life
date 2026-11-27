@@ -1,0 +1,257 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "kettle",
+ "level": "simple",
+ "title_vi": "Vẽ ấm đun nước",
+ "aliases": [
+  "ấm đun nước",
+  "chiếc ấm đun nước",
+  "ấm nước",
+  "cái ấm",
+  "ấm",
+  "kettle"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ thân ấm bầu.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       22,
+       40
+      ],
+      [
+       8,
+       60
+      ],
+      [
+       14,
+       88
+      ],
+      [
+       44,
+       88
+      ],
+      [
+       74,
+       88
+      ],
+      [
+       80,
+       60
+      ],
+      [
+       66,
+       40
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "nắp",
+   "instruction_vi": "Vẽ nắp và viền nắp.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       22,
+       40
+      ],
+      [
+       30,
+       28
+      ],
+      [
+       58,
+       28
+      ],
+      [
+       66,
+       40
+      ]
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      22,
+      40
+     ],
+     "to": [
+      66,
+      40
+     ]
+    }
+   ]
+  },
+  {
+   "part": "núm",
+   "instruction_vi": "Vẽ núm tròn trên nắp.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      44,
+      26
+     ],
+     "radius": 5
+    }
+   ]
+  },
+  {
+   "part": "vòi",
+   "instruction_vi": "Vẽ vòi ấm cong.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       73,
+       54
+      ],
+      [
+       82,
+       50
+      ],
+      [
+       84,
+       38
+      ],
+      [
+       94,
+       34
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       94,
+       34
+      ],
+      [
+       96,
+       42
+      ],
+      [
+       88,
+       60
+      ],
+      [
+       75,
+       71
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "quai",
+   "instruction_vi": "Vẽ quai ấm vòng cao.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       27,
+       37
+      ],
+      [
+       16,
+       4
+      ],
+      [
+       68,
+       4
+      ],
+      [
+       61,
+       37
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "hơi nước",
+   "instruction_vi": "Vẽ làn hơi nước.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       93,
+       33
+      ],
+      [
+       84,
+       25
+      ],
+      [
+       96,
+       16
+      ],
+      [
+       88,
+       6
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "hoa văn",
+   "instruction_vi": "Vẽ hai đường hoa văn.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       20,
+       64
+      ],
+      [
+       32,
+       72
+      ],
+      [
+       56,
+       72
+      ],
+      [
+       68,
+       64
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       24,
+       75
+      ],
+      [
+       36,
+       82
+      ],
+      [
+       52,
+       82
+      ],
+      [
+       64,
+       75
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

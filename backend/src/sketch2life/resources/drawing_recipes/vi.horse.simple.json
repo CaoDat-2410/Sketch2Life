@@ -1,0 +1,392 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "horse",
+ "level": "simple",
+ "title_vi": "Vẽ con ngựa",
+ "aliases": [
+  "ngựa",
+  "con ngựa",
+  "chú ngựa",
+  "ngựa con",
+  "horse"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ một vòng cong lớn làm thân.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       22,
+       50
+      ],
+      [
+       32,
+       42
+      ],
+      [
+       48,
+       44
+      ],
+      [
+       58,
+       46
+      ],
+      [
+       70,
+       48
+      ],
+      [
+       72,
+       64
+      ],
+      [
+       62,
+       70
+      ],
+      [
+       50,
+       75
+      ],
+      [
+       34,
+       74
+      ],
+      [
+       24,
+       68
+      ],
+      [
+       16,
+       62
+      ],
+      [
+       16,
+       54
+      ],
+      [
+       22,
+       50
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cổ",
+   "instruction_vi": "Vẽ hai nét cong làm cổ.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       52,
+       45
+      ],
+      [
+       60,
+       36
+      ],
+      [
+       62,
+       22
+      ],
+      [
+       70,
+       16
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       68,
+       58
+      ],
+      [
+       76,
+       52
+      ],
+      [
+       76,
+       42
+      ],
+      [
+       78,
+       34
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ đầu dài phía trước.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       70,
+       16
+      ],
+      [
+       78,
+       12
+      ],
+      [
+       84,
+       18
+      ],
+      [
+       88,
+       24
+      ],
+      [
+       96,
+       32
+      ],
+      [
+       94,
+       40
+      ],
+      [
+       88,
+       40
+      ],
+      [
+       84,
+       39
+      ],
+      [
+       80,
+       36
+      ],
+      [
+       78,
+       34
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tai",
+   "instruction_vi": "Vẽ tai nhọn, chấm mắt và mũi.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       70,
+       16
+      ],
+      [
+       70,
+       5
+      ],
+      [
+       77,
+       14
+      ]
+     ]
+    },
+    {
+     "shape": "dot",
+     "center": [
+      80,
+      23
+     ],
+     "radius": 1.8
+    },
+    {
+     "shape": "dot",
+     "center": [
+      91,
+      34
+     ],
+     "radius": 1
+    }
+   ]
+  },
+  {
+   "part": "bờm",
+   "instruction_vi": "Vẽ bờm bay ra sau.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       68,
+       17
+      ],
+      [
+       56,
+       15
+      ],
+      [
+       58,
+       26
+      ],
+      [
+       49,
+       28
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       62,
+       27
+      ],
+      [
+       50,
+       28
+      ],
+      [
+       54,
+       39
+      ],
+      [
+       44,
+       40
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân trước",
+   "instruction_vi": "Vẽ hai chân trước.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       56,
+       72
+      ],
+      [
+       57,
+       92
+      ],
+      [
+       63,
+       92
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       66,
+       68
+      ],
+      [
+       70,
+       92
+      ],
+      [
+       76,
+       92
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân sau",
+   "instruction_vi": "Vẽ hai chân sau.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       26,
+       70
+      ],
+      [
+       23,
+       92
+      ],
+      [
+       29,
+       92
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       38,
+       74
+      ],
+      [
+       38,
+       92
+      ],
+      [
+       44,
+       92
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ đuôi dài mềm mại.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       20,
+       52
+      ],
+      [
+       5,
+       52
+      ],
+      [
+       10,
+       70
+      ],
+      [
+       5,
+       86
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       19,
+       55
+      ],
+      [
+       13,
+       62
+      ],
+      [
+       17,
+       74
+      ],
+      [
+       10,
+       82
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

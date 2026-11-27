@@ -1,0 +1,107 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "cup",
+ "level": "beginner",
+ "title_vi": "Vẽ chiếc cốc",
+ "aliases": [
+  "chiếc cốc",
+  "cốc",
+  "cái cốc",
+  "cái ly",
+  "ly",
+  "cup"
+ ],
+ "steps": [
+  {
+   "part": "thân cốc",
+   "instruction_vi": "Vẽ hình chữ nhật làm thân cốc.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      26,
+      34
+     ],
+     "width": 42,
+     "height": 50
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ bầu dục dẹt làm miệng.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      47,
+      34
+     ],
+     "rx": 21,
+     "ry": 7,
+     "start": "left"
+    }
+   ]
+  },
+  {
+   "part": "quai",
+   "instruction_vi": "Vẽ nét cong làm quai.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      68,
+      58
+     ],
+     "radius": 16,
+     "from_deg": 270,
+     "to_deg": 450
+    }
+   ]
+  },
+  {
+   "part": "khói",
+   "instruction_vi": "Vẽ hai đường làm khói.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      37,
+      24
+     ],
+     "to": [
+      37,
+      9
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      57,
+      24
+     ],
+     "to": [
+      57,
+      9
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đĩa",
+   "instruction_vi": "Vẽ bầu dục dẹt làm đĩa.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      47,
+      88
+     ],
+     "rx": 34,
+     "ry": 6,
+     "start": "left"
+    }
+   ]
+  }
+ ]
+}

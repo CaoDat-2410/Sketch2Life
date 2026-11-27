@@ -1,0 +1,115 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "lamp",
+ "level": "beginner",
+ "title_vi": "Vẽ đèn bàn",
+ "aliases": [
+  "đèn bàn",
+  "chiếc đèn bàn",
+  "đèn",
+  "cái đèn",
+  "đèn học",
+  "lamp"
+ ],
+ "steps": [
+  {
+   "part": "chụp đèn",
+   "instruction_vi": "Vẽ tam giác to làm chụp đèn.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       26,
+       42
+      ],
+      [
+       50,
+       8
+      ],
+      [
+       74,
+       42
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "bóng",
+   "instruction_vi": "Vẽ nửa hình tròn làm bóng.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      42
+     ],
+     "radius": 9,
+     "from_deg": 0,
+     "to_deg": 180
+    }
+   ]
+  },
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ một đường làm thân.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      51
+     ],
+     "to": [
+      50,
+      81
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đế",
+   "instruction_vi": "Vẽ bầu dục dẹt làm đế.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      87
+     ],
+     "rx": 24,
+     "ry": 7
+    }
+   ]
+  },
+  {
+   "part": "tia sáng",
+   "instruction_vi": "Vẽ hai tia sáng.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      28,
+      45
+     ],
+     "to": [
+      14,
+      59
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      72,
+      45
+     ],
+     "to": [
+      86,
+      59
+     ]
+    }
+   ]
+  }
+ ]
+}

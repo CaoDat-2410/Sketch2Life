@@ -1,0 +1,125 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "nest",
+ "level": "beginner",
+ "title_vi": "Vẽ tổ chim",
+ "aliases": [
+  "tổ chim",
+  "cái tổ chim",
+  "nest"
+ ],
+ "steps": [
+  {
+   "part": "tổ",
+   "instruction_vi": "Vẽ nửa bầu dục làm tổ.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      56
+     ],
+     "radius": 40,
+     "from_deg": 0,
+     "to_deg": 180,
+     "radius_y": 31
+    },
+    {
+     "shape": "line",
+     "from": [
+      10,
+      56
+     ],
+     "to": [
+      90,
+      56
+     ]
+    }
+   ]
+  },
+  {
+   "part": "trứng",
+   "instruction_vi": "Vẽ hai bầu dục làm trứng.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      34,
+      44
+     ],
+     "rx": 10,
+     "ry": 13
+    },
+    {
+     "shape": "oval",
+     "center": [
+      66,
+      44
+     ],
+     "rx": 10,
+     "ry": 13
+    }
+   ]
+  },
+  {
+   "part": "trứng giữa",
+   "instruction_vi": "Vẽ thêm một quả trứng giữa.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      40
+     ],
+     "rx": 9,
+     "ry": 15
+    }
+   ]
+  },
+  {
+   "part": "rơm",
+   "instruction_vi": "Vẽ hai đường làm rơm.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      22,
+      66
+     ],
+     "to": [
+      56,
+      78
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      78,
+      66
+     ],
+     "to": [
+      44,
+      78
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cành",
+   "instruction_vi": "Vẽ một đường thẳng làm cành.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      5,
+      90
+     ],
+     "to": [
+      95,
+      90
+     ]
+    }
+   ]
+  }
+ ]
+}

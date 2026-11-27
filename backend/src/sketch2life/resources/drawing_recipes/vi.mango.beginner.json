@@ -1,0 +1,95 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "mango",
+ "level": "beginner",
+ "title_vi": "Vẽ quả xoài",
+ "aliases": [
+  "quả xoài",
+  "xoài",
+  "trái xoài",
+  "mango"
+ ],
+ "steps": [
+  {
+   "part": "quả xoài",
+   "instruction_vi": "Vẽ bầu dục to làm quả xoài.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      57
+     ],
+     "rx": 31,
+     "ry": 35
+    }
+   ]
+  },
+  {
+   "part": "cuống",
+   "instruction_vi": "Vẽ một đường làm cuống.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      22
+     ],
+     "to": [
+      56,
+      8
+     ]
+    }
+   ]
+  },
+  {
+   "part": "lá",
+   "instruction_vi": "Vẽ bầu dục dẹt làm lá.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      70,
+      13
+     ],
+     "rx": 14,
+     "ry": 7,
+     "start": "left"
+    }
+   ]
+  },
+  {
+   "part": "gân lá",
+   "instruction_vi": "Vẽ một đường làm gân lá.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      56,
+      13
+     ],
+     "to": [
+      82,
+      13
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vệt sáng",
+   "instruction_vi": "Vẽ nét cong làm vệt sáng.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      57
+     ],
+     "radius": 21,
+     "from_deg": 150,
+     "to_deg": 225
+    }
+   ]
+  }
+ ]
+}

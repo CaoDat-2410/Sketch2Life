@@ -1,0 +1,94 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "banana",
+ "level": "beginner",
+ "title_vi": "Vẽ quả chuối",
+ "aliases": [
+  "quả chuối",
+  "chuối",
+  "trái chuối",
+  "nải chuối",
+  "banana"
+ ],
+ "steps": [
+  {
+   "part": "bụng chuối",
+   "instruction_vi": "Vẽ nét cong lớn làm bụng chuối.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      18
+     ],
+     "radius": 52,
+     "from_deg": 36.9,
+     "to_deg": 143.1
+    }
+   ]
+  },
+  {
+   "part": "lưng",
+   "instruction_vi": "Vẽ nét cong nhẹ làm lưng.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      -128.5
+     ],
+     "radius": 182.5,
+     "from_deg": 76.8,
+     "to_deg": 103.2
+    }
+   ]
+  },
+  {
+   "part": "cuống",
+   "instruction_vi": "Vẽ một đường làm cuống.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      8.4,
+      49
+     ],
+     "to": [
+      5,
+      35
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ hình tròn nhỏ làm đầu.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      91,
+      50
+     ],
+     "radius": 4.5
+    }
+   ]
+  },
+  {
+   "part": "vân",
+   "instruction_vi": "Vẽ một nét cong làm vân.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      -12
+     ],
+     "radius": 74,
+     "from_deg": 55.8,
+     "to_deg": 124.2
+    }
+   ]
+  }
+ ]
+}

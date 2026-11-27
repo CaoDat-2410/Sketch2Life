@@ -1,0 +1,142 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "ant",
+ "level": "beginner",
+ "title_vi": "Vẽ con kiến",
+ "aliases": [
+  "kiến",
+  "con kiến",
+  "chú kiến",
+  "kiến đen",
+  "ant"
+ ],
+ "steps": [
+  {
+   "part": "bụng",
+   "instruction_vi": "Vẽ một hình bầu dục to làm bụng.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      26,
+      56
+     ],
+     "rx": 20,
+     "ry": 15,
+     "start": "right"
+    }
+   ]
+  },
+  {
+   "part": "ngực",
+   "instruction_vi": "Vẽ một hình tròn nhỏ làm ngực.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      55,
+      56
+     ],
+     "radius": 10,
+     "start": "left"
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ một hình tròn làm đầu.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      76,
+      49
+     ],
+     "radius": 13,
+     "start": "left"
+    }
+   ]
+  },
+  {
+   "part": "râu",
+   "instruction_vi": "Vẽ hai đường thẳng làm râu.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      73,
+      36
+     ],
+     "to": [
+      68,
+      17
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      84,
+      39
+     ],
+     "to": [
+      94,
+      22
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai đường thẳng làm chân.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      51,
+      65
+     ],
+     "to": [
+      40,
+      87
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      60,
+      65
+     ],
+     "to": [
+      72,
+      87
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm mắt và vẽ thêm một chân.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      80,
+      46
+     ],
+     "radius": 2.5
+    },
+    {
+     "shape": "line",
+     "from": [
+      27,
+      71
+     ],
+     "to": [
+      18,
+      87
+     ]
+    }
+   ]
+  }
+ ]
+}

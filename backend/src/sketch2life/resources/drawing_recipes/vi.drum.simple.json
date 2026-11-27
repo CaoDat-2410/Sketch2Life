@@ -1,0 +1,181 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "drum",
+ "level": "simple",
+ "title_vi": "Vẽ chiếc trống",
+ "aliases": [
+  "chiếc trống",
+  "trống",
+  "cái trống",
+  "drum"
+ ],
+ "steps": [
+  {
+   "part": "mặt trống",
+   "instruction_vi": "Vẽ mặt trống bầu dục.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      40
+     ],
+     "rx": 37,
+     "ry": 12,
+     "start": "left"
+    }
+   ]
+  },
+  {
+   "part": "vành",
+   "instruction_vi": "Vẽ vành dưới mặt trống.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      45
+     ],
+     "radius": 37,
+     "from_deg": 0,
+     "to_deg": 180,
+     "radius_y": 12
+    }
+   ]
+  },
+  {
+   "part": "thành",
+   "instruction_vi": "Vẽ hai thành trống.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      13,
+      40
+     ],
+     "to": [
+      13,
+      76
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      87,
+      40
+     ],
+     "to": [
+      87,
+      76
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đáy",
+   "instruction_vi": "Vẽ đáy trống cong.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      76
+     ],
+     "radius": 37,
+     "from_deg": 0,
+     "to_deg": 180,
+     "radius_y": 12
+    }
+   ]
+  },
+  {
+   "part": "dây",
+   "instruction_vi": "Vẽ dây căng ziczac.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       13,
+       52
+      ],
+      [
+       24,
+       73
+      ],
+      [
+       37,
+       55
+      ],
+      [
+       50,
+       74
+      ],
+      [
+       63,
+       55
+      ],
+      [
+       76,
+       73
+      ],
+      [
+       87,
+       52
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "dùi",
+   "instruction_vi": "Vẽ hai chiếc dùi.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      34,
+      37
+     ],
+     "to": [
+      16,
+      14
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      66,
+      37
+     ],
+     "to": [
+      84,
+      14
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu dùi",
+   "instruction_vi": "Vẽ hai đầu dùi tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      14,
+      11
+     ],
+     "radius": 4
+    },
+    {
+     "shape": "circle",
+     "center": [
+      86,
+      11
+     ],
+     "radius": 4
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,131 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "train",
+ "level": "beginner",
+ "title_vi": "Vẽ tàu hỏa",
+ "aliases": [
+  "tàu hỏa",
+  "tàu hoả",
+  "đoàn tàu",
+  "tàu lửa",
+  "xe lửa",
+  "đoàn tàu đồ chơi",
+  "train"
+ ],
+ "steps": [
+  {
+   "part": "đầu tàu",
+   "instruction_vi": "Vẽ hai hình chữ nhật làm đầu tàu.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      9,
+      33
+     ],
+     "width": 31,
+     "height": 40
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      40,
+      48
+     ],
+     "width": 48,
+     "height": 25
+    }
+   ]
+  },
+  {
+   "part": "bánh xe",
+   "instruction_vi": "Vẽ hai hình tròn làm bánh xe.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      24,
+      80
+     ],
+     "radius": 9
+    },
+    {
+     "shape": "circle",
+     "center": [
+      51,
+      80
+     ],
+     "radius": 9
+    }
+   ]
+  },
+  {
+   "part": "bánh nữa",
+   "instruction_vi": "Vẽ thêm một bánh nữa.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      75,
+      80
+     ],
+     "radius": 9
+    }
+   ]
+  },
+  {
+   "part": "ống khói",
+   "instruction_vi": "Vẽ hình chữ nhật làm ống khói.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      65,
+      31
+     ],
+     "width": 12,
+     "height": 17
+    }
+   ]
+  },
+  {
+   "part": "cửa sổ",
+   "instruction_vi": "Vẽ hình vuông làm cửa sổ.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      16,
+      40
+     ],
+     "width": 17,
+     "height": 17
+    }
+   ]
+  },
+  {
+   "part": "khói",
+   "instruction_vi": "Vẽ hai hình tròn làm khói.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      75,
+      20
+     ],
+     "radius": 8,
+     "start": "bottom"
+    },
+    {
+     "shape": "circle",
+     "center": [
+      59,
+      13
+     ],
+     "radius": 8,
+     "start": "right"
+    }
+   ]
+  }
+ ]
+}

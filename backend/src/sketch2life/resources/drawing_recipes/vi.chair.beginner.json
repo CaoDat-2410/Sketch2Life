@@ -1,0 +1,117 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "chair",
+ "level": "beginner",
+ "title_vi": "Vẽ chiếc ghế",
+ "aliases": [
+  "chiếc ghế",
+  "ghế",
+  "cái ghế",
+  "chair"
+ ],
+ "steps": [
+  {
+   "part": "lưng ghế",
+   "instruction_vi": "Vẽ hình chữ nhật to làm lưng ghế.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      29,
+      10
+     ],
+     "width": 42,
+     "height": 32
+    }
+   ]
+  },
+  {
+   "part": "trụ",
+   "instruction_vi": "Vẽ hai đường làm trụ.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      35,
+      42
+     ],
+     "to": [
+      35,
+      56
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      65,
+      42
+     ],
+     "to": [
+      65,
+      56
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mặt ghế",
+   "instruction_vi": "Vẽ hình chữ nhật dẹt làm mặt ghế.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      23,
+      56
+     ],
+     "width": 54,
+     "height": 10
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai đường làm chân.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      28,
+      66
+     ],
+     "to": [
+      28,
+      94
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      72,
+      66
+     ],
+     "to": [
+      72,
+      94
+     ]
+    }
+   ]
+  },
+  {
+   "part": "thanh",
+   "instruction_vi": "Vẽ một thanh ngang.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      28,
+      81
+     ],
+     "to": [
+      72,
+      81
+     ]
+    }
+   ]
+  }
+ ]
+}

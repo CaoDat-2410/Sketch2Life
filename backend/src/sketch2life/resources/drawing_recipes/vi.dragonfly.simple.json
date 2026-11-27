@@ -1,0 +1,379 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "dragonfly",
+ "level": "simple",
+ "title_vi": "Vẽ chuồn chuồn",
+ "aliases": [
+  "chuồn chuồn",
+  "con chuồn chuồn",
+  "chú chuồn chuồn",
+  "dragonfly"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ thân dài và thon.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       45,
+       33
+      ],
+      [
+       42,
+       58
+      ],
+      [
+       46,
+       80
+      ],
+      [
+       50,
+       95
+      ],
+      [
+       54,
+       80
+      ],
+      [
+       58,
+       58
+      ],
+      [
+       55,
+       33
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ đầu tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      24
+     ],
+     "radius": 10,
+     "start": "bottom"
+    }
+   ]
+  },
+  {
+   "part": "cánh trên",
+   "instruction_vi": "Vẽ hai cánh trên.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       45,
+       38
+      ],
+      [
+       30,
+       22
+      ],
+      [
+       8,
+       25
+      ],
+      [
+       9,
+       35
+      ],
+      [
+       10,
+       45
+      ],
+      [
+       30,
+       45
+      ],
+      [
+       45,
+       43
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       55,
+       38
+      ],
+      [
+       70,
+       22
+      ],
+      [
+       92,
+       25
+      ],
+      [
+       91,
+       35
+      ],
+      [
+       90,
+       45
+      ],
+      [
+       70,
+       45
+      ],
+      [
+       55,
+       43
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cánh dưới",
+   "instruction_vi": "Vẽ hai cánh dưới.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       45,
+       47
+      ],
+      [
+       30,
+       45
+      ],
+      [
+       11,
+       50
+      ],
+      [
+       13,
+       60
+      ],
+      [
+       17,
+       69
+      ],
+      [
+       34,
+       62
+      ],
+      [
+       46,
+       53
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       55,
+       47
+      ],
+      [
+       70,
+       45
+      ],
+      [
+       89,
+       50
+      ],
+      [
+       87,
+       60
+      ],
+      [
+       83,
+       69
+      ],
+      [
+       66,
+       62
+      ],
+      [
+       54,
+       53
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Vẽ hai mắt tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      45,
+      22
+     ],
+     "radius": 4
+    },
+    {
+     "shape": "circle",
+     "center": [
+      55,
+      22
+     ],
+     "radius": 4
+    }
+   ]
+  },
+  {
+   "part": "râu",
+   "instruction_vi": "Vẽ hai chiếc râu cong.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       46,
+       15
+      ],
+      [
+       42,
+       8
+      ],
+      [
+       36,
+       6
+      ],
+      [
+       32,
+       10
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       54,
+       15
+      ],
+      [
+       58,
+       8
+      ],
+      [
+       64,
+       6
+      ],
+      [
+       68,
+       10
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đốt",
+   "instruction_vi": "Vẽ ba vạch chia đốt thân.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       45,
+       60
+      ],
+      [
+       48,
+       63
+      ],
+      [
+       52,
+       63
+      ],
+      [
+       55,
+       60
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       45.5,
+       70
+      ],
+      [
+       48,
+       73
+      ],
+      [
+       52,
+       73
+      ],
+      [
+       54.5,
+       70
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       46.5,
+       80
+      ],
+      [
+       49,
+       83
+      ],
+      [
+       51,
+       83
+      ],
+      [
+       53.5,
+       80
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "gân cánh",
+   "instruction_vi": "Vẽ gân cánh ở hai bên.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      40,
+      39
+     ],
+     "to": [
+      16,
+      33
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      60,
+      39
+     ],
+     "to": [
+      84,
+      33
+     ]
+    }
+   ]
+  }
+ ]
+}

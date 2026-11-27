@@ -1,0 +1,123 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "parrot",
+ "level": "beginner",
+ "title_vi": "Vẽ con vẹt",
+ "aliases": [
+  "vẹt",
+  "con vẹt",
+  "chim vẹt",
+  "con chim vẹt",
+  "parrot"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ một hình bầu dục to làm thân.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      45,
+      55
+     ],
+     "rx": 18,
+     "ry": 25
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ một hình tròn làm đầu.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      51,
+      24
+     ],
+     "radius": 15
+    }
+   ]
+  },
+  {
+   "part": "mỏ",
+   "instruction_vi": "Vẽ nét cong to làm mỏ, chấm mắt.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      64,
+      28
+     ],
+     "radius": 12,
+     "from_deg": 285,
+     "to_deg": 475
+    },
+    {
+     "shape": "dot",
+     "center": [
+      55,
+      20
+     ],
+     "radius": 2.2
+    }
+   ]
+  },
+  {
+   "part": "cánh",
+   "instruction_vi": "Vẽ một bầu dục làm cánh.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      40,
+      57
+     ],
+     "rx": 9,
+     "ry": 16
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ tam giác dài làm đuôi.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       36,
+       77
+      ],
+      [
+       51,
+       79
+      ],
+      [
+       28,
+       95
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cành",
+   "instruction_vi": "Vẽ đường thẳng làm cành cây.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      14,
+      81
+     ],
+     "to": [
+      90,
+      81
+     ]
+    }
+   ]
+  }
+ ]
+}

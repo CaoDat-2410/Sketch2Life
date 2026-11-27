@@ -1,0 +1,349 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "magic_book",
+ "level": "simple",
+ "title_vi": "Vẽ sách phép thuật",
+ "aliases": [
+  "sách phép thuật",
+  "quyển sách phép thuật",
+  "cuốn sách phép thuật",
+  "magic book"
+ ],
+ "steps": [
+  {
+   "part": "bìa",
+   "instruction_vi": "Vẽ bìa sách mở rộng.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       8,
+       42
+      ],
+      [
+       5,
+       44
+      ],
+      [
+       5,
+       86
+      ],
+      [
+       50,
+       92
+      ],
+      [
+       95,
+       86
+      ],
+      [
+       95,
+       44
+      ],
+      [
+       92,
+       42
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "trang trái",
+   "instruction_vi": "Vẽ trang trái cong.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       44
+      ],
+      [
+       38,
+       36
+      ],
+      [
+       20,
+       36
+      ],
+      [
+       10,
+       40
+      ]
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      10,
+      40
+     ],
+     "to": [
+      10,
+      80
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       10,
+       80
+      ],
+      [
+       22,
+       76
+      ],
+      [
+       38,
+       78
+      ],
+      [
+       50,
+       86
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "trang phải",
+   "instruction_vi": "Vẽ trang phải cong.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       44
+      ],
+      [
+       62,
+       36
+      ],
+      [
+       80,
+       36
+      ],
+      [
+       90,
+       40
+      ]
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      90,
+      40
+     ],
+     "to": [
+      90,
+      80
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       90,
+       80
+      ],
+      [
+       78,
+       76
+      ],
+      [
+       62,
+       78
+      ],
+      [
+       50,
+       86
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chữ trái",
+   "instruction_vi": "Vẽ chữ trái thành dòng.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      18,
+      50
+     ],
+     "to": [
+      40,
+      52
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      18,
+      60
+     ],
+     "to": [
+      40,
+      62
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      18,
+      69
+     ],
+     "to": [
+      40,
+      71
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chữ phải",
+   "instruction_vi": "Vẽ chữ phải thành dòng.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      60,
+      52
+     ],
+     "to": [
+      82,
+      50
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      60,
+      62
+     ],
+     "to": [
+      82,
+      60
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      60,
+      71
+     ],
+     "to": [
+      82,
+      69
+     ]
+    }
+   ]
+  },
+  {
+   "part": "gáy",
+   "instruction_vi": "Vẽ gáy sách kéo lên thành tia.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      86
+     ],
+     "to": [
+      50,
+      24
+     ]
+    }
+   ]
+  },
+  {
+   "part": "ngôi sao",
+   "instruction_vi": "Vẽ ngôi sao phép thuật.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       50,
+       5
+      ],
+      [
+       53,
+       12
+      ],
+      [
+       60,
+       12
+      ],
+      [
+       55,
+       17
+      ],
+      [
+       57,
+       24
+      ],
+      [
+       50,
+       20
+      ],
+      [
+       43,
+       24
+      ],
+      [
+       45,
+       17
+      ],
+      [
+       40,
+       12
+      ],
+      [
+       47,
+       12
+      ],
+      [
+       50,
+       5
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tia sáng",
+   "instruction_vi": "Vẽ hai tia sáng.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      39,
+      14
+     ],
+     "to": [
+      28,
+      10
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      61,
+      14
+     ],
+     "to": [
+      72,
+      10
+     ]
+    }
+   ]
+  }
+ ]
+}

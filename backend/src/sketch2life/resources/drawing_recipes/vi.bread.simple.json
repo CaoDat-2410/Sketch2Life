@@ -1,0 +1,250 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "bread",
+ "level": "simple",
+ "title_vi": "Vẽ ổ bánh mì",
+ "aliases": [
+  "ổ bánh mì",
+  "bánh mì",
+  "bread"
+ ],
+ "steps": [
+  {
+   "part": "vỏ bánh",
+   "instruction_vi": "Vẽ vỏ bánh phồng.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       8,
+       62
+      ],
+      [
+       6,
+       36
+      ],
+      [
+       36,
+       28
+      ],
+      [
+       54,
+       28
+      ],
+      [
+       74,
+       28
+      ],
+      [
+       96,
+       38
+      ],
+      [
+       92,
+       56
+      ],
+      [
+       90,
+       74
+      ],
+      [
+       66,
+       74
+      ],
+      [
+       48,
+       74
+      ],
+      [
+       28,
+       74
+      ],
+      [
+       10,
+       76
+      ],
+      [
+       8,
+       62
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vết cắt",
+   "instruction_vi": "Vẽ ba vết cắt cong.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       28,
+       35
+      ],
+      [
+       38,
+       42
+      ],
+      [
+       40,
+       55
+      ],
+      [
+       34,
+       66
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       48,
+       31
+      ],
+      [
+       58,
+       40
+      ],
+      [
+       60,
+       54
+      ],
+      [
+       54,
+       66
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       68,
+       34
+      ],
+      [
+       78,
+       42
+      ],
+      [
+       80,
+       53
+      ],
+      [
+       74,
+       64
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đáy",
+   "instruction_vi": "Vẽ đường đáy bánh.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       11,
+       66
+      ],
+      [
+       30,
+       62
+      ],
+      [
+       70,
+       62
+      ],
+      [
+       90,
+       62
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "hạt",
+   "instruction_vi": "Chấm ba hạt vừng.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      20,
+      50
+     ],
+     "radius": 1.5
+    },
+    {
+     "shape": "dot",
+     "center": [
+      45,
+      44
+     ],
+     "radius": 1.5
+    },
+    {
+     "shape": "dot",
+     "center": [
+      65,
+      50
+     ],
+     "radius": 1.5
+    }
+   ]
+  },
+  {
+   "part": "hơi",
+   "instruction_vi": "Vẽ hai làn hơi thơm.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       34,
+       29
+      ],
+      [
+       28,
+       22
+      ],
+      [
+       40,
+       16
+      ],
+      [
+       34,
+       8
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       60,
+       29
+      ],
+      [
+       54,
+       22
+      ],
+      [
+       66,
+       16
+      ],
+      [
+       60,
+       8
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

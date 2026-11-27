@@ -1,0 +1,104 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "mailbox",
+ "level": "beginner",
+ "title_vi": "Vẽ hòm thư",
+ "aliases": [
+  "hòm thư",
+  "thùng thư",
+  "hộp thư",
+  "mailbox"
+ ],
+ "steps": [
+  {
+   "part": "hòm",
+   "instruction_vi": "Vẽ hình chữ nhật làm hòm.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      23,
+      30
+     ],
+     "width": 54,
+     "height": 34
+    }
+   ]
+  },
+  {
+   "part": "nắp",
+   "instruction_vi": "Vẽ nửa bầu dục làm nắp.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      30
+     ],
+     "radius": 27,
+     "from_deg": 180,
+     "to_deg": 360,
+     "radius_y": 19
+    }
+   ]
+  },
+  {
+   "part": "khe",
+   "instruction_vi": "Vẽ một đường làm khe thư.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      36,
+      41
+     ],
+     "to": [
+      64,
+      41
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cột",
+   "instruction_vi": "Vẽ hình chữ nhật làm cột.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      44,
+      64
+     ],
+     "width": 12,
+     "height": 31
+    }
+   ]
+  },
+  {
+   "part": "cờ",
+   "instruction_vi": "Vẽ cán cờ và lá cờ.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      80,
+      46
+     ],
+     "to": [
+      80,
+      18
+     ]
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      80,
+      18
+     ],
+     "width": 13,
+     "height": 10
+    }
+   ]
+  }
+ ]
+}

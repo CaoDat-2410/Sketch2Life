@@ -1,0 +1,126 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "socks",
+ "level": "beginner",
+ "title_vi": "Vẽ đôi tất",
+ "aliases": [
+  "đôi tất",
+  "tất",
+  "đôi vớ",
+  "vớ",
+  "chiếc tất",
+  "socks"
+ ],
+ "steps": [
+  {
+   "part": "bàn tất",
+   "instruction_vi": "Vẽ bầu dục làm bàn tất.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      30,
+      75
+     ],
+     "rx": 24,
+     "ry": 14
+    }
+   ]
+  },
+  {
+   "part": "cổ tất",
+   "instruction_vi": "Vẽ hình chữ nhật làm cổ tất.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      26,
+      14
+     ],
+     "width": 20,
+     "height": 52
+    }
+   ]
+  },
+  {
+   "part": "vạch",
+   "instruction_vi": "Vẽ hai vạch ngang.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      26,
+      26
+     ],
+     "to": [
+      46,
+      26
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      26,
+      38
+     ],
+     "to": [
+      46,
+      38
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tất nữa",
+   "instruction_vi": "Vẽ thêm một chiếc tất nữa.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      70,
+      75
+     ],
+     "rx": 22,
+     "ry": 14
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      62,
+      14
+     ],
+     "width": 20,
+     "height": 52
+    }
+   ]
+  },
+  {
+   "part": "vạch nữa",
+   "instruction_vi": "Vẽ hai vạch nữa.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      62,
+      26
+     ],
+     "to": [
+      82,
+      26
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      62,
+      38
+     ],
+     "to": [
+      82,
+      38
+     ]
+    }
+   ]
+  }
+ ]
+}

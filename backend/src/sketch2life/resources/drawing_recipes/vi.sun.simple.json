@@ -1,0 +1,247 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "sun",
+ "level": "simple",
+ "title_vi": "Vẽ mặt trời",
+ "aliases": [
+  "mặt trời",
+  "ông mặt trời",
+  "sun"
+ ],
+ "steps": [
+  {
+   "part": "mặt trời",
+   "instruction_vi": "Vẽ hình tròn làm mặt trời.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      50
+     ],
+     "radius": 22
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Vẽ hai mắt tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      42,
+      44
+     ],
+     "radius": 4
+    },
+    {
+     "shape": "circle",
+     "center": [
+      58,
+      44
+     ],
+     "radius": 4
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ miệng cười tươi.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      51
+     ],
+     "radius": 11,
+     "from_deg": 25,
+     "to_deg": 155
+    }
+   ]
+  },
+  {
+   "part": "tia dọc",
+   "instruction_vi": "Vẽ hai tia dọc.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       42,
+       29
+      ],
+      [
+       50,
+       6
+      ],
+      [
+       58,
+       29
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       42,
+       71
+      ],
+      [
+       50,
+       94
+      ],
+      [
+       58,
+       71
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tia ngang",
+   "instruction_vi": "Vẽ hai tia ngang.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       29,
+       42
+      ],
+      [
+       6,
+       50
+      ],
+      [
+       29,
+       58
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       71,
+       42
+      ],
+      [
+       94,
+       50
+      ],
+      [
+       71,
+       58
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tia chéo",
+   "instruction_vi": "Vẽ hai tia chéo trên.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       31,
+       38
+      ],
+      [
+       19,
+       19
+      ],
+      [
+       38,
+       31
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       62,
+       31
+      ],
+      [
+       81,
+       19
+      ],
+      [
+       69,
+       38
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tia nữa",
+   "instruction_vi": "Vẽ hai tia nữa phía dưới.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       31,
+       62
+      ],
+      [
+       19,
+       81
+      ],
+      [
+       38,
+       69
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       62,
+       69
+      ],
+      [
+       81,
+       81
+      ],
+      [
+       69,
+       62
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "má",
+   "instruction_vi": "Chấm hai má.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      37,
+      54
+     ],
+     "radius": 1.8
+    },
+    {
+     "shape": "dot",
+     "center": [
+      63,
+      54
+     ],
+     "radius": 1.8
+    }
+   ]
+  }
+ ]
+}

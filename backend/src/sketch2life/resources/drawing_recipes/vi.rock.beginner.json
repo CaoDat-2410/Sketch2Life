@@ -1,0 +1,111 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "rock",
+ "level": "beginner",
+ "title_vi": "Vẽ hòn đá",
+ "aliases": [
+  "hòn đá",
+  "đá",
+  "cục đá",
+  "rock"
+ ],
+ "steps": [
+  {
+   "part": "đá",
+   "instruction_vi": "Vẽ một bầu dục to làm đá.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      48,
+      62
+     ],
+     "rx": 36,
+     "ry": 24
+    }
+   ]
+  },
+  {
+   "part": "vết nứt",
+   "instruction_vi": "Vẽ hai đường làm vết nứt.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      40,
+      40
+     ],
+     "to": [
+      48,
+      55
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      48,
+      55
+     ],
+     "to": [
+      40,
+      68
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đá nhỏ",
+   "instruction_vi": "Vẽ hình tròn làm đá nhỏ.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      82,
+      76
+     ],
+     "radius": 10
+    }
+   ]
+  },
+  {
+   "part": "mặt đất",
+   "instruction_vi": "Vẽ một đường làm mặt đất.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      6,
+      87
+     ],
+     "to": [
+      94,
+      87
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cỏ",
+   "instruction_vi": "Vẽ tam giác làm bụi cỏ.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       8,
+       87
+      ],
+      [
+       14,
+       72
+      ],
+      [
+       22,
+       87
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

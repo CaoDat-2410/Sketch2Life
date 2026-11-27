@@ -1,0 +1,182 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "planet",
+ "level": "simple",
+ "title_vi": "Vẽ hành tinh",
+ "aliases": [
+  "hành tinh",
+  "planet"
+ ],
+ "steps": [
+  {
+   "part": "hành tinh",
+   "instruction_vi": "Vẽ hình tròn to làm hành tinh.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      50
+     ],
+     "radius": 29
+    }
+   ]
+  },
+  {
+   "part": "vành đai",
+   "instruction_vi": "Vẽ vành đai ôm quanh.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       23,
+       40
+      ],
+      [
+       4,
+       48
+      ],
+      [
+       4,
+       62
+      ],
+      [
+       28,
+       66
+      ],
+      [
+       56,
+       70
+      ],
+      [
+       90,
+       60
+      ],
+      [
+       95,
+       49
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       95,
+       49
+      ],
+      [
+       96,
+       40
+      ],
+      [
+       88,
+       36
+      ],
+      [
+       77,
+       40
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vành trong",
+   "instruction_vi": "Vẽ thêm nét vành trong.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       23,
+       47
+      ],
+      [
+       14,
+       54
+      ],
+      [
+       24,
+       58
+      ],
+      [
+       44,
+       59
+      ],
+      [
+       62,
+       60
+      ],
+      [
+       78,
+       54
+      ],
+      [
+       77,
+       46
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "miệng núi",
+   "instruction_vi": "Vẽ ba miệng núi tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      40,
+      33
+     ],
+     "radius": 6
+    },
+    {
+     "shape": "circle",
+     "center": [
+      61,
+      30
+     ],
+     "radius": 4
+    },
+    {
+     "shape": "circle",
+     "center": [
+      55,
+      72
+     ],
+     "radius": 5
+    }
+   ]
+  },
+  {
+   "part": "vằn",
+   "instruction_vi": "Vẽ một nét vằn cong.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       28,
+       36
+      ],
+      [
+       40,
+       46
+      ],
+      [
+       62,
+       46
+      ],
+      [
+       72,
+       34
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

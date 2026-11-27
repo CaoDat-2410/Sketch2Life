@@ -1,0 +1,282 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "pillow",
+ "level": "simple",
+ "title_vi": "Vẽ chiếc gối",
+ "aliases": [
+  "chiếc gối",
+  "gối",
+  "cái gối",
+  "pillow"
+ ],
+ "steps": [
+  {
+   "part": "gối",
+   "instruction_vi": "Vẽ viền gối cong.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       12,
+       24
+      ],
+      [
+       36,
+       34
+      ],
+      [
+       64,
+       34
+      ],
+      [
+       88,
+       24
+      ],
+      [
+       78,
+       42
+      ],
+      [
+       78,
+       60
+      ],
+      [
+       88,
+       78
+      ],
+      [
+       64,
+       68
+      ],
+      [
+       36,
+       68
+      ],
+      [
+       12,
+       78
+      ],
+      [
+       22,
+       60
+      ],
+      [
+       22,
+       42
+      ],
+      [
+       12,
+       24
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đường may",
+   "instruction_vi": "Vẽ hai đường may.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       24,
+       37
+      ],
+      [
+       42,
+       41
+      ],
+      [
+       58,
+       41
+      ],
+      [
+       76,
+       37
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       24,
+       65
+      ],
+      [
+       42,
+       61
+      ],
+      [
+       58,
+       61
+      ],
+      [
+       76,
+       65
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tim",
+   "instruction_vi": "Vẽ trái tim ở giữa.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       59
+      ],
+      [
+       36,
+       49
+      ],
+      [
+       42,
+       42
+      ],
+      [
+       50,
+       48
+      ],
+      [
+       58,
+       42
+      ],
+      [
+       64,
+       49
+      ],
+      [
+       50,
+       59
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chấm",
+   "instruction_vi": "Chấm hai chấm hoa văn.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      30,
+      51
+     ],
+     "radius": 2.5
+    },
+    {
+     "shape": "dot",
+     "center": [
+      70,
+      51
+     ],
+     "radius": 2.5
+    }
+   ]
+  },
+  {
+   "part": "tua trên",
+   "instruction_vi": "Vẽ hai tua trên.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       12,
+       24
+      ],
+      [
+       5,
+       22
+      ],
+      [
+       9,
+       15
+      ],
+      [
+       12,
+       24
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       88,
+       24
+      ],
+      [
+       95,
+       22
+      ],
+      [
+       91,
+       15
+      ],
+      [
+       88,
+       24
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tua dưới",
+   "instruction_vi": "Vẽ hai tua dưới.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       12,
+       78
+      ],
+      [
+       5,
+       80
+      ],
+      [
+       9,
+       87
+      ],
+      [
+       12,
+       78
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       88,
+       78
+      ],
+      [
+       95,
+       80
+      ],
+      [
+       91,
+       87
+      ],
+      [
+       88,
+       78
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

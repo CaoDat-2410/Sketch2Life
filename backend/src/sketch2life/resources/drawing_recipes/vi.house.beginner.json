@@ -1,0 +1,107 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "house",
+ "level": "beginner",
+ "title_vi": "Vẽ ngôi nhà",
+ "aliases": [
+  "ngôi nhà",
+  "nhà",
+  "căn nhà",
+  "cái nhà",
+  "house"
+ ],
+ "steps": [
+  {
+   "part": "tường",
+   "instruction_vi": "Vẽ hình vuông to làm tường.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      23,
+      46
+     ],
+     "width": 54,
+     "height": 47
+    }
+   ]
+  },
+  {
+   "part": "mái",
+   "instruction_vi": "Vẽ tam giác to làm mái.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       17,
+       46
+      ],
+      [
+       50,
+       11
+      ],
+      [
+       83,
+       46
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cửa",
+   "instruction_vi": "Vẽ hình chữ nhật làm cửa.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      42,
+      66
+     ],
+     "width": 16,
+     "height": 27
+    }
+   ]
+  },
+  {
+   "part": "cửa sổ",
+   "instruction_vi": "Vẽ hai cửa sổ vuông.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      28,
+      54
+     ],
+     "width": 12,
+     "height": 12
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      60,
+      54
+     ],
+     "width": 12,
+     "height": 12
+    }
+   ]
+  },
+  {
+   "part": "ống khói",
+   "instruction_vi": "Vẽ hình chữ nhật làm ống khói.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      65,
+      15
+     ],
+     "width": 10,
+     "height": 15
+    }
+   ]
+  }
+ ]
+}

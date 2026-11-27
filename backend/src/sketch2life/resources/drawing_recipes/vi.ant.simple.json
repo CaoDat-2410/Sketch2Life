@@ -1,0 +1,262 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "ant",
+ "level": "simple",
+ "title_vi": "Vẽ con kiến",
+ "aliases": [
+  "kiến",
+  "con kiến",
+  "chú kiến",
+  "kiến đen",
+  "ant"
+ ],
+ "steps": [
+  {
+   "part": "bụng",
+   "instruction_vi": "Vẽ một hình bầu dục làm bụng.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      25,
+      56
+     ],
+     "rx": 19,
+     "ry": 15,
+     "start": "right"
+    }
+   ]
+  },
+  {
+   "part": "ngực",
+   "instruction_vi": "Vẽ bầu dục nhỏ làm ngực.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      52,
+      56
+     ],
+     "rx": 9,
+     "ry": 10,
+     "start": "left"
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ đầu tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      74,
+      48
+     ],
+     "radius": 13,
+     "start": "left"
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm mắt và vẽ miệng cười.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      78,
+      45
+     ],
+     "radius": 2.2
+    },
+    {
+     "shape": "arc",
+     "center": [
+      79,
+      50
+     ],
+     "radius": 6,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  },
+  {
+   "part": "râu",
+   "instruction_vi": "Vẽ hai chiếc râu cong.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       74,
+       35
+      ],
+      [
+       70,
+       21
+      ],
+      [
+       63,
+       17
+      ],
+      [
+       57,
+       20
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       82,
+       37
+      ],
+      [
+       85,
+       23
+      ],
+      [
+       91,
+       19
+      ],
+      [
+       95,
+       24
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân trước",
+   "instruction_vi": "Vẽ hai chân trước.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       57,
+       64
+      ],
+      [
+       68,
+       76
+      ],
+      [
+       74,
+       90
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       51,
+       66
+      ],
+      [
+       53,
+       80
+      ],
+      [
+       60,
+       90
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân sau",
+   "instruction_vi": "Vẽ hai chân sau.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       46,
+       63
+      ],
+      [
+       38,
+       77
+      ],
+      [
+       38,
+       90
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       22,
+       70
+      ],
+      [
+       16,
+       80
+      ],
+      [
+       8,
+       90
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vạch",
+   "instruction_vi": "Vẽ hai vạch cong trên bụng.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       18,
+       43
+      ],
+      [
+       24,
+       50
+      ],
+      [
+       24,
+       62
+      ],
+      [
+       18,
+       69
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       29,
+       42
+      ],
+      [
+       35,
+       50
+      ],
+      [
+       35,
+       62
+      ],
+      [
+       29,
+       70
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

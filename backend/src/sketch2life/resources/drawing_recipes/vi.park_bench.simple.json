@@ -1,0 +1,243 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "park_bench",
+ "level": "simple",
+ "title_vi": "Vẽ ghế công viên",
+ "aliases": [
+  "ghế công viên",
+  "ghế đá",
+  "park bench"
+ ],
+ "steps": [
+  {
+   "part": "lưng ghế",
+   "instruction_vi": "Vẽ hai thanh lưng ghế.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      13,
+      22
+     ],
+     "width": 74,
+     "height": 8
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      13,
+      33
+     ],
+     "width": 74,
+     "height": 8
+    }
+   ]
+  },
+  {
+   "part": "trụ",
+   "instruction_vi": "Vẽ hai trụ đỡ.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      21,
+      22
+     ],
+     "to": [
+      21,
+      50
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      79,
+      22
+     ],
+     "to": [
+      79,
+      50
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mặt ghế",
+   "instruction_vi": "Vẽ mặt ghế dày.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       9,
+       56
+      ],
+      [
+       15,
+       49
+      ],
+      [
+       85,
+       49
+      ],
+      [
+       91,
+       56
+      ],
+      [
+       9,
+       56
+      ]
+     ]
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      9,
+      56
+     ],
+     "width": 82,
+     "height": 7
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai chân cong.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       20,
+       63
+      ],
+      [
+       14,
+       72
+      ],
+      [
+       24,
+       82
+      ],
+      [
+       16,
+       91
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       80,
+       63
+      ],
+      [
+       86,
+       72
+      ],
+      [
+       76,
+       82
+      ],
+      [
+       84,
+       91
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tay",
+   "instruction_vi": "Vẽ hai tay vịn.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       14,
+       50
+      ],
+      [
+       3,
+       48
+      ],
+      [
+       4,
+       62
+      ],
+      [
+       11,
+       63
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       86,
+       50
+      ],
+      [
+       97,
+       48
+      ],
+      [
+       96,
+       62
+      ],
+      [
+       89,
+       63
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cỏ",
+   "instruction_vi": "Vẽ đường cỏ và bụi cỏ.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      6,
+      91
+     ],
+     "to": [
+      94,
+      91
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       42,
+       91
+      ],
+      [
+       46,
+       80
+      ],
+      [
+       50,
+       89
+      ],
+      [
+       55,
+       78
+      ],
+      [
+       58,
+       91
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

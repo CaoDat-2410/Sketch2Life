@@ -1,0 +1,95 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "bread",
+ "level": "beginner",
+ "title_vi": "Vẽ ổ bánh mì",
+ "aliases": [
+  "ổ bánh mì",
+  "bánh mì",
+  "bread"
+ ],
+ "steps": [
+  {
+   "part": "ổ bánh",
+   "instruction_vi": "Vẽ bầu dục to làm ổ bánh.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      55
+     ],
+     "rx": 43,
+     "ry": 23
+    }
+   ]
+  },
+  {
+   "part": "vết cắt",
+   "instruction_vi": "Vẽ hai vết cắt xiên.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      30,
+      41
+     ],
+     "to": [
+      38,
+      66
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      48,
+      37
+     ],
+     "to": [
+      56,
+      68
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vết nữa",
+   "instruction_vi": "Vẽ thêm một vết nữa.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      66,
+      40
+     ],
+     "to": [
+      74,
+      64
+     ]
+    }
+   ]
+  },
+  {
+   "part": "hạt",
+   "instruction_vi": "Chấm hai hạt vừng.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      22,
+      54
+     ],
+     "radius": 2.4
+    },
+    {
+     "shape": "dot",
+     "center": [
+      83,
+      54
+     ],
+     "radius": 2.4
+    }
+   ]
+  }
+ ]
+}

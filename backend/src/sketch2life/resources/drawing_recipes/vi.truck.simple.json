@@ -1,0 +1,212 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "truck",
+ "level": "simple",
+ "title_vi": "Vẽ xe tải",
+ "aliases": [
+  "xe tải",
+  "chiếc xe tải",
+  "ô tô tải",
+  "chiếc ô tô tải",
+  "xe chở hàng",
+  "truck"
+ ],
+ "steps": [
+  {
+   "part": "thùng xe",
+   "instruction_vi": "Vẽ thùng xe thật to.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      6,
+      26
+     ],
+     "width": 54,
+     "height": 42
+    }
+   ]
+  },
+  {
+   "part": "đầu xe",
+   "instruction_vi": "Vẽ đầu xe vát phía trước.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       60,
+       42
+      ],
+      [
+       78,
+       42
+      ],
+      [
+       91,
+       56
+      ],
+      [
+       94,
+       68
+      ],
+      [
+       60,
+       68
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "gầm xe",
+   "instruction_vi": "Vẽ gầm xe nằm ngang.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      6,
+      71
+     ],
+     "to": [
+      94,
+      71
+     ]
+    }
+   ]
+  },
+  {
+   "part": "bánh xe",
+   "instruction_vi": "Vẽ ba bánh xe.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      20,
+      79
+     ],
+     "radius": 9
+    },
+    {
+     "shape": "circle",
+     "center": [
+      42,
+      79
+     ],
+     "radius": 9
+    },
+    {
+     "shape": "circle",
+     "center": [
+      77,
+      79
+     ],
+     "radius": 9
+    }
+   ]
+  },
+  {
+   "part": "trục",
+   "instruction_vi": "Vẽ trục giữa mỗi bánh.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      20,
+      79
+     ],
+     "radius": 3.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      42,
+      79
+     ],
+     "radius": 3.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      77,
+      79
+     ],
+     "radius": 3.5
+    }
+   ]
+  },
+  {
+   "part": "cửa sổ",
+   "instruction_vi": "Vẽ cửa sổ đầu xe.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       65,
+       47
+      ],
+      [
+       76,
+       47
+      ],
+      [
+       85,
+       57
+      ],
+      [
+       65,
+       57
+      ],
+      [
+       65,
+       47
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vạch",
+   "instruction_vi": "Vẽ hai vạch trên thùng.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      24,
+      31
+     ],
+     "to": [
+      24,
+      63
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      42,
+      31
+     ],
+     "to": [
+      42,
+      63
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đèn",
+   "instruction_vi": "Vẽ một đèn tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      88,
+      63
+     ],
+     "radius": 3
+    }
+   ]
+  }
+ ]
+}

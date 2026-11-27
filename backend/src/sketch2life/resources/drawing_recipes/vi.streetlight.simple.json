@@ -1,0 +1,190 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "streetlight",
+ "level": "simple",
+ "title_vi": "Vẽ cột đèn đường",
+ "aliases": [
+  "cột đèn đường",
+  "đèn đường",
+  "cột đèn",
+  "streetlight"
+ ],
+ "steps": [
+  {
+   "part": "cột",
+   "instruction_vi": "Vẽ cột đèn cao.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       24,
+       94
+      ],
+      [
+       26,
+       24
+      ],
+      [
+       34,
+       24
+      ],
+      [
+       36,
+       94
+      ],
+      [
+       24,
+       94
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cần",
+   "instruction_vi": "Vẽ cần đèn cong.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       30,
+       24
+      ],
+      [
+       30,
+       5
+      ],
+      [
+       66,
+       4
+      ],
+      [
+       74,
+       18
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chụp",
+   "instruction_vi": "Vẽ chụp đèn.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       62,
+       30
+      ],
+      [
+       66,
+       18
+      ],
+      [
+       82,
+       18
+      ],
+      [
+       86,
+       30
+      ],
+      [
+       62,
+       30
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "bóng",
+   "instruction_vi": "Vẽ bóng đèn tròn.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      74,
+      30
+     ],
+     "radius": 8,
+     "from_deg": 0,
+     "to_deg": 180
+    }
+   ]
+  },
+  {
+   "part": "tia",
+   "instruction_vi": "Vẽ ba tia sáng.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      68,
+      38
+     ],
+     "to": [
+      60,
+      54
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      74,
+      41
+     ],
+     "to": [
+      74,
+      58
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      80,
+      38
+     ],
+     "to": [
+      88,
+      54
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đế",
+   "instruction_vi": "Vẽ đế cột vững.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      18,
+      87
+     ],
+     "width": 24,
+     "height": 7
+    }
+   ]
+  },
+  {
+   "part": "mặt đường",
+   "instruction_vi": "Vẽ mặt đường dưới cột.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      6,
+      95
+     ],
+     "to": [
+      94,
+      95
+     ]
+    }
+   ]
+  }
+ ]
+}

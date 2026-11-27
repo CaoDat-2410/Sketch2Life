@@ -1,0 +1,232 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "rocket",
+ "level": "simple",
+ "title_vi": "Vẽ tên lửa",
+ "aliases": [
+  "tên lửa",
+  "chiếc tên lửa",
+  "rocket"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ một nét cong làm thân.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       62,
+       76
+      ],
+      [
+       70,
+       56
+      ],
+      [
+       74,
+       24
+      ],
+      [
+       50,
+       6
+      ],
+      [
+       26,
+       24
+      ],
+      [
+       30,
+       56
+      ],
+      [
+       38,
+       76
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đáy",
+   "instruction_vi": "Vẽ đáy tên lửa.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      38,
+      76
+     ],
+     "to": [
+      62,
+      76
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mũi",
+   "instruction_vi": "Vẽ vạch chia mũi.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       36,
+       22
+      ],
+      [
+       44,
+       27
+      ],
+      [
+       56,
+       27
+      ],
+      [
+       64,
+       22
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cửa sổ",
+   "instruction_vi": "Vẽ cửa sổ hai vòng.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      43
+     ],
+     "radius": 9
+    },
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      43
+     ],
+     "radius": 5
+    }
+   ]
+  },
+  {
+   "part": "cánh",
+   "instruction_vi": "Vẽ hai cánh bên.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       34,
+       56
+      ],
+      [
+       18,
+       70
+      ],
+      [
+       18,
+       86
+      ],
+      [
+       38,
+       76
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       66,
+       56
+      ],
+      [
+       82,
+       70
+      ],
+      [
+       82,
+       86
+      ],
+      [
+       62,
+       76
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "ống lửa",
+   "instruction_vi": "Vẽ ống lửa ở đáy.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       42,
+       76
+      ],
+      [
+       40,
+       83
+      ],
+      [
+       60,
+       83
+      ],
+      [
+       58,
+       76
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "lửa",
+   "instruction_vi": "Vẽ ngọn lửa bùng ra.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       42,
+       83
+      ],
+      [
+       36,
+       90
+      ],
+      [
+       46,
+       90
+      ],
+      [
+       50,
+       96
+      ],
+      [
+       54,
+       90
+      ],
+      [
+       64,
+       90
+      ],
+      [
+       58,
+       83
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

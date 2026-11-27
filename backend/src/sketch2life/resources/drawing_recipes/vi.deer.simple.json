@@ -1,0 +1,376 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "deer",
+ "level": "simple",
+ "title_vi": "Vẽ con hươu",
+ "aliases": [
+  "hươu",
+  "con hươu",
+  "hươu sao",
+  "nai",
+  "con nai",
+  "deer"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ một vòng cong lớn làm thân.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       24,
+       54
+      ],
+      [
+       34,
+       46
+      ],
+      [
+       52,
+       46
+      ],
+      [
+       62,
+       52
+      ],
+      [
+       72,
+       58
+      ],
+      [
+       68,
+       72
+      ],
+      [
+       56,
+       73
+      ],
+      [
+       44,
+       76
+      ],
+      [
+       30,
+       76
+      ],
+      [
+       24,
+       70
+      ],
+      [
+       18,
+       65
+      ],
+      [
+       18,
+       58
+      ],
+      [
+       24,
+       54
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cổ",
+   "instruction_vi": "Vẽ hai nét cong làm cổ.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       54,
+       48
+      ],
+      [
+       62,
+       40
+      ],
+      [
+       64,
+       34
+      ],
+      [
+       66,
+       28
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       66,
+       56
+      ],
+      [
+       72,
+       48
+      ],
+      [
+       74,
+       42
+      ],
+      [
+       77,
+       38
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ đầu có mõm dài.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       66,
+       28
+      ],
+      [
+       66,
+       18
+      ],
+      [
+       78,
+       17
+      ],
+      [
+       82,
+       24
+      ],
+      [
+       90,
+       28
+      ],
+      [
+       95,
+       32
+      ],
+      [
+       92,
+       37
+      ],
+      [
+       88,
+       41
+      ],
+      [
+       82,
+       39
+      ],
+      [
+       77,
+       38
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tai",
+   "instruction_vi": "Vẽ tai nhọn, chấm mắt và mũi.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       68,
+       22
+      ],
+      [
+       57,
+       18
+      ],
+      [
+       66,
+       29
+      ]
+     ]
+    },
+    {
+     "shape": "dot",
+     "center": [
+      79,
+      27
+     ],
+     "radius": 1.4
+    },
+    {
+     "shape": "dot",
+     "center": [
+      91,
+      33
+     ],
+     "radius": 2
+    }
+   ]
+  },
+  {
+   "part": "sừng",
+   "instruction_vi": "Vẽ hai chiếc sừng có nhánh.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       72,
+       19
+      ],
+      [
+       70,
+       11
+      ],
+      [
+       63,
+       5
+      ],
+      [
+       70,
+       11
+      ],
+      [
+       75,
+       5
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       78,
+       19
+      ],
+      [
+       83,
+       11
+      ],
+      [
+       91,
+       6
+      ],
+      [
+       83,
+       11
+      ],
+      [
+       81,
+       4
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân trước",
+   "instruction_vi": "Vẽ hai chân trước.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       54,
+       73
+      ],
+      [
+       55,
+       92
+      ],
+      [
+       60,
+       92
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       63,
+       70
+      ],
+      [
+       66,
+       92
+      ],
+      [
+       71,
+       92
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân sau",
+   "instruction_vi": "Vẽ hai chân sau.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       28,
+       74
+      ],
+      [
+       26,
+       92
+      ],
+      [
+       31,
+       92
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       40,
+       76
+      ],
+      [
+       40,
+       92
+      ],
+      [
+       45,
+       92
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ chiếc đuôi nhỏ nhọn.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       22,
+       56
+      ],
+      [
+       13,
+       49
+      ],
+      [
+       19,
+       62
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

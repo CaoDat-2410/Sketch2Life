@@ -1,0 +1,266 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "carrot",
+ "level": "simple",
+ "title_vi": "Vẽ củ cà rốt",
+ "aliases": [
+  "củ cà rốt",
+  "cà rốt",
+  "carrot"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ hai nét làm thân.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       32,
+       34
+      ],
+      [
+       28,
+       52
+      ],
+      [
+       40,
+       76
+      ],
+      [
+       50,
+       95
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       95
+      ],
+      [
+       60,
+       76
+      ],
+      [
+       72,
+       52
+      ],
+      [
+       68,
+       34
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ đầu củ cong.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       32,
+       34
+      ],
+      [
+       40,
+       25
+      ],
+      [
+       60,
+       25
+      ],
+      [
+       68,
+       34
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "lá giữa",
+   "instruction_vi": "Vẽ lá giữa.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       46,
+       28
+      ],
+      [
+       36,
+       14
+      ],
+      [
+       44,
+       5
+      ],
+      [
+       50,
+       5
+      ],
+      [
+       56,
+       5
+      ],
+      [
+       64,
+       14
+      ],
+      [
+       54,
+       28
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "lá bên",
+   "instruction_vi": "Vẽ hai lá bên.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       41,
+       29
+      ],
+      [
+       24,
+       27
+      ],
+      [
+       16,
+       14
+      ],
+      [
+       22,
+       10
+      ],
+      [
+       32,
+       6
+      ],
+      [
+       42,
+       18
+      ],
+      [
+       45,
+       27
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       59,
+       29
+      ],
+      [
+       76,
+       27
+      ],
+      [
+       84,
+       14
+      ],
+      [
+       78,
+       10
+      ],
+      [
+       68,
+       6
+      ],
+      [
+       58,
+       18
+      ],
+      [
+       55,
+       27
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vạch",
+   "instruction_vi": "Vẽ ba vạch trên củ.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      33,
+      45
+     ],
+     "to": [
+      46,
+      47
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      66,
+      54
+     ],
+     "to": [
+      53,
+      56
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      39,
+      65
+     ],
+     "to": [
+      50,
+      67
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vạch cuối",
+   "instruction_vi": "Vẽ hai vạch cuối.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      59,
+      72
+     ],
+     "to": [
+      49,
+      74
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      44,
+      82
+     ],
+     "to": [
+      51,
+      83
+     ]
+    }
+   ]
+  }
+ ]
+}

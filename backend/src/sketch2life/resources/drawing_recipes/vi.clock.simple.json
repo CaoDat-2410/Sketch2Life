@@ -1,0 +1,201 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "clock",
+ "level": "simple",
+ "title_vi": "Vẽ chiếc đồng hồ",
+ "aliases": [
+  "đồng hồ",
+  "chiếc đồng hồ",
+  "cái đồng hồ",
+  "clock"
+ ],
+ "steps": [
+  {
+   "part": "vòng ngoài",
+   "instruction_vi": "Vẽ vòng ngoài tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      54
+     ],
+     "radius": 33
+    }
+   ]
+  },
+  {
+   "part": "vòng trong",
+   "instruction_vi": "Vẽ vòng trong.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      54
+     ],
+     "radius": 27
+    }
+   ]
+  },
+  {
+   "part": "vạch giờ",
+   "instruction_vi": "Vẽ ba vạch giờ.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      29
+     ],
+     "to": [
+      50,
+      35
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      50,
+      73
+     ],
+     "to": [
+      50,
+      79
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      25,
+      54
+     ],
+     "to": [
+      31,
+      54
+     ]
+    }
+   ]
+  },
+  {
+   "part": "kim",
+   "instruction_vi": "Vẽ vạch cuối và hai kim.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      69,
+      54
+     ],
+     "to": [
+      75,
+      54
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      50,
+      54
+     ],
+     "to": [
+      50,
+      39
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      50,
+      54
+     ],
+     "to": [
+      62,
+      62
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chuông",
+   "instruction_vi": "Vẽ hai chuông vòm.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      28,
+      28
+     ],
+     "radius": 13,
+     "from_deg": 135,
+     "to_deg": 315
+    },
+    {
+     "shape": "arc",
+     "center": [
+      72,
+      28
+     ],
+     "radius": 13,
+     "from_deg": 45,
+     "to_deg": -135
+    }
+   ]
+  },
+  {
+   "part": "quai",
+   "instruction_vi": "Vẽ quai nối hai chuông.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       34,
+       16
+      ],
+      [
+       40,
+       3
+      ],
+      [
+       60,
+       3
+      ],
+      [
+       66,
+       16
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai chân.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      28,
+      79
+     ],
+     "to": [
+      20,
+      93
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      72,
+      79
+     ],
+     "to": [
+      80,
+      93
+     ]
+    }
+   ]
+  }
+ ]
+}

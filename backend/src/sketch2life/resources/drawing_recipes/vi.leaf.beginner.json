@@ -1,0 +1,130 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "leaf",
+ "level": "beginner",
+ "title_vi": "Vẽ chiếc lá",
+ "aliases": [
+  "chiếc lá",
+  "lá",
+  "lá cây",
+  "leaf"
+ ],
+ "steps": [
+  {
+   "part": "lá",
+   "instruction_vi": "Vẽ một bầu dục to làm lá.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      46
+     ],
+     "rx": 24,
+     "ry": 34
+    }
+   ]
+  },
+  {
+   "part": "cuống",
+   "instruction_vi": "Vẽ đường thẳng làm cuống.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      12
+     ],
+     "to": [
+      50,
+      93
+     ]
+    }
+   ]
+  },
+  {
+   "part": "gân trên",
+   "instruction_vi": "Vẽ hai gân trên.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      36
+     ],
+     "to": [
+      34,
+      24
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      50,
+      36
+     ],
+     "to": [
+      66,
+      24
+     ]
+    }
+   ]
+  },
+  {
+   "part": "gân giữa",
+   "instruction_vi": "Vẽ hai gân giữa.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      54
+     ],
+     "to": [
+      29,
+      40
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      50,
+      54
+     ],
+     "to": [
+      71,
+      40
+     ]
+    }
+   ]
+  },
+  {
+   "part": "gân dưới",
+   "instruction_vi": "Vẽ hai gân dưới.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      70
+     ],
+     "to": [
+      34,
+      58
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      50,
+      70
+     ],
+     "to": [
+      66,
+      58
+     ]
+    }
+   ]
+  }
+ ]
+}

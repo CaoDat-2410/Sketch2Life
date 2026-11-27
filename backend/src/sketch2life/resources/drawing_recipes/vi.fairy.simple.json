@@ -1,0 +1,334 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "fairy",
+ "level": "simple",
+ "title_vi": "Vẽ nàng tiên",
+ "aliases": [
+  "nàng tiên",
+  "cô tiên",
+  "bà tiên",
+  "tiên",
+  "fairy"
+ ],
+ "steps": [
+  {
+   "part": "váy",
+   "instruction_vi": "Vẽ váy xòe.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       42,
+       42
+      ],
+      [
+       36,
+       60
+      ],
+      [
+       24,
+       74
+      ],
+      [
+       22,
+       82
+      ],
+      [
+       36,
+       90
+      ],
+      [
+       64,
+       90
+      ],
+      [
+       78,
+       82
+      ],
+      [
+       76,
+       74
+      ],
+      [
+       64,
+       60
+      ],
+      [
+       58,
+       42
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ đầu tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      29
+     ],
+     "radius": 13,
+     "start": "bottom"
+    }
+   ]
+  },
+  {
+   "part": "tóc",
+   "instruction_vi": "Vẽ mái tóc bồng.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       37,
+       30
+      ],
+      [
+       28,
+       8
+      ],
+      [
+       72,
+       8
+      ],
+      [
+       63,
+       30
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mặt",
+   "instruction_vi": "Vẽ đôi mắt và miệng trên mặt.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      45,
+      28
+     ],
+     "radius": 1.8
+    },
+    {
+     "shape": "dot",
+     "center": [
+      55,
+      28
+     ],
+     "radius": 1.8
+    },
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      31
+     ],
+     "radius": 5,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  },
+  {
+   "part": "cánh",
+   "instruction_vi": "Vẽ hai cánh tiên.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       40,
+       46
+      ],
+      [
+       20,
+       24
+      ],
+      [
+       6,
+       30
+      ],
+      [
+       14,
+       46
+      ],
+      [
+       8,
+       62
+      ],
+      [
+       28,
+       66
+      ],
+      [
+       38,
+       56
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       60,
+       46
+      ],
+      [
+       80,
+       24
+      ],
+      [
+       94,
+       30
+      ],
+      [
+       86,
+       46
+      ],
+      [
+       92,
+       62
+      ],
+      [
+       72,
+       66
+      ],
+      [
+       62,
+       56
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tay",
+   "instruction_vi": "Vẽ hai tay.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      43,
+      46
+     ],
+     "to": [
+      30,
+      62
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      57,
+      46
+     ],
+     "to": [
+      70,
+      62
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đũa",
+   "instruction_vi": "Vẽ đũa thần có sao.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      70,
+      62
+     ],
+     "to": [
+      86,
+      36
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       86,
+       22
+      ],
+      [
+       88,
+       28
+      ],
+      [
+       94,
+       28
+      ],
+      [
+       89,
+       32
+      ],
+      [
+       91,
+       38
+      ],
+      [
+       86,
+       34
+      ],
+      [
+       81,
+       38
+      ],
+      [
+       83,
+       32
+      ],
+      [
+       78,
+       28
+      ],
+      [
+       84,
+       28
+      ],
+      [
+       86,
+       22
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai chân nhỏ.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      42,
+      88
+     ],
+     "to": [
+      42,
+      95
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      58,
+      88
+     ],
+     "to": [
+      58,
+      95
+     ]
+    }
+   ]
+  }
+ ]
+}

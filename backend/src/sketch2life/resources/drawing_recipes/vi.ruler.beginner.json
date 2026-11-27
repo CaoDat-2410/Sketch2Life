@@ -1,0 +1,128 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "ruler",
+ "level": "beginner",
+ "title_vi": "Vẽ chiếc thước kẻ",
+ "aliases": [
+  "thước kẻ",
+  "chiếc thước kẻ",
+  "thước",
+  "cái thước",
+  "ruler"
+ ],
+ "steps": [
+  {
+   "part": "thước",
+   "instruction_vi": "Vẽ hình chữ nhật dài làm thước.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      8,
+      38
+     ],
+     "width": 84,
+     "height": 24
+    }
+   ]
+  },
+  {
+   "part": "vạch",
+   "instruction_vi": "Vẽ hai vạch đo.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      20,
+      38
+     ],
+     "to": [
+      20,
+      52
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      32,
+      38
+     ],
+     "to": [
+      32,
+      48
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vạch nữa",
+   "instruction_vi": "Vẽ thêm hai vạch nữa.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      44,
+      38
+     ],
+     "to": [
+      44,
+      52
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      56,
+      38
+     ],
+     "to": [
+      56,
+      48
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vạch cuối",
+   "instruction_vi": "Vẽ hai vạch cuối.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      68,
+      38
+     ],
+     "to": [
+      68,
+      52
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      80,
+      38
+     ],
+     "to": [
+      80,
+      48
+     ]
+    }
+   ]
+  },
+  {
+   "part": "lỗ",
+   "instruction_vi": "Vẽ hình tròn làm lỗ treo.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      84,
+      55
+     ],
+     "radius": 4
+    }
+   ]
+  }
+ ]
+}

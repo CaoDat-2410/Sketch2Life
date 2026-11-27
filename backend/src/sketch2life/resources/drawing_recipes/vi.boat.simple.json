@@ -1,0 +1,228 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "boat",
+ "level": "simple",
+ "title_vi": "Vẽ chiếc thuyền",
+ "aliases": [
+  "thuyền",
+  "chiếc thuyền",
+  "con thuyền",
+  "thuyền buồm",
+  "boat"
+ ],
+ "steps": [
+  {
+   "part": "thân thuyền",
+   "instruction_vi": "Vẽ thân thuyền rộng.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       7,
+       64
+      ],
+      [
+       93,
+       64
+      ],
+      [
+       76,
+       84
+      ],
+      [
+       24,
+       84
+      ],
+      [
+       7,
+       64
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cột buồm",
+   "instruction_vi": "Vẽ cột buồm thẳng đứng.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      64
+     ],
+     "to": [
+      50,
+      8
+     ]
+    }
+   ]
+  },
+  {
+   "part": "buồm to",
+   "instruction_vi": "Vẽ cánh buồm to căng gió.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       13
+      ],
+      [
+       72,
+       23
+      ],
+      [
+       83,
+       40
+      ],
+      [
+       82,
+       57
+      ]
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      82,
+      57
+     ],
+     "to": [
+      50,
+      57
+     ]
+    }
+   ]
+  },
+  {
+   "part": "buồm nhỏ",
+   "instruction_vi": "Vẽ cánh buồm nhỏ.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       50,
+       19
+      ],
+      [
+       21,
+       57
+      ],
+      [
+       50,
+       57
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cờ",
+   "instruction_vi": "Vẽ lá cờ trên đỉnh.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       50,
+       8
+      ],
+      [
+       35,
+       12
+      ],
+      [
+       50,
+       17
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cửa sổ",
+   "instruction_vi": "Vẽ ba cửa sổ tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      31,
+      74
+     ],
+     "radius": 4.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      74
+     ],
+     "radius": 4.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      69,
+      74
+     ],
+     "radius": 4.5
+    }
+   ]
+  },
+  {
+   "part": "sóng",
+   "instruction_vi": "Vẽ sóng nước phía dưới.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       5,
+       88
+      ],
+      [
+       13,
+       80
+      ],
+      [
+       22,
+       96
+      ],
+      [
+       32,
+       88
+      ],
+      [
+       40,
+       81
+      ],
+      [
+       50,
+       96
+      ],
+      [
+       60,
+       88
+      ],
+      [
+       70,
+       81
+      ],
+      [
+       80,
+       96
+      ],
+      [
+       95,
+       86
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

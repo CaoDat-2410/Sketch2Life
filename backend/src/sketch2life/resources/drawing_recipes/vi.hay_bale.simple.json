@@ -1,0 +1,254 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "hay_bale",
+ "level": "simple",
+ "title_vi": "Vẽ cuộn rơm",
+ "aliases": [
+  "cuộn rơm",
+  "rơm",
+  "đống rơm",
+  "bó rơm",
+  "hay bale"
+ ],
+ "steps": [
+  {
+   "part": "mặt tròn",
+   "instruction_vi": "Vẽ mặt tròn của cuộn rơm.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      63,
+      54
+     ],
+     "radius": 30
+    }
+   ]
+  },
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ hai đường thân.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      63,
+      24
+     ],
+     "to": [
+      28,
+      24
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      63,
+      84
+     ],
+     "to": [
+      28,
+      84
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu cong",
+   "instruction_vi": "Vẽ đầu cong phía sau.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      28,
+      54
+     ],
+     "radius": 18,
+     "from_deg": 90,
+     "to_deg": 270,
+     "radius_y": 30
+    }
+   ]
+  },
+  {
+   "part": "xoắn ốc",
+   "instruction_vi": "Vẽ đường xoắn ốc.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       63,
+       54
+      ],
+      [
+       71,
+       50
+      ],
+      [
+       73,
+       62
+      ],
+      [
+       63,
+       64
+      ],
+      [
+       51,
+       66
+      ],
+      [
+       45,
+       50
+      ],
+      [
+       55,
+       42
+      ],
+      [
+       67,
+       32
+      ],
+      [
+       85,
+       42
+      ],
+      [
+       83,
+       58
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "dây buộc",
+   "instruction_vi": "Vẽ hai sợi dây buộc.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       34,
+       24
+      ],
+      [
+       24,
+       40
+      ],
+      [
+       24,
+       68
+      ],
+      [
+       34,
+       84
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       47,
+       24
+      ],
+      [
+       37,
+       40
+      ],
+      [
+       37,
+       68
+      ],
+      [
+       47,
+       84
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cọng rơm",
+   "instruction_vi": "Vẽ ba cọng rơm.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      14,
+      42
+     ],
+     "to": [
+      23,
+      46
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      13,
+      62
+     ],
+     "to": [
+      23,
+      60
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      40,
+      52
+     ],
+     "to": [
+      46,
+      58
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mặt đất",
+   "instruction_vi": "Vẽ mặt đất và cỏ.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      6,
+      87
+     ],
+     "to": [
+      95,
+      87
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       8,
+       87
+      ],
+      [
+       12,
+       76
+      ],
+      [
+       15,
+       85
+      ],
+      [
+       20,
+       79
+      ],
+      [
+       22,
+       87
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

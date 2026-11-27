@@ -1,0 +1,122 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "seahorse",
+ "level": "beginner",
+ "title_vi": "Vẽ cá ngựa",
+ "aliases": [
+  "cá ngựa",
+  "con cá ngựa",
+  "hải mã",
+  "seahorse"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ một hình bầu dục dài làm thân.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      45,
+      52
+     ],
+     "rx": 15,
+     "ry": 24
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ một hình tròn làm đầu.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      51,
+      23
+     ],
+     "radius": 13,
+     "start": "bottom"
+    }
+   ]
+  },
+  {
+   "part": "mõm",
+   "instruction_vi": "Vẽ hình chữ nhật làm mõm.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      63,
+      21
+     ],
+     "width": 22,
+     "height": 9
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ một nét cong cuộn làm đuôi.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      45,
+      84
+     ],
+     "radius": 10,
+     "from_deg": 270,
+     "to_deg": -20
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm mắt, vẽ tam giác làm mào.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      54,
+      20
+     ],
+     "radius": 2.6
+    },
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       40,
+       15
+      ],
+      [
+       43,
+       5
+      ],
+      [
+       51,
+       10
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vây",
+   "instruction_vi": "Vẽ nửa hình tròn làm vây.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      30,
+      50
+     ],
+     "radius": 12,
+     "from_deg": 90,
+     "to_deg": 270
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,189 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "flute",
+ "level": "simple",
+ "title_vi": "Vẽ chiếc sáo",
+ "aliases": [
+  "chiếc sáo",
+  "sáo",
+  "cây sáo",
+  "flute"
+ ],
+ "steps": [
+  {
+   "part": "ống sáo",
+   "instruction_vi": "Vẽ ống sáo nghiêng.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       6,
+       52
+      ],
+      [
+       90,
+       36
+      ],
+      [
+       94,
+       49
+      ],
+      [
+       10,
+       65
+      ],
+      [
+       6,
+       52
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "lỗ thổi",
+   "instruction_vi": "Vẽ lỗ thổi bầu dục.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      18,
+      56.5
+     ],
+     "rx": 5,
+     "ry": 3.5
+    }
+   ]
+  },
+  {
+   "part": "lỗ bấm",
+   "instruction_vi": "Vẽ ba lỗ bấm.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      36,
+      53
+     ],
+     "radius": 3.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      47,
+      51
+     ],
+     "radius": 3.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      58,
+      49
+     ],
+     "radius": 3.5
+    }
+   ]
+  },
+  {
+   "part": "lỗ nữa",
+   "instruction_vi": "Vẽ hai lỗ nữa.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      69,
+      47
+     ],
+     "radius": 3.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      79,
+      45
+     ],
+     "radius": 3.5
+    }
+   ]
+  },
+  {
+   "part": "vạch",
+   "instruction_vi": "Vẽ hai vạch quấn sáo.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      25,
+      49
+     ],
+     "to": [
+      28,
+      62
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      86,
+      37
+     ],
+     "to": [
+      89,
+      50
+     ]
+    }
+   ]
+  },
+  {
+   "part": "dây tua",
+   "instruction_vi": "Vẽ dây tua ở đầu sáo.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       10,
+       65
+      ],
+      [
+       16,
+       76
+      ],
+      [
+       6,
+       80
+      ],
+      [
+       12,
+       87
+      ]
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      12,
+      87
+     ],
+     "to": [
+      7,
+      95
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      12,
+      87
+     ],
+     "to": [
+      17,
+      95
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,150 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "dove",
+ "level": "beginner",
+ "title_vi": "Vẽ chim bồ câu",
+ "aliases": [
+  "bồ câu",
+  "chim bồ câu",
+  "con chim bồ câu",
+  "con bồ câu",
+  "dove",
+  "pigeon"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ một hình bầu dục to làm thân.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      44,
+      58
+     ],
+     "rx": 26,
+     "ry": 16
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ một hình tròn nhỏ làm đầu.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      72,
+      40
+     ],
+     "radius": 12,
+     "start": "left"
+    }
+   ]
+  },
+  {
+   "part": "mỏ",
+   "instruction_vi": "Vẽ tam giác làm mỏ, chấm mắt.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       83,
+       36
+      ],
+      [
+       94,
+       41
+      ],
+      [
+       83,
+       45
+      ]
+     ]
+    },
+    {
+     "shape": "dot",
+     "center": [
+      75,
+      37
+     ],
+     "radius": 2
+    }
+   ]
+  },
+  {
+   "part": "cánh",
+   "instruction_vi": "Vẽ một tam giác lớn làm cánh.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       30,
+       48
+      ],
+      [
+       58,
+       46
+      ],
+      [
+       30,
+       14
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ một tam giác làm đuôi.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       20,
+       54
+      ],
+      [
+       5,
+       45
+      ],
+      [
+       7,
+       68
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "lá",
+   "instruction_vi": "Vẽ cành nhỏ và chiếc lá.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      89,
+      43
+     ],
+     "to": [
+      91,
+      58
+     ]
+    },
+    {
+     "shape": "oval",
+     "center": [
+      85,
+      62
+     ],
+     "rx": 8,
+     "ry": 4.5,
+     "start": "right"
+    }
+   ]
+  }
+ ]
+}

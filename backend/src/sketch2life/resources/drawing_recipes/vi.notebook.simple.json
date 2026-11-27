@@ -1,0 +1,211 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "notebook",
+ "level": "simple",
+ "title_vi": "Vẽ quyển vở",
+ "aliases": [
+  "quyển vở",
+  "vở",
+  "cuốn vở",
+  "notebook"
+ ],
+ "steps": [
+  {
+   "part": "trang trái",
+   "instruction_vi": "Vẽ trang trái của vở.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       50,
+       22
+      ],
+      [
+       8,
+       17
+      ],
+      [
+       8,
+       80
+      ],
+      [
+       50,
+       85
+      ],
+      [
+       50,
+       22
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "trang phải",
+   "instruction_vi": "Vẽ trang phải của vở.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       50,
+       22
+      ],
+      [
+       92,
+       17
+      ],
+      [
+       92,
+       80
+      ],
+      [
+       50,
+       85
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "gáy xoắn",
+   "instruction_vi": "Vẽ ba vòng gáy xoắn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      32
+     ],
+     "radius": 3.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      52
+     ],
+     "radius": 3.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      72
+     ],
+     "radius": 3.5
+    }
+   ]
+  },
+  {
+   "part": "dòng trái",
+   "instruction_vi": "Vẽ ba dòng trái.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      15,
+      33
+     ],
+     "to": [
+      40,
+      36
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      15,
+      49
+     ],
+     "to": [
+      40,
+      52
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      15,
+      65
+     ],
+     "to": [
+      40,
+      68
+     ]
+    }
+   ]
+  },
+  {
+   "part": "dòng phải",
+   "instruction_vi": "Vẽ ba dòng phải.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      60,
+      36
+     ],
+     "to": [
+      85,
+      33
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      60,
+      52
+     ],
+     "to": [
+      85,
+      49
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      60,
+      68
+     ],
+     "to": [
+      85,
+      65
+     ]
+    }
+   ]
+  },
+  {
+   "part": "dấu trang",
+   "instruction_vi": "Vẽ dấu trang rủ xuống.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       68,
+       82
+      ],
+      [
+       68,
+       95
+      ],
+      [
+       73,
+       90
+      ],
+      [
+       78,
+       95
+      ],
+      [
+       78,
+       81
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

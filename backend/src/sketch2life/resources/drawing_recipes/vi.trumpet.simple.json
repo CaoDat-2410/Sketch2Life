@@ -1,0 +1,239 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "trumpet",
+ "level": "simple",
+ "title_vi": "Vẽ chiếc kèn",
+ "aliases": [
+  "chiếc kèn",
+  "kèn",
+  "cái kèn",
+  "kèn đồng",
+  "trumpet"
+ ],
+ "steps": [
+  {
+   "part": "loa",
+   "instruction_vi": "Vẽ loa kèn xòe.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       66,
+       44
+      ],
+      [
+       78,
+       42
+      ],
+      [
+       86,
+       32
+      ],
+      [
+       94,
+       22
+      ]
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      94,
+      22
+     ],
+     "to": [
+      94,
+      74
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       94,
+       74
+      ],
+      [
+       86,
+       64
+      ],
+      [
+       78,
+       54
+      ],
+      [
+       66,
+       52
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "ống",
+   "instruction_vi": "Vẽ ống kèn dài.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       66,
+       44
+      ],
+      [
+       16,
+       44
+      ],
+      [
+       16,
+       52
+      ],
+      [
+       66,
+       52
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ miệng thổi.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       16,
+       42
+      ],
+      [
+       7,
+       39
+      ],
+      [
+       7,
+       57
+      ],
+      [
+       16,
+       54
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "van",
+   "instruction_vi": "Vẽ ba van bấm.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      28,
+      30
+     ],
+     "width": 7,
+     "height": 14
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      41,
+      30
+     ],
+     "width": 7,
+     "height": 14
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      54,
+      30
+     ],
+     "width": 7,
+     "height": 14
+    }
+   ]
+  },
+  {
+   "part": "nút",
+   "instruction_vi": "Vẽ ba nút tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      31.5,
+      26
+     ],
+     "radius": 4
+    },
+    {
+     "shape": "circle",
+     "center": [
+      44.5,
+      26
+     ],
+     "radius": 4
+    },
+    {
+     "shape": "circle",
+     "center": [
+      57.5,
+      26
+     ],
+     "radius": 4
+    }
+   ]
+  },
+  {
+   "part": "vòng",
+   "instruction_vi": "Vẽ hai vòng ống uốn.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       28,
+       52
+      ],
+      [
+       26,
+       76
+      ],
+      [
+       62,
+       76
+      ],
+      [
+       60,
+       52
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       35,
+       52
+      ],
+      [
+       34,
+       67
+      ],
+      [
+       54,
+       67
+      ],
+      [
+       53,
+       52
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

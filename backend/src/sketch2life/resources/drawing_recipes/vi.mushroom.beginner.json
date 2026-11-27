@@ -1,0 +1,133 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "mushroom",
+ "level": "beginner",
+ "title_vi": "Vẽ cây nấm",
+ "aliases": [
+  "cây nấm",
+  "nấm",
+  "mushroom"
+ ],
+ "steps": [
+  {
+   "part": "mũ nấm",
+   "instruction_vi": "Vẽ nửa bầu dục làm mũ nấm.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      50
+     ],
+     "radius": 36,
+     "from_deg": 180,
+     "to_deg": 360,
+     "radius_y": 32
+    },
+    {
+     "shape": "line",
+     "from": [
+      14,
+      50
+     ],
+     "to": [
+      86,
+      50
+     ]
+    }
+   ]
+  },
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ hình chữ nhật làm thân.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      38,
+      50
+     ],
+     "width": 24,
+     "height": 38
+    }
+   ]
+  },
+  {
+   "part": "chấm",
+   "instruction_vi": "Vẽ hai chấm tròn trên mũ.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      35,
+      37
+     ],
+     "radius": 6.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      63,
+      34
+     ],
+     "radius": 7
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm hai chấm làm mắt.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      44,
+      63
+     ],
+     "radius": 2.4
+    },
+    {
+     "shape": "dot",
+     "center": [
+      56,
+      63
+     ],
+     "radius": 2.4
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ một nét cong làm miệng.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      69
+     ],
+     "radius": 7,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  },
+  {
+   "part": "cỏ",
+   "instruction_vi": "Vẽ một đường thẳng làm cỏ.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      14,
+      90
+     ],
+     "to": [
+      86,
+      90
+     ]
+    }
+   ]
+  }
+ ]
+}

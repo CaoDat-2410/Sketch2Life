@@ -1,0 +1,171 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "pencil",
+ "level": "simple",
+ "title_vi": "Vẽ bút chì",
+ "aliases": [
+  "bút chì",
+  "chiếc bút chì",
+  "cây bút chì",
+  "pencil"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ thân bút dài.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      36,
+      24
+     ],
+     "width": 28,
+     "height": 52
+    }
+   ]
+  },
+  {
+   "part": "đầu gỗ",
+   "instruction_vi": "Vẽ đầu gỗ nhọn.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       36,
+       76
+      ],
+      [
+       50,
+       95
+      ],
+      [
+       64,
+       76
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "ngòi chì",
+   "instruction_vi": "Vẽ ngòi chì đen.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      45,
+      88
+     ],
+     "to": [
+      55,
+      88
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đai",
+   "instruction_vi": "Vẽ đai giữ tẩy.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      36,
+      16
+     ],
+     "width": 28,
+     "height": 8
+    }
+   ]
+  },
+  {
+   "part": "tẩy",
+   "instruction_vi": "Vẽ cục tẩy trên đầu.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       36,
+       16
+      ],
+      [
+       36,
+       3
+      ],
+      [
+       64,
+       3
+      ],
+      [
+       64,
+       16
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "sọc",
+   "instruction_vi": "Vẽ hai đường sọc.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      45,
+      24
+     ],
+     "to": [
+      45,
+      76
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      55,
+      24
+     ],
+     "to": [
+      55,
+      76
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Vẽ đôi mắt và miệng.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      41,
+      42
+     ],
+     "radius": 1.8
+    },
+    {
+     "shape": "dot",
+     "center": [
+      59,
+      42
+     ],
+     "radius": 1.8
+    },
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      54
+     ],
+     "radius": 7,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  }
+ ]
+}

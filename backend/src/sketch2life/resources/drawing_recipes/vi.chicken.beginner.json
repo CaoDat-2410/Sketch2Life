@@ -1,0 +1,161 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "chicken",
+ "level": "beginner",
+ "title_vi": "Vẽ con gà",
+ "aliases": [
+  "gà",
+  "con gà",
+  "gà con",
+  "gà mái",
+  "gà trống",
+  "con gà mái",
+  "con gà trống",
+  "chicken",
+  "rooster",
+  "hen"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ một hình tròn to làm thân.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      44,
+      62
+     ],
+     "radius": 21
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ một hình tròn nhỏ làm đầu.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      66,
+      34
+     ],
+     "radius": 13
+    }
+   ]
+  },
+  {
+   "part": "mỏ",
+   "instruction_vi": "Vẽ tam giác làm mỏ, chấm một chấm làm mắt.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       78,
+       30
+      ],
+      [
+       91,
+       35
+      ],
+      [
+       78,
+       40
+      ]
+     ]
+    },
+    {
+     "shape": "dot",
+     "center": [
+      70,
+      31
+     ],
+     "radius": 1.4
+    }
+   ]
+  },
+  {
+   "part": "mào",
+   "instruction_vi": "Vẽ hai nét cong làm mào.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      61,
+      21
+     ],
+     "radius": 5,
+     "from_deg": 180,
+     "to_deg": 360
+    },
+    {
+     "shape": "arc",
+     "center": [
+      71,
+      21
+     ],
+     "radius": 5,
+     "from_deg": 180,
+     "to_deg": 360
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ hai đường thẳng làm đuôi.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      24,
+      55
+     ],
+     "to": [
+      9,
+      43
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      23,
+      63
+     ],
+     "to": [
+      7,
+      59
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai đường thẳng làm chân.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      37,
+      82
+     ],
+     "to": [
+      37,
+      94
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      52,
+      82
+     ],
+     "to": [
+      52,
+      94
+     ]
+    }
+   ]
+  }
+ ]
+}

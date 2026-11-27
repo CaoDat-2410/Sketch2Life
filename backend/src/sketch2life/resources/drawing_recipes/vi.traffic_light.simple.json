@@ -1,0 +1,217 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "traffic_light",
+ "level": "simple",
+ "title_vi": "Vẽ đèn giao thông",
+ "aliases": [
+  "đèn giao thông",
+  "cột đèn giao thông",
+  "đèn xanh đèn đỏ",
+  "traffic light"
+ ],
+ "steps": [
+  {
+   "part": "hộp",
+   "instruction_vi": "Vẽ hộp đèn cao.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      32,
+      6
+     ],
+     "width": 36,
+     "height": 68
+    }
+   ]
+  },
+  {
+   "part": "đèn",
+   "instruction_vi": "Vẽ ba đèn tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      19
+     ],
+     "radius": 8.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      40
+     ],
+     "radius": 8.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      61
+     ],
+     "radius": 8.5
+    }
+   ]
+  },
+  {
+   "part": "mái che",
+   "instruction_vi": "Vẽ ba mái che đèn.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      19
+     ],
+     "radius": 12,
+     "from_deg": 200,
+     "to_deg": 340
+    },
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      40
+     ],
+     "radius": 12,
+     "from_deg": 200,
+     "to_deg": 340
+    },
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      61
+     ],
+     "radius": 12,
+     "from_deg": 200,
+     "to_deg": 340
+    }
+   ]
+  },
+  {
+   "part": "cột",
+   "instruction_vi": "Vẽ cột chống đèn.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       45,
+       74
+      ],
+      [
+       45,
+       91
+      ],
+      [
+       55,
+       91
+      ],
+      [
+       55,
+       74
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đế",
+   "instruction_vi": "Vẽ đế cột.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      34,
+      89
+     ],
+     "width": 32,
+     "height": 6
+    }
+   ]
+  },
+  {
+   "part": "tai",
+   "instruction_vi": "Vẽ hai tai đỡ bên hông.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       32,
+       20
+      ],
+      [
+       18,
+       24
+      ],
+      [
+       32,
+       32
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       68,
+       20
+      ],
+      [
+       82,
+       24
+      ],
+      [
+       68,
+       32
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tai nữa",
+   "instruction_vi": "Vẽ hai tai nữa phía dưới.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       32,
+       46
+      ],
+      [
+       18,
+       50
+      ],
+      [
+       32,
+       58
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       68,
+       46
+      ],
+      [
+       82,
+       50
+      ],
+      [
+       68,
+       58
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

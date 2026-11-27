@@ -1,0 +1,236 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "pot",
+ "level": "simple",
+ "title_vi": "Vẽ chậu cây",
+ "aliases": [
+  "chậu cây",
+  "chậu",
+  "chậu hoa",
+  "cái chậu",
+  "pot"
+ ],
+ "steps": [
+  {
+   "part": "chậu",
+   "instruction_vi": "Vẽ chậu loe miệng.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       28,
+       64
+      ],
+      [
+       34,
+       93
+      ],
+      [
+       66,
+       93
+      ],
+      [
+       72,
+       64
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vành",
+   "instruction_vi": "Vẽ vành chậu.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      23,
+      54
+     ],
+     "width": 54,
+     "height": 10
+    }
+   ]
+  },
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ thân cây mềm.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       54
+      ],
+      [
+       45,
+       42
+      ],
+      [
+       55,
+       33
+      ],
+      [
+       50,
+       23
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "lá",
+   "instruction_vi": "Vẽ hai chiếc lá.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       49,
+       45
+      ],
+      [
+       40,
+       30
+      ],
+      [
+       24,
+       34
+      ],
+      [
+       22,
+       40
+      ],
+      [
+       30,
+       52
+      ],
+      [
+       44,
+       50
+      ],
+      [
+       49,
+       45
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       51,
+       37
+      ],
+      [
+       60,
+       22
+      ],
+      [
+       76,
+       26
+      ],
+      [
+       79,
+       32
+      ],
+      [
+       70,
+       45
+      ],
+      [
+       56,
+       43
+      ],
+      [
+       51,
+       37
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "hoa",
+   "instruction_vi": "Vẽ hoa tròn và nhụy.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      15
+     ],
+     "radius": 9,
+     "start": "bottom"
+    },
+    {
+     "shape": "dot",
+     "center": [
+      50,
+      15
+     ],
+     "radius": 3
+    }
+   ]
+  },
+  {
+   "part": "cánh hoa",
+   "instruction_vi": "Vẽ hai cánh hoa bên.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      36,
+      15
+     ],
+     "radius": 5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      64,
+      15
+     ],
+     "radius": 5
+    }
+   ]
+  },
+  {
+   "part": "hoa văn",
+   "instruction_vi": "Vẽ hoa văn răng cưa.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       32,
+       76
+      ],
+      [
+       40,
+       83
+      ],
+      [
+       48,
+       76
+      ],
+      [
+       56,
+       83
+      ],
+      [
+       64,
+       76
+      ],
+      [
+       68,
+       80
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

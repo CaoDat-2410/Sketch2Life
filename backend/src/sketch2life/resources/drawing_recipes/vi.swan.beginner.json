@@ -1,0 +1,153 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "swan",
+ "level": "beginner",
+ "title_vi": "Vẽ thiên nga",
+ "aliases": [
+  "thiên nga",
+  "con thiên nga",
+  "chim thiên nga",
+  "swan"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ nửa bầu dục to làm thân.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      42,
+      64
+     ],
+     "radius": 31,
+     "from_deg": 0,
+     "to_deg": 180,
+     "radius_y": 20
+    },
+    {
+     "shape": "line",
+     "from": [
+      11,
+      64
+     ],
+     "to": [
+      73,
+      64
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cổ",
+   "instruction_vi": "Vẽ hai nét cong làm cổ.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      70,
+      45
+     ],
+     "radius": 20,
+     "from_deg": 90,
+     "to_deg": -90
+    },
+    {
+     "shape": "arc",
+     "center": [
+      70,
+      48
+     ],
+     "radius": 9,
+     "from_deg": 90,
+     "to_deg": -90
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ một hình tròn nhỏ làm đầu.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      68,
+      31
+     ],
+     "radius": 8.5
+    }
+   ]
+  },
+  {
+   "part": "mỏ",
+   "instruction_vi": "Vẽ tam giác làm mỏ, chấm mắt.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       60,
+       28
+      ],
+      [
+       47,
+       36
+      ],
+      [
+       61,
+       37
+      ]
+     ]
+    },
+    {
+     "shape": "dot",
+     "center": [
+      69,
+      29
+     ],
+     "radius": 1.8
+    }
+   ]
+  },
+  {
+   "part": "cánh",
+   "instruction_vi": "Vẽ tam giác làm cánh.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       14,
+       64
+      ],
+      [
+       25,
+       42
+      ],
+      [
+       56,
+       64
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "nước",
+   "instruction_vi": "Vẽ một đường thẳng làm nước.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      6,
+      87
+     ],
+     "to": [
+      90,
+      87
+     ]
+    }
+   ]
+  }
+ ]
+}

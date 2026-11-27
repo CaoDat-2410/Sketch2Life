@@ -1,0 +1,219 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "wand",
+ "level": "simple",
+ "title_vi": "Vẽ đũa phép",
+ "aliases": [
+  "đũa phép",
+  "chiếc đũa phép",
+  "gậy phép",
+  "wand"
+ ],
+ "steps": [
+  {
+   "part": "ngôi sao",
+   "instruction_vi": "Vẽ ngôi sao năm cánh.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       64,
+       6
+      ],
+      [
+       71,
+       24
+      ],
+      [
+       90,
+       25
+      ],
+      [
+       75,
+       38
+      ],
+      [
+       81,
+       57
+      ],
+      [
+       64,
+       46
+      ],
+      [
+       47,
+       57
+      ],
+      [
+       53,
+       38
+      ],
+      [
+       37,
+       25
+      ],
+      [
+       57,
+       24
+      ],
+      [
+       64,
+       6
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cán",
+   "instruction_vi": "Vẽ hai đường làm cán dài.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      50
+     ],
+     "to": [
+      12,
+      88
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      57,
+      52
+     ],
+     "to": [
+      18,
+      94
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu cán",
+   "instruction_vi": "Vẽ nét đóng đầu cán.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      12,
+      88
+     ],
+     "to": [
+      18,
+      94
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vạch",
+   "instruction_vi": "Vẽ hai vạch trang trí.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      24,
+      76
+     ],
+     "to": [
+      30,
+      82
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      36,
+      64
+     ],
+     "to": [
+      42,
+      70
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm hai mắt trên sao.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      58,
+      33
+     ],
+     "radius": 2
+    },
+    {
+     "shape": "dot",
+     "center": [
+      70,
+      33
+     ],
+     "radius": 2
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ miệng cười.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      64,
+      36
+     ],
+     "radius": 6,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  },
+  {
+   "part": "tia sáng",
+   "instruction_vi": "Vẽ ba tia sáng.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      36,
+      24
+     ],
+     "to": [
+      26,
+      16
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      61,
+      10
+     ],
+     "to": [
+      52,
+      4
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      82,
+      57
+     ],
+     "to": [
+      93,
+      64
+     ]
+    }
+   ]
+  }
+ ]
+}

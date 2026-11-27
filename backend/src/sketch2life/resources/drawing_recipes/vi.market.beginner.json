@@ -1,0 +1,116 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "market",
+ "level": "beginner",
+ "title_vi": "Vẽ khu chợ",
+ "aliases": [
+  "khu chợ",
+  "chợ",
+  "cái chợ",
+  "market"
+ ],
+ "steps": [
+  {
+   "part": "quầy",
+   "instruction_vi": "Vẽ hình chữ nhật to làm quầy.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      11,
+      62
+     ],
+     "width": 78,
+     "height": 30
+    }
+   ]
+  },
+  {
+   "part": "cột",
+   "instruction_vi": "Vẽ hai đường làm cột.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      18,
+      62
+     ],
+     "to": [
+      18,
+      34
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      82,
+      62
+     ],
+     "to": [
+      82,
+      34
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mái",
+   "instruction_vi": "Vẽ tam giác to làm mái.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       12,
+       34
+      ],
+      [
+       50,
+       8
+      ],
+      [
+       88,
+       34
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "quả",
+   "instruction_vi": "Vẽ hai hình tròn làm quả.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      31,
+      54
+     ],
+     "radius": 8
+    },
+    {
+     "shape": "circle",
+     "center": [
+      69,
+      54
+     ],
+     "radius": 8
+    }
+   ]
+  },
+  {
+   "part": "quả giữa",
+   "instruction_vi": "Vẽ thêm quả giữa.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      54
+     ],
+     "radius": 8
+    }
+   ]
+  }
+ ]
+}

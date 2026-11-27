@@ -1,0 +1,229 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "caterpillar",
+ "level": "simple",
+ "title_vi": "Vẽ con sâu bướm",
+ "aliases": [
+  "sâu bướm",
+  "con sâu bướm",
+  "sâu",
+  "con sâu",
+  "caterpillar"
+ ],
+ "steps": [
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ đầu tròn thật to.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      77,
+      42
+     ],
+     "radius": 16
+    }
+   ]
+  },
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ hai đốt thân tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      56,
+      56
+     ],
+     "radius": 12,
+     "start": "right"
+    },
+    {
+     "shape": "circle",
+     "center": [
+      40,
+      66
+     ],
+     "radius": 11,
+     "start": "right"
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ thêm hai đốt làm đuôi.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      25,
+      59
+     ],
+     "radius": 10,
+     "start": "right"
+    },
+    {
+     "shape": "circle",
+     "center": [
+      14,
+      69
+     ],
+     "radius": 8,
+     "start": "right"
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm hai mắt.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      72,
+      38
+     ],
+     "radius": 2.4
+    },
+    {
+     "shape": "dot",
+     "center": [
+      84,
+      38
+     ],
+     "radius": 2.4
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ miệng cười thật tươi.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      78,
+      45
+     ],
+     "radius": 8,
+     "from_deg": 25,
+     "to_deg": 155
+    }
+   ]
+  },
+  {
+   "part": "râu",
+   "instruction_vi": "Vẽ hai chiếc râu cong.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       71,
+       27
+      ],
+      [
+       67,
+       15
+      ],
+      [
+       59,
+       14
+      ],
+      [
+       58,
+       20
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       85,
+       28
+      ],
+      [
+       89,
+       15
+      ],
+      [
+       95,
+       16
+      ],
+      [
+       94,
+       24
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ ba chân nhỏ.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      56,
+      68
+     ],
+     "to": [
+      58,
+      82
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      40,
+      77
+     ],
+     "to": [
+      40,
+      86
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      25,
+      69
+     ],
+     "to": [
+      26,
+      81
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cành lá",
+   "instruction_vi": "Vẽ một nét cong làm cành lá.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       6,
+       87
+      ],
+      [
+       30,
+       81
+      ],
+      [
+       60,
+       94
+      ],
+      [
+       94,
+       82
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,136 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "firefly",
+ "level": "beginner",
+ "title_vi": "Vẽ con đom đóm",
+ "aliases": [
+  "con đom đóm",
+  "đom đóm",
+  "firefly"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ bầu dục dài làm thân.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      56
+     ],
+     "rx": 15,
+     "ry": 24
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ hình tròn làm đầu.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      22
+     ],
+     "radius": 12,
+     "start": "bottom"
+    }
+   ]
+  },
+  {
+   "part": "cánh",
+   "instruction_vi": "Vẽ hai bầu dục làm cánh.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      27,
+      45
+     ],
+     "rx": 17,
+     "ry": 10,
+     "start": "right"
+    },
+    {
+     "shape": "oval",
+     "center": [
+      73,
+      45
+     ],
+     "rx": 17,
+     "ry": 10,
+     "start": "left"
+    }
+   ]
+  },
+  {
+   "part": "đèn",
+   "instruction_vi": "Vẽ một đường ngang làm đèn.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      37,
+      66
+     ],
+     "to": [
+      63,
+      66
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tia sáng",
+   "instruction_vi": "Vẽ hai tia sáng.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      39,
+      75
+     ],
+     "to": [
+      21,
+      90
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      61,
+      75
+     ],
+     "to": [
+      79,
+      90
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm hai chấm làm mắt.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      45,
+      20
+     ],
+     "radius": 2.4
+    },
+    {
+     "shape": "dot",
+     "center": [
+      55,
+      20
+     ],
+     "radius": 2.4
+    }
+   ]
+  }
+ ]
+}

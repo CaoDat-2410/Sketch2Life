@@ -1,0 +1,413 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "crab",
+ "level": "simple",
+ "title_vi": "Vẽ con cua",
+ "aliases": [
+  "cua",
+  "con cua",
+  "chú cua",
+  "cua biển",
+  "crab"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ hai nét cong làm thân.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       22,
+       60
+      ],
+      [
+       22,
+       36
+      ],
+      [
+       78,
+       36
+      ],
+      [
+       78,
+       60
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       78,
+       60
+      ],
+      [
+       74,
+       80
+      ],
+      [
+       26,
+       80
+      ],
+      [
+       22,
+       60
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cuống mắt",
+   "instruction_vi": "Vẽ hai cuống mắt.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      42,
+      43
+     ],
+     "to": [
+      40,
+      33
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      58,
+      43
+     ],
+     "to": [
+      60,
+      33
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Vẽ hai mắt tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      40,
+      28.5
+     ],
+     "radius": 4.5,
+     "start": "bottom"
+    },
+    {
+     "shape": "circle",
+     "center": [
+      60,
+      28.5
+     ],
+     "radius": 4.5,
+     "start": "bottom"
+    }
+   ]
+  },
+  {
+   "part": "tay",
+   "instruction_vi": "Vẽ hai tay cong.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       26,
+       53
+      ],
+      [
+       14,
+       51
+      ],
+      [
+       11,
+       42
+      ],
+      [
+       17,
+       34
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       74,
+       53
+      ],
+      [
+       86,
+       51
+      ],
+      [
+       89,
+       42
+      ],
+      [
+       83,
+       34
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "càng",
+   "instruction_vi": "Vẽ hai chiếc càng to.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       17,
+       34
+      ],
+      [
+       4,
+       34
+      ],
+      [
+       4,
+       16
+      ],
+      [
+       13,
+       9
+      ],
+      [
+       13,
+       18
+      ],
+      [
+       15,
+       21
+      ],
+      [
+       18,
+       23
+      ],
+      [
+       20,
+       19
+      ],
+      [
+       21,
+       14
+      ],
+      [
+       24,
+       11
+      ],
+      [
+       32,
+       20
+      ],
+      [
+       30,
+       33
+      ],
+      [
+       17,
+       34
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       83,
+       34
+      ],
+      [
+       96,
+       34
+      ],
+      [
+       96,
+       16
+      ],
+      [
+       87,
+       9
+      ],
+      [
+       87,
+       18
+      ],
+      [
+       85,
+       21
+      ],
+      [
+       82,
+       23
+      ],
+      [
+       80,
+       19
+      ],
+      [
+       79,
+       14
+      ],
+      [
+       76,
+       11
+      ],
+      [
+       68,
+       20
+      ],
+      [
+       70,
+       33
+      ],
+      [
+       83,
+       34
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ miệng cười.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      57
+     ],
+     "radius": 10,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  },
+  {
+   "part": "chân trái",
+   "instruction_vi": "Vẽ ba chân trái.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       24,
+       66
+      ],
+      [
+       12,
+       68
+      ],
+      [
+       7,
+       78
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       30,
+       71
+      ],
+      [
+       18,
+       79
+      ],
+      [
+       16,
+       90
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       40,
+       74
+      ],
+      [
+       33,
+       83
+      ],
+      [
+       34,
+       94
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân phải",
+   "instruction_vi": "Vẽ ba chân phải.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       76,
+       66
+      ],
+      [
+       88,
+       68
+      ],
+      [
+       93,
+       78
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       70,
+       71
+      ],
+      [
+       82,
+       79
+      ],
+      [
+       84,
+       90
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       60,
+       74
+      ],
+      [
+       67,
+       83
+      ],
+      [
+       66,
+       94
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

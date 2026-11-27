@@ -1,0 +1,91 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "lunchbox",
+ "level": "beginner",
+ "title_vi": "Vẽ hộp cơm",
+ "aliases": [
+  "hộp cơm",
+  "cái hộp cơm",
+  "lunchbox"
+ ],
+ "steps": [
+  {
+   "part": "hộp",
+   "instruction_vi": "Vẽ hình chữ nhật to làm hộp.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      13,
+      44
+     ],
+     "width": 74,
+     "height": 42
+    }
+   ]
+  },
+  {
+   "part": "nắp",
+   "instruction_vi": "Vẽ hình dẹt làm nắp.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      13,
+      31
+     ],
+     "width": 74,
+     "height": 13
+    }
+   ]
+  },
+  {
+   "part": "quai",
+   "instruction_vi": "Vẽ nửa hình tròn làm quai.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      31
+     ],
+     "radius": 17,
+     "from_deg": 180,
+     "to_deg": 360
+    }
+   ]
+  },
+  {
+   "part": "khóa",
+   "instruction_vi": "Vẽ hình nhỏ làm khóa.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      43,
+      38
+     ],
+     "width": 14,
+     "height": 12
+    }
+   ]
+  },
+  {
+   "part": "vạch",
+   "instruction_vi": "Vẽ một vạch chia ngăn.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      50
+     ],
+     "to": [
+      50,
+      86
+     ]
+    }
+   ]
+  }
+ ]
+}

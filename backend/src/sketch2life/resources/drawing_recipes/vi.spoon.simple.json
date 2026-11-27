@@ -1,0 +1,198 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "spoon",
+ "level": "simple",
+ "title_vi": "Vẽ chiếc thìa",
+ "aliases": [
+  "chiếc thìa",
+  "thìa",
+  "cái thìa",
+  "muỗng",
+  "cái muỗng",
+  "spoon"
+ ],
+ "steps": [
+  {
+   "part": "lòng thìa",
+   "instruction_vi": "Vẽ một nét làm lòng thìa.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       6
+      ],
+      [
+       26,
+       6
+      ],
+      [
+       26,
+       48
+      ],
+      [
+       46,
+       55
+      ],
+      [
+       48,
+       56
+      ],
+      [
+       52,
+       56
+      ],
+      [
+       54,
+       55
+      ],
+      [
+       74,
+       48
+      ],
+      [
+       74,
+       6
+      ],
+      [
+       50,
+       6
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "lòng trong",
+   "instruction_vi": "Vẽ bầu dục làm lòng trong.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      29
+     ],
+     "rx": 13,
+     "ry": 17
+    }
+   ]
+  },
+  {
+   "part": "cán",
+   "instruction_vi": "Vẽ hai nét làm cán.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       46,
+       55
+      ],
+      [
+       48,
+       68
+      ],
+      [
+       40,
+       82
+      ],
+      [
+       44,
+       90
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       54,
+       55
+      ],
+      [
+       52,
+       68
+      ],
+      [
+       60,
+       82
+      ],
+      [
+       56,
+       90
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ đuôi tròn.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       44,
+       90
+      ],
+      [
+       46,
+       97
+      ],
+      [
+       54,
+       97
+      ],
+      [
+       56,
+       90
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "bóng",
+   "instruction_vi": "Vẽ nét bóng sáng.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       43,
+       20
+      ],
+      [
+       39,
+       27
+      ],
+      [
+       39,
+       33
+      ],
+      [
+       43,
+       39
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "hoa văn",
+   "instruction_vi": "Vẽ hoa văn tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      85
+     ],
+     "radius": 3.5
+    }
+   ]
+  }
+ ]
+}

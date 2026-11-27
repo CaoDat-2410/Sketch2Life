@@ -1,0 +1,131 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "astronaut",
+ "level": "beginner",
+ "title_vi": "Vẽ phi hành gia",
+ "aliases": [
+  "phi hành gia",
+  "nhà du hành",
+  "astronaut"
+ ],
+ "steps": [
+  {
+   "part": "mũ",
+   "instruction_vi": "Vẽ hình tròn to làm mũ.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      28
+     ],
+     "radius": 21
+    }
+   ]
+  },
+  {
+   "part": "kính",
+   "instruction_vi": "Vẽ bầu dục làm kính.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      29
+     ],
+     "rx": 14,
+     "ry": 12
+    }
+   ]
+  },
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ hình chữ nhật làm thân.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      34,
+      49
+     ],
+     "width": 32,
+     "height": 27
+    }
+   ]
+  },
+  {
+   "part": "tay",
+   "instruction_vi": "Vẽ hai đường thẳng làm tay.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      34,
+      53
+     ],
+     "to": [
+      17,
+      66
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      66,
+      53
+     ],
+     "to": [
+      83,
+      66
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai hình chữ nhật làm chân.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      36,
+      76
+     ],
+     "width": 11,
+     "height": 18
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      53,
+      76
+     ],
+     "width": 11,
+     "height": 18
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm hai chấm làm mắt.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      45,
+      28
+     ],
+     "radius": 2.4
+    },
+    {
+     "shape": "dot",
+     "center": [
+      55,
+      28
+     ],
+     "radius": 2.4
+    }
+   ]
+  }
+ ]
+}

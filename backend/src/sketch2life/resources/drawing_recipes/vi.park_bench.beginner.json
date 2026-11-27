@@ -1,0 +1,116 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "park_bench",
+ "level": "beginner",
+ "title_vi": "Vẽ ghế công viên",
+ "aliases": [
+  "ghế công viên",
+  "ghế đá",
+  "park bench"
+ ],
+ "steps": [
+  {
+   "part": "tựa lưng",
+   "instruction_vi": "Vẽ hình chữ nhật làm tựa lưng.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      13,
+      25
+     ],
+     "width": 74,
+     "height": 17
+    }
+   ]
+  },
+  {
+   "part": "trụ",
+   "instruction_vi": "Vẽ hai đường làm trụ.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      22,
+      42
+     ],
+     "to": [
+      22,
+      53
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      78,
+      42
+     ],
+     "to": [
+      78,
+      53
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mặt ghế",
+   "instruction_vi": "Vẽ hình dài làm mặt ghế.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      9,
+      53
+     ],
+     "width": 82,
+     "height": 10
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai đường làm chân.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      20,
+      63
+     ],
+     "to": [
+      16,
+      89
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      80,
+      63
+     ],
+     "to": [
+      84,
+      89
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cỏ",
+   "instruction_vi": "Vẽ một đường làm cỏ.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      6,
+      90
+     ],
+     "to": [
+      94,
+      90
+     ]
+    }
+   ]
+  }
+ ]
+}

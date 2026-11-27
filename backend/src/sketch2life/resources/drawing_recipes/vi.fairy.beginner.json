@@ -1,0 +1,143 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "fairy",
+ "level": "beginner",
+ "title_vi": "Vẽ nàng tiên",
+ "aliases": [
+  "nàng tiên",
+  "cô tiên",
+  "bà tiên",
+  "tiên",
+  "fairy"
+ ],
+ "steps": [
+  {
+   "part": "váy",
+   "instruction_vi": "Vẽ tam giác to làm váy.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       50,
+       36
+      ],
+      [
+       24,
+       82
+      ],
+      [
+       76,
+       82
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ hình tròn làm đầu.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      23
+     ],
+     "radius": 13,
+     "start": "bottom"
+    }
+   ]
+  },
+  {
+   "part": "cánh",
+   "instruction_vi": "Vẽ hai hình tròn làm cánh.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      28,
+      48
+     ],
+     "radius": 14,
+     "start": "right"
+    },
+    {
+     "shape": "circle",
+     "center": [
+      72,
+      48
+     ],
+     "radius": 14,
+     "start": "right"
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai đường làm chân.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      40,
+      82
+     ],
+     "to": [
+      40,
+      94
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      60,
+      82
+     ],
+     "to": [
+      60,
+      94
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm hai chấm làm mắt.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      45,
+      20
+     ],
+     "radius": 2.4
+    },
+    {
+     "shape": "dot",
+     "center": [
+      55,
+      20
+     ],
+     "radius": 2.4
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ một nét cong làm miệng.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      24
+     ],
+     "radius": 6,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  }
+ ]
+}

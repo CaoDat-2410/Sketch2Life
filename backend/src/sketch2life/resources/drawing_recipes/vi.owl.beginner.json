@@ -1,0 +1,163 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "owl",
+ "level": "beginner",
+ "title_vi": "Vẽ con cú mèo",
+ "aliases": [
+  "cú mèo",
+  "con cú mèo",
+  "chim cú",
+  "con cú",
+  "owl"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ một hình bầu dục thật to làm thân.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      57
+     ],
+     "rx": 27,
+     "ry": 34
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Vẽ hai hình tròn làm mắt.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      39,
+      43
+     ],
+     "radius": 10.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      61,
+      43
+     ],
+     "radius": 10.5
+    }
+   ]
+  },
+  {
+   "part": "con ngươi",
+   "instruction_vi": "Chấm hai chấm làm con ngươi.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      39,
+      43
+     ],
+     "radius": 3
+    },
+    {
+     "shape": "dot",
+     "center": [
+      61,
+      43
+     ],
+     "radius": 3
+    }
+   ]
+  },
+  {
+   "part": "mỏ",
+   "instruction_vi": "Vẽ tam giác làm mỏ.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       45,
+       53
+      ],
+      [
+       55,
+       53
+      ],
+      [
+       50,
+       63
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tai",
+   "instruction_vi": "Vẽ hai tam giác làm tai.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       28,
+       36
+      ],
+      [
+       25,
+       12
+      ],
+      [
+       43,
+       24
+      ]
+     ]
+    },
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       72,
+       36
+      ],
+      [
+       75,
+       12
+      ],
+      [
+       57,
+       24
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cánh",
+   "instruction_vi": "Vẽ hai nét cong làm cánh.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      26,
+      66
+     ],
+     "radius": 12,
+     "from_deg": 270,
+     "to_deg": 450
+    },
+    {
+     "shape": "arc",
+     "center": [
+      74,
+      66
+     ],
+     "radius": 12,
+     "from_deg": 270,
+     "to_deg": 90
+    }
+   ]
+  }
+ ]
+}

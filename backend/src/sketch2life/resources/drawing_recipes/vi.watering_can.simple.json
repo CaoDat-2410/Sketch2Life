@@ -1,0 +1,219 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "watering_can",
+ "level": "simple",
+ "title_vi": "Vẽ bình tưới cây",
+ "aliases": [
+  "bình tưới cây",
+  "bình tưới",
+  "bình tưới nước",
+  "ô doa",
+  "watering can"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ thân bình.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       28,
+       40
+      ],
+      [
+       62,
+       40
+      ],
+      [
+       66,
+       90
+      ],
+      [
+       24,
+       90
+      ],
+      [
+       28,
+       40
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vòi",
+   "instruction_vi": "Vẽ vòi tưới dài.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       64,
+       62
+      ],
+      [
+       82,
+       34
+      ],
+      [
+       90,
+       42
+      ],
+      [
+       66,
+       76
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu vòi",
+   "instruction_vi": "Vẽ đầu vòi loe.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       78,
+       31
+      ],
+      [
+       94,
+       47
+      ],
+      [
+       95,
+       37
+      ],
+      [
+       87,
+       29
+      ],
+      [
+       78,
+       31
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "quai sau",
+   "instruction_vi": "Vẽ quai sau để cầm.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       27,
+       48
+      ],
+      [
+       7,
+       46
+      ],
+      [
+       7,
+       82
+      ],
+      [
+       25,
+       80
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "quai trên",
+   "instruction_vi": "Vẽ quai trên để xách.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       32,
+       40
+      ],
+      [
+       32,
+       17
+      ],
+      [
+       57,
+       17
+      ],
+      [
+       58,
+       40
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "nước",
+   "instruction_vi": "Vẽ ba tia nước.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      93,
+      49
+     ],
+     "to": [
+      94,
+      66
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      86,
+      48
+     ],
+     "to": [
+      82,
+      60
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      95,
+      45
+     ],
+     "to": [
+      95,
+      54
+     ]
+    }
+   ]
+  },
+  {
+   "part": "bông hoa",
+   "instruction_vi": "Vẽ bông hoa trên thân.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      45,
+      64
+     ],
+     "radius": 9
+    },
+    {
+     "shape": "circle",
+     "center": [
+      45,
+      64
+     ],
+     "radius": 3.5
+    }
+   ]
+  }
+ ]
+}

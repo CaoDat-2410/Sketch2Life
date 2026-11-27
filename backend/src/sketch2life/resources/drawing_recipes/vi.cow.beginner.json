@@ -1,0 +1,151 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "cow",
+ "level": "beginner",
+ "title_vi": "Vẽ con bò",
+ "aliases": [
+  "con bò",
+  "bò",
+  "bò sữa",
+  "con bò sữa",
+  "chú bò",
+  "cow"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ bầu dục to làm thân.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      42,
+      58
+     ],
+     "rx": 29,
+     "ry": 19
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ bầu dục làm đầu.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      77,
+      39
+     ],
+     "rx": 15,
+     "ry": 17,
+     "start": "left"
+    }
+   ]
+  },
+  {
+   "part": "mõm",
+   "instruction_vi": "Vẽ mõm tròn, chấm mắt.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      79,
+      49
+     ],
+     "rx": 11.5,
+     "ry": 7.5
+    },
+    {
+     "shape": "dot",
+     "center": [
+      77,
+      33
+     ],
+     "radius": 2.8
+    }
+   ]
+  },
+  {
+   "part": "sừng",
+   "instruction_vi": "Vẽ hai đường làm sừng.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      68,
+      26
+     ],
+     "to": [
+      61,
+      11
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      86,
+      26
+     ],
+     "to": [
+      93,
+      11
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai đường làm chân.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      27,
+      74
+     ],
+     "to": [
+      27,
+      94
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      55,
+      74
+     ],
+     "to": [
+      55,
+      94
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đốm",
+   "instruction_vi": "Vẽ đốm tròn và đuôi.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      36,
+      54
+     ],
+     "radius": 8.5
+    },
+    {
+     "shape": "line",
+     "from": [
+      14,
+      55
+     ],
+     "to": [
+      6,
+      76
+     ]
+    }
+   ]
+  }
+ ]
+}

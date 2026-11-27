@@ -1,0 +1,302 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "socks",
+ "level": "simple",
+ "title_vi": "Vẽ đôi tất",
+ "aliases": [
+  "đôi tất",
+  "tất",
+  "đôi vớ",
+  "vớ",
+  "chiếc tất",
+  "socks"
+ ],
+ "steps": [
+  {
+   "part": "tất",
+   "instruction_vi": "Vẽ viền chiếc tất.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       22,
+       8
+      ],
+      [
+       22,
+       40
+      ],
+      [
+       24,
+       54
+      ],
+      [
+       16,
+       66
+      ],
+      [
+       4,
+       78
+      ],
+      [
+       12,
+       92
+      ],
+      [
+       28,
+       90
+      ],
+      [
+       40,
+       88
+      ],
+      [
+       48,
+       76
+      ],
+      [
+       48,
+       60
+      ],
+      [
+       48,
+       40
+      ],
+      [
+       48,
+       20
+      ],
+      [
+       48,
+       8
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cổ chun",
+   "instruction_vi": "Vẽ miệng và viền cổ chun.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      22,
+      8
+     ],
+     "to": [
+      48,
+      8
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      22,
+      18
+     ],
+     "to": [
+      48,
+      18
+     ]
+    }
+   ]
+  },
+  {
+   "part": "gót",
+   "instruction_vi": "Vẽ gót và mũi tất.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       48,
+       60
+      ],
+      [
+       40,
+       62
+      ],
+      [
+       36,
+       70
+      ],
+      [
+       40,
+       82
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       10,
+       74
+      ],
+      [
+       20,
+       74
+      ],
+      [
+       24,
+       82
+      ],
+      [
+       22,
+       91
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vạch",
+   "instruction_vi": "Vẽ hai vạch ngang.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      23,
+      30
+     ],
+     "to": [
+      48,
+      30
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      23,
+      40
+     ],
+     "to": [
+      48,
+      40
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tất nữa",
+   "instruction_vi": "Vẽ chiếc tất nữa.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       58,
+       12
+      ],
+      [
+       58,
+       40
+      ],
+      [
+       60,
+       54
+      ],
+      [
+       52,
+       66
+      ],
+      [
+       44,
+       78
+      ],
+      [
+       51,
+       90
+      ],
+      [
+       66,
+       89
+      ],
+      [
+       77,
+       87
+      ],
+      [
+       85,
+       76
+      ],
+      [
+       85,
+       60
+      ],
+      [
+       85,
+       40
+      ],
+      [
+       85,
+       22
+      ],
+      [
+       85,
+       12
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cổ nữa",
+   "instruction_vi": "Vẽ miệng cổ nữa.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      58,
+      12
+     ],
+     "to": [
+      85,
+      12
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      58,
+      21
+     ],
+     "to": [
+      85,
+      21
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vạch nữa",
+   "instruction_vi": "Vẽ hai vạch nữa.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      59,
+      30
+     ],
+     "to": [
+      86,
+      30
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      59,
+      40
+     ],
+     "to": [
+      86,
+      40
+     ]
+    }
+   ]
+  }
+ ]
+}

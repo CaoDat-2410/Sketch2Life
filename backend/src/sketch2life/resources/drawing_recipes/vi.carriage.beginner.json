@@ -1,0 +1,108 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "carriage",
+ "level": "beginner",
+ "title_vi": "Vẽ cỗ xe ngựa",
+ "aliases": [
+  "cỗ xe ngựa",
+  "xe ngựa",
+  "cỗ xe",
+  "carriage"
+ ],
+ "steps": [
+  {
+   "part": "thùng xe",
+   "instruction_vi": "Vẽ bầu dục to làm thùng xe.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      41,
+      52
+     ],
+     "rx": 29,
+     "ry": 24
+    }
+   ]
+  },
+  {
+   "part": "bánh",
+   "instruction_vi": "Vẽ hai hình tròn làm bánh.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      23,
+      79
+     ],
+     "radius": 12
+    },
+    {
+     "shape": "circle",
+     "center": [
+      59,
+      79
+     ],
+     "radius": 12
+    }
+   ]
+  },
+  {
+   "part": "cửa sổ",
+   "instruction_vi": "Vẽ hình vuông làm cửa sổ.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      31,
+      40
+     ],
+     "width": 20,
+     "height": 21
+    }
+   ]
+  },
+  {
+   "part": "chóp",
+   "instruction_vi": "Vẽ hình tròn nhỏ làm chóp.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      41,
+      23
+     ],
+     "radius": 5.5
+    }
+   ]
+  },
+  {
+   "part": "càng",
+   "instruction_vi": "Vẽ hai đường làm càng xe.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      69,
+      55
+     ],
+     "to": [
+      92,
+      66
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      92,
+      66
+     ],
+     "to": [
+      92,
+      52
+     ]
+    }
+   ]
+  }
+ ]
+}

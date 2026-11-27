@@ -1,0 +1,223 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "carriage",
+ "level": "simple",
+ "title_vi": "Vẽ cỗ xe ngựa",
+ "aliases": [
+  "cỗ xe ngựa",
+  "xe ngựa",
+  "cỗ xe",
+  "carriage"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ thân xe tròn như bí.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       14,
+       52
+      ],
+      [
+       14,
+       24
+      ],
+      [
+       68,
+       24
+      ],
+      [
+       68,
+       52
+      ],
+      [
+       68,
+       76
+      ],
+      [
+       14,
+       76
+      ],
+      [
+       14,
+       52
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vân",
+   "instruction_vi": "Vẽ hai đường vân cong.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       34,
+       31
+      ],
+      [
+       20,
+       42
+      ],
+      [
+       20,
+       62
+      ],
+      [
+       34,
+       70
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       48,
+       31
+      ],
+      [
+       62,
+       42
+      ],
+      [
+       62,
+       62
+      ],
+      [
+       48,
+       70
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cửa sổ",
+   "instruction_vi": "Vẽ cửa sổ vòm.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       34,
+       61
+      ],
+      [
+       34,
+       36
+      ],
+      [
+       48,
+       36
+      ],
+      [
+       48,
+       61
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chóp",
+   "instruction_vi": "Vẽ chóp nhọn trên nóc.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       33,
+       32
+      ],
+      [
+       41,
+       17
+      ],
+      [
+       49,
+       32
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "bánh",
+   "instruction_vi": "Vẽ hai bánh xe.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      24,
+      80
+     ],
+     "radius": 11
+    },
+    {
+     "shape": "circle",
+     "center": [
+      60,
+      80
+     ],
+     "radius": 11
+    }
+   ]
+  },
+  {
+   "part": "trục",
+   "instruction_vi": "Vẽ trục giữa mỗi bánh.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      24,
+      80
+     ],
+     "radius": 4
+    },
+    {
+     "shape": "circle",
+     "center": [
+      60,
+      80
+     ],
+     "radius": 4
+    }
+   ]
+  },
+  {
+   "part": "càng",
+   "instruction_vi": "Vẽ càng xe phía trước.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      68,
+      58
+     ],
+     "to": [
+      92,
+      66
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      92,
+      66
+     ],
+     "to": [
+      92,
+      52
+     ]
+    }
+   ]
+  }
+ ]
+}

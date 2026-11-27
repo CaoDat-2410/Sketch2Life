@@ -1,0 +1,224 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "xylophone",
+ "level": "simple",
+ "title_vi": "Vẽ mộc cầm",
+ "aliases": [
+  "mộc cầm",
+  "chiếc mộc cầm",
+  "đàn gỗ",
+  "xylophone"
+ ],
+ "steps": [
+  {
+   "part": "thanh dài",
+   "instruction_vi": "Vẽ hai thanh dài.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      8,
+      16
+     ],
+     "width": 10,
+     "height": 68
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      22,
+      20
+     ],
+     "width": 10,
+     "height": 60
+    }
+   ]
+  },
+  {
+   "part": "thanh vừa",
+   "instruction_vi": "Vẽ hai thanh vừa.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      36,
+      24
+     ],
+     "width": 10,
+     "height": 52
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      50,
+      28
+     ],
+     "width": 10,
+     "height": 44
+    }
+   ]
+  },
+  {
+   "part": "thanh ngắn",
+   "instruction_vi": "Vẽ hai thanh ngắn.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      64,
+      32
+     ],
+     "width": 10,
+     "height": 36
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      78,
+      36
+     ],
+     "width": 10,
+     "height": 28
+    }
+   ]
+  },
+  {
+   "part": "giá",
+   "instruction_vi": "Vẽ hai đường giá đỡ.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      4,
+      32
+     ],
+     "to": [
+      94,
+      38
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      4,
+      68
+     ],
+     "to": [
+      94,
+      62
+     ]
+    }
+   ]
+  },
+  {
+   "part": "ốc",
+   "instruction_vi": "Chấm ba ốc vít.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      13,
+      22
+     ],
+     "radius": 1.8
+    },
+    {
+     "shape": "dot",
+     "center": [
+      27,
+      26
+     ],
+     "radius": 1.8
+    },
+    {
+     "shape": "dot",
+     "center": [
+      41,
+      30
+     ],
+     "radius": 1.8
+    }
+   ]
+  },
+  {
+   "part": "ốc nữa",
+   "instruction_vi": "Chấm thêm ba ốc nữa.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      55,
+      34
+     ],
+     "radius": 1.8
+    },
+    {
+     "shape": "dot",
+     "center": [
+      69,
+      38
+     ],
+     "radius": 1.8
+    },
+    {
+     "shape": "dot",
+     "center": [
+      83,
+      42
+     ],
+     "radius": 1.8
+    }
+   ]
+  },
+  {
+   "part": "dùi",
+   "instruction_vi": "Vẽ hai chiếc dùi.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      38,
+      95
+     ],
+     "to": [
+      62,
+      74
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      94,
+      90
+     ],
+     "to": [
+      76,
+      62
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu dùi",
+   "instruction_vi": "Vẽ hai đầu dùi tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      63,
+      73
+     ],
+     "radius": 3.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      76,
+      62
+     ],
+     "radius": 3.5
+    }
+   ]
+  }
+ ]
+}

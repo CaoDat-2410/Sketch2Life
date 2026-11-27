@@ -1,0 +1,144 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "sparrow",
+ "level": "beginner",
+ "title_vi": "Vẽ chim sẻ",
+ "aliases": [
+  "chim sẻ",
+  "con chim sẻ",
+  "sẻ",
+  "con sẻ",
+  "sparrow"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ một hình tròn thật to làm thân.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      47,
+      52
+     ],
+     "radius": 28
+    }
+   ]
+  },
+  {
+   "part": "mỏ",
+   "instruction_vi": "Vẽ tam giác làm mỏ, chấm mắt.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       73,
+       41
+      ],
+      [
+       92,
+       48
+      ],
+      [
+       74,
+       55
+      ]
+     ]
+    },
+    {
+     "shape": "dot",
+     "center": [
+      61,
+      40
+     ],
+     "radius": 2.4
+    }
+   ]
+  },
+  {
+   "part": "cánh",
+   "instruction_vi": "Vẽ nửa hình tròn làm cánh.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      40,
+      54
+     ],
+     "radius": 17,
+     "from_deg": 0,
+     "to_deg": 180,
+     "radius_y": 14
+    },
+    {
+     "shape": "line",
+     "from": [
+      23,
+      54
+     ],
+     "to": [
+      57,
+      54
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ hai đường thẳng làm đuôi.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      21,
+      60
+     ],
+     "to": [
+      5,
+      64
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      25,
+      69
+     ],
+     "to": [
+      10,
+      80
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai đường thẳng làm chân.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      39,
+      79
+     ],
+     "to": [
+      39,
+      93
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      55,
+      79
+     ],
+     "to": [
+      55,
+      93
+     ]
+    }
+   ]
+  }
+ ]
+}

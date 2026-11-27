@@ -1,0 +1,113 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "shoes",
+ "level": "beginner",
+ "title_vi": "Vẽ chiếc giày",
+ "aliases": [
+  "đôi giày",
+  "giày",
+  "chiếc giày",
+  "shoes"
+ ],
+ "steps": [
+  {
+   "part": "thân giày",
+   "instruction_vi": "Vẽ nửa bầu dục làm thân giày.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      40,
+      66
+     ],
+     "radius": 28,
+     "from_deg": 180,
+     "to_deg": 360,
+     "radius_y": 28
+    }
+   ]
+  },
+  {
+   "part": "đế",
+   "instruction_vi": "Vẽ hình dài làm đế.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      12,
+      66
+     ],
+     "width": 78,
+     "height": 12
+    }
+   ]
+  },
+  {
+   "part": "mũi giày",
+   "instruction_vi": "Vẽ nét cong làm mũi giày.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      68,
+      66
+     ],
+     "radius": 21,
+     "from_deg": 270,
+     "to_deg": 360,
+     "radius_y": 17
+    }
+   ]
+  },
+  {
+   "part": "dây",
+   "instruction_vi": "Vẽ hai đường làm dây giày.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      36,
+      44
+     ],
+     "to": [
+      54,
+      52
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      54,
+      44
+     ],
+     "to": [
+      36,
+      52
+     ]
+    }
+   ]
+  },
+  {
+   "part": "lỗ",
+   "instruction_vi": "Chấm hai chấm làm lỗ dây.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      28,
+      52
+     ],
+     "radius": 2.5
+    },
+    {
+     "shape": "dot",
+     "center": [
+      62,
+      56
+     ],
+     "radius": 2.5
+    }
+   ]
+  }
+ ]
+}

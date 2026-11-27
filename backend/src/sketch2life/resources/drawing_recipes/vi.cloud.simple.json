@@ -1,0 +1,153 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "cloud",
+ "level": "simple",
+ "title_vi": "Vẽ đám mây",
+ "aliases": [
+  "đám mây",
+  "mây",
+  "cloud"
+ ],
+ "steps": [
+  {
+   "part": "viền mây",
+   "instruction_vi": "Vẽ viền mây bồng bềnh.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       22,
+       68
+      ],
+      [
+       5,
+       68
+      ],
+      [
+       5,
+       44
+      ],
+      [
+       22,
+       44
+      ],
+      [
+       22,
+       22
+      ],
+      [
+       44,
+       18
+      ],
+      [
+       50,
+       32
+      ],
+      [
+       58,
+       14
+      ],
+      [
+       82,
+       22
+      ],
+      [
+       78,
+       42
+      ],
+      [
+       95,
+       40
+      ],
+      [
+       96,
+       68
+      ],
+      [
+       78,
+       68
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đáy mây",
+   "instruction_vi": "Vẽ đáy mây nằm ngang.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      22,
+      68
+     ],
+     "to": [
+      78,
+      68
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm hai mắt.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      40,
+      45
+     ],
+     "radius": 2.4
+    },
+    {
+     "shape": "dot",
+     "center": [
+      60,
+      45
+     ],
+     "radius": 2.4
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ miệng cười.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      49
+     ],
+     "radius": 9,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  },
+  {
+   "part": "má",
+   "instruction_vi": "Vẽ hai má tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      31,
+      55
+     ],
+     "radius": 4
+    },
+    {
+     "shape": "circle",
+     "center": [
+      69,
+      55
+     ],
+     "radius": 4
+    }
+   ]
+  }
+ ]
+}

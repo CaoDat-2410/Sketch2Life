@@ -1,0 +1,260 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "ladybug",
+ "level": "simple",
+ "title_vi": "Vẽ con bọ rùa",
+ "aliases": [
+  "bọ rùa",
+  "con bọ rùa",
+  "chú bọ rùa",
+  "ladybug"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ một hình tròn to làm thân.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      59
+     ],
+     "radius": 31
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ đầu cong và chấm hai mắt.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       32,
+       34
+      ],
+      [
+       33,
+       10
+      ],
+      [
+       67,
+       10
+      ],
+      [
+       68,
+       34
+      ]
+     ]
+    },
+    {
+     "shape": "dot",
+     "center": [
+      43,
+      22
+     ],
+     "radius": 2.4
+    },
+    {
+     "shape": "dot",
+     "center": [
+      57,
+      22
+     ],
+     "radius": 2.4
+    }
+   ]
+  },
+  {
+   "part": "râu",
+   "instruction_vi": "Vẽ hai chiếc râu cong.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       41,
+       18
+      ],
+      [
+       37,
+       8
+      ],
+      [
+       31,
+       5
+      ],
+      [
+       26,
+       9
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       59,
+       18
+      ],
+      [
+       63,
+       8
+      ],
+      [
+       69,
+       5
+      ],
+      [
+       74,
+       9
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đường giữa",
+   "instruction_vi": "Vẽ một đường giữa thẳng xuống.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      28
+     ],
+     "to": [
+      50,
+      90
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chấm",
+   "instruction_vi": "Vẽ hai chấm tròn to.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      35,
+      48
+     ],
+     "radius": 6.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      65,
+      48
+     ],
+     "radius": 6.5
+    }
+   ]
+  },
+  {
+   "part": "chấm nhỏ",
+   "instruction_vi": "Vẽ thêm hai chấm nhỏ.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      36,
+      71
+     ],
+     "radius": 5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      64,
+      71
+     ],
+     "radius": 5
+    }
+   ]
+  },
+  {
+   "part": "chân trái",
+   "instruction_vi": "Vẽ hai chân trái.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       22,
+       48
+      ],
+      [
+       11,
+       44
+      ],
+      [
+       6,
+       36
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       22,
+       72
+      ],
+      [
+       11,
+       77
+      ],
+      [
+       8,
+       87
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân phải",
+   "instruction_vi": "Vẽ hai chân phải.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       78,
+       48
+      ],
+      [
+       89,
+       44
+      ],
+      [
+       94,
+       36
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       78,
+       72
+      ],
+      [
+       89,
+       77
+      ],
+      [
+       92,
+       87
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

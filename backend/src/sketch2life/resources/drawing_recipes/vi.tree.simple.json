@@ -1,0 +1,320 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "tree",
+ "level": "simple",
+ "title_vi": "Vẽ cái cây",
+ "aliases": [
+  "cây",
+  "cái cây",
+  "cây xanh",
+  "cây to",
+  "cây ăn quả",
+  "tree"
+ ],
+ "steps": [
+  {
+   "part": "tán lá",
+   "instruction_vi": "Vẽ tán lá lượn sóng thật to.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50.0,
+       62.0
+      ],
+      [
+       47.8,
+       67.9
+      ],
+      [
+       26.4,
+       57.6
+      ],
+      [
+       29.7,
+       52.2
+      ],
+      [
+       23.7,
+       54.2
+      ],
+      [
+       18.4,
+       31.1
+      ],
+      [
+       24.7,
+       30.2
+      ],
+      [
+       19.4,
+       26.7
+      ],
+      [
+       34.1,
+       8.2
+      ],
+      [
+       38.7,
+       12.6
+      ],
+      [
+       38.2,
+       6.3
+      ],
+      [
+       61.8,
+       6.3
+      ],
+      [
+       61.3,
+       12.6
+      ],
+      [
+       65.9,
+       8.2
+      ],
+      [
+       80.6,
+       26.7
+      ],
+      [
+       75.3,
+       30.2
+      ],
+      [
+       81.6,
+       31.1
+      ],
+      [
+       76.3,
+       54.2
+      ],
+      [
+       70.3,
+       52.2
+      ],
+      [
+       73.6,
+       57.6
+      ],
+      [
+       52.2,
+       67.9
+      ],
+      [
+       50.0,
+       62.0
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "thân cây",
+   "instruction_vi": "Vẽ hai nét cong làm thân cây.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       43,
+       62
+      ],
+      [
+       45,
+       76
+      ],
+      [
+       42,
+       86
+      ],
+      [
+       34,
+       93
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       57,
+       62
+      ],
+      [
+       55,
+       76
+      ],
+      [
+       58,
+       86
+      ],
+      [
+       66,
+       93
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cành",
+   "instruction_vi": "Vẽ hai cành cây nhỏ.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       47,
+       70
+      ],
+      [
+       44,
+       54
+      ],
+      [
+       35,
+       46
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       53,
+       70
+      ],
+      [
+       57,
+       53
+      ],
+      [
+       65,
+       49
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "quả",
+   "instruction_vi": "Vẽ ba quả tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      32,
+      30
+     ],
+     "radius": 5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      51,
+      22
+     ],
+     "radius": 5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      68,
+      33
+     ],
+     "radius": 5
+    }
+   ]
+  },
+  {
+   "part": "cuống quả",
+   "instruction_vi": "Vẽ cuống quả nhỏ.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      32,
+      25
+     ],
+     "to": [
+      34,
+      19
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      51,
+      17
+     ],
+     "to": [
+      53,
+      11
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      68,
+      28
+     ],
+     "to": [
+      70,
+      22
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cỏ",
+   "instruction_vi": "Vẽ hai bụi cỏ hai bên.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       8,
+       93
+      ],
+      [
+       16,
+       82
+      ],
+      [
+       20,
+       93
+      ],
+      [
+       32,
+       93
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       68,
+       93
+      ],
+      [
+       80,
+       93
+      ],
+      [
+       84,
+       82
+      ],
+      [
+       92,
+       93
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

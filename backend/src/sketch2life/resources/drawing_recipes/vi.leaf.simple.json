@@ -1,0 +1,208 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "leaf",
+ "level": "simple",
+ "title_vi": "Vẽ chiếc lá",
+ "aliases": [
+  "chiếc lá",
+  "lá",
+  "lá cây",
+  "leaf"
+ ],
+ "steps": [
+  {
+   "part": "viền lá",
+   "instruction_vi": "Vẽ hai nét cong làm viền lá.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       8
+      ],
+      [
+       24,
+       22
+      ],
+      [
+       16,
+       58
+      ],
+      [
+       50,
+       78
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       8
+      ],
+      [
+       76,
+       22
+      ],
+      [
+       84,
+       58
+      ],
+      [
+       50,
+       78
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cuống",
+   "instruction_vi": "Vẽ cuống cong ở dưới.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       78
+      ],
+      [
+       50,
+       86
+      ],
+      [
+       46,
+       92
+      ],
+      [
+       38,
+       94
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "gân giữa",
+   "instruction_vi": "Vẽ gân giữa dọc lá.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       14
+      ],
+      [
+       47,
+       36
+      ],
+      [
+       53,
+       56
+      ],
+      [
+       50,
+       78
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "gân trái",
+   "instruction_vi": "Vẽ ba gân trái.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      32
+     ],
+     "to": [
+      36,
+      24
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      50,
+      48
+     ],
+     "to": [
+      30,
+      38
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      50,
+      64
+     ],
+     "to": [
+      34,
+      55
+     ]
+    }
+   ]
+  },
+  {
+   "part": "gân phải",
+   "instruction_vi": "Vẽ ba gân phải.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      32
+     ],
+     "to": [
+      64,
+      24
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      50,
+      48
+     ],
+     "to": [
+      70,
+      38
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      50,
+      64
+     ],
+     "to": [
+      66,
+      55
+     ]
+    }
+   ]
+  },
+  {
+   "part": "giọt sương",
+   "instruction_vi": "Vẽ một giọt sương tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      62,
+      56
+     ],
+     "radius": 4
+    }
+   ]
+  }
+ ]
+}

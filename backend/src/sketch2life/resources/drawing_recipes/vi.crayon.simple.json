@@ -1,0 +1,209 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "crayon",
+ "level": "simple",
+ "title_vi": "Vẽ bút sáp màu",
+ "aliases": [
+  "bút sáp màu",
+  "bút sáp",
+  "bút màu",
+  "sáp màu",
+  "crayon"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ thân bút sáp.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       34,
+       30
+      ],
+      [
+       66,
+       30
+      ],
+      [
+       66,
+       90
+      ],
+      [
+       34,
+       90
+      ],
+      [
+       34,
+       30
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu nhọn",
+   "instruction_vi": "Vẽ đầu nhọn tù.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       38,
+       30
+      ],
+      [
+       46,
+       9
+      ],
+      [
+       54,
+       9
+      ],
+      [
+       62,
+       30
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "viền trên",
+   "instruction_vi": "Vẽ viền trên răng cưa.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       34,
+       40
+      ],
+      [
+       42,
+       46
+      ],
+      [
+       50,
+       40
+      ],
+      [
+       58,
+       46
+      ],
+      [
+       66,
+       40
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "viền dưới",
+   "instruction_vi": "Vẽ viền dưới răng cưa.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       34,
+       78
+      ],
+      [
+       42,
+       84
+      ],
+      [
+       50,
+       78
+      ],
+      [
+       58,
+       84
+      ],
+      [
+       66,
+       78
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "nhãn",
+   "instruction_vi": "Vẽ nhãn bầu dục.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      62
+     ],
+     "rx": 11,
+     "ry": 11
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Vẽ đôi mắt và miệng trên nhãn.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      46,
+      59
+     ],
+     "radius": 1.5
+    },
+    {
+     "shape": "dot",
+     "center": [
+      54,
+      59
+     ],
+     "radius": 1.5
+    },
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      62
+     ],
+     "radius": 5,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  },
+  {
+   "part": "nét màu",
+   "instruction_vi": "Vẽ nét màu ngoằn ngoèo.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       66,
+       90
+      ],
+      [
+       74,
+       80
+      ],
+      [
+       82,
+       98
+      ],
+      [
+       94,
+       84
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

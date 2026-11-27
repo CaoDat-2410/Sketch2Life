@@ -1,0 +1,209 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "guitar",
+ "level": "simple",
+ "title_vi": "Vẽ đàn ghi-ta",
+ "aliases": [
+  "đàn ghi-ta",
+  "ghi-ta",
+  "đàn ghi ta",
+  "guitar"
+ ],
+ "steps": [
+  {
+   "part": "thùng",
+   "instruction_vi": "Vẽ một nét làm thùng đàn.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       45,
+       40
+      ],
+      [
+       28,
+       38
+      ],
+      [
+       24,
+       54
+      ],
+      [
+       34,
+       62
+      ],
+      [
+       18,
+       70
+      ],
+      [
+       20,
+       96
+      ],
+      [
+       50,
+       96
+      ],
+      [
+       80,
+       96
+      ],
+      [
+       82,
+       70
+      ],
+      [
+       66,
+       62
+      ],
+      [
+       76,
+       54
+      ],
+      [
+       72,
+       38
+      ],
+      [
+       55,
+       40
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cần",
+   "instruction_vi": "Vẽ cần đàn dài.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      45,
+      10
+     ],
+     "width": 10,
+     "height": 30
+    }
+   ]
+  },
+  {
+   "part": "đầu đàn",
+   "instruction_vi": "Vẽ đầu đàn.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       45,
+       11
+      ],
+      [
+       40,
+       4
+      ],
+      [
+       60,
+       4
+      ],
+      [
+       55,
+       11
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "lỗ",
+   "instruction_vi": "Vẽ lỗ thoát âm.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      60
+     ],
+     "radius": 8
+    }
+   ]
+  },
+  {
+   "part": "ngựa đàn",
+   "instruction_vi": "Vẽ ngựa đàn phía dưới.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      40,
+      78
+     ],
+     "width": 20,
+     "height": 6
+    }
+   ]
+  },
+  {
+   "part": "dây",
+   "instruction_vi": "Vẽ ba sợi dây đàn.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      47,
+      10
+     ],
+     "to": [
+      47,
+      81
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      50,
+      10
+     ],
+     "to": [
+      50,
+      81
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      53,
+      10
+     ],
+     "to": [
+      53,
+      81
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chốt",
+   "instruction_vi": "Vẽ hai chốt vặn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      37,
+      8
+     ],
+     "radius": 3.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      63,
+      8
+     ],
+     "radius": 3.5
+    }
+   ]
+  }
+ ]
+}

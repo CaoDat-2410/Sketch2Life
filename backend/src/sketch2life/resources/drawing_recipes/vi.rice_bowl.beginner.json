@@ -1,0 +1,124 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "rice_bowl",
+ "level": "beginner",
+ "title_vi": "Vẽ bát cơm",
+ "aliases": [
+  "bát cơm",
+  "chén cơm",
+  "bát cơm trắng",
+  "rice"
+ ],
+ "steps": [
+  {
+   "part": "bát",
+   "instruction_vi": "Vẽ nửa bầu dục làm bát.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      56
+     ],
+     "radius": 40,
+     "from_deg": 0,
+     "to_deg": 180,
+     "radius_y": 31
+    },
+    {
+     "shape": "line",
+     "from": [
+      10,
+      56
+     ],
+     "to": [
+      90,
+      56
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cơm",
+   "instruction_vi": "Vẽ nửa bầu dục làm cơm.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      56
+     ],
+     "radius": 31,
+     "from_deg": 180,
+     "to_deg": 360,
+     "radius_y": 25
+    }
+   ]
+  },
+  {
+   "part": "đế",
+   "instruction_vi": "Vẽ hình dẹt làm đế.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      37,
+      86
+     ],
+     "width": 26,
+     "height": 9
+    }
+   ]
+  },
+  {
+   "part": "đũa",
+   "instruction_vi": "Vẽ hai đường làm đũa.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      66,
+      37
+     ],
+     "to": [
+      90,
+      14
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      74,
+      42
+     ],
+     "to": [
+      95,
+      24
+     ]
+    }
+   ]
+  },
+  {
+   "part": "hạt cơm",
+   "instruction_vi": "Chấm hai hạt cơm.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      40,
+      44
+     ],
+     "radius": 2.4
+    },
+    {
+     "shape": "dot",
+     "center": [
+      56,
+      40
+     ],
+     "radius": 2.4
+    }
+   ]
+  }
+ ]
+}

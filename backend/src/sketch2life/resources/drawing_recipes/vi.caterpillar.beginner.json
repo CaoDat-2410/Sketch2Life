@@ -1,0 +1,147 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "caterpillar",
+ "level": "beginner",
+ "title_vi": "Vẽ con sâu bướm",
+ "aliases": [
+  "sâu bướm",
+  "con sâu bướm",
+  "sâu",
+  "con sâu",
+  "caterpillar"
+ ],
+ "steps": [
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ một hình tròn to làm đầu.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      75,
+      48
+     ],
+     "radius": 18
+    }
+   ]
+  },
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ hai hình tròn nối tiếp làm thân.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      47,
+      60
+     ],
+     "radius": 12,
+     "start": "right"
+    },
+    {
+     "shape": "circle",
+     "center": [
+      24,
+      60
+     ],
+     "radius": 12,
+     "start": "right"
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm hai chấm làm mắt.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      69,
+      43
+     ],
+     "radius": 2.6
+    },
+    {
+     "shape": "dot",
+     "center": [
+      81,
+      43
+     ],
+     "radius": 2.6
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ một nét cong làm miệng.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      75,
+      50
+     ],
+     "radius": 8,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  },
+  {
+   "part": "râu",
+   "instruction_vi": "Vẽ hai đường thẳng làm râu.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      67,
+      32
+     ],
+     "to": [
+      61,
+      15
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      83,
+      32
+     ],
+     "to": [
+      90,
+      15
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai đường thẳng làm chân.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      47,
+      72
+     ],
+     "to": [
+      47,
+      86
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      24,
+      72
+     ],
+     "to": [
+      24,
+      86
+     ]
+    }
+   ]
+  }
+ ]
+}

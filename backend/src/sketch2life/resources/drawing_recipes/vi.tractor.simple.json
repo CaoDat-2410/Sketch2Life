@@ -1,0 +1,214 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "tractor",
+ "level": "simple",
+ "title_vi": "Vẽ chiếc máy kéo",
+ "aliases": [
+  "máy kéo",
+  "chiếc máy kéo",
+  "máy cày",
+  "tractor"
+ ],
+ "steps": [
+  {
+   "part": "bánh sau",
+   "instruction_vi": "Vẽ bánh sau thật to.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      27,
+      70
+     ],
+     "radius": 22
+    },
+    {
+     "shape": "circle",
+     "center": [
+      27,
+      70
+     ],
+     "radius": 9
+    }
+   ]
+  },
+  {
+   "part": "thân máy",
+   "instruction_vi": "Vẽ thân máy phía trước.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       48,
+       48
+      ],
+      [
+       86,
+       50
+      ],
+      [
+       91,
+       55
+      ],
+      [
+       91,
+       70
+      ],
+      [
+       49,
+       70
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "bánh trước",
+   "instruction_vi": "Vẽ bánh trước và trục.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      76,
+      79
+     ],
+     "radius": 13
+    },
+    {
+     "shape": "circle",
+     "center": [
+      76,
+      79
+     ],
+     "radius": 5
+    }
+   ]
+  },
+  {
+   "part": "cabin",
+   "instruction_vi": "Vẽ cabin lái.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       19,
+       49
+      ],
+      [
+       21,
+       16
+      ],
+      [
+       51,
+       16
+      ],
+      [
+       55,
+       49
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cửa kính",
+   "instruction_vi": "Vẽ cửa kính vuông.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      28,
+      23
+     ],
+     "width": 17,
+     "height": 18
+    }
+   ]
+  },
+  {
+   "part": "ống khói",
+   "instruction_vi": "Vẽ ống khói cao.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       70,
+       49
+      ],
+      [
+       70,
+       28
+      ],
+      [
+       77,
+       28
+      ],
+      [
+       77,
+       50
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "khói",
+   "instruction_vi": "Vẽ đám khói.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       73,
+       28
+      ],
+      [
+       66,
+       18
+      ],
+      [
+       80,
+       8
+      ],
+      [
+       84,
+       16
+      ],
+      [
+       92,
+       8
+      ],
+      [
+       96,
+       22
+      ],
+      [
+       86,
+       22
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mặt đất",
+   "instruction_vi": "Vẽ một đường làm mặt đất.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      4,
+      93
+     ],
+     "to": [
+      96,
+      93
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,130 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "xylophone",
+ "level": "beginner",
+ "title_vi": "Vẽ mộc cầm",
+ "aliases": [
+  "mộc cầm",
+  "chiếc mộc cầm",
+  "đàn gỗ",
+  "xylophone"
+ ],
+ "steps": [
+  {
+   "part": "thanh dài",
+   "instruction_vi": "Vẽ hai hình dài làm thanh dài.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      10,
+      16
+     ],
+     "width": 12,
+     "height": 68
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      26,
+      22
+     ],
+     "width": 12,
+     "height": 56
+    }
+   ]
+  },
+  {
+   "part": "thanh vừa",
+   "instruction_vi": "Vẽ hai thanh vừa.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      42,
+      28
+     ],
+     "width": 12,
+     "height": 44
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      58,
+      33
+     ],
+     "width": 12,
+     "height": 34
+    }
+   ]
+  },
+  {
+   "part": "thanh ngắn",
+   "instruction_vi": "Vẽ một thanh ngắn.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      74,
+      37
+     ],
+     "width": 12,
+     "height": 26
+    }
+   ]
+  },
+  {
+   "part": "giá đỡ",
+   "instruction_vi": "Vẽ hai đường làm giá đỡ.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      6,
+      32
+     ],
+     "to": [
+      92,
+      40
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      6,
+      68
+     ],
+     "to": [
+      92,
+      60
+     ]
+    }
+   ]
+  },
+  {
+   "part": "dùi",
+   "instruction_vi": "Vẽ dùi và đầu dùi.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      48,
+      94
+     ],
+     "to": [
+      66,
+      66
+     ]
+    },
+    {
+     "shape": "circle",
+     "center": [
+      69,
+      62
+     ],
+     "radius": 4.5
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,341 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "peacock",
+ "level": "simple",
+ "title_vi": "Vẽ con công",
+ "aliases": [
+  "công",
+  "con công",
+  "chim công",
+  "con chim công",
+  "peacock"
+ ],
+ "steps": [
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ đuôi xòe có viền lượn sóng.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       40,
+       70
+      ],
+      [
+       32,
+       74
+      ],
+      [
+       24,
+       73
+      ],
+      [
+       18.8,
+       69.0
+      ],
+      [
+       7.2,
+       72.8
+      ],
+      [
+       2.4,
+       45.2
+      ],
+      [
+       14.5,
+       44.7
+      ],
+      [
+       3.2,
+       40.2
+      ],
+      [
+       17.3,
+       15.9
+      ],
+      [
+       26.9,
+       23.4
+      ],
+      [
+       21.1,
+       12.7
+      ],
+      [
+       47.5,
+       3.1
+      ],
+      [
+       50.0,
+       15.0
+      ],
+      [
+       52.5,
+       3.1
+      ],
+      [
+       78.9,
+       12.7
+      ],
+      [
+       73.1,
+       23.4
+      ],
+      [
+       82.7,
+       15.9
+      ],
+      [
+       96.8,
+       40.2
+      ],
+      [
+       85.5,
+       44.7
+      ],
+      [
+       97.6,
+       45.2
+      ],
+      [
+       92.8,
+       72.8
+      ],
+      [
+       81.2,
+       69.0
+      ],
+      [
+       76,
+       73
+      ],
+      [
+       68,
+       74
+      ],
+      [
+       60,
+       70
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ một nét cong làm thân.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       46,
+       43
+      ],
+      [
+       35,
+       56
+      ],
+      [
+       36,
+       82
+      ],
+      [
+       50,
+       82
+      ],
+      [
+       64,
+       82
+      ],
+      [
+       65,
+       56
+      ],
+      [
+       54,
+       43
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ đầu tròn nhỏ.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      36
+     ],
+     "radius": 8.5
+    }
+   ]
+  },
+  {
+   "part": "mào",
+   "instruction_vi": "Vẽ ba chiếc lông mào.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      28
+     ],
+     "to": [
+      50,
+      16
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      46,
+      29
+     ],
+     "to": [
+      40,
+      19
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      54,
+      29
+     ],
+     "to": [
+      60,
+      19
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm hai mắt, vẽ mỏ nhọn.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      47,
+      34
+     ],
+     "radius": 1.2
+    },
+    {
+     "shape": "dot",
+     "center": [
+      53,
+      34
+     ],
+     "radius": 1.2
+    },
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       47,
+       38
+      ],
+      [
+       53,
+       38
+      ],
+      [
+       50,
+       44
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vòng tròn",
+   "instruction_vi": "Vẽ hai vòng tròn bên trái.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      24,
+      38
+     ],
+     "radius": 6
+    },
+    {
+     "shape": "circle",
+     "center": [
+      25,
+      58
+     ],
+     "radius": 6
+    }
+   ]
+  },
+  {
+   "part": "vòng nữa",
+   "instruction_vi": "Vẽ hai vòng nữa bên phải.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      76,
+      38
+     ],
+     "radius": 6
+    },
+    {
+     "shape": "circle",
+     "center": [
+      75,
+      58
+     ],
+     "radius": 6
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai chân.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       45,
+       81
+      ],
+      [
+       43,
+       93
+      ],
+      [
+       37,
+       93
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       55,
+       81
+      ],
+      [
+       57,
+       93
+      ],
+      [
+       63,
+       93
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

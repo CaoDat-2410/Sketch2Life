@@ -1,0 +1,229 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "windmill",
+ "level": "simple",
+ "title_vi": "Vẽ chong chóng gió",
+ "aliases": [
+  "chong chóng gió",
+  "chong chóng",
+  "cái chong chóng",
+  "windmill"
+ ],
+ "steps": [
+  {
+   "part": "cánh trên",
+   "instruction_vi": "Vẽ cánh trên.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       50,
+       40
+      ],
+      [
+       52,
+       7
+      ],
+      [
+       79,
+       18
+      ],
+      [
+       50,
+       40
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cánh phải",
+   "instruction_vi": "Vẽ cánh phải.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       50,
+       40
+      ],
+      [
+       83,
+       42
+      ],
+      [
+       72,
+       69
+      ],
+      [
+       50,
+       40
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cánh dưới",
+   "instruction_vi": "Vẽ cánh dưới.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       50,
+       40
+      ],
+      [
+       48,
+       73
+      ],
+      [
+       21,
+       62
+      ],
+      [
+       50,
+       40
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cánh trái",
+   "instruction_vi": "Vẽ cánh trái.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       50,
+       40
+      ],
+      [
+       17,
+       38
+      ],
+      [
+       28,
+       11
+      ],
+      [
+       50,
+       40
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "nếp gấp",
+   "instruction_vi": "Vẽ ba nếp gấp cánh.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      40
+     ],
+     "to": [
+      64,
+      18
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      50,
+      40
+     ],
+     "to": [
+      72,
+      54
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      50,
+      40
+     ],
+     "to": [
+      36,
+      62
+     ]
+    }
+   ]
+  },
+  {
+   "part": "trục",
+   "instruction_vi": "Vẽ trục tròn ở giữa.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      40
+     ],
+     "radius": 5
+    }
+   ]
+  },
+  {
+   "part": "cán",
+   "instruction_vi": "Vẽ cán dài phía dưới.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       52,
+       45
+      ],
+      [
+       53,
+       94
+      ],
+      [
+       47,
+       94
+      ],
+      [
+       48,
+       45
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cỏ",
+   "instruction_vi": "Vẽ bụi cỏ dưới chân.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       20,
+       94
+      ],
+      [
+       28,
+       84
+      ],
+      [
+       36,
+       94
+      ],
+      [
+       47,
+       93
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

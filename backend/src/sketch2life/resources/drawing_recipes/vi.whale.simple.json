@@ -1,0 +1,312 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "whale",
+ "level": "simple",
+ "title_vi": "Vẽ cá voi",
+ "aliases": [
+  "cá voi",
+  "con cá voi",
+  "chú cá voi",
+  "cá voi xanh",
+  "whale"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ lưng và bụng thành thân.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       10,
+       60
+      ],
+      [
+       10,
+       32
+      ],
+      [
+       50,
+       30
+      ],
+      [
+       66,
+       50
+      ],
+      [
+       72,
+       58
+      ],
+      [
+       78,
+       56
+      ],
+      [
+       82,
+       46
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       10,
+       60
+      ],
+      [
+       12,
+       84
+      ],
+      [
+       52,
+       90
+      ],
+      [
+       72,
+       72
+      ],
+      [
+       82,
+       64
+      ],
+      [
+       89,
+       56
+      ],
+      [
+       89,
+       46
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ đuôi xòe hai bên.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       82,
+       46
+      ],
+      [
+       76,
+       36
+      ],
+      [
+       66,
+       36
+      ],
+      [
+       65,
+       26
+      ],
+      [
+       74,
+       23
+      ],
+      [
+       82,
+       27
+      ],
+      [
+       85,
+       36
+      ],
+      [
+       87,
+       27
+      ],
+      [
+       93,
+       23
+      ],
+      [
+       95,
+       30
+      ],
+      [
+       96,
+       40
+      ],
+      [
+       93,
+       45
+      ],
+      [
+       89,
+       46
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Vẽ mắt tròn, chấm ở giữa.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      26,
+      55
+     ],
+     "radius": 4
+    },
+    {
+     "shape": "dot",
+     "center": [
+      26,
+      55
+     ],
+     "radius": 1.5
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ miệng cười dài.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       10,
+       62
+      ],
+      [
+       18,
+       71
+      ],
+      [
+       30,
+       71
+      ],
+      [
+       39,
+       63
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vạch bụng",
+   "instruction_vi": "Vẽ một vạch bụng cong.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       15,
+       71
+      ],
+      [
+       34,
+       78
+      ],
+      [
+       54,
+       76
+      ],
+      [
+       70,
+       67
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vây",
+   "instruction_vi": "Vẽ chiếc vây nhỏ.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       46,
+       60
+      ],
+      [
+       50,
+       76
+      ],
+      [
+       64,
+       76
+      ],
+      [
+       62,
+       61
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cột nước",
+   "instruction_vi": "Vẽ cột nước phun lên.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      34,
+      39
+     ],
+     "to": [
+      34,
+      23
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       34,
+       23
+      ],
+      [
+       30,
+       13
+      ],
+      [
+       20,
+       13
+      ],
+      [
+       19,
+       22
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       34,
+       23
+      ],
+      [
+       38,
+       13
+      ],
+      [
+       48,
+       13
+      ],
+      [
+       49,
+       22
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

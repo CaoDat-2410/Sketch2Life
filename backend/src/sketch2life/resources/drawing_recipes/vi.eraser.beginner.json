@@ -1,0 +1,131 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "eraser",
+ "level": "beginner",
+ "title_vi": "Vẽ cục tẩy",
+ "aliases": [
+  "cục tẩy",
+  "tẩy",
+  "cục gôm",
+  "gôm",
+  "eraser"
+ ],
+ "steps": [
+  {
+   "part": "mặt trước",
+   "instruction_vi": "Vẽ hình chữ nhật làm mặt trước.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      14,
+      42
+     ],
+     "width": 66,
+     "height": 30
+    }
+   ]
+  },
+  {
+   "part": "cạnh trên",
+   "instruction_vi": "Vẽ hai cạnh trên nghiêng.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      14,
+      42
+     ],
+     "to": [
+      28,
+      28
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      80,
+      42
+     ],
+     "to": [
+      94,
+      28
+     ]
+    }
+   ]
+  },
+  {
+   "part": "nối",
+   "instruction_vi": "Vẽ một đường nối hai cạnh.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      28,
+      28
+     ],
+     "to": [
+      94,
+      28
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cạnh bên",
+   "instruction_vi": "Vẽ hai cạnh bên.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      94,
+      28
+     ],
+     "to": [
+      94,
+      58
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      94,
+      58
+     ],
+     "to": [
+      80,
+      72
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vỏ bọc",
+   "instruction_vi": "Vẽ hai đường làm vỏ bọc.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      40,
+      42
+     ],
+     "to": [
+      40,
+      72
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      62,
+      42
+     ],
+     "to": [
+      62,
+      72
+     ]
+    }
+   ]
+  }
+ ]
+}

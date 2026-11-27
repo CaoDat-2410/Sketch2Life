@@ -37,7 +37,8 @@ def test_sketch_guide_api_returns_correlated_curated_draft_for_sea_turtle(
     assert body["contract"] == "SvgTopicStrokeGuideSourceDraftV1"
     assert body["request_id"] == "svg-guide-sea-turtle-1"
     assert body["generation_source"] == "CURATED_SOURCE_DERIVATION"
-    assert body["reference_source"]["dataset_name"] == "OpenMoji"
+    assert body["reference_source"]["dataset_name"] == "Sketch2Life drawing recipes"
+    assert body["derivation"]["method"] == "AUTHORED_SHAPE_RECIPE_V1"
     assert 4 <= body["stage_count"] <= 8
     assert response.headers["X-Request-ID"] == "svg-guide-sea-turtle-1"
 
@@ -100,3 +101,13 @@ def test_sketch_guide_api_logs_only_safe_source_failure_diagnostics(
     assert "private source path" not in safe_log
     assert "svg-guide-source-error-1" in safe_log
     assert "RuntimeError" in safe_log
+
+
+def test_sketch_guide_api_passes_the_requested_level(monkeypatch: pytest.MonkeyPatch) -> None:
+    response = _client(monkeypatch).post(
+        "/api/parent/v1/ai/sketch-guides",
+        json={"contract": "SvgTopicStrokeGuideRequestV1", "topic": "con chó", "difficulty": "simple"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["reference_source"]["asset_id"] == "recipe-dog-simple"

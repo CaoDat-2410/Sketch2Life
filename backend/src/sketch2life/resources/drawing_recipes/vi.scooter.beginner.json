@@ -1,0 +1,115 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "scooter",
+ "level": "beginner",
+ "title_vi": "Vẽ xe máy",
+ "aliases": [
+  "xe máy",
+  "chiếc xe máy",
+  "xe gắn máy",
+  "scooter"
+ ],
+ "steps": [
+  {
+   "part": "bánh sau",
+   "instruction_vi": "Vẽ một hình tròn to làm bánh sau.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      22,
+      72
+     ],
+     "radius": 17
+    }
+   ]
+  },
+  {
+   "part": "thân xe",
+   "instruction_vi": "Vẽ hình chữ nhật làm thân xe.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      27,
+      54
+     ],
+     "width": 37,
+     "height": 18
+    }
+   ]
+  },
+  {
+   "part": "yên xe",
+   "instruction_vi": "Vẽ bầu dục dẹt làm yên xe.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      40,
+      48
+     ],
+     "rx": 17,
+     "ry": 6,
+     "start": "bottom"
+    }
+   ]
+  },
+  {
+   "part": "càng",
+   "instruction_vi": "Vẽ càng trước và tay lái.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      62,
+      55
+     ],
+     "to": [
+      68,
+      29
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      68,
+      29
+     ],
+     "to": [
+      52,
+      25
+     ]
+    }
+   ]
+  },
+  {
+   "part": "bánh trước",
+   "instruction_vi": "Vẽ hình tròn to làm bánh trước.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      78,
+      72
+     ],
+     "radius": 17
+    }
+   ]
+  },
+  {
+   "part": "đèn",
+   "instruction_vi": "Vẽ một hình tròn làm đèn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      74,
+      34
+     ],
+     "radius": 6.5
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,215 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "egg",
+ "level": "simple",
+ "title_vi": "Vẽ quả trứng",
+ "aliases": [
+  "quả trứng",
+  "trứng",
+  "trái trứng",
+  "egg"
+ ],
+ "steps": [
+  {
+   "part": "trứng",
+   "instruction_vi": "Vẽ quả trứng tròn dưới.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       8
+      ],
+      [
+       32,
+       8
+      ],
+      [
+       19,
+       40
+      ],
+      [
+       19,
+       60
+      ],
+      [
+       19,
+       82
+      ],
+      [
+       33,
+       93
+      ],
+      [
+       50,
+       93
+      ],
+      [
+       67,
+       93
+      ],
+      [
+       81,
+       82
+      ],
+      [
+       81,
+       60
+      ],
+      [
+       81,
+       40
+      ],
+      [
+       68,
+       8
+      ],
+      [
+       50,
+       8
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "ziczac trên",
+   "instruction_vi": "Vẽ đường ziczac trên.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       22,
+       42
+      ],
+      [
+       31,
+       34
+      ],
+      [
+       41,
+       42
+      ],
+      [
+       50,
+       34
+      ],
+      [
+       59,
+       42
+      ],
+      [
+       69,
+       34
+      ],
+      [
+       78,
+       42
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "ziczac dưới",
+   "instruction_vi": "Vẽ đường ziczac dưới.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       20,
+       66
+      ],
+      [
+       30,
+       58
+      ],
+      [
+       40,
+       66
+      ],
+      [
+       50,
+       58
+      ],
+      [
+       60,
+       66
+      ],
+      [
+       70,
+       58
+      ],
+      [
+       80,
+       66
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chấm",
+   "instruction_vi": "Vẽ ba chấm tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      36,
+      52
+     ],
+     "radius": 3.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      50
+     ],
+     "radius": 3.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      64,
+      52
+     ],
+     "radius": 3.5
+    }
+   ]
+  },
+  {
+   "part": "chấm nữa",
+   "instruction_vi": "Vẽ thêm ba chấm nữa.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      36,
+      78
+     ],
+     "radius": 3.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      80
+     ],
+     "radius": 3.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      64,
+      78
+     ],
+     "radius": 3.5
+    }
+   ]
+  }
+ ]
+}

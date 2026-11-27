@@ -1,0 +1,274 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "flower",
+ "level": "simple",
+ "title_vi": "Vẽ bông hoa",
+ "aliases": [
+  "hoa",
+  "bông hoa",
+  "đóa hoa",
+  "cây hoa",
+  "hoa cúc",
+  "flower"
+ ],
+ "steps": [
+  {
+   "part": "nhị hoa",
+   "instruction_vi": "Vẽ một hình tròn làm nhị hoa.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      34
+     ],
+     "radius": 13
+    }
+   ]
+  },
+  {
+   "part": "cánh trên",
+   "instruction_vi": "Vẽ ba cánh trên của hoa.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       43.1,
+       23.0
+      ],
+      [
+       36.4,
+       6.1
+      ],
+      [
+       63.6,
+       6.1
+      ],
+      [
+       56.9,
+       23.0
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       37.4,
+       37.1
+      ],
+      [
+       19.3,
+       38.3
+      ],
+      [
+       27.7,
+       12.5
+      ],
+      [
+       41.6,
+       24.0
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       58.4,
+       24.0
+      ],
+      [
+       72.3,
+       12.5
+      ],
+      [
+       80.7,
+       38.3
+      ],
+      [
+       62.6,
+       37.1
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cánh dưới",
+   "instruction_vi": "Vẽ hai cánh dưới.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       49.1,
+       47.0
+      ],
+      [
+       44.6,
+       64.5
+      ],
+      [
+       22.6,
+       48.6
+      ],
+      [
+       37.9,
+       38.9
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       62.1,
+       38.9
+      ],
+      [
+       77.4,
+       48.6
+      ],
+      [
+       55.4,
+       64.5
+      ],
+      [
+       50.9,
+       47.0
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cuống",
+   "instruction_vi": "Vẽ cuống hoa cong mềm.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       48
+      ],
+      [
+       45,
+       64
+      ],
+      [
+       55,
+       82
+      ],
+      [
+       50,
+       95
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "lá",
+   "instruction_vi": "Vẽ hai chiếc lá.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       49,
+       80
+      ],
+      [
+       40,
+       66
+      ],
+      [
+       25,
+       68
+      ],
+      [
+       20,
+       73
+      ],
+      [
+       28,
+       87
+      ],
+      [
+       43,
+       87
+      ],
+      [
+       49,
+       82
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       51,
+       73
+      ],
+      [
+       60,
+       59
+      ],
+      [
+       75,
+       61
+      ],
+      [
+       80,
+       66
+      ],
+      [
+       72,
+       80
+      ],
+      [
+       57,
+       80
+      ],
+      [
+       51,
+       75
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "gân lá",
+   "instruction_vi": "Vẽ gân lá ở giữa.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      47,
+      80
+     ],
+     "to": [
+      28,
+      74
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      53,
+      73
+     ],
+     "to": [
+      72,
+      67
+     ]
+    }
+   ]
+  }
+ ]
+}

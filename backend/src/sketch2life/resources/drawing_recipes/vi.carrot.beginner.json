@@ -1,0 +1,128 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "carrot",
+ "level": "beginner",
+ "title_vi": "Vẽ củ cà rốt",
+ "aliases": [
+  "củ cà rốt",
+  "cà rốt",
+  "carrot"
+ ],
+ "steps": [
+  {
+   "part": "củ",
+   "instruction_vi": "Vẽ tam giác to làm củ.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       28,
+       32
+      ],
+      [
+       72,
+       32
+      ],
+      [
+       50,
+       95
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "lá giữa",
+   "instruction_vi": "Vẽ bầu dục làm lá giữa.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      19
+     ],
+     "rx": 6,
+     "ry": 13,
+     "start": "bottom"
+    }
+   ]
+  },
+  {
+   "part": "lá bên",
+   "instruction_vi": "Vẽ hai bầu dục làm lá bên.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      35,
+      22
+     ],
+     "rx": 8,
+     "ry": 10,
+     "start": "bottom"
+    },
+    {
+     "shape": "oval",
+     "center": [
+      65,
+      22
+     ],
+     "rx": 8,
+     "ry": 10,
+     "start": "bottom"
+    }
+   ]
+  },
+  {
+   "part": "vạch",
+   "instruction_vi": "Vẽ hai vạch trên củ.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      36,
+      47
+     ],
+     "to": [
+      52,
+      47
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      62,
+      60
+     ],
+     "to": [
+      48,
+      60
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm hai chấm làm mắt.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      44,
+      39
+     ],
+     "radius": 2.5
+    },
+    {
+     "shape": "dot",
+     "center": [
+      58,
+      39
+     ],
+     "radius": 2.5
+    }
+   ]
+  }
+ ]
+}

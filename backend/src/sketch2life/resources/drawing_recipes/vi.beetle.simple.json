@@ -1,0 +1,299 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "beetle",
+ "level": "simple",
+ "title_vi": "Vẽ bọ cánh cứng",
+ "aliases": [
+  "con bọ cánh cứng",
+  "bọ cánh cứng",
+  "bọ hung",
+  "beetle"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ thân tròn dài.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       24,
+       46
+      ],
+      [
+       18,
+       72
+      ],
+      [
+       30,
+       93
+      ],
+      [
+       50,
+       93
+      ],
+      [
+       70,
+       93
+      ],
+      [
+       82,
+       72
+      ],
+      [
+       76,
+       46
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vai",
+   "instruction_vi": "Vẽ vai cong nối thân.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       24,
+       46
+      ],
+      [
+       34,
+       35
+      ],
+      [
+       66,
+       35
+      ],
+      [
+       76,
+       46
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ đầu nhỏ phía trên.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       37,
+       39
+      ],
+      [
+       32,
+       18
+      ],
+      [
+       68,
+       18
+      ],
+      [
+       63,
+       39
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "sừng",
+   "instruction_vi": "Vẽ chiếc sừng cong.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       46,
+       24
+      ],
+      [
+       38,
+       14
+      ],
+      [
+       40,
+       5
+      ],
+      [
+       50,
+       4
+      ],
+      [
+       46,
+       10
+      ],
+      [
+       50,
+       16
+      ],
+      [
+       54,
+       24
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đường giữa",
+   "instruction_vi": "Vẽ đường giữa chia cánh.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      39
+     ],
+     "to": [
+      50,
+      93
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm hai mắt.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      42,
+      30
+     ],
+     "radius": 2.4
+    },
+    {
+     "shape": "dot",
+     "center": [
+      58,
+      30
+     ],
+     "radius": 2.4
+    }
+   ]
+  },
+  {
+   "part": "chân trái",
+   "instruction_vi": "Vẽ ba chân trái.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       23,
+       52
+      ],
+      [
+       10,
+       46
+      ],
+      [
+       6,
+       36
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       22,
+       66
+      ],
+      [
+       9,
+       69
+      ],
+      [
+       5,
+       78
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       28,
+       82
+      ],
+      [
+       18,
+       88
+      ],
+      [
+       17,
+       95
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân phải",
+   "instruction_vi": "Vẽ ba chân phải.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       77,
+       52
+      ],
+      [
+       90,
+       46
+      ],
+      [
+       94,
+       36
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       78,
+       66
+      ],
+      [
+       91,
+       69
+      ],
+      [
+       95,
+       78
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       72,
+       82
+      ],
+      [
+       82,
+       88
+      ],
+      [
+       83,
+       95
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

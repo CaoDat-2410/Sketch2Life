@@ -1,0 +1,99 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "rainbow",
+ "level": "beginner",
+ "title_vi": "Vẽ cầu vồng",
+ "aliases": [
+  "cầu vồng",
+  "rainbow"
+ ],
+ "steps": [
+  {
+   "part": "vòng ngoài",
+   "instruction_vi": "Vẽ nửa hình tròn làm vòng ngoài.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      74
+     ],
+     "radius": 42,
+     "from_deg": 180,
+     "to_deg": 360
+    }
+   ]
+  },
+  {
+   "part": "đường đáy",
+   "instruction_vi": "Vẽ một đường đáy ngang.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      8,
+      74
+     ],
+     "to": [
+      92,
+      74
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vòng giữa",
+   "instruction_vi": "Vẽ nửa tròn nhỏ hơn làm vòng giữa.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      74
+     ],
+     "radius": 31,
+     "from_deg": 180,
+     "to_deg": 360
+    }
+   ]
+  },
+  {
+   "part": "vòng trong",
+   "instruction_vi": "Vẽ nửa tròn bé làm vòng trong.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      74
+     ],
+     "radius": 20,
+     "from_deg": 180,
+     "to_deg": 360
+    }
+   ]
+  },
+  {
+   "part": "mây",
+   "instruction_vi": "Vẽ hai hình tròn làm mây.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      18,
+      80
+     ],
+     "radius": 11
+    },
+    {
+     "shape": "circle",
+     "center": [
+      82,
+      80
+     ],
+     "radius": 11
+    }
+   ]
+  }
+ ]
+}

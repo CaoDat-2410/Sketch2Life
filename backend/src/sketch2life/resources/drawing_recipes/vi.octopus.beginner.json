@@ -1,0 +1,151 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "octopus",
+ "level": "beginner",
+ "title_vi": "Vẽ bạch tuộc",
+ "aliases": [
+  "bạch tuộc",
+  "con bạch tuộc",
+  "chú bạch tuộc",
+  "octopus"
+ ],
+ "steps": [
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ một hình bầu dục to làm đầu.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      36
+     ],
+     "rx": 28,
+     "ry": 26
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Vẽ hai hình tròn làm mắt.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      40,
+      34
+     ],
+     "radius": 6
+    },
+    {
+     "shape": "circle",
+     "center": [
+      60,
+      34
+     ],
+     "radius": 6
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ một nét cong làm miệng.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      42
+     ],
+     "radius": 10,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  },
+  {
+   "part": "chân ngoài",
+   "instruction_vi": "Vẽ hai chân ngoài cong.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      8,
+      53
+     ],
+     "radius": 20,
+     "from_deg": 0,
+     "to_deg": 90,
+     "radius_y": 26
+    },
+    {
+     "shape": "arc",
+     "center": [
+      92,
+      53
+     ],
+     "radius": 20,
+     "from_deg": 180,
+     "to_deg": 90,
+     "radius_y": 26
+    }
+   ]
+  },
+  {
+   "part": "chân giữa",
+   "instruction_vi": "Vẽ hai chân giữa cong.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      23,
+      61
+     ],
+     "radius": 18,
+     "from_deg": 0,
+     "to_deg": 90,
+     "radius_y": 32
+    },
+    {
+     "shape": "arc",
+     "center": [
+      77,
+      61
+     ],
+     "radius": 18,
+     "from_deg": 180,
+     "to_deg": 90,
+     "radius_y": 32
+    }
+   ]
+  },
+  {
+   "part": "chân nữa",
+   "instruction_vi": "Vẽ thêm hai chân nữa.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      34,
+      61
+     ],
+     "radius": 12,
+     "from_deg": 0,
+     "to_deg": 90,
+     "radius_y": 33
+    },
+    {
+     "shape": "arc",
+     "center": [
+      66,
+      61
+     ],
+     "radius": 12,
+     "from_deg": 180,
+     "to_deg": 90,
+     "radius_y": 33
+    }
+   ]
+  }
+ ]
+}

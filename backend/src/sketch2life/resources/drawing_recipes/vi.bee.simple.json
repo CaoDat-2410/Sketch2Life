@@ -1,0 +1,288 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "bee",
+ "level": "simple",
+ "title_vi": "Vẽ con ong",
+ "aliases": [
+  "ong",
+  "con ong",
+  "chú ong",
+  "ong mật",
+  "bee"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ một hình bầu dục làm thân.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      42,
+      62
+     ],
+     "rx": 26,
+     "ry": 19
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ đầu tròn ở phía trước.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      75,
+      56
+     ],
+     "radius": 14,
+     "start": "left"
+    }
+   ]
+  },
+  {
+   "part": "vạch",
+   "instruction_vi": "Vẽ hai vạch cong trên thân.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       33,
+       45
+      ],
+      [
+       40,
+       52
+      ],
+      [
+       40,
+       72
+      ],
+      [
+       33,
+       79
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       48,
+       44
+      ],
+      [
+       56,
+       52
+      ],
+      [
+       56,
+       72
+      ],
+      [
+       48,
+       80
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cánh",
+   "instruction_vi": "Vẽ hai chiếc cánh.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       40,
+       43
+      ],
+      [
+       20,
+       32
+      ],
+      [
+       18,
+       10
+      ],
+      [
+       34,
+       10
+      ],
+      [
+       48,
+       10
+      ],
+      [
+       50,
+       28
+      ],
+      [
+       46,
+       43
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       51,
+       44
+      ],
+      [
+       50,
+       28
+      ],
+      [
+       61,
+       15
+      ],
+      [
+       67,
+       22
+      ],
+      [
+       72,
+       31
+      ],
+      [
+       65,
+       41
+      ],
+      [
+       57,
+       45
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm mắt và vẽ miệng.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      79,
+      52
+     ],
+     "radius": 2.4
+    },
+    {
+     "shape": "arc",
+     "center": [
+      77,
+      59
+     ],
+     "radius": 6,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  },
+  {
+   "part": "râu",
+   "instruction_vi": "Vẽ hai chiếc râu cong.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       74,
+       42
+      ],
+      [
+       71,
+       29
+      ],
+      [
+       78,
+       23
+      ],
+      [
+       83,
+       27
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       83,
+       45
+      ],
+      [
+       86,
+       33
+      ],
+      [
+       93,
+       31
+      ],
+      [
+       95,
+       38
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "ngòi",
+   "instruction_vi": "Vẽ ngòi nhọn ở phía sau.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       17,
+       56
+      ],
+      [
+       5,
+       63
+      ],
+      [
+       18,
+       69
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai chân nhỏ.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      31,
+      79
+     ],
+     "to": [
+      27,
+      92
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      49,
+      81
+     ],
+     "to": [
+      52,
+      92
+     ]
+    }
+   ]
+  }
+ ]
+}

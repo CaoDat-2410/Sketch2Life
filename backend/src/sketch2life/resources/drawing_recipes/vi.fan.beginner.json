@@ -1,0 +1,117 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "fan",
+ "level": "beginner",
+ "title_vi": "Vẽ chiếc quạt",
+ "aliases": [
+  "chiếc quạt",
+  "quạt",
+  "cái quạt",
+  "quạt máy",
+  "fan"
+ ],
+ "steps": [
+  {
+   "part": "lồng",
+   "instruction_vi": "Vẽ hình tròn to làm lồng quạt.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      37
+     ],
+     "radius": 31
+    }
+   ]
+  },
+  {
+   "part": "trục",
+   "instruction_vi": "Vẽ hình tròn nhỏ làm trục.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      37
+     ],
+     "radius": 6
+    }
+   ]
+  },
+  {
+   "part": "cánh trên",
+   "instruction_vi": "Vẽ bầu dục làm cánh trên.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      20
+     ],
+     "rx": 8,
+     "ry": 11,
+     "start": "bottom"
+    }
+   ]
+  },
+  {
+   "part": "cánh bên",
+   "instruction_vi": "Vẽ hai bầu dục làm cánh bên.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      34,
+      45
+     ],
+     "rx": 11,
+     "ry": 8,
+     "start": "right"
+    },
+    {
+     "shape": "oval",
+     "center": [
+      66,
+      45
+     ],
+     "rx": 11,
+     "ry": 8,
+     "start": "right"
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ một đường làm chân.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      68
+     ],
+     "to": [
+      50,
+      85
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đế",
+   "instruction_vi": "Vẽ bầu dục dẹt làm đế.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      90
+     ],
+     "rx": 25,
+     "ry": 5.5
+    }
+   ]
+  }
+ ]
+}

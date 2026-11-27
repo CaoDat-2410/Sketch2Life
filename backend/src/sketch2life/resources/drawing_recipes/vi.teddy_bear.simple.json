@@ -1,0 +1,241 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "teddy_bear",
+ "level": "simple",
+ "title_vi": "Vẽ gấu bông",
+ "aliases": [
+  "gấu bông",
+  "con gấu bông",
+  "chú gấu bông",
+  "teddy bear"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ thân tròn mập.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       36,
+       46
+      ],
+      [
+       20,
+       56
+      ],
+      [
+       18,
+       86
+      ],
+      [
+       50,
+       86
+      ],
+      [
+       82,
+       86
+      ],
+      [
+       80,
+       56
+      ],
+      [
+       64,
+       46
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ đầu tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      30
+     ],
+     "radius": 19,
+     "start": "bottom"
+    }
+   ]
+  },
+  {
+   "part": "tai",
+   "instruction_vi": "Vẽ hai tai tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      32,
+      14
+     ],
+     "radius": 8
+    },
+    {
+     "shape": "circle",
+     "center": [
+      68,
+      14
+     ],
+     "radius": 8
+    }
+   ]
+  },
+  {
+   "part": "lòng tai",
+   "instruction_vi": "Vẽ lòng tai ở trong.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      32,
+      14
+     ],
+     "radius": 4
+    },
+    {
+     "shape": "circle",
+     "center": [
+      68,
+      14
+     ],
+     "radius": 4
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm hai mắt.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      43,
+      26
+     ],
+     "radius": 2.4
+    },
+    {
+     "shape": "dot",
+     "center": [
+      57,
+      26
+     ],
+     "radius": 2.4
+    }
+   ]
+  },
+  {
+   "part": "mõm",
+   "instruction_vi": "Vẽ mõm, mũi và miệng.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      38
+     ],
+     "rx": 10,
+     "ry": 8
+    },
+    {
+     "shape": "dot",
+     "center": [
+      50,
+      35
+     ],
+     "radius": 2.2
+    },
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      37
+     ],
+     "radius": 5,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  },
+  {
+   "part": "tay",
+   "instruction_vi": "Vẽ hai tay.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       31,
+       53
+      ],
+      [
+       14,
+       54
+      ],
+      [
+       10,
+       72
+      ],
+      [
+       25,
+       70
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       69,
+       53
+      ],
+      [
+       86,
+       54
+      ],
+      [
+       90,
+       72
+      ],
+      [
+       75,
+       70
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai bàn chân.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      31,
+      86
+     ],
+     "rx": 13,
+     "ry": 8,
+     "start": "right"
+    },
+    {
+     "shape": "oval",
+     "center": [
+      69,
+      86
+     ],
+     "rx": 13,
+     "ry": 8,
+     "start": "right"
+    }
+   ]
+  }
+ ]
+}

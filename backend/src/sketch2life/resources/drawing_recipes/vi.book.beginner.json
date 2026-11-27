@@ -1,0 +1,104 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "book",
+ "level": "beginner",
+ "title_vi": "Vẽ quyển sách",
+ "aliases": [
+  "quyển sách",
+  "sách",
+  "cuốn sách",
+  "book"
+ ],
+ "steps": [
+  {
+   "part": "bìa",
+   "instruction_vi": "Vẽ hình chữ nhật to làm bìa.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      24,
+      12
+     ],
+     "width": 52,
+     "height": 70
+    }
+   ]
+  },
+  {
+   "part": "gáy",
+   "instruction_vi": "Vẽ một đường làm gáy.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      35,
+      12
+     ],
+     "to": [
+      35,
+      82
+     ]
+    }
+   ]
+  },
+  {
+   "part": "nhãn",
+   "instruction_vi": "Vẽ hình chữ nhật làm nhãn.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      44,
+      25
+     ],
+     "width": 25,
+     "height": 17
+    }
+   ]
+  },
+  {
+   "part": "chữ",
+   "instruction_vi": "Vẽ hai dòng chữ.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      46,
+      56
+     ],
+     "to": [
+      68,
+      56
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      46,
+      68
+     ],
+     "to": [
+      68,
+      68
+     ]
+    }
+   ]
+  },
+  {
+   "part": "trang giấy",
+   "instruction_vi": "Vẽ hình dẹt làm trang giấy.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      28,
+      82
+     ],
+     "width": 48,
+     "height": 9
+    }
+   ]
+  }
+ ]
+}

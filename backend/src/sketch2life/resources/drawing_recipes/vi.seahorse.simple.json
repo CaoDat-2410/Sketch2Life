@@ -1,0 +1,371 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "seahorse",
+ "level": "simple",
+ "title_vi": "Vẽ cá ngựa",
+ "aliases": [
+  "cá ngựa",
+  "con cá ngựa",
+  "hải mã",
+  "seahorse"
+ ],
+ "steps": [
+  {
+   "part": "lưng",
+   "instruction_vi": "Vẽ một nét dài làm lưng.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       13
+      ],
+      [
+       30,
+       16
+      ],
+      [
+       36,
+       32
+      ],
+      [
+       38,
+       40
+      ],
+      [
+       24,
+       50
+      ],
+      [
+       28,
+       68
+      ],
+      [
+       44,
+       76
+      ],
+      [
+       57,
+       82
+      ],
+      [
+       58,
+       93
+      ],
+      [
+       46,
+       94
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ đầu và mõm dài.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       13
+      ],
+      [
+       62,
+       10
+      ],
+      [
+       66,
+       18
+      ],
+      [
+       69,
+       21
+      ],
+      [
+       76,
+       22
+      ],
+      [
+       86,
+       22
+      ],
+      [
+       92,
+       20
+      ]
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      92,
+      20
+     ],
+     "to": [
+      92,
+      29
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       92,
+       29
+      ],
+      [
+       80,
+       30
+      ],
+      [
+       70,
+       33
+      ],
+      [
+       62,
+       32
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "bụng",
+   "instruction_vi": "Vẽ nét cong tròn làm bụng.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       62,
+       32
+      ],
+      [
+       54,
+       38
+      ],
+      [
+       70,
+       46
+      ],
+      [
+       66,
+       60
+      ],
+      [
+       62,
+       72
+      ],
+      [
+       48,
+       68
+      ],
+      [
+       44,
+       76
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ đuôi cuộn tròn.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       46,
+       94
+      ],
+      [
+       33,
+       93
+      ],
+      [
+       31,
+       80
+      ],
+      [
+       42,
+       79
+      ],
+      [
+       49,
+       79
+      ],
+      [
+       51,
+       85
+      ],
+      [
+       45,
+       87
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Vẽ mắt tròn, chấm ở giữa.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      47,
+      22
+     ],
+     "radius": 4
+    },
+    {
+     "shape": "dot",
+     "center": [
+      47,
+      22
+     ],
+     "radius": 1.5
+    }
+   ]
+  },
+  {
+   "part": "mào",
+   "instruction_vi": "Vẽ mào nhọn trên đầu.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       40,
+       17
+      ],
+      [
+       37,
+       6
+      ],
+      [
+       45,
+       11
+      ],
+      [
+       48,
+       5
+      ],
+      [
+       52,
+       11
+      ],
+      [
+       59,
+       6
+      ],
+      [
+       58,
+       12
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vây",
+   "instruction_vi": "Vẽ chiếc vây ở lưng.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       32,
+       46
+      ],
+      [
+       17,
+       43
+      ],
+      [
+       16,
+       65
+      ],
+      [
+       29,
+       62
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vạch",
+   "instruction_vi": "Vẽ ba vạch cong ở bụng.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       42
+      ],
+      [
+       55,
+       46
+      ],
+      [
+       59,
+       46
+      ],
+      [
+       63,
+       43
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       48,
+       54
+      ],
+      [
+       54,
+       58
+      ],
+      [
+       61,
+       58
+      ],
+      [
+       66,
+       54
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       47,
+       65
+      ],
+      [
+       52,
+       69
+      ],
+      [
+       58,
+       69
+      ],
+      [
+       62,
+       66
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

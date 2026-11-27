@@ -1,0 +1,136 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "grasshopper",
+ "level": "beginner",
+ "title_vi": "Vẽ con châu chấu",
+ "aliases": [
+  "con châu chấu",
+  "châu chấu",
+  "cào cào",
+  "grasshopper"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ bầu dục dài làm thân.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      44,
+      58
+     ],
+     "rx": 31,
+     "ry": 12
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ đầu tròn, chấm mắt.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      79,
+      53
+     ],
+     "radius": 13,
+     "start": "left"
+    },
+    {
+     "shape": "dot",
+     "center": [
+      83,
+      49
+     ],
+     "radius": 3
+    }
+   ]
+  },
+  {
+   "part": "râu",
+   "instruction_vi": "Vẽ hai đường làm râu.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      79,
+      40
+     ],
+     "to": [
+      62,
+      14
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      86,
+      42
+     ],
+     "to": [
+      94,
+      18
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân sau",
+   "instruction_vi": "Vẽ hai đường làm chân sau.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      36,
+      60
+     ],
+     "to": [
+      24,
+      30
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      24,
+      30
+     ],
+     "to": [
+      10,
+      80
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân trước",
+   "instruction_vi": "Vẽ hai đường làm chân trước.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      54,
+      69
+     ],
+     "to": [
+      52,
+      84
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      68,
+      65
+     ],
+     "to": [
+      76,
+      84
+     ]
+    }
+   ]
+  }
+ ]
+}

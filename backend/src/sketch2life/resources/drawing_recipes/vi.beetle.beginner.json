@@ -1,0 +1,140 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "beetle",
+ "level": "beginner",
+ "title_vi": "Vẽ bọ cánh cứng",
+ "aliases": [
+  "con bọ cánh cứng",
+  "bọ cánh cứng",
+  "bọ hung",
+  "beetle"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ bầu dục to làm thân.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      60
+     ],
+     "rx": 28,
+     "ry": 32
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ hình tròn làm đầu.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      25
+     ],
+     "radius": 13,
+     "start": "bottom"
+    }
+   ]
+  },
+  {
+   "part": "đường giữa",
+   "instruction_vi": "Vẽ một đường giữa thân.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      38
+     ],
+     "to": [
+      50,
+      92
+     ]
+    }
+   ]
+  },
+  {
+   "part": "sừng",
+   "instruction_vi": "Vẽ tam giác làm sừng.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       44,
+       15
+      ],
+      [
+       50,
+       4
+      ],
+      [
+       56,
+       15
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai đường làm chân.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      25,
+      48
+     ],
+     "to": [
+      7,
+      39
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      75,
+      48
+     ],
+     "to": [
+      93,
+      39
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân nữa",
+   "instruction_vi": "Vẽ thêm hai chân nữa.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      25,
+      73
+     ],
+     "to": [
+      9,
+      86
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      75,
+      73
+     ],
+     "to": [
+      91,
+      86
+     ]
+    }
+   ]
+  }
+ ]
+}

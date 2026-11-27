@@ -1,0 +1,199 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "thermometer",
+ "level": "simple",
+ "title_vi": "Vẽ nhiệt kế",
+ "aliases": [
+  "nhiệt kế",
+  "chiếc nhiệt kế",
+  "thermometer"
+ ],
+ "steps": [
+  {
+   "part": "ống",
+   "instruction_vi": "Vẽ ống dài đầu tròn.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       40,
+       66
+      ],
+      [
+       40,
+       40
+      ],
+      [
+       40,
+       20
+      ],
+      [
+       40,
+       15
+      ],
+      [
+       40,
+       4
+      ],
+      [
+       60,
+       4
+      ],
+      [
+       60,
+       15
+      ],
+      [
+       60,
+       20
+      ],
+      [
+       60,
+       40
+      ],
+      [
+       60,
+       66
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "bầu",
+   "instruction_vi": "Vẽ bầu tròn phía dưới.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      78
+     ],
+     "radius": 15,
+     "from_deg": -48,
+     "to_deg": 228
+    }
+   ]
+  },
+  {
+   "part": "ruột bầu",
+   "instruction_vi": "Vẽ ruột bầu tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      78
+     ],
+     "radius": 8
+    }
+   ]
+  },
+  {
+   "part": "cột",
+   "instruction_vi": "Vẽ cột chỉ nhiệt độ.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       46,
+       71
+      ],
+      [
+       46,
+       36
+      ],
+      [
+       54,
+       36
+      ],
+      [
+       54,
+       71
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vạch dài",
+   "instruction_vi": "Vẽ ba vạch dài.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      60,
+      18
+     ],
+     "to": [
+      76,
+      18
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      60,
+      36
+     ],
+     "to": [
+      76,
+      36
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      60,
+      54
+     ],
+     "to": [
+      76,
+      54
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vạch ngắn",
+   "instruction_vi": "Vẽ ba vạch ngắn.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      60,
+      27
+     ],
+     "to": [
+      68,
+      27
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      60,
+      45
+     ],
+     "to": [
+      68,
+      45
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      60,
+      62
+     ],
+     "to": [
+      68,
+      62
+     ]
+    }
+   ]
+  }
+ ]
+}

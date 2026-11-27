@@ -1,0 +1,253 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "bridge",
+ "level": "simple",
+ "title_vi": "Vẽ cây cầu",
+ "aliases": [
+  "cây cầu",
+  "cầu",
+  "chiếc cầu",
+  "bridge"
+ ],
+ "steps": [
+  {
+   "part": "mặt cầu",
+   "instruction_vi": "Vẽ mặt cầu cong và một đầu.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       6,
+       60
+      ],
+      [
+       28,
+       34
+      ],
+      [
+       72,
+       34
+      ],
+      [
+       94,
+       60
+      ]
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      6,
+      60
+     ],
+     "to": [
+      6,
+      72
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu cầu",
+   "instruction_vi": "Vẽ nét dưới và đầu cầu kia.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       6,
+       72
+      ],
+      [
+       28,
+       48
+      ],
+      [
+       72,
+       48
+      ],
+      [
+       94,
+       72
+      ]
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      94,
+      60
+     ],
+     "to": [
+      94,
+      72
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cột",
+   "instruction_vi": "Vẽ ba cột tay vịn.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      22,
+      34
+     ],
+     "to": [
+      22,
+      47
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      36,
+      28
+     ],
+     "to": [
+      36,
+      42
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      50,
+      26
+     ],
+     "to": [
+      50,
+      41
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cột nữa",
+   "instruction_vi": "Vẽ hai cột nữa.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      64,
+      28
+     ],
+     "to": [
+      64,
+      42
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      78,
+      34
+     ],
+     "to": [
+      78,
+      47
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tay vịn",
+   "instruction_vi": "Vẽ tay vịn cong.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       6,
+       46
+      ],
+      [
+       28,
+       20
+      ],
+      [
+       72,
+       20
+      ],
+      [
+       94,
+       46
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "sóng",
+   "instruction_vi": "Vẽ sóng nước dưới cầu.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       6,
+       76
+      ],
+      [
+       16,
+       86
+      ],
+      [
+       24,
+       72
+      ],
+      [
+       34,
+       80
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       34,
+       80
+      ],
+      [
+       44,
+       90
+      ],
+      [
+       56,
+       72
+      ],
+      [
+       66,
+       80
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       66,
+       80
+      ],
+      [
+       76,
+       90
+      ],
+      [
+       86,
+       72
+      ],
+      [
+       94,
+       76
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

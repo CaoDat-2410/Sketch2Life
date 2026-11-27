@@ -1,0 +1,178 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "cat",
+ "level": "beginner",
+ "title_vi": "Vẽ con mèo",
+ "aliases": [
+  "mèo",
+  "con mèo",
+  "chú mèo",
+  "mèo con",
+  "mèo mướp",
+  "cat"
+ ],
+ "steps": [
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ một hình tròn to làm đầu.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      36
+     ],
+     "radius": 21
+    }
+   ]
+  },
+  {
+   "part": "tai",
+   "instruction_vi": "Vẽ hai tam giác làm tai.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       31,
+       27
+      ],
+      [
+       30,
+       8
+      ],
+      [
+       45,
+       17
+      ]
+     ]
+    },
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       69,
+       27
+      ],
+      [
+       70,
+       8
+      ],
+      [
+       55,
+       17
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm hai chấm làm mắt.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      42,
+      31
+     ],
+     "radius": 2
+    },
+    {
+     "shape": "dot",
+     "center": [
+      58,
+      31
+     ],
+     "radius": 2
+    }
+   ]
+  },
+  {
+   "part": "mũi",
+   "instruction_vi": "Vẽ mũi tam giác và miệng cười.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       46,
+       38
+      ],
+      [
+       54,
+       38
+      ],
+      [
+       50,
+       43
+      ]
+     ]
+    },
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      44
+     ],
+     "radius": 5,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  },
+  {
+   "part": "râu",
+   "instruction_vi": "Vẽ hai đường thẳng làm râu.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      24,
+      40
+     ],
+     "to": [
+      41,
+      44
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      76,
+      40
+     ],
+     "to": [
+      59,
+      44
+     ]
+    }
+   ]
+  },
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ bầu dục làm thân, thêm đuôi cong.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      74
+     ],
+     "rx": 18,
+     "ry": 17
+    },
+    {
+     "shape": "arc",
+     "center": [
+      74,
+      80
+     ],
+     "radius": 12,
+     "from_deg": 150,
+     "to_deg": -30
+    }
+   ]
+  }
+ ]
+}

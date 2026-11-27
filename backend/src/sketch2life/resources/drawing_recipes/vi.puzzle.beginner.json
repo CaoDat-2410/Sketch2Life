@@ -1,0 +1,101 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "puzzle",
+ "level": "beginner",
+ "title_vi": "Vẽ bộ ghép hình",
+ "aliases": [
+  "bộ ghép hình",
+  "ghép hình",
+  "tranh ghép",
+  "puzzle"
+ ],
+ "steps": [
+  {
+   "part": "khung",
+   "instruction_vi": "Vẽ hình vuông to làm khung.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      14,
+      14
+     ],
+     "width": 72,
+     "height": 72
+    }
+   ]
+  },
+  {
+   "part": "đường chia",
+   "instruction_vi": "Vẽ hai đường chia bốn ô.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      14
+     ],
+     "to": [
+      50,
+      86
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      14,
+      50
+     ],
+     "to": [
+      86,
+      50
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mấu",
+   "instruction_vi": "Vẽ hai hình tròn làm mấu.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      32
+     ],
+     "radius": 8
+    },
+    {
+     "shape": "circle",
+     "center": [
+      68,
+      50
+     ],
+     "radius": 8
+    }
+   ]
+  },
+  {
+   "part": "mấu nữa",
+   "instruction_vi": "Vẽ thêm hai mấu nữa.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      32,
+      50
+     ],
+     "radius": 8
+    },
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      68
+     ],
+     "radius": 8
+    }
+   ]
+  }
+ ]
+}

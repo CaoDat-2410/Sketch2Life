@@ -1,4 +1,4 @@
-"""Build private, source-derived SVG drawing guides for Parent sessions."""
+"""Build private SVG drawing guides for Parent sessions from the project's shape recipes (FEAT-097)."""
 
 from __future__ import annotations
 
@@ -12,31 +12,24 @@ from sketch2life.contracts.schemas.svg_engine import (
     SvgTopicStrokeGuideSourceDraftResponseV1,
     SvgTopicStrokeGuideV1,
 )
-from sketch2life.infrastructure.svg.arcadia_gallus_guide import build_arcadia_gallus_guide
-from sketch2life.infrastructure.svg.openclipart_guide import build_openclipart_guide
-from sketch2life.infrastructure.svg.openmoji_guide import build_openmoji_guide
+from sketch2life.infrastructure.svg.recipe_guide import build_recipe_guide
 from sketch2life.infrastructure.svg.sanitizer import canonical_json_bytes
 
 
 class ParentSvgGuideUnavailable(ValueError):
-    """No reviewed local source guide is available for a requested subject."""
+    """The request cannot name a subject."""
 
 
 def build_parent_svg_guide(
-    *, topic: str, intended_subject: str | None, request_id: str | None = None
+    *, topic: str, intended_subject: str | None, difficulty: str = "beginner", request_id: str | None = None
 ) -> dict[str, Any] | None:
-    """Prefer a pinned, licensed source pack and preserve its path geometry exactly."""
+    """The recipe of the asked level named by the adult's idea, else by the topic; ``None`` when neither names one."""
     normalized_topic = " ".join(topic.split())
     subject = " ".join((intended_subject or "").split())
-    lookup = subject or normalized_topic
     if len(normalized_topic) < 2 or len(normalized_topic) > 120 or len(subject) > 160:
         raise ParentSvgGuideUnavailable("PARENT_SVG_GUIDE_INPUT_INVALID")
 
-    source_guide = (
-        build_openclipart_guide(lookup)
-        or build_openmoji_guide(lookup)
-        or build_arcadia_gallus_guide(lookup)
-    )
+    source_guide = build_recipe_guide([text for text in (subject, normalized_topic) if text], difficulty)
     if source_guide is None:
         return None
 
@@ -53,8 +46,8 @@ def build_parent_svg_guide(
     derivation = SvgTopicStrokeGuideDerivationV1(
         engine_id=source_guide.engine_id,
         engine_revision=source_guide.engine_revision,
-        source_guide_uri=getattr(source_guide, "source_guide_uri", None),
-        source_guide_sha256=getattr(source_guide, "source_guide_sha256", None),
+        source_guide_uri=source_guide.source_guide_uri,
+        source_guide_sha256=source_guide.source_guide_sha256,
         method=source_guide.derivation_method,
         source_path_count=source_guide.source_path_count,
         path_lineage=[
@@ -79,11 +72,11 @@ def build_parent_svg_guide(
         path_count=len(generated.document.paths),
         stage_count=len(generated.stages),
         quality_gates_passed=[
-            "PINNED_SOURCE_HASH_VERIFIED",
-            "SOURCE_PATH_GEOMETRY_PRESERVED",
-            "SOURCE_PATHS_ASSIGNED_EXACTLY_ONCE",
+            "RECIPE_LEVEL_RULES_PASSED",
+            "BIGGEST_PART_FIRST_AND_CONNECTED",
+            "INSTRUCTION_NAMES_ITS_PART",
             "ADAPTIVE_4_TO_8_STAGES",
-            "LICENSE_PROVENANCE_INCLUDED",
+            "RECIPE_PROVENANCE_INCLUDED",
             "PRIVATE_DRAFT_REQUIRES_ADULT_REVIEW",
         ],
     )

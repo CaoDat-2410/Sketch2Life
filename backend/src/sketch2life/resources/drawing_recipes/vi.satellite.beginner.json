@@ -1,0 +1,134 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "satellite",
+ "level": "beginner",
+ "title_vi": "Vẽ vệ tinh",
+ "aliases": [
+  "vệ tinh",
+  "satellite"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ hình chữ nhật làm thân.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      38,
+      36
+     ],
+     "width": 24,
+     "height": 30
+    }
+   ]
+  },
+  {
+   "part": "tay nối",
+   "instruction_vi": "Vẽ hai đường làm tay nối.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      30,
+      50
+     ],
+     "to": [
+      38,
+      50
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      62,
+      50
+     ],
+     "to": [
+      70,
+      50
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tấm pin",
+   "instruction_vi": "Vẽ hai hình chữ nhật làm tấm pin.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      8,
+      39
+     ],
+     "width": 22,
+     "height": 23
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      70,
+      39
+     ],
+     "width": 22,
+     "height": 23
+    }
+   ]
+  },
+  {
+   "part": "vạch",
+   "instruction_vi": "Vẽ hai vạch trên tấm pin.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      19,
+      39
+     ],
+     "to": [
+      19,
+      62
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      81,
+      39
+     ],
+     "to": [
+      81,
+      62
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chảo",
+   "instruction_vi": "Vẽ nét cong làm chảo, thêm cần.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      23
+     ],
+     "radius": 13,
+     "from_deg": 20,
+     "to_deg": 160
+    },
+    {
+     "shape": "line",
+     "from": [
+      50,
+      36
+     ],
+     "to": [
+      50,
+      17
+     ]
+    }
+   ]
+  }
+ ]
+}

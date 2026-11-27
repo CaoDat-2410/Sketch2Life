@@ -1,0 +1,248 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "market",
+ "level": "simple",
+ "title_vi": "Vẽ khu chợ",
+ "aliases": [
+  "khu chợ",
+  "chợ",
+  "cái chợ",
+  "market"
+ ],
+ "steps": [
+  {
+   "part": "quầy",
+   "instruction_vi": "Vẽ quầy hàng.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      10,
+      60
+     ],
+     "width": 80,
+     "height": 33
+    }
+   ]
+  },
+  {
+   "part": "cột",
+   "instruction_vi": "Vẽ hai cột quầy.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      17,
+      60
+     ],
+     "to": [
+      17,
+      28
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      83,
+      60
+     ],
+     "to": [
+      83,
+      28
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mái",
+   "instruction_vi": "Vẽ mái che.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       9,
+       28
+      ],
+      [
+       20,
+       9
+      ],
+      [
+       80,
+       9
+      ],
+      [
+       91,
+       28
+      ],
+      [
+       9,
+       28
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "viền",
+   "instruction_vi": "Vẽ ba nét viền lượn.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      16,
+      28
+     ],
+     "radius": 7,
+     "from_deg": 0,
+     "to_deg": 180
+    },
+    {
+     "shape": "arc",
+     "center": [
+      30,
+      28
+     ],
+     "radius": 7,
+     "from_deg": 0,
+     "to_deg": 180
+    },
+    {
+     "shape": "arc",
+     "center": [
+      43.5,
+      28
+     ],
+     "radius": 6.5,
+     "from_deg": 0,
+     "to_deg": 180
+    }
+   ]
+  },
+  {
+   "part": "viền nữa",
+   "instruction_vi": "Vẽ thêm ba nét viền nữa.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      56.5,
+      28
+     ],
+     "radius": 6.5,
+     "from_deg": 0,
+     "to_deg": 180
+    },
+    {
+     "shape": "arc",
+     "center": [
+      70,
+      28
+     ],
+     "radius": 7,
+     "from_deg": 0,
+     "to_deg": 180
+    },
+    {
+     "shape": "arc",
+     "center": [
+      84,
+      28
+     ],
+     "radius": 7,
+     "from_deg": 0,
+     "to_deg": 180
+    }
+   ]
+  },
+  {
+   "part": "quả",
+   "instruction_vi": "Vẽ ba quả chồng nhau.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      25,
+      54
+     ],
+     "radius": 6
+    },
+    {
+     "shape": "circle",
+     "center": [
+      37,
+      54
+     ],
+     "radius": 6
+    },
+    {
+     "shape": "circle",
+     "center": [
+      31,
+      44
+     ],
+     "radius": 6
+    }
+   ]
+  },
+  {
+   "part": "rau",
+   "instruction_vi": "Vẽ ba bó rau.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      63,
+      54
+     ],
+     "radius": 6
+    },
+    {
+     "shape": "circle",
+     "center": [
+      75,
+      54
+     ],
+     "radius": 6
+    },
+    {
+     "shape": "circle",
+     "center": [
+      69,
+      44
+     ],
+     "radius": 6
+    }
+   ]
+  },
+  {
+   "part": "vạch",
+   "instruction_vi": "Vẽ hai vạch trên quầy.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      37,
+      60
+     ],
+     "to": [
+      37,
+      93
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      63,
+      60
+     ],
+     "to": [
+      63,
+      93
+     ]
+    }
+   ]
+  }
+ ]
+}

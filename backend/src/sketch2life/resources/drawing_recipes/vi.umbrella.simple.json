@@ -1,0 +1,206 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "umbrella",
+ "level": "simple",
+ "title_vi": "Vẽ chiếc ô",
+ "aliases": [
+  "chiếc ô",
+  "cái ô",
+  "ô",
+  "chiếc dù",
+  "cái dù",
+  "dù",
+  "cây dù",
+  "umbrella"
+ ],
+ "steps": [
+  {
+   "part": "tán",
+   "instruction_vi": "Vẽ vòm tán ô.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       8,
+       50
+      ],
+      [
+       10,
+       6
+      ],
+      [
+       90,
+       6
+      ],
+      [
+       92,
+       50
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "viền",
+   "instruction_vi": "Vẽ ba nét viền lượn.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      18.5,
+      50
+     ],
+     "radius": 10.5,
+     "from_deg": 180,
+     "to_deg": 360
+    },
+    {
+     "shape": "arc",
+     "center": [
+      39.5,
+      50
+     ],
+     "radius": 10.5,
+     "from_deg": 180,
+     "to_deg": 360
+    },
+    {
+     "shape": "arc",
+     "center": [
+      60.5,
+      50
+     ],
+     "radius": 10.5,
+     "from_deg": 180,
+     "to_deg": 360
+    }
+   ]
+  },
+  {
+   "part": "viền cuối",
+   "instruction_vi": "Vẽ nét viền cuối.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      81.5,
+      50
+     ],
+     "radius": 10.5,
+     "from_deg": 180,
+     "to_deg": 360
+    }
+   ]
+  },
+  {
+   "part": "nan",
+   "instruction_vi": "Vẽ hai nan cong.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       17
+      ],
+      [
+       36,
+       22
+      ],
+      [
+       30,
+       36
+      ],
+      [
+       29,
+       50
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       17
+      ],
+      [
+       64,
+       22
+      ],
+      [
+       70,
+       36
+      ],
+      [
+       71,
+       50
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cán",
+   "instruction_vi": "Vẽ cán dài.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      50
+     ],
+     "to": [
+      50,
+      83
+     ]
+    }
+   ]
+  },
+  {
+   "part": "móc",
+   "instruction_vi": "Vẽ móc cầm cong.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       83
+      ],
+      [
+       50,
+       96
+      ],
+      [
+       34,
+       96
+      ],
+      [
+       34,
+       85
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chóp",
+   "instruction_vi": "Vẽ chóp nhọn trên đỉnh.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      17
+     ],
+     "to": [
+      50,
+      8
+     ]
+    }
+   ]
+  }
+ ]
+}

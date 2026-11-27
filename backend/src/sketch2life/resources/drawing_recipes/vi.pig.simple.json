@@ -1,0 +1,302 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "pig",
+ "level": "simple",
+ "title_vi": "Vẽ con lợn",
+ "aliases": [
+  "con lợn",
+  "lợn",
+  "con heo",
+  "lợn con",
+  "chú lợn",
+  "heo con",
+  "pig"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ thân lợn mập.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       14,
+       60
+      ],
+      [
+       12,
+       40
+      ],
+      [
+       40,
+       36
+      ],
+      [
+       54,
+       40
+      ],
+      [
+       70,
+       46
+      ],
+      [
+       72,
+       74
+      ],
+      [
+       52,
+       80
+      ],
+      [
+       32,
+       84
+      ],
+      [
+       14,
+       78
+      ],
+      [
+       14,
+       60
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ đầu tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      70,
+      47
+     ],
+     "radius": 20
+    }
+   ]
+  },
+  {
+   "part": "mũi",
+   "instruction_vi": "Vẽ mũi và hai lỗ mũi.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      80,
+      55
+     ],
+     "rx": 10.5,
+     "ry": 8
+    },
+    {
+     "shape": "dot",
+     "center": [
+      77,
+      55
+     ],
+     "radius": 1.8
+    },
+    {
+     "shape": "dot",
+     "center": [
+      83,
+      55
+     ],
+     "radius": 1.8
+    }
+   ]
+  },
+  {
+   "part": "tai",
+   "instruction_vi": "Vẽ hai tai cụp.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       58,
+       32
+      ],
+      [
+       52,
+       15
+      ],
+      [
+       68,
+       28
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       74,
+       28
+      ],
+      [
+       88,
+       15
+      ],
+      [
+       84,
+       33
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm hai mắt.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      66,
+      41
+     ],
+     "radius": 2
+    },
+    {
+     "shape": "dot",
+     "center": [
+      80,
+      39
+     ],
+     "radius": 2
+    }
+   ]
+  },
+  {
+   "part": "chân trước",
+   "instruction_vi": "Vẽ hai chân trước.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       52,
+       80
+      ],
+      [
+       52,
+       93
+      ],
+      [
+       60,
+       93
+      ],
+      [
+       60,
+       79
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       66,
+       66
+      ],
+      [
+       68,
+       93
+      ],
+      [
+       76,
+       93
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân sau",
+   "instruction_vi": "Vẽ hai chân sau.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       22,
+       81
+      ],
+      [
+       22,
+       93
+      ],
+      [
+       30,
+       93
+      ],
+      [
+       30,
+       83
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       38,
+       83
+      ],
+      [
+       38,
+       93
+      ],
+      [
+       45,
+       93
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ đuôi xoăn.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       14,
+       56
+      ],
+      [
+       4,
+       52
+      ],
+      [
+       4,
+       40
+      ],
+      [
+       11,
+       42
+      ],
+      [
+       17,
+       47
+      ],
+      [
+       8,
+       56
+      ],
+      [
+       5,
+       47
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,276 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "turtle",
+ "level": "simple",
+ "title_vi": "Vẽ con rùa",
+ "aliases": [
+  "rùa",
+  "con rùa",
+  "rùa biển",
+  "con rùa biển",
+  "rùa xanh",
+  "turtle"
+ ],
+ "steps": [
+  {
+   "part": "mai",
+   "instruction_vi": "Vẽ hai nét cong làm mai.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       16,
+       64
+      ],
+      [
+       16,
+       30
+      ],
+      [
+       76,
+       30
+      ],
+      [
+       76,
+       64
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       76,
+       64
+      ],
+      [
+       60,
+       73
+      ],
+      [
+       32,
+       73
+      ],
+      [
+       16,
+       64
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ đầu tròn ở phía trước.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       76,
+       56
+      ],
+      [
+       78,
+       43
+      ],
+      [
+       95,
+       43
+      ],
+      [
+       95,
+       55
+      ],
+      [
+       95,
+       66
+      ],
+      [
+       82,
+       67
+      ],
+      [
+       76,
+       63
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm mắt và vẽ miệng cười.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      87,
+      52
+     ],
+     "radius": 1.4
+    },
+    {
+     "shape": "arc",
+     "center": [
+      86,
+      57
+     ],
+     "radius": 5,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai chân mập ở dưới.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       60,
+       71
+      ],
+      [
+       59,
+       88
+      ],
+      [
+       73,
+       90
+      ],
+      [
+       71,
+       68
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       23,
+       68
+      ],
+      [
+       18,
+       87
+      ],
+      [
+       33,
+       89
+      ],
+      [
+       34,
+       71
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ đuôi nhọn ở phía sau.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       16,
+       62
+      ],
+      [
+       6,
+       71
+      ],
+      [
+       19,
+       69
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "ô lục giác",
+   "instruction_vi": "Vẽ ô lục giác giữa mai.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       36,
+       46
+      ],
+      [
+       46,
+       41
+      ],
+      [
+       56,
+       46
+      ],
+      [
+       56,
+       58
+      ],
+      [
+       46,
+       63
+      ],
+      [
+       36,
+       58
+      ],
+      [
+       36,
+       46
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đường kẻ",
+   "instruction_vi": "Vẽ ba đường kẻ nối ra mép.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      36,
+      46
+     ],
+     "to": [
+      25,
+      43
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      56,
+      46
+     ],
+     "to": [
+      67,
+      43
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      46,
+      63
+     ],
+     "to": [
+      46,
+      70
+     ]
+    }
+   ]
+  }
+ ]
+}

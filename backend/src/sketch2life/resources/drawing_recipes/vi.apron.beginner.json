@@ -1,0 +1,102 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "apron",
+ "level": "beginner",
+ "title_vi": "Vẽ chiếc tạp dề",
+ "aliases": [
+  "tạp dề",
+  "chiếc tạp dề",
+  "apron"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ hình chữ nhật to làm thân.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      28,
+      40
+     ],
+     "width": 44,
+     "height": 52
+    }
+   ]
+  },
+  {
+   "part": "ngực",
+   "instruction_vi": "Vẽ hình chữ nhật làm phần ngực.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      36,
+      21
+     ],
+     "width": 28,
+     "height": 19
+    }
+   ]
+  },
+  {
+   "part": "dây cổ",
+   "instruction_vi": "Vẽ nửa hình tròn làm dây cổ.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      21
+     ],
+     "radius": 14,
+     "from_deg": 180,
+     "to_deg": 360
+    }
+   ]
+  },
+  {
+   "part": "dây eo",
+   "instruction_vi": "Vẽ hai đường làm dây eo.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      28,
+      48
+     ],
+     "to": [
+      7,
+      57
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      72,
+      48
+     ],
+     "to": [
+      93,
+      57
+     ]
+    }
+   ]
+  },
+  {
+   "part": "túi",
+   "instruction_vi": "Vẽ hình chữ nhật làm túi.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      38,
+      58
+     ],
+     "width": 24,
+     "height": 19
+    }
+   ]
+  }
+ ]
+}

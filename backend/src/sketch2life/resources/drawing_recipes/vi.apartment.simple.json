@@ -1,0 +1,210 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "apartment",
+ "level": "simple",
+ "title_vi": "Vẽ tòa nhà chung cư",
+ "aliases": [
+  "tòa nhà chung cư",
+  "tòa nhà",
+  "toà nhà",
+  "chung cư",
+  "apartment"
+ ],
+ "steps": [
+  {
+   "part": "tòa nhà",
+   "instruction_vi": "Vẽ tòa nhà cao.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      16,
+      18
+     ],
+     "width": 48,
+     "height": 76
+    }
+   ]
+  },
+  {
+   "part": "tòa bên",
+   "instruction_vi": "Vẽ tòa bên nhỏ hơn.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      64,
+      42
+     ],
+     "width": 28,
+     "height": 52
+    }
+   ]
+  },
+  {
+   "part": "mái",
+   "instruction_vi": "Vẽ mái bằng phía trên.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      12,
+      11
+     ],
+     "width": 56,
+     "height": 7
+    }
+   ]
+  },
+  {
+   "part": "tầng trên",
+   "instruction_vi": "Vẽ ba cửa tầng trên.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      21,
+      25
+     ],
+     "width": 10,
+     "height": 11
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      35,
+      25
+     ],
+     "width": 10,
+     "height": 11
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      49,
+      25
+     ],
+     "width": 10,
+     "height": 11
+    }
+   ]
+  },
+  {
+   "part": "tầng giữa",
+   "instruction_vi": "Vẽ ba cửa tầng giữa.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      21,
+      43
+     ],
+     "width": 10,
+     "height": 11
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      35,
+      43
+     ],
+     "width": 10,
+     "height": 11
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      49,
+      43
+     ],
+     "width": 10,
+     "height": 11
+    }
+   ]
+  },
+  {
+   "part": "tầng dưới",
+   "instruction_vi": "Vẽ ba cửa tầng dưới.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      21,
+      61
+     ],
+     "width": 10,
+     "height": 11
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      35,
+      61
+     ],
+     "width": 10,
+     "height": 11
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      49,
+      61
+     ],
+     "width": 10,
+     "height": 11
+    }
+   ]
+  },
+  {
+   "part": "ô bên",
+   "instruction_vi": "Vẽ hai ô cửa ô bên.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      71,
+      50
+     ],
+     "width": 14,
+     "height": 11
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      71,
+      68
+     ],
+     "width": 14,
+     "height": 11
+    }
+   ]
+  },
+  {
+   "part": "cửa",
+   "instruction_vi": "Vẽ cửa ra vào.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       32,
+       94
+      ],
+      [
+       32,
+       78
+      ],
+      [
+       48,
+       78
+      ],
+      [
+       48,
+       94
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

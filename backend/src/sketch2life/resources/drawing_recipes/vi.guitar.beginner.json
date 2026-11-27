@@ -1,0 +1,99 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "guitar",
+ "level": "beginner",
+ "title_vi": "Vẽ đàn ghi-ta",
+ "aliases": [
+  "đàn ghi-ta",
+  "ghi-ta",
+  "đàn ghi ta",
+  "guitar"
+ ],
+ "steps": [
+  {
+   "part": "thùng dưới",
+   "instruction_vi": "Vẽ hình tròn to làm thùng dưới.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      72
+     ],
+     "radius": 23
+    }
+   ]
+  },
+  {
+   "part": "thùng trên",
+   "instruction_vi": "Vẽ hình tròn nhỏ làm thùng trên.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      43
+     ],
+     "radius": 16
+    }
+   ]
+  },
+  {
+   "part": "cần đàn",
+   "instruction_vi": "Vẽ hình dài làm cần đàn.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      44,
+      7
+     ],
+     "width": 12,
+     "height": 22
+    }
+   ]
+  },
+  {
+   "part": "lỗ",
+   "instruction_vi": "Vẽ hình tròn làm lỗ đàn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      58
+     ],
+     "radius": 7.5
+    }
+   ]
+  },
+  {
+   "part": "dây",
+   "instruction_vi": "Vẽ hai đường làm dây đàn.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      47,
+      7
+     ],
+     "to": [
+      47,
+      84
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      53,
+      7
+     ],
+     "to": [
+      53,
+      84
+     ]
+    }
+   ]
+  }
+ ]
+}

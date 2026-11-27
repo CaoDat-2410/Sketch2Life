@@ -1,0 +1,319 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "dove",
+ "level": "simple",
+ "title_vi": "Vẽ chim bồ câu",
+ "aliases": [
+  "bồ câu",
+  "chim bồ câu",
+  "con chim bồ câu",
+  "con bồ câu",
+  "dove",
+  "pigeon"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ một vòng cong làm thân.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       22,
+       58
+      ],
+      [
+       36,
+       56
+      ],
+      [
+       50,
+       54
+      ],
+      [
+       56,
+       42
+      ],
+      [
+       60,
+       27
+      ],
+      [
+       80,
+       28
+      ],
+      [
+       77,
+       45
+      ],
+      [
+       74,
+       67
+      ],
+      [
+       58,
+       76
+      ],
+      [
+       44,
+       76
+      ],
+      [
+       32,
+       76
+      ],
+      [
+       24,
+       69
+      ],
+      [
+       22,
+       58
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ chiếc đuôi xòe.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       22,
+       58
+      ],
+      [
+       6,
+       48
+      ],
+      [
+       12,
+       60
+      ],
+      [
+       5,
+       70
+      ],
+      [
+       13,
+       73
+      ],
+      [
+       25,
+       67
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mỏ",
+   "instruction_vi": "Vẽ mỏ nhọn và chấm mắt.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       76,
+       39
+      ],
+      [
+       90,
+       44
+      ],
+      [
+       76,
+       49
+      ]
+     ]
+    },
+    {
+     "shape": "dot",
+     "center": [
+      68,
+      39
+     ],
+     "radius": 1.8
+    }
+   ]
+  },
+  {
+   "part": "cánh",
+   "instruction_vi": "Vẽ cánh dang lên cao.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       34,
+       53
+      ],
+      [
+       22,
+       38
+      ],
+      [
+       26,
+       16
+      ],
+      [
+       48,
+       7
+      ],
+      [
+       45,
+       17
+      ],
+      [
+       52,
+       19
+      ],
+      [
+       61,
+       15
+      ],
+      [
+       57,
+       28
+      ],
+      [
+       62,
+       36
+      ],
+      [
+       52,
+       52
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "lông cánh",
+   "instruction_vi": "Vẽ hai nét lông cánh.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       38,
+       45
+      ],
+      [
+       35,
+       35
+      ],
+      [
+       37,
+       27
+      ],
+      [
+       43,
+       21
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       46,
+       45
+      ],
+      [
+       45,
+       38
+      ],
+      [
+       48,
+       31
+      ],
+      [
+       53,
+       27
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cành",
+   "instruction_vi": "Vẽ cành nhỏ ở mỏ.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       89,
+       45
+      ],
+      [
+       89,
+       58
+      ],
+      [
+       86,
+       68
+      ],
+      [
+       80,
+       80
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "lá",
+   "instruction_vi": "Vẽ hai chiếc lá.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       88,
+       58
+      ],
+      [
+       96,
+       56
+      ],
+      [
+       96,
+       82
+      ],
+      [
+       87,
+       64
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       84,
+       73
+      ],
+      [
+       66,
+       66
+      ],
+      [
+       68,
+       90
+      ],
+      [
+       82,
+       76
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

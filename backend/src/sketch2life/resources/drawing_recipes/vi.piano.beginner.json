@@ -1,0 +1,149 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "piano",
+ "level": "beginner",
+ "title_vi": "Vẽ đàn piano",
+ "aliases": [
+  "đàn piano",
+  "piano",
+  "đàn dương cầm"
+ ],
+ "steps": [
+  {
+   "part": "thân đàn",
+   "instruction_vi": "Vẽ hình chữ nhật to làm thân đàn.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      9,
+      24
+     ],
+     "width": 82,
+     "height": 54
+    }
+   ]
+  },
+  {
+   "part": "bàn phím",
+   "instruction_vi": "Vẽ hình dài làm bàn phím.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      16,
+      50
+     ],
+     "width": 68,
+     "height": 22
+    }
+   ]
+  },
+  {
+   "part": "vạch phím",
+   "instruction_vi": "Vẽ hai đường làm vạch phím.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      33,
+      50
+     ],
+     "to": [
+      33,
+      72
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      67,
+      50
+     ],
+     "to": [
+      67,
+      72
+     ]
+    }
+   ]
+  },
+  {
+   "part": "phím giữa",
+   "instruction_vi": "Vẽ phím giữa có ô đen.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      50
+     ],
+     "to": [
+      50,
+      72
+     ]
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      46,
+      50
+     ],
+     "width": 8,
+     "height": 12
+    }
+   ]
+  },
+  {
+   "part": "phím đen",
+   "instruction_vi": "Vẽ thêm hai phím đen.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      29,
+      50
+     ],
+     "width": 8,
+     "height": 12
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      63,
+      50
+     ],
+     "width": 8,
+     "height": 12
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai đường làm chân.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      18,
+      78
+     ],
+     "to": [
+      18,
+      94
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      82,
+      78
+     ],
+     "to": [
+      82,
+      94
+     ]
+    }
+   ]
+  }
+ ]
+}

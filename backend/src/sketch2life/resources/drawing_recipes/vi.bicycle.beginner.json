@@ -1,0 +1,138 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "bicycle",
+ "level": "beginner",
+ "title_vi": "Vẽ xe đạp",
+ "aliases": [
+  "xe đạp",
+  "chiếc xe đạp",
+  "bicycle",
+  "bike"
+ ],
+ "steps": [
+  {
+   "part": "bánh sau",
+   "instruction_vi": "Vẽ một hình tròn to làm bánh sau.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      24,
+      68
+     ],
+     "radius": 19
+    }
+   ]
+  },
+  {
+   "part": "khung",
+   "instruction_vi": "Vẽ một tam giác làm khung.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       24,
+       68
+      ],
+      [
+       50,
+       68
+      ],
+      [
+       39,
+       43
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "thanh",
+   "instruction_vi": "Vẽ thêm hai thanh thẳng.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      39,
+      43
+     ],
+     "to": [
+      66,
+      43
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      66,
+      43
+     ],
+     "to": [
+      50,
+      68
+     ]
+    }
+   ]
+  },
+  {
+   "part": "càng",
+   "instruction_vi": "Vẽ một đường làm càng trước.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      63,
+      32
+     ],
+     "to": [
+      76,
+      68
+     ]
+    }
+   ]
+  },
+  {
+   "part": "bánh trước",
+   "instruction_vi": "Vẽ hình tròn to làm bánh trước.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      76,
+      68
+     ],
+     "radius": 19
+    }
+   ]
+  },
+  {
+   "part": "yên",
+   "instruction_vi": "Vẽ yên và tay lái.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      31,
+      39
+     ],
+     "to": [
+      47,
+      39
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      63,
+      32
+     ],
+     "to": [
+      76,
+      28
+     ]
+    }
+   ]
+  }
+ ]
+}

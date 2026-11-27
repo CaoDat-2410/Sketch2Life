@@ -1,0 +1,271 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "blocks",
+ "level": "simple",
+ "title_vi": "Vẽ khối xếp hình",
+ "aliases": [
+  "khối xếp hình",
+  "các khối xếp hình",
+  "bộ xếp hình",
+  "blocks"
+ ],
+ "steps": [
+  {
+   "part": "khối trái",
+   "instruction_vi": "Vẽ mặt trước và nóc khối trái.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      10,
+      62
+     ],
+     "width": 28,
+     "height": 28
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       10,
+       62
+      ],
+      [
+       20,
+       52
+      ],
+      [
+       48,
+       52
+      ],
+      [
+       38,
+       62
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cạnh trái",
+   "instruction_vi": "Vẽ hai cạnh trái bên hông.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      48,
+      52
+     ],
+     "to": [
+      48,
+      80
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      48,
+      80
+     ],
+     "to": [
+      38,
+      90
+     ]
+    }
+   ]
+  },
+  {
+   "part": "khối phải",
+   "instruction_vi": "Vẽ mặt trước và nóc khối phải.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      51,
+      62
+     ],
+     "width": 27,
+     "height": 28
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       51,
+       62
+      ],
+      [
+       61,
+       52
+      ],
+      [
+       88,
+       52
+      ],
+      [
+       78,
+       62
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cạnh phải",
+   "instruction_vi": "Vẽ hai cạnh phải bên hông.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      88,
+      52
+     ],
+     "to": [
+      88,
+      80
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      88,
+      80
+     ],
+     "to": [
+      78,
+      90
+     ]
+    }
+   ]
+  },
+  {
+   "part": "khối trên",
+   "instruction_vi": "Vẽ khối trên cùng.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      30,
+      28
+     ],
+     "width": 24,
+     "height": 24
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       30,
+       28
+      ],
+      [
+       38,
+       20
+      ],
+      [
+       62,
+       20
+      ],
+      [
+       54,
+       28
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cạnh trên",
+   "instruction_vi": "Vẽ hai cạnh trên bên hông.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      62,
+      20
+     ],
+     "to": [
+      62,
+      44
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      62,
+      44
+     ],
+     "to": [
+      54,
+      52
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chữ A",
+   "instruction_vi": "Vẽ chữ A trên khối.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       17,
+       84
+      ],
+      [
+       24,
+       68
+      ],
+      [
+       31,
+       84
+      ]
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      20,
+      78
+     ],
+     "to": [
+      28,
+      78
+     ]
+    }
+   ]
+  },
+  {
+   "part": "hình",
+   "instruction_vi": "Vẽ hình tròn và hình tam giác.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      65,
+      76
+     ],
+     "radius": 7
+    },
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       36,
+       46
+      ],
+      [
+       42,
+       34
+      ],
+      [
+       48,
+       46
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

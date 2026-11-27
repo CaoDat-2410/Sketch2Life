@@ -1,0 +1,342 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "rabbit",
+ "level": "simple",
+ "title_vi": "Vẽ con thỏ",
+ "aliases": [
+  "thỏ",
+  "con thỏ",
+  "chú thỏ",
+  "thỏ con",
+  "thỏ trắng",
+  "rabbit",
+  "bunny"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ một nét cong dài làm thân.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       38,
+       55
+      ],
+      [
+       22,
+       66
+      ],
+      [
+       18,
+       92
+      ],
+      [
+       50,
+       92
+      ],
+      [
+       82,
+       92
+      ],
+      [
+       78,
+       66
+      ],
+      [
+       62,
+       55
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ hình bầu dục làm đầu.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      43
+     ],
+     "rx": 18,
+     "ry": 15
+    }
+   ]
+  },
+  {
+   "part": "tai",
+   "instruction_vi": "Vẽ hai chiếc tai dài.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       39,
+       31
+      ],
+      [
+       28,
+       16
+      ],
+      [
+       30,
+       4
+      ],
+      [
+       38,
+       5
+      ],
+      [
+       46,
+       6
+      ],
+      [
+       48,
+       18
+      ],
+      [
+       46,
+       29
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       61,
+       31
+      ],
+      [
+       72,
+       16
+      ],
+      [
+       70,
+       4
+      ],
+      [
+       62,
+       5
+      ],
+      [
+       54,
+       6
+      ],
+      [
+       52,
+       18
+      ],
+      [
+       54,
+       29
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "lòng tai",
+   "instruction_vi": "Vẽ lòng tai ở bên trong.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       40,
+       25
+      ],
+      [
+       35,
+       15
+      ],
+      [
+       35,
+       9
+      ],
+      [
+       39,
+       10
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       60,
+       25
+      ],
+      [
+       65,
+       15
+      ],
+      [
+       65,
+       9
+      ],
+      [
+       61,
+       10
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm hai mắt và vẽ mũi.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      43,
+      40
+     ],
+     "radius": 2
+    },
+    {
+     "shape": "dot",
+     "center": [
+      57,
+      40
+     ],
+     "radius": 2
+    },
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       47,
+       45
+      ],
+      [
+       53,
+       45
+      ],
+      [
+       50,
+       50
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ miệng cong sang hai bên.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       50
+      ],
+      [
+       50,
+       54
+      ],
+      [
+       45,
+       55
+      ],
+      [
+       43,
+       52
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       50
+      ],
+      [
+       50,
+       54
+      ],
+      [
+       55,
+       55
+      ],
+      [
+       57,
+       52
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "râu",
+   "instruction_vi": "Vẽ râu dài ở hai bên.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       24,
+       44
+      ],
+      [
+       38,
+       49
+      ],
+      [
+       25,
+       53
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       76,
+       44
+      ],
+      [
+       62,
+       49
+      ],
+      [
+       75,
+       53
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai bàn chân tròn.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      37,
+      87
+     ],
+     "rx": 9,
+     "ry": 5
+    },
+    {
+     "shape": "oval",
+     "center": [
+      63,
+      87
+     ],
+     "rx": 9,
+     "ry": 5
+    }
+   ]
+  }
+ ]
+}

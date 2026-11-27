@@ -1,0 +1,106 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "bell",
+ "level": "beginner",
+ "title_vi": "Vẽ chiếc chuông",
+ "aliases": [
+  "chiếc chuông",
+  "chuông",
+  "cái chuông",
+  "quả chuông",
+  "bell"
+ ],
+ "steps": [
+  {
+   "part": "chóp",
+   "instruction_vi": "Vẽ nửa bầu dục làm chóp chuông.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      50
+     ],
+     "radius": 27,
+     "from_deg": 180,
+     "to_deg": 360,
+     "radius_y": 31
+    }
+   ]
+  },
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ hai đường làm thân chuông.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      23,
+      50
+     ],
+     "to": [
+      14,
+      73
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      77,
+      50
+     ],
+     "to": [
+      86,
+      73
+     ]
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ một đường làm miệng chuông.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      8,
+      73
+     ],
+     "to": [
+      92,
+      73
+     ]
+    }
+   ]
+  },
+  {
+   "part": "quả lắc",
+   "instruction_vi": "Vẽ hình tròn làm quả lắc.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      82
+     ],
+     "radius": 9
+    }
+   ]
+  },
+  {
+   "part": "quai",
+   "instruction_vi": "Vẽ hình tròn làm quai.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      13
+     ],
+     "radius": 6,
+     "start": "bottom"
+    }
+   ]
+  }
+ ]
+}

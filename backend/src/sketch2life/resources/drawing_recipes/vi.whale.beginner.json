@@ -1,0 +1,144 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "whale",
+ "level": "beginner",
+ "title_vi": "Vẽ cá voi",
+ "aliases": [
+  "cá voi",
+  "con cá voi",
+  "chú cá voi",
+  "cá voi xanh",
+  "whale"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ một hình bầu dục thật to làm thân.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      43,
+      62
+     ],
+     "rx": 35,
+     "ry": 24,
+     "start": "right"
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ tam giác làm đuôi.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       77,
+       60
+      ],
+      [
+       95,
+       40
+      ],
+      [
+       95,
+       74
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm mắt và vẽ miệng cười.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      23,
+      55
+     ],
+     "radius": 3
+    },
+    {
+     "shape": "arc",
+     "center": [
+      24,
+      64
+     ],
+     "radius": 11,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  },
+  {
+   "part": "vây",
+   "instruction_vi": "Vẽ tam giác nhỏ làm vây.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       44,
+       66
+      ],
+      [
+       62,
+       66
+      ],
+      [
+       56,
+       80
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cột nước",
+   "instruction_vi": "Vẽ một đường làm cột nước.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      33,
+      39
+     ],
+     "to": [
+      33,
+      22
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tia nước",
+   "instruction_vi": "Vẽ hai nét cong làm tia nước.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      24,
+      22
+     ],
+     "radius": 9,
+     "from_deg": 360,
+     "to_deg": 180
+    },
+    {
+     "shape": "arc",
+     "center": [
+      42,
+      22
+     ],
+     "radius": 9,
+     "from_deg": 180,
+     "to_deg": 360
+    }
+   ]
+  }
+ ]
+}

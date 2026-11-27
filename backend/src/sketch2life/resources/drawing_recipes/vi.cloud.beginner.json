@@ -1,0 +1,104 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "cloud",
+ "level": "beginner",
+ "title_vi": "Vẽ đám mây",
+ "aliases": [
+  "đám mây",
+  "mây",
+  "cloud"
+ ],
+ "steps": [
+  {
+   "part": "mây",
+   "instruction_vi": "Vẽ một hình tròn to làm mây.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      44
+     ],
+     "radius": 24
+    }
+   ]
+  },
+  {
+   "part": "hai bên",
+   "instruction_vi": "Vẽ hai hình tròn ở hai bên.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      27,
+      55
+     ],
+     "radius": 15
+    },
+    {
+     "shape": "circle",
+     "center": [
+      73,
+      55
+     ],
+     "radius": 15
+    }
+   ]
+  },
+  {
+   "part": "đáy",
+   "instruction_vi": "Vẽ một đường thẳng làm đáy.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      22,
+      69
+     ],
+     "to": [
+      78,
+      69
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm hai chấm làm mắt.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      43,
+      45
+     ],
+     "radius": 2.4
+    },
+    {
+     "shape": "dot",
+     "center": [
+      57,
+      45
+     ],
+     "radius": 2.4
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ một nét cong làm miệng.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      51
+     ],
+     "radius": 8,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  }
+ ]
+}

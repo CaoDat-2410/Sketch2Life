@@ -1,0 +1,170 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "bowl",
+ "level": "simple",
+ "title_vi": "Vẽ cái bát",
+ "aliases": [
+  "cái bát",
+  "bát",
+  "chén",
+  "cái chén",
+  "bowl"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ thân bát tròn.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       10,
+       46
+      ],
+      [
+       12,
+       70
+      ],
+      [
+       30,
+       84
+      ],
+      [
+       50,
+       84
+      ],
+      [
+       70,
+       84
+      ],
+      [
+       88,
+       70
+      ],
+      [
+       90,
+       46
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ miệng bát.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      46
+     ],
+     "rx": 40,
+     "ry": 10,
+     "start": "left"
+    }
+   ]
+  },
+  {
+   "part": "đế",
+   "instruction_vi": "Vẽ đế bát.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       36,
+       83
+      ],
+      [
+       34,
+       92
+      ],
+      [
+       66,
+       92
+      ],
+      [
+       64,
+       83
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "lòng trong",
+   "instruction_vi": "Vẽ vòng làm lòng trong.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      47
+     ],
+     "rx": 32,
+     "ry": 6,
+     "start": "left"
+    }
+   ]
+  },
+  {
+   "part": "đai",
+   "instruction_vi": "Vẽ đai trang trí.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       14,
+       61
+      ],
+      [
+       30,
+       71
+      ],
+      [
+       70,
+       71
+      ],
+      [
+       86,
+       61
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "hoa",
+   "instruction_vi": "Vẽ ba hoa tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      32,
+      75
+     ],
+     "radius": 3.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      76
+     ],
+     "radius": 3.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      68,
+      75
+     ],
+     "radius": 3.5
+    }
+   ]
+  }
+ ]
+}

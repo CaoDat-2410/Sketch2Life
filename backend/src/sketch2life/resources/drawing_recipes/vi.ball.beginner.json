@@ -1,0 +1,92 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "ball",
+ "level": "beginner",
+ "title_vi": "Vẽ quả bóng",
+ "aliases": [
+  "quả bóng",
+  "bóng",
+  "trái bóng",
+  "quả banh",
+  "ball"
+ ],
+ "steps": [
+  {
+   "part": "quả bóng",
+   "instruction_vi": "Vẽ hình tròn to làm quả bóng.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      52
+     ],
+     "radius": 35
+    }
+   ]
+  },
+  {
+   "part": "múi",
+   "instruction_vi": "Vẽ bầu dục dọc làm múi.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      52
+     ],
+     "rx": 15,
+     "ry": 35
+    }
+   ]
+  },
+  {
+   "part": "đường ngang",
+   "instruction_vi": "Vẽ một đường ngang.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      15,
+      52
+     ],
+     "to": [
+      85,
+      52
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chấm sáng",
+   "instruction_vi": "Vẽ hình tròn làm chấm sáng.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      28,
+      36
+     ],
+     "radius": 5
+    }
+   ]
+  },
+  {
+   "part": "mặt đất",
+   "instruction_vi": "Vẽ một đường làm mặt đất.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      8,
+      90
+     ],
+     "to": [
+      92,
+      90
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,179 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "telescope",
+ "level": "simple",
+ "title_vi": "Vẽ kính thiên văn",
+ "aliases": [
+  "kính thiên văn",
+  "ống nhòm thiên văn",
+  "telescope"
+ ],
+ "steps": [
+  {
+   "part": "ống",
+   "instruction_vi": "Vẽ ống kính nghiêng.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       18,
+       58
+      ],
+      [
+       72,
+       22
+      ],
+      [
+       84,
+       40
+      ],
+      [
+       30,
+       74
+      ],
+      [
+       18,
+       58
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu loe",
+   "instruction_vi": "Vẽ đầu loe phía trước.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       72,
+       22
+      ],
+      [
+       81,
+       12
+      ],
+      [
+       95,
+       32
+      ],
+      [
+       84,
+       40
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt kính",
+   "instruction_vi": "Vẽ mắt kính để nhìn.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       22,
+       63
+      ],
+      [
+       11,
+       68
+      ],
+      [
+       16,
+       79
+      ],
+      [
+       27,
+       72
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vành",
+   "instruction_vi": "Vẽ hai vành trên ống.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      38,
+      45
+     ],
+     "to": [
+      50,
+      61
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      56,
+      33
+     ],
+     "to": [
+      68,
+      50
+     ]
+    }
+   ]
+  },
+  {
+   "part": "khớp",
+   "instruction_vi": "Vẽ khớp nối tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      52,
+      62
+     ],
+     "radius": 5
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ ba chân đứng.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      49,
+      66
+     ],
+     "to": [
+      33,
+      94
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      55,
+      66
+     ],
+     "to": [
+      71,
+      94
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      52,
+      67
+     ],
+     "to": [
+      52,
+      94
+     ]
+    }
+   ]
+  }
+ ]
+}

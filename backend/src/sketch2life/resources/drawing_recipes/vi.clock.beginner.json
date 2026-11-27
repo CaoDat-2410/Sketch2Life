@@ -1,0 +1,120 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "clock",
+ "level": "beginner",
+ "title_vi": "Vẽ chiếc đồng hồ",
+ "aliases": [
+  "đồng hồ",
+  "chiếc đồng hồ",
+  "cái đồng hồ",
+  "clock"
+ ],
+ "steps": [
+  {
+   "part": "mặt đồng hồ",
+   "instruction_vi": "Vẽ hình tròn to làm mặt đồng hồ.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      54
+     ],
+     "radius": 33
+    }
+   ]
+  },
+  {
+   "part": "chuông",
+   "instruction_vi": "Vẽ hai hình tròn làm chuông.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      25,
+      22
+     ],
+     "radius": 11
+    },
+    {
+     "shape": "circle",
+     "center": [
+      75,
+      22
+     ],
+     "radius": 11
+    }
+   ]
+  },
+  {
+   "part": "kim",
+   "instruction_vi": "Vẽ hai đường làm kim.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      54
+     ],
+     "to": [
+      50,
+      31
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      50,
+      54
+     ],
+     "to": [
+      68,
+      64
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tâm",
+   "instruction_vi": "Chấm một chấm làm tâm.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      50,
+      54
+     ],
+     "radius": 3
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai đường làm chân.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      29,
+      79
+     ],
+     "to": [
+      20,
+      93
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      71,
+      79
+     ],
+     "to": [
+      80,
+      93
+     ]
+    }
+   ]
+  }
+ ]
+}

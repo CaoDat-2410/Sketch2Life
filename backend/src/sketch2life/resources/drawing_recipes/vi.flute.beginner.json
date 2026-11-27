@@ -1,0 +1,107 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "flute",
+ "level": "beginner",
+ "title_vi": "Vẽ chiếc sáo",
+ "aliases": [
+  "chiếc sáo",
+  "sáo",
+  "cây sáo",
+  "flute"
+ ],
+ "steps": [
+  {
+   "part": "ống",
+   "instruction_vi": "Vẽ hình dài làm ống sáo.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      6,
+      42
+     ],
+     "width": 88,
+     "height": 18
+    }
+   ]
+  },
+  {
+   "part": "lỗ thổi",
+   "instruction_vi": "Vẽ hình tròn làm lỗ thổi.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      20,
+      51
+     ],
+     "radius": 5
+    }
+   ]
+  },
+  {
+   "part": "lỗ bấm",
+   "instruction_vi": "Vẽ hai hình tròn làm lỗ bấm.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      42,
+      51
+     ],
+     "radius": 5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      57,
+      51
+     ],
+     "radius": 5
+    }
+   ]
+  },
+  {
+   "part": "lỗ nữa",
+   "instruction_vi": "Vẽ thêm một lỗ nữa.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      72,
+      51
+     ],
+     "radius": 5
+    }
+   ]
+  },
+  {
+   "part": "vạch",
+   "instruction_vi": "Vẽ hai vạch trang trí.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      30,
+      42
+     ],
+     "to": [
+      30,
+      60
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      85,
+      42
+     ],
+     "to": [
+      85,
+      60
+     ]
+    }
+   ]
+  }
+ ]
+}

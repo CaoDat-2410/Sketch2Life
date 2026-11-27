@@ -1,0 +1,113 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "bus",
+ "level": "beginner",
+ "title_vi": "Vẽ xe buýt",
+ "aliases": [
+  "xe buýt",
+  "chiếc xe buýt",
+  "xe bus",
+  "xe buýt đưa đón",
+  "bus"
+ ],
+ "steps": [
+  {
+   "part": "thân xe",
+   "instruction_vi": "Vẽ hình chữ nhật to làm thân xe.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      7,
+      29
+     ],
+     "width": 86,
+     "height": 45
+    }
+   ]
+  },
+  {
+   "part": "bánh xe",
+   "instruction_vi": "Vẽ hai hình tròn làm bánh xe.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      25,
+      77
+     ],
+     "radius": 10
+    },
+    {
+     "shape": "circle",
+     "center": [
+      75,
+      77
+     ],
+     "radius": 10
+    }
+   ]
+  },
+  {
+   "part": "cửa sổ",
+   "instruction_vi": "Vẽ hai hình vuông làm cửa sổ.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      14,
+      37
+     ],
+     "width": 17,
+     "height": 17
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      39,
+      37
+     ],
+     "width": 17,
+     "height": 17
+    }
+   ]
+  },
+  {
+   "part": "cửa xe",
+   "instruction_vi": "Vẽ hình chữ nhật làm cửa xe.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      66,
+      37
+     ],
+     "width": 16,
+     "height": 37
+    }
+   ]
+  },
+  {
+   "part": "đèn",
+   "instruction_vi": "Vẽ hai hình tròn nhỏ làm đèn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      14,
+      65
+     ],
+     "radius": 4.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      88,
+      65
+     ],
+     "radius": 4.5
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,125 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "raincoat",
+ "level": "beginner",
+ "title_vi": "Vẽ áo mưa",
+ "aliases": [
+  "áo mưa",
+  "chiếc áo mưa",
+  "raincoat"
+ ],
+ "steps": [
+  {
+   "part": "thân áo",
+   "instruction_vi": "Vẽ tam giác to làm thân áo.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       50,
+       29
+      ],
+      [
+       16,
+       90
+      ],
+      [
+       84,
+       90
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mũ trùm",
+   "instruction_vi": "Vẽ hình tròn làm mũ trùm.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      23
+     ],
+     "radius": 17,
+     "start": "bottom"
+    }
+   ]
+  },
+  {
+   "part": "tay",
+   "instruction_vi": "Vẽ hai đường làm tay áo.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      37,
+      52
+     ],
+     "to": [
+      11,
+      68
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      63,
+      52
+     ],
+     "to": [
+      89,
+      68
+     ]
+    }
+   ]
+  },
+  {
+   "part": "cúc",
+   "instruction_vi": "Chấm hai chấm làm cúc.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      50,
+      55
+     ],
+     "radius": 3
+    },
+    {
+     "shape": "dot",
+     "center": [
+      50,
+      72
+     ],
+     "radius": 3
+    }
+   ]
+  },
+  {
+   "part": "túi",
+   "instruction_vi": "Vẽ hai hình vuông làm túi.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      32,
+      70
+     ],
+     "width": 11,
+     "height": 11
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      57,
+      70
+     ],
+     "width": 11,
+     "height": 11
+    }
+   ]
+  }
+ ]
+}

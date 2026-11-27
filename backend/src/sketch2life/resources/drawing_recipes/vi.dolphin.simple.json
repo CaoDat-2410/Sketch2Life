@@ -1,0 +1,292 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "dolphin",
+ "level": "simple",
+ "title_vi": "Vẽ cá heo",
+ "aliases": [
+  "cá heo",
+  "con cá heo",
+  "chú cá heo",
+  "dolphin"
+ ],
+ "steps": [
+  {
+   "part": "lưng",
+   "instruction_vi": "Vẽ một nét cong cao làm lưng.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       14,
+       76
+      ],
+      [
+       14,
+       40
+      ],
+      [
+       40,
+       18
+      ],
+      [
+       64,
+       28
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ đầu và mỏ dài.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       64,
+       28
+      ],
+      [
+       76,
+       32
+      ],
+      [
+       80,
+       40
+      ],
+      [
+       82,
+       46
+      ],
+      [
+       88,
+       48
+      ],
+      [
+       94,
+       51
+      ],
+      [
+       95,
+       56
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       95,
+       56
+      ],
+      [
+       88,
+       62
+      ],
+      [
+       80,
+       60
+      ],
+      [
+       74,
+       57
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "bụng",
+   "instruction_vi": "Vẽ nét cong làm bụng.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       74,
+       57
+      ],
+      [
+       60,
+       46
+      ],
+      [
+       34,
+       50
+      ],
+      [
+       20,
+       76
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đuôi",
+   "instruction_vi": "Vẽ đuôi hai chẽ.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       14,
+       76
+      ],
+      [
+       6,
+       80
+      ],
+      [
+       4,
+       88
+      ],
+      [
+       7,
+       94
+      ],
+      [
+       12,
+       86
+      ],
+      [
+       18,
+       85
+      ],
+      [
+       24,
+       94
+      ],
+      [
+       31,
+       88
+      ],
+      [
+       28,
+       80
+      ],
+      [
+       20,
+       76
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vây lưng",
+   "instruction_vi": "Vẽ vây lưng nhọn.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       37,
+       31
+      ],
+      [
+       35,
+       18
+      ],
+      [
+       42,
+       11
+      ],
+      [
+       52,
+       9
+      ],
+      [
+       48,
+       15
+      ],
+      [
+       49,
+       20
+      ],
+      [
+       53,
+       25
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vây bụng",
+   "instruction_vi": "Vẽ vây bụng nhỏ.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       57,
+       50
+      ],
+      [
+       56,
+       62
+      ],
+      [
+       48,
+       69
+      ],
+      [
+       40,
+       69
+      ],
+      [
+       45,
+       62
+      ],
+      [
+       45,
+       56
+      ],
+      [
+       46,
+       51
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm mắt và vẽ miệng.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      72,
+      40
+     ],
+     "radius": 2.4
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       92,
+       55
+      ],
+      [
+       86,
+       55
+      ],
+      [
+       80,
+       54
+      ],
+      [
+       76,
+       50
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

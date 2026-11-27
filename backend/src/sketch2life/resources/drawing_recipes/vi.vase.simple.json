@@ -1,0 +1,318 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "vase",
+ "level": "simple",
+ "title_vi": "Vẽ lọ hoa",
+ "aliases": [
+  "lọ hoa",
+  "bình hoa",
+  "cái lọ",
+  "vase"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ thân lọ phình tròn.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       42,
+       40
+      ],
+      [
+       42,
+       50
+      ],
+      [
+       22,
+       54
+      ],
+      [
+       24,
+       72
+      ],
+      [
+       26,
+       88
+      ],
+      [
+       36,
+       94
+      ],
+      [
+       50,
+       94
+      ],
+      [
+       64,
+       94
+      ],
+      [
+       74,
+       88
+      ],
+      [
+       76,
+       72
+      ],
+      [
+       78,
+       54
+      ],
+      [
+       58,
+       50
+      ],
+      [
+       58,
+       40
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ miệng lọ.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      50,
+      38
+     ],
+     "rx": 12,
+     "ry": 4.5
+    }
+   ]
+  },
+  {
+   "part": "cành",
+   "instruction_vi": "Vẽ ba cành hoa.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       50,
+       34
+      ],
+      [
+       50,
+       28
+      ],
+      [
+       50,
+       24
+      ],
+      [
+       50,
+       19
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       45,
+       34
+      ],
+      [
+       40,
+       28
+      ],
+      [
+       34,
+       24
+      ],
+      [
+       29,
+       21
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       55,
+       34
+      ],
+      [
+       60,
+       28
+      ],
+      [
+       66,
+       24
+      ],
+      [
+       71,
+       21
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "hoa",
+   "instruction_vi": "Vẽ ba bông hoa.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      13
+     ],
+     "radius": 7,
+     "start": "bottom"
+    },
+    {
+     "shape": "circle",
+     "center": [
+      24,
+      18
+     ],
+     "radius": 6
+    },
+    {
+     "shape": "circle",
+     "center": [
+      76,
+      18
+     ],
+     "radius": 6
+    }
+   ]
+  },
+  {
+   "part": "nhụy",
+   "instruction_vi": "Chấm ba nhụy hoa.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      50,
+      13
+     ],
+     "radius": 2
+    },
+    {
+     "shape": "dot",
+     "center": [
+      24,
+      18
+     ],
+     "radius": 2
+    },
+    {
+     "shape": "dot",
+     "center": [
+      76,
+      18
+     ],
+     "radius": 2
+    }
+   ]
+  },
+  {
+   "part": "hoa văn",
+   "instruction_vi": "Vẽ hai đường hoa văn.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       26,
+       68
+      ],
+      [
+       40,
+       76
+      ],
+      [
+       60,
+       76
+      ],
+      [
+       74,
+       68
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       28,
+       79
+      ],
+      [
+       40,
+       86
+      ],
+      [
+       60,
+       86
+      ],
+      [
+       72,
+       79
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "lá",
+   "instruction_vi": "Vẽ hai chiếc lá nhỏ.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       45,
+       34
+      ],
+      [
+       34,
+       36
+      ],
+      [
+       28,
+       30
+      ],
+      [
+       38,
+       28
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       55,
+       34
+      ],
+      [
+       66,
+       36
+      ],
+      [
+       72,
+       30
+      ],
+      [
+       62,
+       28
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

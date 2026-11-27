@@ -1,0 +1,133 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "ladybug",
+ "level": "beginner",
+ "title_vi": "Vẽ con bọ rùa",
+ "aliases": [
+  "bọ rùa",
+  "con bọ rùa",
+  "chú bọ rùa",
+  "ladybug"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ một hình tròn thật to làm thân.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      58
+     ],
+     "radius": 32
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ nửa hình tròn làm đầu.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      30
+     ],
+     "radius": 15,
+     "from_deg": 180,
+     "to_deg": 360
+    }
+   ]
+  },
+  {
+   "part": "đường giữa",
+   "instruction_vi": "Vẽ một đường giữa thẳng xuống.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      26
+     ],
+     "to": [
+      50,
+      90
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chấm",
+   "instruction_vi": "Vẽ hai hình tròn làm chấm.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      34,
+      48
+     ],
+     "radius": 6.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      66,
+      48
+     ],
+     "radius": 6.5
+    }
+   ]
+  },
+  {
+   "part": "chấm nữa",
+   "instruction_vi": "Vẽ thêm hai chấm nữa.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      35,
+      70
+     ],
+     "radius": 6.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      65,
+      70
+     ],
+     "radius": 6.5
+    }
+   ]
+  },
+  {
+   "part": "râu",
+   "instruction_vi": "Vẽ hai đường thẳng làm râu.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      42,
+      18
+     ],
+     "to": [
+      32,
+      5
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      58,
+      18
+     ],
+     "to": [
+      68,
+      5
+     ]
+    }
+   ]
+  }
+ ]
+}

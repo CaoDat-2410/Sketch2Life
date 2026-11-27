@@ -1,0 +1,159 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "goat",
+ "level": "beginner",
+ "title_vi": "Vẽ con dê",
+ "aliases": [
+  "con dê",
+  "dê",
+  "dê con",
+  "chú dê",
+  "goat"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ bầu dục to làm thân.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      41,
+      61
+     ],
+     "rx": 25,
+     "ry": 16
+    }
+   ]
+  },
+  {
+   "part": "cổ",
+   "instruction_vi": "Vẽ hai đường làm cổ.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      52,
+      47
+     ],
+     "to": [
+      66,
+      31
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      65,
+      59
+     ],
+     "to": [
+      76,
+      48
+     ]
+    }
+   ]
+  },
+  {
+   "part": "đầu",
+   "instruction_vi": "Vẽ đầu bầu dục, chấm mắt.",
+   "strokes": [
+    {
+     "shape": "oval",
+     "center": [
+      77,
+      37
+     ],
+     "rx": 13,
+     "ry": 12,
+     "start": "left"
+    },
+    {
+     "shape": "dot",
+     "center": [
+      80,
+      33
+     ],
+     "radius": 2.5
+    }
+   ]
+  },
+  {
+   "part": "sừng",
+   "instruction_vi": "Vẽ hai nét cong làm sừng.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      60,
+      27
+     ],
+     "radius": 12,
+     "from_deg": 270,
+     "to_deg": 360
+    },
+    {
+     "shape": "arc",
+     "center": [
+      69,
+      26
+     ],
+     "radius": 13,
+     "from_deg": 270,
+     "to_deg": 360
+    }
+   ]
+  },
+  {
+   "part": "râu",
+   "instruction_vi": "Vẽ tam giác làm râu.",
+   "strokes": [
+    {
+     "shape": "triangle",
+     "points": [
+      [
+       74,
+       49
+      ],
+      [
+       80,
+       65
+      ],
+      [
+       85,
+       47
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai đường làm chân.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      26,
+      74
+     ],
+     "to": [
+      24,
+      94
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      55,
+      74
+     ],
+     "to": [
+      57,
+      94
+     ]
+    }
+   ]
+  }
+ ]
+}

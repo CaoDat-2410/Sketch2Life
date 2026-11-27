@@ -1,0 +1,185 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "star",
+ "level": "simple",
+ "title_vi": "Vẽ ngôi sao",
+ "aliases": [
+  "ngôi sao",
+  "sao",
+  "ông sao",
+  "star"
+ ],
+ "steps": [
+  {
+   "part": "ngôi sao",
+   "instruction_vi": "Vẽ ngôi sao năm cánh.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       50,
+       11
+      ],
+      [
+       60,
+       39
+      ],
+      [
+       90,
+       40
+      ],
+      [
+       66,
+       58
+      ],
+      [
+       75,
+       87
+      ],
+      [
+       50,
+       70
+      ],
+      [
+       25,
+       87
+      ],
+      [
+       34,
+       58
+      ],
+      [
+       10,
+       40
+      ],
+      [
+       40,
+       39
+      ],
+      [
+       50,
+       11
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Vẽ hai mắt tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      43,
+      49
+     ],
+     "radius": 3.5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      57,
+      49
+     ],
+     "radius": 3.5
+    }
+   ]
+  },
+  {
+   "part": "miệng",
+   "instruction_vi": "Vẽ miệng cười.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      55
+     ],
+     "radius": 8,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  },
+  {
+   "part": "má",
+   "instruction_vi": "Chấm hai má.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      37,
+      57
+     ],
+     "radius": 2
+    },
+    {
+     "shape": "dot",
+     "center": [
+      63,
+      57
+     ],
+     "radius": 2
+    }
+   ]
+  },
+  {
+   "part": "tia sáng",
+   "instruction_vi": "Vẽ hai tia sáng hai bên.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      10,
+      40
+     ],
+     "to": [
+      4,
+      36
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      90,
+      40
+     ],
+     "to": [
+      96,
+      36
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tia nữa",
+   "instruction_vi": "Vẽ hai tia nữa phía dưới.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      25,
+      87
+     ],
+     "to": [
+      20,
+      94
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      75,
+      87
+     ],
+     "to": [
+      80,
+      94
+     ]
+    }
+   ]
+  }
+ ]
+}

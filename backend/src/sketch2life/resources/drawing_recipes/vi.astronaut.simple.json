@@ -1,0 +1,258 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "astronaut",
+ "level": "simple",
+ "title_vi": "Vẽ phi hành gia",
+ "aliases": [
+  "phi hành gia",
+  "nhà du hành",
+  "astronaut"
+ ],
+ "steps": [
+  {
+   "part": "mũ",
+   "instruction_vi": "Vẽ mũ tròn thật to.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      26
+     ],
+     "radius": 21
+    }
+   ]
+  },
+  {
+   "part": "kính",
+   "instruction_vi": "Vẽ kính mũ bo tròn.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       35,
+       24
+      ],
+      [
+       37,
+       12
+      ],
+      [
+       63,
+       12
+      ],
+      [
+       65,
+       24
+      ],
+      [
+       65,
+       40
+      ],
+      [
+       35,
+       40
+      ],
+      [
+       35,
+       24
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm mắt và vẽ miệng.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      44,
+      24
+     ],
+     "radius": 2
+    },
+    {
+     "shape": "dot",
+     "center": [
+      56,
+      24
+     ],
+     "radius": 2
+    },
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      27
+     ],
+     "radius": 6,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  },
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ thân áo phía dưới.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       36,
+       44
+      ],
+      [
+       31,
+       74
+      ],
+      [
+       69,
+       74
+      ],
+      [
+       64,
+       44
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tay",
+   "instruction_vi": "Vẽ hai tay cong.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       36,
+       48
+      ],
+      [
+       22,
+       50
+      ],
+      [
+       15,
+       60
+      ],
+      [
+       19,
+       70
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       64,
+       48
+      ],
+      [
+       78,
+       50
+      ],
+      [
+       85,
+       60
+      ],
+      [
+       81,
+       70
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "găng",
+   "instruction_vi": "Vẽ hai găng tay tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      19,
+      74
+     ],
+     "radius": 5
+    },
+    {
+     "shape": "circle",
+     "center": [
+      81,
+      74
+     ],
+     "radius": 5
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai chân đi ủng.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       35,
+       74
+      ],
+      [
+       33,
+       93
+      ],
+      [
+       47,
+       93
+      ],
+      [
+       48,
+       74
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       65,
+       74
+      ],
+      [
+       67,
+       93
+      ],
+      [
+       53,
+       93
+      ],
+      [
+       52,
+       74
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "nút",
+   "instruction_vi": "Vẽ bảng nút trước ngực.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      43,
+      55
+     ],
+     "width": 14,
+     "height": 11
+    }
+   ]
+  }
+ ]
+}

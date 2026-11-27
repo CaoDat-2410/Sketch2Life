@@ -1,0 +1,201 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "satellite",
+ "level": "simple",
+ "title_vi": "Vẽ vệ tinh",
+ "aliases": [
+  "vệ tinh",
+  "satellite"
+ ],
+ "steps": [
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ thân hộp ở giữa.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      38,
+      34
+     ],
+     "width": 24,
+     "height": 32
+    }
+   ]
+  },
+  {
+   "part": "cửa sổ",
+   "instruction_vi": "Vẽ một cửa sổ tròn.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      50
+     ],
+     "radius": 7
+    }
+   ]
+  },
+  {
+   "part": "tay nối",
+   "instruction_vi": "Vẽ hai tay nối.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      28,
+      50
+     ],
+     "to": [
+      38,
+      50
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      62,
+      50
+     ],
+     "to": [
+      72,
+      50
+     ]
+    }
+   ]
+  },
+  {
+   "part": "tấm pin",
+   "instruction_vi": "Vẽ hai tấm pin rộng.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      6,
+      38
+     ],
+     "width": 22,
+     "height": 24
+    },
+    {
+     "shape": "rect",
+     "corner": [
+      72,
+      38
+     ],
+     "width": 22,
+     "height": 24
+    }
+   ]
+  },
+  {
+   "part": "vạch trái",
+   "instruction_vi": "Vẽ ô trên tấm pin vạch trái.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      17,
+      38
+     ],
+     "to": [
+      17,
+      62
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      6,
+      50
+     ],
+     "to": [
+      28,
+      50
+     ]
+    }
+   ]
+  },
+  {
+   "part": "vạch phải",
+   "instruction_vi": "Vẽ ô trên tấm pin vạch phải.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      83,
+      38
+     ],
+     "to": [
+      83,
+      62
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      72,
+      50
+     ],
+     "to": [
+      94,
+      50
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chảo",
+   "instruction_vi": "Vẽ chảo thu sóng.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       36,
+       20
+      ],
+      [
+       40,
+       36
+      ],
+      [
+       60,
+       36
+      ],
+      [
+       64,
+       20
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "ăng ten",
+   "instruction_vi": "Vẽ ăng ten có chấm.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      50,
+      32
+     ],
+     "to": [
+      50,
+      11
+     ]
+    },
+    {
+     "shape": "dot",
+     "center": [
+      50,
+      9
+     ],
+     "radius": 3
+    }
+   ]
+  }
+ ]
+}

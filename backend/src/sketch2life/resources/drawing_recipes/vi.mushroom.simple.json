@@ -1,0 +1,218 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "mushroom",
+ "level": "simple",
+ "title_vi": "Vẽ cây nấm",
+ "aliases": [
+  "cây nấm",
+  "nấm",
+  "mushroom"
+ ],
+ "steps": [
+  {
+   "part": "mũ nấm",
+   "instruction_vi": "Vẽ mũ nấm tròn xòe.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       12,
+       52
+      ],
+      [
+       14,
+       10
+      ],
+      [
+       86,
+       10
+      ],
+      [
+       88,
+       52
+      ]
+     ]
+    },
+    {
+     "shape": "curve",
+     "points": [
+      [
+       88,
+       52
+      ],
+      [
+       70,
+       62
+      ],
+      [
+       30,
+       62
+      ],
+      [
+       12,
+       52
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "thân",
+   "instruction_vi": "Vẽ thân nấm phình ra.",
+   "strokes": [
+    {
+     "shape": "curve",
+     "points": [
+      [
+       40,
+       59
+      ],
+      [
+       36,
+       74
+      ],
+      [
+       32,
+       90
+      ],
+      [
+       50,
+       90
+      ],
+      [
+       68,
+       90
+      ],
+      [
+       64,
+       74
+      ],
+      [
+       60,
+       59
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "chấm",
+   "instruction_vi": "Vẽ ba chấm tròn trên mũ.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      31,
+      38
+     ],
+     "radius": 6
+    },
+    {
+     "shape": "circle",
+     "center": [
+      52,
+      27
+     ],
+     "radius": 7
+    },
+    {
+     "shape": "circle",
+     "center": [
+      70,
+      42
+     ],
+     "radius": 5.5
+    }
+   ]
+  },
+  {
+   "part": "mắt",
+   "instruction_vi": "Chấm mắt và vẽ miệng.",
+   "strokes": [
+    {
+     "shape": "dot",
+     "center": [
+      44,
+      70
+     ],
+     "radius": 2
+    },
+    {
+     "shape": "dot",
+     "center": [
+      56,
+      70
+     ],
+     "radius": 2
+    },
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      74
+     ],
+     "radius": 6,
+     "from_deg": 30,
+     "to_deg": 150
+    }
+   ]
+  },
+  {
+   "part": "cỏ",
+   "instruction_vi": "Vẽ cỏ ở hai bên.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       14,
+       92
+      ],
+      [
+       20,
+       82
+      ],
+      [
+       25,
+       92
+      ],
+      [
+       31,
+       84
+      ],
+      [
+       40,
+       89
+      ]
+     ]
+    },
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       86,
+       92
+      ],
+      [
+       80,
+       82
+      ],
+      [
+       75,
+       92
+      ],
+      [
+       69,
+       84
+      ],
+      [
+       60,
+       89
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

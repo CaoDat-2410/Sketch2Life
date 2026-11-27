@@ -1,0 +1,117 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "rice_cooker",
+ "level": "beginner",
+ "title_vi": "Vẽ nồi cơm điện",
+ "aliases": [
+  "nồi cơm điện",
+  "nồi cơm",
+  "rice cooker"
+ ],
+ "steps": [
+  {
+   "part": "thân nồi",
+   "instruction_vi": "Vẽ hình chữ nhật to làm thân nồi.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      19,
+      46
+     ],
+     "width": 62,
+     "height": 39
+    }
+   ]
+  },
+  {
+   "part": "nắp",
+   "instruction_vi": "Vẽ nửa bầu dục làm nắp.",
+   "strokes": [
+    {
+     "shape": "arc",
+     "center": [
+      50,
+      46
+     ],
+     "radius": 31,
+     "from_deg": 180,
+     "to_deg": 360,
+     "radius_y": 21
+    }
+   ]
+  },
+  {
+   "part": "núm",
+   "instruction_vi": "Vẽ hình dẹt làm núm.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      42,
+      16
+     ],
+     "width": 16,
+     "height": 9
+    }
+   ]
+  },
+  {
+   "part": "bảng",
+   "instruction_vi": "Vẽ hình chữ nhật làm bảng.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      35,
+      55
+     ],
+     "width": 30,
+     "height": 17
+    }
+   ]
+  },
+  {
+   "part": "nút",
+   "instruction_vi": "Vẽ hình tròn làm nút bấm.",
+   "strokes": [
+    {
+     "shape": "circle",
+     "center": [
+      50,
+      63.5
+     ],
+     "radius": 5
+    }
+   ]
+  },
+  {
+   "part": "chân",
+   "instruction_vi": "Vẽ hai đường làm chân.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      28,
+      85
+     ],
+     "to": [
+      28,
+      95
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      72,
+      85
+     ],
+     "to": [
+      72,
+      95
+     ]
+    }
+   ]
+  }
+ ]
+}

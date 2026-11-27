@@ -1,0 +1,240 @@
+{
+ "schema_version": "sketch2life.drawing-recipe.v1",
+ "subject_id": "book",
+ "level": "simple",
+ "title_vi": "Vẽ quyển sách",
+ "aliases": [
+  "quyển sách",
+  "sách",
+  "cuốn sách",
+  "book"
+ ],
+ "steps": [
+  {
+   "part": "bìa",
+   "instruction_vi": "Vẽ bìa trước.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       22,
+       12
+      ],
+      [
+       76,
+       12
+      ],
+      [
+       76,
+       80
+      ],
+      [
+       22,
+       80
+      ],
+      [
+       22,
+       12
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "gáy",
+   "instruction_vi": "Vẽ gáy sách bên trái.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       22,
+       12
+      ],
+      [
+       14,
+       18
+      ],
+      [
+       14,
+       90
+      ],
+      [
+       22,
+       80
+      ]
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      14,
+      90
+     ],
+     "to": [
+      70,
+      90
+     ]
+    }
+   ]
+  },
+  {
+   "part": "ruột",
+   "instruction_vi": "Vẽ ruột sách phía dưới.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      76,
+      80
+     ],
+     "to": [
+      70,
+      90
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      22,
+      85
+     ],
+     "to": [
+      73,
+      85
+     ]
+    }
+   ]
+  },
+  {
+   "part": "nhãn",
+   "instruction_vi": "Vẽ khung nhãn.",
+   "strokes": [
+    {
+     "shape": "rect",
+     "corner": [
+      34,
+      24
+     ],
+     "width": 30,
+     "height": 18
+    }
+   ]
+  },
+  {
+   "part": "chữ",
+   "instruction_vi": "Vẽ hai dòng chữ.",
+   "strokes": [
+    {
+     "shape": "line",
+     "from": [
+      39,
+      30
+     ],
+     "to": [
+      59,
+      30
+     ]
+    },
+    {
+     "shape": "line",
+     "from": [
+      39,
+      36
+     ],
+     "to": [
+      59,
+      36
+     ]
+    }
+   ]
+  },
+  {
+   "part": "dấu trang",
+   "instruction_vi": "Vẽ dấu trang rủ xuống.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       57,
+       80
+      ],
+      [
+       57,
+       95
+      ],
+      [
+       61,
+       90
+      ],
+      [
+       65,
+       95
+      ],
+      [
+       65,
+       80
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "part": "ngôi sao",
+   "instruction_vi": "Vẽ ngôi sao trang trí.",
+   "strokes": [
+    {
+     "shape": "polyline",
+     "points": [
+      [
+       49,
+       50
+      ],
+      [
+       52,
+       58
+      ],
+      [
+       61,
+       58
+      ],
+      [
+       54,
+       63
+      ],
+      [
+       57,
+       72
+      ],
+      [
+       49,
+       66
+      ],
+      [
+       41,
+       72
+      ],
+      [
+       44,
+       63
+      ],
+      [
+       37,
+       58
+      ],
+      [
+       46,
+       58
+      ],
+      [
+       49,
+       50
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}
