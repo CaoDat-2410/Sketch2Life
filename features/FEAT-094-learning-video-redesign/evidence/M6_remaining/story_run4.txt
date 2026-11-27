@@ -1,0 +1,22 @@
+REQUEST {"scene_count": 5, "max_words": 18, "fact_source": "AI_DRAFT", "interest_tags": ["nature", "animals"]}
+STORY_SECONDS 257.1
+TITLE Gà Mái Và Bữa Sáng
+FACT WHAT_IT_IS | Con gà là một loài chim.
+FACT PART | Mỏ cam giúp gà mổ thức ăn.
+FACT USE | Gà đẻ trứng cho bé ăn.
+SCENE 1 [f1] Con gà là một loài chim. Gà Mái đứng nhìn nắng lên.
+   action: The hen slowly lifts its head.
+   setting: A sunny yard with flat grass.
+SCENE 2 [f2] Mỏ cam giúp gà mổ thức ăn. Gà Mái cúi xuống nhặt hạt.
+   action: The hen slowly lowers its orange beak.
+   setting: A dirt patch with scattered grains.
+SCENE 3 [None] Gà Mái đi tìm chỗ nằm. Nó chọn góc râm mát.
+   action: The hen slowly walks to a corner.
+   setting: A quiet corner with soft shadows.
+SCENE 4 [f3] Gà đẻ trứng cho bé ăn. Gà Mái nằm im trên rơm.
+   action: The hen slowly settles onto the straw.
+   setting: A straw nest in a barn.
+SCENE 5 [None] Gà Mái ngủ ngon lành. Mỏ cam, mào đỏ, đuôi hồng.
+   action: The hen slowly closes its eyes.
+   setting: A peaceful barn with soft light.
+DONE

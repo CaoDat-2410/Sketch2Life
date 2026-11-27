@@ -1,0 +1,15 @@
+run 1 scene 1 edge=False found=[] 13.2s
+run 1 scene 2 edge=False found=[] 7.8s
+run 1 scene 3 edge=False found=[] 10.1s
+run 1 scene 4 edge=True found=['EDGE_CHANGED', 'NEW_CHARACTER'] 8.5s
+run 1 scene 5 edge=False found=[] 9.8s
+run 2 scene 1 edge=False found=[] 8.4s
+run 2 scene 2 edge=False found=[] 9.6s
+run 2 scene 3 edge=False found=[] 8.1s
+run 2 scene 4 edge=False found=[] 8.0s
+run 2 scene 5 edge=True found=['EDGE_CHANGED', 'NEW_CHARACTER'] 7.9s
+run 3 first frame 1 found=[]
+run 3 first frame 2 found=['NEW_CHARACTER']
+run 3 first frame 3 found=[]
+run 3 first frame 4 found=[]
+run 3 first frame 5 found=[]

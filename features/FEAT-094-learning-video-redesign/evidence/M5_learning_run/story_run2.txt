@@ -1,0 +1,20 @@
+STORY_SECONDS 257.7
+TITLE Chú Gà Mái Mỏ Cam
+FACT WHAT_IT_IS | Con gà là một loài chim.
+FACT PART | Mỏ cam giúp gà mổ thức ăn.
+FACT USE | Gà đẻ trứng cho con người.
+SCENE 1 [f1] Chú gà là một loài chim. Chú đứng giữa sân nắng.
+   action: The hen stands still on the ground.
+   setting: A sunny farm yard with flat grass.
+SCENE 2 [f2] Mỏ cam giúp gà mổ thức ăn. Chú mổ hạt thóc trên đất.
+   action: The hen pecks a grain on the ground.
+   setting: A patch of dirt with scattered grains.
+SCENE 3 [None] Chú tung cánh lên cao. Đuôi hồng xòe ra thật đẹp.
+   action: The hen flaps its wings and spreads its tail.
+   setting: A low tree branch nearby.
+SCENE 4 [f3] Gà đẻ trứng cho con người. Chú nằm im trong tổ rơm.
+   action: The hen sits quietly in a straw nest.
+   setting: A cozy straw nest in a corner.
+SCENE 5 [None] Chú gà có mỏ cam, mào đỏ. Đuôi hồng xòe ra thật xinh.
+   action: The hen stands proudly with its tail up.
+   setting: A warm, flat farm ground.

@@ -1,6 +1,7 @@
 # FEAT-094: Parent learning video redesign
 
-- **Status:** AWAITING_APPROVAL, see `plan/PLAN_REV2_LEARNING_VIDEO.md`. No implementation.
+- **Status:** APPROVED and in progress (Rev 2, option A, 2026-11-26): see `approvals/TASK_APPROVAL.md` and
+  `status/STATUS.md`.
 - **Owner decision of 2026-11-26:** LTX-2.5 renders every scene. The cut-out option A below is **not** chosen, so the
   FR-AI-05 / BR-45 conflicts listed below no longer apply to the plan.
 - **Opened:** 2026-11-26, from the owner's chat after the two live runs of FEAT-093.

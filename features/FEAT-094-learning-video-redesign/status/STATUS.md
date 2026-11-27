@@ -1,29 +1,32 @@
 # FEAT-094 status
 
-**State:** APPROVED (Rev 2, option A, 2026-11-26). In progress.
+**State:** APPROVED (Rev 2 option A and Amendment A, 2026-11-26). In progress.
 
 | Phase | State | Evidence and notes |
 |---|---|---|
-| 0 | code committed (`620e06a3`); app verification: first video **failed**, second attempt running | Activity step passed live on the first answer (262 s with a cold Qwen). Run history loads on first open. The first video failed on a 25 fps defect, fixed and deployed (`evidence/M2_normalize/FINDING.md`). Truncated confirm button not yet reproduced. |
-| 1 | done (E1-E3 and S0-S4) | `evidence/M1_experiments/RESULTS_SPEED.md`, `RESULTS_QUALITY.md`. One seed per variant; the owner has not judged the videos. E5, E6 not run. Experiment MP4 files stay local. |
-| 2 | partly done, video app deployed to dev, live result pending | fast profile with out-of-memory fall-back, prompt cache, decoder compile in the warm-up; backend sends all scene prompts after planning. ADR-0026 proposed. **Not done:** merge of scene preparation into the video app (two-container limit), warm-up at script review, early keyframes, pinned image dependencies. |
-| 3 | partly done | card rules, repository, review tool, 40 cards **all DRAFT without sources**; AI drafting and wiring into the script not started |
-| 4 | not started | |
-| 5 | started, motion-only LTX prompt deployed to dev | Still open: end frame in the Parent pipeline, mask cleanup, output checks, regeneration |
-| 6 | not started | |
+| 0 | verified in the app | Activity step passed live on the first answer. Run history loads on first open. 16:9 video of 30 s in 9 min 26 s (`evidence/M3_app_run/RUN.md`). |
+| 1 | done (E1-E3 and S0-S4) | `evidence/M1_experiments/`. One seed per variant; the owner has not judged the videos. E5, E6 not run. |
+| 2 | done and verified outside the app | One L40S prepares and renders; 657 s with a cold Qwen, 395 s warm (`evidence/M4_two_containers/RUN.md`). Warm-up at story review (S6) not yet seen in the app. Qwen and video images now install from locks; Debian packages not pinned. S7 (early keyframes) not built. |
+| 3 | waiting for the owner | Card rules, review tool, selection and model drafting are wired in. The 40 cards now name the pages they were compared with (141 facts supported, 81 partly, 19 not found: `evidence/M6_remaining/CARD_SOURCE_REVIEW.md`) and are **still DRAFT**: the owner approves them. |
+| 4 | live outside the app | Learning script v2 as before; a setting may not name an animal; fast actions are rewritten. Lines are still 11 to 13 words where 14 to 18 are asked. Writing 25 to 27 s warm. ADR-0027 proposed. |
+| 5 | live outside the app, one known defect | Zoomed background plates, edge measure, six-frame model check, first-frame check with repaint, contact shadow, part labels. Run 4: 623 s for 50 s of video; one scene pans (reported). Visual check stays in `report` mode. Not built: paper-gap removal inside the cut-out. (`evidence/M6_remaining/RUN.md`) |
+| Amendment A screens | code done, offline tests only | As before, plus: a reload takes the existing activity suggestions. Not yet seen on a device (the emulator app waits for a new sign-in). |
+| 6 | deferred by the owner (2026-11-27) | The 30-drawing evaluation. |
 
-## Findings of the 2026-11-26 app run
+## Open
 
-- Resuming a run after signing in shows "Chọn một hồ sơ để kiểm tra điều kiện bắt đầu" and goes back to the context
-  review, because no profile is selected.
-- A cold Qwen start makes the activity request outlast the app's wait. The reload then starts a second suggestion set
-  instead of showing the stored one.
+- The new screens and the learning flow through the app.
+- Decision for the owner: scene length follows the voice (less silence, fewer frames) instead of a fixed 10 s.
+- Decision for the owner: turn the visual check from `report` to `enforce` (render again up to twice, then fail).
+- The false-positive rate of the checks on other drawings is unmeasured (fifteen scenes of one drawing).
+- Early keyframes (S7) and E5, E6, S8 are not done (conditional or low value, see `evidence/M6_remaining/RUN.md`).
 
 ## Deviations from the plan text
 
-- The backend filters activity drafts one by one but still offers exactly three (SRS section on activity suggestions)
-  instead of a shorter list.
-- The phase 0 verification videos run with scene preparation still in its own app, so up to three L40S containers can be
-  active. Stopping the idle Qwen container during a run was refused by the permission check.
+- The backend filters activity drafts one by one but still offers exactly three (SRS section on activity suggestions).
+- Plan 10 foresaw `story-revision.v2` and a migration; the stored contract stays v1 and the learning script sits inside
+  the story content (Amendment A).
+- Plan 8.2 part labels (D1) are shown without arrows: recognition gives no part positions.
+- Plan 7.1 mask cleanup is not built: removing paper-coloured areas would punch holes into uncoloured subjects.
 
 Note: another session moved the dev Modal runtime to workspace `siesta-6107` on 2026-11-26 (FEAT-095).

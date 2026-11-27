@@ -1,0 +1,31 @@
+REQUEST {"scene_count": 5, "max_words": 18, "fact_source": "AI_DRAFT", "interest_tags": ["nature", "animals"]}
+2026-11-27 01:42:28 [info     ] modal_story_dependency_resolved attempt_ref=9429ef80545f7642 dependency=scratch_volume elapsed_ms=163 generation_ref=81edf9bf69b6e461 job_ref=3c5d5488921b0d65 workload=story.generate
+2026-11-27 01:42:28 [info     ] modal_story_dependency_resolved attempt_ref=9429ef80545f7642 dependency=story_function elapsed_ms=163 generation_ref=81edf9bf69b6e461 job_ref=3c5d5488921b0d65 workload=story.generate
+2026-11-27 01:42:28 [info     ] modal_worker_scratch_upload_started attempt_ref=9429ef80545f7642 generation_ref=81edf9bf69b6e461 input_size_bytes=1409 job_ref=3c5d5488921b0d65 workload=story.generate
+2026-11-27 01:42:31 [info     ] modal_worker_scratch_upload_completed attempt_ref=9429ef80545f7642 duration_ms=2860 generation_ref=81edf9bf69b6e461 job_ref=3c5d5488921b0d65 workload=story.generate
+2026-11-27 01:42:31 [info     ] modal_worker_spawn_started     attempt_ref=9429ef80545f7642 generation_ref=81edf9bf69b6e461 job_ref=3c5d5488921b0d65 workload=story.generate
+2026-11-27 01:42:31 [info     ] modal_worker_spawn_completed   attempt_ref=9429ef80545f7642 generation_ref=81edf9bf69b6e461 job_ref=3c5d5488921b0d65 modal_call_id=fc-01M8DAPKY13RRZR555H90HJ6SA workload=story.generate
+2026-11-27 01:42:31 [info     ] modal_worker_wait_started      attempt_ref=9429ef80545f7642 generation_ref=81edf9bf69b6e461 job_ref=3c5d5488921b0d65 modal_call_id=fc-01M8DAPKY13RRZR555H90HJ6SA wait_timeout_seconds=1800.0 workload=story.generate
+2026-11-27 01:46:15 [info     ] modal_worker_wait_completed    attempt_ref=9429ef80545f7642 elapsed_ms=224937 generation_ref=81edf9bf69b6e461 job_ref=3c5d5488921b0d65 modal_call_id=fc-01M8DAPKY13RRZR555H90HJ6SA remote_call_result=succeeded worker_binary_output_sha256=None worker_diagnostic_code=None worker_diagnostic_details=None worker_duration_ms=None worker_error_code=None worker_error_type=None worker_failure_boundary=remote_call_succeeded_terminal_log_not_observed worker_gpu_class=L40S worker_last_stage=learning_script worker_log_event_count=19 worker_logs_available=True worker_model_id=Qwen/Qwen3.8-27B-FP8 worker_model_revision=c3a462cc3d38cf351f3b26cbd763469eeb74ef81 worker_output_sha256=None worker_output_size_bytes=None worker_phase_history=[{'event': 'worker_phase_started', 'stage': 'input_envelope'}, {'event': 'worker_phase_succeeded', 'stage': 'input_envelope', 'duration_ms': 0}, {'event': 'worker_phase_started', 'stage': 'workload_gate'}, {'event': 'worker_phase_succeeded', 'stage': 'workload_gate', 'duration_ms': 0}, {'event': 'worker_phase_started', 'stage': 'scratch_volume_reload'}, {'event': 'worker_phase_succeeded', 'stage': 'scratch_volume_reload', 'duration_ms': 1353}, {'event': 'worker_phase_started', 'stage': 'input_manifest_read'}, {'event': 'worker_phase_succeeded', 'stage': 'input_manifest_read', 'duration_ms': 1909}, {'event': 'worker_phase_started', 'stage': 'request_contract_validation'}, {'event': 'worker_phase_succeeded', 'stage': 'request_contract_validation', 'duration_ms': 6}, {'event': 'worker_phase_started', 'stage': 'runtime_preparation'}, {'event': 'worker_phase_succeeded', 'stage': 'runtime_preparation', 'duration_ms': 2153}, {'event': 'worker_phase_started', 'stage': 'checkpoint_verification'}, {'event': 'worker_phase_succeeded', 'stage': 'checkpoint_verification', 'duration_ms': 351}, {'event': 'worker_phase_started', 'stage': 'model_load'}, {'event': 'worker_phase_succeeded', 'stage': 'model_load', 'duration_ms': 182825}, {'event': 'worker_phase_started', 'stage': 'learning_script'}] worker_progress_updates=[] worker_runtime={'torch_version': '2.14.0+cu130', 'torch_cuda_version': '13.0'} worker_started_observed=True worker_terminal_event=None workload=story.generate
+2026-11-27 01:46:15 [info     ] modal_story_generation_completed attempt_ref=9429ef80545f7642 elapsed_seconds=226.696 generation_ref=81edf9bf69b6e461 job_ref=3c5d5488921b0d65 modal_call_id=fc-01M8DAPKY13RRZR555H90HJ6SA
+STORY_SECONDS 227.1
+TITLE Gà Mái Và Vườn Rau
+FACT WHAT_IT_IS | Con gà là một loài chim.
+FACT PART | Mỏ cam giúp gà mổ thức ăn.
+FACT USE | Gà đẻ trứng cho con người.
+SCENE 1 [f1] Gà là một loài chim. Bạn gà đi dạo vườn.
+   action: The chicken walks slowly forward on the flat ground.
+   setting: A sunny vegetable garden with flat soil and green plants.
+SCENE 2 [f2] Mỏ cam giúp gà mổ thức ăn. Bạn gà mổ hạt thóc.
+   action: The chicken's orange beak pecks gently at a grain.
+   setting: Close-up of the chicken near scattered grains on the ground.
+SCENE 3 [None] Mào đỏ khiến bạn gà đẹp. Bạn gà đứng thẳng người.
+   action: The chicken stands still with its red comb visible.
+   setting: A calm garden path with soft shadows and flat earth.
+SCENE 4 [f3] Gà đẻ trứng cho con người. Bạn gà nằm trong tổ.
+   action: The chicken sits quietly in a straw nest.
+   setting: A cozy straw nest placed on a flat wooden platform.
+SCENE 5 [None] Bạn gà có mỏ cam và mào đỏ. Bạn gà ngủ ngon lành.
+   action: The chicken rests its head gently on its wing.
+   setting: A peaceful garden at dusk with a flat ground and stars.
+DONE

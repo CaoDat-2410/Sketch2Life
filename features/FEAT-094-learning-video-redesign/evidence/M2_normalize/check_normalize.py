@@ -18,7 +18,7 @@ if modal.is_local():
     sys.path.insert(0, str(WORKERS))
     import video_app
 
-    IMAGE = video_app._with_speed_module(video_app._inference_image).add_local_file(str(WORKERS / "video_app.py"), "/root/video_app.py")
+    IMAGE = video_app._with_runtime_modules(video_app._inference_image).add_local_file(str(WORKERS / "video_app.py"), "/root/video_app.py")
 else:
     IMAGE = None
 
