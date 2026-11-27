@@ -1,0 +1,119 @@
+[
+  {
+    "clip": "app run, deer",
+    "scene": 1,
+    "end_guide": "first frame",
+    "peak_change": 15.6,
+    "end_change": 4.8,
+    "end_over_peak": 0.3,
+    "camera_shift_px": 0.0
+  },
+  {
+    "clip": "app run, deer",
+    "scene": 2,
+    "end_guide": "first frame",
+    "peak_change": 26.0,
+    "end_change": 6.0,
+    "end_over_peak": 0.23,
+    "camera_shift_px": 0.0
+  },
+  {
+    "clip": "app run, deer",
+    "scene": 3,
+    "end_guide": "first frame",
+    "peak_change": 26.2,
+    "end_change": 8.1,
+    "end_over_peak": 0.31,
+    "camera_shift_px": 0.0
+  },
+  {
+    "clip": "app run, deer",
+    "scene": 4,
+    "end_guide": "first frame",
+    "peak_change": 17.5,
+    "end_change": 4.9,
+    "end_over_peak": 0.28,
+    "camera_shift_px": 0.0
+  },
+  {
+    "clip": "app run, deer",
+    "scene": 5,
+    "end_guide": "first frame",
+    "peak_change": 32.5,
+    "end_change": 4.9,
+    "end_over_peak": 0.15,
+    "camera_shift_px": 0.0
+  },
+  {
+    "clip": "run 4, chick",
+    "scene": 1,
+    "end_guide": "first frame",
+    "peak_change": 7.1,
+    "end_change": 3.1,
+    "end_over_peak": 0.44,
+    "camera_shift_px": 0.0
+  },
+  {
+    "clip": "run 4, chick",
+    "scene": 2,
+    "end_guide": "first frame",
+    "peak_change": 7.5,
+    "end_change": 2.6,
+    "end_over_peak": 0.35,
+    "camera_shift_px": 0.0
+  },
+  {
+    "clip": "run 4, chick",
+    "scene": 3,
+    "end_guide": "first frame",
+    "peak_change": 45.0,
+    "end_change": 3.6,
+    "end_over_peak": 0.08,
+    "camera_shift_px": 0.0
+  },
+  {
+    "clip": "run 4, chick",
+    "scene": 4,
+    "end_guide": "first frame",
+    "peak_change": 11.1,
+    "end_change": 2.7,
+    "end_over_peak": 0.25,
+    "camera_shift_px": 0.0
+  },
+  {
+    "clip": "run 4, chick",
+    "scene": 5,
+    "end_guide": "first frame",
+    "peak_change": 5.8,
+    "end_change": 2.6,
+    "end_over_peak": 0.44,
+    "camera_shift_px": 0.0
+  },
+  {
+    "clip": "benchmark base, chick",
+    "scene": 1,
+    "end_guide": "none",
+    "peak_change": 6.5,
+    "end_change": 4.2,
+    "end_over_peak": 0.64,
+    "camera_shift_px": 7.0
+  },
+  {
+    "clip": "E1, chick",
+    "scene": 1,
+    "end_guide": "none",
+    "peak_change": 6.5,
+    "end_change": 6.4,
+    "end_over_peak": 0.99,
+    "camera_shift_px": 4.9
+  },
+  {
+    "clip": "E1, bicycle",
+    "scene": 1,
+    "end_guide": "none",
+    "peak_change": 67.2,
+    "end_change": 55.9,
+    "end_over_peak": 0.83,
+    "camera_shift_px": 16.3
+  }
+]

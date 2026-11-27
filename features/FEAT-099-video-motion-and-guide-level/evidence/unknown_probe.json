@@ -1,0 +1,61 @@
+[
+  {
+    "drawing": "turtle.png",
+    "colours": [
+      "đen",
+      "xanh lá",
+      "vàng"
+    ],
+    "thin_parts": {
+      "above": 1,
+      "beside": 1,
+      "below": 2
+    },
+    "subject_share": 0.19,
+    "seconds": 1.5
+  },
+  {
+    "drawing": "chicken.png",
+    "colours": [
+      "đen"
+    ],
+    "thin_parts": {
+      "above": 2,
+      "beside": 1,
+      "below": 2
+    },
+    "subject_share": 0.27,
+    "seconds": 1.7
+  },
+  {
+    "drawing": "butterfly.png",
+    "colours": [
+      "hồng",
+      "cam",
+      "tím",
+      "vàng",
+      "xanh dương"
+    ],
+    "thin_parts": {
+      "above": 1,
+      "beside": 0,
+      "below": 0
+    },
+    "subject_share": 0.47,
+    "seconds": 2.6
+  },
+  {
+    "drawing": "bicycle.png",
+    "colours": [
+      "đỏ",
+      "đen"
+    ],
+    "thin_parts": {
+      "above": 2,
+      "beside": 0,
+      "below": 2
+    },
+    "subject_share": 0.33,
+    "seconds": 2.0
+  }
+]

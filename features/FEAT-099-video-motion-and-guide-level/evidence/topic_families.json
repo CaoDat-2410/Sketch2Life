@@ -1,0 +1,301 @@
+{
+  "total": 162,
+  "families": {
+    "still": 51,
+    "legs": 28,
+    "light": 12,
+    "wheels": 12,
+    "play": 12,
+    "swim": 9,
+    "plant": 9,
+    "path": 8,
+    "wings": 7,
+    "weather": 7,
+    "spin": 5,
+    "crawl": 2
+  },
+  "topics": {
+    "Động vật": {
+      "legs": 7,
+      "swim": 1,
+      "wings": 1
+    },
+    "Thiên nhiên": {
+      "plant": 5,
+      "crawl": 1,
+      "still": 1,
+      "weather": 1,
+      "light": 1
+    },
+    "Phương tiện": {
+      "wheels": 7,
+      "path": 2
+    },
+    "Đại dương": {
+      "swim": 7,
+      "legs": 1,
+      "still": 1
+    },
+    "Vũ trụ": {
+      "path": 3,
+      "spin": 1,
+      "light": 3,
+      "legs": 1,
+      "still": 1
+    },
+    "Thế giới cổ tích": {
+      "still": 2,
+      "wings": 2,
+      "legs": 1,
+      "light": 2,
+      "play": 1,
+      "wheels": 1
+    },
+    "Đồ vật quanh em": {
+      "still": 4,
+      "light": 1,
+      "spin": 2,
+      "plant": 2
+    },
+    "Món ăn quen thuộc": {
+      "still": 7,
+      "plant": 2
+    },
+    "Đồ dùng nhà bếp": {
+      "still": 8,
+      "weather": 1
+    },
+    "Ở trường": {
+      "still": 8,
+      "wheels": 1
+    },
+    "Khu phố của bé": {
+      "still": 7,
+      "light": 2
+    },
+    "Quần áo và phụ kiện": {
+      "still": 9
+    },
+    "Đồ chơi": {
+      "legs": 2,
+      "path": 2,
+      "play": 2,
+      "spin": 1,
+      "wheels": 2
+    },
+    "Nông trại": {
+      "legs": 5,
+      "wheels": 1,
+      "still": 1,
+      "path": 1,
+      "weather": 1
+    },
+    "Các loài chim": {
+      "legs": 7,
+      "swim": 1,
+      "still": 1
+    },
+    "Côn trùng": {
+      "wings": 4,
+      "legs": 4,
+      "crawl": 1
+    },
+    "Thời tiết": {
+      "light": 3,
+      "weather": 4,
+      "spin": 1,
+      "still": 1
+    },
+    "Âm nhạc": {
+      "play": 9
+    }
+  },
+  "subjects": {
+    "legs": [
+      "Động vật: Con mèo",
+      "Động vật: Chú chó",
+      "Động vật: Thỏ con",
+      "Động vật: Rùa con",
+      "Động vật: Ngựa con",
+      "Động vật: Voi con",
+      "Động vật: Hươu con",
+      "Đại dương: Cua nhỏ",
+      "Vũ trụ: Phi hành gia",
+      "Thế giới cổ tích: Kỳ lân",
+      "Đồ chơi: Gấu bông",
+      "Đồ chơi: Búp bê",
+      "Nông trại: Bò sữa",
+      "Nông trại: Gà mái",
+      "Nông trại: Lợn con",
+      "Nông trại: Vịt con",
+      "Nông trại: Dê con",
+      "Các loài chim: Chim sẻ",
+      "Các loài chim: Vẹt",
+      "Các loài chim: Vịt",
+      "Các loài chim: Gà",
+      "Các loài chim: Cú mèo",
+      "Các loài chim: Chim bồ câu",
+      "Các loài chim: Công",
+      "Côn trùng: Bọ rùa",
+      "Côn trùng: Con kiến",
+      "Côn trùng: Châu chấu",
+      "Côn trùng: Bọ cánh cứng"
+    ],
+    "swim": [
+      "Động vật: Cá nhỏ",
+      "Đại dương: Cá biển",
+      "Đại dương: Rùa biển",
+      "Đại dương: Cá voi",
+      "Đại dương: Cá heo",
+      "Đại dương: Bạch tuộc",
+      "Đại dương: Sao biển",
+      "Đại dương: Cá ngựa",
+      "Các loài chim: Thiên nga"
+    ],
+    "wings": [
+      "Động vật: Con bướm",
+      "Thế giới cổ tích: Rồng con",
+      "Thế giới cổ tích: Nàng tiên",
+      "Côn trùng: Con bướm",
+      "Côn trùng: Con ong",
+      "Côn trùng: Chuồn chuồn",
+      "Côn trùng: Đom đóm"
+    ],
+    "plant": [
+      "Thiên nhiên: Bông hoa",
+      "Thiên nhiên: Cây xanh",
+      "Thiên nhiên: Chiếc lá",
+      "Thiên nhiên: Cây nấm",
+      "Thiên nhiên: Quả thông",
+      "Đồ vật quanh em: Chậu cây",
+      "Đồ vật quanh em: Lọ hoa",
+      "Món ăn quen thuộc: Củ cà rốt",
+      "Món ăn quen thuộc: Bắp ngô"
+    ],
+    "crawl": [
+      "Thiên nhiên: Ốc sên",
+      "Côn trùng: Sâu bướm"
+    ],
+    "still": [
+      "Thiên nhiên: Hòn đá",
+      "Đại dương: Vỏ sò",
+      "Vũ trụ: Kính thiên văn",
+      "Thế giới cổ tích: Lâu đài",
+      "Thế giới cổ tích: Quả bí ngô",
+      "Đồ vật quanh em: Chiếc cốc",
+      "Đồ vật quanh em: Chiếc ghế",
+      "Đồ vật quanh em: Quyển sách",
+      "Đồ vật quanh em: Chiếc gối",
+      "Món ăn quen thuộc: Quả chuối",
+      "Món ăn quen thuộc: Quả xoài",
+      "Món ăn quen thuộc: Quả cam",
+      "Món ăn quen thuộc: Dưa hấu",
+      "Món ăn quen thuộc: Bát cơm",
+      "Món ăn quen thuộc: Ổ bánh mì",
+      "Món ăn quen thuộc: Quả trứng",
+      "Đồ dùng nhà bếp: Chiếc thìa",
+      "Đồ dùng nhà bếp: Cái bát",
+      "Đồ dùng nhà bếp: Chiếc đĩa",
+      "Đồ dùng nhà bếp: Đôi đũa",
+      "Đồ dùng nhà bếp: Nồi cơm điện",
+      "Đồ dùng nhà bếp: Hộp cơm",
+      "Đồ dùng nhà bếp: Chiếc tạp dề",
+      "Đồ dùng nhà bếp: Bình nước",
+      "Ở trường: Bút chì",
+      "Ở trường: Quyển vở",
+      "Ở trường: Ba lô",
+      "Ở trường: Thước kẻ",
+      "Ở trường: Bút sáp màu",
+      "Ở trường: Bảng lớp",
+      "Ở trường: Cục tẩy",
+      "Ở trường: Bàn học",
+      "Khu phố của bé: Ngôi nhà",
+      "Khu phố của bé: Tòa nhà",
+      "Khu phố của bé: Ghế công viên",
+      "Khu phố của bé: Hòm thư",
+      "Khu phố của bé: Cửa hàng",
+      "Khu phố của bé: Cây cầu",
+      "Khu phố của bé: Khu chợ",
+      "Quần áo và phụ kiện: Chiếc mũ",
+      "Quần áo và phụ kiện: Áo",
+      "Quần áo và phụ kiện: Quần dài",
+      "Quần áo và phụ kiện: Đôi tất",
+      "Quần áo và phụ kiện: Đôi giày",
+      "Quần áo và phụ kiện: Áo mưa",
+      "Quần áo và phụ kiện: Chiếc ô",
+      "Quần áo và phụ kiện: Khăn quàng",
+      "Quần áo và phụ kiện: Váy",
+      "Nông trại: Nhà kho nông trại",
+      "Các loài chim: Tổ chim",
+      "Thời tiết: Chiếc ô"
+    ],
+    "weather": [
+      "Thiên nhiên: Đám mây",
+      "Đồ dùng nhà bếp: Ấm đun nước",
+      "Nông trại: Bình tưới cây",
+      "Thời tiết: Đám mây",
+      "Thời tiết: Hạt mưa",
+      "Thời tiết: Vũng nước",
+      "Thời tiết: Nhiệt kế"
+    ],
+    "light": [
+      "Thiên nhiên: Cầu vồng",
+      "Vũ trụ: Mặt trăng",
+      "Vũ trụ: Ngôi sao",
+      "Vũ trụ: Mặt trời",
+      "Thế giới cổ tích: Vương miện",
+      "Thế giới cổ tích: Đũa phép",
+      "Đồ vật quanh em: Đèn bàn",
+      "Khu phố của bé: Đèn đường",
+      "Khu phố của bé: Đèn giao thông",
+      "Thời tiết: Mặt trời",
+      "Thời tiết: Cầu vồng",
+      "Thời tiết: Tia chớp"
+    ],
+    "wheels": [
+      "Phương tiện: Ô tô",
+      "Phương tiện: Xe đạp",
+      "Phương tiện: Tàu hỏa",
+      "Phương tiện: Xe buýt",
+      "Phương tiện: Xe máy",
+      "Phương tiện: Xe cứu thương",
+      "Phương tiện: Xe tải",
+      "Thế giới cổ tích: Cỗ xe ngựa",
+      "Ở trường: Xe đưa đón",
+      "Đồ chơi: Tàu đồ chơi",
+      "Đồ chơi: Ô tô đồ chơi",
+      "Nông trại: Máy kéo"
+    ],
+    "path": [
+      "Phương tiện: Máy bay",
+      "Phương tiện: Thuyền nhỏ",
+      "Vũ trụ: Tên lửa",
+      "Vũ trụ: Vệ tinh",
+      "Vũ trụ: Sao chổi",
+      "Đồ chơi: Quả bóng",
+      "Đồ chơi: Con diều",
+      "Nông trại: Cuộn rơm"
+    ],
+    "spin": [
+      "Vũ trụ: Hành tinh",
+      "Đồ vật quanh em: Đồng hồ",
+      "Đồ vật quanh em: Chiếc quạt",
+      "Đồ chơi: Con quay",
+      "Thời tiết: Chong chóng gió"
+    ],
+    "play": [
+      "Thế giới cổ tích: Sách phép thuật",
+      "Đồ chơi: Khối xếp hình",
+      "Đồ chơi: Bộ ghép hình",
+      "Âm nhạc: Trống",
+      "Âm nhạc: Đàn ghi-ta",
+      "Âm nhạc: Sáo",
+      "Âm nhạc: Đàn piano",
+      "Âm nhạc: Trống lắc",
+      "Âm nhạc: Lục lạc maracas",
+      "Âm nhạc: Mộc cầm",
+      "Âm nhạc: Chiếc chuông",
+      "Âm nhạc: Kèn"
+    ]
+  }
+}
