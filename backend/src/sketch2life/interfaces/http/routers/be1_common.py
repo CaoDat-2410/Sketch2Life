@@ -8,7 +8,7 @@ from uuid import uuid4
 
 from fastapi import HTTPException
 from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import StaleDataError
 
@@ -28,7 +28,13 @@ from sketch2life.domain.eligibility import (
     SyntheticEligibilityProof,
     evaluate_eligibility,
 )
+from sketch2life.domain.platform_admin import AdminError
+from sketch2life.infrastructure.be1.capacity_adapter import Be1CapacityAdapter
 from sketch2life.infrastructure.config.settings import Settings
+from sketch2life.infrastructure.lesson_occurrences.class_transfer_guard import (
+    class_transfer_is_pending,
+    with_class_transfer_state,
+)
 from sketch2life.infrastructure.persistence.be1_models import (
     AdultIdentityModel,
     ClassroomModel,
@@ -62,8 +68,18 @@ BE1_ERROR_RESPONSES = {
 }
 
 
-def failure(status_code: int, code: str, message: str) -> HTTPException:
-    return HTTPException(status_code=status_code, detail={"code": code, "message": message})
+def failure(
+    status_code: int,
+    code: str,
+    message: str,
+    *,
+    headers: dict[str, str] | None = None,
+) -> HTTPException:
+    return HTTPException(
+        status_code=status_code,
+        detail={"code": code, "message": message},
+        headers=headers,
+    )
 
 
 def commit(db: Session) -> None:
@@ -194,10 +210,23 @@ def get_class(
         ClassroomModel.organization_id == organization_id,
         ClassroomModel.class_id == class_id,
     )
+    if isinstance(db, Session):
+        if db.scalar(
+            select(ClassroomModel.class_id).where(
+                ClassroomModel.organization_id == organization_id,
+                ClassroomModel.class_id == class_id,
+            )
+        ) is None:
+            raise failure(404, "CLASS_NOT_FOUND", "Class was not found")
+        settle_due_class_suspensions(db, organization_id)
     if write:
         # A write holds the class row FOR SHARE until it commits: a suspension (FOR UPDATE) that
         # races it waits, so no write lands after the suspension (T-7b review F-02).
-        statement = statement.with_for_update(read=True)
+        statement = (
+            with_class_transfer_state(statement)
+            .with_for_update(read=True)
+            .execution_options(populate_existing=True)
+        )
     row = db.scalar(statement)
     if row is None:
         raise failure(404, "CLASS_NOT_FOUND", "Class was not found")
@@ -205,7 +234,31 @@ def get_class(
         raise failure(
             409, "INVALID_STATE_TRANSITION", "The class is read-only in its current state"
         )
+    if write:
+        require_no_pending_class_transfer(
+            db, organization_id=organization_id, class_id=class_id, classroom=row
+        )
     return row
+
+
+def require_no_pending_class_transfer(
+    db: Session,
+    *,
+    organization_id: str,
+    class_id: str,
+    classroom: ClassroomModel | None = None,
+) -> None:
+    pending = (
+        class_transfer_is_pending(
+            db, organization_id=organization_id, class_id=class_id, lock_class=False
+        )
+        if classroom is None
+        else bool(getattr(classroom, "transfer_pending", False))
+    )
+    if pending:
+        raise failure(
+            409, "RESOURCE_CONFLICT", "The class is read-only while a Teacher transfer is pending"
+        )
 
 
 def hide_archived_from_teacher(
@@ -309,6 +362,83 @@ def session_event(
         payload=payload,
         revision=session.revision,
     )
+
+
+def project_due_capacity_suspensions(
+    db: Session,
+    *,
+    organization_id: str,
+    actor: str | None,
+    class_refs: set[str],
+) -> int:
+    """Apply a due Billing downgrade in the caller's transaction, with one BE1 projection."""
+    if not class_refs:
+        return 0
+    classes = db.scalars(
+        select(ClassroomModel)
+        .where(
+            ClassroomModel.organization_id == organization_id,
+            ClassroomModel.class_id.in_(class_refs),
+            ClassroomModel.state == "active",
+        )
+        .order_by(ClassroomModel.class_id)
+        .with_for_update()
+    ).all()
+    for classroom in classes:
+        from_state = classroom.state
+        classroom.state = "suspended"
+        classroom.revision += 1
+        audit(
+            db,
+            organization_id=organization_id,
+            actor=actor,
+            action="class.suspend.capacity_downgrade",
+            resource_type="class",
+            resource_id=classroom.class_id,
+        )
+        event(
+            db,
+            organization_id=organization_id,
+            aggregate_id=classroom.class_id,
+            event_type="be1.class.suspended.v1",
+            payload={
+                "class_id": classroom.class_id,
+                "from_state": from_state,
+                "to_state": "suspended",
+            },
+            revision=classroom.revision,
+        )
+    return len(classes)
+
+
+def settle_due_class_suspensions(
+    db: Session,
+    organization_id: str,
+    *,
+    actor: str | None = None,
+) -> None:
+    """Idempotently persist due class suspensions before any class/session read or write check."""
+    if not isinstance(db, Session):
+        # Offline handler tests drive these handlers with stub sessions that hold no Billing rows.
+        return
+    try:
+        adapter = Be1CapacityAdapter(db, actor or "", settings=None)
+        _row, view = adapter.view_for_organization(organization_id, lock=False)
+        due_refs = {str(class_ref) for class_ref in view.get("suspended_class_refs", [])}
+        if project_due_capacity_suspensions(
+            db,
+            organization_id=organization_id,
+            actor=actor,
+            class_refs=due_refs,
+        ):
+            db.commit()
+    except (AdminError, SQLAlchemyError):
+        db.rollback()
+        raise failure(
+            503,
+            "DEPENDENCY_UNAVAILABLE",
+            "Billing capacity is temporarily unavailable",
+        ) from None
 
 
 def consent_is_effective(

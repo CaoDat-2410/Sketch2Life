@@ -23,8 +23,10 @@ from __future__ import annotations
 
 import re
 from collections.abc import Callable
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Annotated, Any, NoReturn
+from uuid import uuid4
 
 from fastapi import (
     APIRouter,
@@ -41,6 +43,7 @@ from sqlalchemy.orm import Session
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
 from sketch2life.application.ports.story_video import PLAYBACK_MEDIA_TYPE, ProjectionClaims
+from sketch2life.contracts.schemas.be1_runtime import Be1Error
 from sketch2life.contracts.schemas.lesson_occurrences import (
     AttachOccurrenceDocumentRequestV1,
     ChildSelectionV1,
@@ -63,6 +66,11 @@ from sketch2life.contracts.schemas.lesson_occurrences import (
     OccurrenceStateV1,
     ProjectionConfirmationRequestV1,
     ProjectionPlaybackTokenV1,
+)
+from sketch2life.contracts.schemas.sketch_decks import (
+    CreateSketchDeckRequestV1,
+    SketchDeckCurrentV1,
+    SketchDeckRevisionV1,
 )
 from sketch2life.domain.lesson_occurrences.child_selection import (
     IMMUTABLE_STATES as IMMUTABLE_SELECTION_STATES,
@@ -91,9 +99,17 @@ from sketch2life.domain.lesson_occurrences.safety_checklist import (
     PRODUCTION_REGISTRY,
     ChecklistRegistry,
 )
+from sketch2life.domain.lesson_occurrences.sketch_deck import (
+    DrawingStepInput,
+    SketchDeckDrawingInputs,
+)
+from sketch2life.infrastructure.catalog.svg_assets import SqlSvgCatalogRepository
 from sketch2life.infrastructure.lesson_occurrences.child_selection import (
     ChildSelectionService,
     synthetic_gate_from_settings,
+)
+from sketch2life.infrastructure.lesson_occurrences.class_transfer_guard import (
+    class_transfer_is_pending,
 )
 from sketch2life.infrastructure.lesson_occurrences.documents import (
     OccurrenceDocumentService,
@@ -101,8 +117,17 @@ from sketch2life.infrastructure.lesson_occurrences.documents import (
 )
 from sketch2life.infrastructure.lesson_occurrences.plans import PlanRevisionService
 from sketch2life.infrastructure.lesson_occurrences.projection import ProjectionService
-from sketch2life.infrastructure.lesson_occurrences.scope import LessonOccurrenceError
+from sketch2life.infrastructure.lesson_occurrences.scope import (
+    LessonOccurrenceError,
+    authorize_create,
+    authorize_occurrence,
+)
 from sketch2life.infrastructure.lesson_occurrences.service import LessonOccurrenceService
+from sketch2life.infrastructure.lesson_occurrences.sketch_decks import (
+    SketchDeckCommandResult,
+    SketchDeckGenerationStart,
+    SketchDeckRevisionService,
+)
 from sketch2life.interfaces.http.api_conventions import (
     limit_query,
     parse_idempotency_key,
@@ -113,6 +138,12 @@ from sketch2life.interfaces.http.be1_runtime import (
     get_db,
     get_runtime,
     get_verified_adult,
+)
+from sketch2life.interfaces.http.routers.teacher_ai import (
+    MODEL_ID,
+    MODEL_REVISION,
+    _require_modal_dev,
+    invoke_teacher_sketch_deck_worker,
 )
 
 router = APIRouter(prefix="/v1/lesson-occurrences", tags=["Lesson Occurrences"])
@@ -180,6 +211,14 @@ def get_plan_service(
     return PlanRevisionService(db, checklists=checklists)
 
 
+def get_sketch_deck_service(
+    request: Request, db: Session = Depends(get_db)
+) -> SketchDeckRevisionService:
+    storage = getattr(request.app.state, "lesson_library_storage", None)
+    catalog = SqlSvgCatalogRepository(db, storage) if storage is not None else None
+    return SketchDeckRevisionService(db, svg_catalog=catalog)
+
+
 def _raise(
     exc: LessonOccurrenceError | LessonOccurrenceRuleError | DocumentRuleError,
 ) -> NoReturn:
@@ -208,6 +247,50 @@ def _call[Result](function: Callable[[], Result]) -> Result:
         _raise(exc)
 
 
+def _guard_create_during_transfer(
+    db: Session, principal: VerifiedPrincipal, class_id: str
+) -> None:
+    authorized = authorize_create(db, principal, class_id)
+    if class_transfer_is_pending(
+        db,
+        organization_id=authorized.classroom.organization_id,
+        class_id=authorized.classroom.class_id,
+        lock_class=False,
+    ):
+        raise LessonOccurrenceError(409, "INVALID_STATE_TRANSITION")
+
+
+def _guard_occurrence_write_during_transfer(
+    db: Session, principal: VerifiedPrincipal, occurrence_id: str
+) -> None:
+    # Authorize before resolving and locking the class, but leave the occurrence unlocked here:
+    # the service takes its own occurrence lock. The class SHARE lock below remains held through
+    # the service call, so a concurrent transfer's class UPDATE lock must wait.
+    authorized = authorize_occurrence(db, principal, occurrence_id, write=True)
+    occurrence = authorized.occurrence
+    if class_transfer_is_pending(
+        db,
+        organization_id=str(occurrence["organization_ref"]),
+        class_id=str(occurrence["class_ref"]),
+    ):
+        raise LessonOccurrenceError(409, "INVALID_STATE_TRANSITION")
+
+
+@dataclass(frozen=True, slots=True)
+class TransferGuards:
+    db: Session
+
+    def create(self, principal: VerifiedPrincipal, class_id: str) -> None:
+        _guard_create_during_transfer(self.db, principal, class_id)
+
+    def occurrence_write(self, principal: VerifiedPrincipal, occurrence_id: str) -> None:
+        _guard_occurrence_write_during_transfer(self.db, principal, occurrence_id)
+
+
+def get_transfer_guards(db: Session = Depends(get_db)) -> TransferGuards:
+    return TransferGuards(db)
+
+
 @router.post(
     "",
     response_model=LessonOccurrenceV1,
@@ -220,12 +303,14 @@ def create_lesson_occurrence(
     response: Response,
     idempotency_key: IdempotencyKeyHeader,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
+    guards: TransferGuards = Depends(get_transfer_guards),
     service: LessonOccurrenceService = Depends(get_occurrence_service),
 ) -> dict[str, Any]:
     # The declaration above publishes the header as required; parse_idempotency_key (C-D5, 1-128
     # visible ASCII) is the authority.
     del idempotency_key
     key = parse_idempotency_key(request)
+    _call(lambda: guards.create(principal, payload.class_id))
     result = _call(
         lambda: service.create(principal=principal, payload=payload, idempotency_key=key)
     )
@@ -297,10 +382,12 @@ def attach_occurrence_document(
     response: Response,
     idempotency_key: IdempotencyKeyHeader,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
+    guards: TransferGuards = Depends(get_transfer_guards),
     service: OccurrenceDocumentService = Depends(get_document_service),
 ) -> dict[str, Any]:
     del idempotency_key
     key = parse_idempotency_key(request)
+    _call(lambda: guards.occurrence_write(principal, occurrence_id))
     result = _call(
         lambda: service.attach(
             principal=principal,
@@ -416,10 +503,12 @@ def edit_document_revision(
     response: Response,
     idempotency_key: IdempotencyKeyHeader,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
+    guards: TransferGuards = Depends(get_transfer_guards),
     service: OccurrenceDocumentService = Depends(get_document_service),
 ) -> dict[str, Any]:
     del idempotency_key
     key = parse_idempotency_key(request)
+    _call(lambda: guards.occurrence_write(principal, occurrence_id))
     result = _call(
         lambda: service.edit_revision(
             principal=principal,
@@ -487,10 +576,12 @@ def create_plan_revision(
     response: Response,
     idempotency_key: IdempotencyKeyHeader,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
+    guards: TransferGuards = Depends(get_transfer_guards),
     service: PlanRevisionService = Depends(get_plan_service),
 ) -> dict[str, Any]:
     del idempotency_key
     key = parse_idempotency_key(request)
+    _call(lambda: guards.occurrence_write(principal, occurrence_id))
     result = _call(
         lambda: service.create_revision(
             principal=principal,
@@ -572,10 +663,12 @@ def confirm_plan_revision(
     response: Response,
     idempotency_key: IdempotencyKeyHeader,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
+    guards: TransferGuards = Depends(get_transfer_guards),
     service: PlanRevisionService = Depends(get_plan_service),
 ) -> dict[str, Any]:
     del idempotency_key
     key = parse_idempotency_key(request)
+    _call(lambda: guards.occurrence_write(principal, occurrence_id))
     result = _call(
         lambda: service.confirm_revision(
             principal=principal,
@@ -591,6 +684,144 @@ def confirm_plan_revision(
     )
     response.headers["ETag"] = plan_etag(str(body["content_hash"]), str(body["state"]))
     response.headers["Cache-Control"] = "private, no-cache"
+    return body
+
+
+# ------------------------------------------------------------------------- Teacher Sketch Deck
+@router.post(
+    "/{occurrence_id}/sketch-decks",
+    response_model=SketchDeckRevisionV1,
+    status_code=status.HTTP_201_CREATED,
+    summary="Generate a Sketch Deck revision for the current approved plan",
+    responses={
+        200: {
+            "model": SketchDeckRevisionV1,
+            "description": "Idempotent replay of a completed generation",
+        },
+        202: {
+            "model": SketchDeckRevisionV1,
+            "description": "An identical generation command is already running",
+        },
+        409: {
+            "model": Be1Error,
+            "description": "The approved plan is stale or lacks required generation inputs",
+        },
+    },
+)
+def create_sketch_deck_revision(
+    occurrence_id: OccurrenceId,
+    payload: CreateSketchDeckRequestV1,
+    request: Request,
+    response: Response,
+    idempotency_key: IdempotencyKeyHeader,
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    service: SketchDeckRevisionService = Depends(get_sketch_deck_service),
+) -> dict[str, Any]:
+    """Synchronous, keyed generation; provider outcome failures are persisted as FAILED."""
+    del idempotency_key
+    key = parse_idempotency_key(request)
+    drawing_inputs = SketchDeckDrawingInputs(
+        review_confirmed=payload.review_confirmed,
+        topic=payload.topic,
+        drawing_steps=tuple(
+            DrawingStepInput(action=step.action, placement=step.placement)
+            for step in payload.drawing_steps
+        ),
+        subject_knowledge=tuple(payload.subject_knowledge),
+        teacher_confirmed_age_band_ref=payload.teacher_confirmed_age_band_ref,
+    )
+    replay = _call(
+        lambda: service.replay_if_present(
+            principal=principal,
+            occurrence_id=occurrence_id,
+            expected_plan_revision_id=payload.expected_plan_revision_id,
+            expected_plan_hash=payload.expected_plan_hash,
+            drawing_inputs=drawing_inputs,
+            idempotency_key=key,
+        )
+    )
+    if replay is not None:
+        response.status_code = replay.status_code
+        for name, value in _READ_HEADERS.items():
+            response.headers[name] = value
+        return replay.body
+
+    _call(
+        lambda: service.verify_approved_plan(
+            principal=principal,
+            occurrence_id=occurrence_id,
+            expected_plan_revision_id=payload.expected_plan_revision_id,
+            expected_plan_hash=payload.expected_plan_hash,
+        )
+    )
+    prepared = _call(
+        lambda: service.prepare_worker_input(
+            principal=principal,
+            occurrence_id=occurrence_id,
+            expected_plan_revision_id=payload.expected_plan_revision_id,
+            expected_plan_hash=payload.expected_plan_hash,
+            drawing_inputs=drawing_inputs,
+        )
+    )
+    _require_modal_dev()
+    start = _call(
+        lambda: service.begin_generation(
+            principal=principal,
+            prepared=prepared,
+            idempotency_key=key,
+            model_profile_ref=MODEL_ID,
+            model_profile_version=MODEL_REVISION,
+        )
+    )
+    if isinstance(start, SketchDeckCommandResult):
+        response.status_code = start.status_code
+        for name, value in _READ_HEADERS.items():
+            response.headers[name] = value
+        return start.body
+    if not isinstance(start, SketchDeckGenerationStart):  # pragma: no cover - closed union
+        raise HTTPException(status_code=503, detail={"code": "PROVIDER_UNAVAILABLE"})
+
+    try:
+        worker_result = invoke_teacher_sketch_deck_worker(
+            prepared.worker_input, request_id=uuid4().hex
+        )
+        deck = worker_result.get("deck")
+        if not isinstance(deck, dict):
+            result = service.fail_generation(
+                principal=principal, generation=start, idempotency_key=key
+            )
+        else:
+            result = service.complete_generation(
+                principal=principal,
+                generation=start,
+                idempotency_key=key,
+                deck=deck,
+            )
+    except Exception:
+        # A provider exception, including an unknown outcome, is terminal for this idempotency key.
+        result = service.fail_generation(
+            principal=principal, generation=start, idempotency_key=key
+        )
+    response.status_code = result.status_code
+    for name, value in _READ_HEADERS.items():
+        response.headers[name] = value
+    return result.body
+
+
+@router.get(
+    "/{occurrence_id}/sketch-decks",
+    response_model=SketchDeckCurrentV1,
+    summary="Read the current Sketch Deck revision, steps and stale state",
+)
+def get_sketch_deck_revision(
+    occurrence_id: OccurrenceId,
+    response: Response,
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    service: SketchDeckRevisionService = Depends(get_sketch_deck_service),
+) -> dict[str, Any]:
+    body = _call(lambda: service.current(principal=principal, occurrence_id=occurrence_id))
+    for name, value in _READ_HEADERS.items():
+        response.headers[name] = value
     return body
 
 
@@ -647,10 +878,12 @@ def create_child_selection(
     idempotency_key: IdempotencyKeyHeader,
     payload: CreateChildSelectionRequestV1 | None = None,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
+    guards: TransferGuards = Depends(get_transfer_guards),
     service: ChildSelectionService = Depends(get_child_selection_service),
 ) -> dict[str, Any]:
     del idempotency_key, payload
     key = parse_idempotency_key(request)
+    _call(lambda: guards.occurrence_write(principal, occurrence_id))
     result = _call(
         lambda: service.select(
             principal=principal, occurrence_id=occurrence_id, idempotency_key=key
@@ -715,11 +948,13 @@ def confirm_child_selection(
     idempotency_key: IdempotencyKeyHeader,
     if_match: Annotated[str | None, Header(alias="If-Match")] = None,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
+    guards: TransferGuards = Depends(get_transfer_guards),
     service: ChildSelectionService = Depends(get_child_selection_service),
 ) -> dict[str, Any]:
     del idempotency_key
     key = parse_idempotency_key(request)
     expected_revision = _expected_selection_revision(if_match)
+    _call(lambda: guards.occurrence_write(principal, occurrence_id))
     result = _call(
         lambda: service.confirm(
             principal=principal,
@@ -751,6 +986,7 @@ def confirm_class_projection(
     idempotency_key: IdempotencyKeyHeader,
     if_match: Annotated[str | None, Header(alias="If-Match")] = None,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
+    guards: TransferGuards = Depends(get_transfer_guards),
     service: ProjectionService = Depends(get_projection_service),
 ) -> dict[str, Any]:
     """SRS l.1661, l.777, FR-T-16 l.555: only the current responsible Teacher. The first
@@ -760,6 +996,7 @@ def confirm_class_projection(
     del idempotency_key
     key = parse_idempotency_key(request)
     expected_revision = _expected_occurrence_revision(if_match)
+    _call(lambda: guards.occurrence_write(principal, occurrence_id))
     result = _call(
         lambda: service.confirm(
             principal=principal,

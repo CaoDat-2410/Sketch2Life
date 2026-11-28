@@ -48,8 +48,10 @@ from sketch2life.contracts.schemas.mobile_workflow import (
     WorkflowResultProvenanceV1,
 )
 from sketch2life.contracts.schemas.parent_profiles import (
+    CreateParentContextEntryRequest,
     CreateParentProfileRequest,
     PatchParentProfileRequest,
+    SupportNeedsPutV1,
     parent_error_payload,
     parent_field_errors,
 )
@@ -127,9 +129,6 @@ from sketch2life.infrastructure.story_video.modal_scene_renderer import ModalSce
 from sketch2life.infrastructure.story_video.playback_tokens import build_playback_codec
 from sketch2life.infrastructure.story_video.prepare_ahead import VideoPrepareAhead
 from sketch2life.infrastructure.story_video.sql_source_reader import SqlVideoSourceReader
-from sketch2life.infrastructure.vision_analysis.pilot_composition import (
-    build_default_pilot_vision,
-)
 from sketch2life.interfaces.http.api_conventions import field_errors_from_validation
 from sketch2life.interfaces.http.be1_runtime import build_be1_runtime
 from sketch2life.interfaces.http.demo_composition import (
@@ -357,6 +356,10 @@ def _apply_catalog_metadata(
                     "/v1/lesson-occurrences",
                     # T-8a: and for the notification inbox.
                     "/v1/notifications",
+                    # E2 T-TCH2: and for the Teacher workspace reads.
+                    "/api/teacher/v1/",
+                    # E3 T-SHARE1: and for the Parent profile share grants.
+                    "/v1/parent/share-grants",
                 )
             ):
                 for status in tuple(runtime_responses):
@@ -385,6 +388,8 @@ def _apply_catalog_metadata(
                             "/api/lesson-library/v1/",
                             "/v1/upload-sessions",
                             "/v1/lesson-occurrences",
+                            # T-8b: PUSH_PLATFORM_UNSUPPORTED is a real 422 business-rule error.
+                            "/v1/notifications/push-endpoints",
                         )
                     )
                     and declared["media_type"]
@@ -412,6 +417,40 @@ def _apply_catalog_metadata(
                             )
                         }
                     }
+
+
+def _build_speech_transcriber(settings: Settings, storage: Any | None) -> Any | None:
+    if (
+        storage is None
+        or settings.ai_provider != "modal_dev"
+        or settings.env not in {"local", "test"}
+    ):
+        return None
+
+    from sketch2life.infrastructure.ai.speech_transcriber_modal import ModalSpeechTranscriber
+
+    return ModalSpeechTranscriber(storage)
+
+
+def _build_drawing_analyzer(settings: Settings, storage: Any | None) -> Any | None:
+    if (
+        storage is None
+        or settings.ai_provider != "modal_dev"
+        or settings.env not in {"local", "test"}
+    ):
+        return None
+
+    from sketch2life.infrastructure.ai.drawing_analyzer_modal import ModalDrawingAnalyzer
+    from sketch2life.infrastructure.ai.modal_function_client import ModalDrawingFunctionClient
+
+    return ModalDrawingAnalyzer(storage, ModalDrawingFunctionClient())
+
+
+def _build_story_generator(settings: Settings) -> Any | None:
+    if settings.ai_provider != "modal_dev" or settings.env not in {"local", "test"}:
+        return None
+
+    return ModalParentStoryGenerator()
 
 
 def create_app(
@@ -639,6 +678,7 @@ def create_app(
                 "TOKEN_EXPIRED": "The bearer token has expired",
                 "IDENTITY_PROVIDER_UNAVAILABLE": "Identity verification is unavailable",
                 "PARENT_STORE_UNAVAILABLE": "The profile store is unavailable",
+                "SUPPORT_NEEDS_UNAVAILABLE": "Support needs are unavailable",
                 "PROFILE_NOT_FOUND": "Profile was not found",
                 "INVALID_REQUEST": "The request is invalid",
                 "INVALID_IDEMPOTENCY_KEY": "The idempotency key conflicts with an earlier request",
@@ -799,6 +839,38 @@ def create_app(
                 ),
                 headers={"X-Request-ID": request_id},
             )
+        if (
+            request.url.path.startswith("/api/teacher/v1/organizations/")
+            and "/ai/" in request.url.path
+        ):
+            # The catalogued legacy Teacher AI routes deliberately retain FastAPI's 422
+            # validation contract. Keep field locations while omitting submitted values.
+            detail = []
+            for issue in exc.errors():
+                raw_location = issue.get("loc", ())
+                location = (
+                    raw_location
+                    if isinstance(raw_location, (tuple, list))
+                    else ()
+                )
+                error_type = issue.get("type")
+                detail.append(
+                    {
+                        "loc": [
+                            part if isinstance(part, int) else str(part)[:80]
+                            for part in location
+                            if isinstance(part, (int, str))
+                        ],
+                        "msg": "Request validation error",
+                        "type": (
+                            error_type
+                            if isinstance(error_type, str)
+                            and re.fullmatch(r"[a-z][a-z0-9_.-]{0,63}", error_type)
+                            else "validation_error"
+                        ),
+                    }
+                )
+            return JSONResponse(status_code=422, content={"detail": detail})
         if conv1_path(request.url.path):
             request_id = getattr(request.state, "be1_request_id", str(uuid4()))
             return JSONResponse(
@@ -1176,9 +1248,7 @@ def create_app(
     application.state.whiteboard_video_job_service = whiteboard_video_job_service
     application.state.story_video_job_service = story_video_job_service or StoryVideoJobService()
     application.state.storage_example_service = None
-    application.state.be1_runtime = build_be1_runtime(
-        get_settings(), pilot_vision_factory=build_default_pilot_vision
-    )
+    application.state.be1_runtime = build_be1_runtime(get_settings())
     application.state.identity_account_provisioner = (
         identity_account_provisioner or FirebaseAdminAccountProvisioner(storage_example_settings)
     )
@@ -1187,24 +1257,24 @@ def create_app(
     application.state.lesson_document_parser = None
     application.state.lesson_document_scanner = None
     application.state.upload_media_validator = None
-    # FEAT-066 T-2b: no drawing analyzer is composed by default (OD-13 owns the real worker); a run
-    # with a drawing then waits in INPUT_PROCESSING/QUEUED. Tests and local runs put a fixture here.
+    # FEAT-066 T-2b: only local/test with modal_dev compose the drawing analyzer below; deployed
+    # profiles without a worker leave a drawing run in INPUT_PROCESSING/QUEUED.
     application.state.drawing_analyzer = None
-    # FEAT-066 T-2c: no speech transcriber is composed by default (OD-13 owns the real worker); a
-    # voice idea then waits with a PENDING transcript. Tests and local runs put a fixture here.
+    # FEAT-066 T-2c: without a transcriber a voice idea waits with a PENDING transcript. The
+    # Modal adapter is composed below, with the upload storage, only in local/test with modal_dev.
     application.state.speech_transcriber = None
-    # FEAT-066 T-2d: no story generator is composed by default (OD-13 owns the real worker); an
-    # accepted rewrite then waits in SCRIPT_GENERATING/QUEUED. Tests and local runs put a fixture
-    # here. A subject edit reruns the VLM only while a drawing analyzer is composed too (SRS
-    # l.394, l.1413); this switch turns the rerun off (recorded deviation DEV-1: the edit is
-    # recorded and confirmed at once).
-    application.state.story_generator = None
+    # Modal story generation is composed only in local/test with the modal_dev provider. Other
+    # profiles leave accepted story work queued for the normal worker path. The Modal drawing
+    # worker takes no subject hint, so its composition below disables subject-edit VLM reruns.
+    application.state.story_generator = _build_story_generator(storage_example_settings)
     application.state.video_prepare_ahead = None
     application.state.subject_edit_reruns_vlm = True
-    # FEAT-066 T-1a (OD-03): the video admission ports. None unless the flag story_video_adapters is
-    # "local_test" (refused outside local/test by Settings); with none the route answers 503
-    # PROVIDER_UNAVAILABLE after its authorization and state checks.
-    application.state.story_video_ports = build_story_video_adapters(storage_example_settings)
+    # FEAT-066 T-1a (OD-03): the video admission ports. ``unconfigured`` stays fail-closed; billing
+    # receives the existing BE1 session factory so its usage receipt commits in Billing's own UoW.
+    application.state.story_video_ports = build_story_video_adapters(
+        storage_example_settings,
+        session_factory=application.state.be1_runtime.session_factory,
+    )
     application.state.story_video_port_timeout_seconds = (
         storage_example_settings.story_video_port_timeout_seconds
     )
@@ -1264,6 +1334,14 @@ def create_app(
             region_name=storage_example_settings.s3_region,
             access_key=access_key.get_secret_value() if access_key else None,
             secret_key=secret_key.get_secret_value() if secret_key else None,
+        )
+        application.state.drawing_analyzer = _build_drawing_analyzer(
+            storage_example_settings, application.state.lesson_library_storage
+        )
+        if application.state.drawing_analyzer is not None:
+            application.state.subject_edit_reruns_vlm = False
+        application.state.speech_transcriber = _build_speech_transcriber(
+            storage_example_settings, application.state.lesson_library_storage
         )
         application.state.lesson_document_parser = DeterministicLessonDocumentParser()
         application.state.lesson_document_scanner = build_document_scanner(
@@ -1325,8 +1403,10 @@ def create_app(
         publish_teacher_story_run_create(schema)
         if isinstance(schemas, dict):
             for parent_request_model in (
+                CreateParentContextEntryRequest,
                 CreateParentProfileRequest,
                 PatchParentProfileRequest,
+                SupportNeedsPutV1,
             ):
                 model_schema = parent_request_model.model_json_schema(
                     ref_template="#/components/schemas/{model}"
@@ -1343,7 +1423,14 @@ def create_app(
                 "Bearer prefix. Authentication identifies the caller; each operation checks "
                 "its own role and resource permissions."
             )
-        _apply_catalog_metadata(schema, MOUNTED_OPERATIONS)
+        catalog = MOUNTED_OPERATIONS
+        if story_demo_enabled:
+            catalog = {
+                key: metadata
+                for key, metadata in MOUNTED_OPERATIONS.items()
+                if not _story_run_lite_path(key[1])
+            }
+        _apply_catalog_metadata(schema, catalog)
         for path, path_item in schema.get("paths", {}).items():
             if not path.startswith(("/api/be1/v1/", "/v1/parent/profiles")) or not isinstance(
                 path_item, dict
@@ -1467,9 +1554,11 @@ def create_app(
         if isinstance(portfolio_operation, dict):
             portfolio_operation["description"] = (
                 f"{portfolio_operation.get('description', '')}\n\n"
-                "**Implementation gap:** the Rev37 catalog lists a 200 response, but the current "
-                "handler has no success path. After profile lookup it returns `409 "
-                "CONSENT_NOT_EFFECTIVE` until an approved portfolio-purpose verifier is available."
+                "**Access:** an assigned Teacher receives 200 for synthetic profiles; a real "
+                "profile answers `409 CONSENT_NOT_EFFECTIVE` until a consent state `effective` "
+                "exists; withdrawn "
+                "profiles answer the uniform `404 RESOURCE_NOT_FOUND`. The response contains only "
+                "observations from sessions in this class."
             ).strip()
 
         add_request_examples(schema)
@@ -1484,7 +1573,10 @@ def create_app(
         should_project = (
             fe_projected
             if fe_projected is not None
-            else (_composition_profile == "combined" and not _custom_session_service)
+            else (
+                _composition_profile == "combined"
+                and (not _custom_session_service or live_image_demo_service is not None)
+            )
         )
         if not should_project:
             return runtime_schema

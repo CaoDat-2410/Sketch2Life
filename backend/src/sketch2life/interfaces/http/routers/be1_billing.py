@@ -10,9 +10,18 @@ from sqlalchemy.orm import Session
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
 from sketch2life.contracts.schemas.platform_admin import QuotaAllocationInput, QuotaCheckoutInput
+from sketch2life.contracts.schemas.video_quota import (
+    SchoolQuotaAllocationPageV1,
+    SchoolQuotaTeacherPageV1,
+)
 from sketch2life.domain.platform_admin import AdminError
 from sketch2life.infrastructure.billing.quota_commerce import QuotaCommerceService, scope_for_be1
 from sketch2life.infrastructure.config.settings import get_settings
+from sketch2life.infrastructure.identity.identity_labels import (
+    account_profiles,
+    teacher_identity_fields,
+    teacher_identity_label,
+)
 from sketch2life.infrastructure.persistence.be1_models import (
     AdultIdentityModel,
     OrganizationAssignmentModel,
@@ -202,36 +211,51 @@ def school_payment_settings(
     return _run(execute)
 
 
-@router.get("/api/be1/v1/organizations/{organization_id}/video-quota/teachers", tags=["BE1 quota"])
+@router.get(
+    "/api/be1/v1/organizations/{organization_id}/video-quota/teachers",
+    tags=["BE1 quota"],
+    response_model=SchoolQuotaTeacherPageV1,
+)
 def school_quota_teachers(
     organization_id: str,
+    request: Request,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
 ) -> Any:
     def execute() -> Any:
         require_assignment(db, principal, organization_id, roles={"school_admin"})
-        subjects = db.scalars(
-            select(OrganizationAssignmentModel.subject)
-            .join(
-                AdultIdentityModel,
-                AdultIdentityModel.subject == OrganizationAssignmentModel.subject,
+        subjects = list(
+            db.scalars(
+                select(OrganizationAssignmentModel.subject)
+                .join(
+                    AdultIdentityModel,
+                    AdultIdentityModel.subject == OrganizationAssignmentModel.subject,
+                )
+                .where(
+                    OrganizationAssignmentModel.organization_id == organization_id,
+                    OrganizationAssignmentModel.role == "teacher",
+                    OrganizationAssignmentModel.active.is_(True),
+                    AdultIdentityModel.account_role == "teacher",
+                    AdultIdentityModel.state == "active",
+                )
+                .distinct()
+                .order_by(OrganizationAssignmentModel.subject)
             )
-            .where(
-                OrganizationAssignmentModel.organization_id == organization_id,
-                OrganizationAssignmentModel.role == "teacher",
-                OrganizationAssignmentModel.active.is_(True),
-                AdultIdentityModel.account_role == "teacher",
-                AdultIdentityModel.state == "active",
-            )
-            .distinct()
-            .order_by(OrganizationAssignmentModel.subject)
         )
-        return {
-            "items": [
-                {"teacher_ref": subject, "label": "Giáo viên · " + subject[-6:]}
-                for subject in subjects
-            ]
-        }
+        profiles = account_profiles(
+            getattr(request.app.state, "identity_account_provisioner", None), subjects
+        )
+        items = []
+        for subject in subjects:
+            fields = teacher_identity_fields(profiles.get(subject))
+            items.append(
+                {
+                    "teacher_ref": subject,
+                    "label": teacher_identity_label(fields),
+                    **fields,
+                }
+            )
+        return {"items": items}
 
     return _run(execute)
 
@@ -321,17 +345,31 @@ def school_checkout(
 
 
 @router.get(
-    "/api/be1/v1/organizations/{organization_id}/video-quota/allocations", tags=["BE1 quota"]
+    "/api/be1/v1/organizations/{organization_id}/video-quota/allocations",
+    tags=["BE1 quota"],
+    response_model=SchoolQuotaAllocationPageV1,
 )
 def school_allocations(
     organization_id: str,
+    request: Request,
     include_inactive: bool = False,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
 ) -> Any:
     def execute() -> Any:
         require_assignment(db, principal, organization_id, roles={"school_admin"})
-        return _commerce(db, principal).allocations(organization_id, include_inactive)
+        result = _commerce(db, principal).allocations(organization_id, include_inactive)
+        subjects = [item["teacher_ref"] for item in result["items"]]
+        profiles = account_profiles(
+            getattr(request.app.state, "identity_account_provisioner", None), subjects
+        )
+        return {
+            **result,
+            "items": [
+                {**item, **teacher_identity_fields(profiles.get(item["teacher_ref"]))}
+                for item in result["items"]
+            ],
+        }
 
     return _run(execute)
 

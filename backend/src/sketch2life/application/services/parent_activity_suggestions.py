@@ -20,6 +20,7 @@ from sketch2life.contracts.schemas.modal_ai import (
     ParentActivitySuggestionWorkerResponseV2,
     ParentSuggestedActivityV2,
 )
+from sketch2life.domain.age_bands import age_band_for_months
 
 _MAX_CANDIDATES = 12
 _AGE_BAND_REF = re.compile(r"\Aage-(\d{2,3})-(\d{2,3})-months-v(\d+)\Z")
@@ -256,7 +257,10 @@ def _sanitize_interest_context(value: str) -> list[str]:
 
 
 def interest_tags(value: str) -> list[str]:
-    """The allow-listed interest tags in an adult's text; the only profile interest data a model may receive."""
+    """Extract allow-listed interest tags from adult text.
+
+    These are the only profile interest data a model may receive.
+    """
 
     return _sanitize_interest_context(value)
 
@@ -288,13 +292,10 @@ def _age_range(ref: str | None, version: int | None) -> tuple[int, int] | None:
 
 
 def _age_band(age_months: int) -> tuple[str, str]:
-    if 36 <= age_months <= 71:
-        return "36-71", "age-36-71-months-v1"
-    if 72 <= age_months <= 107:
-        return "72-107", "age-72-107-months-v1"
-    if 108 <= age_months <= 120:
-        return "108-120", "age-108-120-months-v1"
-    raise ParentActivitySuggestionError("PARENT_AGE_OUT_OF_SUPPORTED_RANGE")
+    age_band = age_band_for_months(age_months)
+    if age_band is None:
+        raise ParentActivitySuggestionError("PARENT_AGE_OUT_OF_SUPPORTED_RANGE")
+    return age_band
 
 
 def _contains_unsafe_action(value: str) -> bool:

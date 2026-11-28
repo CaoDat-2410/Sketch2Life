@@ -33,9 +33,15 @@ UPLOAD_SESSIONS_BASE = "/v1/upload-sessions"
 # base is always part of the family; it is matched on a whole segment like the upload base.
 LESSON_OCCURRENCES_BASE = "/v1/lesson-occurrences"
 
-# FEAT-066 T-8a: the notification inbox (SRS l.1681). Matched on a whole segment, so
-# ``/v1/notificationsfoo`` is not captured; the T-8b push-endpoint paths are not registered.
+# FEAT-066 T-8a/T-8b: notification inbox and push endpoint commands (SRS l.1681, l.1684-1685).
+# Matched on a whole segment, so ``/v1/notificationsfoo`` is not captured.
 NOTIFICATIONS_BASE = "/v1/notifications"
+
+# T-CONSENT1: the Parent consent-policy read has an exact, standalone CONV-1 path.
+PARENT_CONSENT_POLICY_PATH = "/v1/parent/consent-policy"
+
+# T-SHARE1: Parent profile-share grants are a separate route family from Parent profiles.
+PARENT_SHARE_GRANTS_BASE = "/v1/parent/share-grants"
 
 FIELD_ERROR_CODES = frozenset(
     {
@@ -67,6 +73,7 @@ GENERIC_CODE_MAP: Mapping[str, str] = {
     "INVALID_TRANSITION": "INVALID_STATE_TRANSITION",
     "REQUEST_VALIDATION_FAILED": "INVALID_REQUEST",
     "SERVICE_UNAVAILABLE": "PROVIDER_UNAVAILABLE",
+    # T-10b's internal 503 code is exposed as this stable CONV-1 wire code.
     "DEPENDENCY_UNAVAILABLE": "PROVIDER_UNAVAILABLE",
 }
 
@@ -98,8 +105,17 @@ MESSAGES: Mapping[str, str] = {
     "INVALID_STATE_TRANSITION": "Tài nguyên chưa ở trạng thái phù hợp cho thao tác này.",
     "INVALID_REQUEST": "Yêu cầu không hợp lệ.",
     "INVALID_IDEMPOTENCY_KEY": "Khóa yêu cầu trùng với một yêu cầu có nội dung khác.",
+    "CLASS_CAPACITY_REACHED": "Tổ chức đã đạt giới hạn số lớp hiện tại.",
+    "CLASS_SELECTION_REQUIRED": "Hãy chọn đúng các lớp cần tạm ngưng theo giới hạn mới.",
+    "INVALID_CAPACITY_DOWNGRADE": "Thông tin giảm giới hạn lớp chưa hợp lệ.",
+    "SUBSCRIPTION_PERIOD_ENDED": "Kỳ đăng ký đã kết thúc nên không thể cập nhật thay đổi này.",
     "STALE_REVISION": "Thông tin đã thay đổi. Vui lòng tải lại và thử lại.",
+    "PUSH_PLATFORM_UNSUPPORTED": "Nền tảng thông báo đẩy này chưa được hỗ trợ.",
+    "PUSH_REGISTRATION_UNAVAILABLE": "Đăng ký thông báo đẩy tạm thời chưa sẵn sàng.",
     "PROVIDER_UNAVAILABLE": "Dịch vụ tạm thời chưa sẵn sàng. Vui lòng thử lại sau.",
+    "PARENT_STORY_RUN_STORE_UNAVAILABLE": (
+        "Kho lưu trữ lượt kể chuyện tạm thời chưa sẵn sàng. Vui lòng thử lại sau."
+    ),
     "PROVIDER_BAD_RESPONSE": "Không thể hoàn tất yêu cầu lúc này.",
     "RATE_LIMITED": "Bạn đã gửi quá nhiều yêu cầu. Vui lòng thử lại sau.",
     "MEDIA_TOO_LARGE": "Dữ liệu gửi lên vượt quá giới hạn cho phép.",
@@ -148,6 +164,14 @@ MESSAGES: Mapping[str, str] = {
     ),
 }
 
+# T-10b: exact-source hash drift is a named 409 and gets a stable Vietnamese message.
+MESSAGES = {
+    **MESSAGES,
+    "STALE_SOURCE_VERSION": (
+        "Bản giáo án nguồn đã thay đổi. Vui lòng tải lại bản mới nhất."
+    ),
+}
+
 STATUS_MESSAGES: Mapping[int, str] = {
     400: MESSAGES["INVALID_REQUEST"],
     401: MESSAGES["AUTH_REQUIRED"],
@@ -186,8 +210,7 @@ STATUS_MESSAGE_ONLY = frozenset(
         "CLASS_TEACHER_EXISTS", "COMPLETION_STAGE_REQUIRED", "CONSENT_NOT_EFFECTIVE",
         "CONTRIBUTORS_REQUIRED", "DATABASE_NOT_CONFIGURED", "DATABASE_UNAVAILABLE",
         "DEVICE_AUTHENTICATION_REQUIRED", "DEVICE_GRANT_INACTIVE", "DEVICE_MEMBERSHIP_INACTIVE",
-        "DEVICE_SCOPE_INACTIVE", "DRAWING_RECEIPT_REQUIRED", "EMAIL_VERIFICATION_REQUIRED",
-        "GALLERY_NOT_PUBLISHED",
+        "DEVICE_SCOPE_INACTIVE", "DRAWING_RECEIPT_REQUIRED", "GALLERY_NOT_PUBLISHED",
         "GROUP_DRAFT_REQUIRED", "GROUP_NOT_WRITABLE", "IDEMPOTENCY_KEY_REUSED",
         "IDENTITY_ISSUER_MISMATCH", "IDENTITY_PROVIDER_UNAVAILABLE", "IMAGE_DIMENSIONS_EXCEEDED",
         "IMAGE_INVALID", "INVALID_DEVICE_CREDENTIAL", "INVALID_GALLERY_TRANSITION",
@@ -201,11 +224,13 @@ STATUS_MESSAGE_ONLY = frozenset(
         "PILOT_LEDGER_UNAVAILABLE", "PILOT_PROFILE_LOOKUP_UNAVAILABLE", "PUBLICATION_REQUIRED",
         "PUBLISHED_GALLERY_REQUIRED", "REQUEST_TOO_LARGE", "RESERVED_CONFIGURATION_KEY",
         "RESOURCE_CONFLICT", "ROOM_CODE_CLOSED", "ROOM_CODE_RATE_LIMITED", "ROOM_CODE_UNAVAILABLE",
-        "SCOPE_DENIED", "SELF_DISABLE_DENIED", "SELF_ROLE_CHANGE_DENIED", "SESSION_NOT_ACTIVE",
+        "SCOPE_DENIED", "SELF_ROLE_CHANGE_DENIED", "SESSION_NOT_ACTIVE",
+        "SKETCH_DECK_PLAN_INCOMPLETE",
         "SESSION_NOT_IN_LOBBY",
         "SESSION_NOT_OPEN", "SESSION_NOT_RUNNING", "SESSION_OUTCOME_ALREADY_RECORDED",
         "SRS_STAGE_CONTRACT_UNAVAILABLE", "STALE_AGGREGATE", "STALE_CANVAS_REVISION",
-        "STALE_SESSION_REVISION", "STALE_STAGE_REVISION", "SYNTHETIC_PROFILE_CREATION_UNAVAILABLE",
+        "STALE_SESSION_REVISION", "STALE_STAGE_REVISION", "SUPPORT_NEEDS_UNAVAILABLE",
+        "SYNTHETIC_PROFILE_CREATION_UNAVAILABLE",
         "TEACHER_ORGANIZATION_ACCESS_REQUIRED", "TEACHER_PLAN_FIELD_LIMIT_EXCEEDED",
         "UNFINISHED_GROUP_SET_MISMATCH", "UPLOAD_EXPIRED", "UPLOAD_TOO_LARGE",
     }
@@ -222,6 +247,10 @@ def is_conv1_path(path: str, *, include_upload_sessions: bool = True) -> bool:
     if path == LESSON_OCCURRENCES_BASE or path.startswith(LESSON_OCCURRENCES_BASE + "/"):
         return True
     if path == NOTIFICATIONS_BASE or path.startswith(NOTIFICATIONS_BASE + "/"):
+        return True
+    if path == PARENT_CONSENT_POLICY_PATH:
+        return True
+    if path == PARENT_SHARE_GRANTS_BASE or path.startswith(PARENT_SHARE_GRANTS_BASE + "/"):
         return True
     return include_upload_sessions and (
         path == UPLOAD_SESSIONS_BASE or path.startswith(UPLOAD_SESSIONS_BASE + "/")
@@ -336,6 +365,8 @@ __all__ = [
     "LESSON_OCCURRENCES_BASE",
     "MESSAGES",
     "NOTIFICATIONS_BASE",
+    "PARENT_CONSENT_POLICY_PATH",
+    "PARENT_SHARE_GRANTS_BASE",
     "STATUS_DEFAULT_CODES",
     "STATUS_MESSAGES",
     "STATUS_MESSAGE_ONLY",

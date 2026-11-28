@@ -4,7 +4,12 @@ from __future__ import annotations
 
 from copy import deepcopy
 from typing import Any
+
 from sketch2life.interfaces.http.admin_contract import ADMIN_OPERATIONS
+from sketch2life.interfaces.http.openapi_contract import (
+    FEAT083_OPERATIONS,
+    TEACHER_INVITATION_OPERATIONS,
+)
 
 SRS_V22_INCLUDED_OPERATIONS: frozenset[tuple[str, str]] = frozenset(
     {
@@ -13,6 +18,23 @@ SRS_V22_INCLUDED_OPERATIONS: frozenset[tuple[str, str]] = frozenset(
         ("get", "/v1/parent/profiles/{profile_id}"),
         ("patch", "/v1/parent/profiles/{profile_id}"),
         ("delete", "/v1/parent/profiles/{profile_id}"),
+        # FEAT-066 goal v4 T-12a (SRS l.263-265, l.497-499): the adult-entered context entries.
+        ("get", "/v1/parent/profiles/{profile_id}/context-entries"),
+        ("post", "/v1/parent/profiles/{profile_id}/context-entries"),
+        # FEAT-066 goal v4 T-12c (SRS l.264, l.499, l.1922): the Parent encrypted support needs.
+        ("get", "/v1/parent/profiles/{profile_id}/support-needs"),
+        ("put", "/v1/parent/profiles/{profile_id}/support-needs"),
+        # T-CONSENT1: additive read of the synthetic-only placeholder policy.
+        ("get", "/v1/parent/consent-policy"),
+        # E2 T-TCH2: Teacher activities list, history, read-only profile and the portfolio read.
+        (
+            "get",
+            "/api/be1/v1/organizations/{organization_id}/classes/{class_id}"
+            "/profiles/{child_id}/portfolio",
+        ),
+        ("get", "/api/lesson-library/v1/organizations/{organization_id}/activities"),
+        ("get", "/api/teacher/v1/organizations/{organization_id}/history"),
+        ("get", "/api/teacher/v1/me/profile"),
         ("post", "/v1/story-runs"),
         # FEAT-081 C3b: the Parent run-history list (projected for the mobile client).
         ("get", "/v1/story-runs"),
@@ -32,6 +54,9 @@ SRS_V22_INCLUDED_OPERATIONS: frozenset[tuple[str, str]] = frozenset(
         # FEAT-066 goal v4 T-2e-a (SRS l.514, l.1412, l.1667): the Parent main activity.
         ("get", "/v1/activities"),
         ("post", "/v1/story-runs/{run_id}/activity-selection"),
+        # Hybrid B: the Parent AI suggestion set and its persisted choice receipt.
+        ("post", "/api/parent/v1/ai/story-runs/{run_id}/activity-suggestions"),
+        ("post", "/api/parent/v1/ai/story-runs/{run_id}/activity-selection"),
         # FEAT-066 T-1a (SRS l.1670): the Parent video request.
         ("post", "/v1/story-runs/{run_id}/video-generations"),
         # FEAT-066 T-1b (SRS l.1671-1672): the adult's decisions on a ready video.
@@ -50,6 +75,10 @@ SRS_V22_INCLUDED_OPERATIONS: frozenset[tuple[str, str]] = frozenset(
         ("post", "/v1/lesson-occurrences"),
         ("get", "/v1/lesson-occurrences"),
         ("get", "/v1/lesson-occurrences/{occurrence_id}"),
+        # UC-17: Teacher AI sketch drafts and occurrence-pinned Sketch Deck read/generation.
+        ("post", "/api/teacher/v1/organizations/{organization_id}/ai/sketch-decks"),
+        ("get", "/v1/lesson-occurrences/{occurrence_id}/sketch-decks"),
+        ("post", "/v1/lesson-occurrences/{occurrence_id}/sketch-decks"),
         # FEAT-066 T-4b1 (SRS l.341-352, l.1441, AC-56): the Teacher random-child selection.
         ("post", "/v1/lesson-occurrences/{occurrence_id}/child-selections"),
         ("get", "/v1/lesson-occurrences/{occurrence_id}/child-selections/{selection_id}"),
@@ -60,10 +89,12 @@ SRS_V22_INCLUDED_OPERATIONS: frozenset[tuple[str, str]] = frozenset(
         # FEAT-066 T-5a (SRS l.1661-1662, l.777): the class projection of the sample video.
         ("post", "/v1/lesson-occurrences/{occurrence_id}/projection-confirmation"),
         ("post", "/v1/lesson-occurrences/{occurrence_id}/projection-playback-token"),
-        # FEAT-066 T-8a (SRS l.1681, l.812): the notification inbox and mark-read.
+        # FEAT-066 T-8a/T-8b (SRS l.812, l.815, l.1684-1685): inbox and endpoint management.
         ("get", "/v1/notifications"),
         ("post", "/v1/notifications/{inbox_item_id}/read"),
         ("post", "/v1/notifications/read-all"),
+        ("post", "/v1/notifications/push-endpoints"),
+        ("delete", "/v1/notifications/push-endpoints/{endpoint_id}"),
         ("get", "/api/be1/v1/organizations/{organization_id}"),
         ("get", "/api/be1/v1/organizations/{organization_id}/me"),
         ("get", "/api/be1/v1/billing/video-quota/payment-settings"),
@@ -183,6 +214,21 @@ SRS_V22_OPERATION_TAGS.update(
         if key[1].startswith("/v1/parent/profiles")
     }
 )
+SRS_V22_OPERATION_TAGS[("get", "/v1/parent/consent-policy")] = "Parent Profiles"
+SRS_V22_OPERATION_TAGS[(
+    "get",
+    "/api/lesson-library/v1/organizations/{organization_id}/activities",
+)] = "Teacher & School Manager — Lesson Library"
+SRS_V22_OPERATION_TAGS[("get", "/api/teacher/v1/organizations/{organization_id}/history")] = (
+    "Organization & Class Management"
+)
+SRS_V22_OPERATION_TAGS[("get", "/api/teacher/v1/me/profile")] = (
+    "Organization & Class Management"
+)
+SRS_V22_OPERATION_TAGS[(
+    "post",
+    "/api/teacher/v1/organizations/{organization_id}/ai/sketch-decks",
+)] = "Teacher — Lesson Preparation"
 SRS_V22_OPERATION_TAGS.update(
     {
         key: "Parent StoryRuns"
@@ -195,6 +241,12 @@ SRS_V22_OPERATION_TAGS.update(
         key: "Parent StoryRuns"
         for key in SRS_V22_INCLUDED_OPERATIONS
         if key[1].startswith("/v1/activities")
+    }
+)
+SRS_V22_OPERATION_TAGS.update(
+    {
+        ("post", "/api/parent/v1/ai/story-runs/{run_id}/activity-suggestions"): "Parent StoryRuns",
+        ("post", "/api/parent/v1/ai/story-runs/{run_id}/activity-selection"): "Parent StoryRuns",
     }
 )
 SRS_V22_OPERATION_TAGS.update(
@@ -294,7 +346,7 @@ SRS_V22_TAGS: list[dict[str, str]] = [
     },
     {
         "name": "Notifications",
-        "description": "Own notification inbox: cursor page and mark-read.",
+        "description": "Own inbox and push endpoint registration/revocation; no delivery route.",
     },
     {
         "name": "Video Quota & Billing",
@@ -304,11 +356,12 @@ SRS_V22_TAGS: list[dict[str, str]] = [
 
 SRS_V22_OPENAPI_DESCRIPTION = "\n\n".join(
     (
-        "Implemented FE APIs cover Parent profiles, a proposed Parent StoryRun slice, "
-        "organization/class management, consent, Teacher lesson preparation, and scoped video quota commerce.",
+        "Parent APIs cover profiles, StoryRuns with catalog or AI_DRAFT selections, classes, "
+        "consent, lessons, and quota.",
         "Authentication and access are checked.",
-        "Activity catalog, Teacher occurrence, Sketch Deck, sample video, jobs/playback, "
-        "and notifications are unavailable; provider callbacks are excluded.",
+        "Activity catalog, sample video, jobs/playback, and push delivery are unavailable; "
+        "provider callbacks are excluded. Teacher occurrence and Sketch Deck routes are "
+        "documented.",
         "Parent confirmations and the draft SRS remain subject to approval.",
     )
 )
@@ -322,9 +375,17 @@ def project_srs_v22_openapi(runtime_spec: dict[str, Any]) -> dict[str, Any]:
         retained: dict[str, Any] = {}
         for method, operation in path_item.items():
             key = (method.lower(), path)
-            if key not in SRS_V22_INCLUDED_OPERATIONS and key not in ADMIN_OPERATIONS:
+            if (
+                key not in SRS_V22_INCLUDED_OPERATIONS
+                and key not in ADMIN_OPERATIONS
+                and key not in FEAT083_OPERATIONS
+                and key not in TEACHER_INVITATION_OPERATIONS
+            ):
                 continue
-            operation["tags"] = ["Admin" if key in ADMIN_OPERATIONS else SRS_V22_OPERATION_TAGS[key]]
+            operation["tags"] = [
+                "Admin" if key in ADMIN_OPERATIONS
+                else SRS_V22_OPERATION_TAGS.get(key, "Parent StoryRuns")
+            ]
             retained[method] = operation
         if retained:
             published[path] = retained

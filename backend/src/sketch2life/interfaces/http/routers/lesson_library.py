@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, Response, status
@@ -33,18 +34,25 @@ from sketch2life.contracts.schemas.lesson_library import (
     LessonPageV1,
     LessonSourceDocumentStatusV1,
     LessonVersionV1,
+    LessonVersionPageV1,
     ModerateLessonRequestV1,
     ParentGroupInvitationPageV1,
     ParentGroupInvitationV1,
+    ParentGroupMemberPageV1,
     ParentGroupMembershipV1,
+    ParentGroupMembershipPageV1,
     ParentGroupPageV1,
     ParentGroupV1,
     ParentLessonDetailV1,
     ParentLessonPageV1,
+    PublicLessonPageV1,
+    RemixLessonRequestV1,
+    RemixLessonResponseV1,
     UpdateLessonRequestV1,
     UploadPartReceiptV1,
     UploadSessionV1,
 )
+from sketch2life.contracts.schemas.teacher_workspace import TeacherActivityPageV1
 from sketch2life.infrastructure.persistence.be1_models import AdultIdentityModel
 from sketch2life.interfaces.http.be1_runtime import get_db, get_verified_adult
 from sketch2life.interfaces.http.routers.be1_common import require_assignment
@@ -53,7 +61,10 @@ from sketch2life.infrastructure.lesson_library.service import (
     LessonLibraryService,
     LessonLibraryStaleRevision,
 )
-from sketch2life.interfaces.http.api_conventions import raise_stale_revision
+from sketch2life.interfaces.http.api_conventions import (
+    parse_idempotency_key,
+    raise_stale_revision,
+)
 
 router = APIRouter(prefix="/api/lesson-library/v1", tags=["Lesson Library v1"])
 # FEAT-066 C4: the required Idempotency-Key header of the keyed commands (SRS §21.4).
@@ -79,7 +90,7 @@ def get_lesson_library_service(
     return LessonLibraryService(db, storage=storage, parser=parser, scanner=scanner)
 
 
-def _call(function):
+def _call[T](function: Callable[[], T]) -> T:
     try:
         return function()
     except LessonLibraryStaleRevision as exc:
@@ -88,9 +99,12 @@ def _call(function):
             current_version=exc.current_revision, etag=str(exc.current_revision)
         )
     except LessonLibraryError as exc:
+        detail: dict[str, object] = {"code": exc.code, "message": exc.message}
+        if exc.field_errors:
+            detail["field_errors"] = exc.field_errors
         raise HTTPException(
             status_code=exc.status_code,
-            detail={"code": exc.code, "message": exc.message},
+            detail=detail,
         ) from None
 
 
@@ -115,6 +129,15 @@ def _strong_revision(if_match: str | None) -> int:
     return int(match.group(1))
 
 
+def _required_strong_revision(if_match: str | None) -> int:
+    if if_match is None:
+        raise HTTPException(
+            status_code=428,
+            detail={"code": "PRECONDITION_REQUIRED", "message": "If-Match is required"},
+        )
+    return _strong_revision(if_match)
+
+
 def _etag(response: Response, revision: int) -> None:
     response.headers["ETag"] = f'"{revision}"'
 
@@ -130,6 +153,20 @@ def _staff(
 
 def _manager(db: Session, principal: VerifiedPrincipal, organization_id: str) -> None:
     require_assignment(db, principal, organization_id, roles={"school_admin"})
+
+
+def _manager_group_read(
+    db: Session, principal: VerifiedPrincipal, organization_id: str,
+) -> None:
+    try:
+        _manager(db, principal, organization_id)
+    except HTTPException as exc:
+        if exc.status_code not in {403, 404}:
+            raise
+        raise HTTPException(
+            status_code=404,
+            detail={"code": "RESOURCE_NOT_FOUND", "message": "Parent group was not found"},
+        ) from None
 
 
 def _teacher(db: Session, principal: VerifiedPrincipal, organization_id: str) -> None:
@@ -222,6 +259,35 @@ def list_lessons(
         organization_id=organization_id, actor=principal.subject,
         manager=manager, state=state, visibility=visibility, limit=limit, cursor=cursor,
     ))
+
+
+@router.get(
+    "/organizations/{organization_id}/activities",
+    response_model=TeacherActivityPageV1,
+    tags=["Teacher — Lesson Authoring"],
+)
+def list_teacher_activities(
+    organization_id: str,
+    response: Response,
+    limit: int = Query(default=25, ge=1, le=100),
+    cursor: str | None = None,
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+    service: LessonLibraryService = Depends(get_lesson_library_service),
+) -> dict[str, object]:
+    manager = _staff(db, principal, organization_id)
+    limit, cursor = _limit_cursor(limit, cursor)
+    response.headers["Cache-Control"] = "private, no-cache"
+    response.headers["Vary"] = "Authorization"
+    return _call(
+        lambda: service.list_teacher_activities(
+            organization_id=organization_id,
+            actor=principal.subject,
+            manager=manager,
+            limit=limit,
+            cursor=cursor,
+        )
+    )
 
 
 @router.get("/organizations/{organization_id}/lessons/{lesson_id}", response_model=LessonDetailV1)
@@ -462,6 +528,147 @@ def create_lesson_version(
     return result
 
 
+@router.get(
+    "/organizations/{organization_id}/lessons/{lesson_id}/versions",
+    response_model=LessonVersionPageV1,
+)
+def list_lesson_versions(
+    organization_id: str,
+    lesson_id: str,
+    response: Response,
+    limit: int = Query(default=25, ge=1, le=100),
+    cursor: str | None = Query(default=None, max_length=1024),
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+    service: LessonLibraryService = Depends(get_lesson_library_service),
+) -> dict[str, object]:
+    _teacher(db, principal, organization_id)
+    limit, cursor = _limit_cursor(limit, cursor)
+    result = _call(lambda: service.list_lesson_versions(
+        organization_id=organization_id,
+        lesson_id=lesson_id,
+        actor=principal.subject,
+        limit=limit,
+        cursor=cursor,
+    ))
+    response.headers["Cache-Control"] = "private, no-store"
+    return result
+
+
+@router.get(
+    "/organizations/{organization_id}/lessons/{lesson_id}/versions/{version_id}",
+    response_model=LessonVersionV1,
+)
+def get_lesson_version(
+    organization_id: str,
+    lesson_id: str,
+    version_id: str,
+    response: Response,
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+    service: LessonLibraryService = Depends(get_lesson_library_service),
+) -> dict[str, object]:
+    _teacher(db, principal, organization_id)
+    result = _call(lambda: service.get_lesson_version(
+        organization_id=organization_id,
+        lesson_id=lesson_id,
+        version_id=version_id,
+        actor=principal.subject,
+    ))
+    response.headers["Cache-Control"] = "private, no-store"
+    return result
+
+
+@router.post(
+    "/organizations/{organization_id}/lessons/{lesson_id}/remixes",
+    response_model=RemixLessonResponseV1,
+    status_code=status.HTTP_201_CREATED,
+    responses={
+        201: {
+            "headers": {
+                "ETag": {
+                    "description": "Strong ETag for the new lesson version.",
+                    "schema": {"type": "string", "example": '"1"'},
+                },
+                "Cache-Control": {
+                    "description": "The remix response is private and not cacheable.",
+                    "schema": {"type": "string", "example": "private, no-store"},
+                },
+            }
+        }
+    },
+)
+def remix_public_lesson(
+    organization_id: str,
+    lesson_id: str,
+    payload: RemixLessonRequestV1,
+    response: Response,
+    request: Request,
+    idempotency_key: IdempotencyKeyHeader,
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+    service: LessonLibraryService = Depends(get_lesson_library_service),
+) -> dict[str, object]:
+    _teacher(db, principal, organization_id)
+    idempotency_key = parse_idempotency_key(request)
+    result = _call(lambda: service.remix_public_lesson(
+        organization_id=organization_id,
+        lesson_id=lesson_id,
+        actor=principal.subject,
+        actor_issuer=principal.issuer,
+        source_version_id=payload.source_version_id,
+        source_content_sha256=payload.source_content_sha256,
+        idempotency_key=idempotency_key,
+    ))
+    _etag(response, 1)
+    response.headers["Cache-Control"] = "private, no-store"
+    return result
+
+
+@router.get(
+    "/organizations/{organization_id}/public-lessons",
+    response_model=PublicLessonPageV1,
+)
+def search_public_lessons(
+    organization_id: str,
+    response: Response,
+    q: str | None = Query(
+        default=None,
+        description=(
+            "Trimmed literal case-insensitive match "
+            "in lesson title or topic (up to 100 code points)."
+        ),
+    ),
+    topic: str | None = Query(
+        default=None,
+        description="Trimmed exact case-insensitive topic filter (up to 120 code points).",
+    ),
+    target_age_band_ref: str | None = Query(
+        default=None, min_length=1, max_length=256, pattern=r"^[A-Za-z0-9._:-]+$"
+    ),
+    target_age_band_version: int | None = Query(default=None, ge=1),
+    limit: int = Query(default=25, ge=1, le=100),
+    cursor: str | None = Query(default=None, max_length=1024),
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+    service: LessonLibraryService = Depends(get_lesson_library_service),
+) -> dict[str, object]:
+    _teacher(db, principal, organization_id)
+    limit, cursor = _limit_cursor(limit, cursor)
+    result = _call(lambda: service.search_public_lessons(
+        organization_id=organization_id,
+        actor=principal.subject,
+        q=q,
+        topic=topic,
+        target_age_band_ref=target_age_band_ref,
+        target_age_band_version=target_age_band_version,
+        limit=limit,
+        cursor=cursor,
+    ))
+    response.headers["Cache-Control"] = "private, no-store"
+    return result
+
+
 @router.post(
     "/organizations/{organization_id}/lessons/{lesson_id}/access-grants",
     response_model=LessonAccessGrantV1,
@@ -649,6 +856,83 @@ def accept_parent_group_invitation(
     ))
 
 
+@router.post(
+    "/me/parent-group-invitations/{membership_id}/decline",
+    response_model=ParentGroupMembershipV1,
+)
+def decline_parent_group_invitation(
+    membership_id: str,
+    request: Request,
+    response: Response,
+    idempotency_key_header: IdempotencyKeyHeader,
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+    service: LessonLibraryService = Depends(get_lesson_library_service),
+) -> dict[str, object]:
+    _parent_actor(db, principal)
+    # The shared parser enforces visible ASCII and the flat CONV-1 error envelope.
+    _ = idempotency_key_header
+    idempotency_key = parse_idempotency_key(request)
+    result = _call(lambda: service.decline_parent_group_invitation(
+        membership_id=membership_id,
+        actor=principal.subject,
+        actor_issuer=principal.issuer,
+        idempotency_key=idempotency_key,
+    ))
+    _etag(response, int(result["revision"]))
+    return result
+
+
+@router.get(
+    "/me/parent-group-memberships",
+    response_model=ParentGroupMembershipPageV1,
+)
+def list_parent_group_memberships(
+    response: Response,
+    limit: int = Query(default=25, ge=1, le=100),
+    cursor: Annotated[str | None, Query(max_length=1024)] = None,
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+    service: LessonLibraryService = Depends(get_lesson_library_service),
+) -> dict[str, object]:
+    _parent_actor(db, principal)
+    response.headers["Cache-Control"] = "private, no-store"
+    limit, cursor = _limit_cursor(limit, cursor)
+    return _call(lambda: service.list_parent_group_memberships(
+        parent_principal_ref=principal.subject,
+        limit=limit,
+        cursor=cursor,
+    ))
+
+
+@router.get(
+    "/organizations/{organization_id}/parent-groups/{parent_group_id}/members",
+    response_model=ParentGroupMemberPageV1,
+)
+def list_parent_group_members(
+    organization_id: str,
+    parent_group_id: str,
+    response: Response,
+    state: Literal["INVITED", "ACCEPTED", "DECLINED", "REVOKED", "EXPIRED"] | None = None,
+    limit: int = Query(default=25, ge=1, le=100),
+    cursor: Annotated[str | None, Query(max_length=1024)] = None,
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+    service: LessonLibraryService = Depends(get_lesson_library_service),
+) -> dict[str, object]:
+    _manager_group_read(db, principal, organization_id)
+    response.headers["Cache-Control"] = "private, no-store"
+    limit, cursor = _limit_cursor(limit, cursor)
+    return _call(lambda: service.list_parent_group_members(
+        organization_id=organization_id,
+        group_id=parent_group_id,
+        manager_principal_ref=principal.subject,
+        state=state,
+        limit=limit,
+        cursor=cursor,
+    ))
+
+
 @router.delete(
     "/organizations/{organization_id}/parent-groups/{parent_group_id}/members/{membership_id}",
     response_model=ParentGroupMembershipV1,
@@ -657,7 +941,9 @@ def revoke_parent_group_membership(
     organization_id: str,
     parent_group_id: str,
     membership_id: str,
+    request: Request,
     response: Response,
+    idempotency_key_header: IdempotencyKeyHeader,
     if_match: Annotated[str | None, Header(alias="If-Match")] = None,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
@@ -672,10 +958,17 @@ def revoke_parent_group_membership(
         # self-revoke path; after CONV-1 that caller gets 404 (out of scope) or 403 (role).
         if exc.status_code not in {403, 404}:
             raise
+    # Preconditions are parsed after assignment checks and before resource lookup. This reports
+    # only a missing or malformed header; service authorization still precedes receipt replay.
+    expected_revision = _required_strong_revision(if_match)
+    # The shared parser also checks visible ASCII and duplicate header values.
+    _ = idempotency_key_header
+    idempotency_key = parse_idempotency_key(request)
     result = _call(lambda: service.revoke_parent_group_membership(
         organization_id=organization_id, group_id=parent_group_id,
-        membership_id=membership_id, actor=principal.subject, manager=manager,
-        expected_revision=_strong_revision(if_match),
+        membership_id=membership_id, actor=principal.subject, actor_issuer=principal.issuer,
+        manager=manager, expected_revision=expected_revision,
+        idempotency_key=idempotency_key,
     ))
     _etag(response, result["revision"])
     return result
@@ -734,19 +1027,39 @@ def decline_lesson_invitation(
 
 @router.get("/me/lessons", response_model=ParentLessonPageV1)
 def list_parent_lessons(
+    response: Response,
     source: Literal["ALL", "PUBLIC", "SHARED"] = "ALL",
+    q: str | None = Query(
+        default=None,
+        description=(
+            "Trimmed literal case-insensitive match "
+            "in lesson title or topic (up to 100 code points)."
+        ),
+    ),
+    topic: str | None = Query(
+        default=None,
+        description="Trimmed exact case-insensitive topic filter (up to 120 code points).",
+    ),
+    target_age_band_ref: str | None = Query(
+        default=None, min_length=1, max_length=256, pattern=r"^[A-Za-z0-9._:-]+$"
+    ),
+    target_age_band_version: int | None = Query(default=None, ge=1),
     limit: int = Query(default=25, ge=1, le=100),
-    cursor: str | None = None,
+    cursor: str | None = Query(default=None, max_length=1024),
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
     service: LessonLibraryService = Depends(get_lesson_library_service),
 ) -> dict[str, object]:
     _parent_actor(db, principal)
     limit, cursor = _limit_cursor(limit, cursor)
-    return _call(lambda: service.list_parent_lessons(
+    result = _call(lambda: service.list_parent_lessons(
         parent_principal_ref=principal.subject, source=source,
-        limit=limit, cursor=cursor,
+        limit=limit, cursor=cursor, q=q, topic=topic,
+        target_age_band_ref=target_age_band_ref,
+        target_age_band_version=target_age_band_version,
     ))
+    response.headers["Cache-Control"] = "private, no-store"
+    return result
 
 
 @router.get("/me/lessons/{lesson_id}", response_model=ParentLessonDetailV1)

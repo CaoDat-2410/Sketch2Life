@@ -4,15 +4,36 @@ from __future__ import annotations
 
 import hashlib
 import json
+from datetime import datetime
 from typing import Annotated, Any, Literal
 
 from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
+    StrictInt,
+    StrictStr,
     StringConstraints,
     field_validator,
     model_validator,
+)
+from pydantic_core import PydanticCustomError
+
+from sketch2life.contracts.schemas.support_needs import (
+    require_one_value,
+    validated_category,
+    validated_note,
+)
+from sketch2life.domain.be1_profile_revisions import (
+    INTEREST_MAX_ITEMS,
+    ProfileRevisionRuleViolation,
+    has_control_character,
+    normalize_interests,
+)
+from sketch2life.domain.support_needs import (
+    MAX_CATEGORY_CHARS,
+    MAX_NOTE_CHARS,
+    MAX_REVISION,
 )
 
 
@@ -57,6 +78,63 @@ class CreateProfileRequest(Be1Request):
     ]
     age_months: int = Field(ge=36, le=120)
     consent_id: Identifier | None = None
+
+
+class EditProfileRequest(Be1Request):
+    """T-12b (SRS l.497, l.829, l.1651, l.1697): a Teacher edit of one managed profile.
+
+    The expected revision is the head revision number the client last read; at least one of the
+    three editable fields must be sent and an omitted field keeps its value. An explicit null is
+    refused. The `Synthetic ` name rule of the create schema holds for an edited name (every
+    profile written today is synthetic); the age keeps the new-value range of 36 to 120 months.
+    """
+
+    expected_revision: int = Field(ge=1)
+    display_name: (
+        Annotated[
+            str,
+            StringConstraints(min_length=11, max_length=200, pattern=r"^Synthetic .+$"),
+        ]
+        | None
+    ) = None
+    age_months: int | None = Field(default=None, ge=36, le=120)
+    structured_interests: list[str] | None = Field(default=None, max_length=INTEREST_MAX_ITEMS)
+
+    @field_validator("display_name")
+    @classmethod
+    def validate_display_name(cls, value: str | None) -> str | None:
+        if value is not None and has_control_character(value):
+            raise ValueError("INVALID_FORMAT")
+        return value
+
+    @field_validator("structured_interests")
+    @classmethod
+    def validate_interests(cls, value: list[str] | None) -> list[str] | None:
+        if value is None:
+            return None
+        try:
+            return list(normalize_interests(value))
+        except ProfileRevisionRuleViolation as exc:
+            if exc.code == "DIAGNOSIS_LIKE":
+                raise PydanticCustomError(
+                    "diagnosis_like", "value must not name a diagnosis"
+                ) from None
+            raise ValueError(exc.code) from None
+
+    @model_validator(mode="before")
+    @classmethod
+    def refuse_null_fields(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            for name in ("display_name", "age_months", "structured_interests"):
+                if name in data and data[name] is None:
+                    raise ValueError(f"{name} must not be null")
+        return data
+
+    @model_validator(mode="after")
+    def require_one_editable_field(self) -> EditProfileRequest:
+        if not self.model_fields_set & {"display_name", "age_months", "structured_interests"}:
+            raise ValueError("at least one editable field is required")
+        return self
 
 
 class MoveProfileRequest(Be1Request):
@@ -436,6 +514,92 @@ class CanvasSourceExportV1(Be1Request):
         return self
 
 
+class Be1Response(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+
+class Be1ProfileAgeBandV1(Be1Response):
+    band_version: int
+    band_code: str
+
+
+class Be1ProfileRevisionV1(Be1Response):
+    """One immutable profile revision. The author is never part of the answer (T-12b)."""
+
+    contract: Literal["Be1ProfileRevisionV1"]
+    child_id: Identifier
+    profile_revision_id: Annotated[str, StringConstraints(min_length=1, max_length=36)]
+    revision_no: int = Field(ge=1)
+    display_name: DisplayName
+    age_months: int
+    age_band: Be1ProfileAgeBandV1 | None
+    structured_interests: list[str]
+    revision_hash: Sha256
+    created_at: datetime
+
+
+class Be1ProfileRevisionPageV1(Be1Response):
+    contract: Literal["Be1ProfileRevisionPageV1"]
+    items: list[Be1ProfileRevisionV1]
+    next_cursor: str | None
+
+
+class Be1ProfileEditResultV1(Be1Response):
+    contract: Literal["Be1ProfileEditResultV1"]
+    child_id: Identifier
+    profile_revision_id: Annotated[str, StringConstraints(min_length=1, max_length=36)]
+    revision_no: int = Field(ge=1)
+    revision_hash: Sha256
+
+
+class Be1SupportNeedsPutV1(Be1Request):
+    """T-12c: replace the encrypted support needs of a managed profile.
+
+    ``expected_revision`` 0 means no record yet. Both keys are required and nullable, and the text
+    is kept exactly as sent (no whitespace stripping), so the model overrides the base config.
+    Validation errors name the field and a code, never the submitted text.
+    """
+
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=False)
+
+    expected_revision: StrictInt = Field(ge=0, le=MAX_REVISION)
+    category: StrictStr | None = Field(max_length=MAX_CATEGORY_CHARS)
+    note: StrictStr | None = Field(max_length=MAX_NOTE_CHARS)
+
+    @field_validator("category")
+    @classmethod
+    def category_rules(cls, value: str | None) -> str | None:
+        return validated_category(value)
+
+    @field_validator("note")
+    @classmethod
+    def note_rules(cls, value: str | None) -> str | None:
+        return validated_note(value)
+
+    @model_validator(mode="after")
+    def at_least_one_value(self) -> Be1SupportNeedsPutV1:
+        require_one_value(self.category, self.note)
+        return self
+
+
+class Be1SupportNeedsV1(Be1Response):
+    """The decrypted record; revision 0 means no record (both values null)."""
+
+    contract: Literal["Be1SupportNeedsV1"]
+    child_id: Identifier
+    revision: int = Field(ge=0)
+    category: str | None
+    note: str | None
+
+
+class Be1SupportNeedsWriteV1(Be1Response):
+    """The safe answer of a write: the new revision only, never a value."""
+
+    contract: Literal["Be1SupportNeedsWriteV1"]
+    child_id: Identifier
+    revision: int = Field(ge=1)
+
+
 class Be1PilotProfileItem(Be1Request):
     child_id: Identifier
     display_name: DisplayName
@@ -492,6 +656,13 @@ __all__ = [
     "CanvasSourceOperationV1",
     "Be1PilotProfileItem",
     "Be1PilotProfileListResponse",
+    "Be1ProfileAgeBandV1",
+    "Be1ProfileEditResultV1",
+    "Be1ProfileRevisionPageV1",
+    "Be1ProfileRevisionV1",
+    "Be1SupportNeedsPutV1",
+    "Be1SupportNeedsV1",
+    "Be1SupportNeedsWriteV1",
     "CanvasRestoreRequest",
     "CreateAssignmentRequest",
     "CreateClassRequest",
@@ -499,6 +670,7 @@ __all__ = [
     "CreateProfileRequest",
     "CreateSessionRequest",
     "DataRequestCreate",
+    "EditProfileRequest",
     "GalleryCreateRequest",
     "GalleryAnnotationRequest",
     "GroupControlRequest",

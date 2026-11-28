@@ -17,6 +17,10 @@ from typing import Any
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
 from sketch2life.application.ports.parent_activity_catalog import ParentActivityCatalogPort
+from sketch2life.application.ports.parent_activity_suggestion_sets import (
+    ActivitySelectionOutcome,
+    ParentActivitySuggestionSetsRepositoryPort,
+)
 from sketch2life.application.ports.parent_story_runs import (
     ParentActivityContext,
     ParentActivityPin,
@@ -100,12 +104,18 @@ class ParentActivitySelectionService:
         self,
         repository: ParentStoryRunRepositoryPort,
         catalog: ParentActivityCatalogPort,
+        suggestion_sets: ParentActivitySuggestionSetsRepositoryPort | None = None,
     ) -> None:
         self._repository = repository
         self._suggestions = ParentActivitySuggestionService(catalog)
+        self._suggestion_sets = suggestion_sets
 
     def _prepare(
-        self, principal: VerifiedPrincipal, context: ParentActivityContext
+        self,
+        principal: VerifiedPrincipal,
+        context: ParentActivityContext,
+        *,
+        exclude_activity_keys: tuple[str, ...] = (),
     ) -> PreparedParentActivitySuggestion:
         try:
             return self._suggestions.prepare(
@@ -114,11 +124,26 @@ class ParentActivitySelectionService:
                 subject_label=context.subject_label,
                 visible_features=context.visible_features,
                 pinned_lesson_snapshot=context.lesson_pin_snapshot,
+                exclude_activity_keys=exclude_activity_keys,
             )
         except ParentActivitySuggestionError:
             # The age, the drawing context or the pin cannot give a list: the run is not in a state
             # that can choose an activity (the code is the published state-transition code).
             raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION") from None
+
+    def prepare_suggestion_candidates(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        context: ParentActivityContext,
+        exclude_activity_keys: tuple[str, ...] = (),
+    ) -> tuple[PreparedParentActivitySuggestion, tuple[Any, ...]]:
+        """Return candidates using the same eligibility and size rules as Phase A."""
+
+        prepared = self._prepare(
+            principal, context, exclude_activity_keys=exclude_activity_keys
+        )
+        return prepared, tuple(_listed(prepared))
 
     def list_activities(self, *, principal: VerifiedPrincipal, run_id: str) -> dict[str, Any]:
         context = self._repository.read_activity_context(principal=principal, run_id=run_id)
@@ -166,6 +191,66 @@ class ParentActivitySelectionService:
             idempotency_key=idempotency_key,
             resolve=resolve,
             on_story_started=on_story_started,
+        )
+
+    def select_suggestion_set_activity(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        run_id: str,
+        suggestion_set_id: str,
+        expected_understanding_revision: int,
+        activity_index: int,
+        idempotency_key: str,
+    ) -> ActivitySelectionOutcome:
+        """Select one immutable set item; catalog members use the Phase A resolver."""
+
+        if self._suggestion_sets is None:
+            raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE")
+
+        def resolve_catalog(
+            context: ParentActivityContext, item: Mapping[str, Any]
+        ) -> ParentActivityPin:
+            if item.get("source") not in {"PINNED_LESSON", "PUBLISHED_SHARED_LESSON"}:
+                raise ParentStoryRunError(404, "RESOURCE_NOT_FOUND")
+            lesson_id = item.get("source_lesson_id")
+            version_id = item.get("source_lesson_version_id")
+            content_sha256 = item.get("source_content_sha256")
+            activity_index = item.get("source_activity_index")
+            if (
+                lesson_id is None
+                or version_id is None
+                or content_sha256 is None
+                or isinstance(activity_index, bool)
+                or not isinstance(activity_index, int)
+            ):
+                raise ParentStoryRunError(404, "RESOURCE_NOT_FOUND")
+            wanted = {
+                "lesson_id": str(lesson_id),
+                "version_id": str(version_id),
+                "content_sha256": str(content_sha256),
+                "activity_index": activity_index,
+            }
+            prepared = self._prepare(principal, context)
+            for candidate in _listed(prepared):
+                if _activity_ref(candidate) == wanted:
+                    return ParentActivityPin(
+                        lesson_id=candidate.lesson_id,
+                        version_id=candidate.version_id,
+                        content_sha256=candidate.content_sha256,
+                        activity_index=candidate.activity_index,
+                        snapshot=activity_pin_snapshot(candidate),
+                    )
+            raise ParentStoryRunError(404, "RESOURCE_NOT_FOUND")
+
+        return self._suggestion_sets.select_suggestion_set_activity(
+            principal=principal,
+            run_id=run_id,
+            suggestion_set_id=suggestion_set_id,
+            expected_understanding_revision=expected_understanding_revision,
+            activity_index=activity_index,
+            idempotency_key=idempotency_key,
+            resolve_catalog=resolve_catalog,
         )
 
 

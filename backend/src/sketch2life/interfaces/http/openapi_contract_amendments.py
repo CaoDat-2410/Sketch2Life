@@ -7,6 +7,15 @@ from copy import deepcopy
 from typing import Any
 
 BE1_EXPLICIT_ERROR_STATUSES = frozenset({"400", "401", "403", "404"})
+TEACHER_INVITATION_EXPLICIT_ERROR_OPERATIONS = frozenset(
+    {
+        ("post", "/api/be1/v1/organizations/{organization_id}/teacher-invitations"),
+        (
+            "post",
+            "/api/be1/v1/organizations/{organization_id}/teacher-invitations/{account_ref}/resend",
+        ),
+    }
+)
 # CONV-1 (§3.2 item 8): catalogued operations whose handlers can raise a kept domain 422 code.
 # Every other catalogued BE1 and Lesson Library operation publishes 400 instead of 422.
 BE1_KEPT_422_OPERATIONS = frozenset(
@@ -320,6 +329,8 @@ SYNTHETIC_RESPONSE_EXAMPLES: dict[tuple[str, str], dict[str, Any]] = {
                 "age_months": 60,
             }
         ],
+        "next_cursor": None,
+        "active_profile_count": 1,
     },
     (
         "post",
@@ -1518,14 +1529,13 @@ def published_responses(
             row["media_type"] = binary_override[0]
             row["schema_name"] = "binary"
             row["description"] = binary_override[1]
-        if operation_key == PORTFOLIO_OPERATION_KEY and status == "200":
-            # The mounted handler currently has no success path; it returns 409 while
-            # the approved portfolio-purpose verifier is unavailable.
-            continue
         if operation_key == PORTFOLIO_OPERATION_KEY and status == "409":
             published.append(row)
             continue
-        if status in BE1_EXPLICIT_ERROR_STATUSES:
+        if status in BE1_EXPLICIT_ERROR_STATUSES or (
+            operation_key in TEACHER_INVITATION_EXPLICIT_ERROR_OPERATIONS
+            and status in {"409", "503"}
+        ):
             published.append(row)
         elif status[:1] in {"4", "5"}:
             grouped_statuses.append(status)
