@@ -1058,6 +1058,88 @@
    "title": "ParentRunContextSnapshotV1",
    "type": "object"
   },
+  "ParentRunContextSnapshotV2": {
+   "additionalProperties": false,
+   "description": "T-12a (BR-21): the v1 fields plus the entries the adult chose at confirmation.",
+   "properties": {
+    "adult_confirmed_idea": {
+     "maxLength": 500,
+     "title": "Adult Confirmed Idea",
+     "type": "string"
+    },
+    "age_months": {
+     "maximum": 120.0,
+     "minimum": 36.0,
+     "title": "Age Months",
+     "type": "integer"
+    },
+    "interests_summary": {
+     "maxLength": 2000,
+     "title": "Interests Summary",
+     "type": "string"
+    },
+    "profile_revision_ref": {
+     "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+     "title": "Profile Revision Ref",
+     "type": "string"
+    },
+    "schema_version": {
+     "const": "sketch2life.parent-context.v2",
+     "title": "Schema Version",
+     "type": "string"
+    },
+    "selected_entries": {
+     "items": {
+      "$ref": "#/components/schemas/ParentSelectedContextEntryV1"
+     },
+     "maxItems": 10,
+     "title": "Selected Entries",
+     "type": "array"
+    },
+    "topic": {
+     "maxLength": 120,
+     "title": "Topic",
+     "type": "string"
+    }
+   },
+   "required": [
+    "schema_version",
+    "profile_revision_ref",
+    "age_months",
+    "interests_summary",
+    "topic",
+    "adult_confirmed_idea",
+    "selected_entries"
+   ],
+   "title": "ParentRunContextSnapshotV2",
+   "type": "object"
+  },
+  "ParentSelectedContextEntryV1": {
+   "additionalProperties": false,
+   "properties": {
+    "kind": {
+     "enum": [
+      "OBSERVATION",
+      "ACHIEVEMENT",
+      "OUTSIDE_EXPERIENCE"
+     ],
+     "title": "Kind",
+     "type": "string"
+    },
+    "text": {
+     "maxLength": 500,
+     "minLength": 1,
+     "title": "Text",
+     "type": "string"
+    }
+   },
+   "required": [
+    "kind",
+    "text"
+   ],
+   "title": "ParentSelectedContextEntryV1",
+   "type": "object"
+  },
   "ParentStoryCancelErrorEnvelopeV1": {
    "properties": {
     "code": {
@@ -1388,7 +1470,15 @@
      "type": "integer"
     },
     "context_snapshot": {
-     "$ref": "#/components/schemas/ParentRunContextSnapshotV1"
+     "anyOf": [
+      {
+       "$ref": "#/components/schemas/ParentRunContextSnapshotV1"
+      },
+      {
+       "$ref": "#/components/schemas/ParentRunContextSnapshotV2"
+      }
+     ],
+     "title": "Context Snapshot"
     },
     "context_snapshot_sha256": {
      "title": "Context Snapshot Sha256",

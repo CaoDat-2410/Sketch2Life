@@ -351,6 +351,7 @@ def test_every_copy_forward_writer_names_all_run_input_columns() -> None:
             "attach_artwork",
             "attach_uploaded_drawing",
             "_write_idea_input",
+            "confirm_context",
         }:
             continue
         for call in ast.walk(function):
@@ -369,7 +370,13 @@ def test_every_copy_forward_writer_names_all_run_input_columns() -> None:
                 assert "_next_input_values" in ast.unparse(splat[0].value)
             else:
                 assert keywords == RUN_INPUT_COLUMNS, function.name
-    assert checked == {"attach_artwork": 1, "attach_uploaded_drawing": 1, "_write_idea_input": 1}
+    # T-12a: ``confirm_context`` writes the confirmed v2 input row of an explicit selection.
+    assert checked == {
+        "attach_artwork": 1,
+        "attach_uploaded_drawing": 1,
+        "_write_idea_input": 1,
+        "confirm_context": 1,
+    }
     writers = {
         function.name
         for function in ast.walk(tree)
@@ -381,6 +388,7 @@ def test_every_copy_forward_writer_names_all_run_input_columns() -> None:
         "attach_artwork",
         "attach_uploaded_drawing",
         "_write_idea_input",
+        "confirm_context",
     }
 
 

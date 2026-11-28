@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from sketch2life.application.services.parent_svg_guide import build_parent_svg_guide
 from sketch2life.infrastructure.svg.openmoji_guide import build_openmoji_guide
+from sketch2life.infrastructure.svg.parent_guide import build_parent_svg_guide
 
 
 @pytest.mark.parametrize("subject", ["Rùa biển", "Con rùa biển", "Rua Bien"])

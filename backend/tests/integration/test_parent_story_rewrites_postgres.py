@@ -18,8 +18,9 @@ import hashlib
 import os
 from collections.abc import Iterator
 from concurrent.futures import ThreadPoolExecutor
+from copy import deepcopy
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from threading import Barrier
 from typing import Any
 from uuid import uuid4
@@ -44,7 +45,10 @@ from sketch2life.infrastructure.config.settings import get_core_database_setting
 from sketch2life.infrastructure.persistence.be1_models import AdultIdentityModel
 from sketch2life.infrastructure.persistence.parent_story_repository import (
     SqlParentStoryRunRepository,
+    _parent_first_story_request_sha256,
+    _sha256_json,
 )
+from sketch2life.infrastructure.persistence.story_first_start import latest_selection_row
 from sketch2life.infrastructure.story_inputs.fixtures import (
     FixtureDrawingAnalyzer,
     FixtureStoryGenerator,
@@ -110,6 +114,7 @@ def api(monkeypatch: pytest.MonkeyPatch) -> Iterator[RewriteApi]:
     monkeypatch.setenv("SKETCH2LIFE_ENV", "test")
     monkeypatch.setenv("SKETCH2LIFE_AUTH_PROVIDER", "development")
     monkeypatch.setenv("SKETCH2LIFE_AI_PROVIDER", "disabled")
+    # These cases pin the v1 (Qwen3.5) story input; the Qwen3.8 default has its own tests.
     monkeypatch.delenv("STORYRUN_LITE_MAIN_DEMO_ENABLED", raising=False)
     get_settings.cache_clear()
     get_core_database_settings.cache_clear()
@@ -176,6 +181,14 @@ class Seeded:
     run_id: str
     drawing_input_id: str
     derived_sha256: str
+
+
+@dataclass
+class FailedFirstStorySeed:
+    run_id: str
+    selection_expected_revision: int
+    activity_ref: dict[str, Any]
+    old_selection_key: str
 
 
 def seed_run(
@@ -416,6 +429,253 @@ def story_run(api: RewriteApi, owner: str | None = None, *, hold_slot: bool = Tr
     seeded = seed_run(api, owner, hold_slot=hold_slot)
     first_story(api, owner, seeded.run_id)
     return seeded.run_id
+
+
+def _append_activity_selection(
+    db: Any,
+    owner: str,
+    run_id: str,
+    *,
+    key: str,
+    selection_no: int,
+    created_at: datetime,
+    activity_snapshot: dict[str, Any] | None = None,
+    activity_snapshot_sha256: str | None = None,
+) -> tuple[int, dict[str, Any]]:
+    principal = principal_of(owner)
+    actor_scope_ref = parent_scope_ref(principal)
+    activity_ref = {
+        "lesson_id": str(uuid4()),
+        "version_id": str(uuid4()),
+        "content_sha256": "f" * 64,
+        "activity_index": 0,
+    }
+    snapshot = activity_snapshot or {
+        "schema": "sketch2life.parent-activity-pin.v1",
+        "activity_ref": activity_ref,
+        "title": "Synthetic plant activity",
+        "objective": "Notice leaves",
+        "materials_text": "",
+        "preparation_text": "",
+        "instructions_text": "Look closely",
+        "observation_notes": "",
+        "safety_notes": "Adult supervision",
+        "activity_kind": "outdoor",
+        "source": "PUBLIC",
+        "lesson_title": "Synthetic lesson",
+        "lesson_topic": "Synthetic topic",
+        "selected_at": created_at.isoformat(),
+    }
+    if activity_snapshot is not None:
+        activity_ref = dict(activity_snapshot["activity_ref"])
+    run = db.execute(
+        select(story_tables.story_runs).where(story_tables.story_runs.c.run_id == run_id)
+    ).mappings().one()
+    expected_revision = int(run["revision"])
+    receipt_id = str(uuid4())
+    new_version = int(run["version"]) + 1
+    key_hash = sha(key.encode("utf-8"))
+    fingerprint = _sha256_json(
+        {"expected_revision": expected_revision, "activity_ref": activity_ref}
+    )
+    db.execute(
+        story_tables.story_command_receipts.insert().values(
+            receipt_id=receipt_id,
+            actor_scope_kind="PARENT_ACCOUNT",
+            actor_scope_ref=actor_scope_ref,
+            operation="SELECT_ACTIVITY",
+            idempotency_scope_kind="STORY_RUN",
+            idempotency_scope_ref=run_id,
+            idempotency_key_sha256=key_hash,
+            request_fingerprint_sha256=fingerprint,
+            state="FINAL",
+            response_status=200,
+            response_resource_version=new_version,
+            response_body={
+                "selection_no": selection_no,
+                "activity_ref": activity_ref,
+                "understanding_revision": 1,
+            },
+            resource_ref=run_id,
+            resource_version=new_version,
+            state_version=1,
+            created_at=created_at,
+            finalized_at=created_at,
+        )
+    )
+    db.execute(
+        story_tables.activity_selections.insert().values(
+            selection_id=str(uuid4()),
+            run_id=run_id,
+            selection_no=selection_no,
+            target_understanding_revision=1,
+            source_kind="LESSON_ACTIVITY",
+            lesson_id=activity_ref["lesson_id"],
+            version_id=activity_ref["version_id"],
+            content_sha256=activity_ref["content_sha256"],
+            activity_index=activity_ref["activity_index"],
+            activity_snapshot=snapshot,
+            activity_snapshot_sha256=(
+                activity_snapshot_sha256 or _sha256_json(snapshot)
+            ),
+            command_receipt_id=receipt_id,
+            actor_scope_kind="PARENT_ACCOUNT",
+            actor_scope_ref=actor_scope_ref,
+            created_at=created_at,
+        )
+    )
+    return expected_revision, activity_ref
+
+
+def seed_failed_first_story(
+    api: RewriteApi,
+    owner: str | None = None,
+    *,
+    use_first_story_producer: bool = False,
+) -> FailedFirstStorySeed:
+    """Create an eligible failed first story and its activity receipt.
+
+    The default helper reconstructs the first-story hash; the producer option uses the real
+    FirstStoryStarter so a recovery test can catch drift in that input.
+    """
+    owner = owner or api.parent
+    seeded = seed_run(api, owner)
+    assert subject_route(api, owner, seeded.run_id).status_code == 202
+    now = datetime.now(UTC)
+    selection_time = now - timedelta(seconds=2)
+    old_selection_key = f"first-story-selection-{uuid4().hex}"
+    with api.sessions().begin() as db:
+        selection_expected_revision, activity_ref = _append_activity_selection(
+            db,
+            owner,
+            seeded.run_id,
+            key=old_selection_key,
+            selection_no=1,
+            created_at=selection_time,
+        )
+    reservation = None
+    with api.sessions().begin() as db:
+        input_table = story_tables.run_inputs
+        input_row = db.execute(
+            select(input_table).where(
+                input_table.c.run_id == seeded.run_id,
+                input_table.c.input_revision == 2,
+            )
+        ).mappings().one()
+        context = dict(input_row["context_snapshot"])
+        context_hash = _sha256_json(context)
+        db.execute(
+            update(input_table)
+            .where(input_table.c.run_input_id == input_row["run_input_id"])
+            .values(context_snapshot_sha256=context_hash)
+        )
+        understanding_table = story_tables.understanding_revisions
+        understanding = db.execute(
+            select(understanding_table).where(
+                understanding_table.c.run_id == seeded.run_id,
+                understanding_table.c.revision_no == 1,
+            )
+        ).mappings().one()
+        understanding_hash = _sha256_json(understanding["result_snapshot"])
+        db.execute(
+            update(understanding_table)
+            .where(
+                understanding_table.c.understanding_revision_id
+                == understanding["understanding_revision_id"]
+            )
+            .values(canonical_result_sha256=understanding_hash)
+        )
+        run_table = story_tables.story_runs
+        db.execute(
+            update(run_table)
+            .where(run_table.c.run_id == seeded.run_id)
+            .values(result_sha256=understanding_hash)
+        )
+        run = db.execute(
+            select(run_table).where(run_table.c.run_id == seeded.run_id)
+        ).mappings().one()
+        input_row = db.execute(
+            select(input_table).where(input_table.c.run_input_id == input_row["run_input_id"])
+        ).mappings().one()
+        understanding = db.execute(
+            select(understanding_table).where(
+                understanding_table.c.understanding_revision_id
+                == understanding["understanding_revision_id"]
+            )
+        ).mappings().one()
+        selection = latest_selection_row(db, seeded.run_id, 1)
+        assert selection is not None
+        repository = SqlParentStoryRunRepository(db)
+        if use_first_story_producer:
+            reservation = repository._first_story_starter().start_if_ready(
+                seeded.run_id,
+                principal_of(owner),
+                datetime.now(UTC),
+            )
+            assert reservation is not None
+        else:
+            _, _, idea_text, visible_features = repository._story_generation_basis(
+                principal=principal_of(owner),
+                run=run,
+                expected_understanding_revision=1,
+                subject_error=(422, "SUBJECT_NOT_CONFIRMED"),
+            )
+            request_hash = _parent_first_story_request_sha256(
+                run=run,
+                input_row=input_row,
+                understanding_revision=1,
+                idea_text=idea_text,
+                visible_features=visible_features,
+                selection=selection,
+            )
+            failed_at = datetime.now(UTC)
+            db.execute(
+                story_tables.story_revisions.insert().values(
+                    story_revision_id=str(uuid4()),
+                    run_id=seeded.run_id,
+                    revision_no=1,
+                    status="FAILED",
+                    source_asset_sha256=input_row["original_sha256"],
+                    understanding_revision=1,
+                    context_revision=int(input_row["context_revision"]),
+                    schema_version="sketch2life.story-revision.v1",
+                    prompt_version="parent-story-rewrite.v1",
+                    model_id="story-generator-port",
+                    model_revision="unassigned",
+                    request_sha256=request_hash,
+                    created_at=failed_at,
+                )
+            )
+            db.execute(
+                update(run_table)
+                .where(run_table.c.run_id == seeded.run_id)
+                .values(
+                    run_state="FAILED",
+                    job_state="FAILED",
+                    retryable=False,
+                    error_code="STORY_OUTPUT_INVALID",
+                    active_owner_parent_account_id=None,
+                    version=int(run["version"]) + 3,
+                    revision=int(run["revision"]) + 3,
+                    finished_at=failed_at,
+                    adult_wait_started_at=None,
+                    updated_at=failed_at,
+                )
+            )
+    if reservation is not None:
+        with api.sessions()() as db:
+            SqlParentStoryRunRepository(db).fail_story_revision(
+                principal=principal_of(owner),
+                reservation=reservation,
+                error_code="STORY_OUTPUT_INVALID",
+                outcome_unknown=False,
+            )
+    return FailedFirstStorySeed(
+        seeded.run_id,
+        selection_expected_revision,
+        activity_ref,
+        old_selection_key,
+    )
 
 
 def compose_generator(api: RewriteApi) -> None:
@@ -666,8 +926,14 @@ def test_a_run_cancelled_while_waiting_or_generating_is_never_completed(api: Rew
     # (c) a stale start does not call the generator at all
     third = story_run(api, hold_slot=False)
     with api.sessions()() as db:
+        account_id = db.scalar(
+            select(AdultIdentityModel.account_id).where(
+                AdultIdentityModel.subject == api.parent
+            )
+        )
         outcome = SqlParentStoryRunRepository(db).reserve_story_rewrite(
             principal=principal_of(api.parent),
+            account_id=str(account_id),
             run_id=third,
             idempotency_key=uuid4().hex,
             expected_story_revision=1,
@@ -749,13 +1015,345 @@ def test_the_runner_records_each_failure_with_its_code(api: RewriteApi) -> None:
     assert [row["status"] for row in rows] == ["DRAFT"] and rows[-1]["story_sha256"] is not None
 
 
+def test_failed_first_story_recovers_with_a_new_receipt_and_preserves_the_old_receipt(
+    api: RewriteApi,
+) -> None:
+    compose_generator(api)
+    seeded = seed_failed_first_story(api)
+    failed_revision = dict(story_rows(api, seeded.run_id)[0])
+    old_receipt = dict(receipt_rows(api, seeded.run_id, "SELECT_ACTIVITY")[0])
+
+    response = rewrite(
+        api,
+        api.parent,
+        seeded.run_id,
+        revision=1,
+        key="rev73-new-recovery-key",
+    )
+
+    status, body = wire(response)
+    assert status == 202 and body["story_revision_no"] == 2
+    assert body["run_state"] == "SCRIPT_GENERATING"
+    assert states(api, seeded.run_id) == ("SCRIPT_REVIEW", "SUCCEEDED")
+    rows = story_rows(api, seeded.run_id)
+    assert [row["status"] for row in rows] == ["FAILED", "DRAFT"]
+    assert dict(rows[0]) == failed_revision
+    recovery_receipts = receipt_rows(api, seeded.run_id, "GENERATE_STORY_REVISION")
+    assert len(recovery_receipts) == 1
+    assert recovery_receipts[0]["idempotency_key_sha256"] == sha(
+        b"rev73-new-recovery-key"
+    )
+    assert dict(receipt_rows(api, seeded.run_id, "SELECT_ACTIVITY")[0]) == old_receipt
+    run = run_row(api, seeded.run_id)
+    with api.sessions()() as db:
+        account_id = db.scalar(
+            select(AdultIdentityModel.account_id).where(
+                AdultIdentityModel.subject == api.parent
+            )
+        )
+    assert run["active_owner_parent_account_id"] == str(account_id)
+
+    # The original selection command still replays its own receipt under its original key.
+    selection_replay = api.client.post(
+        f"/v1/story-runs/{seeded.run_id}/activity-selection",
+        json={
+            "expected_revision": seeded.selection_expected_revision,
+            "activity": seeded.activity_ref,
+        },
+        headers=headers(api.parent, seeded.old_selection_key),
+    )
+    assert selection_replay.status_code == 200
+    assert selection_replay.json()["story_run"]["run_state"] == "SCRIPT_REVIEW"
+    assert dict(receipt_rows(api, seeded.run_id, "SELECT_ACTIVITY")[0]) == old_receipt
+
+    replay = rewrite(
+        api,
+        api.parent,
+        seeded.run_id,
+        revision=1,
+        key="rev73-new-recovery-key",
+    )
+    assert wire(replay) == wire(response)
+    assert len(api.generator.inputs) == 1
+
+
+def test_recovery_hash_matches_the_real_first_story_producer(api: RewriteApi) -> None:
+    compose_generator(api)
+    seeded = seed_failed_first_story(api, use_first_story_producer=True)
+    first_revision = story_rows(api, seeded.run_id)[0]
+    assert first_revision["status"] == "FAILED"
+    assert first_revision["request_sha256"]
+
+    # A first story created by the legacy reserve_story_revision route (schema v1) fails this hash
+    # and is refused on purpose.
+    response = rewrite(
+        api,
+        api.parent,
+        seeded.run_id,
+        revision=1,
+        key="producer-hash-recovery",
+    )
+
+    assert response.status_code == 202, response.text
+    assert states(api, seeded.run_id) == ("SCRIPT_REVIEW", "SUCCEEDED")
+    assert [row["status"] for row in story_rows(api, seeded.run_id)] == ["FAILED", "DRAFT"]
+
+
+def test_recovery_consumes_one_of_the_three_rewrite_slots(api: RewriteApi) -> None:
+    compose_generator(api)
+    seeded = seed_failed_first_story(api)
+
+    assert rewrite(
+        api,
+        api.parent,
+        seeded.run_id,
+        revision=1,
+        key="recovery-slot-one",
+    ).status_code == 202
+    for revision in (2, 3):
+        response = rewrite(api, api.parent, seeded.run_id, revision=revision)
+        assert response.status_code == 202, response.text
+        assert states(api, seeded.run_id) == ("SCRIPT_REVIEW", "SUCCEEDED")
+    assert [row["revision_no"] for row in story_rows(api, seeded.run_id)] == [1, 2, 3, 4]
+    assert code_of(rewrite(api, api.parent, seeded.run_id, revision=4)) == (
+        "STORY_REWRITE_LIMIT_REACHED"
+    )
+    assert len(api.generator.inputs) == 3
+
+
+def test_a_second_quality_failure_is_terminal_and_releases_the_parent_lock(
+    api: RewriteApi,
+) -> None:
+    class Broken(RecordingGenerator):
+        def generate(self, worker_input: Any) -> StoryGenerationResult:
+            return StoryGenerationResult({"title": "x"}, "call-x", "fixture-model", "1")
+
+    api.app.state.story_generator = Broken()
+    seeded = seed_failed_first_story(api)
+    response = rewrite(api, api.parent, seeded.run_id, revision=1, key="recovery-fails")
+    assert response.status_code == 202
+    assert states(api, seeded.run_id) == ("FAILED", "FAILED")
+    assert run_row(api, seeded.run_id)["error_code"] == "STORY_OUTPUT_INVALID"
+    assert run_row(api, seeded.run_id)["active_owner_parent_account_id"] is None
+    assert [row["status"] for row in story_rows(api, seeded.run_id)] == ["FAILED", "FAILED"]
+    refused = rewrite(api, api.parent, seeded.run_id, revision=2, key="second-recovery")
+    assert refused.status_code == 409
+    assert len(story_rows(api, seeded.run_id)) == 2
+
+    # The released lock allows the same Parent to begin another run.
+    next_run = story_run(api, api.parent)
+    assert run_row(api, next_run)["active_owner_parent_account_id"] is not None
+
+
+@pytest.mark.parametrize(
+    ("run_state", "job_state", "error_code", "revision_state"),
+    [
+        ("FAILED", "FAILED", "STORY_GENERATION_UNAVAILABLE", "FAILED"),
+        ("FAILED", "FAILED", "SAFETY_BLOCKED", "FAILED"),
+        ("FAILED", "FAILED", "CONSENT_REVOKED", "FAILED"),
+        (
+            "SCRIPT_GENERATION_UNKNOWN",
+            "AWAITING_RECONCILIATION",
+            "STORY_OUTCOME_UNKNOWN",
+            "AWAITING_RECONCILIATION",
+        ),
+        ("ABANDONED", "FAILED", "STORY_OUTPUT_INVALID", "FAILED"),
+        ("DELETE_PENDING", "FAILED", "STORY_OUTPUT_INVALID", "FAILED"),
+    ],
+)
+def test_non_quality_unknown_abandoned_and_purging_runs_stay_terminal(
+    api: RewriteApi,
+    run_state: str,
+    job_state: str,
+    error_code: str,
+    revision_state: str,
+) -> None:
+    seeded = seed_failed_first_story(api)
+    with api.sessions().begin() as db:
+        db.execute(
+            update(story_tables.story_runs)
+            .where(story_tables.story_runs.c.run_id == seeded.run_id)
+            .values(run_state=run_state, job_state=job_state, error_code=error_code)
+        )
+        db.execute(
+            update(story_tables.story_revisions)
+            .where(
+                story_tables.story_revisions.c.run_id == seeded.run_id,
+                story_tables.story_revisions.c.revision_no == 1,
+            )
+            .values(status=revision_state)
+        )
+
+    response = rewrite(api, api.parent, seeded.run_id, revision=1, key="terminal-recovery")
+
+    assert response.status_code >= 400
+    assert [row["revision_no"] for row in story_rows(api, seeded.run_id)] == [1]
+    assert receipt_rows(api, seeded.run_id, "GENERATE_STORY_REVISION") == []
+
+
+@pytest.mark.parametrize(
+    "stale_field",
+    [
+        "context",
+        "context_hash",
+        "subject",
+        "understanding",
+        "understanding_hash",
+        "drawing",
+        "activity",
+        "activity_hash",
+    ],
+)
+def test_stale_first_story_generation_inputs_refuse_recovery(
+    api: RewriteApi,
+    stale_field: str,
+) -> None:
+    seeded = seed_failed_first_story(api)
+    with api.sessions().begin() as db:
+        input_row = db.execute(
+            select(story_tables.run_inputs).where(
+                story_tables.run_inputs.c.run_id == seeded.run_id,
+                story_tables.run_inputs.c.input_revision == 2,
+            )
+        ).mappings().one()
+        if stale_field == "context":
+            context = {**input_row["context_snapshot"], "age_months": 61}
+            db.execute(
+                update(story_tables.run_inputs)
+                .where(story_tables.run_inputs.c.run_input_id == input_row["run_input_id"])
+                .values(
+                    context_snapshot=context,
+                    context_snapshot_sha256=_sha256_json(context),
+                )
+            )
+        elif stale_field == "context_hash":
+            db.execute(
+                update(story_tables.run_inputs)
+                .where(story_tables.run_inputs.c.run_input_id == input_row["run_input_id"])
+                .values(context_snapshot_sha256="e" * 64)
+            )
+        elif stale_field == "subject":
+            db.execute(
+                update(story_tables.story_runs)
+                .where(story_tables.story_runs.c.run_id == seeded.run_id)
+                .values(subject_label="changed subject")
+            )
+        elif stale_field in {"understanding", "understanding_hash"}:
+            understanding = db.execute(
+                select(story_tables.understanding_revisions).where(
+                    story_tables.understanding_revisions.c.run_id == seeded.run_id,
+                    story_tables.understanding_revisions.c.revision_no == 1,
+                )
+            ).mappings().one()
+            if stale_field == "understanding":
+                snapshot = deepcopy(understanding["result_snapshot"])
+                snapshot["result"]["visible_features"] = ["changed feature"]
+                understanding_hash = _sha256_json(snapshot)
+            else:
+                snapshot = understanding["result_snapshot"]
+                understanding_hash = "e" * 64
+            db.execute(
+                update(story_tables.understanding_revisions)
+                .where(
+                    story_tables.understanding_revisions.c.understanding_revision_id
+                    == understanding["understanding_revision_id"]
+                )
+                .values(
+                    result_snapshot=snapshot,
+                    canonical_result_sha256=understanding_hash,
+                )
+            )
+            db.execute(
+                update(story_tables.story_runs)
+                .where(story_tables.story_runs.c.run_id == seeded.run_id)
+                .values(result_sha256=understanding_hash)
+            )
+        elif stale_field == "drawing":
+            db.execute(
+                update(story_tables.run_inputs)
+                .where(story_tables.run_inputs.c.run_input_id == input_row["run_input_id"])
+                .values(original_sha256=sha(b"changed drawing digest"))
+            )
+        else:
+            selection = db.execute(
+                select(story_tables.activity_selections).where(
+                    story_tables.activity_selections.c.run_id == seeded.run_id,
+                    story_tables.activity_selections.c.selection_no == 1,
+                )
+            ).mappings().one()
+            snapshot = deepcopy(selection["activity_snapshot"])
+            snapshot_hash = _sha256_json(snapshot)
+            if stale_field == "activity":
+                snapshot["title"] = "Changed activity"
+                snapshot_hash = _sha256_json(snapshot)
+            elif stale_field == "activity_hash":
+                snapshot_hash = "e" * 64
+            _append_activity_selection(
+                db,
+                api.parent,
+                seeded.run_id,
+                key=f"stale-selection-{uuid4().hex}",
+                selection_no=2,
+                created_at=selection["created_at"] - timedelta(seconds=1),
+                activity_snapshot=snapshot,
+                activity_snapshot_sha256=snapshot_hash,
+            )
+
+    response = rewrite(api, api.parent, seeded.run_id, revision=1, key="stale-recovery")
+    assert response.status_code == 409
+    assert code_of(response) == "INVALID_STATE_TRANSITION"
+    assert len(story_rows(api, seeded.run_id)) == 1
+    assert receipt_rows(api, seeded.run_id, "GENERATE_STORY_REVISION") == []
+
+
+def test_two_concurrent_recoveries_have_one_winner_and_active_run_conflict(
+    api: RewriteApi,
+) -> None:
+    seeded = seed_failed_first_story(api)
+    barrier = Barrier(2)
+
+    def send(key: str) -> Any:
+        barrier.wait(timeout=30)
+        return rewrite(api, api.parent, seeded.run_id, revision=1, key=key)
+
+    keys = ("parallel-recovery-one", "parallel-recovery-two")
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        responses = list(pool.map(send, keys))
+
+    assert sorted(response.status_code for response in responses) == [202, 409]
+    loser = next(response for response in responses if response.status_code == 409)
+    # The loser finds the same run already recovering: the ordinary in-flight rewrite code applies;
+    # ACTIVE_RUN_EXISTS is kept for another active run of the same Parent.
+    assert code_of(loser) == "INVALID_STATE_TRANSITION"
+    assert [row["revision_no"] for row in story_rows(api, seeded.run_id)] == [1, 2]
+    assert len(receipt_rows(api, seeded.run_id, "GENERATE_STORY_REVISION")) == 1
+
+
+def test_a_different_active_parent_run_blocks_recovery_before_dispatch(api: RewriteApi) -> None:
+    seeded = seed_failed_first_story(api)
+    other_run = story_run(api, api.parent)
+
+    response = rewrite(api, api.parent, seeded.run_id, revision=1, key="blocked-recovery")
+
+    assert response.status_code == 409 and code_of(response) == "ACTIVE_RUN_EXISTS"
+    assert states(api, other_run)[0] == "SCRIPT_REVIEW"
+    assert [row["revision_no"] for row in story_rows(api, seeded.run_id)] == [1]
+    assert receipt_rows(api, seeded.run_id, "GENERATE_STORY_REVISION") == []
+
+
 def test_the_keyed_fixture_generator_is_used_by_the_hash_of_the_exact_input(
     api: RewriteApi,
 ) -> None:
     run_id = story_run(api)
     with api.sessions()() as db:
+        account_id = db.scalar(
+            select(AdultIdentityModel.account_id).where(
+                AdultIdentityModel.subject == api.parent
+            )
+        )
         outcome = SqlParentStoryRunRepository(db).reserve_story_rewrite(
             principal=principal_of(api.parent),
+            account_id=str(account_id),
             run_id=run_id,
             idempotency_key=uuid4().hex,
             expected_story_revision=1,

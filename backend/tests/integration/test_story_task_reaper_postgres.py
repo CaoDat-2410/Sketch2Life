@@ -41,6 +41,7 @@ from sketch2life.application.ports.story_task_reaper import (
     ReapReport,
 )
 from sketch2life.application.services.story_output import normalize_story_output
+from sketch2life.infrastructure.persistence.be1_models import AdultIdentityModel
 from sketch2life.infrastructure.persistence.core_models import CoreAuditEntryModel
 from sketch2life.infrastructure.persistence.parent_story_repository import (
     SqlParentStoryRunRepository,
@@ -64,6 +65,7 @@ from tests.integration.test_parent_story_rewrites_postgres import (  # noqa: F40
     receipt_rows,
     rewrite,
     run_row,
+    seed_failed_first_story,
     seed_run,
     states,
     story_rows,
@@ -129,8 +131,14 @@ def reserve(
 ) -> ParentStoryRevisionReservation:
     """The reservation the route makes, without the runner (a lost background task)."""
     with api.sessions()() as db:
+        account_id = db.scalar(
+            select(AdultIdentityModel.account_id).where(
+                AdultIdentityModel.subject == api.parent
+            )
+        )
         outcome = SqlParentStoryRunRepository(db).reserve_story_rewrite(
             principal=principal_of(api.parent),
+            account_id=str(account_id),
             run_id=run_id,
             idempotency_key=key or uuid4().hex,
             expected_story_revision=revision,
@@ -489,6 +497,44 @@ def test_a_lost_legacy_rewrite_is_ended_by_the_reaper_not_recovered(
         r for r in receipt_rows(api, run_id, "GENERATE_STORY_REVISION") if r["state"] == "PENDING"
     ]
     assert [r["action"] for r in audit_rows(api, run_id)] == ["STORY_TASK_TIMED_OUT_STORY"]
+    assert reap(api, T0 + wait * 2).story_failed == 0
+
+
+@pytest.mark.parametrize("unknown", [False, True], ids=["lost", "unknown-outcome"])
+def test_a_lost_failed_first_story_recovery_is_terminal(
+    api: RewriteApi, unknown: bool
+) -> None:
+    seeded = seed_failed_first_story(api)
+    reservation = reserve(
+        api,
+        seeded.run_id,
+        revision=1,
+        key=f"failed-first-recovery-{uuid4().hex}",
+    )
+    assert reservation.revision_no == 2
+    assert states(api, seeded.run_id) == ("SCRIPT_GENERATING", "QUEUED")
+    if unknown:
+        fail_known(api, reservation, unknown=True)
+        assert states(api, seeded.run_id) == (
+            "SCRIPT_GENERATION_UNKNOWN",
+            "AWAITING_RECONCILIATION",
+        )
+        wait = timedelta(hours=6)
+    else:
+        wait = LEASE
+
+    set_clock(api, seeded.run_id, T0)
+    report = reap(api, T0 + wait)
+
+    assert (report.story_failed, report.rewrite_recovered, report.errors) == (1, 0, 0)
+    assert states(api, seeded.run_id) == ("FAILED", "FAILED")
+    row = run_row(api, seeded.run_id)
+    assert row["retryable"] is False
+    assert row["active_owner_parent_account_id"] is None
+    assert [item["status"] for item in story_rows(api, seeded.run_id)] == ["FAILED", "FAILED"]
+    assert code_of(
+        rewrite(api, api.parent, seeded.run_id, revision=2, key="after-reaper-terminal")
+    ) == "INVALID_STATE_TRANSITION"
     assert reap(api, T0 + wait * 2).story_failed == 0
 
 

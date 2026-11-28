@@ -45,13 +45,25 @@ def _snapshot(**overrides: Any) -> StoryRunSnapshot:
         "revision": 3,
         "version": 4,
         "s10_present": True,
-        "child_ids": ("run_inputs:i1", "story_revisions:s1", "story_scenes:c1"),
+        "child_ids": (
+            "activity_suggestion_sets:as1",
+            "run_inputs:i1",
+            "story_revisions:s1",
+            "story_scenes:c1",
+        ),
         "receipts": (
             ("r-create", "CREATE_RUN", "f" * 64, {"run_id": RUN}),
             ("r-cancel-m2", "CANCEL_RUN", "e" * 64, {"story_run": {"subject_label": "x"}}),
             ("r-cancel-new", "CANCEL_RUN", "d" * 64, PROJECTION),
             ("r-delete", "DELETE_RUN", "c" * 64, PROJECTION),
             ("r-done", "CONFIRM_SUBJECT", tombstone_fingerprint("r-done"), {"decision": "x"}),
+            (
+                "r-activities",
+                "GENERATE_ACTIVITY_SET",
+                "b" * 64,
+                {"activities": [{"instructions_text": "adult-typed text"}]},
+            ),
+            ("r-activities-pending", "GENERATE_ACTIVITY_SET", "a" * 64, None),
         ),
     }
     values.update(overrides)
@@ -63,8 +75,11 @@ def test_the_story_plan_lists_children_untombstoned_receipts_and_the_run() -> No
         sorted(
             [
                 "run_inputs:i1",
+                "activity_suggestion_sets:as1",
                 "story_revisions:s1",
                 "story_scenes:c1",
+                "receipt:r-activities",
+                "receipt:r-activities-pending",
                 "receipt:r-create",
                 "receipt:r-cancel-m2",
                 "run:" + RUN,
@@ -165,7 +180,7 @@ def test_purge_story_content_deletes_children_nulls_s10_and_tombstones_in_one_tr
     store, session = _store(monkeypatch, snapshot)
     store.purge_story_content(StoryPurgePlan(RUN, story_plan_ids(snapshot)))
     tables = session.tables()
-    assert tables[:11] == [
+    assert tables[:12] == [
         # FEAT-066 T-1a: video scenes, the run pointer, then the generations go before the reviews.
         "video_generation_scenes",
         "runs",
@@ -174,6 +189,7 @@ def test_purge_story_content_deletes_children_nulls_s10_and_tombstones_in_one_tr
         "review_decisions",
         # FEAT-066 goal v4 T-2e-a: the activity selections (lesson text copied into Story).
         "activity_selections",
+        "activity_suggestion_sets",
         "story_scenes",
         "story_revisions",
         "understanding_revisions",
@@ -181,15 +197,21 @@ def test_purge_story_content_deletes_children_nulls_s10_and_tombstones_in_one_tr
         "transcript_revisions",
         "run_inputs",
     ]
-    run_update = session.statements[11]
+    run_update = session.statements[12]
     assert run_update.table.name == "runs"
     assert {name for name in run_update._values} == set(S10_RUN_COLUMNS)
-    receipt_updates = session.statements[12:]
-    assert len(receipt_updates) == 2  # the CREATE_RUN fingerprint and the M2 CANCEL_RUN body
+    receipt_updates = session.statements[13:]
+    assert len(receipt_updates) == 4  # CREATE_RUN, M2 CANCEL_RUN and both activity-set receipts
     dialect: Any = postgresql.dialect
     params = [dict(update.compile(dialect=dialect()).params) for update in receipt_updates]
     assert params[0]["request_fingerprint_sha256"] == tombstone_fingerprint("r-create")
     assert params[1]["response_body"] == PROJECTION
+    assert params[2]["request_fingerprint_sha256"] == tombstone_fingerprint("r-activities")
+    assert params[2]["response_body"] == {"purged": True}
+    assert params[3]["request_fingerprint_sha256"] == tombstone_fingerprint(
+        "r-activities-pending"
+    )
+    assert "response_body" not in params[3]
 
 
 @pytest.mark.parametrize("state", ("SCRIPT_REVIEW", "COMPLETED"))

@@ -7,6 +7,7 @@ from io import BytesIO
 from typing import Any
 
 import pytest
+
 from sketch2life.infrastructure.ai import modal_function_client as client_module
 from sketch2life.infrastructure.ai.modal_function_client import (
     ModalFunctionExecutionFailed,
@@ -15,6 +16,7 @@ from sketch2life.infrastructure.ai.modal_function_client import (
     ModalStoryFunctionClient,
     summarize_worker_call_logs,
 )
+from sketch2life.infrastructure.ai.story_generator import to_dev_story_worker_input
 
 
 class _Batch:
@@ -115,7 +117,12 @@ def _story_context() -> dict[str, object]:
         "activity_kind": "outdoor",
     }
     primary_activity_sha256 = hashlib.sha256(
-        json.dumps(primary_activity, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        json.dumps(
+            primary_activity,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
     ).hexdigest()
     return {
         "worker_input": {
@@ -171,7 +178,12 @@ def test_story_manifest_uses_generic_modal_ai_request_schema() -> None:
     assert request["lesson_subject_learning_notes"].startswith("Bướm trưởng thành")
     assert request["primary_activity"]["title"] == "Quan sát lá"
     assert request["primary_activity_sha256"] == hashlib.sha256(
-        json.dumps(request["primary_activity"], ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        json.dumps(
+            request["primary_activity"],
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
     ).hexdigest()
     assert call_id == "fc-story-test-0001"
     assert result == {
@@ -183,6 +195,52 @@ def test_story_manifest_uses_generic_modal_ai_request_schema() -> None:
     assert volume.removed_paths == [
         manifest_path.lstrip("/").rsplit("input/manifest.json", 1)[0] + "input"
     ]
+
+
+def test_teacher_adapter_mapping_passes_the_unchanged_modal_client_validator() -> None:
+    teacher_input = _story_context()["worker_input"]
+    assert isinstance(teacher_input, dict)
+    teacher_input.update(
+        role="TEACHER",
+        topic="Vẽ bằng ngón tay",
+        lesson_subject_learning_notes=None,
+        lesson_direction="Mục tiêu: Nhận biết hình tròn",
+    )
+
+    mapped = to_dev_story_worker_input(teacher_input)
+    expected_keys = {
+        "schema_version",
+        "role",
+        "language",
+        "topic",
+        "confirmed_subject",
+        "understanding_revision",
+        "drawing_sha256",
+        "visible_features",
+        "child_age_months",
+        "context_revision",
+        "adult_confirmed_idea",
+        "rewrite_instruction",
+        "lesson_subject_learning_notes",
+        "lesson_direction",
+        "primary_activity",
+        "primary_activity_sha256",
+    }
+    assert set(mapped) == expected_keys
+    assert mapped["role"] == "PARENT"
+    assert mapped["lesson_subject_learning_notes"] is None
+    assert "learning" not in mapped
+
+    volume = _Volume()
+    function = _Function()
+    ModalStoryFunctionClient(volume=volume, function=function).generate(
+        {"worker_input": mapped}
+    )
+    request_bytes = next(
+        data for path, data in volume.batch.files.items() if path.endswith("input/request.json")
+    )
+    assert json.loads(request_bytes) == mapped
+    assert function.call is not None
 
 
 @pytest.mark.parametrize(
@@ -652,7 +710,11 @@ def test_activity_worker_progress_and_runtime_are_summarized_without_payload_tex
                 type(
                     "Entry",
                     (),
-                    {"message": "\n".join(json.dumps(event, ensure_ascii=False) for event in events)},
+                    {
+                        "message": "\n".join(
+                            json.dumps(event, ensure_ascii=False) for event in events
+                        )
+                    },
                 )()
             ]
 
@@ -714,9 +776,15 @@ def test_activity_terminal_kernel_error_is_mapped_and_wait_is_bounded() -> None:
             self.logs = type(
                 "Logs",
                 (),
-                {"tail": lambda _self, *, entries: [
-                    type("Entry", (), {"message": "\n".join(json.dumps(event) for event in events)})()
-                ]},
+                {
+                    "tail": lambda _self, *, entries: [
+                        type(
+                            "Entry",
+                            (),
+                            {"message": "\n".join(json.dumps(event) for event in events)},
+                        )()
+                    ]
+                },
             )()
 
     class _JsonFunction:

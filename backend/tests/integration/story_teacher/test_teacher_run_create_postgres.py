@@ -770,7 +770,7 @@ def test_a_missing_or_malformed_key_is_the_plain_400(api: Api) -> None:
 
 
 # ----------------------------------------------------------------------------- who may create
-def test_the_uniform_404_and_the_403s_and_nothing_is_written(api: Api) -> None:
+def test_scope_errors_keep_selection_private_and_current_teacher_can_create(api: Api) -> None:
     d = api
     occ, offer, body = flow(d)
     before = counts(d)
@@ -789,8 +789,23 @@ def test_the_uniform_404_and_the_403s_and_nothing_is_written(api: Api) -> None:
         )
         == 1
     )
-    # covered, but not the responsible Teacher with an exact-class teacher row: 403
-    for who in ("t4", "g1", "o1", "orgt"):
+    # The exact-class Teacher is in scope under T-6b, but this confirmed selection belongs to t1.
+    # Keep cross-Teacher selection data isolated: another Teacher's selection is a uniform 404.
+    response = post_create(d, "t4", body)
+    assert response.status_code == 404, response.text
+    assert response.json()["code"] == "RESOURCE_NOT_FOUND"
+    not_covering["t4"] = response.json()
+    assert (
+        len(
+            {
+                json.dumps({k: v for k, v in b.items() if k != "correlation_id"})
+                for b in not_covering.values()
+            }
+        )
+        == 1
+    )
+    # Covered non-Teacher roles remain 403; their action refusal is unchanged.
+    for who in ("g1", "o1", "orgt"):
         response = post_create(d, who, body)
         assert response.status_code == 403, who
         assert response.json()["code"] == "ACTION_NOT_ALLOWED"
@@ -804,6 +819,20 @@ def test_the_uniform_404_and_the_403s_and_nothing_is_written(api: Api) -> None:
     assert counts(d) == before
     assert run_rows(d, occ.occurrence_id) == []
     assert selection_row(d, offer.selection_id)["state"] == "CONFIRMED"
+
+    # The current exact-class Teacher can create with their own confirmed selection.
+    own_occ, own_offer, own_body = flow(d, who="t4")
+    created = post_create(d, "t4", own_body)
+    assert created.status_code == 201, created.text
+    run = run_rows(d, own_occ.occurrence_id)[0]
+    assert run["active_owner_teacher_id"] == d.accounts["t4"]
+    assert run["created_by_actor_ref"] == d.accounts["t4"]
+    assert (run["organization_ref"], run["class_ref"], run["owner_epoch"]) == (
+        d.organization,
+        d.classes["a1"],
+        0,
+    )
+    assert selection_row(d, own_offer.selection_id)["state"] == "CONSUMED"
 
 
 def test_a_revoked_assignment_is_404_at_the_next_call(api: Api) -> None:
@@ -995,17 +1024,22 @@ def test_a_claimed_sample_slot_refuses_the_create_and_writes_nothing(api: Api) -
 
 def _seed_generation(
     d: Api,
-    occurrence_id: str,
+    occurrence_id: str | None,
     *,
     run_state: str,
     generation_state: str,
     safety: str = "PASSED",
     output: bool = True,
 ) -> str:
-    """A Teacher run row (no lock) of the occurrence with a current video generation (SQL)."""
+    """A synthetic run (no lock) with a current video generation (SQL).
+
+    Passing ``None`` creates the legacy unpinned fixture at insertion time. T-6b makes occurrence
+    binding immutable, so tests must not turn a real pinned run into an unpinned row afterward.
+    """
     run_id, revision_id, generation_id = str(uuid4()), str(uuid4()), str(uuid4())
     now = datetime.now(UTC)
     digest = "a" * 64
+    occurrence = occurrence_row(d, occurrence_id) if occurrence_id is not None else None
     with d.sessions().begin() as db:
         db.execute(
             insert(RUNS).values(
@@ -1019,7 +1053,12 @@ def _seed_generation(
                 version=1,
                 retryable=False,
                 occurrence_ref=occurrence_id,
-                created_by_actor_ref=d.accounts["t1"],
+                created_by_actor_ref=d.accounts["t1"] if occurrence is not None else None,
+                organization_ref=(
+                    str(occurrence["organization_ref"]) if occurrence is not None else None
+                ),
+                class_ref=str(occurrence["class_ref"]) if occurrence is not None else None,
+                owner_epoch=0,
                 current_input_revision=None,
                 created_at=now,
                 updated_at=now,
@@ -1087,7 +1126,7 @@ def _seed_generation(
                 "h": "b" * 64,
                 "reservation": f"reservation-{generation_id}",
                 "usage": f"usage-{generation_id}",
-                "job": f"job-{generation_id}",
+                "job": f"vjob_{generation_id.replace('-', '')}",
                 "output": f"synthetic-output-{generation_id}" if output else None,
                 "version": 1 if output else None,
                 "tech": "PASSED" if ready or blocked else "PENDING",
@@ -1268,6 +1307,9 @@ def test_one_active_run_per_teacher_and_per_occurrence(api: Api) -> None:
                 retryable=False,
                 occurrence_ref=occ3.occurrence_id,
                 created_by_actor_ref=held_account,
+                organization_ref=d.organization,
+                class_ref=d.classes["a2"],
+                owner_epoch=0,
                 active_owner_teacher_id=held_account,
                 created_at=now,
                 updated_at=now,
@@ -1411,6 +1453,9 @@ def test_the_database_refuses_a_lock_that_breaks_the_pins_or_the_owner_checks(ap
         "revision": 1,
         "version": 1,
         "retryable": False,
+        "organization_ref": d.organization,
+        "class_ref": d.classes["a1"],
+        "owner_epoch": 0,
         "created_at": now,
         "updated_at": now,
     }

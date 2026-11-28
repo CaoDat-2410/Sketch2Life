@@ -62,7 +62,7 @@ def _graph() -> dict[str, tuple[tuple[str, ...], tuple[str, ...]]]:
 
 
 # ----------------------------------------------------------------------------- the revision graph
-def test_the_revision_is_the_only_child_of_the_story_head_and_ends_the_branch() -> None:
+def test_the_revision_is_the_only_child_of_the_story_head_and_precedes_svg_catalog() -> None:
     constants = _constants(_MIGRATION)
     assert constants["revision"] == _REVISION and len(_REVISION) <= 32
     assert constants["down_revision"] == _PARENT
@@ -70,18 +70,37 @@ def test_the_revision_is_the_only_child_of_the_story_head_and_ends_the_branch() 
     assert constants["depends_on"] is None
     graph = _graph()
     assert {rev for rev, (downs, _) in graph.items() if _PARENT in downs} == {_REVISION}
-    assert not {rev for rev, (downs, _) in graph.items() if _REVISION in downs}
+    # V4-B T-12b adds DDL-D (``20261121_bpr_0001``) as a second child, parallel to the AIPORT1
+    # ``20261113_svg_catalog_review`` (the Phase B squash keeps both heads).
+    assert {rev for rev, (downs, _) in graph.items() if _REVISION in downs} == {
+        "20261113_svg_catalog_review",
+        "20261121_bpr_0001",
+        "20261125_vp_0001",
+    }
 
 
-def test_one_more_revision_and_the_head_counts_stay_fifteen_and_ten() -> None:
+def test_revision_graph_has_twelve_raw_and_one_effective_head() -> None:
     graph = _graph()
-    assert len(graph) == 51
+    # T-12a: 20261121_pce_0001 (Parent root); T-12b: 20261121_bpr_0001; T-12c: psn_0001, psn_0002;
+    # T-SLD1 adds 20261126_sl_0001 after the notification-chain head; T-SHARE1 follows it and
+    # depends on the Parent head. Phase D adds t6b_0001 and t6c_0001 as down-only leaves;
+    # t6b_0002 consumes the as_0002 head. AIPORT1 stays a parallel down-only head.
+    assert len(graph) == 83
     down_targets = {target for downs, _ in graph.values() for target in downs}
     dependency_targets = down_targets | {target for _, dep in graph.values() for target in dep}
     heads_down_only = {rev for rev in graph if rev not in down_targets}
     heads_with_depends = {rev for rev in graph if rev not in dependency_targets}
-    assert (len(heads_down_only), len(heads_with_depends)) == (15, 10)
-    assert _REVISION in heads_down_only and _PARENT not in heads_down_only
+    assert (len(heads_down_only), len(heads_with_depends)) == (12, 1)
+    assert "20261122_parent_activity_selection" in heads_down_only
+    assert _REVISION not in heads_down_only and _PARENT not in heads_down_only
+    assert "20261121_bpr_0001" not in heads_down_only
+    assert "20261125_as_0002" not in heads_down_only
+    assert "20261125_as_0002" not in heads_with_depends
+    assert "20261122_t6b_0001" in heads_down_only
+    assert "20261122_t6b_0001" not in heads_with_depends
+    assert "20261126_as_0003" in heads_down_only and "20261126_as_0003" in heads_with_depends
+    assert "20261123_ppg_0001" not in heads_down_only
+    assert "20261121_psn_0002" not in heads_down_only
 
 
 # ----------------------------------------------------------------------------- the table

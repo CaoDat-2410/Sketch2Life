@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import ast
 import contextlib
+from dataclasses import replace
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
@@ -360,6 +361,47 @@ def _run_runner(monkeypatch: pytest.MonkeyPatch, generator: Any) -> list[tuple[s
 
 
 @pytest.mark.parametrize(
+    ("schema_version", "expected_rules"),
+    [
+        ("sketch2life.story-generation-input.v4", "vi-sentence-complete.v1"),
+        ("sketch2life.story-rewrite-input.v2", None),
+    ],
+)
+def test_runner_passes_completeness_rules_only_from_v4_reservation(
+    monkeypatch: pytest.MonkeyPatch,
+    schema_version: str,
+    expected_rules: str | None,
+) -> None:
+    calls: list[dict[str, Any]] = []
+    reservation = replace(
+        _reservation(),
+        worker_input={
+            "schema_version": schema_version,
+            "confirmed_subject": "rồng",
+            **(
+                {"story_validator_version": "vi-sentence-complete.v1"}
+                if schema_version == "sketch2life.story-generation-input.v4"
+                else {}
+            ),
+        },
+    )
+    monkeypatch.setattr(generation_module, "SqlParentStoryRunRepository", _RunnerRepository)
+    monkeypatch.setattr(
+        generation_module,
+        "complete_generated_story",
+        lambda *_args, **kwargs: calls.append(kwargs),
+    )
+    runner = generation_module.ParentStoryRewriteRunner(
+        lambda: SimpleNamespace(close=lambda: None),  # type: ignore[arg-type, return-value]
+        _Generator(result=StoryGenerationResult(valid_story(), "call-1", "m", "r")),
+    )
+
+    runner.run(PRINCIPAL, reservation)
+
+    assert calls[0]["completeness_rules"] == expected_rules
+
+
+@pytest.mark.parametrize(
     ("code", "stored"),
     [
         ("STORY_GENERATION_UNAVAILABLE", "STORY_GENERATION_UNAVAILABLE"),
@@ -513,6 +555,7 @@ def _repository(
 def _reserve(repository: SqlParentStoryRunRepository, **overrides: Any) -> Any:
     values: dict[str, Any] = {
         "principal": PRINCIPAL,
+        "account_id": "account-1",
         "run_id": RUN_ID,
         "idempotency_key": "rewrite-1",
         "expected_story_revision": 1,
@@ -557,7 +600,8 @@ def test_a_fresh_rewrite_stores_a_final_202_receipt_and_no_pending_one(
     assert worker_input["rewrite_instruction"] == REWRITE_NEUTRAL_INSTRUCTION_V1
     assert worker_input["rewrite_instruction_version"] == "rewrite-neutral.v1"
     assert HINT not in worker_input["rewrite_instruction"]
-    assert worker_input["schema_version"] == "sketch2life.story-rewrite-input.v1"
+    assert worker_input["schema_version"] == "sketch2life.story-rewrite-input.v2"
+    assert worker_input["context_entries"] == []  # T-12a: no selection in this context
     assert worker_input["confirmed_subject"] == "rồng"
     assert worker_input["adult_confirmed_idea"] == "một ý tưởng"
     # T-2d-fix D3: the previous draft is left alone until the new one completes; the new one

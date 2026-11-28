@@ -167,7 +167,8 @@ SRC = Path(__file__).resolve().parents[2] / "src" / "sketch2life"
 # listed one module; T-1d1-fix scans all of them). A new writer or a new site fails this pin until
 # someone has read it: a run write that does not move ``updated_at`` lets the closeout come early.
 WRITER_SITES = {
-    "infrastructure/persistence/parent_story_repository.py": 22,
+    # FEAT-066 goal v4 T-12a: the context confirmation with a selection rebinds the run (23).
+    "infrastructure/persistence/parent_story_repository.py": 23,
     # FEAT-066 goal v4 T-2e-a: the implicit first-story start moves the run to SCRIPT_GENERATING.
     "infrastructure/persistence/story_first_start.py": 1,
     "infrastructure/story_run_lite/repository.py": 12,
@@ -175,6 +176,11 @@ WRITER_SITES = {
     "infrastructure/persistence/story_task_reaper_store.py": 3,
     "infrastructure/persistence/story_lifecycle_store.py": 3,
     "infrastructure/story_video/closeout_store.py": 1,
+    # Phase D T-6b transfers a Story owner and T-6c force-closes a conflicting run.
+    "infrastructure/story_teacher/teacher_owner_transfer_repository.py": 1,
+    "infrastructure/story_teacher/manager_story_run_force_close_repository.py": 1,
+    # AIPORT group B: the adult's choice of an AI-suggested activity bumps the run revision (1).
+    "infrastructure/persistence/parent_activity_suggestion_set_repository.py": 1,
 }
 # (module, function) writes that need not set ``updated_at``, each with the audit that licenses it.
 EXEMPT_WRITES = {
@@ -250,7 +256,7 @@ def _run_update_sites(path: Path) -> list[tuple[ast.Call, ast.Call | None, str, 
     return sites
 
 
-def test_the_writers_of_story_runs_are_the_pinned_seven_modules() -> None:
+def test_the_writers_of_story_runs_are_the_pinned_modules_and_sites() -> None:
     found = {
         path.relative_to(SRC).as_posix(): len(sites)
         for path in sorted(SRC.rglob("*.py"))

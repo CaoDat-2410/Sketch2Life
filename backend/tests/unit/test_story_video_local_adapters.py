@@ -22,6 +22,9 @@ from sketch2life.application.ports.story_video import (
     VideoRequestScope,
 )
 from sketch2life.infrastructure.config.settings import Settings
+from sketch2life.infrastructure.story_video.billing_quota_admission import (
+    BillingVideoQuotaAdmission,
+)
 from sketch2life.infrastructure.story_video.composition import build_story_video_adapters
 from sketch2life.infrastructure.story_video.local_adapters import (
     LocalAdapterRefused,
@@ -94,6 +97,48 @@ def test_local_test_is_accepted_and_composes_the_pair_in_local_and_test(env: Any
     adapters = build_story_video_adapters(settings)
     assert isinstance(adapters.reservation, LocalVideoComputeReservation)  # type: ignore[union-attr]
     assert isinstance(adapters.quota, LocalVideoQuotaAdmission)  # type: ignore[union-attr]
+
+
+def test_billing_mode_composes_billing_quota_with_the_local_test_reservation() -> None:
+    settings = Settings(
+        _env_file=None, env="test", story_video_adapters="billing"
+    )  # type: ignore[call-arg]
+    adapters = build_story_video_adapters(
+        settings, session_factory=lambda: None
+    )  # type: ignore[arg-type]
+    assert isinstance(
+        adapters.reservation, LocalVideoComputeReservation
+    )  # type: ignore[union-attr]
+    assert isinstance(adapters.quota, BillingVideoQuotaAdmission)  # type: ignore[union-attr]
+
+
+def test_billing_mode_stays_fail_closed_in_production_until_compute_reservation_is_supplied(
+) -> None:
+    settings = Settings(
+        _env_file=None,  # type: ignore[call-arg]
+        env="production",
+        auth_provider="firebase",
+        firebase_project_id="fixture-project",
+        ai_provider="runpod",
+        runpod_endpoint_id="fixture-endpoint",
+        runpod_api_key_file=Path("/runtime/secrets/runpod-key"),
+        story_video_adapters="billing",
+    )
+    def sessions() -> None:
+        return None
+
+    assert build_story_video_adapters(
+        settings, session_factory=sessions
+    ) is None  # type: ignore[arg-type]
+
+    reservation = object()
+    adapters = build_story_video_adapters(
+        settings,
+        session_factory=sessions,  # type: ignore[arg-type]
+        reservation=reservation,  # type: ignore[arg-type]
+    )
+    assert adapters.reservation is reservation  # type: ignore[union-attr]
+    assert isinstance(adapters.quota, BillingVideoQuotaAdmission)  # type: ignore[union-attr]
 
 
 def test_staging_refuses_local_test_before_any_other_policy_reason() -> None:

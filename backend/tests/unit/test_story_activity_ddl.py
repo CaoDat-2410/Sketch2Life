@@ -4,7 +4,7 @@ The owner approved this package by name: ``story.activity_selections`` (append-o
 snapshot, one row per selection) and the ``SELECT_ACTIVITY`` receipt operation. The test pins the
 column list, the constraint, index and trigger names, the ORM mirror, the receipt widening (13 to
 14 names, the before set equal to the previous migration's after set), the downgrade guard and the
-revision graph (one more revision, the Story branch head, heads stay 15 and 10). The behaviour of
+revision graph as part of the combined tree. The behaviour of
 the trigger, the checks and the round trip is proven on PostgreSQL in
 ``tests/integration/test_parent_activity_selection_postgres.py``.
 """
@@ -24,6 +24,8 @@ from sketch2life.infrastructure.story_run_lite import tables as story_tables
 _VERSIONS = Path(__file__).resolve().parents[2] / "alembic" / "versions"
 _MIGRATION = _VERSIONS / "20261123_as_0001_story_activity_selections.py"
 _VIDEO_MIGRATION = _VERSIONS / "20261120_vb_0002_video_generations.py"
+_OWNER_TRANSFER_MIGRATION = _VERSIONS / "20261122_t6b_0002_story_owner_transfer.py"
+_FORCE_CLOSE_MIGRATION = _VERSIONS / "20261122_t6c_0001_story_force_close.py"
 _REVISION = "20261123_as_0001"
 _PARENT = "20261120_b2_0001"
 SELECTIONS = story_tables.activity_selections
@@ -64,7 +66,9 @@ def _graph() -> dict[str, tuple[tuple[str, ...], tuple[str, ...]]]:
     return graph
 
 
-def _values(sql_list: str) -> list[str]:
+def _values(sql_list: str | tuple[str, ...]) -> list[str]:
+    if not isinstance(sql_list, str):
+        return list(sql_list)
     return re.findall(r"'([A-Z_]+)'", sql_list)
 
 
@@ -74,25 +78,36 @@ def test_the_revision_is_the_only_child_of_its_parent_and_the_review_epoch_follo
     assert constants["revision"] == _REVISION and len(_REVISION) <= 32
     assert constants["down_revision"] == _PARENT
     assert constants["branch_labels"] is None  # the frc08_lifecycle label is inherited
-    assert constants["depends_on"] is None
+    assert constants["depends_on"] == ("20261122_parent_activity_selection",)
     graph = _graph()
     assert {rev for rev, (downs, _) in graph.items() if _PARENT in downs} == {_REVISION}
-    # V4-A T-1b-fix: DDL-B1c (``20261123_rv_0001``) is the one child and ends the branch.
+    # V4-A T-1b-fix: DDL-B1c (``20261123_rv_0001``) is the one child; V4-B T-12b adds DDL-D
+    # (``20261121_bpr_0001``) after that, which ends the branch.
     assert {rev for rev, (downs, _) in graph.items() if _REVISION in downs} == {
         "20261123_rv_0001"
     }
 
 
-def test_one_more_revision_and_the_head_counts_stay_fifteen_and_ten() -> None:
+def test_revision_graph_has_twelve_raw_and_one_effective_head() -> None:
     graph = _graph()
-    assert len(graph) == 51
+    # The final Story receipt repair depends on the other branch heads, leaving one effective head.
+    assert len(graph) == 83
     down_targets = {target for downs, _ in graph.values() for target in downs}
     dependency_targets = down_targets | {target for _, dep in graph.values() for target in dep}
     heads_down_only = {rev for rev in graph if rev not in down_targets}
     heads_with_depends = {rev for rev in graph if rev not in dependency_targets}
-    assert (len(heads_down_only), len(heads_with_depends)) == (15, 10)
+    assert (len(heads_down_only), len(heads_with_depends)) == (12, 1)
     assert _REVISION not in heads_down_only and _PARENT not in heads_down_only
-    assert "20261123_rv_0001" in heads_down_only
+    assert "20261122_parent_activity_selection" in heads_down_only
+    assert "20261123_rv_0001" not in heads_down_only
+    assert "20261121_bpr_0001" not in heads_down_only
+    assert "20261125_as_0002" not in heads_down_only
+    assert "20261125_as_0002" not in heads_with_depends
+    assert "20261122_t6b_0001" in heads_down_only
+    assert "20261122_t6b_0001" not in heads_with_depends
+    assert "20261126_as_0003" in heads_down_only and "20261126_as_0003" in heads_with_depends
+    assert "20261123_ppg_0001" not in heads_down_only
+    assert "20261121_psn_0002" not in heads_down_only
 
 
 # ----------------------------------------------------------------------------- the table
@@ -194,17 +209,36 @@ def test_the_trigger_forbids_update_only_so_the_purge_can_delete() -> None:
 
 
 # ----------------------------------------------------------------------------- the receipt widening
-def test_the_receipt_check_gains_exactly_select_activity() -> None:
+def test_the_receipt_check_rewrite_keeps_the_full_operation_union() -> None:
     module = _load()
     previous = _load(_VIDEO_MIGRATION)
-    # the before set is the final set of the previous revision that defined the check
+    # the before and after sets both preserve every operation used across the merged branches
     assert module.RECEIPT_OPERATIONS_BEFORE == previous.RECEIPT_OPERATIONS_AFTER
     before, after = (
         _values(module.RECEIPT_OPERATIONS_BEFORE),
         _values(module.RECEIPT_OPERATIONS_AFTER),
     )
-    assert (len(before), len(after)) == (13, 14)
-    assert after[:13] == before and after[13:] == ["SELECT_ACTIVITY"]
+    assert (len(before), len(after)) == (17, 17)
+    assert before == after
+    assert {
+        "CREATE_RUN",
+        "ATTACH_ASSET",
+        "CONFIRM_SUBJECT",
+        "CONFIRM_CONTEXT",
+        "CANCEL_RUN",
+        "GENERATE_STORY_REVISION",
+        "CONFIRM_STORY_REVISION",
+        "DELETE_RUN",
+        "SUBMIT_IDEA",
+        "CONFIRM_TRANSCRIPT",
+        "CREATE_VIDEO_GENERATION",
+        "MARK_VIDEO_UNSUITABLE",
+        "COMPLETE_RUN",
+        "SELECT_ACTIVITY",
+        "GENERATE_ACTIVITY_SET",
+        "TRANSFER_TEACHER_OWNER",
+        "FORCE_CLOSE_RUN",
+    } == set(after)
     assert len("SELECT_ACTIVITY") <= 32  # the operation column is varchar(32)
     orm = next(
         constraint
@@ -212,7 +246,14 @@ def test_the_receipt_check_gains_exactly_select_activity() -> None:
         if isinstance(constraint, CheckConstraint)
         and constraint.name == "ck_story_receipt_operation"
     )
-    assert _values(str(orm.sqltext)) == after
+    owner_transfer = _load(_OWNER_TRANSFER_MIGRATION)
+    force_close = _load(_FORCE_CLOSE_MIGRATION)
+    assert _values(owner_transfer.RECEIPT_OPERATIONS_BEFORE) == after
+    assert _values(owner_transfer.RECEIPT_OPERATIONS_AFTER) == after
+    assert _values(force_close.RECEIPT_OPERATIONS_BEFORE) == after
+    assert _values(force_close.RECEIPT_OPERATIONS_AFTER) == after
+    repair = _load(_VERSIONS / "20261126_as_0003_activity_set_receipt_operation.py")
+    assert _values(str(orm.sqltext)) == _values(repair.RECEIPT_OPERATIONS_AFTER)
 
 
 def test_the_downgrade_refuses_rows_and_receipts_before_it_removes_anything() -> None:
