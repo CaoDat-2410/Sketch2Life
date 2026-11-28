@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { TeacherProgressiveDrawing, hasTeacherDrawing } from "./TeacherProgressiveDrawing";
 
 type SlideKind = 'orientation' | 'drawing_guide' | 'subject_exploration' | 'approved_activity'
 
@@ -6,6 +7,23 @@ type DrawingStep = Readonly<{
   stepIndex: number
   instruction: string
   placement: string
+  drawing?: ProgressiveDrawing
+}>
+
+type DrawingBase = Readonly<{ stroke: string; stroke_width: number }>
+type DrawingStroke =
+  | (DrawingBase & Readonly<{ kind: 'circle'; cx: number; cy: number; r: number }>)
+  | (DrawingBase & Readonly<{ kind: 'ellipse'; cx: number; cy: number; rx: number; ry: number }>)
+  | (DrawingBase & Readonly<{ kind: 'rect'; x: number; y: number; w: number; h: number }>)
+  | (DrawingBase & Readonly<{ kind: 'line'; x1: number; y1: number; x2: number; y2: number }>)
+  | (DrawingBase & Readonly<{ kind: 'polyline'; points: readonly (readonly [number, number])[] }>)
+
+export type ProgressiveDrawing = Readonly<{
+  viewbox: readonly [number, number, number, number]
+  strokes: readonly DrawingStroke[]
+  source: 'catalog' | 'recipe' | 'ai_draft'
+  sha256: string
+  caption?: string
 }>
 
 type DeckSlide = Readonly<{
@@ -42,6 +60,94 @@ const ALLOWED_KINDS = new Set<SlideKind>([
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function finiteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && Math.abs(value) <= 10_000
+}
+
+function parseDrawingStroke(value: unknown): DrawingStroke | null {
+  if (!isRecord(value)
+    || typeof value.kind !== 'string'
+    || typeof value.stroke !== 'string'
+    || !/^#[0-9a-f]{6}$/i.test(value.stroke)
+    || !finiteNumber(value.stroke_width)
+    || value.stroke_width < 0.25
+    || value.stroke_width > 64) return null
+  const numbers = (keys: string[]) => {
+    const result: number[] = []
+    for (const key of keys) {
+      if (!finiteNumber(value[key])) return null
+      result.push(value[key])
+    }
+    return result
+  }
+  const fieldsAre = (keys: string[]) => Object.keys(value).sort().join(',')
+    === [...keys, 'kind', 'stroke', 'stroke_width'].sort().join(',')
+  switch (value.kind) {
+    case 'circle': {
+      const geometry = numbers(['cx', 'cy', 'r'])
+      if (!fieldsAre(['cx', 'cy', 'r']) || !geometry || geometry[2] <= 0) return null
+      const [cx, cy, r] = geometry
+      return { kind: 'circle', cx, cy, r, stroke: value.stroke, stroke_width: value.stroke_width }
+    }
+    case 'ellipse': {
+      const geometry = numbers(['cx', 'cy', 'rx', 'ry'])
+      if (!fieldsAre(['cx', 'cy', 'rx', 'ry']) || !geometry || geometry[2] <= 0 || geometry[3] <= 0) return null
+      const [cx, cy, rx, ry] = geometry
+      return { kind: 'ellipse', cx, cy, rx, ry, stroke: value.stroke, stroke_width: value.stroke_width }
+    }
+    case 'rect': {
+      const geometry = numbers(['x', 'y', 'w', 'h'])
+      if (!fieldsAre(['x', 'y', 'w', 'h']) || !geometry || geometry[2] <= 0 || geometry[3] <= 0) return null
+      const [x, y, w, h] = geometry
+      return { kind: 'rect', x, y, w, h, stroke: value.stroke, stroke_width: value.stroke_width }
+    }
+    case 'line': {
+      const geometry = numbers(['x1', 'y1', 'x2', 'y2'])
+      if (!fieldsAre(['x1', 'y1', 'x2', 'y2']) || !geometry) return null
+      const [x1, y1, x2, y2] = geometry
+      return { kind: 'line', x1, y1, x2, y2, stroke: value.stroke, stroke_width: value.stroke_width }
+    }
+    case 'polyline': {
+      if (!fieldsAre(['points']) || !Array.isArray(value.points) || value.points.length < 2 || value.points.length > 256) return null
+      const points: [number, number][] = []
+      for (const point of value.points) {
+        if (!Array.isArray(point) || point.length !== 2 || !finiteNumber(point[0]) || !finiteNumber(point[1])) return null
+        points.push([point[0], point[1]])
+      }
+      return { kind: 'polyline', points, stroke: value.stroke, stroke_width: value.stroke_width }
+    }
+    default:
+      return null
+  }
+}
+
+export function parseProgressiveDrawing(value: unknown): ProgressiveDrawing | null {
+  if (!isRecord(value)
+    || !Array.isArray(value.viewbox)
+    || value.viewbox.length !== 4
+    || !value.viewbox.every(finiteNumber)
+    || value.viewbox[2] <= 0
+    || value.viewbox[3] <= 0
+    || !Array.isArray(value.strokes)
+    || value.strokes.length > 256
+    || (value.source !== 'catalog' && value.source !== 'recipe' && value.source !== 'ai_draft')
+    || typeof value.sha256 !== 'string'
+    || !/^[0-9a-f]{64}$/.test(value.sha256)) return null
+  const strokes: DrawingStroke[] = []
+  for (const item of value.strokes) {
+    const stroke = parseDrawingStroke(item)
+    if (!stroke) return null
+    strokes.push(stroke)
+  }
+  return {
+    viewbox: [value.viewbox[0], value.viewbox[1], value.viewbox[2], value.viewbox[3]],
+    strokes,
+    source: value.source,
+    sha256: value.sha256,
+    ...(typeof value.caption === 'string' && value.caption.trim() && value.caption.length <= 600 ? { caption: value.caption.trim() } : {}),
+  }
 }
 
 function text(value: unknown): string {
@@ -99,7 +205,7 @@ export function parseTeacherSketchDeck(value: unknown): TeacherSketchDeck | null
     const kind = item.kind as SlideKind
     const steps: DrawingStep[] = []
     if (kind === 'drawing_guide') {
-      if (!Array.isArray(item.steps) || item.steps.length < 3 || item.steps.length > 5) return null
+      if (!Array.isArray(item.steps) || item.steps.length < 3 || item.steps.length > 8) return null
       for (const [stepIndex, rawStep] of item.steps.entries()) {
         if (!isRecord(rawStep)
           || rawStep.step_index !== stepIndex + 1
@@ -152,11 +258,21 @@ function TextList({ items, emptyLabel }: { items: string[]; emptyLabel?: string 
   return <ul className="space-y-2">{items.map((item, index) => <li key={`${index}-${item}`} className="flex gap-3 text-slate-800"><span aria-hidden="true" className="mt-[0.55rem] h-2 w-2 shrink-0 rounded-full bg-blue-600" /><span>{item}</span></li>)}</ul>
 }
 
-export function TeacherDeckPresentation({ deck, onClose }: Props) {
+export function TeacherDeckPresentation({
+  deck,
+  onClose,
+}: Props) {
   const [slideIndex, setSlideIndex] = useState(0)
   const [stepIndex, setStepIndex] = useState(0)
   const slide = deck.slides[slideIndex]
   const currentStep = slide.kind === 'drawing_guide' ? slide.steps[stepIndex] : null
+  const showsDrawing = slide.kind === 'drawing_guide' && hasTeacherDrawing(slide.steps)
+  const nextStepLabel = slide.kind !== 'drawing_guide' || stepIndex + 1 < slide.steps.length
+    ? 'Bước tiếp theo'
+    : slideIndex + 1 < deck.slides.length
+      ? 'Slide tiếp theo'
+      : 'Bắt đầu lại'
+
   function selectSlide(index: number) {
     setSlideIndex(index)
     setStepIndex(0)
@@ -210,7 +326,7 @@ export function TeacherDeckPresentation({ deck, onClose }: Props) {
           <span aria-live="polite">Slide {slideIndex + 1} / {deck.slides.length}</span>
         </div>
 
-        <section className="w-full max-w-[min(100%,calc((100vh-13rem)*16/9))] overflow-hidden rounded-xl bg-white text-slate-950 shadow-2xl" style={{ aspectRatio: '16 / 9' }} aria-live="polite" aria-label={`Slide ${slideIndex + 1}: ${slide.title}`}>
+        <section className={`w-full max-w-[min(100%,calc((100vh-13rem)*16/9))] overflow-hidden rounded-xl bg-white text-slate-950 shadow-2xl ${slide.kind === 'drawing_guide' ? 'teacher-deck-drawing-slide flex min-h-0 flex-1 flex-col sm:aspect-video sm:flex-none' : 'aspect-video'}`} style={slide.kind === 'drawing_guide' ? undefined : { aspectRatio: '16 / 9' }} aria-live="polite" aria-label={`Slide ${slideIndex + 1}: ${slide.title}`}>
           <div className="flex h-full flex-col p-[clamp(1rem,3.2vw,3.5rem)]">
             <div className="mb-4 flex shrink-0 items-center justify-between gap-4">
               <p className="text-[clamp(0.7rem,1.2vw,0.95rem)] font-bold uppercase tracking-[0.14em] text-blue-700">{deck.topic} · {deck.ageMonths} tháng</p>
@@ -218,7 +334,7 @@ export function TeacherDeckPresentation({ deck, onClose }: Props) {
             </div>
             <h1 className="shrink-0 text-[clamp(1.5rem,3.1vw,3rem)] font-extrabold leading-tight tracking-tight">{slide.title}</h1>
 
-            <div className="mt-5 min-h-0 flex-1 overflow-hidden text-[clamp(0.82rem,1.55vw,1.35rem)] leading-relaxed">
+            <div className={`mt-5 min-h-0 flex-1 text-[clamp(0.82rem,1.55vw,1.35rem)] leading-relaxed ${slide.kind === 'drawing_guide' ? 'overflow-y-auto overscroll-contain sm:overflow-hidden' : 'overflow-hidden'}`}>
               {slide.kind === 'orientation' && (
                 <div className="flex h-full items-center">
                   <div className="w-full max-w-4xl">
@@ -229,26 +345,47 @@ export function TeacherDeckPresentation({ deck, onClose }: Props) {
               )}
 
               {slide.kind === 'drawing_guide' && currentStep && (
-                <div className="grid h-full min-h-0 gap-5 lg:grid-cols-[0.82fr_1.18fr]">
-                  <div className="flex min-h-0 flex-col justify-center">
-                    <p className="text-[0.75em] font-bold uppercase tracking-wide text-slate-500">Bước {currentStep.stepIndex} / {slide.steps.length}</p>
-                    <p className="mt-2 text-[1.35em] font-bold leading-snug">{currentStep.instruction}</p>
-                    <p className="mt-3 text-[0.85em] text-slate-600">{currentStep.placement}</p>
-                    <div className="mt-5 flex flex-wrap gap-2" aria-label="Chọn bước vẽ">
-                      {slide.steps.map((step, index) => <button key={step.stepIndex} type="button" onClick={() => setStepIndex(index)} aria-label={`Mở bước vẽ ${step.stepIndex}`} aria-current={index === stepIndex ? 'step' : undefined} className={`h-3 w-8 rounded-full ${index === stepIndex ? 'bg-blue-700' : 'bg-slate-300 hover:bg-slate-400'}`} />)}
+                // Text and drawing sit side by side, so neither pushes the other off a projector screen.
+                // Only the text area scrolls; the step buttons stay in place.
+                <div className={`teacher-deck-guide grid h-full min-h-0 w-full min-w-0 gap-x-6 gap-y-3 ${showsDrawing ? 'sm:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]' : ''} sm:grid-rows-[minmax(0,1fr)]`}>
+                  <div className="flex min-h-0 min-w-0 flex-col">
+                    <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain" data-testid="deck-step-text">
+                      {/* Short steps sit in the middle of the column; long ones start at the top and scroll. */}
+                      <div className="flex min-h-full flex-col justify-center">
+                        <p className="text-[0.75em] font-bold uppercase tracking-wide text-slate-500">Bước {currentStep.stepIndex} / {slide.steps.length}</p>
+                        <p className="mt-1 text-[1.3em] font-bold leading-snug">{currentStep.instruction}</p>
+                        {currentStep.placement !== 'trên trang vẽ' && <p className="mt-2 text-[0.9em] text-slate-600">{currentStep.placement}</p>}
+                        {!showsDrawing && <p className="mt-3 text-xs text-slate-600">Bài này chưa có hình vẽ mẫu. Giáo viên hướng dẫn trẻ theo từng bước bằng lời.</p>}
+                      </div>
                     </div>
-                    <div className="mt-4 flex flex-wrap gap-2 text-sm">
-                      <button type="button" onClick={() => moveStep(-1)} disabled={stepIndex === 0} className="rounded-lg border border-slate-300 px-3 py-2 font-semibold disabled:opacity-40">Bước trước</button>
-                      <button type="button" onClick={skipStep} className="rounded-lg bg-blue-700 px-3 py-2 font-semibold text-white hover:bg-blue-800">Bỏ qua bước</button>
+                    <div className="shrink-0 pt-2">
+                    <div role="group" className="flex flex-wrap gap-2 py-1" aria-label="Chọn bước vẽ">
+                      {slide.steps.map((step, index) => (
+                        <button
+                          key={step.stepIndex}
+                          type="button"
+                          onClick={() => setStepIndex(index)}
+                          aria-label={`Bước ${step.stepIndex}`}
+                          aria-current={index === stepIndex ? 'step' : undefined}
+                          className={`!inline-flex !h-8 !min-h-8 !w-8 !min-w-8 shrink-0 !items-center !justify-center !rounded-full !border-2 !p-0 !text-xs font-bold leading-none transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 ${index === stepIndex ? '!border-blue-700 !bg-blue-700 !text-white' : '!border-slate-300 !bg-slate-100 !text-slate-900 hover:!bg-slate-200'}`}
+                        >
+                          <span aria-hidden="true">{step.stepIndex}</span>
+                        </button>
+                      ))}
+                    </div>
+                    <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+                      <button type="button" onClick={() => moveStep(-1)} disabled={stepIndex === 0} className="min-h-10 rounded-lg border border-slate-300 px-3 py-2 font-semibold disabled:opacity-40">Bước trước</button>
+                      <button
+                        type="button"
+                        onClick={skipStep}
+                        className="!min-h-10 !w-auto rounded-lg !px-3 !py-2 !text-sm font-semibold !bg-blue-700 !text-white transition hover:!bg-blue-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
+                      >
+                        {nextStepLabel}
+                      </button>
+                    </div>
                     </div>
                   </div>
-                  <div className="flex min-h-0 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-white p-2">
-                    <div className="max-w-sm px-5 text-center">
-                      <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-full bg-blue-50 text-2xl text-blue-700" aria-hidden="true">✎</div>
-                      <p className="font-bold">Chưa có hình minh họa</p>
-                      <p className="mt-1 text-sm text-slate-600">Bản trình chiếu hiện hiển thị nội dung và các bước hướng dẫn bằng chữ.</p>
-                    </div>
-                  </div>
+                  {showsDrawing && <TeacherProgressiveDrawing steps={slide.steps} currentStepIndex={stepIndex} title={slide.title} />}
                 </div>
               )}
 

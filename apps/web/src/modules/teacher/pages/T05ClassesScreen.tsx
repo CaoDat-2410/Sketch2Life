@@ -1,8 +1,13 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, LockKeyhole, RefreshCw, UserPlus, Users } from "lucide-react";
+import { ArrowLeft, ArrowRight, ChevronDown, LockKeyhole, RefreshCw, UserPlus, Users } from "lucide-react";
 import { PageHeading } from "../../../shared/components/FeatureAvailability";
-import { Alert, Button, FormField, Select } from "../../../shared/ui";
+import { Alert, Button, FormField, Select, StatusBadge } from "../../../shared/ui";
+import { FormActionBar } from "../components/FormActionBar";
+import { TeacherProfilePanels } from "../components/TeacherProfilePanels";
+import { TeacherPortfolioCard } from "../components/TeacherPortfolioCard";
+import { TeacherParentSharePanel } from "../components/TeacherParentSharePanel";
+import { teacherStatusMeta } from "../services/teacherStatus";
 import {
   BackendApiError,
   backendApi,
@@ -20,6 +25,7 @@ import {
   STALE_RELOADED,
   SYNTHETIC_NAME_PREFIX,
   TeacherRosterApiError,
+  TeacherRosterPageError,
   keepsCommandKey,
   profileInputProblem,
   teacherRosterApi,
@@ -28,15 +34,29 @@ import {
 } from "../../../shared/api/teacherRosterApi";
 
 const STATE_LABELS: Record<string, string> = { active: "Đang hoạt động", suspended: "Tạm ngưng · chỉ đọc", archived: "Đã lưu trữ" };
-const stateLabel = (state: string) => STATE_LABELS[state] ?? state;
+const stateLabel = (state: string) => STATE_LABELS[state] ?? "Đang xử lý";
+
+const PURPOSE_LABELS: Record<string, string> = {
+  "classroom-learning-v1": "Hoạt động học tập trên lớp",
+  "story": "Kể chuyện và minh họa",
+};
+
+function purposeLabel(purposeRef: string): string {
+  return PURPOSE_LABELS[purposeRef] ?? "Học tập trên lớp";
+}
+
+function consentChildLabel(childId: string, profiles: TeacherProfile[]): string {
+  const displayName = profiles.find((profile) => profile.child_id === childId)?.display_name.trim();
+  return displayName || `Học sinh · ${childId.slice(-4)}`;
+}
 
 function NoBackendSession() {
-  return <div className="s2l-note"><LockKeyhole size={15} aria-hidden="true" />Lớp và hồ sơ chỉ tải khi có phiên Firebase cùng assignment Teacher đang hiệu lực.</div>;
+  return <div className="s2l-note"><LockKeyhole size={15} aria-hidden="true" />Lớp và hồ sơ chỉ tải khi tài khoản có phiên đăng nhập và phân công giảng dạy hợp lệ.</div>;
 }
 
 /** Roster messages are already projected (uniform 404, safe 403, Retry-After); other errors use the shared text. */
 function rosterError(cause: unknown): string {
-  if (cause instanceof TeacherRosterApiError && cause.code !== "CONSENT_NOT_EFFECTIVE") {
+  if (cause instanceof TeacherRosterApiError) {
     return cause.message + (cause.requestId ? ` Mã yêu cầu: ${cause.requestId}.` : "");
   }
   return backendMessage(cause);
@@ -63,12 +83,12 @@ export function TeacherApiClassesPage() {
     let active = true;
     const organizationId = configuredOrganizationId();
     if (!hasFirebaseAuthBridge()) {
-      setError("Chưa có Firebase ID token để tải các lớp được phân công.");
+      setError("Chưa có phiên đăng nhập để tải các lớp được phân công.");
       setLoading(false);
       return () => { active = false; };
     }
     if (!organizationId) {
-      setError("Chưa cấu hình organization_id cho các API Teacher.");
+      setError("Chưa cấu hình tổ chức cho cổng giáo viên.");
       setLoading(false);
       return () => { active = false; };
     }
@@ -93,19 +113,34 @@ export function TeacherApiClassesPage() {
 
   return (
     <div className="s2l-page s2l-data-page">
-      <PageHeading eyebrow="Teacher · Phạm vi assignment" title="Lớp được phân công" description="Chỉ lớp có assignment Teacher đang hoạt động mới xuất hiện." action={<button type="button" className="s2l-button" disabled={loading} onClick={() => setReload((value) => value + 1)}><RefreshCw size={16} aria-hidden="true" />Tải lại</button>} />
+      <PageHeading
+        eyebrow="Giáo viên · Lớp học"
+        title="Lớp được phân công"
+        description="Danh sách các lớp học bạn đang phụ trách."
+        action={<button type="button" className="s2l-button" disabled={loading} onClick={() => setReload((value) => value + 1)}><RefreshCw size={16} aria-hidden="true" />Tải lại</button>}
+      />
       {!hasFirebaseAuthBridge() && <NoBackendSession />}
-      {loading && <p className="s2l-data-card" role="status">Đang xác minh assignment Teacher…</p>}
+      {loading && <p className="s2l-data-card" role="status">Đang tải danh sách lớp được phân công…</p>}
       {error && <div className="s2l-alert" role="alert">{error}</div>}
-      {!loading && !error && classes.length === 0 && <p className="s2l-data-card">Không có lớp nào trong assignment Teacher hiện hành.</p>}
-      {!loading && !error && classes.map((item) => (
-        <button key={item.class_id} type="button" className="s2l-class-row" onClick={() => navigate("/teacher/t05-classes-and-children/" + encodeURIComponent(item.class_id))}>
-          <span className="s2l-class-mark"><Users size={18} aria-hidden="true" /></span>
-          <span className="s2l-class-copy"><strong>{item.display_name}</strong><small>Trạng thái lớp · {stateLabel(item.state)}</small></span>
-          <span className="s2l-class-open">Xem roster <ArrowRight size={15} aria-hidden="true" /></span>
-        </button>
-      ))}
-      <div className="s2l-note"><LockKeyhole size={15} aria-hidden="true" />Hồ sơ trẻ chỉ hiển thị khi API xác minh assignment và consent hiệu lực.</div>
+      {!loading && !error && classes.length === 0 && <p className="s2l-data-card">Bạn chưa được phân công phụ trách lớp học nào.</p>}
+      {!loading && !error && classes.map((item) => {
+        const meta = teacherStatusMeta(item.state, "default");
+        return (
+          <button key={item.class_id} type="button" className="s2l-class-row" onClick={() => navigate("/teacher/t05-classes-and-children/" + encodeURIComponent(item.class_id))}>
+            <span className="s2l-class-mark"><Users size={18} aria-hidden="true" /></span>
+            <span className="s2l-class-copy">
+              <strong>{item.display_name}</strong>
+              <span className="tp-chip-row">
+                <StatusBadge tone={item.state === "active" ? "success" : "warn"} size="sm" dot>
+                  {item.state === "suspended" ? stateLabel(item.state) : meta.label}
+                </StatusBadge>
+              </span>
+            </span>
+            <span className="s2l-class-open">Xem danh sách lớp <ArrowRight size={15} aria-hidden="true" /></span>
+          </button>
+        );
+      })}
+      <p className="s2l-muted-copy">Chỉ hiển thị hồ sơ thử nghiệm hoặc hồ sơ đã có sự đồng ý của phụ huynh còn hiệu lực.</p>
     </div>
   );
 }
@@ -117,13 +152,14 @@ function TeacherApiClassDetailPage({ classId }: { classId: string }) {
   const organizationId = configuredOrganizationId();
   const [classItem, setClassItem] = useState<Be1Class | null>(null);
   const [moveTargets, setMoveTargets] = useState<Be1Class[]>([]);
+  const [isClassTeacher, setIsClassTeacher] = useState(false);
   const [profiles, setProfiles] = useState<TeacherProfile[]>([]);
+  const [activeProfileCount, setActiveProfileCount] = useState(0);
   const [consents, setConsents] = useState<TeacherConsent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
-  const [profileErrorCode, setProfileErrorCode] = useState<string | null>(null);
-  const [profileErrorRequestId, setProfileErrorRequestId] = useState<string | null>(null);
+  const [profileHasPartialData, setProfileHasPartialData] = useState(false);
   const [consentError, setConsentError] = useState<string | null>(null);
   const [reload, setReload] = useState(0);
   // T-7c / T-7d commands: one Idempotency-Key per exact user action, kept only while its outcome is unknown.
@@ -135,11 +171,21 @@ function TeacherApiClassDetailPage({ classId }: { classId: string }) {
   const [profileName, setProfileName] = useState(SYNTHETIC_NAME_PREFIX);
   const [ageMonths, setAgeMonths] = useState("60");
   const [moveDraft, setMoveDraft] = useState<MoveDraft | null>(null);
+  const [consentRosterChildId, setConsentRosterChildId] = useState("");
+  const [consentManualChildId, setConsentManualChildId] = useState("");
+  const [consentPurposeRef, setConsentPurposeRef] = useState("classroom-learning-v1");
+  const [consentEvidenceRef, setConsentEvidenceRef] = useState("");
+  const [consentMutationBusy, setConsentMutationBusy] = useState(false);
+  const consentMutationPending = useRef(false);
+  const [consentActionError, setConsentActionError] = useState<string | null>(null);
+  const [consentNotice, setConsentNotice] = useState<string | null>(null);
+  const [consentFormOpen, setConsentFormOpen] = useState(false);
+  const [consentToRevoke, setConsentToRevoke] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
     if (!hasFirebaseAuthBridge() || !organizationId) {
-      setError(!hasFirebaseAuthBridge() ? "Chưa có Firebase ID token." : "Chưa cấu hình organization_id.");
+      setError(!hasFirebaseAuthBridge() ? "Chưa có phiên đăng nhập." : "Chưa cấu hình tổ chức.");
       setLoading(false);
       return () => { active = false; };
     }
@@ -147,10 +193,11 @@ function TeacherApiClassDetailPage({ classId }: { classId: string }) {
     setLoading(true);
     setError(null);
     setProfileError(null);
-    setProfileErrorCode(null);
-    setProfileErrorRequestId(null);
+    setProfileHasPartialData(false);
     setConsentError(null);
     setProfiles([]);
+    setIsClassTeacher(false);
+    setActiveProfileCount(0);
     setConsents([]);
     // T-7a2 (SRS l.864-865, AC-27): the server decides 403 versus the uniform 404 for this class; the
     // page no longer turns a class outside the caller's rows into its own 403.
@@ -161,12 +208,12 @@ function TeacherApiClassDetailPage({ classId }: { classId: string }) {
       backendApi.assignments(organizationId),
     ]).then(([classResult, profileResult, consentResult, identityResult]) => {
       if (!active) return;
-      const profileConsentLocked = profileResult.status === "rejected"
-        && profileResult.reason instanceof BackendApiError
-        && profileResult.reason.code === "CONSENT_NOT_EFFECTIVE";
-      const scopeFailure = [profileResult, consentResult]
-        .flatMap((result, index) => result.status === "rejected"
-          && !(index === 0 && profileConsentLocked)
+      const partialProfileError = profileResult.status === "rejected"
+        && profileResult.reason instanceof TeacherRosterPageError
+        ? profileResult.reason
+        : null;
+      const scopeFailure = partialProfileError ? undefined : [profileResult, consentResult]
+        .flatMap((result) => result.status === "rejected"
           && result.reason instanceof BackendApiError
           && (result.reason.status === 404 || result.reason.status === 403) ? [result.reason] : [])
         .sort((left, right) => right.status - left.status)[0];
@@ -180,26 +227,48 @@ function TeacherApiClassDetailPage({ classId }: { classId: string }) {
           .filter((assignment) => assignment.role === "teacher" && assignment.active !== false && assignment.class_id)
           .map((assignment) => assignment.class_id as string))
         : new Set<string>();
+      setIsClassTeacher(identityResult.status === "fulfilled" && identityResult.value.assignments.some((assignment) =>
+        assignment.role === "teacher" && assignment.active !== false && assignment.class_id === classId));
       // T-7d: a move goes only to another active class taught by the same Teacher.
       setMoveTargets(classResult.value.items.filter((item) =>
         item.class_id !== classId && item.state === "active" && item.class_revision !== undefined && ownClassIds.has(item.class_id)));
       if (consentResult.status === "fulfilled") setConsents(consentResult.value);
       else setConsentError(rosterError(consentResult.reason));
-      if (profileResult.status === "fulfilled") setProfiles(profileResult.value);
+      if (profileResult.status === "fulfilled") {
+        setProfiles(profileResult.value.items);
+        setActiveProfileCount(profileResult.value.activeProfileCount);
+      }
       else {
         setProfileError(rosterError(profileResult.reason));
-        setProfileErrorCode(profileResult.reason instanceof BackendApiError ? profileResult.reason.code : null);
-        setProfileErrorRequestId(profileResult.reason instanceof BackendApiError ? profileResult.reason.requestId ?? null : null);
+        if (partialProfileError) {
+          setProfiles(partialProfileError.partial.items);
+          setActiveProfileCount(partialProfileError.partial.activeProfileCount);
+          setProfileHasPartialData(true);
+        }
       }
     }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [classId, organizationId, reload]);
 
-  const visibleProfiles = profiles.filter((profile) =>
-    consents.some((consent) => consent.child_id === profile.child_id && consent.effective),
-  );
+  // The roster endpoint already returns only synthetic or effectively consented profiles.
+  const visibleProfiles = profiles;
   const classRevision = classItem?.class_revision;
   const writable = classItem?.state === "active" && classRevision !== undefined;
+  const consentChildId = consentManualChildId.trim() || consentRosterChildId;
+  const normalizedConsentPurpose = consentPurposeRef.trim();
+  const normalizedConsentEvidence = consentEvidenceRef.trim();
+  const consentFormHasInput = Boolean(
+    consentRosterChildId
+      || consentManualChildId.trim()
+      || consentPurposeRef !== "classroom-learning-v1"
+      || consentEvidenceRef.trim(),
+  );
+  const consentDisclosureOpen = consentFormOpen || consentFormHasInput || Boolean(consentActionError);
+  const consentFormValid = consentChildId.length >= 1
+    && consentChildId.length <= 128
+    && normalizedConsentPurpose.length >= 1
+    && normalizedConsentPurpose.length <= 128
+    && normalizedConsentEvidence.length <= 512;
 
   const runCommand = async (signature: string, send: (key: string) => Promise<string>) => {
     if (busy) return;
@@ -231,7 +300,7 @@ function TeacherApiClassDetailPage({ classId }: { classId: string }) {
   const showFieldProblems = profileName !== SYNTHETIC_NAME_PREFIX || ageMonths !== "60";
   const nameProblem = showFieldProblems
     ? !profileName.startsWith(SYNTHETIC_NAME_PREFIX) || profileName.trim().length <= SYNTHETIC_NAME_PREFIX.trim().length
-      ? `Tên hồ sơ thử nghiệm phải bắt đầu bằng “${SYNTHETIC_NAME_PREFIX}” và có thêm tên phía sau.`
+      ? `Tên phải bắt đầu bằng “${SYNTHETIC_NAME_PREFIX}” rồi có tên hiển thị phía sau.`
       : profileName.length > PROFILE_NAME_MAX
         ? `Tên hồ sơ tối đa ${PROFILE_NAME_MAX} ký tự.`
         : undefined
@@ -245,8 +314,75 @@ function TeacherApiClassDetailPage({ classId }: { classId: string }) {
     void runCommand(createSignature, async (key) => {
       const created = await teacherRosterApi.createProfile(organizationId, classId, classRevision, profileInput, key);
       setProfileName(SYNTHETIC_NAME_PREFIX);
-      return `Đã tạo hồ sơ thử nghiệm “${created.display_name}”. Roster chỉ hiện hồ sơ khi consent hiệu lực; hồ sơ thử nghiệm chưa có consent nên có thể chưa hiện ở danh sách bên trên.`;
+      return `Đã tạo hồ sơ thử nghiệm “${created.display_name}”. Hồ sơ thử nghiệm này có thể xuất hiện trong danh sách lớp.`;
     });
+  };
+
+  const recordConsent = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!writable || !consentFormValid || consentMutationPending.current) return;
+    consentMutationPending.current = true;
+    setConsentMutationBusy(true);
+    setConsentActionError(null);
+    setConsentNotice(null);
+    try {
+      const input = {
+        childId: consentChildId,
+        purposeRef: normalizedConsentPurpose,
+        ...(normalizedConsentEvidence ? { evidenceRef: normalizedConsentEvidence } : {}),
+      };
+      await teacherRosterApi.recordConsent(organizationId ?? "", classId, input);
+      setConsentManualChildId("");
+      setConsentRosterChildId("");
+      setConsentEvidenceRef("");
+      setConsentFormOpen(false);
+      setConsentNotice("Đã ghi nhận sự đồng ý.");
+      setConsentToRevoke(null);
+      setReload((value) => value + 1);
+    } catch (cause) {
+      const outcomeUnknown = cause instanceof BackendApiError
+        && (cause.code === "INVALID_RESPONSE" || cause.status >= 500 || cause.status === 0 || cause.code === "NETWORK_ERROR");
+      if (outcomeUnknown) {
+        setConsentActionError("Đã gửi yêu cầu, hãy kiểm tra danh sách trước khi gửi lại.");
+        setReload((value) => value + 1);
+      } else {
+        setConsentActionError(rosterError(cause));
+        if (cause instanceof BackendApiError && (cause.status === 404 || cause.status === 409)) {
+          setReload((value) => value + 1);
+        }
+      }
+    } finally {
+      consentMutationPending.current = false;
+      setConsentMutationBusy(false);
+    }
+  };
+
+  const revokeConsent = async (consentId: string) => {
+    if (!writable || consentMutationPending.current) return;
+    const target = consents.find((item) => item.consent_id === consentId);
+    if (!target || target.state === "revoked") return;
+    consentMutationPending.current = true;
+    setConsentMutationBusy(true);
+    setConsentActionError(null);
+    setConsentNotice(null);
+    try {
+      const revoked = await teacherRosterApi.revokeConsent(organizationId ?? "", classId, consentId);
+      setConsents((current) => current.map((item) => item.consent_id === consentId
+        ? { ...item, state: revoked.state, effective: false }
+        : item));
+      setConsentToRevoke(null);
+      setConsentNotice("Đã thu hồi sự đồng ý của phụ huynh.");
+      setReload((value) => value + 1);
+    } catch (cause) {
+      setConsentActionError(rosterError(cause));
+      setConsentToRevoke(null);
+      if (cause instanceof BackendApiError && (cause.status === 404 || cause.status === 409)) {
+        setReload((value) => value + 1);
+      }
+    } finally {
+      consentMutationPending.current = false;
+      setConsentMutationBusy(false);
+    }
   };
 
   const moveTarget = moveTargets.find((item) => item.class_id === moveDraft?.targetClassId);
@@ -258,63 +394,82 @@ function TeacherApiClassDetailPage({ classId }: { classId: string }) {
     const target = { classId: moveTarget.class_id, revision: moveTarget.class_revision };
     void runCommand(moveSignature, async (key) => {
       await teacherRosterApi.moveProfile(classId, classRevision, moveDraft.childId, target, key);
-      return `Đã chuyển hồ sơ sang lớp “${moveTarget.display_name}”; enrollment trước đó được đóng và lưu lại.`;
+      return `Đã chuyển hồ sơ sang lớp “${moveTarget.display_name}”; lịch sử lớp trước đó được đóng và lưu lại.`;
     });
   };
 
   return (
     <div className="s2l-page s2l-data-page">
-      <PageHeading eyebrow="Teacher · Roster được cấp quyền" title={classItem?.display_name ?? "Chi tiết lớp"} description="Chỉ dữ liệu API trả về trong assignment hiện hành được hiển thị." action={<button type="button" className="s2l-button" disabled={loading || busy} onClick={() => setReload((value) => value + 1)}><RefreshCw size={16} aria-hidden="true" />Tải lại</button>} />
+      <PageHeading
+        eyebrow="Giáo viên · Danh sách lớp"
+        title={classItem?.display_name ?? "Chi tiết lớp"}
+        description="Danh sách học sinh, hồ sơ và sự đồng ý của phụ huynh trong lớp học này."
+        action={<button type="button" className="s2l-button" disabled={loading || busy} onClick={() => setReload((value) => value + 1)}><RefreshCw size={16} aria-hidden="true" />Tải lại</button>}
+      />
       <button type="button" className="s2l-secondary-link" onClick={() => navigate("/teacher/t05-classes-and-children")}><ArrowLeft size={16} aria-hidden="true" />Danh sách lớp</button>
-      {loading && <p className="s2l-data-card" role="status">Đang xác minh phạm vi và consent…</p>}
+      {loading && <p className="s2l-data-card" role="status">Đang tải danh sách lớp và sự đồng ý của phụ huynh…</p>}
       {error && <div className="s2l-alert" role="alert">{error}</div>}
       {classItem && !error && classItem.state !== "active" && <div className="s2l-note" role="status"><LockKeyhole size={15} aria-hidden="true" />{CLASS_READ_ONLY}</div>}
       {notice && <p className="s2l-note" role="status">{notice}</p>}
-      {classItem && !error && profileError && (profileErrorCode === "CONSENT_NOT_EFFECTIVE"
-        ? <Alert role="status" tone="info" icon={<LockKeyhole size={16} aria-hidden="true" />} className="teacher-consent-locked">
-            <strong>Danh sách hồ sơ tạm khóa đến khi có consent hiệu lực</strong>
-            <p>Consent chưa được xác minh nên dữ liệu trẻ đang bị khóa.</p>
-            {profileErrorRequestId && <small>Mã yêu cầu: {profileErrorRequestId}</small>}
-          </Alert>
-        : <div className="s2l-alert" role="alert">Hồ sơ chưa thể hiển thị: {profileError}</div>)}
-      {classItem && !error && consentError && <div className="s2l-alert" role="alert">Consent chưa thể xác minh; roster được ẩn cho đến khi tải được trạng thái consent.</div>}
+      {classItem && !error && profileError && <div className="s2l-alert" role="alert">{profileHasPartialData ? "Danh sách hồ sơ chỉ tải được một phần: " : "Hồ sơ chưa thể hiển thị: "}{profileError}</div>}
+      {classItem && !error && consentError && <div className="s2l-alert" role="alert">Chi tiết trạng thái đồng ý của phụ huynh chưa thể tải; danh sách lớp vẫn hiển thị theo quyền hiện tại.</div>}
       {classItem && !loading && !error && (
         <section className="s2l-data-card" aria-labelledby="teacher-roster-title">
-          <div className="s2l-section-heading"><div><h2 id="teacher-roster-title">Hồ sơ có consent hiệu lực</h2><p>Thông tin nhận diện chỉ dùng trong lớp thuộc assignment hiện hành.</p></div><span className="s2l-status-tag is-available">{visibleProfiles.length} hồ sơ</span></div>
-          {consentError ? null : visibleProfiles.length === 0 ? <p className="s2l-note">API không trả hồ sơ có consent hiệu lực cho lớp này.</p> : (
-            <ul className="s2l-roster-list">
+          <div className="s2l-section-heading">
+            <div>
+              <h2 id="teacher-roster-title">Danh sách học sinh</h2>
+              <p>Hiển thị hồ sơ thử nghiệm hoặc hồ sơ đã có sự đồng ý của phụ huynh còn hiệu lực.</p>
+            </div>
+            <StatusBadge tone="success" size="sm" dot>{visibleProfiles.length} hồ sơ</StatusBadge>
+          </div>
+          {visibleProfiles.length === 0
+            ? profileError && !profileHasPartialData
+              ? null
+              : activeProfileCount > 0
+                ? <p className="s2l-note">Lớp có {activeProfileCount} hồ sơ đang hoạt động nhưng chưa có hồ sơ nào đủ điều kiện hiển thị.</p>
+                : <p className="s2l-note">Chưa có hồ sơ có sự đồng ý còn hiệu lực cho lớp này.</p>
+            : (
+            <ul className="s2l-roster-list tp-roster">
               {visibleProfiles.map((profile) => {
                 const childConsents = consents.filter((consent) => consent.child_id === profile.child_id && consent.effective);
                 const moving = moveDraft?.childId === profile.child_id;
                 return (
                   <li key={profile.child_id}>
                     <span className="s2l-roster-avatar" aria-hidden="true">{profile.display_name.trim().slice(0, 1) || "•"}</span>
-                    <span className="s2l-class-copy"><strong>{profile.display_name}</strong><small>{profile.age_months} tháng · {childConsents.map((consent) => consent.purpose_ref).join(", ")}</small></span>
-                    <span className="s2l-status-tag is-available">Consent hiệu lực</span>
+                    <span className="s2l-class-copy"><strong>{profile.display_name}</strong><small>{profile.age_months} tháng</small></span>
+                    <span className="tp-chip-row">
+                      {childConsents.map((consent) => <span key={consent.consent_id} className="tp-value-chip">{purposeLabel(consent.purpose_ref)}</span>)}
+                      <StatusBadge tone="success" size="sm" dot>Đủ điều kiện</StatusBadge>
+                    </span>
                     {writable && moveTargets.length > 0 && !moving && (
                       <button type="button" className="s2l-button" disabled={busy} onClick={() => { setMoveDraft({ childId: profile.child_id, targetClassId: "" }); setCommandError(null); }}>Chuyển lớp</button>
                     )}
                     {moving && (
                       <div className="teacher-roster-move" role="group" aria-label={`Chuyển lớp cho ${profile.display_name}`}>
-                        <FormField label="Lớp đích" htmlFor={`move-target-${profile.child_id}`} required>
+                        <FormField label="Lớp đích" htmlFor={`move-target-${profile.child_id}`} required help="Khi chuyển lớp, lịch sử lớp trước đó được đóng và lưu lại.">
                           <Select id={`move-target-${profile.child_id}`} aria-label="Lớp đích" value={moveDraft.targetClassId} disabled={busy} onChange={(event) => setMoveDraft({ childId: profile.child_id, targetClassId: event.target.value })}>
                             <option value="" disabled>Chọn lớp</option>
                             {moveTargets.map((item) => <option key={item.class_id} value={item.class_id}>{item.display_name}</option>)}
                           </Select>
                         </FormField>
-                        <p className="cozy-form-hint" style={{ marginTop: 0 }}>Khi chuyển lớp, enrollment trước đó được đóng và lưu lại.</p>
                         {commandError && <Alert role="alert" tone="danger">{commandError}</Alert>}
-                        {!busy && !moveTarget && (
-                          <p className="cozy-form-disabled-hint">Chọn lớp đích để bật nút xác nhận chuyển lớp.</p>
-                        )}
-                        <div className="cozy-form-actions teacher-roster-move-actions" style={{ marginTop: 0 }}>
+                        <FormActionBar hint={!busy && !moveTarget ? "Chọn lớp đích để bật nút xác nhận chuyển lớp." : undefined}>
                           <Button type="button" variant="secondary" disabled={busy} onClick={() => setMoveDraft(null)}>Hủy</Button>
                           <Button type="button" variant="primary" loading={busy} disabled={busy || !moveTarget} onClick={moveProfile}>
                             {retrySignature !== null && retrySignature === moveSignature ? "Gửi lại cùng yêu cầu" : "Xác nhận chuyển lớp"}
                           </Button>
-                        </div>
+                        </FormActionBar>
                       </div>
                     )}
+                    <TeacherProfilePanels
+                      organizationId={organizationId ?? ""}
+                      classId={classId}
+                      childId={profile.child_id}
+                      canEdit={writable && !busy}
+                      onProfileSaved={() => setReload((value) => value + 1)}
+                    />
+                    {isClassTeacher && <TeacherPortfolioCard organizationId={organizationId ?? ""} classId={classId} childId={profile.child_id} />}
+                    {isClassTeacher && <TeacherParentSharePanel organizationId={organizationId ?? ""} classId={classId} childId={profile.child_id} canAccept={writable && !busy} />}
                   </li>
                 );
               })}
@@ -322,36 +477,134 @@ function TeacherApiClassDetailPage({ classId }: { classId: string }) {
           )}
         </section>
       )}
-      {classItem && !consentError && !error && <section className="s2l-data-card">
-        <h2>Trạng thái consent từ API</h2>
-        {consents.length === 0 ? <p>API không trả consent record cho lớp này.</p> : <ul className="s2l-consent-list">{consents.map((consent) => <li key={consent.consent_id}><span>{consent.purpose_ref}</span><span className={"s2l-status-tag" + (consent.effective ? " is-available" : "")}>{consent.effective ? "Hiệu lực" : consent.state + " · chưa hiệu lực"}</span></li>)}</ul>}
+      {classItem && !error && <section className="s2l-data-card cozy-form-stack" aria-labelledby="teacher-consent-title">
+        <h2 id="teacher-consent-title">Sự đồng ý của phụ huynh</h2>
+        {!consentError && (consents.length === 0
+          ? <p className="tw-sub">Chưa có bản ghi đồng ý nào cho lớp này.</p>
+          : <ul className="s2l-consent-list tp-consent-list">{consents.map((consent) => {
+            const revoked = consent.state === "revoked";
+            const pending = consent.state === "pending" && !consent.effective;
+            const childLabel = consentChildLabel(consent.child_id, visibleProfiles);
+            const statusLabel = revoked
+              ? "Đã thu hồi"
+              : consent.effective
+                ? "Hiệu lực"
+                : pending
+                  ? "Đang chờ xác thực, chưa hiệu lực"
+                  : "Chưa có hiệu lực";
+            const statusTone = revoked ? "neutral" : consent.effective ? "success" : "warn";
+            return (
+              <li key={consent.consent_id}>
+                <strong className="tp-consent-child">{childLabel}</strong>
+                <span className="tp-value-chip">{purposeLabel(consent.purpose_ref)}</span>
+                <StatusBadge tone={statusTone} size="sm" dot>{statusLabel}</StatusBadge>
+                {writable && !revoked && (
+                  consentToRevoke === consent.consent_id
+                    ? <span className="teacher-consent-confirm" role="group" aria-label={`Xác nhận thu hồi sự đồng ý cho ${childLabel}`}>
+                      <span>Bạn có chắc muốn thu hồi sự đồng ý này?</span>
+                      <Button type="button" variant="danger" size="sm" className="tp-quiet-danger" aria-label={`Xác nhận thu hồi sự đồng ý cho ${childLabel}`} disabled={consentMutationBusy} onClick={() => void revokeConsent(consent.consent_id)}>
+                        {consentMutationBusy ? "Đang thu hồi…" : "Xác nhận thu hồi"}
+                      </Button>
+                      <Button type="button" variant="secondary" size="sm" aria-label={`Hủy thu hồi sự đồng ý cho ${childLabel}`} disabled={consentMutationBusy} onClick={() => setConsentToRevoke(null)}>Hủy</Button>
+                    </span>
+                    : <Button type="button" variant="danger" size="sm" className="tp-quiet-danger" disabled={consentMutationBusy} onClick={() => {
+                      setConsentToRevoke(consent.consent_id);
+                      setConsentActionError(null);
+                    }} aria-label={`Thu hồi sự đồng ý cho ${childLabel}`}>Thu hồi</Button>
+                )}
+              </li>
+            );
+          })}</ul>
+        )}
+        {consentNotice && <p className="s2l-muted-copy" role="status">{consentNotice}</p>}
       </section>}
-      {classItem && !loading && !error && writable && (
-        <section className="s2l-data-card cozy-form-card cozy-form-card--wide teacher-roster-create" aria-labelledby="teacher-profile-create-title">
-          <h2 id="teacher-profile-create-title"><UserPlus size={17} aria-hidden="true" />Tạo hồ sơ thử nghiệm</h2>
-          <p className="cozy-form-hint" style={{ marginTop: 0 }}>Chỉ tạo hồ sơ synthetic để thử nghiệm: chưa nhận dữ liệu trẻ thật và không giả consent. Tên phải bắt đầu bằng “{SYNTHETIC_NAME_PREFIX}”.</p>
-          <form className="cozy-form-stack" onSubmit={(event) => { event.preventDefault(); createProfile(); }}>
-            <div className="cozy-form-grid">
-              <FormField className="cozy-span-4" label="Tên hiển thị" htmlFor="teacher-profile-name" required error={nameProblem}>
-                <input id="teacher-profile-name" className="cozy-input" value={profileName} maxLength={PROFILE_NAME_MAX} required disabled={busy} onChange={(event) => setProfileName(event.target.value)} />
-              </FormField>
-              <FormField className="cozy-span-2" label="Tuổi (tháng)" htmlFor="teacher-profile-age" required error={ageProblem}>
-                <input id="teacher-profile-age" className="cozy-input" type="number" min={PROFILE_AGE_MONTHS.min} max={PROFILE_AGE_MONTHS.max} step={1} value={ageMonths} required disabled={busy} onChange={(event) => setAgeMonths(event.target.value)} />
-              </FormField>
-            </div>
-            {commandError && !moveDraft && <Alert role="alert" tone="danger">{commandError}</Alert>}
-            {!busy && inputProblem && (
-              <p className="cozy-form-disabled-hint">Nhập tên hợp lệ và tuổi từ {PROFILE_AGE_MONTHS.min}–{PROFILE_AGE_MONTHS.max} tháng để bật nút tạo hồ sơ.</p>
-            )}
-            <div className="cozy-form-actions" style={{ marginTop: 0 }}>
-              <Button type="submit" variant="primary" loading={busy} disabled={busy || Boolean(inputProblem)}>
-                {busy ? "Đang gửi…" : retrySignature !== null && retrySignature === createSignature ? "Gửi lại cùng yêu cầu" : "Tạo hồ sơ"}
-              </Button>
-            </div>
-          </form>
-        </section>
+      {classItem && !error && writable && (
+        <details className="s2l-data-card cozy-form-card cozy-form-card--wide tp-collapsible" open={consentDisclosureOpen}>
+          <summary
+            className="tp-collapsible-summary"
+            onClick={(event) => {
+              event.preventDefault();
+              if (consentFormHasInput || consentActionError) {
+                setConsentFormOpen(true);
+                return;
+              }
+              setConsentFormOpen((open) => !open);
+            }}
+          >
+            <span className="tp-collapsible-title"><span>Ghi nhận sự đồng ý của phụ huynh</span></span>
+            <ChevronDown size={16} aria-hidden="true" />
+          </summary>
+          <div className="tp-form-column tp-collapsible-body">
+            <p className="cozy-form-hint" style={{ marginTop: 0 }}>Nếu trẻ chưa có trong danh sách lớp, nhập mã trẻ thủ công. Bản ghi chưa có hiệu lực và không làm trẻ xuất hiện trong danh sách lớp.</p>
+            {consentActionError && <Alert role="alert" tone="danger">{consentActionError}</Alert>}
+            <form className="cozy-form-stack" onSubmit={recordConsent}>
+                <div className="cozy-form-grid">
+                  <FormField className="cozy-span-3" label="Chọn trẻ trong danh sách lớp" htmlFor="teacher-consent-roster-child">
+                    <Select id="teacher-consent-roster-child" value={consentRosterChildId} disabled={consentMutationBusy} onChange={(event) => {
+                      setConsentManualChildId("");
+                      setConsentRosterChildId(event.target.value);
+                    }}>
+                      <option value="">Chọn trẻ trong danh sách lớp</option>
+                      {visibleProfiles.map((profile) => (
+                        <option key={profile.child_id} value={profile.child_id}>{profile.display_name}</option>
+                      ))}
+                    </Select>
+                  </FormField>
+                  <FormField className="cozy-span-3" label="Mã trẻ" htmlFor="teacher-consent-child-id" help="Chỉ nhập khi trẻ chưa có trong danh sách lớp.">
+                    <input id="teacher-consent-child-id" className="cozy-input" value={consentManualChildId} maxLength={128} disabled={consentMutationBusy} onChange={(event) => {
+                      setConsentRosterChildId("");
+                      setConsentManualChildId(event.target.value);
+                    }} />
+                  </FormField>
+                  <FormField className="cozy-span-3" label="Mục đích" htmlFor="teacher-consent-purpose" required help="Ví dụ: học tập trên lớp.">
+                    <input id="teacher-consent-purpose" className="cozy-input" value={consentPurposeRef} maxLength={128} required disabled={consentMutationBusy} onChange={(event) => setConsentPurposeRef(event.target.value)} />
+                  </FormField>
+                  <FormField className="cozy-span-3" label="Tham chiếu bằng chứng" htmlFor="teacher-consent-evidence" labelAction={<span className="cozy-form-optional">(không bắt buộc)</span>}>
+                    <input id="teacher-consent-evidence" className="cozy-input" value={consentEvidenceRef} maxLength={512} disabled={consentMutationBusy} onChange={(event) => setConsentEvidenceRef(event.target.value)} />
+                  </FormField>
+                </div>
+                <FormActionBar hint={!consentMutationBusy && !consentFormValid ? "Chọn trẻ trong danh sách lớp hoặc nhập mã trẻ hợp lệ." : undefined}>
+                  <Button type="submit" variant="primary" loading={consentMutationBusy} disabled={consentMutationBusy || !consentFormValid}>
+                    {consentMutationBusy ? "Đang ghi nhận…" : "Ghi nhận sự đồng ý"}
+                  </Button>
+                </FormActionBar>
+            </form>
+          </div>
+        </details>
       )}
-      <div className="s2l-note"><LockKeyhole size={15} aria-hidden="true" />Không cấp consent hoặc sửa hồ sơ tại đây; tạo hồ sơ và chuyển lớp chỉ dùng khi lớp đang hoạt động.</div>
+      {classItem && !loading && !error && writable && (
+        <details className="s2l-data-card cozy-form-card cozy-form-card--wide tp-collapsible">
+          <summary className="tp-collapsible-summary">
+            <span className="tp-collapsible-title">
+              <UserPlus size={17} aria-hidden="true" />
+              <span>Tạo hồ sơ thử nghiệm</span>
+            </span>
+            <ChevronDown size={16} aria-hidden="true" />
+          </summary>
+          <div className="tp-form-column tp-collapsible-body">
+            <p className="cozy-form-hint" style={{ marginTop: 0 }}>Hồ sơ này chỉ dùng để kiểm tra quy trình của lớp, không nhập dữ liệu của trẻ thật. Tên phải bắt đầu đúng bằng “{SYNTHETIC_NAME_PREFIX}” rồi đến tên hiển thị.</p>
+            <form className="cozy-form-stack" onSubmit={(event) => { event.preventDefault(); createProfile(); }}>
+              <div className="cozy-form-grid">
+                <FormField className="cozy-span-4" label="Tên hiển thị" htmlFor="teacher-profile-name" required error={nameProblem} help={`Gõ đúng phần “${SYNTHETIC_NAME_PREFIX}” ở đầu tên.`}>
+                  <input id="teacher-profile-name" className="cozy-input" value={profileName} maxLength={PROFILE_NAME_MAX} required disabled={busy} onChange={(event) => setProfileName(event.target.value)} />
+                </FormField>
+                <FormField className="cozy-span-2" label="Tuổi (tháng)" htmlFor="teacher-profile-age" required error={ageProblem} help={`Từ ${PROFILE_AGE_MONTHS.min} đến ${PROFILE_AGE_MONTHS.max} tháng.`}>
+                  <input id="teacher-profile-age" className="cozy-input" type="number" min={PROFILE_AGE_MONTHS.min} max={PROFILE_AGE_MONTHS.max} step={1} value={ageMonths} required disabled={busy} onChange={(event) => setAgeMonths(event.target.value)} />
+                </FormField>
+              </div>
+              {commandError && !moveDraft && <Alert role="alert" tone="danger">{commandError}</Alert>}
+              <FormActionBar hint={!busy && inputProblem ? `Nhập tên hợp lệ và tuổi từ ${PROFILE_AGE_MONTHS.min}–${PROFILE_AGE_MONTHS.max} tháng để bật nút tạo hồ sơ.` : undefined}>
+                <Button type="submit" variant="primary" loading={busy} disabled={busy || Boolean(inputProblem)}>
+                  {busy ? "Đang gửi…" : retrySignature !== null && retrySignature === createSignature ? "Gửi lại cùng yêu cầu" : "Tạo hồ sơ"}
+                </Button>
+              </FormActionBar>
+            </form>
+          </div>
+        </details>
+      )}
+      {classItem && !error && (
+        <p className="cozy-form-hint">Chỉnh sửa danh sách chỉ khả dụng khi lớp đang hoạt động.</p>
+      )}
     </div>
   );
 }

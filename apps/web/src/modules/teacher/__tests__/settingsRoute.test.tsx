@@ -41,7 +41,7 @@ describe("Teacher settings route", () => {
     const settingsLink = screen.getByRole("link", { name: /^Cài đặt$/ });
     expect(settingsLink.getAttribute("href")).toBe("/teacher/t08-settings");
     expect(settingsLink.getAttribute("aria-current")).toBe("page");
-    expect(settingsLink.textContent).not.toContain("Chờ API");
+    expect(settingsLink.textContent).not.toContain("Chờ dịch vụ");
     expect(TEACHER_NAVIGATION.flatMap((group) => group.items).find((item) => item.href === "/teacher/t08-settings")?.state).toBe("available");
   });
 });

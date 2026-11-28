@@ -14,7 +14,7 @@ export function TeacherUnavailablePage({ title, summary, missing, srsStep, nextT
     <div className="s2l-page">
       <PageHeading eyebrow="Teacher · Theo yêu cầu sản phẩm" title={title} description={summary} />
       <FeatureAvailability
-        title="Luồng này đang chờ API"
+        title="Luồng này đang chờ dịch vụ"
         summary={srsStep}
         requirement="Màn chỉ bật khi có contract versioned và quyền được backend xác minh."
         dependencies={missing}

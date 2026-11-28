@@ -1,23 +1,43 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, configure, fireEvent, render as testRender, screen, waitFor } from "@testing-library/react";
+import type { ReactNode } from "react";
+import { MemoryRouter } from "react-router-dom";
 import { TeacherOccurrencePage } from "../TeacherOccurrencePage";
 import { BackendApiError, backendApi } from "../../../../shared/api/backendApi";
+import { teacherWorkspaceApi, type TeacherActivity } from "../../../../shared/api/teacherWorkspaceApi";
 import { NOT_FOUND_OR_NO_ACCESS, OccurrenceApiError, teacherOccurrenceApi, type JobStatus, type Occurrence, type PlanRevision, type SourceDocument } from "../../../../shared/api/teacherOccurrenceApi";
 import { authService } from "../../../school-manager/be1/services/authService";
 import type { User } from "firebase/auth";
 
+// The page now renders Router Links; keep the original assertions under a real router context.
+function render(ui: ReactNode) {
+  return testRender(<MemoryRouter>{ui}</MemoryRouter>);
+}
+
+// The full suite runs many jsdom files in parallel: the default 1000 ms findBy/waitFor window is too short for the
+// upload and polling flows below, so every async query in this file waits up to 8 s (it returns as soon as the UI is ready).
+configure({ asyncUtilTimeout: 8000 });
+// The per-test limit (5 s default) must be longer than the async-query window above, or a loaded run fails on the test timeout first.
+vi.setConfig({ testTimeout: 30000 });
+
 const HASH = "a".repeat(64);
+const PINNED_LESSON = { lesson_id: "lesson-1", version_id: "version-2", content_sha256: "b".repeat(64) };
 const occurrenceOf = (id: string, title: string, extra: Partial<Occurrence> = {}): Occurrence => ({
   contract: "LessonOccurrenceV1", occurrence_id: id, class_id: "class-1", title, scheduled_date: "2026-11-25", state: "DRAFT", revision: 1,
   responsible_teacher_ref: "teacher-1", lesson_version_ref: null, lesson_version_no: null, approved_plan: null,
   sample_video: { slot_state: "AVAILABLE", claimed_at: null, run_ref: null }, created_at: "2026-11-20T00:00:00Z", ...extra,
+});
+const activityOf = (id: string, order: number, title: string, lesson_id = "lesson-1", version_id = "version-2"): TeacherActivity => ({
+  lesson_id, version_id, version_no: 2, content_sha256: PINNED_LESSON.content_sha256, lesson_title: "Con mèo", lesson_topic: null,
+  lesson_activity_id: id, activity_order: order, title, objective: null, activity_kind: "indoor", materials_text: null,
+  preparation_text: null, instructions_text: null, observation_notes: null, safety_notes: null,
 });
 const documentOf = (id = "doc-1", head = 1): SourceDocument => ({
   contract: "LessonSourceDocumentV1", source_document_id: id, occurrence_id: "occ-1", file_name: "giao-an.pdf", file_extension: ".pdf",
   page_or_slide_count: 3, document_state: "EXTRACTED", head_revision_no: head, job_ref: "job-1", warnings: [], page_coverage: [1, 2, 3], uploaded_at: "2026-11-20T00:00:00Z",
 });
 const planOf = (revision: number, state: PlanRevision["state"] = "DRAFT", hash = HASH): PlanRevision => ({
-  contract: "LessonPlanRevisionV1", occurrence_id: "occ-1", revision_no: revision, state, content_hash: hash, document_revision_ref: null,
+  contract: "LessonPlanRevisionV1", occurrence_id: "occ-1", plan_revision_id: `plan-rev-${revision}`, revision_no: revision, state, content_hash: hash, document_revision_ref: null,
   objectives: ["Quan sát"], teacher_direction: "Dẫn dắt trẻ", safety_notes: null, lesson_version_ref: null, lesson_version_no: null,
   activities: [], created_at: "2026-11-20T00:00:00Z", approved_at: null, supersedes_revision_no: null,
 });
@@ -43,6 +63,7 @@ function mockBackend(options: { occurrences?: Occurrence[]; plans?: PlanRevision
     { contract: "LessonSummaryV1", lesson_id: "lesson-2", title: "Bản nháp", topic: "Vẽ", current_version_no: 1, review_state: "DRAFT", visibility: "PRIVATE", activity_count: 1, updated_at: "" },
   ] } as never);
   vi.spyOn(backendApi, "teacherLesson").mockResolvedValue({ lesson_id: "lesson-1", current_version: { version_id: "version-2", review_state: "APPROVED", structured_content_hash: "b".repeat(64), content: { title: "Con mèo" } } } as never);
+  vi.spyOn(teacherWorkspaceApi, "activities").mockResolvedValue({ contract: "TeacherActivityPageV1", items: [], next_cursor: null });
   const list = vi.spyOn(teacherOccurrenceApi, "list").mockResolvedValue({ contract: "LessonOccurrencePageV1", items: occurrences, next_cursor: null });
   vi.spyOn(teacherOccurrenceApi, "get").mockImplementation(async (id) => ({ data: occurrences.find((item) => item.occurrence_id === id) ?? occurrences[0], etag: '"1"', notModified: false }));
   vi.spyOn(teacherOccurrenceApi, "listDocuments").mockResolvedValue({ contract: "LessonSourceDocumentPageV1", items: documents, next_cursor: null });
@@ -69,6 +90,16 @@ afterEach(() => {
   window.sketch2lifeConfig = undefined;
 });
 
+/**
+ * Wait until the first occurrence is open and its form reset has run. The page clears the file, plan and text fields in
+ * the same effect that requests the plans, so a heading alone is not enough: on a slow runner the reset can still follow
+ * and drop what the test has already entered.
+ */
+async function opened() {
+  await screen.findByRole("heading", { name: "Buổi vẽ con mèo" });
+  await waitFor(() => expect(teacherOccurrenceApi.listPlans).toHaveBeenCalled());
+}
+
 describe("TeacherOccurrencePage: list and create", () => {
   it("lists the occurrences of the assigned class and opens the first one", async () => {
     const { list } = mockBackend({ occurrences: [occurrenceOf("occ-1", "Buổi vẽ con mèo"), occurrenceOf("occ-2", "Buổi tô màu")] });
@@ -81,16 +112,32 @@ describe("TeacherOccurrencePage: list and create", () => {
     expect(screen.queryByRole("option", { name: "Bản nháp" })).toBeNull();
   });
 
+  it("keeps occurrences and the selected occurrence when re-selecting the already selected class (F-006)", async () => {
+    const { list } = mockBackend({ occurrences: [occurrenceOf("occ-1", "Buổi vẽ con mèo"), occurrenceOf("occ-2", "Buổi tô màu")] });
+    render(<TeacherOccurrencePage />);
+    await opened();
+    expect(screen.getByText(/Buổi tô màu/)).toBeTruthy();
+    expect(list).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByRole("combobox", { name: /Lớp được phân công/ }));
+    fireEvent.click(screen.getByRole("option", { name: "Lớp Mầm" }));
+
+    expect(screen.getByRole("heading", { name: "Buổi vẽ con mèo" })).toBeTruthy();
+    expect(screen.getByText(/Buổi tô màu/)).toBeTruthy();
+    expect(screen.queryByText("Chưa có buổi dạy trong lớp này.")).toBeNull();
+    expect(list).toHaveBeenCalledTimes(1);
+  });
+
   it("shows concise form guidance and keeps creation disabled until a title is entered", async () => {
     mockBackend();
     render(<TeacherOccurrencePage />);
-    await screen.findByRole("heading", { name: "Buổi vẽ con mèo" });
+    await opened();
 
     const title = screen.getByLabelText("Tên buổi dạy") as HTMLInputElement;
     const createButton = screen.getByRole("button", { name: "Tạo buổi dạy" }) as HTMLButtonElement;
     expect(title.placeholder).toBe("Ví dụ: Buổi vẽ lá cây");
     expect(screen.getByText("Tên ngắn giúp dễ nhận biết buổi học.")).toBeTruthy();
-    expect(screen.getByText("Không bắt buộc")).toBeTruthy();
+    expect(screen.getAllByText("(không bắt buộc)").length).toBeGreaterThan(0);
     expect(createButton.disabled).toBe(true);
 
     fireEvent.change(title, { target: { value: "Buổi mới" } });
@@ -103,7 +150,7 @@ describe("TeacherOccurrencePage: list and create", () => {
       .mockRejectedValueOnce(new BackendApiError("Không kết nối được dịch vụ.", "NETWORK_ERROR", 0))
       .mockResolvedValueOnce(occurrenceOf("occ-9", "Buổi mới", { scheduled_date: "2026-12-01" }));
     render(<TeacherOccurrencePage />);
-    await screen.findByRole("heading", { name: "Buổi vẽ con mèo" });
+    await opened();
     fireEvent.change(screen.getByLabelText("Tên buổi dạy"), { target: { value: "Buổi mới" } });
     fireEvent.change(screen.getByLabelText("Ngày dự kiến"), { target: { value: "2026-12-01" } });
     fireEvent.click(screen.getByRole("combobox", { name: /Ghim giáo án đã duyệt/ }));
@@ -125,7 +172,7 @@ describe("TeacherOccurrencePage: list and create", () => {
     mockBackend();
     const create = vi.spyOn(teacherOccurrenceApi, "create").mockResolvedValue(occurrenceOf("occ-9", "Chỉ tên"));
     render(<TeacherOccurrencePage />);
-    await screen.findByRole("heading", { name: "Buổi vẽ con mèo" });
+    await opened();
     fireEvent.change(screen.getByLabelText("Tên buổi dạy"), { target: { value: "Chỉ tên" } });
     fireEvent.click(screen.getByRole("button", { name: "Tạo buổi dạy" }));
     await waitFor(() => expect(create).toHaveBeenCalled());
@@ -208,7 +255,7 @@ describe("TeacherOccurrencePage: attach document", () => {
     });
     const getJob = vi.spyOn(teacherOccurrenceApi, "getJob").mockResolvedValue({ data: jobOf("succeeded"), etag: '"1"', notModified: false });
     render(<TeacherOccurrencePage />);
-    await screen.findByRole("heading", { name: "Buổi vẽ con mèo" });
+    await opened();
     fireEvent.change(screen.getByLabelText(/Tải PDF, DOCX hoặc PPTX/), { target: { files: [pdf()] } });
     fireEvent.click(screen.getByRole("button", { name: /Tải và đính kèm/ }));
     expect(await screen.findByText("Tài liệu đã được trích xuất.")).toBeTruthy();
@@ -230,7 +277,7 @@ describe("TeacherOccurrencePage: attach document", () => {
       .mockResolvedValueOnce({ contract: "LessonSourceDocumentAcceptedV1", source_document_id: "doc-1", document_revision_no: 1, job: { job_id: "job-1", target_kind: "LESSON_SOURCE_DOCUMENT", state: "succeeded" } });
     vi.spyOn(teacherOccurrenceApi, "getJob").mockResolvedValue({ data: jobOf("succeeded"), etag: '"1"', notModified: false });
     render(<TeacherOccurrencePage />);
-    await screen.findByRole("heading", { name: "Buổi vẽ con mèo" });
+    await opened();
     fireEvent.change(screen.getByLabelText(/Tải PDF, DOCX hoặc PPTX/), { target: { files: [pdf()] } });
     fireEvent.click(screen.getByRole("button", { name: /Tải và đính kèm/ }));
     expect((await screen.findByRole("alert")).textContent).toContain("Dịch vụ tạm thời chưa sẵn sàng");
@@ -248,7 +295,7 @@ describe("TeacherOccurrencePage: attach document", () => {
     });
     const abort = vi.spyOn(teacherOccurrenceApi, "abortOpenUpload").mockResolvedValue({ state: "ABORTED" } as never);
     render(<TeacherOccurrencePage />);
-    await screen.findByRole("heading", { name: "Buổi vẽ con mèo" });
+    await opened();
     fireEvent.change(screen.getByLabelText(/Tải PDF, DOCX hoặc PPTX/), { target: { files: [pdf()] } });
     fireEvent.click(screen.getByRole("button", { name: /Tải và đính kèm/ }));
     fireEvent.click(await screen.findByRole("button", { name: "Hủy phiên tải lên" }));
@@ -262,7 +309,7 @@ describe("TeacherOccurrencePage: attach document", () => {
     vi.spyOn(teacherOccurrenceApi, "attachDocument").mockResolvedValue({ contract: "LessonSourceDocumentAcceptedV1", source_document_id: "doc-1", document_revision_no: 1, job: { job_id: "job-1", target_kind: "LESSON_SOURCE_DOCUMENT", state: "succeeded" } });
     const getJob = vi.spyOn(teacherOccurrenceApi, "getJob").mockResolvedValue({ data: { ...jobOf("running"), completed_at: null }, etag: '"1"', notModified: false });
     const view = render(<TeacherOccurrencePage />);
-    await screen.findByRole("heading", { name: "Buổi vẽ con mèo" });
+    await opened();
     fireEvent.change(screen.getByLabelText(/Tải PDF, DOCX hoặc PPTX/), { target: { files: [pdf()] } });
     fireEvent.click(screen.getByRole("button", { name: /Tải và đính kèm/ }));
     await waitFor(() => expect(getJob).toHaveBeenCalled());
@@ -273,12 +320,22 @@ describe("TeacherOccurrencePage: attach document", () => {
   });
 });
 
+/**
+ * Render and wait until the opened occurrence has finished its form reset. The page clears the plan form in the same
+ * effect that requests the plans, so typing is safe only after that request was made; a form that is merely visible
+ * can still be cleared on a slow runner.
+ */
+async function openPlanForm(listPlans: ReturnType<typeof mockBackend>["listPlans"]) {
+  render(<TeacherOccurrencePage />);
+  await waitFor(() => expect(listPlans).toHaveBeenCalled());
+  return screen.findByLabelText(/Mục tiêu học tập/);
+}
+
 describe("TeacherOccurrencePage: plan form limits and field errors", () => {
   it("blocks more than 12 objectives, over-long objectives and shows why, without sending", async () => {
-    mockBackend();
+    const { listPlans } = mockBackend();
     const create = vi.spyOn(teacherOccurrenceApi, "createPlan");
-    render(<TeacherOccurrencePage />);
-    const objectives = await screen.findByLabelText(/Mục tiêu học tập/);
+    const objectives = await openPlanForm(listPlans);
     fireEvent.change(screen.getByLabelText(/Hướng dẫn cho giáo viên/), { target: { value: "Dẫn dắt" } });
     fireEvent.change(objectives, { target: { value: Array.from({ length: 13 }, (_, index) => `Mục ${index + 1}`).join("\n") } });
     expect(screen.getByText(/Tối đa 12 mục tiêu \(đang có 13\)/)).toBeTruthy();
@@ -295,12 +352,11 @@ describe("TeacherOccurrencePage: plan form limits and field errors", () => {
   });
 
   it("renders the field errors of a 400 as safe Vietnamese lines", async () => {
-    mockBackend();
+    const { listPlans } = mockBackend();
     vi.spyOn(teacherOccurrenceApi, "createPlan").mockRejectedValue(new OccurrenceApiError("Yêu cầu không hợp lệ.", "INVALID_REQUEST", 400, "req-7", [
       { field: "objectives[1]", code: "INVALID_FORMAT" }, { field: "activities[0].kind", code: "NOT_SUPPORTED" },
     ]));
-    render(<TeacherOccurrencePage />);
-    fireEvent.change(await screen.findByLabelText(/Mục tiêu học tập/), { target: { value: "A\nB" } });
+    fireEvent.change(await openPlanForm(listPlans), { target: { value: "A\nB" } });
     fireEvent.change(screen.getByLabelText(/Hướng dẫn cho giáo viên/), { target: { value: "Dẫn dắt" } });
     fireEvent.click(screen.getByRole("button", { name: "Lưu bản kế hoạch" }));
     expect(await screen.findByText("Mục tiêu học tập (dòng 2): không hợp lệ.")).toBeTruthy();
@@ -313,14 +369,18 @@ describe("TeacherOccurrencePage: upload abort", () => {
   const pdf = () => new File([new Uint8Array([1, 2, 3])], "giao-an.pdf", { type: "application/pdf", lastModified: 1 });
   async function failedUpload() {
     mockBackend();
-    vi.spyOn(teacherOccurrenceApi, "uploadOccurrenceFile").mockImplementation(async (_file, _id, options) => {
+    const upload = vi.spyOn(teacherOccurrenceApi, "uploadOccurrenceFile").mockImplementation(async (_file, _id, options) => {
       options?.onSession?.({ upload_id: "upl-9" } as never);
       throw new BackendApiError("Không kết nối được dịch vụ.", "NETWORK_ERROR", 0);
     });
     render(<TeacherOccurrencePage />);
-    await screen.findByRole("heading", { name: "Buổi vẽ con mèo" });
-    fireEvent.change(screen.getByLabelText(/Tải PDF, DOCX hoặc PPTX/), { target: { files: [pdf()] } });
-    fireEvent.click(screen.getByRole("button", { name: /Tải và đính kèm/ }));
+    await opened();
+    // A later load step can re-initialise the form on a slow runner: repeat the input until the upload really starts.
+    await waitFor(() => {
+      fireEvent.change(screen.getByLabelText(/Tải PDF, DOCX hoặc PPTX/), { target: { files: [pdf()] } });
+      fireEvent.click(screen.getByRole("button", { name: /Tải và đính kèm/ }));
+      expect(upload).toHaveBeenCalled();
+    });
     return screen.findByRole("button", { name: "Hủy phiên tải lên" });
   }
 
@@ -349,9 +409,8 @@ describe("TeacherOccurrencePage: upload abort", () => {
 
 describe("TeacherOccurrencePage: switching context", () => {
   it("drops the plan form and the document ref of the previous occurrence", async () => {
-    mockBackend({ occurrences: [occurrenceOf("occ-1", "Buổi A"), occurrenceOf("occ-2", "Buổi B")], documents: [documentOf("doc-1", 1)] });
-    render(<TeacherOccurrencePage />);
-    fireEvent.change(await screen.findByLabelText(/Mục tiêu học tập/), { target: { value: "Mục tiêu của A" } });
+    const { listPlans } = mockBackend({ occurrences: [occurrenceOf("occ-1", "Buổi A"), occurrenceOf("occ-2", "Buổi B")], documents: [documentOf("doc-1", 1)] });
+    fireEvent.change(await openPlanForm(listPlans), { target: { value: "Mục tiêu của A" } });
     fireEvent.change(screen.getByLabelText(/Hướng dẫn cho giáo viên/), { target: { value: "Hướng dẫn A" } });
     await screen.findByDisplayValue("Văn bản gốc");
     fireEvent.click(screen.getByRole("button", { name: /Buổi B/ }));
@@ -447,22 +506,166 @@ describe("TeacherOccurrencePage: document revisions", () => {
   });
 });
 
-describe("TeacherOccurrencePage: plan revisions", () => {
-  it("creates a plan revision from the selected one, keeping its lesson activities, against the current head", async () => {
-    const head = { ...planOf(2), activities: [{ order: 1, kind: "LESSON" as const, lesson_activity_id: "act-1", title: "Dạo vườn", description: null, snapshot_hash: HASH, checklist_required: false, checklist_version: null, confirmed: true }] };
-    mockBackend({ plans: [head, planOf(1)] });
-    const create = vi.spyOn(teacherOccurrenceApi, "createPlan").mockResolvedValue(planOf(3));
-    render(<TeacherOccurrencePage />);
-    fireEvent.click(await screen.findByRole("button", { name: /Bản 2 · Bản nháp/ }));
-    fireEvent.click(await screen.findByRole("button", { name: "Tạo bản mới từ bản này" }));
-    expect(screen.getByText(/Giữ nguyên 1 hoạt động/)).toBeTruthy();
-    fireEvent.change(screen.getByLabelText(/Hướng dẫn cho giáo viên/), { target: { value: "Dẫn dắt mới" } });
+describe("TeacherOccurrencePage: pinned plan activities", () => {
+  it("sends every activity from the pinned version in the first plan", async () => {
+    const { listPlans } = mockBackend({ occurrences: [occurrenceOf("occ-1", "Buổi vẽ", { lesson_version_ref: PINNED_LESSON })] });
+    vi.mocked(teacherWorkspaceApi.activities).mockResolvedValue({
+      contract: "TeacherActivityPageV1",
+      items: [activityOf("activity-1", 1, "Hoạt động A"), activityOf("activity-2", 2, "Hoạt động B")],
+      next_cursor: null,
+    });
+    const create = vi.spyOn(teacherOccurrenceApi, "createPlan").mockResolvedValue(planOf(1));
+    const objectives = await openPlanForm(listPlans);
+    const first = await screen.findByRole("checkbox", { name: /Hoạt động A/ }) as HTMLInputElement;
+    const second = screen.getByRole("checkbox", { name: /Hoạt động B/ }) as HTMLInputElement;
+    await waitFor(() => expect(first.checked && second.checked).toBe(true));
+
+    fireEvent.change(objectives, { target: { value: "Quan sát" } });
+    fireEvent.change(screen.getByLabelText(/Hướng dẫn cho giáo viên/), { target: { value: "Dẫn dắt" } });
+    const save = screen.getByRole("button", { name: "Lưu bản kế hoạch" }) as HTMLButtonElement;
+    fireEvent.click(save);
+    await waitFor(() => expect(create).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(save.disabled).toBe(false));
+    expect(create.mock.calls[0][1].activities).toEqual([
+      { kind: "LESSON", lesson_activity_id: "activity-1" },
+      { kind: "LESSON", lesson_activity_id: "activity-2" },
+    ]);
+    expect(first.checked && second.checked).toBe(true);
+
+    fireEvent.click(save);
+    await waitFor(() => expect(create).toHaveBeenCalledTimes(2));
+    expect(create.mock.calls[1][1].activities).toEqual(create.mock.calls[0][1].activities);
+  });
+
+  it("does not send a pinned activity the Teacher unticks", async () => {
+    const { listPlans } = mockBackend({ occurrences: [occurrenceOf("occ-1", "Buổi vẽ", { lesson_version_ref: PINNED_LESSON })] });
+    vi.mocked(teacherWorkspaceApi.activities).mockResolvedValue({
+      contract: "TeacherActivityPageV1",
+      items: [activityOf("activity-1", 1, "Hoạt động A"), activityOf("activity-2", 2, "Hoạt động B")],
+      next_cursor: null,
+    });
+    const create = vi.spyOn(teacherOccurrenceApi, "createPlan").mockResolvedValue(planOf(1));
+    const objectives = await openPlanForm(listPlans);
+    const first = await screen.findByRole("checkbox", { name: /Hoạt động A/ }) as HTMLInputElement;
+    const second = screen.getByRole("checkbox", { name: /Hoạt động B/ }) as HTMLInputElement;
+    await waitFor(() => expect(first.checked && second.checked).toBe(true));
+    fireEvent.click(second);
+
+    fireEvent.change(objectives, { target: { value: "Quan sát" } });
+    fireEvent.change(screen.getByLabelText(/Hướng dẫn cho giáo viên/), { target: { value: "Dẫn dắt" } });
     fireEvent.click(screen.getByRole("button", { name: "Lưu bản kế hoạch" }));
     await waitFor(() => expect(create).toHaveBeenCalled());
+    expect(create.mock.calls[0][1].activities).toEqual([{ kind: "LESSON", lesson_activity_id: "activity-1" }]);
+    expect(first.checked).toBe(true);
+    expect(second.checked).toBe(false);
+  });
+
+  it("keeps a deliberately empty selection empty after save and on the next save", async () => {
+    const { listPlans } = mockBackend({ occurrences: [occurrenceOf("occ-1", "Buổi vẽ", { lesson_version_ref: PINNED_LESSON })] });
+    vi.mocked(teacherWorkspaceApi.activities).mockResolvedValue({
+      contract: "TeacherActivityPageV1",
+      items: [activityOf("activity-1", 1, "Hoạt động A"), activityOf("activity-2", 2, "Hoạt động B")],
+      next_cursor: null,
+    });
+    const create = vi.spyOn(teacherOccurrenceApi, "createPlan").mockResolvedValue(planOf(1));
+    const objectives = await openPlanForm(listPlans);
+    const first = await screen.findByRole("checkbox", { name: /Hoạt động A/ }) as HTMLInputElement;
+    const second = screen.getByRole("checkbox", { name: /Hoạt động B/ }) as HTMLInputElement;
+    await waitFor(() => expect(first.checked && second.checked).toBe(true));
+    fireEvent.click(first);
+    fireEvent.click(second);
+
+    fireEvent.change(objectives, { target: { value: "Quan sát" } });
+    fireEvent.change(screen.getByLabelText(/Hướng dẫn cho giáo viên/), { target: { value: "Dẫn dắt" } });
+    const save = screen.getByRole("button", { name: "Lưu bản kế hoạch" }) as HTMLButtonElement;
+    fireEvent.click(save);
+    await waitFor(() => expect(create).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(save.disabled).toBe(false));
+    expect(create.mock.calls[0][1].activities).toEqual([]);
+    expect(first.checked || second.checked).toBe(false);
+
+    fireEvent.click(save);
+    await waitFor(() => expect(create).toHaveBeenCalledTimes(2));
+    expect(create.mock.calls[1][1].activities).toEqual([]);
+  });
+
+  it("resets selection when switching to another occurrence", async () => {
+    const { listPlans } = mockBackend({ occurrences: [
+      occurrenceOf("occ-1", "Buổi vẽ", { lesson_version_ref: PINNED_LESSON }),
+      occurrenceOf("occ-2", "Buổi vẽ lần hai", { lesson_version_ref: PINNED_LESSON }),
+    ] });
+    vi.mocked(teacherWorkspaceApi.activities).mockResolvedValue({
+      contract: "TeacherActivityPageV1",
+      items: [activityOf("activity-1", 1, "Hoạt động A"), activityOf("activity-2", 2, "Hoạt động B")],
+      next_cursor: null,
+    });
+    await openPlanForm(listPlans);
+    const second = await screen.findByRole("checkbox", { name: /Hoạt động B/ }) as HTMLInputElement;
+    await waitFor(() => expect(second.checked).toBe(true));
+    fireEvent.click(second);
+    expect(second.checked).toBe(false);
+
+    fireEvent.click(screen.getByRole("button", { name: /Buổi vẽ lần hai/ }));
+    const resetSecond = await screen.findByRole("checkbox", { name: /Hoạt động B/ }) as HTMLInputElement;
+    await waitFor(() => expect(resetSecond.checked).toBe(true));
+  });
+
+  it("still saves the current selection when pinned activities fail to load", async () => {
+    const { listPlans } = mockBackend({ occurrences: [occurrenceOf("occ-1", "Buổi vẽ", { lesson_version_ref: PINNED_LESSON })] });
+    vi.mocked(teacherWorkspaceApi.activities).mockRejectedValueOnce(new Error("offline"));
+    const create = vi.spyOn(teacherOccurrenceApi, "createPlan").mockResolvedValue(planOf(1));
+    const objectives = await openPlanForm(listPlans);
+    expect(await screen.findByText("Không thể tải hoạt động từ giáo án đã ghim. Có thể lưu kế hoạch với lựa chọn hiện tại.")).toBeTruthy();
+    fireEvent.change(objectives, { target: { value: "Quan sát" } });
+    fireEvent.change(screen.getByLabelText(/Hướng dẫn cho giáo viên/), { target: { value: "Dẫn dắt" } });
+    const save = screen.getByRole("button", { name: "Lưu bản kế hoạch" }) as HTMLButtonElement;
+    expect(save.disabled).toBe(false);
+    fireEvent.click(save);
+    await waitFor(() => expect(create).toHaveBeenCalled());
+    expect(create.mock.calls[0][1].activities).toEqual([]);
+  });
+});
+
+describe("TeacherOccurrencePage: plan revisions", () => {
+  it("creates a plan revision from the selected one, keeping its lesson activities, against the current head", async () => {
+    const head = { ...planOf(2), activities: [
+      { order: 1, kind: "LESSON" as const, lesson_activity_id: "act-1", title: "Dạo vườn", description: null, snapshot_hash: HASH, checklist_required: false, checklist_version: null, confirmed: true },
+      { order: 2, kind: "LESSON" as const, lesson_activity_id: "retired-act", title: "Hoạt động cũ", description: null, snapshot_hash: HASH, checklist_required: false, checklist_version: null, confirmed: true },
+    ] };
+    mockBackend({
+      occurrences: [occurrenceOf("occ-1", "Buổi vẽ con mèo", { lesson_version_ref: PINNED_LESSON })],
+      plans: [head, planOf(1)],
+    });
+    vi.mocked(teacherWorkspaceApi.activities).mockResolvedValue({
+      contract: "TeacherActivityPageV1", items: [activityOf("act-1", 1, "Dạo vườn"), activityOf("act-2", 2, "Hoạt động mới")], next_cursor: null,
+    });
+    const create = vi.spyOn(teacherOccurrenceApi, "createPlan").mockResolvedValue(planOf(3));
+    render(<TeacherOccurrencePage />);
+    fireEvent.click(await screen.findByRole("button", { name: /Phiên bản 2 · Bản nháp/ }));
+    fireEvent.click(await screen.findByRole("button", { name: "Tạo bản mới từ bản này" }));
+    const copiedActivity = await screen.findByRole("checkbox", { name: /Dạo vườn/ }) as HTMLInputElement;
+    const newActivity = screen.getByRole("checkbox", { name: /Hoạt động mới/ }) as HTMLInputElement;
+    expect(copiedActivity.checked).toBe(true);
+    expect(newActivity.checked).toBe(false);
+    expect(screen.getByText(/Giữ nguyên 1 hoạt động không có trong danh sách hiện tại từ bản kế hoạch trước/)).toBeTruthy();
+    fireEvent.change(screen.getByLabelText(/Hướng dẫn cho giáo viên/), { target: { value: "Dẫn dắt mới" } });
+    const save = screen.getByRole("button", { name: "Lưu bản kế hoạch" }) as HTMLButtonElement;
+    fireEvent.click(save);
+    await waitFor(() => expect(create).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(save.disabled).toBe(false));
     expect(create).toHaveBeenCalledWith("occ-1", {
       expected_head_revision_no: 2, document_revision_ref: null, objectives: ["Quan sát"], teacher_direction: "Dẫn dắt mới", safety_notes: null,
-      activities: [{ kind: "LESSON", lesson_activity_id: "act-1" }],
+      activities: [{ kind: "LESSON", lesson_activity_id: "act-1" }, { kind: "LESSON", lesson_activity_id: "retired-act" }],
     }, expect.any(String));
+    expect(copiedActivity.checked).toBe(true);
+    expect(newActivity.checked).toBe(false);
+
+    fireEvent.click(save);
+    await waitFor(() => expect(create).toHaveBeenCalledTimes(2));
+    expect(create.mock.calls[1][1].activities).toEqual([
+      { kind: "LESSON", lesson_activity_id: "act-1" },
+      { kind: "LESSON", lesson_activity_id: "retired-act" },
+    ]);
   });
 
   it("views a revision and confirms only the latest draft with its content hash", async () => {
@@ -470,9 +673,9 @@ describe("TeacherOccurrencePage: plan revisions", () => {
     mockBackend({ plans: [planOf(2, "DRAFT", "c".repeat(64)), planOf(1, "SUPERSEDED", "d".repeat(64))] });
     confirm.mockResolvedValue({ ...planOf(2, "APPROVED", "c".repeat(64)), approved_at: "2026-11-20T01:00:00Z" });
     render(<TeacherOccurrencePage />);
-    fireEvent.click(await screen.findByRole("button", { name: /Bản 1 · Đã thay thế/ }));
+    fireEvent.click(await screen.findByRole("button", { name: /Phiên bản 1 · Đã thay thế/ }));
     expect((await screen.findByRole("button", { name: "Xác nhận bản nháp mới nhất" }) as HTMLButtonElement).disabled).toBe(true);
-    fireEvent.click(screen.getByRole("button", { name: /Bản 2 · Bản nháp/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Phiên bản 2 · Bản nháp/ }));
     await waitFor(() => expect((screen.getByRole("button", { name: "Xác nhận bản nháp mới nhất" }) as HTMLButtonElement).disabled).toBe(false));
     fireEvent.click(screen.getByRole("button", { name: "Xác nhận bản nháp mới nhất" }));
     await waitFor(() => expect(confirm).toHaveBeenCalledWith("occ-1", 2, "c".repeat(64), expect.any(String)));
@@ -484,14 +687,14 @@ describe("TeacherOccurrencePage: plan revisions", () => {
     const { listPlans } = mockBackend({ plans: [stale] });
     vi.spyOn(teacherOccurrenceApi, "confirmPlan").mockRejectedValue(new BackendApiError("Thông tin đã thay đổi. Vui lòng tải lại và thử lại.", "STALE_REVISION", 409, "req-4"));
     render(<TeacherOccurrencePage />);
-    fireEvent.click(await screen.findByRole("button", { name: /Bản 1 · Bản nháp/ }));
+    fireEvent.click(await screen.findByRole("button", { name: /Phiên bản 1 · Bản nháp/ }));
     await waitFor(() => expect((screen.getByRole("button", { name: "Xác nhận bản nháp mới nhất" }) as HTMLButtonElement).disabled).toBe(false));
     const newHead = planOf(2, "DRAFT", "f".repeat(64));
     listPlans.mockResolvedValue({ contract: "LessonPlanRevisionPageV1", items: [planSummary(newHead), planSummary(stale)], next_cursor: null });
     vi.mocked(teacherOccurrenceApi.getPlan).mockImplementation(async (_id, revision) => ({ data: revision === 2 ? newHead : stale, etag: `"${revision}"`, notModified: false }));
     fireEvent.click(screen.getByRole("button", { name: "Xác nhận bản nháp mới nhất" }));
     expect((await screen.findByRole("alert")).textContent).toContain("Thông tin đã thay đổi");
-    expect(await screen.findByRole("heading", { name: "Bản 2 · Bản nháp" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "Phiên bản 2 · Bản nháp" })).toBeTruthy();
     expect(screen.getByText(/Đã tải lại bản mới nhất/)).toBeTruthy();
   });
 
@@ -500,8 +703,8 @@ describe("TeacherOccurrencePage: plan revisions", () => {
     mockBackend({ plans: [custom] });
     const confirm = vi.spyOn(teacherOccurrenceApi, "confirmPlan");
     render(<TeacherOccurrencePage />);
-    fireEvent.click(await screen.findByRole("button", { name: /Bản 1 · Bản nháp/ }));
-    expect(await screen.findByText(/danh mục checklist chưa được cấu hình/)).toBeTruthy();
+    fireEvent.click(await screen.findByRole("button", { name: /Phiên bản 1 · Bản nháp/ }));
+    expect(await screen.findByText(/danh mục kiểm tra an toàn nhưng danh mục chưa được cấu hình/)).toBeTruthy();
     expect((screen.getByRole("button", { name: "Xác nhận bản nháp mới nhất" }) as HTMLButtonElement).disabled).toBe(true);
     expect(confirm).not.toHaveBeenCalled();
     expect(screen.queryByText("CUSTOM")).toBeNull();

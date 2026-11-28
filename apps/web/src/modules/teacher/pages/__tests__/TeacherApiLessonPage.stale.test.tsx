@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { TeacherApiLessonPage } from "../TeacherApiLessonPage";
 import { PortalSessionProvider } from "../../../../shared/auth/PortalSessionContext";
@@ -28,7 +28,7 @@ const detailAt = (revision: number, title: string): TeacherLessonDetail => ({
       locale: "vi-VN",
       title,
       topic: "Con vật",
-      target_age_band_ref: "age-band-test",
+      target_age_band_ref: "age-36-71-months-v1",
       target_age_band_version: 1,
       objectives: ["Quan sát"],
       drawing_subject: "Con mèo",
@@ -90,7 +90,7 @@ describe("Teacher lesson stale save (FEAT-066 C4)", () => {
     render(<MemoryRouter><PortalSessionProvider><TeacherApiLessonPage /></PortalSessionProvider></MemoryRouter>);
 
     fireEvent.click(await screen.findByRole("button", { name: /Bản cũ/ }));
-    expect(await screen.findByText(/Revision 2/)).toBeTruthy();
+    expect(await screen.findByText(/Phiên bản 2/)).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: /Lưu cập nhật/ }));
 
     const reload = await screen.findByRole("button", { name: /Tải lại bản hiện tại/ });
@@ -99,7 +99,7 @@ describe("Teacher lesson stale save (FEAT-066 C4)", () => {
     expect(teacherLesson).toHaveBeenCalledTimes(1);
 
     fireEvent.click(reload);
-    expect(await screen.findByText(/Revision 3/)).toBeTruthy();
+    expect(await screen.findByText(/Phiên bản 3/)).toBeTruthy();
     expect(screen.getByDisplayValue("Bản của người khác")).toBeTruthy();
 
     fireEvent.click(screen.getByRole("button", { name: /Lưu cập nhật/ }));
@@ -108,5 +108,85 @@ describe("Teacher lesson stale save (FEAT-066 C4)", () => {
     expect(first[1].revision).toBe(2);
     expect(second[1].revision).toBe(3);
     expect(second[3]).not.toBe(first[3]);
+  });
+
+  it("confirms lesson archiving via dialog and cancels without archiving", async () => {
+    vi.spyOn(backendApi, "teacherLesson").mockResolvedValue(detailAt(2, "Bản cũ"));
+    const lessons = vi.spyOn(backendApi, "lessons");
+    const archive = vi.spyOn(backendApi, "archiveLesson").mockResolvedValue(detailAt(3, "Bản cũ"));
+
+    render(<MemoryRouter><PortalSessionProvider><TeacherApiLessonPage /></PortalSessionProvider></MemoryRouter>);
+
+    fireEvent.click(await screen.findByRole("button", { name: /Bản cũ/ }));
+    expect(await screen.findByText(/Phiên bản 2/)).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "Lưu trữ giáo án" }));
+    const cancelDialog = screen.getByRole("dialog");
+    expect(within(cancelDialog).getByRole("heading", { name: "Lưu trữ giáo án “Bản cũ”?" })).toBeTruthy();
+    expect(within(cancelDialog).getByText("Giáo án sẽ được gỡ khỏi danh sách giáo án.")).toBeTruthy();
+    expect(archive).not.toHaveBeenCalled();
+
+    fireEvent.click(within(cancelDialog).getByRole("button", { name: "Hủy" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expect(archive).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("button", { name: "Lưu trữ giáo án" }));
+    fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Lưu trữ giáo án" }));
+    await waitFor(() => expect(archive).toHaveBeenCalledTimes(1));
+    expect(archive).toHaveBeenCalledWith("org-test", expect.objectContaining({ lesson_id: "lesson-1", revision: 2 }), expect.any(String));
+    await waitFor(() => expect(lessons).toHaveBeenCalledTimes(2));
+    expect(screen.queryByRole("button", { name: /Bản cũ/ })).toBeNull();
+  });
+
+  it("requests active lessons for the initial and cursor pages", async () => {
+    const lessons = vi.spyOn(backendApi, "lessons")
+      .mockResolvedValueOnce({
+        contract: "LessonPageV1",
+        items: [{ contract: "LessonSummaryV1", lesson_id: "lesson-1", title: "Bản cũ", topic: "Con vật", current_version_no: 2, review_state: "DRAFT", visibility: "PRIVATE", activity_count: 1, updated_at: "2026-11-19T00:00:00Z" }],
+        next_cursor: "active-next-cursor",
+      })
+      .mockResolvedValueOnce({ contract: "LessonPageV1", items: [], next_cursor: null });
+
+    render(<MemoryRouter><PortalSessionProvider><TeacherApiLessonPage /></PortalSessionProvider></MemoryRouter>);
+
+    expect(await screen.findByRole("button", { name: /Bản cũ/ })).toBeTruthy();
+    expect(lessons).toHaveBeenNthCalledWith(1, "org-test", { state: "ACTIVE" });
+
+    fireEvent.click(screen.getByRole("button", { name: "Tải thêm giáo án" }));
+    await waitFor(() => expect(lessons).toHaveBeenCalledTimes(2));
+    expect(lessons).toHaveBeenNthCalledWith(2, "org-test", { state: "ACTIVE", cursor: "active-next-cursor" });
+  });
+
+  it("does not list lesson summaries marked ARCHIVED by the list response", async () => {
+    vi.spyOn(backendApi, "lessons").mockResolvedValueOnce({
+      contract: "LessonPageV1",
+      items: [
+        { contract: "LessonSummaryV1", lesson_id: "archived-lesson", title: "Đã lưu trữ", topic: "Con vật", current_version_no: 1, review_state: "DRAFT", visibility: "PRIVATE", activity_count: 1, updated_at: "2026-11-19T00:00:00Z", state: "ARCHIVED" },
+        { contract: "LessonSummaryV1", lesson_id: "active-lesson", title: "Còn lại", topic: "Con vật", current_version_no: 1, review_state: "DRAFT", visibility: "PRIVATE", activity_count: 1, updated_at: "2026-11-19T00:00:00Z", state: "ACTIVE" },
+      ],
+      next_cursor: null,
+    } as never);
+
+    render(<MemoryRouter><PortalSessionProvider><TeacherApiLessonPage /></PortalSessionProvider></MemoryRouter>);
+
+    expect(await screen.findByRole("button", { name: /Còn lại/ })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /Đã lưu trữ/ })).toBeNull();
+  });
+
+  it("closes the archive dialog without archiving when the page unmounts while open", async () => {
+    vi.spyOn(backendApi, "teacherLesson").mockResolvedValue(detailAt(2, "Bản cũ"));
+    const archive = vi.spyOn(backendApi, "archiveLesson");
+
+    const view = render(<MemoryRouter><PortalSessionProvider><TeacherApiLessonPage /></PortalSessionProvider></MemoryRouter>);
+
+    fireEvent.click(await screen.findByRole("button", { name: /Bản cũ/ }));
+    expect(await screen.findByText(/Phiên bản 2/)).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "Lưu trữ giáo án" }));
+    expect(screen.getByRole("dialog")).toBeTruthy();
+
+    view.unmount();
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(archive).not.toHaveBeenCalled();
   });
 });

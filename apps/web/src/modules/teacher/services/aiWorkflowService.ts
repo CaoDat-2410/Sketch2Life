@@ -3,7 +3,6 @@ import {
   configuredOrganizationId,
   hasFirebaseAuthBridge,
 } from '../../../shared/api/backendApi'
-import { parseApiError } from '../../../shared/api/errorEnvelope'
 
 export type TeacherLessonSuggestionInput = Readonly<{
   topic: string
@@ -16,25 +15,6 @@ export type TeacherLessonSuggestionInput = Readonly<{
   script_direction: string | null
 }>
 
-export type TeacherReviewedPlanInput = Readonly<{
-  review_confirmed: true
-  plan_revision_ref: string
-  topic: string
-  target_age_months: number
-  objectives: string[]
-  drawing_steps: Array<{ action: string; placement: string }>
-  subject_knowledge: string[]
-  activities: Array<{
-    activity_ref: string
-    title: string
-    goal: string
-    materials: string
-    preparation: string
-    instructions: string
-    safety_notes: string
-  }>
-}>
-
 type AiResponse<T> = Readonly<{
   request_id: string
   modal_call_id: string
@@ -42,40 +22,57 @@ type AiResponse<T> = Readonly<{
   status?: string
   review_required?: boolean
   suggestion?: T
-  deck?: Record<string, unknown>
 }>
 
 function organizationId() {
   const value = configuredOrganizationId()
-  if (!value) throw new Error('Thiếu organization_id để gọi dịch vụ giáo án.')
+  if (!value) throw new Error('Chưa thể kết nối để tạo giáo án. Hãy tải lại trang hoặc liên hệ người quản lý.')
   return encodeURIComponent(value)
+}
+
+function messageForStatus(status: number): string {
+  if (status === 401) return 'Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại.'
+  if (status === 403) return 'Bạn chưa thể thực hiện thao tác này. Hãy liên hệ người quản lý.'
+  if (status === 404) return 'Không tìm thấy thông tin cần dùng. Hãy tải lại trang.'
+  if (status === 409) return 'Thông tin đã thay đổi. Hãy tải lại trang rồi thử lại.'
+  if (status === 422) return 'Thông tin chưa đầy đủ. Hãy kiểm tra lại các mục đã nhập.'
+  if (status === 429) return 'Bạn đã gửi nhiều yêu cầu liên tiếp. Hãy thử lại sau ít phút.'
+  if (status >= 500) return 'Chưa thể hoàn tất lúc này. Hãy thử lại sau.'
+  return 'Yêu cầu chưa thể hoàn tất. Hãy kiểm tra thông tin rồi thử lại.'
 }
 
 async function post<T>(path: string, body: unknown): Promise<T> {
   const auth = window.sketch2lifeAuth
   if (!hasFirebaseAuthBridge() || !auth?.getIdToken) {
-    throw new Error('Chưa có Firebase ID token để gọi dịch vụ giáo án.')
+    throw new Error('Phiên đăng nhập chưa sẵn sàng. Hãy đăng nhập lại rồi thử lại.')
   }
-  const token = await auth.getIdToken()
-  if (!token) throw new Error('Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại.')
+  let idToken: string | null
+  try {
+    idToken = await auth.getIdToken()
+  } catch {
+    throw new Error('Không thể xác nhận phiên đăng nhập. Hãy đăng nhập lại rồi thử lại.')
+  }
+  if (!idToken) throw new Error('Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại.')
 
-  const response = await fetch(`${apiBaseUrl()}${path}`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      'X-Request-ID': globalThis.crypto?.randomUUID?.() ?? `teacher-${Date.now()}`,
-    },
-    body: JSON.stringify(body),
-    signal: AbortSignal.timeout(1_900_000),
-  })
-  const payload = await response.json().catch(() => null) as Record<string, unknown> | null
-  if (!response.ok) {
-    const error = parseApiError(payload, response.status, response.headers.get('X-Request-ID'))
-    throw new Error(`Yêu cầu AI thất bại (${error.code}). ${error.message}`)
+  let response: Response
+  try {
+    response = await fetch(`${apiBaseUrl()}${path}`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'X-Request-ID': globalThis.crypto?.randomUUID?.() ?? `teacher-${Date.now()}`,
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(1_900_000),
+    })
+  } catch {
+    throw new Error('Không thể kết nối lúc này. Hãy kiểm tra mạng rồi thử lại.')
   }
-  if (!payload || typeof payload !== 'object') throw new Error('Backend trả về contract không hợp lệ.')
+  if (!response.ok) throw new Error(messageForStatus(response.status))
+  const payload = await response.json().catch(() => null) as Record<string, unknown> | null
+  if (!payload || typeof payload !== 'object') throw new Error('Chưa nhận được kết quả. Hãy thử lại.')
   return payload as T
 }
 
@@ -84,6 +81,4 @@ const prefix = () => `/api/teacher/v1/organizations/${organizationId()}/ai`
 export const aiWorkflowService = {
   suggestLessonPlan: (input: TeacherLessonSuggestionInput) =>
     post<AiResponse<Record<string, unknown>>>(`${prefix()}/lesson-plan-suggestions`, input),
-  generateSketchDeck: (input: TeacherReviewedPlanInput) =>
-    post<AiResponse<Record<string, unknown>>>(`${prefix()}/sketch-decks`, input),
 }
