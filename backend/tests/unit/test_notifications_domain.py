@@ -387,7 +387,7 @@ def _constants(path: Path) -> dict[str, Any]:
     return found
 
 
-def test_revision_is_the_only_child_of_cls_0002_and_ends_the_library_chain() -> None:
+def test_revision_is_the_only_child_of_cls_0002_and_includes_sketch_deck_head() -> None:
     constants = _constants(_MIGRATION)
     assert constants["revision"] == "20261120_nt_0001" and len(constants["revision"]) <= 32
     assert constants["down_revision"] == "20261120_cls_0002"
@@ -404,10 +404,21 @@ def test_revision_is_the_only_child_of_cls_0002_and_ends_the_library_chain() -> 
         for down in downs:
             children.setdefault(down, set()).add(revision)
     assert children["20261120_cls_0002"] == {"20261120_nt_0001"}
-    # FEAT-066 T-4b1: 20261120_sel_0001 (the child-selection table) is its only child now; T-8b
-    # (deferred) would chain after that head.
+    # FEAT-066 T-4b1: 20261120_sel_0001 (the child-selection table) follows the inbox migration.
     assert children["20261120_nt_0001"] == {"20261120_sel_0001"}
-    assert "20261120_sel_0001" not in children
+    # FEAT-066 T-10b: 20261121_ll_0001 (remix lineage) is the single child of the selection table.
+    assert children["20261120_sel_0001"] == {"20261121_ll_0001"}
+    assert children["20261121_ll_0001"] == {"20261121_pg_0001"}
+    assert children["20261121_pg_0001"] == {"20261121_nt_0002"}
+    # T-SLD1 extends the notification delivery leaf with the presentation migration.
+    assert children["20261121_nt_0002"] == {"20261125_nt_0003"}
+    assert children["20261125_nt_0003"] == {
+        "20261122_t6b_0001",
+        "20261126_sl_0001",
+    }
+    assert children["20261126_sl_0001"] == {"20261126_sh_0001"}
+    assert children["20261126_sh_0001"] == {"20261126_dc_0001"}
+    assert "20261126_dc_0001" not in children
 
 
 def test_orm_matches_the_migration_columns_checks_unique_and_indexes() -> None:

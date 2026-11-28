@@ -88,6 +88,35 @@ def test_enabled_synthetic_creation_validates_then_delegates_once() -> None:
     assert repository.create_calls == 1
 
 
+def test_a_diagnosis_in_the_interests_summary_is_refused_before_the_repository_write() -> None:
+    """BR-20 (V4-B T-12b-fix): create and patch refuse it with a field code and no echo."""
+    repository = RecordingRepository()
+    service = ParentProfileService(repository, synthetic_enabled=True)
+    snapshot = ProfileSnapshot("Mina", 72, "bé bị tự kỷ synthetic-secret-marker")
+    principal = VerifiedPrincipal("parent-1", "issuer-1", frozenset())
+    for call in (
+        lambda: service.create_profile(
+            principal=principal, snapshot=snapshot, idempotency_key="k-1", request_id="r-1"
+        ),
+        lambda: service.patch_profile(
+            principal=principal,
+            profile_id=uuid4(),
+            expected_revision=1,
+            snapshot=snapshot,
+            idempotency_key="k-2",
+            request_id="r-2",
+        ),
+    ):
+        with pytest.raises(ParentProfileError) as caught:
+            call()
+        assert caught.value.status_code == 400
+        assert caught.value.field_errors == [
+            {"field": "interests_summary", "code": "DIAGNOSIS_LIKE"}
+        ]
+        assert "synthetic-secret-marker" not in str(caught.value)
+    assert repository.create_calls == 0
+
+
 @dataclass
 class _DeleteProfile:
     parent_profile_id: UUID

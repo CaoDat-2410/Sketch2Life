@@ -18,6 +18,12 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
+from sketch2life.contracts.schemas.lesson_library import (
+    CreateLessonRequestV1,
+    LessonContentInputV1,
+)
+from sketch2life.contracts.schemas.modal_ai import TeacherLessonSuggestionRequestV1
+from sketch2life.domain.lesson_library.model import validate_content
 from sketch2life.interfaces.http.routers import teacher_ai
 
 ISSUER = "https://issuer.example.test/synthetic"
@@ -83,6 +89,91 @@ def _provider(monkeypatch: pytest.MonkeyPatch, *, ai_provider: str, env: str = "
     monkeypatch.setattr(
         teacher_ai, "get_settings", lambda: SimpleNamespace(ai_provider=ai_provider, env=env)
     )
+
+
+@pytest.mark.parametrize(
+    ("target_age_months", "expected_age_band_ref"),
+    [
+        (36, "age-36-71-months-v1"),
+        (71, "age-36-71-months-v1"),
+        (72, "age-72-107-months-v1"),
+        (107, "age-72-107-months-v1"),
+        (108, "age-108-120-months-v1"),
+        (120, "age-108-120-months-v1"),
+    ],
+)
+def test_lesson_suggestion_maps_months_to_a_saveable_supported_age_band(
+    monkeypatch: pytest.MonkeyPatch,
+    target_age_months: int,
+    expected_age_band_ref: str,
+) -> None:
+    captured: dict[str, Any] = {}
+    content = {"target_age_band_ref": expected_age_band_ref}
+
+    class _Client:
+        def invoke(self, workload: str, worker_input: dict[str, Any]) -> Any:
+            assert workload == "lesson.plan.suggest"
+            captured.update(worker_input)
+            return SimpleNamespace(
+                output={
+                    "model": {
+                        "id": teacher_ai.QWEN_TEXT_MODEL_ID,
+                        "revision": teacher_ai.QWEN_TEXT_MODEL_REVISION,
+                    },
+                    "result": {"content": content},
+                },
+                call_id="synthetic-call",
+                elapsed_seconds=0.01,
+            )
+
+    monkeypatch.setattr(teacher_ai, "_require_modal_dev", lambda: None)
+    monkeypatch.setattr(teacher_ai, "ModalJsonFunctionClient", _Client)
+    payload = TeacherLessonSuggestionRequestV1(
+        topic="Butterflies",
+        target_age_months=target_age_months,
+        objectives=["Observe butterfly wings."],
+        drawing_subject="butterfly",
+        activity_count=1,
+        activity_kind="outdoor",
+    )
+
+    response = teacher_ai.suggest_lesson_plan(
+        ORG,
+        payload,
+        PRINCIPAL,
+        cast(Session, _FakeSession(_identity(), [_row()])),
+    )
+
+    assert captured["target_age_months"] == target_age_months
+    assert captured["target_age_band_ref"] == expected_age_band_ref
+    assert response["suggestion"]["target_age_band_ref"] == expected_age_band_ref
+    saved_content = LessonContentInputV1(
+        title="Butterfly lesson",
+        topic="Butterflies",
+        target_age_band_ref=response["suggestion"]["target_age_band_ref"],
+        target_age_band_version=1,
+        objectives=["Observe butterfly wings."],
+        drawing_subject="butterfly",
+        drawing_steps_text="Draw the body, then the wings.",
+        subject_learning_notes="A butterfly has four wings.",
+        activities=[
+            {
+                "title": "Observe a butterfly",
+                "objective": "Notice the butterfly's main body parts.",
+                "materials_text": "Paper and colored pencils.",
+                "preparation_text": "Choose a safe place with an adult.",
+                "instructions_text": "Observe from a safe distance.",
+                "safety_notes": "Do not touch wild insects.",
+            }
+        ],
+    )
+    assert saved_content.target_age_band_ref == expected_age_band_ref
+    save_request = CreateLessonRequestV1(content=saved_content)
+    validate_content(save_request.content.model_dump(mode="json"))
+    assert save_request.content.target_age_band_ref == expected_age_band_ref
+    save_request = CreateLessonRequestV1(content=saved_content)
+    validate_content(save_request.content.model_dump(mode="json"))
+    assert save_request.content.target_age_band_ref == expected_age_band_ref
 
 
 @pytest.mark.parametrize("handler", HANDLERS)

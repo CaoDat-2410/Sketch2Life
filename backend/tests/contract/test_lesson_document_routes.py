@@ -37,9 +37,22 @@ from sketch2life.interfaces.http.openapi_contract import (
     IDEMPOTENCY_MISMATCH_OPERATION_KEYS,
     MOUNTED_OPERATIONS,
 )
-from sketch2life.interfaces.http.routers.lesson_occurrences import get_document_service
+from sketch2life.interfaces.http.routers.lesson_occurrences import (
+    get_document_service,
+    get_transfer_guards,
+)
 
 DATABASE_SENTINEL = "postgresql+psycopg://sentinel_user:sentinel_pw@localhost:9/sentinel_db"
+
+
+class _NoOpTransferGuards:
+    def create(self, _principal: VerifiedPrincipal, _class_id: str) -> None:
+        pass
+
+    def occurrence_write(self, _principal: VerifiedPrincipal, _occurrence_id: str) -> None:
+        pass
+
+
 BASE = "/v1/lesson-occurrences/{occurrence_id}/documents"
 ATTACH = ("post", BASE)
 LIST = ("get", BASE)
@@ -170,6 +183,7 @@ def served() -> Iterator[tuple[TestClient, FakeService]]:
 
     application.dependency_overrides[get_verified_adult] = verified
     application.dependency_overrides[get_document_service] = lambda: service
+    application.dependency_overrides[get_transfer_guards] = lambda: _NoOpTransferGuards()
     with TestClient(application) as client:
         yield client, service
 

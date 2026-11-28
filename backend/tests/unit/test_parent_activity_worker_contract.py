@@ -12,6 +12,7 @@ if str(REPOSITORY_ROOT) not in sys.path:
     sys.path.insert(0, str(REPOSITORY_ROOT))
 
 from deployment.modal.srs_v23 import language_audio_app as worker  # noqa: E402
+
 from sketch2life.contracts.schemas.modal_ai import (  # noqa: E402
     PARENT_ACTIVITY_DETAIL_TEXT_MAX_LENGTH,
     ParentActivityFallbackDraftV1,
@@ -242,7 +243,10 @@ def test_worker_parser_forwards_every_passing_draft_so_the_backend_can_choose():
 
 
 def test_backend_contract_accepts_one_to_five_fallback_drafts_and_rejects_six_or_none():
-    base = _render_fallback("Người lớn chuẩn bị giấy và bút màu ở hiên nhà để trẻ so sánh màu mai rùa.")
+    base = _render_fallback(
+        "Ng?????i l???n chu???n b??? gi???y v?? b??t m??u ??? hi??n nh?? "
+        "????? tr??? so s??nh m??u mai r??a."
+    )
     payload = base.model_dump(mode="json")
     drafts = payload["fallback_activities"]
 

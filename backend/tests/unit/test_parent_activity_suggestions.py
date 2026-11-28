@@ -14,6 +14,8 @@ from sketch2life.application.services.parent_activity_suggestions import (
     _has_explicit_exploration,
     _has_explicit_outdoor_setting,
     _has_incomplete_vietnamese_sentence_tail,
+    _is_renderable_activity,
+    _sanitize_context_label,
     classify_parent_activity_worker_failure,
 )
 
@@ -811,3 +813,60 @@ def test_fallback_quality_gate_fails_closed(mutate):
             understanding_revision=1,
             modal_call_id=None,
         )
+
+
+@pytest.mark.parametrize(
+    "phrase",
+    [
+        "bé Linh",
+        "con Nam",
+        "em Hoa",
+        "bé Đạt",
+        "bé Ánh",
+        "con Ân",
+        "Bé Linh",
+        "Con Nam",
+        "Em Hoa",
+    ],
+)
+def test_capitalized_casual_name_is_removed_and_activity_is_rejected(phrase):
+    assert _sanitize_context_label(phrase, limit=300) == ""
+
+    activity = _activity("Quan sát bướm trong vườn")
+    activity["instructions_text"] += f" {phrase}."
+    assert _is_renderable_activity(activity) is None
+
+
+@pytest.mark.parametrize(
+    "sentence",
+    [
+        "bé đi dạo",
+        "bé đặt một câu",
+        "bé chọn lá",
+        "con chim",
+        "em bé",
+        "bé yêu",
+        "Cùng bé nhặt ba chiếc lá",
+    ],
+)
+def test_lowercase_word_after_casual_prefix_is_preserved_and_renderable(sentence):
+    assert _sanitize_context_label(sentence, limit=300) == sentence
+
+    activity = _activity("Quan sát bướm trong vườn")
+    activity["instructions_text"] += f" {sentence}."
+    assert _is_renderable_activity(activity) is not None
+
+
+@pytest.mark.parametrize(
+    "sentence",
+    [
+        "Cùng bé nhặt ba chiếc lá khác nhau, đặt cạnh tranh cây xanh.",
+        "Bé chỉ bóng nắng dưới tán cây xanh và kể màu bông hoa nhìn thấy.",
+    ],
+)
+def test_seed_activity_sentences_with_lowercase_words_remain_safe(sentence):
+    assert _sanitize_context_label(sentence, limit=300) == sentence
+
+    activity = _activity("Quan sát bướm trong vườn")
+    activity["instructions_text"] += f" {sentence}"
+    assert _is_renderable_activity(activity) is not None

@@ -104,7 +104,9 @@ def test_route_table_has_the_two_commands_and_no_way_back(published: dict[str, A
     class_paths = [path for path in published["paths"] if path.startswith("/api/be1/v1/classes/")]
     assert sorted(class_paths) == [
         "/api/be1/v1/classes/{class_id}/archive",
+        "/api/be1/v1/classes/{class_id}/assignment-transfers/{transfer_id}",
         "/api/be1/v1/classes/{class_id}/assignments",
+        "/api/be1/v1/classes/{class_id}/assignments/current",
         # FEAT-066 T-7d: the Teacher enrollment move (a roster command, not a state command).
         "/api/be1/v1/classes/{class_id}/profiles/{child_id}/move",
         "/api/be1/v1/classes/{class_id}/suspend",

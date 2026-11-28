@@ -162,9 +162,10 @@ def _audience_kind(statement: Any) -> str:
 
 def test_only_the_public_parent_read_statement_requires_an_approved_version() -> None:
     service = object.__new__(LessonLibraryService)
+    service._parent_audience_refs = lambda parent_ref: (parent_ref,)  # type: ignore[method-assign]
     captured: list[Any] = []
 
-    def capture(statement: Any, _limit: int) -> list[dict[str, Any]]:
+    def capture(statement: Any, _limit: int, **_kwargs: Any) -> list[dict[str, Any]]:
         captured.append(statement)
         return []
 

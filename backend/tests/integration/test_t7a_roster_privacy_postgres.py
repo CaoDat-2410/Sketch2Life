@@ -284,17 +284,62 @@ def test_manager_a09_returns_the_count_summary_without_child_fields_or_audit(t7a
     assert empty.json()["active_profile_count"] == 0
 
 
-def test_class_scoped_teacher_a09_keeps_the_gate_and_its_audit_row(t7a: T7a) -> None:
+def test_class_scoped_teacher_a09_lists_synthetic_profiles_and_counts_the_gated_ones(
+    t7a: T7a,
+) -> None:
     empty = t7a.get("scoped_teacher", t7a.class_path("/profiles"))
     assert empty.status_code == 200, empty.text
-    assert empty.json() == {"contract": "Be1ManagedProfileListV1", "items": []}
+    assert empty.json() == {
+        "contract": "Be1ManagedProfileListV1",
+        "items": [],
+        "next_cursor": None,
+        "active_profile_count": 0,
+    }
+    # T-7e (D-066-100): `_add_profile` writes a REAL profile with a pending consent. It is not
+    # released, so the Teacher gets 200 with no item and the aggregate count; nothing is audited.
     _add_profile(t7a, name="Synthetic Gated Child")
     gated = t7a.get("scoped_teacher", t7a.class_path("/profiles"))
-    # The consent gate cannot pass today (no `effective` state exists): a non-empty class is 409.
-    assert gated.status_code == 409, gated.text
-    assert gated.json()["code"] == "CONSENT_NOT_EFFECTIVE"
+    assert gated.status_code == 200, gated.text
+    assert gated.json() == {
+        "contract": "Be1ManagedProfileListV1",
+        "items": [],
+        "next_cursor": None,
+        "active_profile_count": 1,
+    }
     assert "Synthetic Gated Child" not in gated.text
-    assert _audit_count(t7a, "profile.list", decision="denied_consent_pending") == 1
+    # A synthetic profile of the class IS listed, next to the gated one that is only counted.
+    child_id = f"synthetic-{uuid4().hex[:24]}"
+    with t7a.factory.begin() as db:
+        db.add(
+            ManagedProfileModel(
+                child_id=child_id,
+                organization_id=t7a.organization_id,
+                class_id=t7a.class_id,
+                display_name="Synthetic Listed Child",
+                age_months=72,
+                age_revision=1,
+                age_source="SYNTHETIC_FIXTURE",
+                data_origin="SYNTHETIC_DEV",
+                created_by=t7a.subjects["manager"],
+            )
+        )
+    listed = t7a.get("scoped_teacher", t7a.class_path("/profiles"))
+    assert listed.status_code == 200, listed.text
+    assert listed.json() == {
+        "contract": "Be1ManagedProfileListV1",
+        "items": [
+            {
+                "child_id": child_id,
+                "class_id": t7a.class_id,
+                "display_name": "Synthetic Listed Child",
+                "age_months": 72,
+            }
+        ],
+        "next_cursor": None,
+        "active_profile_count": 2,
+    }
+    assert "Synthetic Gated Child" not in listed.text
+    assert _audit_count(t7a, "profile.list") == 0
 
 
 @pytest.mark.parametrize(

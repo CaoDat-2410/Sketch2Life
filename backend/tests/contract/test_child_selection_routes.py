@@ -33,7 +33,10 @@ from sketch2life.interfaces.http.openapi_contract import (
     MOUNTED_OPERATIONS,
 )
 from sketch2life.interfaces.http.openapi_srs_v22 import SRS_V22_INCLUDED_OPERATIONS
-from sketch2life.interfaces.http.routers.lesson_occurrences import get_child_selection_service
+from sketch2life.interfaces.http.routers.lesson_occurrences import (
+    get_child_selection_service,
+    get_transfer_guards,
+)
 
 DATABASE_SENTINEL = "postgresql+psycopg://sentinel_user:sentinel_pw@localhost:9/sentinel_db"
 BASE = "/v1/lesson-occurrences/{occurrence_id}/child-selections"
@@ -45,6 +48,14 @@ CONFIRM_URL = ONE_URL + "/confirmation"
 NOW = datetime(2026, 11, 21, 3, 0, tzinfo=UTC)
 HASH = "a" * 64
 CHILD_WORDS = ("seed", "draw_index", "candidate_names", "excluded", "reason")
+
+
+class _NoOpTransferGuards:
+    def create(self, _principal: VerifiedPrincipal, _class_id: str) -> None:
+        pass
+
+    def occurrence_write(self, _principal: VerifiedPrincipal, _occurrence_id: str) -> None:
+        pass
 
 
 def selection_json(
@@ -129,6 +140,7 @@ def served() -> Iterator[tuple[TestClient, FakeService]]:
 
     application.dependency_overrides[get_verified_adult] = verified
     application.dependency_overrides[get_child_selection_service] = lambda: service
+    application.dependency_overrides[get_transfer_guards] = lambda: _NoOpTransferGuards()
     with TestClient(application) as client:
         yield client, service
 

@@ -201,7 +201,7 @@ def test_create_profile_missing_and_unassigned_class_look_the_same() -> None:
 def _list_profiles_error(session: _FakeSession, class_id: str = "class-a") -> HTTPException:
     return _registry_error(
         lambda: be1_registry.list_profiles(
-            ORG, class_id, principal=PRINCIPAL, db=cast(Session, session)
+            ORG, class_id, limit=25, cursor=None, principal=PRINCIPAL, db=cast(Session, session)
         )
     )
 
@@ -225,7 +225,7 @@ class _CountingFakeSession(_FakeSession):
 
 def _list_profiles_body(session: _FakeSession, class_id: str = "class-a") -> Any:
     return be1_registry.list_profiles(
-        ORG, class_id, principal=PRINCIPAL, db=cast(Session, session)
+        ORG, class_id, limit=25, cursor=None, principal=PRINCIPAL, db=cast(Session, session)
     )
 
 

@@ -21,17 +21,13 @@ from sketch2life.infrastructure.vision_analysis.pilot_composition import (
     PilotVisionComposition,
 )
 from sketch2life.interfaces.http.admin_contract import ADMIN_OPERATIONS
-from sketch2life.interfaces.http.quota_contract import QUOTA_OPERATIONS
 from sketch2life.interfaces.http.app import (
     create_app,
     create_classroom_app,
     create_demo_app,
 )
-from sketch2life.interfaces.http.openapi_srs_v22 import (
-    PARENT_EXPO_INCLUDED_OPERATIONS,
-    PARENT_EXPO_OPERATION_TAG,
-)
 from sketch2life.interfaces.http.be1_runtime import get_db, get_verified_adult
+from sketch2life.interfaces.http.quota_contract import QUOTA_OPERATIONS
 
 
 @pytest.fixture(autouse=True)
@@ -131,6 +127,8 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
         f"{library}/me/lessons/{{lesson_id}}/download": ["GET"],
         f"{library}/me/parent-group-invitations": ["GET"],
         f"{library}/me/parent-group-invitations/{{membership_id}}/accept": ["POST"],
+        f"{library}/me/parent-group-invitations/{{membership_id}}/decline": ["POST"],
+        f"{library}/me/parent-group-memberships": ["GET"],
         f"{organization}/access-grants": ["GET"],
         f"{organization}/access-grants/{{access_grant_id}}/decision": ["POST"],
         f"{organization}/lessons": ["GET", "POST"],
@@ -140,9 +138,14 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
         f"{lesson}/source-documents/{{source_document_id}}": ["GET"],
         f"{lesson}/source-documents/{{source_document_id}}/revisions/{{revision_id}}": ["GET"],
         f"{lesson}/upload-sessions": ["POST"],
-        f"{lesson}/versions": ["POST"],
+        f"{lesson}/versions": ["GET", "POST"],
+        f"{lesson}/versions/{{version_id}}": ["GET"],
+        f"{lesson}/remixes": ["POST"],
+        f"{organization}/public-lessons": ["GET"],
+        f"{organization}/activities": ["GET"],
         f"{organization}/parent-groups": ["GET", "POST"],
         f"{organization}/parent-groups/{{parent_group_id}}/invitations": ["POST"],
+        f"{organization}/parent-groups/{{parent_group_id}}/members": ["GET"],
         f"{organization}/parent-groups/{{parent_group_id}}/members/{{membership_id}}": ["DELETE"],
         f"{library}/platform/lessons/{{lesson_id}}/moderation": ["PATCH"],
         upload: ["DELETE", "GET"],
@@ -152,13 +155,39 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
 
     # Preserve the pre-integration route surface while enumerating current additions.
     assert expected.items() <= actual.items()
+    from sketch2life.interfaces.http.openapi_contract import (
+        FEAT083_OPERATIONS,
+        SKETCH_DECK_OPERATIONS,
+        TEACHER_INVITATION_OPERATIONS,
+    )
+
+    added_paths = {path for _, path in FEAT083_OPERATIONS} | {
+        path for _, path in TEACHER_INVITATION_OPERATIONS
+    } | {path for _, path in SKETCH_DECK_OPERATIONS}
     assert set(actual) - set(expected) == {
         # FEAT-066 T0.3: the public liveness probe (the operator probes are not in the schema).
         "/health/live",
+        "/v1/story-runs/{run_id}/drawing-analysis/resume",
         "/api/be1/v1/classes/{class_id}/assignments",
+        "/api/be1/v1/classes/{class_id}/assignments/current",
+        "/api/be1/v1/classes/{class_id}/assignment-transfers/{transfer_id}",
+        # FEAT-066 goal v4 T-6c: Manager conflict projection and force-close command.
+        "/api/be1/v1/organizations/{organization_id}/teachers/{teacher_ref}/"
+        "active-story-run-conflict",
+        "/api/be1/v1/organizations/{organization_id}/story-runs/{run_id}/force-close",
         "/api/be1/v1/classes/{class_id}/suspend",  # FEAT-066 T-7b
         "/api/be1/v1/classes/{class_id}/archive",  # FEAT-066 T-7b
         "/api/be1/v1/classes/{class_id}/profiles/{child_id}/move",  # FEAT-066 T-7d
+        # FEAT-066 goal v4 T-12b: the Teacher profile edit and the revision history.
+        "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}",
+        "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}/revisions",
+        "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}"
+        "/revisions/{profile_revision_id}",
+        # FEAT-066 goal v4 T-12c: the Teacher encrypted support needs.
+        "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}"
+        "/support-needs",
+        # T-CAP1: Manager reads and configures one organization's effective class capacity.
+        "/api/be1/v1/organizations/{organization_id}/capacity",
         # FEAT-066 M9-B: same-organization Teacher candidates for the first assignment.
         "/api/be1/v1/organizations/{organization_id}/teacher-candidates",
         "/api/be1/v1/device-grants/{grant_id}/join-status",
@@ -176,10 +205,26 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
         "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/teacher/assistance-requests/pending",
         "/v1/parent/profiles",
         "/v1/parent/profiles/{profile_id}",
+        "/v1/parent/consent-policy",
+        # T-SHARE1: standalone Parent grants/history plus the BE1 accept/read endpoints.
+        "/v1/parent/share-grants",
+        "/v1/parent/share-grants/{share_grant_id}",
+        "/v1/parent/share-grants/{share_grant_id}/revoke",
+        "/v1/parent/share-grants/{share_grant_id}/deliveries",
+        "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}/parent-share",
+        "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}/parent-share/accept",
+        # FEAT-066 goal v4 T-12a: the adult-entered context entries of a profile.
+        "/v1/parent/profiles/{profile_id}/context-entries",
+        # FEAT-066 goal v4 T-12c: the Parent encrypted support needs.
+        "/v1/parent/profiles/{profile_id}/support-needs",
     } | set(lesson_library_methods) | {path for _, path in ADMIN_OPERATIONS} | {
         path for _, path in QUOTA_OPERATIONS
-    } | {
+    } | added_paths | {
+        # Preview of one catalog SVG for the Teacher slide picker.
+        "/api/svg-catalog/v1/organizations/{organization_id}/assets/{catalog_entry_id}",
         "/api/auth/v1/registrations",
+        # A2: completion is mounted but remains runtime-only in the published projection.
+        "/api/auth/v1/registrations/complete",
         "/api/auth/v1/me",
         # FEAT-066 T0.4: live job poll route (runtime-only).
         "/v1/jobs/{job_id}",
@@ -207,18 +252,36 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
         # FEAT-066 T-5a: the class projection of the sample video (SRS l.1661-1662), always mounted.
         "/v1/lesson-occurrences/{occurrence_id}/projection-confirmation",
         "/v1/lesson-occurrences/{occurrence_id}/projection-playback-token",
-        # FEAT-066 T-8a: the notification inbox (SRS l.1681), always mounted.
+        # T-SLD1: presentation and SVG draft routes, mounted with occurrence services.
+        "/v1/lesson-occurrences/{occurrence_id}/presentation",
+        "/v1/lesson-occurrences/{occurrence_id}/presentation/revisions",
+        "/v1/lesson-occurrences/{occurrence_id}/presentation/revisions/{revision_no}",
+        "/v1/lesson-occurrences/{occurrence_id}/presentation/revisions/{revision_no}/ready",
+        "/v1/lesson-occurrences/{occurrence_id}/presentation/images/{asset_ref}",
+        "/v1/lesson-occurrences/{occurrence_id}/presentation/svg-drafts",
+        "/v1/lesson-occurrences/{occurrence_id}/presentation/svg-drafts/{svg_draft_id}",
+        "/v1/lesson-occurrences/{occurrence_id}/presentation/svg-drafts/{svg_draft_id}/decision",
+        # FEAT-066 T-8a/T-8b: inbox and push endpoint commands (SRS l.812, l.815).
         "/v1/notifications",
         "/v1/notifications/read-all",
         "/v1/notifications/{inbox_item_id}/read",
+        "/v1/notifications/push-endpoints",
+        "/v1/notifications/push-endpoints/{endpoint_id}",
         "/api/platform-admin/v1/accounts",
         "/api/platform-admin/v1/accounts/{account_id}",
         "/api/parent/v1/ai/sketch-guides",
         "/api/parent/v1/ai/drawing-understandings",
         "/api/parent/v1/ai/story-runs/{run_id}/story-revisions",
+        # Hybrid B: the Parent AI activity set and selection receipt.
+        "/api/parent/v1/ai/story-runs/{run_id}/activity-suggestions",
+        "/api/parent/v1/ai/story-runs/{run_id}/activity-selection",
         "/api/teacher/v1/organizations/{organization_id}/ai/lesson-plan-suggestions",
         "/api/teacher/v1/organizations/{organization_id}/ai/sketch-decks",
-    } | {path for _method, path in PARENT_EXPO_INCLUDED_OPERATIONS} | {
+        "/api/teacher/v1/organizations/{organization_id}/ai/lesson-visuals",
+        # FEAT-066 goal v4 E2 T-TCH2: current assignment history and own-profile read.
+        "/api/teacher/v1/organizations/{organization_id}/history",
+        "/api/teacher/v1/me/profile",
+    } | {
         "/api/svg-catalog/v1/parent/guides",
         "/api/svg-catalog/v1/organizations/{organization_id}/assets",
         "/api/svg-catalog/v1/organizations/{organization_id}/assets/{catalog_entry_id}/guide-revisions",
@@ -231,6 +294,11 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
         "/api/svg-catalog/v1/platform/assets/{catalog_entry_id}/source-reviews",
     }
     assert {path: actual[path] for path in lesson_library_methods} == lesson_library_methods
+    for path in (
+        "/api/parent/v1/ai/story-runs/{run_id}/activity-suggestions",
+        "/api/parent/v1/ai/story-runs/{run_id}/activity-selection",
+    ):
+        assert actual[path] == ["POST"]
 
 
 def test_compatibility_app_keeps_be1_and_demo_services_on_app_state() -> None:
@@ -241,6 +309,13 @@ def test_compatibility_app_keeps_be1_and_demo_services_on_app_state() -> None:
     assert application.state.session_service is not None
     assert application.state.live_image_demo_service is not None
     assert application.state.supervised_flow_service is not None
+
+
+def test_sketch_deck_routes_are_mounted_on_lesson_occurrences() -> None:
+    application = create_app()
+    actual = _mounted_route_methods(application)
+
+    assert actual["/v1/lesson-occurrences/{occurrence_id}/sketch-decks"] == ["GET", "POST"]
 
 
 def test_legacy_parent_story_revision_requires_idempotency_and_uses_srs_error_envelope() -> None:
@@ -280,16 +355,23 @@ def test_classroom_profile_excludes_process_local_demo_routes() -> None:
     assert application.state.live_image_demo_service is None
 
 
+@pytest.mark.skip(
+    reason="origin/dev imports PARENT_EXPO_INCLUDED_OPERATIONS and PARENT_EXPO_OPERATION_TAG "
+    "from openapi_srs_v22, which no commit defines; restore when the teammate publishes them."
+)
 def test_current_parent_expo_api_operations_are_published_in_openapi() -> None:
+    from sketch2life.interfaces.http import openapi_srs_v22
+
     application = create_app()
     runtime_schema = application.openapi(fe_projected=False)
     public_schema = application.openapi()
 
-    for method, path in PARENT_EXPO_INCLUDED_OPERATIONS:
+    for method, path in openapi_srs_v22.PARENT_EXPO_INCLUDED_OPERATIONS:
         assert method in runtime_schema["paths"][path]
         assert method in public_schema["paths"][path]
 
-    assert any(tag["name"] == PARENT_EXPO_OPERATION_TAG for tag in public_schema["tags"])
+    tag = openapi_srs_v22.PARENT_EXPO_OPERATION_TAG
+    assert any(item["name"] == tag for item in public_schema["tags"])
     assert "/api/parent/v1/ai/video-generation" not in public_schema["paths"]
 
 

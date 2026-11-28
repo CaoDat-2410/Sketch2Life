@@ -101,6 +101,7 @@ def activity_row(**overrides: Any) -> Any:
 
 def test_a_lesson_activity_shows_the_copied_title_and_instructions() -> None:
     body = plan_body(plan_row(), [activity_row()], None)
+    assert body["plan_revision_id"] == "p-1"
     assert body["activities"][0] == {
         "plan_activity_id": "11111111-1111-4111-8111-111111111111",
         "order": 1,
@@ -114,6 +115,28 @@ def test_a_lesson_activity_shows_the_copied_title_and_instructions() -> None:
         "confirmed": False,
     }
     assert body["lesson_version_ref"] is None and body["supersedes_revision_no"] is None
+
+
+def test_an_old_replay_body_gets_its_plan_revision_id_from_the_immutable_row() -> None:
+    class PlanLookupResult:
+        def mappings(self) -> PlanLookupResult:
+            return self
+
+        def one_or_none(self) -> Any:
+            return plan_row()
+
+    class PlanLookupDatabase:
+        def execute(self, _statement: Any) -> PlanLookupResult:
+            return PlanLookupResult()
+
+    service = PlanRevisionService(PlanLookupDatabase())  # type: ignore[arg-type]
+    body = {
+        "occurrence_id": "o-1",
+        "revision_no": 2,
+        "activities": [],
+    }
+
+    assert service._with_activity_ids(body)["plan_revision_id"] == "p-1"
 
 
 def test_a_custom_activity_requires_a_checklist_until_it_is_confirmed() -> None:

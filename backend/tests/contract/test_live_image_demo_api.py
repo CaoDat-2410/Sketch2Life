@@ -61,6 +61,7 @@ from sketch2life.infrastructure.catalog.activity_semantics_v2 import (
 from sketch2life.infrastructure.catalog.p1_catalog import load_p1_template_library
 from sketch2life.infrastructure.catalog.workflow_metadata import FileWorkflowCatalogMetadata
 from sketch2life.infrastructure.config.settings import CoreDatabaseSettings, Settings
+from sketch2life.infrastructure.storage import s3_compatible
 from sketch2life.infrastructure.storage.in_memory import (
     InMemoryArtifactStore,
     InMemoryIdempotencyStore,
@@ -94,6 +95,11 @@ _SOURCE_WEBP = (
 )
 
 
+class _NoNetworkS3Client:
+    def __getattr__(self, operation: str) -> Never:
+        raise AssertionError(f"Unexpected S3 operation in offline API contract test: {operation}")
+
+
 @pytest.fixture(autouse=True)
 def _offline_api_settings(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """Keep API contract tests independent of local credentials and external services."""
@@ -113,6 +119,11 @@ def _offline_api_settings(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> No
         whiteboard_video_enabled=False,
     )
     monkeypatch.setattr(http_app, "get_settings", lambda: settings)
+    monkeypatch.setattr(
+        s3_compatible,
+        "build_s3_client",
+        lambda **_kwargs: _NoNetworkS3Client(),
+    )
     database_settings = CoreDatabaseSettings(  # type: ignore[call-arg]
         _env_file=None, database_url=None
     )

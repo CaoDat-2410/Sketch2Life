@@ -38,11 +38,24 @@ from sketch2life.interfaces.http.openapi_srs_v22 import (
     SRS_V22_INCLUDED_OPERATIONS,
     SRS_V22_OPERATION_TAGS,
 )
-from sketch2life.interfaces.http.routers.lesson_occurrences import get_occurrence_service
+from sketch2life.interfaces.http.routers.lesson_occurrences import (
+    get_occurrence_service,
+    get_transfer_guards,
+)
 
 FLAG = "STORYRUN_LITE_MAIN_DEMO_ENABLED"
 ACK = "STORYRUN_LITE_MAIN_DEMO_REPLACES_PARENT_ROUTER"
 DATABASE_SENTINEL = "postgresql+psycopg://sentinel_user:sentinel_pw@localhost:9/sentinel_db"
+
+
+class _NoOpTransferGuards:
+    def create(self, _principal: VerifiedPrincipal, _class_id: str) -> None:
+        pass
+
+    def occurrence_write(self, _principal: VerifiedPrincipal, _occurrence_id: str) -> None:
+        pass
+
+
 POST = ("post", "/v1/lesson-occurrences")
 GET_ONE = ("get", "/v1/lesson-occurrences/{occurrence_id}")
 GET_LIST = ("get", "/v1/lesson-occurrences")
@@ -129,6 +142,7 @@ def served() -> Iterator[tuple[TestClient, FakeService]]:
 
     application.dependency_overrides[get_verified_adult] = verified
     application.dependency_overrides[get_occurrence_service] = lambda: service
+    application.dependency_overrides[get_transfer_guards] = lambda: _NoOpTransferGuards()
     with TestClient(application) as client:
         yield client, service
 

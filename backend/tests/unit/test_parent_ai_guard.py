@@ -141,8 +141,12 @@ def test_every_ai_route_answers_the_404_before_the_provider_gate(
     calls = _calls(client)
     _use_db(client, _Db("parent"))
     for name, call in calls.items():
-        expected_status = 404 if name == "sketch-guides" else 503
-        assert call().status_code == expected_status, name
+        response = call()
+        if name == "sketch-guides":
+            assert response.status_code == 404
+            assert response.json()["detail"]["code"] == "CURATED_SVG_GUIDE_NOT_FOUND"
+        else:
+            assert response.status_code == 503, name
     _use_db(client, db)
     bodies = {name: call() for name, call in calls.items()}
     for name, response in bodies.items():

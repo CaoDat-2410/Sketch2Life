@@ -51,10 +51,11 @@ RUN_ID = "22222222-2222-4222-8222-222222222222"
 TEACHER = RunActor(RunActorKind.TEACHER, "account-1")
 PARENT = RunActor(RunActorKind.PARENT, "account-2")
 _DIALECT = postgresql.dialect()  # type: ignore[no-untyped-call]
-PARENT_WORKER_KEYS = {
+V3_WORKER_KEYS = {
     "schema_version",
     "role",
     "language",
+    "topic",
     "confirmed_subject",
     "understanding_revision",
     "drawing_sha256",
@@ -63,9 +64,10 @@ PARENT_WORKER_KEYS = {
     "context_revision",
     "adult_confirmed_idea",
     "rewrite_instruction",
-    "rewrite_instruction_version",
-    "adult_rewrite_hint",
+    "lesson_subject_learning_notes",
     "lesson_direction",
+    "primary_activity",
+    "primary_activity_sha256",
 }
 
 
@@ -180,8 +182,7 @@ def test_an_empty_context_gives_no_direction() -> None:
     }
 
 
-def test_the_worker_input_has_one_key_set_for_both_roles() -> None:
-    """One dict literal builds the input of a Parent and of a Teacher: only two values differ."""
+def test_parent_and_teacher_rewrite_literals_use_the_same_v3_key_set() -> None:
     source = inspect.getsource(SqlParentStoryRunRepository.reserve_story_rewrite)
     tree = ast.parse("class _C:\n" + "\n".join("    " + line for line in source.splitlines()))
     literals = [
@@ -193,18 +194,19 @@ def test_the_worker_input_has_one_key_set_for_both_roles() -> None:
         )
         and any(isinstance(key, ast.Constant) and key.value == "role" for key in node.keys)
     ]
-    assert len(literals) == 1
-    keys = {key.value for key in literals[0].keys if isinstance(key, ast.Constant)}
-    assert keys == PARENT_WORKER_KEYS
-    assert '"TEACHER" if self._is_teacher else "PARENT"' in source
-    assert "teacher_lesson_direction(context) if self._is_teacher else None" in " ".join(
-        source.split()
-    )
+    assert len(literals) == 2
+    for literal in literals:
+        keys = {key.value for key in literal.keys if isinstance(key, ast.Constant)}
+        assert keys == V3_WORKER_KEYS
+    assert '"role": "TEACHER"' in source and '"role": "PARENT"' in source
+    assert "pinned_story_activity(" in source
+    assert 'occurrence_id=str(run["occurrence_ref"])' in source
+    assert 'organization_id=str(run["actor_scope_ref"])' in source
+    assert "teacher_lesson_direction_text(context)" in source
 
 
-def test_the_real_story_client_refuses_a_teacher_input_before_any_provider_call() -> None:
-    """OPEN-3: the shipped client accepts ``role = PARENT`` only; a Teacher input is a local
-    ``ValueError`` and neither the Modal volume nor the function is touched (plan review P3-6)."""
+def test_the_modal_client_still_refuses_an_unmapped_teacher_input() -> None:
+    """The adapter maps Teacher to the worker gate value before invoking this strict client."""
 
     touched: list[str] = []
 
@@ -219,10 +221,21 @@ def test_the_real_story_client_refuses_a_teacher_input_before_any_provider_call(
             raise AssertionError(name)
 
     client = ModalStoryFunctionClient(volume=_Volume(), function=_Function())
+    activity = {
+        "title": "classroom drawing",
+        "objective": "name one shape",
+        "materials_text": "",
+        "preparation_text": "",
+        "instructions_text": "draw one shape",
+        "observation_notes": "",
+        "safety_notes": "",
+        "activity_kind": "indoor",
+    }
     worker_input = {
-        "schema_version": "sketch2life.story-generation-input.v1",
+        "schema_version": "sketch2life.story-generation-input.v3",
         "role": "TEACHER",
         "language": "vi",
+        "topic": "classroom drawing",
         "confirmed_subject": "dragon",
         "understanding_revision": 1,
         "drawing_sha256": "a" * 64,
@@ -231,7 +244,10 @@ def test_the_real_story_client_refuses_a_teacher_input_before_any_provider_call(
         "context_revision": 1,
         "adult_confirmed_idea": "idea",
         "rewrite_instruction": "instruction",
-        "lesson_direction": story_teacher.teacher_lesson_direction(CONTEXT),
+        "lesson_subject_learning_notes": None,
+        "lesson_direction": "Name one shape.",
+        "primary_activity": activity,
+        "primary_activity_sha256": "0" * 64,
     }
     with pytest.raises(ValueError, match="Parent role"):
         client.generate({"worker_input": worker_input})

@@ -157,7 +157,7 @@ def test_response_models_expose_only_the_documented_fields() -> None:
         "file_name",
     }
     assert set(create["properties"]["purpose"]["enum"]) == {
-        "RUN_ARTWORK", "RUN_AUDIO", "OCCURRENCE_DOCUMENT",
+        "RUN_ARTWORK", "RUN_AUDIO", "OCCURRENCE_DOCUMENT", "PRESENTATION_IMAGE",
     }
 
 

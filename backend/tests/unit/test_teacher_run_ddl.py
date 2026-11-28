@@ -24,11 +24,12 @@ from sketch2life.infrastructure.story_run_lite import tables as story_tables
 
 _VERSIONS = Path(__file__).resolve().parents[2] / "alembic" / "versions"
 _MIGRATION = _VERSIONS / "20261120_b2_0001_teacher_run_owner.py"
+_T6B_MIGRATION = _VERSIONS / "20261122_t6b_0002_story_owner_transfer.py"
 _PARENT = "20261120_vb_0002"
 
 
-def _load() -> ModuleType:
-    spec = importlib.util.spec_from_file_location("b2_0001_migration", _MIGRATION)
+def _load(path: Path = _MIGRATION) -> ModuleType:
+    spec = importlib.util.spec_from_file_location(f"{path.stem}_migration", path)
     assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -72,14 +73,39 @@ def test_the_revision_is_the_only_child_of_the_story_head() -> None:
     graph = _graph()
     assert {rev for rev, downs in graph.items() if _PARENT in downs} == {"20261120_b2_0001"}
     # FEAT-066 goal v4 T-2e-a: DDL-B3 (``20261123_as_0001``) is the one child; V4-A T-1b-fix:
-    # DDL-B1c (``20261123_rv_0001``) is the one child of that and ends the branch.
+    # DDL-B1c (``20261123_rv_0001``) is the one child of that; V4-B T-12b: DDL-D
+    # (``20261121_bpr_0001``) is the one child of that and ends the branch.
     assert {rev for rev, downs in graph.items() if "20261120_b2_0001" in downs} == {
         "20261123_as_0001"
     }
     assert {rev for rev, downs in graph.items() if "20261123_as_0001" in downs} == {
         "20261123_rv_0001"
     }
-    assert not {rev for rev, downs in graph.items() if "20261123_rv_0001" in downs}
+    assert {rev for rev, downs in graph.items() if "20261123_rv_0001" in downs} == {
+        "20261113_svg_catalog_review",
+        "20261121_bpr_0001",
+    }
+    assert {rev for rev, downs in graph.items() if "20261121_bpr_0001" in downs} == {
+        "20261121_psn_0002"
+    }
+    # V4-B T-12b-fix: ``20261123_ppg_0001`` is the lifecycle purge; the activity-set revision
+    # follows it, then Phase D appends the Teacher owner-transfer and force-close revisions.
+    assert {rev for rev, downs in graph.items() if "20261121_psn_0002" in downs} == {
+        "20261123_ppg_0001"
+    }
+    assert {rev for rev, downs in graph.items() if "20261123_ppg_0001" in downs} == {
+        "20261125_as_0002"
+    }
+    assert {rev for rev, downs in graph.items() if "20261125_as_0002" in downs} == {
+        "20261122_t6b_0002"
+    }
+    assert {rev for rev, downs in graph.items() if "20261122_t6b_0002" in downs} == {
+        "20261122_t6c_0001"
+    }
+    assert {rev for rev, downs in graph.items() if "20261122_t6c_0001" in downs} == {
+        "20261126_as_0003"
+    }
+    assert not {rev for rev, downs in graph.items() if "20261126_as_0003" in downs}
     assert graph["20261120_b2_0001"] == (_PARENT,)
 
 
@@ -104,7 +130,11 @@ def test_the_orm_mirror_holds_the_same_columns_constraints_and_indexes() -> None
         for constraint in runs.constraints
         if isinstance(constraint, CheckConstraint) and constraint.name in dict(module.CHECKS)
     }
-    assert checks == dict(module.CHECKS)
+    t6b = _load(_T6B_MIGRATION)
+    expected_checks = dict(module.CHECKS)
+    expected_checks["ck_story_run_teacher_pins"] = t6b.NEW_PINS_CHECK
+    expected_checks["ck_story_run_teacher_owner"] = t6b.NEW_OWNER_CHECK
+    assert checks == expected_checks
     mirrored = {
         index.name: index for index in runs.indexes if index.name in {n for n, *_ in module.INDEXES}
     }
