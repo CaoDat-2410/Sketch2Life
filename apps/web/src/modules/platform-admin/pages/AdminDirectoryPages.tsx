@@ -44,7 +44,6 @@ import {
   type Lifecycle,
   type Inbox,
   type Settings,
-  type Preferences,
   type AdminSession,
   type Grant,
   type Feedback as FeedbackItem,
@@ -980,63 +979,8 @@ export function InboxPage() {
     </div>
   );
 }
-function PreferenceForm({
-  value,
-  onSaved,
-}: {
-  value: Preferences;
-  onSaved: () => void;
-}) {
-  const [enabled, setEnabled] = useState(value.email_notifications),
-    cmd = useAdminCommand();
-  return (
-    <>
-      <Feedback {...cmd} />
-      <Form
-        onSubmit={() =>
-          cmd.run(
-            () =>
-              cmd.send(
-                "/preferences",
-                {
-                  ...value,
-                  email_notifications: enabled,
-                  expected_revision: value.revision,
-                  revision: undefined,
-                },
-                undefined,
-                "PUT",
-              ),
-            onSaved,
-          )
-        }
-      >
-        <Field label="Thông báo qua email">
-          <AdminSelect
-            value={String(enabled)}
-            onChange={(e) => setEnabled(e.target.value === "true")}
-          >
-            <option value="true">Nhận thông báo</option>
-            <option value="false">Tắt thông báo tùy chọn</option>
-          </AdminSelect>
-        </Field>
-        <p className="pa-muted">
-          Email bảo mật và thiết lập tài khoản vẫn được gửi.
-        </p>
-        <Button
-          primary
-          type="submit"
-          disabled={cmd.busy || enabled === value.email_notifications}
-        >
-          Lưu tùy chọn
-        </Button>
-      </Form>
-    </>
-  );
-}
 export function SettingsPage() {
   const q = useAdminQuery(() => read<Settings>("/settings"), "settings"),
-    [preferenceSaved, setPreferenceSaved] = useState(false),
     [deliveryState, setDeliveryState] = useState(""),
     pagination = useAdminCursor(deliveryState),
     deliveries = useAdminQuery(
@@ -1049,7 +993,7 @@ export function SettingsPage() {
   return (
     <div className="pa-page">
       <Heading
-        title="Cài đặt & email"
+        title="Email hệ thống"
       >
         <Refresh
           onClick={() => {
@@ -1058,39 +1002,25 @@ export function SettingsPage() {
           }}
         />
       </Heading>
-      <Feedback notice={preferenceSaved ? "Đã lưu thay đổi." : undefined} />
       <LoadBoundary {...q}>
         {q.data && (
-          <div className="pa-two-column">
-            <section className="pa-panel pa-padded">
-              <h2>Thông báo cá nhân</h2>
-              <PreferenceForm
-                key={q.data.preferences.revision}
-                value={q.data.preferences}
-                onSaved={() => {
-                  setPreferenceSaved(true);
-                  q.reload();
-                }}
-              />
-            </section>
-            <section className="pa-panel pa-padded">
-              <h2>Môi trường hiện tại</h2>
-              <dl className="pa-facts">
-                <dt>Môi trường</dt>
-                <dd>{q.data.environment === "local" ? "nội bộ" : q.data.environment}</dd>
-                <dt>Thanh toán thật</dt>
-                <dd>{q.data.real_payments_enabled ? "Đang bật" : "Đã tắt"}</dd>
-                <dt>Thanh toán thử nghiệm</dt>
-                <dd>
-                  {q.data.billing_sandbox_enabled ? "Đang bật" : "Đã tắt"}
-                </dd>
-                <dt>Dịch vụ email</dt>
-                <dd>
-                  {q.data.smtp_configured ? "Đã cấu hình" : "Chưa cấu hình"}
-                </dd>
-              </dl>
-            </section>
-          </div>
+          <section className="pa-panel pa-padded">
+            <h2>Môi trường hiện tại</h2>
+            <dl className="pa-facts">
+              <dt>Môi trường</dt>
+              <dd>{q.data.environment === "local" ? "nội bộ" : q.data.environment}</dd>
+              <dt>Thanh toán thật</dt>
+              <dd>{q.data.real_payments_enabled ? "Đang bật" : "Đã tắt"}</dd>
+              <dt>Thanh toán thử nghiệm</dt>
+              <dd>
+                {q.data.billing_sandbox_enabled ? "Đang bật" : "Đã tắt"}
+              </dd>
+              <dt>Dịch vụ email</dt>
+              <dd>
+                {q.data.smtp_configured ? "Đã cấu hình" : "Chưa cấu hình"}
+              </dd>
+            </dl>
+          </section>
         )}
       </LoadBoundary>
       <section className="pa-panel">

@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
@@ -7,6 +7,7 @@ import {
   TEACHER_NAVIGATION,
   WebAppShell,
 } from "../WebAppShell";
+import { authService } from "../../../modules/school-manager/be1/services/authService";
 
 vi.mock("../../../modules/school-manager/be1/services/authService", () => ({
   authService: {
@@ -15,7 +16,10 @@ vi.mock("../../../modules/school-manager/be1/services/authService", () => ({
   },
 }));
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
 
 function renderPlatformShell(initialPath = "/platform/a02-platform-operations") {
   return render(
@@ -33,6 +37,10 @@ function renderPlatformShell(initialPath = "/platform/a02-platform-operations") 
       </WebAppShell>
     </MemoryRouter>,
   );
+}
+
+function openPlatformAccountPopover() {
+  fireEvent.click(document.querySelector(".s2l-topbar-account summary") as HTMLElement);
 }
 
 function renderRoleShell(roleLabel: string, navigation: typeof TEACHER_NAVIGATION, portal: "teacher" | "manager", initialPath: string, navStatus?: Partial<Record<string, "pending" | "done" | "failed" | undefined>>) {
@@ -81,6 +89,11 @@ describe("Platform Admin navigation groups", () => {
     expect(screen.getByRole("link", { name: "Tài khoản & vai trò" }).getAttribute("aria-current")).toBe("page");
     expect(screen.getByRole("button", { name: "Tài chính & hạn mức" }).getAttribute("aria-expanded")).toBe("true");
     expect(screen.getByRole("button", { name: "Quản lý" }).getAttribute("aria-expanded")).toBe("true");
+  });
+
+  it("uses the system email label as the settings panel breadcrumb", () => {
+    renderPlatformShell("/platform/a02-platform-operations?panel=settings");
+    expect(screen.getByText("Email hệ thống", { selector: '[aria-current="page"]' })).toBeTruthy();
   });
 });
 
@@ -140,7 +153,48 @@ describe("cozy role shell", () => {
     expect(document.querySelector(".s2l-brand-wordmark")?.textContent).toBe("Sketch2LifePlatform Admin");
     expect(screen.getByRole("button", { name: "Đổi mật khẩu" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Đăng xuất" })).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Cài đặt tài khoản" })).toBeTruthy();
+  });
+
+  it("shows read-only Admin account details", () => {
+    vi.spyOn(authService, "observe").mockImplementation((callback) => {
+      callback({ displayName: "Anh Khoa", email: "admin@example.com" } as never);
+      return () => undefined;
+    });
+    renderPlatformShell();
+    openPlatformAccountPopover();
+
+    const popover = document.querySelector(".s2l-topbar-popover") as HTMLElement;
+    expect(within(popover).getByText("Anh Khoa")).toBeTruthy();
+    expect(within(popover).getByText("admin@example.com")).toBeTruthy();
+    expect(within(popover).getByText("Quản trị viên")).toBeTruthy();
+    expect(within(popover).queryByRole("link", { name: "Cài đặt tài khoản" })).toBeNull();
+  });
+
+  it("shows the Admin fallback name only once when no display name is available", () => {
+    renderPlatformShell();
+    openPlatformAccountPopover();
+
+    const popover = document.querySelector(".s2l-topbar-popover") as HTMLElement;
+    expect(within(popover).getAllByText("Quản trị viên")).toHaveLength(1);
+    expect(within(popover).getByText("Tài khoản của tôi")).toBeTruthy();
+  });
+
+  it("removes account settings links from all three roles", () => {
+    const teacher = renderRoleShell("Giáo viên", TEACHER_NAVIGATION, "teacher", "/teacher/t01-lesson-workspace");
+    expect(screen.queryByRole("link", { name: "Cài đặt" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Cài đặt tài khoản" })).toBeNull();
+    teacher.unmount();
+
+    const manager = renderRoleShell("Quản lý trường", SCHOOL_MANAGER_NAVIGATION, "manager", "/school/account");
+    expect(screen.getByRole("link", { name: "Thông tin tài khoản" })).toBeTruthy();
+    expect(screen.queryByRole("link", { name: "Cài đặt" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Cài đặt tài khoản" })).toBeNull();
+    manager.unmount();
+
+    renderPlatformShell();
+    openPlatformAccountPopover();
+    expect(screen.queryByRole("link", { name: "Cài đặt tài khoản" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Cài đặt" })).toBeNull();
   });
 
   it("gives every menu item of a role its own icon", () => {
@@ -162,7 +216,7 @@ describe("cozy role shell", () => {
       ["Tổng quan"],
       ["Giáo án", "Gợi ý giáo án AI", "Nhập tài liệu", "Hoạt động", "Danh mục SVG", "Phản hồi giáo án"],
       ["Lớp được phân công", "Buổi dạy", "Lịch sử buổi dạy"],
-      ["Hộp thư", "Hồ sơ cá nhân", "Cài đặt"],
+      ["Hộp thư", "Hồ sơ cá nhân"],
     ]);
     const lesson = TEACHER_NAVIGATION.flatMap((group) => group.items).find((item) => item.href === "/teacher/t02-lesson-authoring");
     const aiSuggestion = TEACHER_NAVIGATION.flatMap((group) => group.items).find((item) => item.href === "/teacher/t13-ai-lesson-workflow");
@@ -178,7 +232,9 @@ describe("cozy role shell", () => {
       { href: "/teacher/t11-profile", label: "Hồ sơ cá nhân" },
       { href: "/teacher/t12-activities", label: "Hoạt động" },
       { href: "/school/data-requests", label: "Yêu cầu dữ liệu" },
+      { href: "/school/account", label: "Thông tin tài khoản" },
       { href: "/platform/a02-platform-operations?panel=svgcatalog", label: "Danh mục SVG" },
+      { href: "/platform/a02-platform-operations?panel=settings", label: "Email hệ thống" },
     ]) {
       expect(entries.find((item) => item.href === expected.href)).toMatchObject({ ...expected, state: "available" });
     }

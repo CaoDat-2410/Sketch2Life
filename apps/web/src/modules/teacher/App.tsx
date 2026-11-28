@@ -21,7 +21,6 @@ import { TeacherProjectionPage } from "./pages/TeacherProjectionPage";
 import { TeacherFeedbackPage } from "./pages/TeacherFeedbackPage";
 import { TeacherOccurrencePage } from "./pages/TeacherOccurrencePage";
 import { TeacherSvgCatalogPage } from "./pages/TeacherSvgCatalogPage";
-import { AccountSettingsPage } from "../../shared/settings/AccountSettingsPage";
 import { InboxPage } from "../../shared/notifications/InboxPage";
 import { clearAiWorkflowSession } from "./services/aiWorkflowSession";
 import { clearSvgDraftRequests } from "./services/svgDraftRequests";
@@ -48,7 +47,7 @@ function renderTeacherPage(pathname: string) {
   if (pathname === "/teacher/t06-sample-story-run") return <TeacherSampleRunPage />;
   if (pathname === "/teacher/t07-video-presentation-confirmation") return <TeacherProjectionPage />;
   if (pathname === "/teacher/t14-feedback") return <TeacherFeedbackPage />;
-  if (pathname === "/teacher/t08-settings") return <AccountSettingsPage role="Teacher" />;
+  if (pathname === "/teacher/t08-settings") return <Navigate to="/teacher/t11-profile" replace />;
   if (pathname === "/teacher/t09-history") return <TeacherHistoryPage />;
   if (pathname === "/teacher/t10-inbox") return <InboxPage />;
   if (pathname === "/teacher/t11-profile") return <TeacherProfilePage />;

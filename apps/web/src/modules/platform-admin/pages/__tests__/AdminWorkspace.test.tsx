@@ -311,11 +311,17 @@ describe("Admin workspace API integration", () => {
   it("filters email failures server-side and shows safe recovery guidance", async () => {
     const fetch = vi.fn(async (url: string) => {
       if (url.includes('/email-deliveries')) return response({ total: 1, items: [{ delivery_id: 'delivery-1', template: 'password_setup', state: 'failed', attempts: 1, failure_code: 'EMAIL_DELIVERY_UNAVAILABLE', created_at: '2026-11-20T07:00:00Z' }] });
-      if (url.includes('/settings')) return response({ environment: 'local', real_payments_enabled: false, billing_sandbox_enabled: true, smtp_configured: true, preferences: { locale: 'vi-VN', email_notifications: true, revision: 1 } });
+      if (url.includes('/settings')) return response({ environment: 'local', real_payments_enabled: false, billing_sandbox_enabled: true, smtp_configured: true });
       return response({}, 404);
     });
     vi.stubGlobal('fetch', fetch);
     render(<MemoryRouter initialEntries={['/?panel=settings']}><A02PlatformOperationsPage /></MemoryRouter>);
+    expect(await screen.findByRole('heading', { name: 'Email hệ thống' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Môi trường hiện tại' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Lịch sử gửi email' })).toBeTruthy();
+    expect(screen.queryByText('Thông báo cá nhân')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Lưu tùy chọn' })).toBeNull();
+    expect(fetch.mock.calls.some(([url]) => url.includes('/preferences'))).toBe(false);
     expect(await screen.findByText(/Không gửi được. Kiểm tra SMTP/)).toBeTruthy();
     fireEvent.click(screen.getByRole('combobox', { name: 'Trạng thái gửi email' }));
     fireEvent.click(screen.getByRole('option', { name: 'Thất bại' }));

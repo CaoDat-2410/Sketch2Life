@@ -189,7 +189,7 @@ export function UsersPage() {
     try {
       await sendCommand('/accounts/' + encodeURIComponent(emailTarget.account_id) + '/setup-email')
       setEmailTarget(null)
-      setNotice('Đã đưa email thiết lập mật khẩu vào hàng đợi. Theo dõi kết quả trong Cài đặt & email.')
+      setNotice('Đã đưa email thiết lập mật khẩu vào hàng đợi. Theo dõi kết quả trong Email hệ thống.')
     } catch (cause) { setActionError(messageFrom(cause, 'Không gửi được yêu cầu email.')) }
     finally { emailSending.current = false; setMutating(false) }
   }

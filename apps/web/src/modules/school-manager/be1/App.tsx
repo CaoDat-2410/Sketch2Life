@@ -23,7 +23,7 @@ import { authService } from "./services/authService";
 import { AdminBe1Error } from "./services/be1Client";
 import { classService } from "./services/classService";
 import { InboxPage } from "../../../shared/notifications/InboxPage";
-import { AccountSettingsPage } from "../../../shared/settings/AccountSettingsPage";
+import { SchoolAccountPage } from "./pages/SchoolAccountPage";
 
 function AdminAccessGate({ children }: { children: ReactNode }) {
   const location = useLocation();
@@ -120,6 +120,8 @@ function SchoolReviewPage() {
 export function SchoolManagerBe1App() {
   const location = useLocation();
 
+  if (location.pathname === "/school/settings") return <Navigate to="/school/account" replace />;
+
   let page;
   if (location.pathname === "/school" || location.pathname === "/school/") page = <SchoolOverviewPage />;
   else if (location.pathname === "/school/classes") page = <ClassesPage />;
@@ -134,7 +136,7 @@ export function SchoolManagerBe1App() {
   else if (location.pathname === "/school/billing") page = <SchoolBillingPage />;
   else if (location.pathname === "/school/review-content") page = <SchoolReviewPage />;
   else if (location.pathname === "/school/inbox") page = <InboxPage />;
-  else if (location.pathname === "/school/settings") page = <AccountSettingsPage role="School Manager" />;
+  else if (location.pathname === "/school/account") page = <SchoolAccountPage />;
   else if (/^\/school\/[^/]+$/.test(location.pathname)) page = <SchoolUnavailablePage />;
   else return <Navigate to="/school" replace />;
 

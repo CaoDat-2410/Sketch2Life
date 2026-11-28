@@ -22,12 +22,12 @@ import {
   LayoutDashboard,
   LoaderCircle,
   LogOut,
+  MailCheck,
   Menu,
   MessageSquareText,
   Puzzle,
   School,
   ScrollText,
-  Settings2,
   Shapes,
   ShieldCheck,
   TriangleAlert,
@@ -95,7 +95,6 @@ export const TEACHER_NAVIGATION: PortalNavigationGroup[] = [
     items: [
       { href: "/teacher/t10-inbox", label: "Hộp thư", icon: Inbox, state: "available" },
       { href: "/teacher/t11-profile", label: "Hồ sơ cá nhân", icon: UserRound, state: "available" },
-      { href: "/teacher/t08-settings", label: "Cài đặt", icon: Settings2, state: "available" },
     ],
   },
 ];
@@ -136,7 +135,7 @@ export const SCHOOL_MANAGER_NAVIGATION: PortalNavigationGroup[] = [
   {
     label: "Tài khoản",
     items: [
-      { href: "/school/settings", label: "Cài đặt", icon: Settings2, state: "available" },
+      { href: "/school/account", label: "Thông tin tài khoản", icon: UserRound, state: "available" },
     ],
   },
 ];
@@ -164,6 +163,7 @@ export const PLATFORM_ADMIN_NAVIGATION: PortalNavigationGroup[] = [
     { href: "/platform/a02-platform-operations?panel=queues", label: "Giám sát vận hành", icon: Activity, state: "available" },
     { href: "/platform/a02-platform-operations?panel=lifecycle", label: "Dữ liệu & lưu trữ", icon: DatabaseBackup, state: "available" },
     { href: "/platform/a02-platform-operations?panel=audit", label: "Nhật ký kiểm toán", icon: ScrollText, state: "available" },
+    { href: "/platform/a02-platform-operations?panel=settings", label: "Email hệ thống", icon: MailCheck, state: "available" },
   ] },
 ];
 
@@ -231,11 +231,12 @@ export function WebAppShell({
   const [passwordBusy, setPasswordBusy] = useState(false);
   const isPlatformAdmin = portal === "platform";
   const isSchoolManager = portal === "manager";
-  const [accountEmail, setAccountEmail] = useState("");
+  const [account, setAccount] = useState({ displayName: "", email: "" });
   useEffect(() => {
     if (!isPlatformAdmin) return;
-    return authService.observe((user) => setAccountEmail(user?.email ?? ""));
+    return authService.observe((user) => setAccount({ displayName: user?.displayName ?? "", email: user?.email ?? "" }));
   }, [isPlatformAdmin]);
+  const accountDisplayName = account.displayName || "Quản trị viên";
   const activeGroup = navigation.find((group) =>
     group.items.some((item) => navigationMatches(item.href, location.pathname, location.search, item.matchPrefix)),
   )?.label ?? navigation[0]?.label;
@@ -243,9 +244,7 @@ export function WebAppShell({
   const topAccountDetails = useRef<HTMLDetailsElement>(null);
   const menuButton = useRef<HTMLButtonElement>(null);
   const firstLink = useRef<HTMLAnchorElement>(null);
-  const heading = isPlatformAdmin && new URLSearchParams(location.search).get("panel") === "settings"
-    ? "Cài đặt tài khoản"
-    : isPlatformAdmin && new URLSearchParams(location.search).get("panel") === "inbox"
+  const heading = isPlatformAdmin && new URLSearchParams(location.search).get("panel") === "inbox"
     ? "Hộp thư"
     : pageTitle(navigation, location.pathname, location.search);
   const homePath = navigation[0]?.items[0]?.href.split("?")[0] ?? "/";
@@ -289,14 +288,6 @@ export function WebAppShell({
     onLogout();
     navigate(loginHref);
   };
-
-  const accountOptions = (
-    <>
-      <NavLink to={isPlatformAdmin ? "/platform/a02-platform-operations?panel=settings" : isSchoolManager ? "/school/settings" : "/teacher/t08-settings"} onClick={() => {
-        if (topAccountDetails.current) topAccountDetails.current.open = false;
-      }}><Settings2 size={17} aria-hidden="true" />Cài đặt tài khoản</NavLink>
-    </>
-  );
 
   const changePassword = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -419,12 +410,15 @@ export function WebAppShell({
             {isPlatformAdmin ? <details className="s2l-topbar-account" ref={topAccountDetails}>
               <summary aria-label="Mở tài khoản quản trị viên">
                 <span className="s2l-account-avatar" aria-hidden="true">PA</span>
-                <span className="s2l-topbar-account-name">Quản trị viên</span>
+                <span className="s2l-topbar-account-name">{accountDisplayName}</span>
                 <ChevronDown size={15} aria-hidden="true" />
               </summary>
               <div className="s2l-account-popover s2l-topbar-popover">
-                <div className="s2l-topbar-account-info"><strong>Quản trị viên</strong><span>{accountEmail || "Tài khoản của tôi"}</span></div>
-                {accountOptions}
+                <div className="s2l-topbar-account-info">
+                  <strong>{accountDisplayName}</strong>
+                  <span>{account.email || "Tài khoản của tôi"}</span>
+                  {accountDisplayName !== "Quản trị viên" && <span>Quản trị viên</span>}
+                </div>
               </div>
             </details> : isSchoolManager ? (
               <span className="s2l-account-indicator" role="group" aria-label="Vai trò hiện tại: Quản lý trường">

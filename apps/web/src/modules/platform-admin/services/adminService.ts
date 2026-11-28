@@ -32,11 +32,6 @@ export type Grant = {
   revision: number;
 };
 export type AdminSession = { account_id: string; items: Grant[] };
-export type Preferences = {
-  locale: "vi-VN" | "en-US";
-  email_notifications: boolean;
-  revision: number;
-};
 export type Settings = {
   environment: string;
   real_payments_enabled: boolean;
@@ -47,7 +42,6 @@ export type Settings = {
   monthly_auto_renew_enabled?: boolean;
   billing_sandbox_enabled: boolean;
   smtp_configured: boolean;
-  preferences: Preferences;
 };
 export type Operation = { state: string; count: number; job_type?: string };
 export type DependencyHealth = { status: "healthy" | "unavailable" | "not_configured"; response_ms: number | null };
