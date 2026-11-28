@@ -1,0 +1,36 @@
+meta {
+  name: 930 [DRAFT-V4E] [LOCAL / TEST ONLY] Teacher profile fails closed without identity provisioner (503)
+  type: http
+  seq: 930
+}
+
+get {
+  url: {{baseUrl}}/api/teacher/v1/me/profile
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert identity provider unavailable refusal", function () {
+    expect(res.getStatus()).to.equal(503);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("IDENTITY_PROVIDER_UNAVAILABLE");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against committed Phase E code at 98aa9837 (PHASE_E_FINAL_ROUTE_LIST_20261125.md / 784134fc); not yet run against a live backend.
+  Role: Teacher - set bearerToken to seed-tch-a1 token
+  Needs: default local runtime without identity_account_provisioner configured
+  Expected: 503 / IDENTITY_PROVIDER_UNAVAILABLE
+  Source: backend/src/sketch2life/interfaces/http/routers/teacher_workspace.py:1-124
+}

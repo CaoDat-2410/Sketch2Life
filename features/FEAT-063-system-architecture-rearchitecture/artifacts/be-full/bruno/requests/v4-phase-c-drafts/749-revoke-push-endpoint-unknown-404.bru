@@ -1,0 +1,38 @@
+meta {
+  name: 749 [DRAFT-V4C] [LOCAL / TEST ONLY] Push endpoint revoke returns uniform 404 for unknown endpoint UUID
+  type: http
+  seq: 749
+}
+
+delete {
+  url: {{baseUrl}}/v1/notifications/push-endpoints/00000000-0000-4000-8000-000000000000
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  If-Match: "1"
+  Idempotency-Key: {{$guid}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_NOT_FOUND");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase C code at f031fc70; not yet run against a live backend.
+  Role: Active Parent - set bearerToken to seed-parent-p1 token
+  Needs: none (unknown UUID returns 404 before receipt fingerprint check even without adapters)
+  Expected: 404 / RESOURCE_NOT_FOUND
+  Source: backend/src/sketch2life/application/services/push_endpoints.py:280-287
+}

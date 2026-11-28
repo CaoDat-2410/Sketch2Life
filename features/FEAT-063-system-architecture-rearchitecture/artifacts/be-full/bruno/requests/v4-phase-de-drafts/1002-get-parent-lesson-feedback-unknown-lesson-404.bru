@@ -1,0 +1,36 @@
+meta {
+  name: 1002 [DRAFT-V4E] [LOCAL / TEST ONLY] Get lesson feedback returns 404 for unknown lesson
+  type: http
+  seq: 1002
+}
+
+get {
+  url: {{baseUrl}}/api/lesson-library/v1/me/lessons/nonexistent-lesson-id/feedback
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert unknown lesson refusal", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_NOT_FOUND");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against committed Phase E code at 98aa9837 (PHASE_E_FINAL_ROUTE_LIST_20261125.md / 784134fc); not yet run against a live backend.
+  Role: Parent - set bearerToken to seed-parent-p1 token
+  Needs: none
+  Expected: 404 / RESOURCE_NOT_FOUND
+  Source: backend/src/sketch2life/interfaces/http/routers/lesson_feedback.py:1-167
+}

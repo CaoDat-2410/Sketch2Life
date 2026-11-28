@@ -1,0 +1,47 @@
+meta {
+  name: 902 [DRAFT-V4E] [LOCAL / TEST ONLY] Create SVG draft rejects missing Idempotency-Key
+  type: http
+  seq: 902
+}
+
+post {
+  url: {{baseUrl}}/v1/lesson-occurrences/{{phase_de_e1_occurrence_id}}/presentation/svg-drafts
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "plan_activity_id": "{{phase_de_e1_plan_activity_id}}",
+    "subject_text": "butterfly"
+  }
+}
+
+tests {
+  test("assert missing Idempotency-Key refusal", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.code).to.equal("INVALID_REQUEST");
+    expect(body.field_errors[0].field).to.equal("Idempotency-Key");
+    expect(body.field_errors[0].code).to.equal("REQUIRED");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against committed Phase E code at 98aa9837 (PHASE_E_FINAL_ROUTE_LIST_20261125.md / 784134fc); not yet run against a live backend.
+  Role: Assigned Teacher - set bearerToken to seed-tch-a1 token
+  Needs: needs-fixture: lesson occurrence phase_de_e1_occurrence_id
+  Expected: 400 / INVALID_REQUEST
+  Source: backend/src/sketch2life/interfaces/http/routers/lesson_presentations.py
+}

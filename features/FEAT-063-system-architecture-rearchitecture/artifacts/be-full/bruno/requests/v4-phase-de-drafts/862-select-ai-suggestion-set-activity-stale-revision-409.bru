@@ -1,0 +1,52 @@
+meta {
+  name: 862 [DRAFT-V4D2] [LOCAL / TEST ONLY] Select AI suggestion set activity rejects stale understanding revision
+  type: http
+  seq: 862
+}
+
+post {
+  url: {{baseUrl}}/api/parent/v1/ai/story-runs/{{phase_de_t2eb_run_id}}/activity-selection
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{phase_de_t2eb_select_stale_key}}
+}
+
+body:json {
+  {
+    "suggestion_set_id": "{{phase_de_t2eb_suggestion_set_id}}",
+    "expected_understanding_revision": 999999,
+    "activity_index": 0
+  }
+}
+
+script:pre-request {
+  bru.setVar("phase_de_t2eb_select_stale_key", "t2eb-select-stale-" + Date.now());
+}
+
+tests {
+  test("assert stale expected_understanding_revision refusal", function () {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.detail.code).to.equal("STALE_REVISION");
+    expect(body.detail.current_version).to.be.a("number");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against committed Hybrid B code at 68c0fdf3; not yet run against a live backend.
+  Role: Owning Parent - set bearerToken to seed-parent-p1 token
+  Needs: needs-fixture: run after 845 using phase_de_t2eb_run_id and phase_de_t2eb_suggestion_set_id
+  Expected: 409 / STALE_REVISION (detail.current_version)
+  Source: backend/src/sketch2life/interfaces/http/routers/parent_ai.py, backend/src/sketch2life/infrastructure/persistence/parent_activity_suggestion_set_repository.py
+}

@@ -1,0 +1,40 @@
+meta {
+  name: 626 [DRAFT-V4B] [LOCAL / TEST ONLY] Teacher roster omits unconsented profiles with 200 instead of 409
+  type: http
+  seq: 626
+}
+
+get {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/classes/{{unconsented_roster_class_id}}/profiles
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.contract).to.equal("Be1ManagedProfileListV1");
+    expect(body.items).to.be.an("array");
+    expect(body.active_profile_count).to.be.a("number");
+    expect(body.active_profile_count).to.be.greaterThan(body.items.length);
+  });
+}
+
+docs {
+  DRAFT: written from the Phase B code at 134561f4; not yet run against a live backend.
+  Role: Assigned Teacher - set bearerToken to the Teacher assigned to unconsented_roster_class_id
+  Needs: needs-fixture: unconsented_roster_class_id (active class with at least one REAL unconsented or LEGACY_UNCLASSIFIED active profile; seed/data.py holds only SYNTHETIC_DEV profiles)
+  Expected: 200 / Be1ManagedProfileListV1 (active_profile_count > items.length; 409 CONSENT_NOT_EFFECTIVE was removed by T-7e)
+  Source: backend/src/sketch2life/interfaces/http/routers/be1_registry.py:918-1010
+}

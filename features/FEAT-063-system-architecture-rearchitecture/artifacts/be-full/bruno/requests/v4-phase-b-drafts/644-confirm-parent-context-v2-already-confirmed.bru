@@ -1,0 +1,49 @@
+meta {
+  name: 644 [DRAFT-V4B] [LOCAL / TEST ONLY] Reject V2 context selection after context is already confirmed
+  type: http
+  seq: 644
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{parent_v2_context_run_id}}/context-confirmation
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "expected_context_revision": {{parent_v2_context_revision_after}},
+    "context_snapshot_sha256": "{{parent_v2_context_hash_after}}",
+    "confirmed": true,
+    "selected_context_entry_ids": [
+      "{{phase_b_context_entry_id}}"
+    ]
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("INVALID_STATE_TRANSITION");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase B code at 134561f4; not yet run against a live backend.
+  Role: Parent - set bearerToken to seed-parent-p1 token
+  Needs: run after 638 (uses parent_v2_context_revision_after and parent_v2_context_hash_after on already-confirmed run)
+  Expected: 409 / INVALID_STATE_TRANSITION (current input already confirmed)
+  Source: backend/src/sketch2life/infrastructure/persistence/parent_story_repository.py:1216-1231
+}

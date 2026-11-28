@@ -1,0 +1,48 @@
+meta {
+  name: 1014 [DRAFT-V4E] [LOCAL / TEST ONLY] Init lesson presentation rejects archived occurrence or read-only class 409
+  type: http
+  seq: 1014
+}
+
+post {
+  url: {{baseUrl}}/v1/lesson-occurrences/{{phase_de_e1_archived_occurrence_id}}/presentation
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{phase_de_e1_archived_key}}
+}
+
+body:json {
+  {
+    "seed": "PLAN_ACTIVITIES"
+  }
+}
+
+script:pre-request {
+  bru.setVar("phase_de_e1_archived_key", "e1-archived-" + Date.now());
+}
+
+tests {
+  test("assert archived occurrence or read-only class refusal", function () {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("INVALID_STATE_TRANSITION");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against committed Phase E code at 98aa9837 (PHASE_E_FINAL_ROUTE_LIST_20261125.md / 784134fc); not yet run against a live backend.
+  Role: Responsible Teacher - set bearerToken to seed-tch-a1 token
+  Needs: needs-fixture: archived occurrence or occurrence in suspended/archived class phase_de_e1_archived_occurrence_id
+  Expected: 409 / INVALID_STATE_TRANSITION
+  Source: backend/src/sketch2life/interfaces/http/routers/lesson_presentations.py, backend/src/sketch2life/infrastructure/lesson_occurrences/presentations.py
+}

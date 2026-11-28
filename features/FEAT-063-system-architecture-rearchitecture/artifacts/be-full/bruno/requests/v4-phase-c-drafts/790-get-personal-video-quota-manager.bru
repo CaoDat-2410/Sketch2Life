@@ -1,0 +1,43 @@
+meta {
+  name: 790 [DRAFT-V4C] [LOCAL / TEST ONLY] School Manager reads scoped video quota summary via billing endpoint
+  type: http
+  seq: 790
+}
+
+get {
+  url: {{baseUrl}}/api/be1/v1/billing/video-quota
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.owner_kind).to.equal("ORGANIZATION");
+    expect(body.available_units).to.be.at.least(0);
+    expect(body.granted_units).to.be.at.least(0);
+    expect(body.used_units).to.be.at.least(0);
+    expect(body.grants).to.be.an("array");
+    expect(body.allocation).to.be.an("object");
+  });
+}
+
+docs {
+  DRAFT after Phase C: checked against the code at 0f6e7683; not yet run against a live backend.
+  owner: Billing/Capacity
+  Role: Single-org School Manager - set bearerToken to seed-mgr-a token
+  Needs: seed-mgr-a with exactly one active school_admin org-wide assignment (409 BILLING_SCOPE_SELECTION_REQUIRED if 0 or >1 active orgs)
+  Expected: 200 / quota_summary (owner_kind ORGANIZATION, allocation object)
+  Source: backend/src/sketch2life/interfaces/http/routers/be1_billing.py:76-85, backend/src/sketch2life/infrastructure/billing/quota_commerce.py:934-989,1537-1559
+}

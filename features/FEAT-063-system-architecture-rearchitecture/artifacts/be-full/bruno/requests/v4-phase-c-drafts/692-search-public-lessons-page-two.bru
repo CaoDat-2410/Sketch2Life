@@ -1,0 +1,42 @@
+meta {
+  name: 692 [DRAFT-V4C] [LOCAL / TEST ONLY] Teacher searches PUBLIC lessons page two with cursor
+  type: http
+  seq: 692
+}
+
+get {
+  url: {{baseUrl}}/api/lesson-library/v1/organizations/{{organization_id}}/public-lessons?q={{phase_c_public_q}}&topic={{phase_c_public_topic}}&target_age_band_ref={{phase_c_public_age_ref}}&target_age_band_version={{phase_c_public_age_version}}&limit=1&cursor={{phase_c_public_search_cursor}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("Cache-Control")).to.equal("private, no-store");
+    const body = res.getBody();
+    expect(body.contract).to.equal("PublicLessonPageV1");
+    expect(body.items).to.be.an("array");
+    if (body.items.length > 0) {
+      expect(body.items[0].lesson_id).to.not.equal(bru.getVar("phase_c_public_lesson_id"));
+    }
+  });
+}
+
+docs {
+  DRAFT: written from the Phase C code at f031fc70; not yet run against a live backend.
+  Role: Assigned Teacher - set bearerToken to seed-tch-a1 token
+  Needs: needs-fixture: run after 691 (phase_c_public_search_cursor) with >= 2 matching PUBLIC lessons
+  Expected: 200 / PublicLessonPageV1 (next page with no duplicate of page one item)
+  Source: backend/src/sketch2life/interfaces/http/routers/lesson_library.py:598-640, backend/src/sketch2life/infrastructure/lesson_library/service.py:3260-3317
+}

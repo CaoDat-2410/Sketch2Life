@@ -1,0 +1,38 @@
+meta {
+  name: 755 [DRAFT-V4C] [LOCAL / TEST ONLY] Reject push endpoint revoke when Idempotency-Key reused with different If-Match
+  type: http
+  seq: 755
+}
+
+delete {
+  url: {{baseUrl}}/v1/notifications/push-endpoints/{{phase_c_push_endpoint_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  If-Match: "999"
+  Idempotency-Key: {{phase_c_push_revoke_key}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("INVALID_IDEMPOTENCY_KEY");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase C code at f031fc70; not yet run against a live backend.
+  Role: Owning Parent - set bearerToken to seed-parent-p1 token
+  Needs: needs-fixture: run after 753 (reuses phase_c_push_revoke_key with changed If-Match "999")
+  Expected: 400 / INVALID_IDEMPOTENCY_KEY
+  Source: backend/src/sketch2life/application/services/push_endpoints.py:288-301,512-514
+}

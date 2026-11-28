@@ -1,0 +1,33 @@
+meta {
+  name: 762 [DRAFT-V4C] [LOCAL / TEST ONLY] Reject anonymous request to organization capacity
+  type: http
+  seq: 762
+}
+
+get {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/capacity
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(401);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("AUTH_REQUIRED");
+  });
+}
+
+docs {
+  DRAFT after Phase C: checked against the code at 0f6e7683; not yet run against a live backend.
+  owner: Billing/Capacity
+  Role: Anonymous (no bearer token)
+  Needs: organization_id=seed-org-a
+  Expected: 401 / AUTH_REQUIRED
+  Source: backend/src/sketch2life/interfaces/http/routers/be1_registry.py:771-781, backend/src/sketch2life/interfaces/http/error_envelope.py:61
+}

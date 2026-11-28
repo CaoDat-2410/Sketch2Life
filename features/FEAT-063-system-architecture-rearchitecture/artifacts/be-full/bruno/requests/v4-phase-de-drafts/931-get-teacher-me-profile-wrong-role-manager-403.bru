@@ -1,0 +1,36 @@
+meta {
+  name: 931 [DRAFT-V4E] [LOCAL / TEST ONLY] School Manager forbidden from Teacher me profile
+  type: http
+  seq: 931
+}
+
+get {
+  url: {{baseUrl}}/api/teacher/v1/me/profile
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert manager role refusal", function () {
+    expect(res.getStatus()).to.equal(403);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("ACTION_NOT_ALLOWED");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against committed Phase E code at 98aa9837 (PHASE_E_FINAL_ROUTE_LIST_20261125.md / 784134fc); not yet run against a live backend.
+  Role: Wrong Role (School Manager) - set bearerToken to seed-mgr-a token
+  Needs: none
+  Expected: 403 / ACTION_NOT_ALLOWED
+  Source: backend/src/sketch2life/interfaces/http/routers/teacher_workspace.py
+}

@@ -1,0 +1,32 @@
+meta {
+  name: 907 [DRAFT-V4E] [LOCAL / TEST ONLY] Get presentation SVG draft requires authentication
+  type: http
+  seq: 907
+}
+
+get {
+  url: {{baseUrl}}/v1/lesson-occurrences/{{phase_de_e1_occurrence_id}}/presentation/svg-drafts/any-svg-draft
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert unauthenticated refusal", function () {
+    expect(res.getStatus()).to.equal(401);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("AUTH_REQUIRED");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against committed Phase E code at 98aa9837 (PHASE_E_FINAL_ROUTE_LIST_20261125.md / 784134fc); not yet run against a live backend.
+  Role: Unauthenticated
+  Needs: none
+  Expected: 401 / AUTH_REQUIRED
+  Source: backend/src/sketch2life/interfaces/http/routers/lesson_presentations.py
+}

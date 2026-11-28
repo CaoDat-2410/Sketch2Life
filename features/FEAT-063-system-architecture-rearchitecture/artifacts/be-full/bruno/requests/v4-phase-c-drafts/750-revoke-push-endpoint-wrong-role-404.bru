@@ -1,0 +1,38 @@
+meta {
+  name: 750 [DRAFT-V4C] [LOCAL / TEST ONLY] Hide push endpoint revoke from non-Parent role with uniform 404
+  type: http
+  seq: 750
+}
+
+delete {
+  url: {{baseUrl}}/v1/notifications/push-endpoints/00000000-0000-4000-8000-000000000000
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  If-Match: "1"
+  Idempotency-Key: {{$guid}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_NOT_FOUND");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase C code at f031fc70; not yet run against a live backend.
+  Role: Non-Parent - set bearerToken to seed-tch-a1 token
+  Needs: none
+  Expected: 404 / RESOURCE_NOT_FOUND
+  Source: backend/src/sketch2life/interfaces/http/routers/notifications.py:259, backend/src/sketch2life/application/services/push_endpoints.py:135-141
+}

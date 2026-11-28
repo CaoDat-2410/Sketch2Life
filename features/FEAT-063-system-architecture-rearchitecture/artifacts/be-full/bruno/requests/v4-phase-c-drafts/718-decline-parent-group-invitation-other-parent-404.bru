@@ -1,0 +1,37 @@
+meta {
+  name: 718 [DRAFT-V4C] [LOCAL / TEST ONLY] Hide another Parent's membership on decline with 404
+  type: http
+  seq: 718
+}
+
+post {
+  url: {{baseUrl}}/api/lesson-library/v1/me/parent-group-invitations/seed-pgm-2-p3/decline
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Idempotency-Key: {{$guid}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_NOT_FOUND");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase C code at f031fc70; not yet run against a live backend.
+  Role: Non-owner Parent - set bearerToken to seed-parent-p1 token
+  Needs: seeded seed-pgm-2-p3 belongs to seed-parent-p3
+  Expected: 404 / RESOURCE_NOT_FOUND
+  Source: backend/src/sketch2life/infrastructure/lesson_library/service.py:2769-2785
+}

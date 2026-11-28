@@ -1,0 +1,45 @@
+meta {
+  name: 726 [DRAFT-V4C] [LOCAL / TEST ONLY] Manager lists parent-group members filtered by ACCEPTED state
+  type: http
+  seq: 726
+}
+
+get {
+  url: {{baseUrl}}/api/lesson-library/v1/organizations/{{organization_id}}/parent-groups/seed-pg-a-1/members?state=ACCEPTED
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("Cache-Control")).to.equal("private, no-store");
+    const body = res.getBody();
+    expect(body.contract).to.equal("ParentGroupMemberPageV1");
+    expect(body.items).to.be.an("array");
+    expect(body.items.length).to.be.at.least(1);
+    for (const item of body.items) {
+      expect(item.state).to.equal("ACCEPTED");
+    }
+    expect(body.counts.revoked).to.be.at.least(1);
+    expect(body.counts.total).to.be.at.least(body.counts.accepted + body.counts.revoked);
+  });
+}
+
+docs {
+  DRAFT: written from the Phase C code at f031fc70; not yet run against a live backend.
+  Role: Assigned School Manager - set bearerToken to seed-mgr-a token
+  Needs: organization_id=seed-org-a, seeded seed-pg-a-1 (state=ACCEPTED maps to stored active; counts ignore state filter)
+  Expected: 200 / ParentGroupMemberPageV1 (all items state ACCEPTED; counts include all states)
+  Source: backend/src/sketch2life/infrastructure/lesson_library/service.py:2300-2391
+}

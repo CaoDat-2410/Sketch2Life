@@ -1,0 +1,47 @@
+meta {
+  name: 764 [DRAFT-V4C] [LOCAL / TEST ONLY] Reject capacity PATCH without Idempotency-Key
+  type: http
+  seq: 764
+}
+
+patch {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/capacity
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  If-Match: "1"
+}
+
+body:json {
+  {
+    "action": "cancel_renewal"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.code).to.equal("INVALID_REQUEST");
+    expect(body.field_errors).to.deep.include({ field: "Idempotency-Key", code: "REQUIRED" });
+  });
+}
+
+docs {
+  DRAFT after Phase C: checked against the code at 0f6e7683; not yet run against a live backend.
+  owner: Billing/Capacity
+  Role: Assigned School Manager - set bearerToken to seed-mgr-a token
+  Needs: organization_id=seed-org-a
+  Expected: 400 / INVALID_REQUEST (Idempotency-Key REQUIRED)
+  Source: backend/src/sketch2life/interfaces/http/routers/be1_registry.py:834-836,843, backend/src/sketch2life/interfaces/http/api_conventions.py:234-242
+}

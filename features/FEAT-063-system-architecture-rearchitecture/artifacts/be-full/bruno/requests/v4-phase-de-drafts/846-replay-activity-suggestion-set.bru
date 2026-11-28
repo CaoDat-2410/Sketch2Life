@@ -1,0 +1,48 @@
+meta {
+  name: 846 [DRAFT-V4D2] [LOCAL / TEST ONLY] Parent replays AI activity suggestion set (Hybrid B)
+  type: http
+  seq: 846
+}
+
+post {
+  url: {{baseUrl}}/api/parent/v1/ai/story-runs/{{phase_de_t2eb_run_id}}/activity-suggestions
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{phase_de_t2eb_set_key}}
+}
+
+body:json {
+  {
+    "expected_understanding_revision": {{phase_de_t2eb_understanding_rev}}
+  }
+}
+
+tests {
+  test("assert idempotent replay contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("Idempotency-Replayed")).to.equal("true");
+    const body = res.getBody();
+    expect(body.contract).to.equal("ParentActivitySuggestionSetV1");
+    expect(body.suggestion_set_id).to.equal(bru.getVar("phase_de_t2eb_suggestion_set_id"));
+    expect(body.activities_snapshot_sha256).to.equal(bru.getVar("phase_de_t2eb_snapshot_sha256"));
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against committed Hybrid B code at 68c0fdf3; not yet run against a live backend.
+  Role: Owning Parent - set bearerToken to seed-parent-p1 token
+  Needs: needs-fixture: run immediately after 845 reusing phase_de_t2eb_set_key, phase_de_t2eb_understanding_rev, and phase_de_t2eb_run_id
+  Expected: 200 / ParentActivitySuggestionSetV1 with Idempotency-Replayed: true
+  Source: backend/src/sketch2life/interfaces/http/routers/parent_ai.py, backend/src/sketch2life/infrastructure/persistence/parent_activity_suggestion_set_repository.py
+}

@@ -1,0 +1,53 @@
+meta {
+  name: 747 [DRAFT-V4C] [LOCAL / TEST ONLY] Replay WEB_PUSH endpoint registration with same Idempotency-Key
+  type: http
+  seq: 747
+}
+
+post {
+  url: {{baseUrl}}/v1/notifications/push-endpoints
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{phase_c_push_register_key}}
+}
+
+body:json {
+  {
+    "contract": "PushEndpointRegistrationV1",
+    "platform_kind": "WEB",
+    "provider_kind": "WEB_PUSH",
+    "encrypted_registration_proof": "{{phase_c_push_proof}}",
+    "app_version": "1.0.0"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("Cache-Control")).to.equal("no-store");
+    const body = res.getBody();
+    expect(body.contract).to.equal("PushEndpointV1");
+    expect(body.endpoint_id).to.equal(bru.getVar("phase_c_push_endpoint_id"));
+    expect(body.version).to.equal(Number(bru.getVar("phase_c_push_endpoint_version")));
+    expect(res.getHeader("ETag")).to.equal('"' + String(body.version) + '"');
+  });
+}
+
+docs {
+  DRAFT: written from the Phase C code at f031fc70; not yet run against a live backend.
+  Role: Active Parent - set bearerToken to seed-parent-p1 token
+  Needs: needs-fixture: run after 746 (reuses phase_c_push_register_key and exact payload)
+  Expected: 201 / PushEndpointV1 (replayed endpoint_id and ETag)
+  Source: backend/src/sketch2life/application/services/push_endpoints.py:167-177,490-509
+}

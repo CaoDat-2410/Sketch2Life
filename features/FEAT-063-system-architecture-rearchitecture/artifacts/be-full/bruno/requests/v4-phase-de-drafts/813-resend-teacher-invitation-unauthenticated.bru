@@ -1,0 +1,33 @@
+meta {
+  name: 813 [DRAFT-V4D] [LOCAL / TEST ONLY] Reject anonymous Teacher invitation resend
+  type: http
+  seq: 813
+}
+
+post {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/teacher-invitations/00000000-0000-4000-8000-000000000000/resend
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Idempotency-Key: {{$guid}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(401);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("AUTH_REQUIRED");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against the code in .worktrees/v4d at 9e439cee; not yet run against a live backend.
+  Role: Anonymous (no bearer token)
+  Needs: organization_id=seed-org-a
+  Expected: 401 / AUTH_REQUIRED
+  Source: backend/tests/contract/test_teacher_invitations_contract.py:221-229
+}

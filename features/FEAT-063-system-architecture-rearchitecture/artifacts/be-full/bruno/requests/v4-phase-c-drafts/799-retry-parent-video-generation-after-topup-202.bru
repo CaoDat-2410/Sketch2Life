@@ -1,0 +1,49 @@
+meta {
+  name: 799 [DRAFT-V4C] [LOCAL / TEST ONLY] Retry Parent video generation with fresh key after quota top-up succeeds
+  type: http
+  seq: 799
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{phase_c_qc_parent_run_id}}/video-generations
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "expected_revision": {{phase_c_qc_parent_run_revision_after_refusal}},
+    "story_sha256": "{{phase_c_qc_parent_story_sha256}}",
+    "quality_reason_code": null
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(202);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(String(res.getHeader("Content-Location"))).to.equal("/v1/story-runs/" + bru.getVar("phase_c_qc_parent_run_id"));
+    const vg = res.getBody().video_generation;
+    expect(["ACCEPTED", "ADMISSION_PENDING"]).to.include(vg.state);
+    expect(vg.kind).to.equal("INITIAL");
+  });
+}
+
+docs {
+  DRAFT after Phase C: checked against the code at 0f6e7683; not yet run against a live backend.
+  Role: Owning Parent - set bearerToken to seed-parent-p1 token
+  Needs: needs-fixture: run after 797 once a Parent quota top-up grant is added and phase_c_qc_parent_run_revision_after_refusal is refreshed from GET /v1/story-runs/{id} (797 left script review reusable and Billing stored no receipt on refusal)
+  Expected: 202 / ParentVideoGenerationAcceptedV1 (ACCEPTED or ADMISSION_PENDING)
+  Source: backend/src/sketch2life/infrastructure/billing/quota_commerce.py:1360-1371, backend/tests/integration/story_video/test_video_generations_postgres.py:771-794
+}

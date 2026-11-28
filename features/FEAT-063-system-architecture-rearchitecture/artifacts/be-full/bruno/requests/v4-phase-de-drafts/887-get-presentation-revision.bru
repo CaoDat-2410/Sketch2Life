@@ -1,0 +1,47 @@
+meta {
+  name: 887 [DRAFT-V4E] [LOCAL / TEST ONLY] Assigned Teacher gets specific presentation revision
+  type: http
+  seq: 887
+}
+
+get {
+  url: {{baseUrl}}/v1/lesson-occurrences/{{phase_de_e1_occurrence_id}}/presentation/revisions/{{phase_de_e1_revision_no}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+script:post-response {
+  const etag = res.getHeader("ETag");
+  if (etag) {
+    bru.setVar("phase_de_e1_rev_etag", etag);
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("ETag")).to.match(/^W\/"[0-9a-f]{12}"$/);
+    expect(res.getHeader("Cache-Control")).to.equal("private, no-cache");
+    expect(res.getHeader("Vary")).to.include("Authorization");
+    const body = res.getBody();
+    expect(body.contract).to.equal("LessonPresentationRevisionV1");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against committed Phase E code at 98aa9837 (PHASE_E_FINAL_ROUTE_LIST_20261125.md / 784134fc); not yet run against a live backend.
+  Role: Assigned Teacher - set bearerToken to seed-tch-a1 token
+  Needs: needs-fixture: run after 870 using phase_de_e1_occurrence_id and phase_de_e1_revision_no; saves phase_de_e1_rev_etag
+  Expected: 200 / LessonPresentationRevisionV1 (ETag, Cache-Control: private, no-cache)
+  Source: backend/src/sketch2life/interfaces/http/routers/lesson_presentations.py
+}

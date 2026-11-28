@@ -1,0 +1,36 @@
+meta {
+  name: 684 [DRAFT-V4C] [LOCAL / TEST ONLY] Hide other Teacher PRIVATE lesson versions with 404
+  type: http
+  seq: 684
+}
+
+get {
+  url: {{baseUrl}}/api/lesson-library/v1/organizations/seed-org-a/lessons/seed-lesson-l2/versions
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_NOT_FOUND");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase C code at f031fc70; not yet run against a live backend.
+  Role: Other Teacher in org - set bearerToken to seed-tch-a2 token (or cross-tenant seed-tch-b)
+  Needs: seed-lesson-l2 is PRIVATE authored by seed-tch-a1
+  Expected: 404 / RESOURCE_NOT_FOUND (same envelope as missing or cross-tenant lesson)
+  Source: backend/src/sketch2life/infrastructure/lesson_library/service.py:691-705
+}

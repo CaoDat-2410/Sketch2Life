@@ -1,0 +1,45 @@
+meta {
+  name: 804 [DRAFT-V4D] [LOCAL / TEST ONLY] Manager Teacher invitation fails closed 503 without adapter
+  type: http
+  seq: 804
+}
+
+post {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/teacher-invitations
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "email": "{{phase_de_invite_email}}"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(503);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(["PROVIDER_UNAVAILABLE", "IDENTITY_PROVIDER_UNAVAILABLE"]).to.include(res.getBody().code);
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against the code in .worktrees/v4d at 9e439cee; not yet run against a live backend.
+  Role: Assigned School Manager - set bearerToken to seed-mgr-a token
+  Needs: organization_id=seed-org-a, synthetic .test address in phase_de_invite_email; default runtime without identity provisioner or profile_receipt_hmac_key
+  Expected: 503 / PROVIDER_UNAVAILABLE or IDENTITY_PROVIDER_UNAVAILABLE
+  Source: backend/src/sketch2life/interfaces/http/routers/teacher_invitations.py:166-175, backend/src/sketch2life/application/services/teacher_invitations.py:60-61,255-265
+  UNVERIFIED: exact 503 code depends on whether profile_receipt_hmac_key or identity_account_provisioner is missing first in runtime wiring
+}

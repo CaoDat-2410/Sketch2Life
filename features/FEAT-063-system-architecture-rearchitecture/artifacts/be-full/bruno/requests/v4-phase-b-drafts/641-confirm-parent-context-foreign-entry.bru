@@ -1,0 +1,49 @@
+meta {
+  name: 641 [DRAFT-V4B] [LOCAL / TEST ONLY] Reject context confirmation referencing foreign or unknown entry ID
+  type: http
+  seq: 641
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{parent_v2_context_run_id}}/context-confirmation
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "expected_context_revision": {{parent_v2_context_revision}},
+    "context_snapshot_sha256": "{{parent_v2_context_hash}}",
+    "confirmed": true,
+    "selected_context_entry_ids": [
+      "00000000-0000-4000-8000-000000000001"
+    ]
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_NOT_FOUND");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase B code at 134561f4; not yet run against a live backend.
+  Role: Parent - set bearerToken to seed-parent-p1 token
+  Needs: needs-fixture: unconfirmed parent_v2_context_run_id (run before 638)
+  Expected: 404 / RESOURCE_NOT_FOUND (unknown, foreign, or DELETE_PENDING entry id)
+  Source: backend/src/sketch2life/infrastructure/persistence/parent_story_repository.py:1240-1246
+}

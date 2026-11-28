@@ -1,0 +1,49 @@
+meta {
+  name: 1027 [DRAFT-V4E] [LOCAL / TEST ONLY] Create SVG draft rejects unknown plan_activity_id 404
+  type: http
+  seq: 1027
+}
+
+post {
+  url: {{baseUrl}}/v1/lesson-occurrences/{{phase_de_e1_occurrence_id}}/presentation/svg-drafts
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{phase_de_e1_svg_unknown_act_key}}
+}
+
+body:json {
+  {
+    "plan_activity_id": "nonexistent-plan-activity-id",
+    "subject_text": "butterfly"
+  }
+}
+
+script:pre-request {
+  bru.setVar("phase_de_e1_svg_unknown_act_key", "e1-svg-unknown-act-" + Date.now());
+}
+
+tests {
+  test("assert unknown plan_activity_id 404", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_NOT_FOUND");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against committed Phase E code at 98aa9837 (PHASE_E_FINAL_ROUTE_LIST_20261125.md / 784134fc); not yet run against a live backend.
+  Role: Responsible Teacher - set bearerToken to seed-tch-a1 token
+  Needs: needs-fixture: run after 870 using phase_de_e1_occurrence_id with an initialized presentation
+  Expected: 404 / RESOURCE_NOT_FOUND
+  Source: backend/src/sketch2life/interfaces/http/routers/lesson_presentations.py, backend/src/sketch2life/infrastructure/lesson_occurrences/presentations.py
+}

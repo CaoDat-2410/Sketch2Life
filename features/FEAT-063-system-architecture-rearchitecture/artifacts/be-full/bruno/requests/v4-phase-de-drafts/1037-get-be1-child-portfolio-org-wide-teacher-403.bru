@@ -1,0 +1,36 @@
+meta {
+  name: 1037 [DRAFT-V4E] [LOCAL / TEST ONLY] Org-wide Teacher gets 403 reading BE1 child portfolio
+  type: http
+  seq: 1037
+}
+
+get {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/classes/{{class_id}}/profiles/{{phase_de_e2_child_id}}/portfolio?limit=25
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert org-wide teacher refusal", function () {
+    expect(res.getStatus()).to.equal(403);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("ACTION_NOT_ALLOWED");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against committed Phase E code at 98aa9837 (PHASE_E_FINAL_ROUTE_LIST_20261125.md / 784134fc); not yet run against a live backend.
+  Role: Org-wide Teacher (no class-scoped teacher row on class_id) - set bearerToken to seed-tch-a3 token
+  Needs: needs-fixture: organization_id=seed-org-a, class_id=seed-org-a-class-1, child profile phase_de_e2_child_id
+  Expected: 403 / ACTION_NOT_ALLOWED
+  Source: backend/src/sketch2life/interfaces/http/routers/be1_records.py
+}

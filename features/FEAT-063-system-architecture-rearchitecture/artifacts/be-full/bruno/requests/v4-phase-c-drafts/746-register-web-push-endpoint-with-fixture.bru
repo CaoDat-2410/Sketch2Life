@@ -1,0 +1,71 @@
+meta {
+  name: 746 [DRAFT-V4C] [LOCAL / TEST ONLY] Parent registers WEB_PUSH endpoint with test adapters fixture
+  type: http
+  seq: 746
+}
+
+post {
+  url: {{baseUrl}}/v1/notifications/push-endpoints
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{phase_c_push_register_key}}
+}
+
+body:json {
+  {
+    "contract": "PushEndpointRegistrationV1",
+    "platform_kind": "WEB",
+    "provider_kind": "WEB_PUSH",
+    "encrypted_registration_proof": "{{phase_c_push_proof}}",
+    "app_version": "1.0.0"
+  }
+}
+
+script:pre-request {
+  const key = "push-reg-" + Date.now();
+  bru.setVar("phase_c_push_register_key", key);
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (body && typeof body.endpoint_id === "string") {
+    bru.setVar("phase_c_push_endpoint_id", body.endpoint_id);
+  }
+  if (body && typeof body.version === "number") {
+    bru.setVar("phase_c_push_endpoint_version", String(body.version));
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("Cache-Control")).to.equal("no-store");
+    const body = res.getBody();
+    expect(body.contract).to.equal("PushEndpointV1");
+    expect(body.endpoint_id).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+    expect(body.version).to.be.at.least(1);
+    expect(res.getHeader("ETag")).to.equal('"' + String(body.version) + '"');
+    expect(body).to.not.have.property("endpoint_ciphertext");
+    expect(body).to.not.have.property("endpoint_fingerprint");
+    expect(body).to.not.have.property("recipient_account_id");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase C code at f031fc70; not yet run against a live backend.
+  Role: Active Parent - set bearerToken to seed-parent-p1 token
+  Needs: needs-fixture: local/test backend wiring synthetic proof verifier, encryptor, endpoint fingerprinter, and receipt fingerprinter (production default has no adapters and returns 503 as in 741); phase_c_push_proof holds a synthetic proof accepted by that verifier; saves phase_c_push_register_key, phase_c_push_endpoint_id, phase_c_push_endpoint_version for 747, 748, 753, 757
+  Expected: 201 / PushEndpointV1 (ETag "<version>", Cache-Control: no-store)
+  Source: backend/src/sketch2life/interfaces/http/routers/notifications.py:182-233, backend/src/sketch2life/application/services/push_endpoints.py:143-256, backend/src/sketch2life/contracts/schemas/notifications.py:65-90
+}

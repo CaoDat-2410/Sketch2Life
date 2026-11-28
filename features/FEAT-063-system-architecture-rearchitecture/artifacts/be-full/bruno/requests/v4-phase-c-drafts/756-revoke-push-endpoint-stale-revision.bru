@@ -1,0 +1,40 @@
+meta {
+  name: 756 [DRAFT-V4C] [LOCAL / TEST ONLY] Reject push endpoint revoke with stale If-Match on fresh key
+  type: http
+  seq: 756
+}
+
+delete {
+  url: {{baseUrl}}/v1/notifications/push-endpoints/{{phase_c_push_endpoint_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  If-Match: "1"
+  Idempotency-Key: {{$guid}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.code).to.equal("STALE_REVISION");
+    expect(body.current_version).to.be.at.least(2);
+  });
+}
+
+docs {
+  DRAFT: written from the Phase C code at f031fc70; not yet run against a live backend.
+  Role: Owning Parent - set bearerToken to seed-parent-p1 token
+  Needs: needs-fixture: run after 753 revokes endpoint and advances version from 1 to 2
+  Expected: 409 / STALE_REVISION (with current_version >= 2)
+  Source: backend/src/sketch2life/application/services/push_endpoints.py:302-310, backend/src/sketch2life/interfaces/http/routers/notifications.py:88-92
+}

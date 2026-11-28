@@ -1,0 +1,42 @@
+meta {
+  name: 783 [DRAFT-V4C] [LOCAL / TEST ONLY] Parent lists notification inbox page two with cursor
+  type: http
+  seq: 783
+}
+
+get {
+  url: {{baseUrl}}/v1/notifications?limit=1&cursor={{phase_c_notifications_cursor}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("Cache-Control")).to.equal("private, no-cache");
+    expect(res.getHeader("Vary")).to.equal("Authorization");
+    const body = res.getBody();
+    expect(body.contract).to.equal("NotificationPageV1");
+    expect(body.items).to.be.an("array");
+    expect(body.items.length).to.be.at.most(1);
+    expect(body.unread_count).to.be.a("number");
+  });
+}
+
+docs {
+  DRAFT after Phase C: checked against the code at 0f6e7683; not yet run against a live backend.
+  Role: Active Parent - set bearerToken to seed-parent-p1 token
+  Needs: needs-fixture: >= 2 unexpired inbox items for seed-parent-p1; run after 782 sets phase_c_notifications_cursor
+  Expected: 200 / NotificationPageV1
+  Source: backend/src/sketch2life/interfaces/http/routers/notifications.py:105-136, backend/src/sketch2life/infrastructure/notifications/inbox_repository.py:207-251
+}

@@ -1,0 +1,52 @@
+meta {
+  name: 639 [DRAFT-V4B] [LOCAL / TEST ONLY] Replay Parent StoryRun V2 context confirmation
+  type: http
+  seq: 639
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{parent_v2_context_run_id}}/context-confirmation
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{phase_b_confirm_context_key}}
+}
+
+body:json {
+  {
+    "expected_context_revision": {{phase_b_confirm_context_expected_revision}},
+    "context_snapshot_sha256": "{{phase_b_confirm_context_expected_hash}}",
+    "confirmed": true,
+    "selected_context_entry_ids": [
+      "{{phase_b_context_entry_id}}"
+    ]
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const story = res.getBody().story_run;
+    expect(story.context_confirmed).to.equal(true);
+    expect(story.context_revision).to.equal(Number(bru.getVar("parent_v2_context_revision_after")));
+    expect(story.context_snapshot.schema_version).to.equal("sketch2life.parent-context.v2");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase B code at 134561f4; not yet run against a live backend.
+  Role: Parent - set bearerToken to seed-parent-p1 token
+  Needs: run after 638 (uses phase_b_confirm_context_key, phase_b_confirm_context_expected_revision, phase_b_confirm_context_expected_hash, and phase_b_context_entry_id)
+  Expected: 200 / ParentStoryRunEnvelopeV1 (replay returns stored V2 snapshot without appending a second run_inputs row)
+  Source: backend/src/sketch2life/infrastructure/persistence/parent_story_repository.py:1194-1204
+}

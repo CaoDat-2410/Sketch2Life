@@ -1,0 +1,40 @@
+meta {
+  name: 1034 [DRAFT-V4E] [LOCAL / TEST ONLY] Assigned Teacher filters occurrence history by state=APPROVED
+  type: http
+  seq: 1034
+}
+
+get {
+  url: {{baseUrl}}/api/teacher/v1/organizations/{{organization_id}}/history?state=APPROVED&limit=25
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert filtered history response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("Cache-Control")).to.equal("private, no-cache");
+    expect(res.getHeader("Vary")).to.include("Authorization");
+    const body = res.getBody();
+    expect(body.contract).to.equal("LessonOccurrencePageV1");
+    expect(body.items).to.be.an("array");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against committed Phase E code at 98aa9837 (PHASE_E_FINAL_ROUTE_LIST_20261125.md / 784134fc); not yet run against a live backend.
+  Role: Assigned Teacher - set bearerToken to seed-tch-a1 token
+  Needs: organization_id=seed-org-a
+  Expected: 200 / LessonOccurrencePageV1 (filtered by state=APPROVED)
+  Source: backend/src/sketch2life/interfaces/http/routers/teacher_workspace.py
+}

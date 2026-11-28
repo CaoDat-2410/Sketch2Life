@@ -23,7 +23,12 @@ headers {
 body:json {
   {
     "version_id": "x",
-    "audience_kind": "PUBLIC",
+    "audience_kind": "PRINCIPAL",
+    "audience_ref": "{{parent_principal_ref}}",
     "capability": "VIEW"
   }
+}
+
+docs {
+  Parent PRINCIPAL shares resolve through the active Parent subject or an unambiguous account-ID alias.
 }

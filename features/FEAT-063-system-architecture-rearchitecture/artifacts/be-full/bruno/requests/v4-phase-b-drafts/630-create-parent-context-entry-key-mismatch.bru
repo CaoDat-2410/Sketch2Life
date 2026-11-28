@@ -1,0 +1,48 @@
+meta {
+  name: 630 [DRAFT-V4B] [LOCAL / TEST ONLY] Reject Parent context entry when Idempotency-Key body differs
+  type: http
+  seq: 630
+}
+
+post {
+  url: {{baseUrl}}/v1/parent/profiles/{{parent_profile_id}}/context-entries
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{phase_b_context_entry_key}}
+}
+
+body:json {
+  {
+    "entry_kind": "OBSERVATION",
+    "short_text": "Different observation text",
+    "source_kind": "PARENT_NOTE",
+    "source_ref": "parent-journal-1",
+    "approximate_date": "2026-11-20"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("INVALID_IDEMPOTENCY_KEY");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase B code at 134561f4; not yet run against a live backend.
+  Role: Parent - set bearerToken to seed-parent-p1 token
+  Needs: run after 628 (reuses phase_b_context_entry_key with changed short_text)
+  Expected: 400 / INVALID_IDEMPOTENCY_KEY
+  Source: backend/src/sketch2life/infrastructure/persistence/parent_profile_repository.py:493-503,645-648
+}

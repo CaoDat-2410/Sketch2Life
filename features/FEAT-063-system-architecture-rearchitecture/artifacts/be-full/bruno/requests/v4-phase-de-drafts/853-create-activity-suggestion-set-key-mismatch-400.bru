@@ -1,0 +1,50 @@
+meta {
+  name: 853 [DRAFT-V4D2] [LOCAL / TEST ONLY] Create activity suggestion set rejects Idempotency-Key reuse across runs
+  type: http
+  seq: 853
+}
+
+post {
+  url: {{baseUrl}}/api/parent/v1/ai/story-runs/{{phase_de_t2eb_other_run_id}}/activity-suggestions
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{phase_de_t2eb_set_key}}
+}
+
+body:json {
+  {
+    "expected_understanding_revision": {{phase_de_t2eb_other_understanding_rev}}
+  }
+}
+
+script:pre-request {
+  if (!bru.getVar("phase_de_t2eb_other_understanding_rev")) {
+    bru.setVar("phase_de_t2eb_other_understanding_rev", "1");
+  }
+}
+
+tests {
+  test("assert idempotency key mismatch refusal", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().detail.code).to.equal("INVALID_IDEMPOTENCY_KEY");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against committed Hybrid B code at 68c0fdf3; not yet run against a live backend.
+  Role: Owning Parent - set bearerToken to seed-parent-p1 token
+  Needs: needs-fixture: run after 845 reusing phase_de_t2eb_set_key on another owned run phase_de_t2eb_other_run_id (understanding_revision in phase_de_t2eb_other_understanding_rev)
+  Expected: 400 / INVALID_IDEMPOTENCY_KEY
+  Source: backend/src/sketch2life/interfaces/http/routers/parent_ai.py, backend/src/sketch2life/infrastructure/persistence/parent_activity_suggestion_set_repository.py
+}

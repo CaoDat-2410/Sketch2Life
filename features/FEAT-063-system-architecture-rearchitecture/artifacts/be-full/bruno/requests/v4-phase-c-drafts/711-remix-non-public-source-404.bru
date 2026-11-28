@@ -1,0 +1,46 @@
+meta {
+  name: 711 [DRAFT-V4C] [LOCAL / TEST ONLY] Hide ineligible or non-PUBLIC source lesson on remix with 404
+  type: http
+  seq: 711
+}
+
+post {
+  url: {{baseUrl}}/api/lesson-library/v1/organizations/{{organization_id}}/lessons/seed-lesson-l2/remixes
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "contract": "RemixLessonRequestV1",
+    "source_version_id": "seed-lv-l2-1",
+    "source_content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_NOT_FOUND");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase C code at f031fc70; not yet run against a live backend.
+  Role: Assigned Teacher - set bearerToken to seed-tch-a1 token
+  Needs: organization_id=seed-org-a; seed-lesson-l2 is PRIVATE (same 404 for unknown, unapproved, expired, revoked, hidden, or VIEW-only sources)
+  Expected: 404 / RESOURCE_NOT_FOUND
+  Source: backend/src/sketch2life/infrastructure/lesson_library/service.py:1026-1074
+}

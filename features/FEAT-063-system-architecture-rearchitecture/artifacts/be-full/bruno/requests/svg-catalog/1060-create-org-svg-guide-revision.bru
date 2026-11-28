@@ -1,0 +1,54 @@
+meta {
+  name: 1060 Create organization SVG guide revision
+  type: http
+  seq: 1060
+}
+
+post {
+  url: {{baseUrl}}/api/svg-catalog/v1/organizations/{{organization_id}}/assets/{{catalog_entry_id}}/guide-revisions
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "contract": "CreateSvgGuideRevisionRequestV1",
+    "guide": {
+      "schema_version": "SketchStrokeGuideV3",
+      "guide_id": "guide-draft",
+      "title_vi": "{{svg_guide_title_vi}}",
+      "source_asset_ref": "{{svg_source_asset_ref}}",
+      "source_asset_version": {{svg_source_asset_version}},
+      "source_sha256": "{{svg_source_sha256}}",
+      "parts": [{
+        "part_id": "part-main",
+        "label_vi": "{{svg_part_label_vi}}",
+        "path_ids": ["{{svg_path_id_01}}", "{{svg_path_id_02}}", "{{svg_path_id_03}}", "{{svg_path_id_04}}", "{{svg_path_id_05}}", "{{svg_path_id_06}}", "{{svg_path_id_07}}", "{{svg_path_id_08}}"],
+        "depends_on": []
+      }],
+      "stages": [
+        {"step_index": 1, "instruction_vi": "{{svg_step_1_instruction_vi}}", "part_ids": ["part-main"], "new_path_ids": ["{{svg_path_id_01}}", "{{svg_path_id_02}}"], "animation_order": ["{{svg_path_id_01}}", "{{svg_path_id_02}}"]},
+        {"step_index": 2, "instruction_vi": "{{svg_step_2_instruction_vi}}", "part_ids": ["part-main"], "new_path_ids": ["{{svg_path_id_03}}", "{{svg_path_id_04}}"], "animation_order": ["{{svg_path_id_03}}", "{{svg_path_id_04}}"]},
+        {"step_index": 3, "instruction_vi": "{{svg_step_3_instruction_vi}}", "part_ids": ["part-main"], "new_path_ids": ["{{svg_path_id_05}}", "{{svg_path_id_06}}"], "animation_order": ["{{svg_path_id_05}}", "{{svg_path_id_06}}"]},
+        {"step_index": 4, "instruction_vi": "{{svg_step_4_instruction_vi}}", "part_ids": ["part-main"], "new_path_ids": ["{{svg_path_id_07}}", "{{svg_path_id_08}}"], "animation_order": ["{{svg_path_id_07}}", "{{svg_path_id_08}}"]}
+      ]
+    }
+  }
+}
+
+docs {
+  Role: Teacher assigned to organization_id.
+  Needs: catalog_entry_id and source metadata from an active organization asset with at least eight paths; set the synthetic source/path/title/instruction variables to match that asset.
+  Expected: 201 Created / SvgGuideRevisionReceiptV1.
+  Source: backend/src/sketch2life/interfaces/http/routers/svg_catalog.py, backend/src/sketch2life/contracts/schemas/svg_engine.py
+}

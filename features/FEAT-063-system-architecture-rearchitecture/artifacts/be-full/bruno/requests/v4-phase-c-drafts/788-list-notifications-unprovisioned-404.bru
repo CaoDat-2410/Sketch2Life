@@ -1,0 +1,36 @@
+meta {
+  name: 788 [DRAFT-V4C] [LOCAL / TEST ONLY] Hide notification inbox from unprovisioned identity with 404
+  type: http
+  seq: 788
+}
+
+get {
+  url: {{baseUrl}}/v1/notifications
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_NOT_FOUND");
+  });
+}
+
+docs {
+  DRAFT after Phase C: checked against the code at 0f6e7683; not yet run against a live backend.
+  Role: Verified adult without active AdultIdentityModel (or disabled/foreign-issuer identity) - set bearerToken to unprovisioned token
+  Needs: needs-fixture: verified bearer token lacking an active AdultIdentityModel row (all four active adult roles parent/teacher/school_manager/platform_admin are valid inbox recipients)
+  Expected: 404 / RESOURCE_NOT_FOUND
+  Source: backend/src/sketch2life/infrastructure/notifications/inbox_repository.py:185-197, backend/src/sketch2life/application/services/notifications.py:29
+}

@@ -1,0 +1,58 @@
+meta {
+  name: 634 [DRAFT-V4B] [LOCAL / TEST ONLY] List Parent profile context entries
+  type: http
+  seq: 634
+}
+
+get {
+  url: {{baseUrl}}/v1/parent/profiles/{{parent_profile_id}}/context-entries?limit=25
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (typeof body.next_cursor === "string") {
+    bru.setVar("phase_b_context_entry_cursor", body.next_cursor);
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("Cache-Control")).to.equal("private, no-store");
+    const body = res.getBody();
+    expect(body.context_entries).to.be.an("array");
+    expect(body.limit).to.equal(25);
+    expect(body).to.have.property("next_cursor");
+    expect(body.next_cursor === null || typeof body.next_cursor === "string").to.equal(true);
+    if (body.context_entries.length > 0) {
+      const item = body.context_entries[0];
+      expect(item.context_entry_id).to.be.a("string");
+      expect(["OBSERVATION", "ACHIEVEMENT", "OUTSIDE_EXPERIENCE"]).to.include(item.entry_kind);
+      expect(item.short_text).to.be.a("string");
+      expect(item.source_kind).to.be.a("string");
+      expect(item.created_at).to.be.a("string");
+      expect(item).to.not.have.property("source_ref");
+      expect(item).to.not.have.property("created_by");
+    }
+  });
+}
+
+docs {
+  DRAFT: written from the Phase B code at 134561f4; not yet run against a live backend.
+  Role: Parent - set bearerToken to seed-parent-p1 token
+  Needs: parent_profile_id (owned ACTIVE profile; run after 628 to see at least one entry)
+  Expected: 200 / ParentContextEntryListView (Cache-Control: private, no-store)
+  Source: backend/src/sketch2life/interfaces/http/routers/parent_profiles.py:426-469, backend/src/sketch2life/contracts/schemas/parent_profiles.py:186-205
+}

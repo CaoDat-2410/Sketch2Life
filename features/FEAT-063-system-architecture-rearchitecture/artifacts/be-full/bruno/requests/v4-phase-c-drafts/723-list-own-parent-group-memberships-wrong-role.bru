@@ -1,0 +1,36 @@
+meta {
+  name: 723 [DRAFT-V4C] [LOCAL / TEST ONLY] Refuse Teacher role on Parent own memberships list
+  type: http
+  seq: 723
+}
+
+get {
+  url: {{baseUrl}}/api/lesson-library/v1/me/parent-group-memberships
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(403);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("ACCOUNT_SCOPE_UNAVAILABLE");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase C code at f031fc70; not yet run against a live backend.
+  Role: Teacher - set bearerToken to seed-tch-a1 token
+  Needs: none
+  Expected: 403 / ACCOUNT_SCOPE_UNAVAILABLE
+  Source: backend/src/sketch2life/interfaces/http/routers/lesson_library.py:175-186,868
+}

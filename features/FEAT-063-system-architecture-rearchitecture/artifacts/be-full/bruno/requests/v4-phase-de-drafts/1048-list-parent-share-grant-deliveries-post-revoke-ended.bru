@@ -1,0 +1,45 @@
+meta {
+  name: 1048 [DRAFT-V4E] [LOCAL / TEST ONLY] Share grant deliveries returns ENDED and null titles after revoke
+  type: http
+  seq: 1048
+}
+
+get {
+  url: {{baseUrl}}/v1/parent/share-grants/{{phase_de_e3_share_grant_id}}/deliveries?limit=25
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert post-revoke neutral deliveries contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("Cache-Control")).to.equal("private, no-cache");
+    expect(res.getHeader("Vary")).to.include("Authorization");
+    const body = res.getBody();
+    expect(body.contract).to.equal("ParentShareDeliveryListV1");
+    expect(body.share_grant_id).to.equal(bru.getVar("phase_de_e3_share_grant_id"));
+    expect(body.content_access).to.equal("ENDED");
+    expect(body.items).to.be.an("array");
+    body.items.forEach(function (item) {
+      expect(item.title).to.equal(null);
+    });
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against committed Phase E code at 98aa9837 (PHASE_E_FINAL_ROUTE_LIST_20261125.md / 784134fc); not yet run against a live backend.
+  Role: Owning Parent - set bearerToken to seed-parent-p1 token
+  Needs: needs-fixture: run after 960 revokes phase_de_e3_share_grant_id
+  Expected: 200 / ParentShareDeliveryListV1 (content_access: ENDED, items[].title === null)
+  Source: backend/src/sketch2life/interfaces/http/routers/parent_share_grants.py, backend/src/sketch2life/infrastructure/profile_sharing/service.py
+}

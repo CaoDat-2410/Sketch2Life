@@ -1,0 +1,37 @@
+meta {
+  name: 794 [DRAFT-V4C] [LOCAL / TEST ONLY] Refuse same-org Teacher on organization video quota endpoint with 403
+  type: http
+  seq: 794
+}
+
+get {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/video-quota
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(403);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("ACTION_NOT_ALLOWED");
+  });
+}
+
+docs {
+  DRAFT after Phase C: checked against the code at 0f6e7683; not yet run against a live backend.
+  owner: Billing/Capacity
+  Role: Same-org Teacher - set bearerToken to seed-tch-a1 token
+  Needs: organization_id=seed-org-a (require_assignment enforces roles={"school_admin"})
+  Expected: 403 / ACTION_NOT_ALLOWED
+  Source: backend/src/sketch2life/interfaces/http/routers/be1_billing.py:171, backend/src/sketch2life/interfaces/http/routers/be1_common.py:152-155
+}

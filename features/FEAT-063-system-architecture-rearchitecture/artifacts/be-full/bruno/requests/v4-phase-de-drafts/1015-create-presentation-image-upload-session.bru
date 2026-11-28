@@ -1,0 +1,63 @@
+meta {
+  name: 1015 [DRAFT-V4E] [LOCAL / TEST ONLY] Responsible Teacher creates PRESENTATION_IMAGE upload session
+  type: http
+  seq: 1015
+}
+
+post {
+  url: {{baseUrl}}/v1/upload-sessions
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{phase_de_e1_upload_key}}
+}
+
+body:json {
+  {
+    "purpose": "PRESENTATION_IMAGE",
+    "target_ref": "{{phase_de_e1_occurrence_id}}",
+    "media_type": "image/png",
+    "expected_size_bytes": 69,
+    "expected_sha256": "d3c936ebdd73f46e6422d5946044c99d524554082272019ab738800318b04892"
+  }
+}
+
+script:pre-request {
+  bru.setVar("phase_de_e1_upload_key", "e1-img-upload-" + Date.now());
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (body && typeof body.upload_id === "string") {
+    bru.setVar("phase_de_e1_image_upload_id", body.upload_id);
+  }
+}
+
+tests {
+  test("assert presentation image upload session contract", function () {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.contract).to.equal("GenericUploadSessionV1");
+    expect(body.purpose).to.equal("PRESENTATION_IMAGE");
+    expect(body.target_ref).to.equal(bru.getVar("phase_de_e1_occurrence_id"));
+    expect(body.state).to.equal("OPEN");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against committed Phase E code at 98aa9837 (PHASE_E_FINAL_ROUTE_LIST_20261125.md / 784134fc); not yet run against a live backend.
+  Role: Responsible Teacher - set bearerToken to seed-tch-a1 token
+  Needs: needs-fixture: occurrence phase_de_e1_occurrence_id owned by Teacher; complete upload via PUT /parts/1 and POST /complete to obtain asset_ref for SET_MEDIA and request 896
+  Expected: 201 / GenericUploadSessionV1 (purpose: PRESENTATION_IMAGE)
+  Source: backend/src/sketch2life/contracts/schemas/upload_sessions.py, backend/src/sketch2life/infrastructure/uploads/resolvers.py
+}

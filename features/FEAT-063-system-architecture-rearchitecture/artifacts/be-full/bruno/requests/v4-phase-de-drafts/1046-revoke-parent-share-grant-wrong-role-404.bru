@@ -1,0 +1,38 @@
+meta {
+  name: 1046 [DRAFT-V4E] [LOCAL / TEST ONLY] Teacher gets 404 revoking Parent share grant
+  type: http
+  seq: 1046
+}
+
+post {
+  url: {{baseUrl}}/v1/parent/share-grants/00000000-0000-4000-8000-000000000000/revoke
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  If-Match: "1"
+  Idempotency-Key: e3-revoke-wrong-role-key
+}
+
+tests {
+  test("assert non-parent role refusal", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_NOT_FOUND");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against committed Phase E code at 98aa9837 (PHASE_E_FINAL_ROUTE_LIST_20261125.md / 784134fc); not yet run against a live backend.
+  Role: Wrong Role (Teacher) - set bearerToken to seed-tch-a1 token
+  Needs: none
+  Expected: 404 / RESOURCE_NOT_FOUND
+  Source: backend/src/sketch2life/interfaces/http/routers/parent_share_grants.py
+}

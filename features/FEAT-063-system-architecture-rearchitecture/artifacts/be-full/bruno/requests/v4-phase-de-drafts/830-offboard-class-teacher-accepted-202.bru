@@ -1,0 +1,56 @@
+meta {
+  name: 830 [DRAFT-V4D] [LOCAL / TEST ONLY] Manager initiates Teacher offboarding from class
+  type: http
+  seq: 830
+}
+
+delete {
+  url: {{baseUrl}}/api/be1/v1/classes/{{phase_de_offboard_class_id}}/assignments/current
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  If-Match: "{{phase_de_offboard_expected_rev}}"
+  Idempotency-Key: {{phase_de_offboard_key}}
+}
+
+script:pre-request {
+  bru.setVar("phase_de_offboard_key", "t6b-offboard-" + Date.now());
+  bru.setVar("phase_de_offboard_expected_rev", String(bru.getVar("phase_de_offboard_revision") || "1"));
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (typeof body.transfer_id === "string") {
+    bru.setVar("phase_de_offboard_transfer_id", body.transfer_id);
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(202);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("Cache-Control")).to.equal("private, no-store");
+    expect(res.getHeader("Location")).to.include("/assignment-transfers/");
+    const body = res.getBody();
+    expect(body.contract).to.equal("Be1TeacherAssignmentTransferAcceptedV1");
+    expect(body.action).to.equal("OFFBOARD");
+    expect(body.state).to.equal("TRANSFER_PENDING");
+    expect(res.getHeader("ETag")).to.equal('"' + String(body.assignment_revision) + '"');
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against the code in .worktrees/v4d at working tree on 9e439cee; not yet run against a live backend.
+  Role: Assigned School Manager - set bearerToken to seed-mgr-a token
+  Needs: needs-fixture: disposable occupied class phase_de_offboard_class_id without active StoryRun conflict, assignment_revision in phase_de_offboard_revision; saves phase_de_offboard_key, phase_de_offboard_transfer_id
+  Expected: 202 / Be1TeacherAssignmentTransferAcceptedV1 (OFFBOARD, TRANSFER_PENDING)
+  Source: backend/src/sketch2life/interfaces/http/routers/be1_registry.py:621-671
+}

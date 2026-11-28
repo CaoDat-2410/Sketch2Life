@@ -1,0 +1,59 @@
+meta {
+  name: 1018 [DRAFT-V4E] [LOCAL / TEST ONLY] Create presentation revision rejects stale plan source without repin 409
+  type: http
+  seq: 1018
+}
+
+post {
+  url: {{baseUrl}}/v1/lesson-occurrences/{{phase_de_e1_stale_plan_occurrence_id}}/presentation/revisions
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  If-Match: {{phase_de_e1_stale_plan_etag}}
+  Idempotency-Key: {{phase_de_e1_stale_source_key}}
+}
+
+body:json {
+  {
+    "repin_to_current_plan": false,
+    "operations": [
+      {
+        "op": "UPDATE_SLIDE",
+        "slide_id": "{{phase_de_e1_stale_plan_slide_id}}",
+        "title": "Blocked Until Repin"
+      }
+    ]
+  }
+}
+
+script:pre-request {
+  bru.setVar("phase_de_e1_stale_source_key", "e1-rev-stale-source-" + Date.now());
+  if (!bru.getVar("phase_de_e1_stale_plan_etag")) {
+    bru.setVar("phase_de_e1_stale_plan_etag", '"1"');
+  }
+}
+
+tests {
+  test("assert stale source version refusal", function () {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("STALE_SOURCE_VERSION");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against committed Phase E code at 98aa9837 (PHASE_E_FINAL_ROUTE_LIST_20261125.md / 784134fc); not yet run against a live backend.
+  Role: Responsible Teacher - set bearerToken to seed-tch-a1 token
+  Needs: needs-fixture: presentation whose pinned plan revision is superseded by a newer approved plan on phase_de_e1_stale_plan_occurrence_id
+  Expected: 409 / STALE_SOURCE_VERSION
+  Source: backend/src/sketch2life/interfaces/http/routers/lesson_presentations.py, backend/src/sketch2life/infrastructure/lesson_occurrences/presentations.py
+}

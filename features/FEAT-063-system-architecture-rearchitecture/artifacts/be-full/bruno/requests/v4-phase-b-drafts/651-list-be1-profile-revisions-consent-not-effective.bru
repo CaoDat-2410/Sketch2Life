@@ -1,0 +1,36 @@
+meta {
+  name: 651 [DRAFT-V4B] [LOCAL / TEST ONLY] Refuse BE1 profile revisions when consent is not effective
+  type: http
+  seq: 651
+}
+
+get {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/classes/{{class_id}}/profiles/{{unconsented_child_id}}/revisions
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("CONSENT_NOT_EFFECTIVE");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase B code at 134561f4; not yet run against a live backend.
+  Role: Assigned Teacher - set bearerToken to seed-tch-a1 token
+  Needs: needs-fixture: unconsented_child_id (active REAL profile without effective consent or LEGACY_UNCLASSIFIED profile in seed-org-a-class-1, without pending deletion or revoked consent)
+  Expected: 409 / CONSENT_NOT_EFFECTIVE (audited)
+  Source: backend/src/sketch2life/interfaces/http/routers/be1_registry.py:2017-2025,2047
+}

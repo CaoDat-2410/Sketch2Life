@@ -1,0 +1,38 @@
+meta {
+  name: 696 [DRAFT-V4C] [LOCAL / TEST ONLY] Reject PUBLIC search cursor replayed by another Teacher
+  type: http
+  seq: 696
+}
+
+get {
+  url: {{baseUrl}}/api/lesson-library/v1/organizations/{{organization_id}}/public-lessons?q={{phase_c_public_q}}&topic={{phase_c_public_topic}}&target_age_band_ref={{phase_c_public_age_ref}}&target_age_band_version={{phase_c_public_age_version}}&limit=1&cursor={{phase_c_public_search_cursor}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.code).to.equal("INVALID_REQUEST");
+    expect(body.field_errors).to.deep.include({ field: "cursor", code: "INVALID_FORMAT" });
+  });
+}
+
+docs {
+  DRAFT: written from the Phase C code at f031fc70; not yet run against a live backend.
+  Role: Other Teacher in same org - set bearerToken to seed-tch-a2 token
+  Needs: needs-fixture: run after 691 (replays seed-tch-a1 phase_c_public_search_cursor as seed-tch-a2)
+  Expected: 400 / INVALID_REQUEST (cursor INVALID_FORMAT; actor mismatch in scope digest)
+  Source: backend/src/sketch2life/infrastructure/lesson_library/service.py:244-288,3273-3289
+}

@@ -1,0 +1,37 @@
+meta {
+  name: 735 [DRAFT-V4C] [LOCAL / TEST ONLY] Reject parent-group revoke without If-Match with 428
+  type: http
+  seq: 735
+}
+
+delete {
+  url: {{baseUrl}}/api/lesson-library/v1/organizations/{{organization_id}}/parent-groups/seed-pg-a-1/members/seed-pgm-1-p1
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Idempotency-Key: {{$guid}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(428);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("PRECONDITION_REQUIRED");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase C code at f031fc70; not yet run against a live backend.
+  Role: Assigned School Manager - set bearerToken to seed-mgr-a token
+  Needs: organization_id=seed-org-a, seed-pg-a-1, seed-pgm-1-p1 (precondition check precedes idempotency key parsing)
+  Expected: 428 / PRECONDITION_REQUIRED
+  Source: backend/src/sketch2life/interfaces/http/routers/lesson_library.py:131-137,933, backend/tests/contract/test_parent_group_membership_routes.py:306-321
+}

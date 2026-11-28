@@ -1,0 +1,52 @@
+meta {
+  name: 969 [DRAFT-V4E] [LOCAL / TEST ONLY] Assigned Teacher accepts Parent share invitation
+  type: http
+  seq: 969
+}
+
+post {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/classes/{{class_id}}/profiles/{{phase_de_e3_child_id}}/parent-share/accept
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{phase_de_e3_accept_key}}
+}
+
+body:json {
+  {
+    "invitation_code": "{{phase_de_e3_invitation_code}}"
+  }
+}
+
+script:pre-request {
+  bru.setVar("phase_de_e3_accept_key", "e3-accept-" + Date.now());
+}
+
+tests {
+  test("assert parent-share accept contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("ETag")).to.be.a("string");
+    expect(res.getHeader("Vary")).to.include("Authorization");
+    const body = res.getBody();
+    expect(body.contract).to.equal("Be1ParentShareLinkV1");
+    expect(body.state).to.equal("ACTIVE");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against committed Phase E code at 98aa9837 (PHASE_E_FINAL_ROUTE_LIST_20261125.md / 784134fc); not yet run against a live backend.
+  Role: Assigned Teacher - set bearerToken to seed-tch-a1 token
+  Needs: needs-fixture: run after 945 (before 960) with organization_id=seed-org-a, class_id=seed-org-a-class-1, synthetic child profile phase_de_e3_child_id, and phase_de_e3_invitation_code
+  Expected: 200 / Be1ParentShareLinkV1 (state: ACTIVE, ETag, Vary: Authorization)
+  Source: backend/src/sketch2life/interfaces/http/routers/be1_registry.py:3180-3265
+}

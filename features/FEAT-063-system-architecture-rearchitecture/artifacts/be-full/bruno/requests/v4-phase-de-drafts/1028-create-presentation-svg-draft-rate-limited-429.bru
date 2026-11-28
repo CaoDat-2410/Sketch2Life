@@ -1,0 +1,53 @@
+meta {
+  name: 1028 [DRAFT-V4E] [LOCAL / TEST ONLY] Create SVG draft enforces 24h rate limit 429 (fixture)
+  type: http
+  seq: 1028
+}
+
+post {
+  url: {{baseUrl}}/v1/lesson-occurrences/{{phase_de_e1_svg_capped_occurrence_id}}/presentation/svg-drafts
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{phase_de_e1_svg_ratelimit_key}}
+}
+
+body:json {
+  {
+    "plan_activity_id": "{{phase_de_e1_plan_activity_id}}",
+    "subject_text": "butterfly"
+  }
+}
+
+script:pre-request {
+  bru.setVar("phase_de_e1_svg_ratelimit_key", "e1-svg-429-" + Date.now());
+}
+
+tests {
+  test("assert SVG draft rate limit refusal", function () {
+    expect(res.getStatus()).to.equal(429);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("Retry-After")).to.equal("3600");
+    const body = res.getBody();
+    expect(body.code).to.equal("RATE_LIMITED");
+    expect(body.retryable).to.equal(true);
+    expect(body.retry_after_seconds).to.equal(3600);
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against committed Phase E code at 98aa9837 (PHASE_E_FINAL_ROUTE_LIST_20261125.md / 784134fc); not yet run against a live backend.
+  Role: Responsible Teacher - set bearerToken to seed-tch-a1 token
+  Needs: needs-fixture: presentation on phase_de_e1_svg_capped_occurrence_id with 20 SVG drafts already created in last 24h and presentation_svg_drafter fixture configured
+  Expected: 429 / RATE_LIMITED (Retry-After: 3600, retryable: true)
+  Source: backend/src/sketch2life/interfaces/http/routers/lesson_presentations.py, backend/src/sketch2life/infrastructure/lesson_occurrences/presentations.py
+}

@@ -1,0 +1,46 @@
+meta {
+  name: 753 [DRAFT-V4C] [LOCAL / TEST ONLY] Parent revokes owned push endpoint with test adapters fixture
+  type: http
+  seq: 753
+}
+
+delete {
+  url: {{baseUrl}}/v1/notifications/push-endpoints/{{phase_c_push_endpoint_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  If-Match: "{{phase_c_push_revoke_expected_version}}"
+  Idempotency-Key: {{phase_c_push_revoke_key}}
+}
+
+script:pre-request {
+  const key = "push-rev-" + Date.now();
+  const ver = Number(bru.getVar("phase_c_push_endpoint_version") || "1");
+  bru.setVar("phase_c_push_revoke_key", key);
+  bru.setVar("phase_c_push_revoke_expected_version", String(ver));
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(204);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("Cache-Control")).to.equal("no-store");
+    expect(res.getBody() || "").to.equal("");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase C code at f031fc70; not yet run against a live backend.
+  Role: Owning Parent - set bearerToken to seed-parent-p1 token
+  Needs: needs-fixture: test adapters configured and run after 746 (phase_c_push_endpoint_id, phase_c_push_endpoint_version); saves phase_c_push_revoke_key and phase_c_push_revoke_expected_version for 754, 755
+  Expected: 204 No Content (empty body, Cache-Control: no-store)
+  Source: backend/src/sketch2life/interfaces/http/routers/notifications.py:236-277, backend/src/sketch2life/application/services/push_endpoints.py:258-353
+}

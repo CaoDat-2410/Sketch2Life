@@ -1,0 +1,44 @@
+meta {
+  name: 806 [DRAFT-V4D] [LOCAL / TEST ONLY] Reject Teacher invitation with malformed address
+  type: http
+  seq: 806
+}
+
+post {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/teacher-invitations
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "email": "not-an-email-address"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("INVALID_REQUEST");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against the code in .worktrees/v4d at 9e439cee; not yet run against a live backend.
+  Role: Assigned School Manager - set bearerToken to seed-mgr-a token
+  Needs: organization_id=seed-org-a
+  Expected: 400 / INVALID_REQUEST
+  Source: backend/src/sketch2life/contracts/schemas/teacher_invitations.py:10-18, backend/tests/contract/test_teacher_invitations_contract.py:381-392
+}

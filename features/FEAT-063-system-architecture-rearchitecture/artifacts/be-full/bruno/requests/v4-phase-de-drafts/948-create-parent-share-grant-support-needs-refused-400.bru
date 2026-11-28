@@ -1,0 +1,51 @@
+meta {
+  name: 948 [DRAFT-V4E] [LOCAL / TEST ONLY] Create share grant rejects disallowed field enum
+  type: http
+  seq: 948
+}
+
+post {
+  url: {{baseUrl}}/v1/parent/share-grants
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: e3-grant-unsupported-field
+}
+
+body:json {
+  {
+    "profile_id": "{{phase_de_e3_profile_id}}",
+    "granted_fields": [
+      "DISPLAY_NAME",
+      "SUPPORT_NEEDS"
+    ]
+  }
+}
+
+tests {
+  test("assert unsupported field enum refusal", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.code).to.equal("INVALID_REQUEST");
+    expect(body.field_errors[0].field).to.equal("granted_fields");
+    expect(body.field_errors[0].code).to.equal("NOT_SUPPORTED");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against committed Phase E code at 98aa9837 (PHASE_E_FINAL_ROUTE_LIST_20261125.md / 784134fc); not yet run against a live backend.
+  Role: Owning Parent - set bearerToken to seed-parent-p1 token
+  Needs: needs-fixture: synthetic Parent child profile phase_de_e3_profile_id
+  Expected: 400 / INVALID_REQUEST with field_errors[0].code == NOT_SUPPORTED
+  Source: backend/src/sketch2life/interfaces/http/routers/parent_share_grants.py, backend/src/sketch2life/contracts/schemas/profile_sharing.py
+}

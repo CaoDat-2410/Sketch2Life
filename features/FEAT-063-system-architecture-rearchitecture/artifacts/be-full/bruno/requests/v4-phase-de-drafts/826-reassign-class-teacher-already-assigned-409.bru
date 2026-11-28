@@ -1,0 +1,45 @@
+meta {
+  name: 826 [DRAFT-V4D] [LOCAL / TEST ONLY] Reject reassigning currently assigned Teacher
+  type: http
+  seq: 826
+}
+
+post {
+  url: {{baseUrl}}/api/be1/v1/classes/{{phase_de_transfer_class_id}}/assignments
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  If-Match: "{{phase_de_transfer_current_revision}}"
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "candidate_ref": "{{phase_de_current_teacher_candidate_ref}}"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_CONFLICT");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against the code in .worktrees/v4d at working tree on 9e439cee; not yet run against a live backend.
+  Role: Assigned School Manager - set bearerToken to seed-mgr-a token
+  Needs: needs-fixture: occupied class phase_de_transfer_class_id, current revision phase_de_transfer_current_revision, current Teacher account_ref phase_de_current_teacher_candidate_ref
+  Expected: 409 / RESOURCE_CONFLICT
+  Source: backend/src/sketch2life/infrastructure/persistence/teacher_assignment_transfer_repository.py:163-164
+}

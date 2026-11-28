@@ -1,0 +1,57 @@
+meta {
+  name: 797 [DRAFT-V4C] [LOCAL / TEST ONLY] Refuse Parent video generation with 409 VIDEO_QUOTA_EXCEEDED via Billing adapter
+  type: http
+  seq: 797
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{phase_c_qc_parent_run_id}}/video-generations
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{phase_c_qc_parent_key}}
+}
+
+body:json {
+  {
+    "expected_revision": {{phase_c_qc_parent_run_revision}},
+    "story_sha256": "{{phase_c_qc_parent_story_sha256}}",
+    "quality_reason_code": null
+  }
+}
+
+script:pre-request {
+  const key = "qc-parent-" + Date.now();
+  bru.setVar("phase_c_qc_parent_key", key);
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.code).to.equal("VIDEO_QUOTA_EXCEEDED");
+    expect(body.retryable).to.equal(false);
+    const serialized = JSON.stringify(body).toLowerCase();
+    expect(serialized).to.not.include("quota_units");
+    expect(serialized).to.not.include("balance");
+    expect(serialized).to.not.include("reservation");
+  });
+}
+
+docs {
+  DRAFT after Phase C: checked against the code at 0f6e7683; not yet run against a live backend.
+  Role: Owning Parent - set bearerToken to seed-parent-p1 token
+  Needs: needs-fixture: SKETCH2LIFE_STORY_VIDEO_ADAPTERS=billing, SKETCH2LIFE_VIDEO_QUOTA_INCLUDED_UNITS_PARENT=0, 0 available Parent quota units, and confirmed Parent StoryRun in SCRIPT_REVIEW (phase_c_qc_parent_run_id, phase_c_qc_parent_run_revision, phase_c_qc_parent_story_sha256); saves phase_c_qc_parent_key for 798 (Billing stores no receipt on refusal)
+  Expected: 409 / VIDEO_QUOTA_EXCEEDED (retryable false; no quota_units/balance/reservation leaked)
+  Source: backend/src/sketch2life/interfaces/http/routers/story_run_video.py:161-200, backend/src/sketch2life/infrastructure/story_video/billing_quota_admission.py:21-72, backend/src/sketch2life/infrastructure/billing/quota_commerce.py:1352-1371, backend/tests/contract/test_story_run_video_routes.py:315,339-351
+}
