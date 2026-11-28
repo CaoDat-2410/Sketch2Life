@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { Clock3 } from "lucide-react";
 import { authService } from "../../modules/school-manager/be1/services/authService";
 import { clearAiWorkflowSession } from "../../modules/teacher/services/aiWorkflowSession";
 import { clearSvgDraftRequests } from "../../modules/teacher/services/svgDraftRequests";
 import { AccessibleDialog } from "../components/ui";
 import { usePortalSession } from "./PortalSessionContext";
+import "./SessionLimitGuard.css";
 
 const IDLE = 30 * 60_000;
 const MAX_AGE = 12 * 60 * 60_000;
@@ -55,6 +57,15 @@ export function SessionLimitGuard({ children }: { children: ReactNode }) {
   const navigateRef = useRef(navigate); navigateRef.current = navigate;
   const logoutRef = useRef(logout); logoutRef.current = logout;
   const [remaining, setRemaining] = useState(IDLE);
+  const continueRef = useRef<HTMLButtonElement>(null);
+  const warningRef = useRef(false);
+  const manualLogout = () => {
+    clearAiWorkflowSession();
+    clearSvgDraftRequests();
+    logout();
+    if (!window.sketch2lifeAuth?.signOut) void authService.logout().catch(() => undefined);
+    navigate(`/login?role=${roleForPath(location.pathname)}`, { replace: true });
+  };
   const isPortal = /^\/(teacher|school|platform)(\/|$)/.test(location.pathname) && !/\/(login|sign-in)$/.test(location.pathname);
   if (isPortal && !wasPortal.current) portalEpoch.current++;
   wasPortal.current = isPortal;
@@ -135,6 +146,10 @@ export function SessionLimitGuard({ children }: { children: ReactNode }) {
         setReadyEpoch(epoch);
       };
       const onActivity = (event: Event) => {
+        if ((event.type === "pointerdown" || event.type === "keydown") && event.target instanceof Element && event.target.closest("[data-session-manual-logout]")) return;
+        // While the warning is open, moving or tabbing towards a button must not close it.
+        if (warningRef.current && (["pointermove", "scroll", "wheel", "touchmove", "touchstart"].includes(event.type)
+          || (event instanceof KeyboardEvent && (event.key === "Tab" || event.key === "Shift")))) return;
         if (["pointermove", "scroll", "wheel", "touchmove"].includes(event.type) && Date.now() - lastEvaluation < 1000) { pendingActivity = true; return; }
         check(true);
       };
@@ -162,8 +177,18 @@ export function SessionLimitGuard({ children }: { children: ReactNode }) {
     return () => { active = false; unsubscribe(); cleanup(); };
   }, [isPortal, epoch]);
   if (isPortal && readyEpoch !== epoch) return <main role="status">Đang kiểm tra phiên đăng nhập…</main>;
-  return <>{children}<AccessibleDialog open={isPortal && remaining <= 60_000} onOpenChange={() => {}} title="Phiên đăng nhập sắp hết hạn" description="Phiên sẽ kết thúc nếu bạn không hoạt động." showTitle showDescription showClose={false}>
-    <p aria-live="polite">Bạn sẽ được đăng xuất sau {Math.ceil(remaining / 1000)} giây.</p>
-    <button type="button" className="s2l-button is-primary" onClick={() => window.dispatchEvent(new Event("pointerdown"))}>Tiếp tục đăng nhập</button>
+  const seconds = Math.max(0, Math.ceil(remaining / 1000));
+  const warningOpen = isPortal && remaining <= 60_000;
+  warningRef.current = warningOpen;
+  return <>{children}<AccessibleDialog className="s2l-session-limit-dialog" open={warningOpen} onOpenChange={() => {}} title="Phiên đăng nhập sắp hết hạn" description="Bạn đã không thao tác một lúc. Phiên sẽ tự đăng xuất khi hết giờ." showTitle showDescription showClose={false} onOpenAutoFocus={(event) => { event.preventDefault(); continueRef.current?.focus(); }}>
+    <div className="s2l-session-limit-icon" aria-hidden="true"><Clock3 size={28} strokeWidth={1.8} /></div>
+    <div className="s2l-session-limit-countdown" aria-hidden="true">
+      <span>{Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, "0")}</span>
+      <div className="s2l-session-limit-track"><div className="s2l-session-limit-progress" style={{ width: `${Math.min(100, seconds / 60 * 100)}%` }} /></div>
+    </div>
+    <div className="s2l-session-limit-actions">
+      <button ref={continueRef} type="button" className="s2l-session-limit-continue" onClick={() => window.dispatchEvent(new Event("pointerdown"))}>Tiếp tục đăng nhập</button>
+      <button type="button" className="s2l-session-limit-logout" data-session-manual-logout onClick={manualLogout}>Đăng xuất</button>
+    </div>
   </AccessibleDialog></>;
 }
