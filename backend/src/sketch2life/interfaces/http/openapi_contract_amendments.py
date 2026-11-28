@@ -295,6 +295,15 @@ SYNTHETIC_RESPONSE_EXAMPLES: dict[tuple[str, str], dict[str, Any]] = {
         "from_class_revision": 2,
         "to_class_revision": 3,
     },
+    (
+        "get",
+        "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profile-refs",
+    ): {
+        "contract": "Be1ClassProfileRefListV1",
+        "class_id": "class-example-001",
+        "items": [{"child_id": "synthetic-0123456789abcdef01234567"}],
+        "next_cursor": None,
+    },
     ("get", "/api/be1/v1/organizations/{organization_id}/classes"): {
         "contract": "Be1ClassListV1",
         "items": [

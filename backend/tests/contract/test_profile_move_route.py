@@ -1,4 +1,4 @@
-"""FEAT-066 T-7d: the Teacher enrollment move contract (offline).
+"""FEAT-066 T-7d: the roster move and Manager reference contracts (offline).
 
 No database is reached: the app is built against a sentinel URL and only its OpenAPI, its route
 table, the handler signature and the 401 of the bearer dependency are read. The behaviour on
@@ -32,6 +32,10 @@ from sketch2life.interfaces.http.routers import be1_registry
 DATABASE_SENTINEL = "postgresql+psycopg://sentinel_user:sentinel_pw@localhost:9/sentinel_db"
 PATH = "/api/be1/v1/classes/{class_id}/profiles/{child_id}/move"
 MOVE = ("post", PATH)
+PROFILE_REFS_PATH = (
+    "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profile-refs"
+)
+PROFILE_REFS = ("get", PROFILE_REFS_PATH)
 
 
 @pytest.fixture(autouse=True)
@@ -89,6 +93,22 @@ def test_the_example_holds_references_and_revisions_only() -> None:
     assert example["contract"] == "Be1ProfileMoveV1"
 
 
+def test_manager_profile_reference_contract_contains_no_profile_contents() -> None:
+    contract = MOUNTED_OPERATIONS[PROFILE_REFS]
+    example = SYNTHETIC_RESPONSE_EXAMPLES[PROFILE_REFS]
+    assert contract["handler"] == "be1_registry.py::list_profile_refs"
+    assert "School Manager" in contract["purpose"]
+    assert "`child_id` only" in contract["purpose"]
+    assert "403" in contract["purpose"] and "uniform 404" in contract["purpose"]
+    assert example == {
+        "contract": "Be1ClassProfileRefListV1",
+        "class_id": "class-example-001",
+        "items": [{"child_id": "synthetic-0123456789abcdef01234567"}],
+        "next_cursor": None,
+    }
+    assert set(example["items"][0]) == {"child_id"}
+
+
 def test_published_operation_has_the_headers_and_the_two_revisions(
     published: dict[str, Any],
 ) -> None:
@@ -109,7 +129,22 @@ def test_published_operation_has_the_headers_and_the_two_revisions(
     assert "200" in operation["responses"]
 
 
-def test_the_route_table_has_one_move_route_and_no_bulk_or_manager_variant(
+def test_published_manager_profile_refs_route_is_cursor_paged_and_read_only(
+    published: dict[str, Any],
+) -> None:
+    operation = published["paths"][PROFILE_REFS_PATH]["get"]
+    parameters = {
+        (item["in"], item["name"]): bool(item.get("required")) for item in operation["parameters"]
+    }
+    assert parameters[("path", "organization_id")] is True
+    assert parameters[("path", "class_id")] is True
+    assert parameters[("query", "limit")] is False
+    assert parameters[("query", "cursor")] is False
+    assert "200" in operation["responses"] and "403" in operation["responses"]
+    assert "404" in operation["responses"]
+
+
+def test_the_route_table_has_one_move_command_and_no_bulk_route(
     published: dict[str, Any],
 ) -> None:
     move_paths = {path for path in published["paths"] if path.endswith("/move")}

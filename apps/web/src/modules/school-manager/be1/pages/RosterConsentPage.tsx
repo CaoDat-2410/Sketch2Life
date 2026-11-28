@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { RefreshCw, Users } from "lucide-react";
+import { createIdempotencyKey } from "../../../../shared/api/backendApi";
 import { PageHeading } from "../../../../shared/components/FeatureAvailability";
 import { Alert, EmptyState, FormField, Select, StatCard, StatusBadge, type StatusTone } from "../../../../shared/ui";
 import { classService, classStateLabel, type Be1Class } from "../services/classService";
@@ -13,6 +14,16 @@ import {
 
 type LoadState = "idle" | "loading" | "loaded" | "error";
 
+interface ProfileMoveAttempt {
+  classId: string;
+  childId: string;
+  targetClassId: string;
+  sourceClassRevision: number;
+  targetClassRevision: number;
+  idempotencyKey: string;
+  rowNumber: number;
+}
+
 function errorMessage(cause: unknown, fallback: string) {
   return cause instanceof Error ? cause.message : fallback;
 }
@@ -22,6 +33,15 @@ function rosterErrorMessage(cause: unknown, fallback: string) {
     return "Bạn không có quyền xem hồ sơ trẻ trong lớp này.";
   }
   return errorMessage(cause, fallback);
+}
+
+function profileRefsErrorMessage(cause: unknown) {
+  if (cause instanceof AdminBe1Error) {
+    if (cause.status === 403) return "Tài khoản không có quyền xem mã tham chiếu hồ sơ trong lớp này.";
+    if (cause.status === 404) return "Không tìm thấy lớp hoặc tài khoản không có quyền truy cập.";
+    if (cause.status === 0) return "Không kết nối được để tải mã tham chiếu hồ sơ.";
+  }
+  return "Không tải được mã tham chiếu hồ sơ.";
 }
 
 function consentStateLabel(state: string) {
@@ -47,6 +67,16 @@ export function RosterConsentPage() {
   const [profileCount, setProfileCount] = useState<number | null>(null);
   const [profileState, setProfileState] = useState<LoadState>("idle");
   const [profileError, setProfileError] = useState("");
+  const [profileRefs, setProfileRefs] = useState<string[]>([]);
+  const [profileRefsState, setProfileRefsState] = useState<LoadState>("idle");
+  const [profileRefsError, setProfileRefsError] = useState("");
+  const [targetClassId, setTargetClassId] = useState("");
+  const [movePrompt, setMovePrompt] = useState<{ childId: string; rowNumber: number } | null>(null);
+  const [moveAttempt, setMoveAttempt] = useState<ProfileMoveAttempt | null>(null);
+  const [moveLoading, setMoveLoading] = useState(false);
+  const [moveActionError, setMoveActionError] = useState("");
+  const [moveActionMessage, setMoveActionMessage] = useState("");
+  const moveLockRef = useRef(false);
   const [consents, setConsents] = useState<Be1ManagerConsentStatus[]>([]);
   const [consentState, setConsentState] = useState<LoadState>("idle");
   const [consentError, setConsentError] = useState("");
@@ -67,15 +97,26 @@ export function RosterConsentPage() {
         const nextSelected = items.some((item) => item.class_id === selected)
           ? selected
           : items[0]?.class_id ?? "";
+        const selectionChanged = selected !== nextSelected;
         selectedClassIdRef.current = nextSelected;
         setSelectedClassId(nextSelected);
         setProfileCount(null);
+        setProfileRefs([]);
+        setProfileRefsState(nextSelected ? "loading" : "idle");
+        setProfileRefsError("");
         setConsents([]);
         setProfileError("");
         setConsentError("");
         setPendingRevoke(null);
         setConsentActionError("");
         setConsentActionMessage("");
+        if (selectionChanged) {
+          setTargetClassId("");
+          setMovePrompt(null);
+          setMoveAttempt(null);
+          setMoveActionError("");
+          setMoveActionMessage("");
+        }
         setProfileState(nextSelected ? "loading" : "idle");
         setConsentState(nextSelected ? "loading" : "idle");
         setClassError("");
@@ -86,6 +127,9 @@ export function RosterConsentPage() {
         setClasses([]);
         selectedClassIdRef.current = "";
         setSelectedClassId("");
+        setProfileRefs([]);
+        setProfileRefsState("idle");
+        setProfileRefsError("");
         setClassError(errorMessage(cause, "Không tải được danh sách lớp."));
         setProfileState("idle");
         setConsentState("idle");
@@ -129,24 +173,161 @@ export function RosterConsentPage() {
         }
       });
 
+    managerBusinessService.profileRefs(selectedClassId, controller.signal)
+      .then((result) => {
+        if (!controller.signal.aborted) {
+          setProfileRefs(result.map((item) => item.child_id));
+          setProfileRefsState("loaded");
+        }
+      })
+      .catch((cause: unknown) => {
+        if (!controller.signal.aborted) {
+          setProfileRefs([]);
+          setProfileRefsError(profileRefsErrorMessage(cause));
+          setProfileRefsState("error");
+        }
+      });
+
     return () => controller.abort();
   }, [reloadCount, selectedClassId]);
 
   const selectedClass = classes.find((item) => item.class_id === selectedClassId);
+  const targetClasses = classes.filter(
+    (item) => item.class_id !== selectedClassId && item.state === "active",
+  );
   const pendingConsentCount = consents.filter((item) => item.state === "pending").length;
   const revokedConsentCount = consents.filter((item) => item.state === "revoked").length;
   const changeSelectedClass = (classId: string) => {
+    // Picking the class already shown must not reset to "loading": nothing would fetch again.
+    if (classId === selectedClassId) return;
     selectedClassIdRef.current = classId;
     setSelectedClassId(classId);
     setPendingRevoke(null);
     setConsentActionError("");
     setConsentActionMessage("");
     setProfileCount(null);
+    setProfileRefs([]);
+    setProfileRefsState(classId ? "loading" : "idle");
+    setProfileRefsError("");
+    setTargetClassId("");
     setConsents([]);
     setProfileError("");
     setConsentError("");
     setProfileState(classId ? "loading" : "idle");
     setConsentState(classId ? "loading" : "idle");
+    setMovePrompt(null);
+    setMoveAttempt(null);
+    setMoveActionError("");
+    setMoveActionMessage("");
+  };
+
+  const beginMove = (childId: string, rowNumber: number) => {
+    if (moveAttempt || movePrompt || classState !== "loaded" || !selectedClass || selectedClass.state !== "active") return;
+    const target = targetClasses.find((item) => item.class_id === targetClassId);
+    if (!target || !Number.isInteger(selectedClass.class_revision) || !Number.isInteger(target.class_revision)) {
+      setMoveActionError("Chưa tải được phiên bản của hai lớp. Hãy làm mới danh sách lớp.");
+      return;
+    }
+    setMoveActionError("");
+    setMoveActionMessage("");
+    setMovePrompt({ childId, rowNumber });
+  };
+
+  const confirmMove = async () => {
+    if (!movePrompt || moveLockRef.current) return;
+    if (!moveAttempt && classState !== "loaded") {
+      setMoveActionError("Đang tải lại danh sách lớp. Hãy chờ tải xong rồi xác nhận chuyển.");
+      return;
+    }
+    const source = selectedClass;
+    const target = classes.find((item) => item.class_id === targetClassId);
+    const attempt = moveAttempt ?? (
+      source && target && source.state === "active" && target.state === "active"
+        && Number.isInteger(source.class_revision) && Number.isInteger(target.class_revision)
+        ? {
+          classId: source.class_id,
+          childId: movePrompt.childId,
+          targetClassId: target.class_id,
+          sourceClassRevision: source.class_revision as number,
+          targetClassRevision: target.class_revision as number,
+          idempotencyKey: createIdempotencyKey(),
+          rowNumber: movePrompt.rowNumber,
+        }
+        : null
+    );
+    if (!attempt) {
+      setMoveActionError("Chưa tải được phiên bản của hai lớp. Hãy làm mới danh sách lớp.");
+      return;
+    }
+
+    moveLockRef.current = true;
+    setMoveAttempt(attempt);
+    setMoveLoading(true);
+    setMoveActionError("");
+    setMoveActionMessage("");
+    try {
+      await managerBusinessService.moveProfile(
+        attempt.classId,
+        attempt.childId,
+        attempt.targetClassId,
+        attempt.sourceClassRevision,
+        attempt.targetClassRevision,
+        attempt.idempotencyKey,
+      );
+      setMoveActionMessage(
+        `Đã chuyển Hồ sơ ${attempt.rowNumber} sang ${target?.display_name ?? "lớp đã chọn"}. Đang làm mới sĩ số và mã tham chiếu.`,
+      );
+      setMovePrompt(null);
+      setMoveAttempt(null);
+      setTargetClassId("");
+      setProfileState("loading");
+      setProfileRefsState("loading");
+      setConsentState("loading");
+      setReloadCount((value) => value + 1);
+    } catch (cause) {
+      const status = cause instanceof AdminBe1Error ? cause.status : 0;
+      const code = cause instanceof AdminBe1Error ? cause.code : "";
+      if (code === "STALE_REVISION") {
+        setMoveAttempt(null);
+        setMovePrompt(null);
+        setMoveActionMessage("Phiên bản lớp đã thay đổi. Đang tải lại; hãy kiểm tra danh sách rồi xác nhận chuyển lại.");
+        setClassState("loading");
+        setProfileState("loading");
+        setProfileRefsState("loading");
+        setReloadCount((value) => value + 1);
+      } else if (status === 409) {
+        // BE1 replaces server messages by code, so one copy covers every 409 cause.
+        setMoveAttempt(null);
+        setMovePrompt(null);
+        setMoveActionError("Chưa chuyển được: hồ sơ đang trong buổi học chưa kết thúc, lớp không còn hoạt động hoặc hồ sơ không còn ở lớp nguồn. Danh sách đang được tải lại.");
+        setClassState("loading");
+        setProfileState("loading");
+        setProfileRefsState("loading");
+        setReloadCount((value) => value + 1);
+      } else if (status === 403) {
+        setMoveAttempt(null);
+        setMovePrompt(null);
+        setMoveActionError("Tài khoản không có quyền chuyển hồ sơ trong lớp này.");
+      } else if (status === 404) {
+        setMoveAttempt(null);
+        setMovePrompt(null);
+        setMoveActionError("Không tìm thấy lớp hoặc hồ sơ, hoặc tài khoản không có quyền truy cập. Danh sách đang được tải lại.");
+        setClassState("loading");
+        setProfileState("loading");
+        setProfileRefsState("loading");
+        setReloadCount((value) => value + 1);
+      } else if (status === 0 || status >= 500 || (cause instanceof AdminBe1Error && cause.retryable)) {
+        // Keep the exact attempt and key: the server may have committed before the response was lost.
+        setMoveActionError("Chưa rõ kết quả. Hãy gửi lại cùng thao tác để kiểm tra; mã chống lặp được giữ nguyên.");
+      } else {
+        setMoveAttempt(null);
+        setMovePrompt(null);
+        setMoveActionError("Không thể chuyển hồ sơ với yêu cầu hiện tại. Hãy tải lại danh sách.");
+      }
+    } finally {
+      moveLockRef.current = false;
+      setMoveLoading(false);
+    }
   };
 
   const reloadConsents = async (classId: string) => {
@@ -197,7 +378,7 @@ export function RosterConsentPage() {
       <PageHeading
         eyebrow="Quản lý trường"
         title="Danh sách lớp & đồng ý"
-        description="Hiển thị sĩ số và trạng thái xác nhận tối thiểu theo lớp; không đọc ảnh, video hoặc nội dung câu chuyện."
+        description="Hiển thị sĩ số, mã tham chiếu ẩn danh và trạng thái xác nhận tối thiểu theo lớp; không đọc nội dung hồ sơ."
         action={
           <button
             type="button"
@@ -206,6 +387,8 @@ export function RosterConsentPage() {
               setClassError("");
               setClassState("loading");
               setProfileCount(null);
+              setProfileRefsState(selectedClassId ? "loading" : "idle");
+              setProfileRefsError("");
               setConsents([]);
               setProfileError("");
               setConsentError("");
@@ -240,6 +423,7 @@ export function RosterConsentPage() {
               <Select
                 id="manager-roster-class"
                 value={selectedClassId}
+                disabled={moveAttempt !== null || movePrompt !== null}
                 onChange={(event) => changeSelectedClass(event.target.value)}
               >
                 {classes.map((item) => (
@@ -265,6 +449,96 @@ export function RosterConsentPage() {
           <StatCard label="Hồ sơ đang hoạt động" value={profileCount ?? "—"} accent="primary" loading={profileState === "loading"} />
           <StatCard label="Đang chờ xác nhận" value={consentState === "loaded" ? pendingConsentCount : "—"} accent="butter" loading={consentState === "loading"} />
           <StatCard label="Đã thu hồi" value={consentState === "loaded" ? revokedConsentCount : "—"} accent="coral" loading={consentState === "loading"} />
+        </section>
+
+        <section className="manager-business-card cozy-form-card cozy-form-card--wide cozy-form-stack" aria-label="Sắp xếp hồ sơ trong lớp">
+          <div className="manager-business-card-heading">
+            <div>
+              <p className="manager-business-eyebrow">Xếp lớp</p>
+              <h2>Chuyển hồ sơ giữa các lớp</h2>
+            </div>
+          </div>
+          <p className="manager-business-subtle">
+            Tên và tuổi bị ẩn khỏi Quản lý trường theo thiết kế. Danh sách này chỉ có mã tham chiếu ẩn danh; không hiển thị ảnh, video, mục đích đồng ý, nhu cầu hỗ trợ hoặc nguồn dữ liệu.
+          </p>
+          {selectedClass && selectedClass.state !== "active" && (
+            <Alert role="status" tone="warning">Lớp nguồn đang tạm ngưng hoặc đã lưu trữ; không thể chuyển hồ sơ.</Alert>
+          )}
+          {moveActionError && <Alert role="alert" tone="danger">{moveActionError}</Alert>}
+          {moveActionMessage && <Alert role="status">{moveActionMessage}</Alert>}
+          <FormField label="Lớp đích" htmlFor="manager-profile-target-class">
+            <Select
+              id="manager-profile-target-class"
+              value={targetClassId}
+              disabled={classState !== "loaded" || movePrompt !== null || moveAttempt !== null || moveLoading || targetClasses.length === 0}
+              onChange={(event) => {
+                setTargetClassId(event.target.value);
+                setMoveActionError("");
+                setMoveActionMessage("");
+              }}
+            >
+              <option value="">Chọn lớp đang hoạt động</option>
+              {targetClasses.map((item) => (
+                <option value={item.class_id} key={item.class_id}>{item.display_name}</option>
+              ))}
+            </Select>
+          </FormField>
+          {targetClasses.length === 0 && (
+            <p className="manager-business-state">Không có lớp đang hoạt động khác để chuyển hồ sơ.</p>
+          )}
+          {profileRefsState === "loading" ? (
+            <Alert role="status">Đang tải mã tham chiếu hồ sơ…</Alert>
+          ) : profileRefsState === "error" ? (
+            <Alert role="alert" tone="danger">{profileRefsError}</Alert>
+          ) : profileRefsState === "loaded" && profileRefs.length === 0 ? (
+            <EmptyState title="Chưa có mã hồ sơ nào để chuyển trong lớp này." />
+          ) : profileRefsState === "loaded" ? (
+            <div className="manager-business-table-wrap">
+              <table className="manager-business-table">
+                <thead><tr><th>Hồ sơ</th><th>Mã tham chiếu</th><th>Thao tác</th></tr></thead>
+                <tbody>
+                  {profileRefs.map((childId, index) => {
+                    const rowNumber = index + 1;
+                    const shortRef = childId.length > 16
+                      ? `${childId.slice(0, 8)}…${childId.slice(-4)}`
+                      : childId;
+                    const canMove = classState === "loaded"
+                      && selectedClass?.state === "active"
+                      && Boolean(targetClassId)
+                      && Number.isInteger(selectedClass.class_revision)
+                      && Boolean(targetClasses.find((item) => item.class_id === targetClassId
+                        && Number.isInteger(item.class_revision)))
+                      && moveAttempt === null && !moveLoading;
+                    return (
+                      <tr key={childId}>
+                        <td>Hồ sơ {rowNumber}</td>
+                        <td>
+                          <code>{shortRef}</code>
+                          <details>
+                            <summary>Xem mã tham chiếu đầy đủ</summary>
+                            <code>{childId}</code>
+                          </details>
+                        </td>
+                        <td>
+                          <button
+                            type="button"
+                            className="manager-business-button"
+                            aria-label={`Chuyển Hồ sơ ${rowNumber}`}
+                            disabled={!canMove}
+                            onClick={() => beginMove(childId, rowNumber)}
+                          >
+                            Chuyển hồ sơ
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="manager-business-state">Chọn lớp để đọc mã tham chiếu hồ sơ.</p>
+          )}
         </section>
 
         <section className="manager-business-grid manager-business-grid-two" aria-label="Dữ liệu lớp">
@@ -360,6 +634,47 @@ export function RosterConsentPage() {
               <button type="button" className="manager-business-button" disabled={revokingConsentId !== null} onClick={() => setPendingRevoke(null)}>Hủy</button>
               <button type="button" className="manager-business-button is-primary" disabled={revokingConsentId !== null} onClick={() => void confirmRevoke()}>
                 {revokingConsentId ? "Đang thu hồi…" : "Xác nhận thu hồi"}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {movePrompt && (
+        <div className="manager-business-confirm-backdrop">
+          <section
+            className="manager-business-card manager-business-confirm-dialog"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="manager-profile-move-title"
+            aria-describedby="manager-profile-move-copy"
+          >
+            <h2 id="manager-profile-move-title">Chuyển Hồ sơ {movePrompt.rowNumber}?</h2>
+            <p id="manager-profile-move-copy">
+              Chuyển từ {selectedClass?.display_name ?? "lớp đang xem"} sang {classes.find((item) => item.class_id === (moveAttempt?.targetClassId ?? targetClassId))?.display_name ?? "lớp đã chọn"}. Hệ thống sẽ giữ lại lượt xếp lớp cũ.
+            </p>
+            {moveAttempt && (
+              <Alert role="status" tone="warning">
+                Phản hồi trước chưa rõ kết quả. Hãy gửi lại đúng thao tác này để kiểm tra; mã chống lặp sẽ được giữ nguyên.
+              </Alert>
+            )}
+            {moveLoading && <p role="status">Đang chuyển hồ sơ…</p>}
+            <div className="manager-business-confirm-actions">
+              <button
+                type="button"
+                className="manager-business-button"
+                disabled={moveLoading || moveAttempt !== null}
+                onClick={() => setMovePrompt(null)}
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                className="manager-business-button is-primary"
+                disabled={moveLoading}
+                onClick={() => void confirmMove()}
+              >
+                {moveLoading ? "Đang chuyển…" : moveAttempt ? "Gửi lại cùng thao tác" : "Xác nhận chuyển"}
               </button>
             </div>
           </section>

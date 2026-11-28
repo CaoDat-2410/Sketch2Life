@@ -172,6 +172,8 @@ _CLASS_CURSOR_SCOPE = "be1.classes:{organization_id}:{state}"
 _CONSENT_CURSOR_SCOPE = "be1.consents:{organization_id}:{class_id}"
 # T-7e (D-066-100): the Teacher class roster, one scope per route, organization and class.
 _ROSTER_CURSOR_SCOPE = "be1.profiles:{organization_id}:{class_id}"
+# O-PRIV: School Manager opaque profile references, scoped independently by organization/class.
+_PROFILE_REF_CURSOR_SCOPE = "be1.profile-refs:{organization_id}:{class_id}"
 # T-12b: the revision history of one profile, bound to route, organization, class and child.
 _REVISION_CURSOR_SCOPE = "be1.profile-revisions:{organization_id}:{class_id}:{child_id}"
 
@@ -1719,6 +1721,75 @@ def list_profiles(
     }
 
 
+@router.get("/organizations/{organization_id}/classes/{class_id}/profile-refs")
+def list_profile_refs(
+    organization_id: str,
+    class_id: str,
+    limit: int = limit_query(),
+    cursor: str | None = cursor_query(),
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+) -> dict[str, object]:
+    """List only opaque references for an organization's School Manager roster."""
+    _require_m2_assignment(
+        db, principal, organization_id, roles={"school_admin"}, class_id=class_id
+    )
+    try:
+        get_class(db, organization_id, class_id, write=False)
+    except HTTPException as exc:
+        if exc.status_code == 404:
+            raise _scope_denied() from None
+        raise
+
+    scope = _PROFILE_REF_CURSOR_SCOPE.format(
+        organization_id=organization_id, class_id=class_id
+    )
+    statement = (
+        select(ManagedProfileModel.child_id, ManagedProfileModel.created_at)
+        .join(
+            EnrollmentModel,
+            and_(
+                EnrollmentModel.organization_id == ManagedProfileModel.organization_id,
+                EnrollmentModel.class_id == ManagedProfileModel.class_id,
+                EnrollmentModel.child_id == ManagedProfileModel.child_id,
+            ),
+        )
+        .where(
+            ManagedProfileModel.organization_id == organization_id,
+            ManagedProfileModel.class_id == class_id,
+            ManagedProfileModel.state == "active",
+            EnrollmentModel.state == "active",
+        )
+    )
+    if cursor is not None:
+        after_time, after_id = decode_time_cursor(cursor, scope=scope)
+        statement = statement.where(
+            tuple_(ManagedProfileModel.created_at, ManagedProfileModel.child_id)
+            > (after_time, after_id)
+        )
+    rows = list(
+        db.execute(
+            statement.order_by(ManagedProfileModel.created_at, ManagedProfileModel.child_id).limit(
+                limit + 1
+            )
+        ).all()
+    )
+    has_more = len(rows) > limit
+    rows = rows[:limit]
+    return {
+        "contract": "Be1ClassProfileRefListV1",
+        "class_id": class_id,
+        "items": [{"child_id": row.child_id} for row in rows],
+        "next_cursor": (
+            encode_cursor(
+                scope=scope, sort_key=rows[-1].created_at.isoformat(), item_id=rows[-1].child_id
+            )
+            if has_more and rows
+            else None
+        ),
+    }
+
+
 @router.get(
     "/organizations/{organization_id}/sessions/{session_id}/pilot-profiles",
     response_model=Be1PilotProfileListResponse,
@@ -2235,12 +2306,12 @@ def create_profile(
     return body
 
 
-# --- FEAT-066 goal v3 T-7d: enrollment move between two classes of one Teacher (FR-T-05) --------
+# --- FEAT-066 goal v3 T-7d: enrollment move within one organization (FR-T-05) ------------------
 # SRS l.544 (one active enrollment, the earlier one is closed and kept), l.830 and l.1093 (the
 # enrollment is the source of the current-class projection), l.1425 (capacity never blocks a
 # change in an existing class: no capacity, quota or billing code here), l.1651 and l.1699
-# (expected class revision, STALE_REVISION), l.1697 (keyed commands). The School Manager gets 403
-# and no cross-Teacher move exists (X-19, T-7d-DEC-2).
+# (expected class revision, STALE_REVISION), l.1697 (keyed commands). A School Manager may move
+# within the assigned organization; a Teacher still needs class-scoped rows on both classes.
 _MOVE_SESSION_STATES_OPEN = ("join_pending", "admitted")
 
 
@@ -2368,22 +2439,26 @@ def move_profile(
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
 ) -> dict[str, object]:
-    """T-7d: a Teacher of both classes moves a child; the old enrollment is closed and kept.
+    """T-7d: a Manager in the organization or Teacher of both classes moves a profile.
 
-    Order: source class in any state (404), Teacher row of the source class (404, or 403 for
-    another role), key, `If-Match`, same-class check (400), target class of the same organization
-    with a Teacher row of the Teacher (404), both class rows FOR UPDATE in ascending id order,
-    receipt replay, stale source then stale target (409), both classes active (409), the profile
-    and its active enrollment, the session guard (409), then one transaction.
+    Order: source class in any state (404), active Manager assignment or Teacher row of the source
+    class (404, or 403 for another role), key, `If-Match`, same-class check (400), target class of
+    the same organization and, for a Teacher, a Teacher row on the target (404), both class rows
+    FOR UPDATE in ascending id order, receipt replay, stale source then stale target (409), both
+    classes active (409), the profile and its active enrollment, the session guard (409), then one
+    transaction. Consent remains class-scoped; this command does not copy or create consent.
     """
     source_known = db.scalar(select(ClassroomModel).where(ClassroomModel.class_id == class_id))
     if source_known is None:
         raise _scope_denied()
     organization_id = source_known.organization_id
     assignments = _require_m2_assignment(
-        db, principal, organization_id, roles={"teacher"}, class_id=class_id
+        db, principal, organization_id, roles={"school_admin", "teacher"}, class_id=class_id
     )
-    if not any(row.class_id == class_id and row.role == "teacher" for row in assignments):
+    manager = any(row.role == "school_admin" for row in assignments)
+    if not manager and not any(
+        row.class_id == class_id and row.role == "teacher" for row in assignments
+    ):
         raise _scope_denied()
     idempotency_key = parse_idempotency_key(request)
     expected_revision = _strong_revision(if_match)
@@ -2396,16 +2471,16 @@ def move_profile(
                 "field_errors": [{"field": "target_class_id", "code": "INVALID_FORMAT"}],
             },
         )
-    # The target: the same organization and a Teacher row of this Teacher, else the uniform 404
-    # (X-19: a cross-Teacher move is not built, T-7d-DEC-2).
+    # The target must stay in the organization. Teachers still need their own class row there;
+    # the active School Manager assignment covers any target class in this organization.
     target_known = db.scalar(
         select(ClassroomModel.class_id).where(
             ClassroomModel.organization_id == organization_id,
             ClassroomModel.class_id == target_id,
         )
     )
-    if target_known is None or not _teacher_of_class(
-        db, organization_id, principal.subject, target_id
+    if target_known is None or (
+        not manager and not _teacher_of_class(db, organization_id, principal.subject, target_id)
     ):
         raise _scope_denied()
     settle_due_class_suspensions(db, organization_id, actor=principal.subject)

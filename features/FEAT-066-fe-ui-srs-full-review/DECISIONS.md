@@ -869,3 +869,9 @@ These are web presentation and implementation choices only. They do not change t
 **Clarification to D-066-102 item 3:** a support-needs GET that returns 503 clears loaded and draft values. A 404 or `CONSENT_NOT_EFFECTIVE` response clears loaded values, draft values, and any pending write. If a PUT returns 503, the panel shows only the shared neutral unavailable copy and a generic retry action; it retains that pending payload and key only in the mounted component memory so the same user action can be retried. Closing the panel unmounts it and clears the payload and key.
 
 No value is rendered in the unavailable state, stored in browser storage, placed in a URL, or logged.
+
+## D-066-104 - School Manager may move a profile between classes of the organization (2026-11-28)
+
+**Source:** owner decision of 2026-11-28, against SRS FR-T-02, FR-T-05 and BR-05.
+
+**Decision:** a School Manager (`school_admin`) of the organization may move a profile's active enrollment between classes of that organization. This replaces the T-7d decision that refused the School Manager with 403. The Manager sees opaque profile references only (D-066-69). No consent is copied: a real profile stays hidden in the target class until consent exists there. Placing a profile with no active enrollment is not covered.

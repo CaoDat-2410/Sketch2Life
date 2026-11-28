@@ -59,6 +59,72 @@ describe("School Manager business API adapter", () => {
     await expect(managerBusinessService.rosterSummary("class-1")).rejects.toThrow("tóm tắt danh sách lớp không hợp lệ");
   });
 
+  it("reads every opaque profile-reference page and keeps only child_id", async () => {
+    mocks.adminBe1Request
+      .mockResolvedValueOnce({
+        contract: "Be1ClassProfileRefListV1", class_id: "class/one",
+        items: [{ child_id: "opaque-ref-1" }], next_cursor: "next /2",
+      })
+      .mockResolvedValueOnce({
+        contract: "Be1ClassProfileRefListV1", class_id: "class/one",
+        items: [{ child_id: "opaque-ref-2" }], next_cursor: null,
+      });
+    await expect(managerBusinessService.profileRefs("class/one")).resolves.toEqual([
+      { child_id: "opaque-ref-1" },
+      { child_id: "opaque-ref-2" },
+    ]);
+    expect(mocks.adminBe1Request).toHaveBeenNthCalledWith(
+      1,
+      "/organizations/org%20%2Fqa/classes/class%2Fone/profile-refs?limit=100",
+      {},
+    );
+    expect(mocks.adminBe1Request).toHaveBeenNthCalledWith(
+      2,
+      "/organizations/org%20%2Fqa/classes/class%2Fone/profile-refs?limit=100&cursor=next+%2F2",
+      {},
+    );
+  });
+
+  it("rejects profile content or unexpected fields in the manager reference response", async () => {
+    mocks.adminBe1Request.mockResolvedValueOnce({
+      contract: "Be1ClassProfileRefListV1", class_id: "class-1",
+      items: [{ child_id: "opaque-ref", display_name: "must not leak", age_months: 60 }],
+      next_cursor: null,
+    });
+    await expect(managerBusinessService.profileRefs("class-1"))
+      .rejects.toMatchObject({ status: 502, code: "INVALID_RESPONSE" });
+  });
+
+  it("moves a profile with both class revisions and the caller's idempotency key", async () => {
+    mocks.adminBe1Request.mockResolvedValueOnce({
+      contract: "Be1ProfileMoveV1", child_id: "opaque-ref", from_class_id: "class-a",
+      to_class_id: "class-b", enrollment_id: "enrollment-1", from_class_revision: 3,
+      to_class_revision: 4,
+    });
+    await expect(managerBusinessService.moveProfile("class-a", "opaque-ref", "class-b", 2, 3, "move-key"))
+      .resolves.toEqual({
+        contract: "Be1ProfileMoveV1", child_id: "opaque-ref", from_class_id: "class-a",
+        to_class_id: "class-b", enrollment_id: "enrollment-1", from_class_revision: 3,
+        to_class_revision: 4,
+      });
+    expect(mocks.adminBe1Request).toHaveBeenLastCalledWith(
+      "/classes/class-a/profiles/opaque-ref/move",
+      {
+        method: "POST",
+        headers: { "If-Match": '"2"', "Idempotency-Key": "move-key" },
+        body: JSON.stringify({ target_class_id: "class-b", target_class_revision: 3 }),
+      },
+    );
+
+    mocks.adminBe1Request.mockResolvedValueOnce({
+      contract: "Be1ProfileMoveV1", child_id: "opaque-ref", from_class_id: "class-a",
+      to_class_id: "class-b", enrollment_id: "enrollment-2", from_class_revision: 4,
+      to_class_revision: 5, display_name: "must not leak",
+    });
+    await expect(managerBusinessService.moveProfile("class-a", "opaque-ref", "class-b", 3, 4, "move-key-2"))
+      .rejects.toMatchObject({ status: 502, code: "INVALID_RESPONSE" });
+  });
+
   it("reads every consent page and keeps only the Manager item fields", async () => {
     mocks.adminBe1Request
       .mockResolvedValueOnce({ contract: "Be1ConsentListManagerV1", items: [

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { AdminBe1Error } from "../services/be1Client";
@@ -16,6 +16,10 @@ afterEach(() => {
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
   window.sessionStorage.clear();
+});
+
+beforeEach(() => {
+  vi.spyOn(managerBusinessService, "profileRefs").mockResolvedValue([]);
 });
 
 describe("School Manager SRS-compatible business pages", () => {
@@ -53,6 +57,117 @@ describe("School Manager SRS-compatible business pages", () => {
     expect(container.textContent).not.toContain("child-");
     expect(container.querySelector(".manager-business-profile-list")).toBeNull();
     expect(container.querySelector("img, video, audio")).toBeNull();
+  });
+
+  it("shows opaque profile references and only other active classes as move targets", async () => {
+    const reference = "opaque-0123456789abcdef";
+    vi.spyOn(classService, "listClasses").mockResolvedValue([
+      { class_id: "class-1", display_name: "Lớp Lá 1", state: "active", class_revision: 1 },
+      { class_id: "class-2", display_name: "Lớp Lá 2", state: "active", class_revision: 2 },
+      { class_id: "class-old", display_name: "Lớp cũ", state: "archived", class_revision: 3 },
+    ]);
+    vi.spyOn(managerBusinessService, "rosterSummary").mockResolvedValue({
+      contract: "Be1ClassRosterSummaryV1", class_id: "class-1", active_profile_count: 1,
+    });
+    vi.spyOn(managerBusinessService, "consents").mockResolvedValue([]);
+    vi.spyOn(managerBusinessService, "profileRefs").mockResolvedValue([{ child_id: reference }]);
+
+    render(<MemoryRouter><RosterConsentPage /></MemoryRouter>);
+
+    expect(await screen.findByText("Hồ sơ 1")).toBeTruthy();
+    expect(screen.getByText("opaque-0…cdef")).toBeTruthy();
+    expect(screen.getByText(reference)).toBeTruthy();
+    expect(screen.getByText(/Tên và tuổi bị ẩn khỏi Quản lý trường theo thiết kế/)).toBeTruthy();
+    expect(document.body.textContent).not.toContain("display_name");
+    expect(document.body.textContent).not.toContain("age_months");
+    fireEvent.click(screen.getByRole("combobox", { name: "Lớp đích" }));
+    expect(screen.getAllByRole("option").map((option) => option.textContent)).toEqual(["Chọn lớp đang hoạt động", "Lớp Lá 2"]);
+  });
+
+  it("disables profile moves when the selected source class is suspended", async () => {
+    vi.spyOn(classService, "listClasses").mockResolvedValue([
+      { class_id: "class-1", display_name: "Lớp tạm ngưng", state: "suspended", class_revision: 1 },
+      { class_id: "class-2", display_name: "Lớp đích", state: "active", class_revision: 1 },
+    ]);
+    vi.spyOn(managerBusinessService, "rosterSummary").mockResolvedValue({
+      contract: "Be1ClassRosterSummaryV1", class_id: "class-1", active_profile_count: 1,
+    });
+    vi.spyOn(managerBusinessService, "consents").mockResolvedValue([]);
+    vi.spyOn(managerBusinessService, "profileRefs").mockResolvedValue([{ child_id: "opaque-ref" }]);
+
+    render(<MemoryRouter><RosterConsentPage /></MemoryRouter>);
+
+    const move = await screen.findByRole("button", { name: "Chuyển Hồ sơ 1" });
+    expect(move.hasAttribute("disabled")).toBe(true);
+    expect(screen.getByText(/Lớp nguồn đang tạm ngưng hoặc đã lưu trữ/)).toBeTruthy();
+  });
+
+  it("retries a lost move response with the same key and refreshes the roster", async () => {
+    vi.stubGlobal("crypto", { randomUUID: () => "profile-move-key-1" });
+    const reference = "opaque-profile-1";
+    vi.spyOn(classService, "listClasses").mockResolvedValue([
+      { class_id: "class-1", display_name: "Lớp Lá 1", state: "active", class_revision: 4 },
+      { class_id: "class-2", display_name: "Lớp Lá 2", state: "active", class_revision: 7 },
+    ]);
+    const roster = vi.spyOn(managerBusinessService, "rosterSummary").mockResolvedValue({
+      contract: "Be1ClassRosterSummaryV1", class_id: "class-1", active_profile_count: 1,
+    });
+    vi.spyOn(managerBusinessService, "consents").mockResolvedValue([]);
+    const refs = vi.spyOn(managerBusinessService, "profileRefs")
+      .mockResolvedValueOnce([{ child_id: reference }])
+      .mockResolvedValue([]);
+    const move = vi.spyOn(managerBusinessService, "moveProfile")
+      .mockRejectedValueOnce(new TypeError("connection lost"))
+      .mockResolvedValueOnce({
+        contract: "Be1ProfileMoveV1", child_id: reference, from_class_id: "class-1",
+        to_class_id: "class-2", enrollment_id: "enrollment-1", from_class_revision: 5,
+        to_class_revision: 8,
+      });
+
+    render(<MemoryRouter><RosterConsentPage /></MemoryRouter>);
+    fireEvent.click(await screen.findByRole("combobox", { name: "Lớp đích" }));
+    fireEvent.click(screen.getByRole("option", { name: "Lớp Lá 2" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Chuyển Hồ sơ 1" }));
+    fireEvent.click(screen.getByRole("button", { name: "Xác nhận chuyển" }));
+
+    expect(await screen.findByText(/Chưa rõ kết quả/)).toBeTruthy();
+    expect(move).toHaveBeenCalledTimes(1);
+    expect(move).toHaveBeenNthCalledWith(1, "class-1", reference, "class-2", 4, 7, "profile-move-key-1");
+    fireEvent.click(screen.getByRole("button", { name: "Gửi lại cùng thao tác" }));
+
+    expect(await screen.findByText(/Đã chuyển Hồ sơ 1 sang Lớp Lá 2/)).toBeTruthy();
+    expect(move).toHaveBeenCalledTimes(2);
+    expect(move).toHaveBeenNthCalledWith(2, "class-1", reference, "class-2", 4, 7, "profile-move-key-1");
+    await waitFor(() => {
+      expect(roster).toHaveBeenCalledTimes(2);
+      expect(refs).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it("explains a refused move and reloads the roster on 409", async () => {
+    vi.stubGlobal("crypto", { randomUUID: () => "profile-move-key-2" });
+    vi.spyOn(classService, "listClasses").mockResolvedValue([
+      { class_id: "class-1", display_name: "Lớp Lá 1", state: "active", class_revision: 4 },
+      { class_id: "class-2", display_name: "Lớp Lá 2", state: "active", class_revision: 7 },
+    ]);
+    vi.spyOn(managerBusinessService, "rosterSummary").mockResolvedValue({
+      contract: "Be1ClassRosterSummaryV1", class_id: "class-1", active_profile_count: 1,
+    });
+    vi.spyOn(managerBusinessService, "consents").mockResolvedValue([]);
+    const refs = vi.spyOn(managerBusinessService, "profileRefs").mockResolvedValue([{ child_id: "opaque-profile-2" }]);
+    vi.spyOn(managerBusinessService, "moveProfile").mockRejectedValue(
+      new AdminBe1Error("Tài nguyên chưa phù hợp.", 409, "INVALID_STATE_TRANSITION"),
+    );
+
+    render(<MemoryRouter><RosterConsentPage /></MemoryRouter>);
+    fireEvent.click(await screen.findByRole("combobox", { name: "Lớp đích" }));
+    fireEvent.click(screen.getByRole("option", { name: "Lớp Lá 2" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Chuyển Hồ sơ 1" }));
+    fireEvent.click(screen.getByRole("button", { name: "Xác nhận chuyển" }));
+
+    expect(await screen.findByText(/buổi học chưa kết thúc/)).toBeTruthy();
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+    await waitFor(() => expect(refs).toHaveBeenCalledTimes(2));
   });
 
   it("keeps the consent list visible and labels unknown states neutrally", async () => {

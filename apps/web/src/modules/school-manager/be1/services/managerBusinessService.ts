@@ -15,6 +15,28 @@ export interface Be1ClassRosterSummary {
   active_profile_count: number;
 }
 
+/** Opaque reference only; the School Manager never receives the referenced profile contents. */
+export interface Be1ClassProfileRef {
+  child_id: string;
+}
+
+interface Be1ClassProfileRefPage {
+  contract: "Be1ClassProfileRefListV1";
+  class_id: string;
+  items: Be1ClassProfileRef[];
+  next_cursor: string | null;
+}
+
+export interface Be1ProfileMoveResult {
+  contract: "Be1ProfileMoveV1";
+  child_id: string;
+  from_class_id: string;
+  to_class_id: string;
+  enrollment_id: string;
+  from_class_revision: number;
+  to_class_revision: number;
+}
+
 export type Be1ManagerConsentState = "pending" | "revoked" | "unknown";
 
 /** Manager consent rows deliberately contain no child reference or purpose. */
@@ -124,6 +146,73 @@ const parentPrincipalRefPattern = /^[A-Za-z0-9._:-]{1,256}$/;
 
 function invalidManagerResponse(message: string) {
   return new AdminBe1Error(message, 502, "INVALID_RESPONSE");
+}
+
+function hasExactKeys(value: Record<string, unknown>, expected: readonly string[]): boolean {
+  const actual = Object.keys(value).sort();
+  const sortedExpected = [...expected].sort();
+  return actual.length === sortedExpected.length
+    && actual.every((key, index) => key === sortedExpected[index]);
+}
+
+function profileRefPage(value: unknown, classId: string): Be1ClassProfileRefPage {
+  const error = "Hệ thống trả tham chiếu hồ sơ không hợp lệ.";
+  if (!value || typeof value !== "object") throw invalidManagerResponse(error);
+  const page = value as Record<string, unknown>;
+  if (!hasExactKeys(page, ["contract", "class_id", "items", "next_cursor"])
+    || page.contract !== "Be1ClassProfileRefListV1" || page.class_id !== classId
+    || !Array.isArray(page.items)
+    || !(page.next_cursor === null || typeof page.next_cursor === "string")) {
+    throw invalidManagerResponse(error);
+  }
+  const items: Be1ClassProfileRef[] = [];
+  for (const value of page.items) {
+    if (!value || typeof value !== "object") throw invalidManagerResponse(error);
+    const item = value as Record<string, unknown>;
+    if (!hasExactKeys(item, ["child_id"]) || typeof item.child_id !== "string" || !item.child_id.trim()) {
+      throw invalidManagerResponse(error);
+    }
+    items.push({ child_id: item.child_id });
+  }
+  return {
+    contract: "Be1ClassProfileRefListV1",
+    class_id: classId,
+    items,
+    next_cursor: page.next_cursor,
+  };
+}
+
+function profileMoveResult(
+  value: unknown,
+  expected: { childId: string; sourceClassId: string; targetClassId: string },
+): Be1ProfileMoveResult {
+  const error = "Hệ thống trả kết quả chuyển hồ sơ không hợp lệ.";
+  if (!value || typeof value !== "object") throw invalidManagerResponse(error);
+  const result = value as Record<string, unknown>;
+  if (!hasExactKeys(result, [
+    "contract", "child_id", "from_class_id", "to_class_id", "enrollment_id",
+    "from_class_revision", "to_class_revision",
+  ])
+    || result.contract !== "Be1ProfileMoveV1"
+    || result.child_id !== expected.childId
+    || result.from_class_id !== expected.sourceClassId
+    || result.to_class_id !== expected.targetClassId
+    || typeof result.enrollment_id !== "string" || !result.enrollment_id
+    || typeof result.from_class_revision !== "number" || !Number.isInteger(result.from_class_revision)
+    || result.from_class_revision < 1
+    || typeof result.to_class_revision !== "number" || !Number.isInteger(result.to_class_revision)
+    || result.to_class_revision < 1) {
+    throw invalidManagerResponse(error);
+  }
+  return {
+    contract: "Be1ProfileMoveV1",
+    child_id: result.child_id,
+    from_class_id: result.from_class_id,
+    to_class_id: result.to_class_id,
+    enrollment_id: result.enrollment_id,
+    from_class_revision: result.from_class_revision,
+    to_class_revision: result.to_class_revision,
+  };
 }
 
 function managerConsentPage(value: unknown): { contract: "Be1ConsentListManagerV1"; items: Be1ManagerConsentStatus[]; next_cursor: string | null } {
@@ -440,6 +529,55 @@ export const managerBusinessService = {
       throw new Error("Hệ thống trả dữ liệu tóm tắt danh sách lớp không hợp lệ.");
     }
     return { contract: "Be1ClassRosterSummaryV1", class_id: String(body.class_id ?? classId), active_profile_count: count };
+  },
+
+  /** Manager roster: read every page and keep exactly the opaque profile reference per item. */
+  profileRefs: async (classId: string, signal?: AbortSignal): Promise<Be1ClassProfileRef[]> => {
+    const items: Be1ClassProfileRef[] = [];
+    const requestedCursors = new Set<string>();
+    let cursor: string | undefined;
+    while (true) {
+      if (cursor !== undefined) {
+        if (requestedCursors.has(cursor)) {
+          throw invalidManagerResponse("Hệ thống lặp lại trang tham chiếu hồ sơ.");
+        }
+        requestedCursors.add(cursor);
+      }
+      const page = profileRefPage(await adminBe1Request<unknown>(
+        organizationPath() + "/classes/" + encodeURIComponent(classId) + "/profile-refs"
+          + pageQuery({ limit: CURSOR_PAGE_LIMIT, cursor }),
+        withSignal(signal),
+      ), classId);
+      items.push(...page.items);
+      if (page.next_cursor === null) return items;
+      cursor = page.next_cursor;
+    }
+  },
+
+  /** One move command; caller retains and reuses the same key if the response is lost. */
+  moveProfile: async (
+    sourceClassId: string,
+    childId: string,
+    targetClassId: string,
+    sourceClassRevision: number,
+    targetClassRevision: number,
+    idempotencyKey: string,
+  ): Promise<Be1ProfileMoveResult> => {
+    const value = await adminBe1Request<unknown>(
+      "/classes/" + encodeURIComponent(sourceClassId) + "/profiles/" + encodeURIComponent(childId) + "/move",
+      {
+        method: "POST",
+        headers: {
+          "If-Match": `"${sourceClassRevision}"`,
+          "Idempotency-Key": idempotencyKey,
+        },
+        body: JSON.stringify({
+          target_class_id: targetClassId,
+          target_class_revision: targetClassRevision,
+        }),
+      },
+    );
+    return profileMoveResult(value, { childId, sourceClassId, targetClassId });
   },
 
   /** A10, every page; only the Manager item fields are kept. */

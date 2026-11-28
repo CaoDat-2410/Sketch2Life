@@ -12,7 +12,7 @@ CONTRACT_REVISION: Final = "FEAT-063 Rev37"
 SOURCE_FILE_NAME: Final = 'API_CONTRACT_CATALOG_FEAT063_REV37_20261030.md'
 SOURCE_SHA256: Final = '56FC8BEA01360E11F73E45B2D43AC1897540B30BC8AE524CDE1ECEFACFBB1B88'
 DECLARED_OPERATION_COUNT: Final = 135
-MOUNTED_OPERATION_COUNT: Final = 135
+MOUNTED_OPERATION_COUNT: Final = 136
 UNMOUNTED_OPERATION_COUNT: Final = 11
 TAG_DESCRIPTIONS: Final[dict[str, str]] = {'BE1 — Organizations & Classes': 'Organization membership, class setup, profiles, assignments, '
                                   'and consents.',
@@ -12834,13 +12834,15 @@ MOUNTED_OPERATIONS[("post", "/api/be1/v1/organizations/{organization_id}/classes
                          'media_type': 'application/json',
                          'schema_name': 'Be1Error'}))}
 
-# FEAT-066 goal v3 T-7d (SRS l.544, l.830, l.1093, l.1425, l.1651, l.1697-1699; TD-28): a Teacher of
-# both classes moves a child. The old enrollment is closed and kept, a new one opens in the target
-# class, and both class revisions move by one. No capacity, quota or billing rule applies.
+# FEAT-066 goal v3 T-7d (SRS l.544, l.830, l.1093, l.1425, l.1651, l.1697-1699; TD-28): a School
+# Manager may move within the organization; a Teacher needs rows on both classes. The old
+# enrollment is closed and kept, a new one opens in the target, and both class revisions move by
+# one. No capacity, quota or billing rule applies.
 _PROFILE_MOVE_KEY: Final = ("post", "/api/be1/v1/classes/{class_id}/profiles/{child_id}/move")
 MOUNTED_OPERATIONS[("post", "/api/be1/v1/classes/{class_id}/profiles/{child_id}/move")] = {
-    "purpose": "Move a child from this class to another class of the same Teacher (a Teacher "
-    "command; the caller needs a class-scoped Teacher row on both classes). Send "
+    "purpose": "Move a profile within the organization. An active School Manager assignment "
+    "covers any two classes in that organization; a Teacher still needs class-scoped Teacher "
+    "rows on both classes. Send "
     "`Idempotency-Key`, the source `class_revision` as a strong `If-Match` and the target "
     "`target_class_revision` in the body (409 `STALE_REVISION` with `current_version` for the "
     "source first, then the target; a missing `If-Match` is 400 `REQUIRED`, a reused key with "
@@ -12848,9 +12850,9 @@ MOUNTED_OPERATIONS[("post", "/api/be1/v1/classes/{class_id}/profiles/{child_id}/
     "source enrollment is closed and kept (`withdrawn`), a new enrollment opens in the target "
     "and both class revisions increase by one. A class that is not active (either side), a "
     "profile without an active enrollment and a child in an unfinished session are 409 "
-    "`INVALID_STATE_TRANSITION`; an unknown child is 404; a School Manager is 403 and any other "
-    "caller outside the classes, or a target class of another organization or not taught by the "
-    "caller, is the uniform 404. A move between Teachers is not available. The answer holds ids "
+    "`INVALID_STATE_TRANSITION`; an unknown child is 404; a target class of another organization "
+    "or an unauthorized caller is the uniform 404, while an in-scope role refusal is 403. The "
+    "answer holds ids "
     "and the two new revisions (no `ETag`: two resources).",
     "request_inputs": "path `class_id*`: string; path `child_id*`: string; header "
     "`X-Request-ID`: string; header `Idempotency-Key*`: string; header `If-Match`: string; "
@@ -12862,6 +12864,25 @@ MOUNTED_OPERATIONS[("post", "/api/be1/v1/classes/{class_id}/profiles/{child_id}/
     "authentication": "HTTPBearer (bearer)",
     "verification": "SRS l.544, l.830, l.1093, l.1425, l.1651, l.1697-1699; goal v3 T-7d",
     "responses": _with_idempotency_mismatch_response(_CLASS_STATE_RESPONSES),
+}
+
+# O-PRIV: the School Manager receives one opaque reference per active, actively enrolled profile.
+MOUNTED_OPERATIONS[("get", "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profile-refs")] = {
+    "purpose": "List active profiles with an active enrollment in this class for an assigned "
+    "School Manager. Every item contains `child_id` only: no name, age, media, consent purpose, "
+    "support needs or data origin. The keyset cursor is bound to the organization and class. A "
+    "Teacher or other in-scope role gets 403; a caller outside the organization or a class of "
+    "another organization gets the uniform 404.",
+    "request_inputs": "header `X-Request-ID`: string; path `organization_id*`: string; "
+    "path `class_id*`: string; query `limit`: integer; query `cursor`: string",
+    "surface": "BE1 / classroom",
+    "tag": _CLASS_STATE_TAG,
+    "handler": "be1_registry.py::list_profile_refs",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": "D-066-69 O-PRIV; FR-T-02, FR-T-05, UC-03",
+    "responses": tuple(
+        response for response in _CLASS_STATE_RESPONSES if response["status"] != "202"
+    ),
 }
 
 # FEAT-066 T-8a/T-8b (SRS l.812, l.815, l.1681, l.1684-1685, l.1697; FR-B-09; UC-15; DDL-C):
@@ -14859,7 +14880,7 @@ IDEMPOTENCY_MISMATCH_OPERATION_KEYS: Final[tuple[tuple[str, str], ...]] = (
     ("post", "/api/be1/v1/classes/{class_id}/archive"),
     # FEAT-066 T-7c (SRS l.1697): the keyed Teacher profile create.
     ("post", "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles"),
-    # FEAT-066 T-7d (SRS l.1697): the keyed Teacher enrollment move.
+    # FEAT-066 T-7d (SRS l.1697): the keyed Manager/Teacher enrollment move.
     ("post", "/api/be1/v1/classes/{class_id}/profiles/{child_id}/move"),
     # FEAT-066 goal v4 T-12b (SRS l.1697): the keyed Teacher profile edit.
     ("patch", "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}"),
