@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { Plus, Presentation, RefreshCw, Trash2 } from "lucide-react";
-import { BackendApiError, createIdempotencyKey } from "../../../shared/api/backendApi";
+import { BackendApiError, configuredOrganizationId, createIdempotencyKey } from "../../../shared/api/backendApi";
+import { getLessonVersion } from "../../../shared/api/teacherLessonLibraryApi";
 import {
   NOT_FOUND_OR_NO_ACCESS,
   teacherOccurrenceApi,
@@ -45,6 +46,13 @@ const TEACHER_AGE_BAND_OPTIONS: ReadonlyArray<{
 
 const textLength = (value: string) => Array.from(value).length;
 const blankSteps = (): TeacherDrawingStep[] => Array.from({ length: MIN_STEPS }, () => ({ action: "", placement: "" }));
+const splitLessonLines = (text: string): string[] => text
+  .replace(/(^|\s)(\d+[.)])\s+/g, "\n$2 ")
+  .split(/\r?\n/)
+  .map((line) => line.replace(/^\s*\d+[.)]\s*/, "").trim())
+  .filter(Boolean);
+const limitLines = (lines: string[], max: number): string[] =>
+  lines.length > max ? [...lines.slice(0, max - 1), lines.slice(max - 1).join("\n")] : lines;
 const panelError = (cause: unknown, step: string, method: string, path: string, drawingSteps?: TeacherDrawingStep[]): PanelError => {
   const apiError = cause instanceof BackendApiError ? cause : null;
   const countFieldError = apiError?.fieldErrors.some(({ field, code }) =>
@@ -130,6 +138,7 @@ export function TeacherSketchDeckPanel({ occurrenceId, approvedRevisionNo }: Pro
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [error, setError] = useState<PanelError | null>(null);
   const [notice, setNotice] = useState("");
+  const [prefilled, setPrefilled] = useState(false);
   const [generationClock, setGenerationClock] = useState(() => Date.now());
   const [presentationOpen, setPresentationOpen] = useState(false);
   // null = follow the default: the long form is folded while a deck is ready to present.
@@ -137,6 +146,8 @@ export function TeacherSketchDeckPanel({ occurrenceId, approvedRevisionNo }: Pro
   const submissionLock = useRef(false);
   const activeRequest = useRef(0);
   const keyedRequest = useRef<KeyedRequest | null>(null);
+  const edited = useRef(false);
+  const prefillAttempted = useRef(false);
 
   const occurrencePath = `/v1/lesson-occurrences/${encodeURIComponent(occurrenceId)}`;
   const planPath = `${occurrencePath}/plan-revisions/${approvedRevisionNo ?? ""}`;
@@ -180,13 +191,50 @@ export function TeacherSketchDeckPanel({ occurrenceId, approvedRevisionNo }: Pro
   }, [approvedRevisionNo, deckPath, occurrenceId, planPath]);
 
   useEffect(() => {
+    edited.current = false;
+    prefillAttempted.current = false;
+    setPlan(null);
+    setCurrent(null);
+    setTopic("");
+    setDrawingSteps(blankSteps());
+    setSubjectKnowledge([""]);
+    setPrefilled(false);
+    setNotice("");
+    setAttempted(false);
+    setValidationErrors([]);
+    setFormOpenChoice(null);
+  }, [occurrenceId]);
+
+  useEffect(() => {
     void reload();
     return () => { activeRequest.current += 1; };
   }, [reload]);
 
   useEffect(() => {
+    const pin = plan?.lesson_version_ref;
+    if (!pin || !current || current.current_revision || prefillAttempted.current || edited.current) return;
+    prefillAttempted.current = true;
+    let active = true;
+    let settled = false;
+    void getLessonVersion(configuredOrganizationId(), pin.lesson_id, pin.version_id).then((lesson) => {
+      settled = true;
+      if (!active || edited.current || lesson.lesson_id !== pin.lesson_id || lesson.version_id !== pin.version_id || lesson.structured_content_hash !== pin.content_sha256 || !lesson.content) return;
+      const topicValue = Array.from(lesson.content.drawing_subject.trim() || lesson.content.topic.trim()).slice(0, MAX_TOPIC_LENGTH).join("");
+      const actions = limitLines(splitLessonLines(lesson.content.drawing_steps_text), MAX_STEPS);
+      const notes = limitLines(splitLessonLines(lesson.content.subject_learning_notes), MAX_KNOWLEDGE_ITEMS);
+      if (!topicValue && !actions.length && !notes.length) return;
+      setTopic(topicValue);
+      setDrawingSteps(Array.from({ length: Math.max(MIN_STEPS, actions.length) }, (_, index) => ({ action: actions[index] ?? "", placement: "" })));
+      setSubjectKnowledge(notes.length ? notes : [""]);
+      setPrefilled(true);
+    }).catch(() => { settled = true; });
+    return () => { active = false; if (!settled) prefillAttempted.current = false; };
+  }, [plan, current]);
+
+  useEffect(() => {
     const revision = current?.current_revision;
     if (!revision) return;
+    setPrefilled(false);
     setTopic(revision.topic);
     setDrawingSteps(revision.drawing_steps.map((step) => ({ action: step.action, placement: step.placement })));
     setSubjectKnowledge([...revision.subject_knowledge]);
@@ -211,7 +259,7 @@ export function TeacherSketchDeckPanel({ occurrenceId, approvedRevisionNo }: Pro
     return () => window.clearTimeout(timer);
   }, [current?.current_revision?.created_at, current?.current_revision?.state]);
 
-  const markEdited = () => { setReviewConfirmed(false); setAttempted(false); setValidationErrors([]); setError(null); };
+  const markEdited = () => { edited.current = true; setReviewConfirmed(false); setAttempted(false); setValidationErrors([]); setError(null); };
   const changeTopic = (value: string) => { setTopic(value); markEdited(); };
   const changeStep = (index: number, field: keyof TeacherDrawingStep, value: string) => {
     setDrawingSteps((items) => items.map((item, itemIndex) => itemIndex === index ? { ...item, [field]: value } : item));
@@ -351,6 +399,7 @@ export function TeacherSketchDeckPanel({ occurrenceId, approvedRevisionNo }: Pro
           </summary>
         <form className="teacher-sketch-deck-form cozy-form-stack" onSubmit={(event) => void submit(event)} noValidate>
           <p className="s2l-note">Tạo từ kế hoạch đã xác nhận · Phiên bản {plan.revision_no}. Các thay đổi cần được rà soát lại trước khi tạo.</p>
+          {prefilled && <p className="s2l-note">Đã điền sẵn từ giáo án đã ghim. Hãy rà soát và bổ sung vị trí từng bước.</p>}
           <FormField
             label="Nhóm tuổi mục tiêu"
             htmlFor="sketch-deck-age-band"

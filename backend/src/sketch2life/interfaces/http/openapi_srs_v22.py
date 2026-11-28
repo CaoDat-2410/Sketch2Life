@@ -124,6 +124,8 @@ SRS_V22_INCLUDED_OPERATIONS: frozenset[tuple[str, str]] = frozenset(
         ("post", "/api/be1/v1/classes/{class_id}/archive"),
         # FEAT-066 T-7d (SRS l.544, l.1651): the Teacher enrollment move between two classes.
         ("post", "/api/be1/v1/classes/{class_id}/profiles/{child_id}/move"),
+        ("post", "/api/be1/v1/classes/{class_id}/profiles/{child_id}/place"),
+        ("get", "/api/be1/v1/organizations/{organization_id}/unplaced-profile-refs"),
         ("get", "/api/be1/v1/organizations/{organization_id}/classes"),
         ("post", "/api/be1/v1/organizations/{organization_id}/classes"),
         (

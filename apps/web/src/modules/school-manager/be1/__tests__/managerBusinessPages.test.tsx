@@ -20,9 +20,28 @@ afterEach(() => {
 
 beforeEach(() => {
   vi.spyOn(managerBusinessService, "profileRefs").mockResolvedValue([]);
+  vi.spyOn(managerBusinessService, "unplacedProfileRefs").mockResolvedValue([]);
 });
 
 describe("School Manager SRS-compatible business pages", () => {
+  it("retries an uncertain placement with the same key", async () => {
+    vi.stubGlobal("crypto", { randomUUID: () => "place-key" });
+    vi.mocked(managerBusinessService.unplacedProfileRefs).mockResolvedValue([{ child_id: "opaque-ref" }]);
+    vi.spyOn(classService, "listClasses").mockResolvedValue([{ class_id: "class-1", display_name: "Lớp Một", state: "active", class_revision: 4 }]);
+    vi.spyOn(managerBusinessService, "rosterSummary").mockResolvedValue({ contract: "Be1ClassRosterSummaryV1", class_id: "class-1", active_profile_count: 0 });
+    vi.spyOn(managerBusinessService, "consents").mockResolvedValue([]);
+    const place = vi.spyOn(managerBusinessService, "placeProfile").mockRejectedValueOnce(new AdminBe1Error("lost", 0, "NETWORK_ERROR")).mockResolvedValueOnce(undefined);
+    render(<MemoryRouter><RosterConsentPage /></MemoryRouter>);
+    await screen.findByText("opaque-ref");
+    fireEvent.click(screen.getByRole("combobox", { name: "Lớp để xếp hồ sơ" }));
+    fireEvent.click(screen.getByRole("option", { name: "Lớp Một" }));
+    fireEvent.click(screen.getByRole("button", { name: "Xếp lớp Hồ sơ 1" }));
+    fireEvent.click(screen.getByRole("button", { name: "Xác nhận" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Gửi lại" }));
+    await waitFor(() => expect(place).toHaveBeenCalledTimes(2));
+    expect(place).toHaveBeenNthCalledWith(1, "class-1", "opaque-ref", 4, "place-key");
+    expect(place).toHaveBeenNthCalledWith(2, "class-1", "opaque-ref", 4, "place-key");
+  });
   it("shows the organization name returned by the backend", async () => {
     vi.spyOn(managerBusinessService, "organization").mockResolvedValue({
       contract: "Be1OrganizationV1",
@@ -200,6 +219,7 @@ describe("School Manager SRS-compatible business pages", () => {
     render(<MemoryRouter><RosterConsentPage /></MemoryRouter>);
     fireEvent.click(await screen.findByRole("button", { name: "Thu hồi bản ghi 1" }));
     const dialog = screen.getByRole("alertdialog");
+    expect(dialog.parentElement?.parentElement).toBe(document.body);
     expect(dialog.textContent).toContain("không thể xác định bản ghi thuộc trẻ nào");
     expect(dialog.textContent).toContain("vĩnh viễn");
 

@@ -254,6 +254,18 @@ BINARY_SUCCESS_RESPONSES: dict[tuple[str, str], tuple[str, str]] = {
 }
 
 SYNTHETIC_RESPONSE_EXAMPLES: dict[tuple[str, str], dict[str, Any]] = {
+    ("get", "/api/be1/v1/organizations/{organization_id}/unplaced-profile-refs"): {
+        "contract": "Be1UnplacedProfileRefListV1",
+        "items": [{"child_id": "synthetic-0123456789abcdef01234567"}],
+        "next_cursor": None,
+    },
+    ("post", "/api/be1/v1/classes/{class_id}/profiles/{child_id}/place"): {
+        "contract": "Be1ProfilePlacementV1",
+        "child_id": "synthetic-0123456789abcdef01234567",
+        "class_id": "class-example-001",
+        "enrollment_id": "00000000-0000-4000-8000-000000000001",
+        "class_revision": 2,
+    },
     ("get", "/api/be1/v1/organizations/{organization_id}"): {
         "contract": "Be1OrganizationV1",
         "organization_id": "org-example-001",

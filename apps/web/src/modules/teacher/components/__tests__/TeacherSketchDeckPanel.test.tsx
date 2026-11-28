@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import * as lessonApi from "../../../../shared/api/teacherLessonLibraryApi";
 import { BackendApiError } from "../../../../shared/api/backendApi";
 import { TeacherSketchDeckPanel } from "../TeacherSketchDeckPanel";
 import { teacherOccurrenceApi, type CurrentSketchDeck, type PlanRevision, type SketchDeckRevision, type SketchDeckStep } from "../../../../shared/api/teacherOccurrenceApi";
@@ -334,4 +335,91 @@ it.each([0, 7])("blocks deck creation for %i approved activities", async (count)
   expect(button.getAttribute("aria-describedby")).toBe(message.id);
   fireEvent.submit(button.closest("form")!);
   expect(create).not.toHaveBeenCalled();
+});
+
+
+const pinnedPlan: PlanRevision = { ...plan, lesson_version_ref: { lesson_id: "lesson-1", version_id: "version-1", content_sha256: "c".repeat(64) } };
+const lesson = {
+  lesson_id: "lesson-1", version_id: "version-1", structured_content_hash: "c".repeat(64),
+  content: { drawing_subject: "Tree", topic: "Nature", drawing_steps_text: "1. Head 2. Body 3. Leaves", subject_learning_notes: "Roots\nLeaves" },
+} as lessonApi.LessonVersionDetail;
+
+function setupPinned(deck = emptyDeck) {
+  const create = setup(deck);
+  vi.mocked(teacherOccurrenceApi.getPlan).mockResolvedValue({ data: pinnedPlan, etag: null, notModified: false });
+  return create;
+}
+
+describe("pinned lesson prefill", () => {
+  it("fills the pinned content, leaving placements and review empty", async () => {
+    const create = setupPinned();
+    const getLesson = vi.spyOn(lessonApi, "getLessonVersion").mockResolvedValue(lesson);
+    render(<TeacherSketchDeckPanel occurrenceId="occ-1" approvedRevisionNo={2} />);
+    expect(await screen.findByText("Đã điền sẵn từ giáo án đã ghim. Hãy rà soát và bổ sung vị trí từng bước.")).toBeTruthy();
+    expect(getLesson).toHaveBeenCalledWith(expect.any(String), "lesson-1", "version-1");
+    expect((screen.getByLabelText("Chủ đề") as HTMLInputElement).value).toBe("Tree");
+    expect((screen.getByLabelText("Thao tác bước 2") as HTMLTextAreaElement).value).toBe("Body");
+    expect((screen.getByLabelText("Thao tác bước 4") as HTMLTextAreaElement).value).toBe("");
+    expect((screen.getByLabelText("Vị trí bước 1") as HTMLTextAreaElement).value).toBe("");
+    expect((screen.getByLabelText("Ghi chú 2") as HTMLTextAreaElement).value).toBe("Leaves");
+    expect((screen.getByRole("checkbox") as HTMLInputElement).checked).toBe(false);
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it("keeps all excess steps and notes in the eighth card", async () => {
+    setupPinned();
+    vi.spyOn(lessonApi, "getLessonVersion").mockResolvedValue({ ...lesson, content: { ...lesson.content, drawing_subject: "", drawing_steps_text: Array.from({ length: 10 }, (_, i) => `${i + 1}. Step ${i + 1}`).join("\n"), subject_learning_notes: Array.from({ length: 10 }, (_, i) => `Note ${i + 1}`).join("\n") } });
+    render(<TeacherSketchDeckPanel occurrenceId="occ-1" approvedRevisionNo={2} />);
+    await screen.findByText(/Đã điền sẵn từ giáo án/);
+    expect((screen.getByLabelText("Chủ đề") as HTMLInputElement).value).toBe("Nature");
+    expect((screen.getByLabelText("Thao tác bước 8") as HTMLTextAreaElement).value).toBe("Step 8\nStep 9\nStep 10");
+    expect((screen.getByLabelText("Ghi chú 8") as HTMLTextAreaElement).value).toBe("Note 8\nNote 9\nNote 10");
+  });
+
+  it("does not overwrite edits made while the lesson loads or on refresh", async () => {
+    setupPinned();
+    let resolve!: (value: lessonApi.LessonVersionDetail) => void;
+    vi.spyOn(lessonApi, "getLessonVersion").mockReturnValue(new Promise((done) => { resolve = done; }));
+    render(<TeacherSketchDeckPanel occurrenceId="occ-1" approvedRevisionNo={2} />);
+    fireEvent.change(await screen.findByLabelText("Chủ đề"), { target: { value: "My topic" } });
+    await act(async () => resolve(lesson));
+    expect((screen.getByLabelText("Chủ đề") as HTMLInputElement).value).toBe("My topic");
+    expect(screen.queryByText(/Đã điền sẵn từ giáo án/)).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Làm mới trạng thái" }));
+    await screen.findByText("Chưa có Sketch Deck cho buổi dạy này.");
+    expect((screen.getByLabelText("Chủ đề") as HTMLInputElement).value).toBe("My topic");
+  });
+
+  it("uses an existing deck without loading the lesson", async () => {
+    setupPinned(current({ presentable: false }));
+    const getLesson = vi.spyOn(lessonApi, "getLessonVersion");
+    render(<TeacherSketchDeckPanel occurrenceId="occ-1" approvedRevisionNo={2} />);
+    await screen.findByDisplayValue("A tree");
+    expect(getLesson).not.toHaveBeenCalled();
+    expect(screen.queryByText(/Đã điền sẵn từ giáo án/)).toBeNull();
+  });
+
+  it.each([403, 404, 0])("silently leaves the form empty when lesson loading fails (%i)", async (status) => {
+    setupPinned();
+    vi.spyOn(lessonApi, "getLessonVersion").mockRejectedValue(new BackendApiError("failed", "ERROR", status));
+    render(<TeacherSketchDeckPanel occurrenceId="occ-1" approvedRevisionNo={2} />);
+    await screen.findByText("Chưa có Sketch Deck cho buổi dạy này.");
+    await act(async () => {});
+    expect((screen.getByLabelText("Chủ đề") as HTMLInputElement).value).toBe("");
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(screen.queryByText(/Đã điền sẵn từ giáo án/)).toBeNull();
+  });
+
+  it("clears the previous session and ignores its pending lesson", async () => {
+    setupPinned();
+    let resolve!: (value: lessonApi.LessonVersionDetail) => void;
+    vi.spyOn(lessonApi, "getLessonVersion").mockReturnValue(new Promise((done) => { resolve = done; }));
+    const { rerender } = render(<TeacherSketchDeckPanel occurrenceId="occ-1" approvedRevisionNo={2} />);
+    fireEvent.change(await screen.findByLabelText("Chủ đề"), { target: { value: "Previous session" } });
+    vi.mocked(teacherOccurrenceApi.getPlan).mockResolvedValue({ data: { ...plan, occurrence_id: "occ-2" }, etag: null, notModified: false });
+    rerender(<TeacherSketchDeckPanel occurrenceId="occ-2" approvedRevisionNo={2} />);
+    await screen.findByText("Chưa có Sketch Deck cho buổi dạy này.");
+    await act(async () => resolve(lesson));
+    expect((screen.getByLabelText("Chủ đề") as HTMLInputElement).value).toBe("");
+  });
 });

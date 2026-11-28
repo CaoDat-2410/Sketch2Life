@@ -39,6 +39,18 @@ describe("School Manager business API adapter", () => {
     expect(mocks.adminBe1Request).toHaveBeenCalledWith("/organizations/org%20%2Fqa", {});
   });
 
+  it("validates unplaced references and placement responses strictly", async () => {
+    mocks.adminBe1Request.mockResolvedValueOnce({ contract: "Be1UnplacedProfileRefListV1", items: [{ child_id: "ref" }], next_cursor: null });
+    await expect(managerBusinessService.unplacedProfileRefs()).resolves.toEqual([{ child_id: "ref" }]);
+    mocks.adminBe1Request.mockResolvedValueOnce({ contract: "Be1UnplacedProfileRefListV1", items: [{ child_id: "ref", display_name: "private" }], next_cursor: null });
+    await expect(managerBusinessService.unplacedProfileRefs()).rejects.toMatchObject({ code: "INVALID_RESPONSE" });
+    mocks.adminBe1Request.mockResolvedValueOnce({ contract: "Be1ProfilePlacementV1", child_id: "ref", class_id: "class", enrollment_id: "enrollment", class_revision: 2 });
+    await managerBusinessService.placeProfile("class", "ref", 1, "key");
+    expect(mocks.adminBe1Request).toHaveBeenLastCalledWith("/classes/class/profiles/ref/place", { method: "POST", headers: { "If-Match": '"1"', "Idempotency-Key": "key" } });
+    mocks.adminBe1Request.mockResolvedValueOnce({ contract: "Be1ProfilePlacementV1", child_id: "other", class_id: "class", enrollment_id: "enrollment", class_revision: 2 });
+    await expect(managerBusinessService.placeProfile("class", "ref", 1, "key")).rejects.toMatchObject({ code: "INVALID_RESPONSE" });
+  });
+
   it("reads the T-7a roster count summary through the BE1 route", async () => {
     const signal = new AbortController().signal;
     mocks.adminBe1Request.mockResolvedValueOnce({ contract: "Be1ClassRosterSummaryV1", class_id: "class/one", active_profile_count: 3 });

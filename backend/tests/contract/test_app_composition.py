@@ -178,6 +178,8 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
         "/api/be1/v1/classes/{class_id}/suspend",  # FEAT-066 T-7b
         "/api/be1/v1/classes/{class_id}/archive",  # FEAT-066 T-7b
         "/api/be1/v1/classes/{class_id}/profiles/{child_id}/move",  # FEAT-066 T-7d
+        "/api/be1/v1/classes/{class_id}/profiles/{child_id}/place",
+        "/api/be1/v1/organizations/{organization_id}/unplaced-profile-refs",
         "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profile-refs",
         # FEAT-066 goal v4 T-12b: the Teacher profile edit and the revision history.
         "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}",

@@ -117,6 +117,7 @@ const auditActionLabels: Record<string, string> = {
   "subscription.cancel_renewal": "Hủy gia hạn gói dịch vụ",
   "subscription.resume_renewal": "Tiếp tục gia hạn gói dịch vụ",
   "subscription.downgrade": "Hạ cấp gói dịch vụ",
+  "profile.place": "Xếp hồ sơ trẻ vào lớp",
   "profile.move": "Chuyển hồ sơ trẻ sang lớp khác",
   "profile.revisions.read": "Xem lịch sử hồ sơ trẻ",
   "profile.edit": "Cập nhật hồ sơ trẻ",

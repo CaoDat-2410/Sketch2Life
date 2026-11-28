@@ -1,3 +1,4 @@
+import { ModalPortal } from "../../../../shared/ui/ModalPortal";
 import { useMemo, useRef, useState, type FormEvent } from "react";
 import { PageHeading } from "../../../../shared/components/FeatureAvailability";
 import { Alert, EmptyState } from "../../../../shared/ui";
@@ -279,7 +280,7 @@ export function DataRequestsPage() {
       </section>
 
       {deleteConfirmationOpen && (
-        <div className="manager-business-confirm-backdrop">
+        <ModalPortal><div className="manager-business-confirm-backdrop">
           <section
             className="manager-business-card manager-business-confirm-dialog"
             role="alertdialog"
@@ -296,7 +297,7 @@ export function DataRequestsPage() {
               </button>
             </div>
           </section>
-        </div>
+        </div></ModalPortal>
       )}
     </div>
   );

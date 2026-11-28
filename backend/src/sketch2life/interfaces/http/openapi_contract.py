@@ -12885,6 +12885,25 @@ MOUNTED_OPERATIONS[("get", "/api/be1/v1/organizations/{organization_id}/classes/
     ),
 }
 
+MOUNTED_OPERATIONS[("get", "/api/be1/v1/organizations/{organization_id}/unplaced-profile-refs")] = {
+    "purpose": "List only opaque references for active profiles without an active enrollment or pending deletion, for the School Manager. The cursor is organization-bound.",
+    "request_inputs": "header `X-Request-ID`: string; path `organization_id*`: string; query `limit`: integer; query `cursor`: string",
+    "surface": "BE1 / classroom", "tag": _CLASS_STATE_TAG,
+    "handler": "be1_registry.py::list_unplaced_profile_refs", "authentication": "HTTPBearer (bearer)",
+    "verification": "FR-T-02, FR-T-05, BR-05; D-066-69",
+    "responses": tuple(response for response in _CLASS_STATE_RESPONSES if response["status"] != "202"),
+}
+MOUNTED_OPERATIONS[("post", "/api/be1/v1/classes/{class_id}/profiles/{child_id}/place")] = {
+    "purpose": "Place one active unplaced profile in an active class, explicitly and without copying consent. Requires a School Manager, a strong class revision and an idempotency key.",
+    "request_inputs": "path `class_id*`: string; path `child_id*`: string; header `X-Request-ID`: string; header `Idempotency-Key*`: string; header `If-Match`: string",
+    "surface": "BE1 / classroom", "tag": _CLASS_STATE_TAG,
+    "handler": "be1_registry.py::place_profile", "authentication": "HTTPBearer (bearer)",
+    "verification": "FR-T-02, FR-T-05, BR-05; D-066-69",
+    "responses": _with_idempotency_mismatch_response(
+        tuple(response for response in _CLASS_STATE_RESPONSES if response["status"] != "202")
+    ),
+}
+
 # FEAT-066 T-8a/T-8b (SRS l.812, l.815, l.1681, l.1684-1685, l.1697; FR-B-09; UC-15; DDL-C):
 # the inbox and scoped push endpoint management. The inbox is the source of truth; no delivery is
 # implemented (no e-mail, no push).
@@ -14882,6 +14901,7 @@ IDEMPOTENCY_MISMATCH_OPERATION_KEYS: Final[tuple[tuple[str, str], ...]] = (
     ("post", "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles"),
     # FEAT-066 T-7d (SRS l.1697): the keyed Manager/Teacher enrollment move.
     ("post", "/api/be1/v1/classes/{class_id}/profiles/{child_id}/move"),
+    ("post", "/api/be1/v1/classes/{class_id}/profiles/{child_id}/place"),
     # FEAT-066 goal v4 T-12b (SRS l.1697): the keyed Teacher profile edit.
     ("patch", "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}"),
     # FEAT-066 goal v4 T-12c (SRS l.1697): the keyed Teacher support-needs write.

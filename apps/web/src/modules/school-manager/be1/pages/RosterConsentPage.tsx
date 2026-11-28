@@ -1,3 +1,4 @@
+import { ModalPortal } from "../../../../shared/ui/ModalPortal";
 import { useEffect, useRef, useState } from "react";
 import { RefreshCw, Users } from "lucide-react";
 import { createIdempotencyKey } from "../../../../shared/api/backendApi";
@@ -57,6 +58,14 @@ function consentStateTone(state: string): StatusTone {
 }
 
 export function RosterConsentPage() {
+  const [unplaced, setUnplaced] = useState<string[]>([]);
+  const [unplacedState, setUnplacedState] = useState<LoadState>("loading");
+  const [placeTarget, setPlaceTarget] = useState("");
+  const [placePrompt, setPlacePrompt] = useState<{ childId: string; rowNumber: number } | null>(null);
+  const [placeAttempt, setPlaceAttempt] = useState<{ childId: string; classId: string; revision: number; key: string } | null>(null);
+  const [placeBusy, setPlaceBusy] = useState(false);
+  const [placeMessage, setPlaceMessage] = useState("");
+  const placeLock = useRef(false);
   const [classes, setClasses] = useState<Be1Class[]>([]);
   const [classState, setClassState] = useState<LoadState>("loading");
   const [classError, setClassError] = useState("");
@@ -136,6 +145,16 @@ export function RosterConsentPage() {
         setClassState("error");
       });
     return () => { current = false; };
+  }, [reloadCount]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    managerBusinessService.unplacedProfileRefs(controller.signal).then((items) => {
+      if (!controller.signal.aborted) { setUnplaced(items.map((item) => item.child_id)); setUnplacedState("loaded"); }
+    }).catch(() => {
+      if (!controller.signal.aborted) { setUnplaced([]); setUnplacedState("error"); }
+    });
+    return () => controller.abort();
   }, [reloadCount]);
 
   useEffect(() => {
@@ -330,6 +349,37 @@ export function RosterConsentPage() {
     }
   };
 
+  const confirmPlace = async () => {
+    if (!placePrompt || placeLock.current) return;
+    const target = classes.find((item) => item.class_id === placeTarget && item.state === "active");
+    const attempt = placeAttempt ?? (target && Number.isInteger(target.class_revision) ? {
+      childId: placePrompt.childId, classId: target.class_id, revision: target.class_revision as number, key: createIdempotencyKey(),
+    } : null);
+    if (!attempt) { setPlaceMessage("Hãy chọn lớp đang hoạt động và tải lại phiên bản lớp."); return; }
+    placeLock.current = true;
+    setPlaceAttempt(attempt); setPlaceBusy(true); setPlaceMessage("");
+    try {
+      await managerBusinessService.placeProfile(attempt.classId, attempt.childId, attempt.revision, attempt.key);
+      setPlacePrompt(null); setPlaceAttempt(null); setPlaceTarget("");
+      setPlaceMessage("Đã xếp hồ sơ. Danh sách và sĩ số đang được làm mới.");
+      setUnplaced([]);
+      setClassState("loading");
+      setReloadCount((value) => value + 1);
+    } catch (cause) {
+      const status = cause instanceof AdminBe1Error ? cause.status : 0;
+      const code = cause instanceof AdminBe1Error ? cause.code : "";
+      if (status === 0 || status >= 500 || (cause instanceof AdminBe1Error && cause.retryable)) {
+        setPlaceMessage("Chưa rõ kết quả. Hãy gửi lại cùng thao tác; mã chống lặp được giữ nguyên.");
+      } else {
+        setPlaceAttempt(null); setPlacePrompt(null);
+        setPlaceMessage(code === "STALE_REVISION" ? "Phiên bản lớp đã thay đổi. Hãy kiểm tra và xác nhận lại." : status === 409 ? "Không thể xếp hồ sơ trong trạng thái hiện tại. Hãy kiểm tra lại danh sách." : status === 403 ? "Tài khoản không có quyền xếp hồ sơ." : status === 404 ? "Không tìm thấy lớp hoặc hồ sơ, hoặc tài khoản không có quyền truy cập." : "Không thể xếp hồ sơ. Hãy tải lại danh sách.");
+        setUnplaced([]);
+        setClassState("loading");
+        setReloadCount((value) => value + 1);
+      }
+    } finally { placeLock.current = false; setPlaceBusy(false); }
+  };
+
   const reloadConsents = async (classId: string) => {
     const next = await managerBusinessService.consents(classId);
     if (selectedClassIdRef.current === classId) {
@@ -405,6 +455,33 @@ export function RosterConsentPage() {
       />
 
       {classError && <Alert role="alert" tone="danger">{classError}</Alert>}
+
+      <section className="manager-business-card cozy-form-card cozy-form-card--wide cozy-form-stack" aria-labelledby="unplaced-title">
+        <h2 id="unplaced-title">Hồ sơ chưa được xếp lớp</h2>
+        <p className="manager-business-subtle">Những hồ sơ này được giữ để xem xét và không bao giờ được xếp lớp tự động. Sự đồng ý không được sao chép khi xếp lớp.</p>
+        {unplacedState === "loading" && <Alert role="status">Đang tải mã tham chiếu…</Alert>}
+        {unplacedState === "error" && <Alert role="alert" tone="danger">Không tải được mã tham chiếu hồ sơ chưa xếp lớp.</Alert>}
+        {placeMessage && <Alert role="status">{placeMessage}</Alert>}
+        {unplacedState === "loaded" && <p>Số hồ sơ cần xem xét: {unplaced.length}</p>}
+        <FormField label="Lớp để xếp hồ sơ" htmlFor="unplaced-target">
+          <Select id="unplaced-target" value={placeTarget} disabled={placePrompt !== null || placeBusy} onChange={(event) => setPlaceTarget(event.target.value)}>
+            <option value="">Chọn lớp đang hoạt động</option>
+            {classes.filter((item) => item.state === "active").map((item) => <option key={item.class_id} value={item.class_id}>{item.display_name}</option>)}
+          </Select>
+        </FormField>
+        {unplaced.map((childId, index) => <div key={childId}>
+          <span>Hồ sơ {index + 1}: <code>{childId}</code></span>{" "}
+          <button type="button" className="manager-business-button" aria-label={`Xếp lớp Hồ sơ ${index + 1}`} disabled={!placeTarget || placePrompt !== null || classState !== "loaded"} onClick={() => { setPlaceMessage(""); setPlacePrompt({ childId, rowNumber: index + 1 }); }}>Xếp lớp</button>
+        </div>)}
+        {placePrompt && <ModalPortal><div className="manager-business-confirm-backdrop"><div className="manager-business-card manager-business-confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="place-confirm-title">
+          <h2 id="place-confirm-title">Xếp Hồ sơ {placePrompt.rowNumber}?</h2>
+          <p>Xác nhận xếp một hồ sơ vào lớp đã chọn. Sự đồng ý không được sao chép.</p>
+          <div className="manager-business-confirm-actions">
+            {!placeAttempt && <button type="button" className="manager-business-button" disabled={placeBusy} onClick={() => setPlacePrompt(null)}>Hủy</button>}
+            <button type="button" className="manager-business-button is-primary" disabled={placeBusy} onClick={() => void confirmPlace()}>{placeAttempt ? "Gửi lại" : "Xác nhận"}</button>
+          </div>
+        </div></div></ModalPortal>}
+      </section>
 
       <section className="manager-business-card cozy-form-card cozy-form-card--wide cozy-form-stack">
         {classState === "loading" ? (
@@ -619,7 +696,7 @@ export function RosterConsentPage() {
       </>}
 
       {pendingRevoke && (
-        <div className="manager-business-confirm-backdrop">
+        <ModalPortal><div className="manager-business-confirm-backdrop">
           <section
             className="manager-business-card manager-business-confirm-dialog"
             role="alertdialog"
@@ -637,11 +714,11 @@ export function RosterConsentPage() {
               </button>
             </div>
           </section>
-        </div>
+        </div></ModalPortal>
       )}
 
       {movePrompt && (
-        <div className="manager-business-confirm-backdrop">
+        <ModalPortal><div className="manager-business-confirm-backdrop">
           <section
             className="manager-business-card manager-business-confirm-dialog"
             role="alertdialog"
@@ -678,7 +755,7 @@ export function RosterConsentPage() {
               </button>
             </div>
           </section>
-        </div>
+        </div></ModalPortal>
       )}
 
       <TeacherAssignmentCard

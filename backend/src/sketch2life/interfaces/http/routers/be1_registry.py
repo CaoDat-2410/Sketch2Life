@@ -20,6 +20,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, R
 from sqlalchemy import Select, and_, exists, func, or_, select, tuple_
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.sql.selectable import Exists
 
 from sketch2life.application.ports.identity import (
     IdentityAccountProvisioner,
@@ -1721,6 +1722,65 @@ def list_profiles(
     }
 
 
+def _pending_profile_deletion() -> Exists:
+    return exists().where(
+        DataLifecycleRequestModel.request_type == "delete",
+        DataLifecycleRequestModel.state != "completed",
+        or_(
+            DataLifecycleRequestModel.target_ref == ManagedProfileModel.child_id,
+            DataLifecycleRequestModel.target_ref == ManagedProfileModel.class_id,
+            DataLifecycleRequestModel.target_ref == ManagedProfileModel.organization_id,
+        ),
+    )
+
+
+@router.get("/organizations/{organization_id}/unplaced-profile-refs")
+def list_unplaced_profile_refs(
+    organization_id: str,
+    limit: int = limit_query(),
+    cursor: str | None = cursor_query(),
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+) -> dict[str, object]:
+    _require_m2_assignment(db, principal, organization_id, roles={"school_admin"})
+    scope = f"be1.unplaced-profile-refs:{organization_id}"
+    active_enrollment = exists().where(
+        EnrollmentModel.organization_id == ManagedProfileModel.organization_id,
+        EnrollmentModel.child_id == ManagedProfileModel.child_id,
+        EnrollmentModel.state == "active",
+    )
+    statement = select(ManagedProfileModel.child_id, ManagedProfileModel.created_at).where(
+        ManagedProfileModel.organization_id == organization_id,
+        ManagedProfileModel.state == "active",
+        ~active_enrollment,
+        ~_pending_profile_deletion(),
+    )
+    if cursor is not None:
+        after_time, after_id = decode_time_cursor(cursor, scope=scope)
+        statement = statement.where(
+            tuple_(ManagedProfileModel.created_at, ManagedProfileModel.child_id)
+            > (after_time, after_id)
+        )
+    rows = list(
+        db.execute(
+            statement.order_by(ManagedProfileModel.created_at, ManagedProfileModel.child_id).limit(
+                limit + 1
+            )
+        ).all()
+    )
+    has_more = len(rows) > limit
+    rows = rows[:limit]
+    return {
+        "contract": "Be1UnplacedProfileRefListV1",
+        "items": [{"child_id": row.child_id} for row in rows],
+        "next_cursor": encode_cursor(
+            scope=scope, sort_key=rows[-1].created_at.isoformat(), item_id=rows[-1].child_id
+        )
+        if has_more and rows
+        else None,
+    }
+
+
 @router.get("/organizations/{organization_id}/classes/{class_id}/profile-refs")
 def list_profile_refs(
     organization_id: str,
@@ -2616,6 +2676,186 @@ def move_profile(
                 409, "RESOURCE_CONFLICT", "The command conflicts with current records"
             ) from None
         replay = _replayed_move(winner, fingerprint=fingerprint)
+        db.rollback()
+        return replay
+    return body
+
+
+def _place_receipt_scope(class_id: str, child_id: str) -> str:
+    scope = f"POST /classes/{class_id}/profiles/{child_id}/place"
+    if len(scope) <= _RECEIPT_SCOPE_LIMIT:
+        return scope
+    digest = hashlib.sha256(f"{class_id}/{child_id}".encode()).hexdigest()
+    return f"POST /classes/profiles/place#{digest}"
+
+
+def _place_fingerprint(class_id: str, child_id: str, revision: int) -> str:
+    return hashlib.sha256(
+        json.dumps(
+            {
+                "v": 1,
+                "command": "profile.place",
+                "class_id": class_id,
+                "child_id": child_id,
+                "if_match": revision,
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode()
+    ).hexdigest()
+
+
+def _replayed_place(receipt: Be1CommandReceiptModel, fingerprint: str) -> dict[str, object]:
+    if receipt.request_fingerprint != fingerprint:
+        raise failure(
+            400, "INVALID_IDEMPOTENCY_KEY", "Idempotency-Key was already used for another request"
+        )
+    stored = receipt.response_json
+    return {
+        "contract": "Be1ProfilePlacementV1",
+        "child_id": stored["child_id"],
+        "class_id": stored["class_id"],
+        "enrollment_id": stored["enrollment_id"],
+        "class_revision": stored["class_revision"],
+    }
+
+
+@router.post("/classes/{class_id}/profiles/{child_id}/place")
+def place_profile(
+    class_id: str,
+    child_id: str,
+    request: Request,
+    idempotency_key: Annotated[str, Header(alias="Idempotency-Key", min_length=1, max_length=128)],
+    if_match: Annotated[str | None, Header(alias="If-Match")] = None,
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+) -> dict[str, object]:
+    known = db.scalar(select(ClassroomModel).where(ClassroomModel.class_id == class_id))
+    if known is None:
+        raise _scope_denied()
+    organization_id = known.organization_id
+    _require_m2_assignment(
+        db, principal, organization_id, roles={"school_admin"}, class_id=class_id
+    )
+    idempotency_key = parse_idempotency_key(request)
+    expected_revision = _strong_revision(if_match)
+    settle_due_class_suspensions(db, organization_id, actor=principal.subject)
+    classroom = db.scalar(class_lock_select(class_id))
+    if classroom is None:
+        raise _scope_denied()
+    scope = _place_receipt_scope(class_id, child_id)
+    fingerprint = _place_fingerprint(class_id, child_id, expected_revision)
+    receipt = db.get(Be1CommandReceiptModel, (principal.subject, scope, idempotency_key))
+    if receipt is not None:
+        replay = _replayed_place(receipt, fingerprint)
+        db.rollback()
+        return replay
+    require_no_pending_class_transfer(
+        db, organization_id=organization_id, class_id=class_id, classroom=classroom
+    )
+    if classroom.revision != expected_revision:
+        current = classroom.revision
+        db.rollback()
+        raise_stale_revision(current_version=current, etag=str(current))
+    if classroom.state != "active":
+        db.rollback()
+        raise failure(
+            409, "INVALID_STATE_TRANSITION", "The class is read-only in its current state"
+        )
+    profile = db.scalar(
+        select(ManagedProfileModel)
+        .where(
+            ManagedProfileModel.organization_id == organization_id,
+            ManagedProfileModel.child_id == child_id,
+            ManagedProfileModel.state == "active",
+        )
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+    if profile is None:
+        db.rollback()
+        raise failure(404, "PROFILE_NOT_FOUND", "Profile was not found")
+    enrollment = db.scalar(
+        select(EnrollmentModel)
+        .where(
+            EnrollmentModel.organization_id == organization_id,
+            EnrollmentModel.child_id == child_id,
+            EnrollmentModel.state == "active",
+        )
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+    if enrollment is not None:
+        db.rollback()
+        raise failure(
+            409, "INVALID_STATE_TRANSITION", "The profile already has an active enrollment"
+        )
+    pending = db.scalar(
+        select(
+            exists().where(
+                DataLifecycleRequestModel.request_type == "delete",
+                DataLifecycleRequestModel.state != "completed",
+                DataLifecycleRequestModel.target_ref.in_(
+                    (profile.child_id, profile.class_id, class_id, profile.organization_id)
+                ),
+            )
+        )
+    )
+    if pending:
+        db.rollback()
+        raise failure(409, "INVALID_STATE_TRANSITION", "The profile has a pending deletion")
+    enrollment = EnrollmentModel(
+        enrollment_id=str(uuid4()),
+        organization_id=organization_id,
+        class_id=class_id,
+        child_id=child_id,
+        created_by=principal.subject,
+    )
+    db.add(enrollment)
+    profile.class_id = class_id
+    classroom.revision += 1
+    audit(
+        db,
+        organization_id=organization_id,
+        actor=principal.subject,
+        action="profile.place",
+        resource_type="child_profile",
+        resource_id=child_id,
+    )
+    event(
+        db,
+        organization_id=organization_id,
+        aggregate_id=child_id,
+        event_type="be1.profile.placed.v1",
+        payload={"child_id": child_id, "class_id": class_id},
+    )
+    body = {
+        "contract": "Be1ProfilePlacementV1",
+        "child_id": child_id,
+        "class_id": class_id,
+        "enrollment_id": enrollment.enrollment_id,
+        "class_revision": classroom.revision,
+    }
+    db.add(
+        Be1CommandReceiptModel(
+            principal_ref=principal.subject,
+            operation_scope=scope,
+            idempotency_key=idempotency_key,
+            organization_id=organization_id,
+            request_fingerprint=fingerprint,
+            response_json=body,
+        )
+    )
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        winner = db.get(Be1CommandReceiptModel, (principal.subject, scope, idempotency_key))
+        if winner is None:
+            raise failure(
+                409, "RESOURCE_CONFLICT", "The command conflicts with current records"
+            ) from None
+        replay = _replayed_place(winner, fingerprint)
         db.rollback()
         return replay
     return body

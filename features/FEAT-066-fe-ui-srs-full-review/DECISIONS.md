@@ -875,3 +875,9 @@ No value is rendered in the unavailable state, stored in browser storage, placed
 **Source:** owner decision of 2026-11-28, against SRS FR-T-02, FR-T-05 and BR-05.
 
 **Decision:** a School Manager (`school_admin`) of the organization may move a profile's active enrollment between classes of that organization. This replaces the T-7d decision that refused the School Manager with 403. The Manager sees opaque profile references only (D-066-69). No consent is copied: a real profile stays hidden in the target class until consent exists there. Placing a profile with no active enrollment is not covered.
+
+## D-066-105 - School Manager places a profile that has no active enrollment (2026-11-29)
+
+**Source:** owner decision of 2026-11-28 to implement placement if feasible without a migration, against SRS FR-T-02, FR-T-05 and BR-05; commit approved by the owner.
+
+**Decision:** this replaces the last sentence of D-066-104. A School Manager (`school_admin`) of the organization may list active profiles that have no active enrollment and place one of them into an active class of that organization, one explicit confirmation at a time. Nothing is placed automatically. The list shows opaque profile references only (D-066-69). No consent is created or copied: a real profile stays hidden from the Teacher until consent exists for that class. A profile whose active enrollment disagrees with its class record, or that has a pending deletion, stays out of scope.

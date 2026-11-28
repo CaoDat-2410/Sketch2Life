@@ -554,6 +554,37 @@ export const managerBusinessService = {
     }
   },
 
+  unplacedProfileRefs: async (signal?: AbortSignal): Promise<Be1ClassProfileRef[]> => {
+    const items: Be1ClassProfileRef[] = [];
+    const seen = new Set<string>();
+    let cursor: string | undefined;
+    while (true) {
+      if (cursor !== undefined) {
+        if (seen.has(cursor)) throw invalidManagerResponse("Hệ thống lặp lại trang tham chiếu hồ sơ.");
+        seen.add(cursor);
+      }
+      const value = await adminBe1Request<unknown>(organizationPath() + "/unplaced-profile-refs" + pageQuery({ limit: CURSOR_PAGE_LIMIT, cursor }), withSignal(signal));
+      if (!value || typeof value !== "object") throw invalidManagerResponse("Dữ liệu hồ sơ không hợp lệ.");
+      const page = value as Record<string, unknown>;
+      if (!hasExactKeys(page, ["contract", "items", "next_cursor"]) || page.contract !== "Be1UnplacedProfileRefListV1" || !Array.isArray(page.items) || !(page.next_cursor === null || (typeof page.next_cursor === "string" && page.next_cursor.length > 0))) throw invalidManagerResponse("Dữ liệu hồ sơ không hợp lệ.");
+      for (const value of page.items) {
+        if (!value || typeof value !== "object") throw invalidManagerResponse("Dữ liệu hồ sơ không hợp lệ.");
+        const item = value as Record<string, unknown>;
+        if (!hasExactKeys(item, ["child_id"]) || typeof item.child_id !== "string" || !item.child_id.trim()) throw invalidManagerResponse("Dữ liệu hồ sơ không hợp lệ.");
+        items.push({ child_id: item.child_id });
+      }
+      if (page.next_cursor === null) return items;
+      cursor = page.next_cursor as string;
+    }
+  },
+
+  placeProfile: async (classId: string, childId: string, revision: number, idempotencyKey: string): Promise<void> => {
+    const value = await adminBe1Request<unknown>("/classes/" + encodeURIComponent(classId) + "/profiles/" + encodeURIComponent(childId) + "/place", { method: "POST", headers: { "If-Match": `"${revision}"`, "Idempotency-Key": idempotencyKey } });
+    if (!value || typeof value !== "object") throw invalidManagerResponse("Kết quả xếp lớp không hợp lệ.");
+    const result = value as Record<string, unknown>;
+    if (!hasExactKeys(result, ["contract", "child_id", "class_id", "enrollment_id", "class_revision"]) || result.contract !== "Be1ProfilePlacementV1" || result.child_id !== childId || result.class_id !== classId || typeof result.enrollment_id !== "string" || !result.enrollment_id.trim() || typeof result.class_revision !== "number" || !Number.isInteger(result.class_revision) || result.class_revision < 1) throw invalidManagerResponse("Kết quả xếp lớp không hợp lệ.");
+  },
+
   /** One move command; caller retains and reuses the same key if the response is lost. */
   moveProfile: async (
     sourceClassId: string,

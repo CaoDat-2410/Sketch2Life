@@ -1,3 +1,4 @@
+import { ModalPortal } from "../../../shared/ui/ModalPortal";
 import { AdminSelect } from '../components/AdminSelect'
 import { Layers, School, Tags } from "lucide-react";
 import { useRef, useState } from "react";
@@ -672,7 +673,7 @@ function QuotaCatalogWorkspace({ initialScope }: { initialScope?: Scope }) {
           ]} /></LoadBoundary>}
         </div>
       </section>
-      {eventProduct && <div className="pa-event-drawer-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) closeEventDrawer(); }}>
+      {eventProduct && <ModalPortal><div className="pa-event-drawer-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) closeEventDrawer(); }}>
         <aside className="pa-event-drawer" role="dialog" aria-modal="true" aria-labelledby="pa-event-drawer-title">
           <header className="pa-event-drawer-header">
             <div><h2 id="pa-event-drawer-title">Lịch sử hạn mức</h2><p>{eventProduct.display_name}</p><code>{eventProduct.product_id}</code></div>
@@ -704,7 +705,7 @@ function QuotaCatalogWorkspace({ initialScope }: { initialScope?: Scope }) {
                   </div>
                 </>}
         </aside>
-      </div>}
+      </div></ModalPortal>}
     </div>
   );
 }
