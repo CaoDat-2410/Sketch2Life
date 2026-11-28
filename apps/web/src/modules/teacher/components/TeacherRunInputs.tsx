@@ -4,6 +4,8 @@ import { BackendApiError, createIdempotencyKey } from "../../../shared/api/backe
 import { teacherOccurrenceApi, uploadFileForPurpose, type UploadSession } from "../../../shared/api/teacherOccurrenceApi";
 import { teacherRunApi, type LifecycleEnvelope, type SubjectEntity, type SubjectRole, type TeacherRun, type Transcript } from "../../../shared/api/teacherRunApi";
 import { FormActionBar } from "./FormActionBar";
+import { TeacherRunCameraCapture } from "./TeacherRunCameraCapture";
+import { TeacherRunAudioCapture } from "./TeacherRunAudioCapture";
 import { ActionKeys } from "../services/actionKeys";
 import { inputCopy as c } from "../services/teacherRunCopy";
 import { cleanIdea, runFileMediaType, type RunUploadPurpose } from "../services/teacherRunInputs";
@@ -212,6 +214,7 @@ export function TeacherRunInputs({ run, refresh, fail, lifecycle }: Props) {
               <input id={drawingInputId} className="teacher-file-picker-input" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" aria-labelledby={drawingLabelId} onChange={(e) => setDrawing(e.target.files?.[0] ?? null)} />
             </label>
           </div>
+          <TeacherRunCameraCapture disabled={busy} onCapture={setDrawing} />
           <FormActionBar hint={!busy && !drawing ? "Chọn ảnh bức tranh để bật nút tải ảnh." : undefined}>
             {busy && <button type="button" className="s2l-button" onClick={() => void stop()}>{c.stop}</button>}
             <button type="button" className={primaryStep === "artwork" ? "s2l-button is-primary" : "s2l-button"} disabled={busy || !drawing} onClick={() => void sendDrawing()}>{c.upload}</button>
@@ -233,6 +236,7 @@ export function TeacherRunInputs({ run, refresh, fail, lifecycle }: Props) {
               <input id={audioInputId} className="teacher-file-picker-input" type="file" accept="audio/wav,audio/mp4" aria-labelledby={audioLabelId} onChange={(e) => setAudio(e.target.files?.[0] ?? null)} />
             </label>
           </div>
+          <TeacherRunAudioCapture disabled={busy} onCapture={setAudio} />
           <FormActionBar>
             <button type="button" className={primaryStep === "idea" ? "s2l-button is-primary" : "s2l-button"} disabled={busy} onClick={() => void sendIdea()}>{c.submitIdea}</button>
           </FormActionBar>

@@ -120,10 +120,14 @@ html[data-cozy="1"][data-portal="teacher"] .tp-slide-list > li { min-width: 0; }
 html[data-cozy="1"][data-portal="teacher"] .tp-actions > .s2l-button,
 html[data-cozy="1"][data-portal="teacher"] .cozy-form-actions > .s2l-button { min-height: 44px; }
 html[data-cozy="1"][data-portal="teacher"] .teacher-file-picker { width: 100%; max-width: 100%; box-sizing: border-box; }
+html[data-cozy="1"][data-portal="teacher"] .tp-run-camera { display: grid; gap: 10px; min-width: 0; }
+html[data-cozy="1"][data-portal="teacher"] .tp-run-camera-preview { display: block; width: 100%; max-height: 60vh; object-fit: contain; border-radius: 12px; background: var(--s2l-ui-ink); }
+html[data-cozy="1"][data-portal="teacher"] .tp-run-camera-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 @media (max-width: 620px) {
   html[data-cozy="1"][data-portal="teacher"] .tp-actions { flex-direction: column; align-items: stretch; }
   html[data-cozy="1"][data-portal="teacher"] .tp-actions > :is(.s2l-button, button, a) { width: 100%; box-sizing: border-box; justify-content: center; }
   html[data-cozy="1"][data-portal="teacher"] .cozy-form-section.tp-run-section { padding: 14px; }
+  html[data-cozy="1"][data-portal="teacher"] .tp-run-camera-actions > .s2l-button { flex: 1 1 100%; }
 }
 
 /* 8. Teacher shared form pattern (JOB-ux-teacher-forms): scoped strictly to Teacher portal. */
