@@ -6,21 +6,33 @@ from datetime import datetime
 from uuid import uuid4
 
 from sqlalchemy import (
+    BigInteger,
     Boolean,
     CheckConstraint,
     DateTime,
     ForeignKey,
+    ForeignKeyConstraint,
     Index,
     Integer,
+    PrimaryKeyConstraint,
+    SmallInteger,
     String,
     Text,
     UniqueConstraint,
+    event,
     func,
     text,
 )
-from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.dialects.postgresql import BYTEA, JSONB
+from sqlalchemy.orm import Mapped, Session, mapped_column, query_expression
 
+from sketch2life.domain.be1_profile_revisions import (
+    BAND_VERSION,
+    HASH_VERSION,
+    age_band,
+    baseline_revision_id,
+    revision_hash,
+)
 from sketch2life.infrastructure.persistence.core_models import (
     OWNER_SCOPE_CHECK,
     PARENT_COMPLETED_RESULT_PATTERN,
@@ -83,6 +95,9 @@ class Be1CommandReceiptModel(CorePersistenceBase):
         CheckConstraint(
             "length(request_fingerprint) = 64", name="ck_be1_command_receipt_fingerprint"
         ),
+        CheckConstraint(
+            "response_status BETWEEN 200 AND 299", name="ck_be1_command_receipt_status"
+        ),
     )
 
     principal_ref: Mapped[str] = mapped_column(String(256), primary_key=True)
@@ -91,6 +106,9 @@ class Be1CommandReceiptModel(CorePersistenceBase):
     organization_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
     request_fingerprint: Mapped[str] = mapped_column(String(64), nullable=False)
     response_json: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False)
+    response_status: Mapped[int] = mapped_column(
+        SmallInteger, nullable=False, default=200, server_default="200"
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
@@ -133,6 +151,7 @@ class ClassroomModel(CorePersistenceBase):
         UniqueConstraint("organization_id", "class_id", name="uq_be1_class_org"),
         Index("ix_be1_class_org_state", "organization_id", "state"),
         CheckConstraint("revision > 0", name="ck_be1_class_revision"),
+        CheckConstraint("assignment_revision >= 1", name="ck_be1_class_assignment_revision"),
     )
 
     class_id: Mapped[str] = mapped_column(String(128), primary_key=True)
@@ -147,10 +166,135 @@ class ClassroomModel(CorePersistenceBase):
     # The expected class revision of SRS l.1651 (TD-28): 1 at creation, +1 on a state change and
     # on a Teacher assignment (migration 20261120_cls_0001). Incremented by the application.
     revision: Mapped[int] = mapped_column(Integer, nullable=False, default=1, server_default="1")
+    assignment_revision: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=1, server_default="1"
+    )
+    # Populated by write-side class queries with the pending-transfer EXISTS expression. This is
+    # query state, not a persisted column; it keeps the transfer fence in the class-row query.
+    transfer_pending: Mapped[bool | None] = query_expression()
     created_by: Mapped[str] = mapped_column(String(256), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+
+
+class Be1TeacherAssignmentTransferModel(CorePersistenceBase):
+    """Durable, metadata-only BE1 side of the Teacher ownership transfer saga."""
+
+    __tablename__ = "be1_teacher_assignment_transfers"
+    __table_args__ = (
+        PrimaryKeyConstraint(
+            "transfer_id", name="pk_be1_teacher_assignment_transfers"
+        ),
+        ForeignKeyConstraint(
+            ["organization_id", "class_id"],
+            ["be1_classrooms.organization_id", "be1_classrooms.class_id"],
+            name="fk_be1_teacher_transfer_class",
+            ondelete="RESTRICT",
+        ),
+        ForeignKeyConstraint(
+            ["old_assignment_id"],
+            ["be1_organization_assignments.assignment_id"],
+            name="fk_be1_teacher_transfer_old_assignment",
+            ondelete="RESTRICT",
+        ),
+        ForeignKeyConstraint(
+            ["new_assignment_id"],
+            ["be1_organization_assignments.assignment_id"],
+            name="fk_be1_teacher_transfer_new_assignment",
+            ondelete="RESTRICT",
+        ),
+        ForeignKeyConstraint(
+            ["old_subject"],
+            ["be1_adult_identities.subject"],
+            name="fk_be1_teacher_transfer_old_subject",
+            ondelete="RESTRICT",
+        ),
+        ForeignKeyConstraint(
+            ["new_subject"],
+            ["be1_adult_identities.subject"],
+            name="fk_be1_teacher_transfer_new_subject",
+            ondelete="RESTRICT",
+        ),
+        CheckConstraint(
+            "action IN ('REASSIGN','OFFBOARD')", name="ck_be1_teacher_transfer_action"
+        ),
+        CheckConstraint(
+            "state IN ('TRANSFER_PENDING','RECONCILE_REQUIRED','COMPLETED',"
+            "'OFFBOARDED','COMPENSATED_CONFLICT')",
+            name="ck_be1_teacher_transfer_state",
+        ),
+        CheckConstraint(
+            "expected_revision > 0 AND fenced_revision > 0",
+            name="ck_be1_teacher_transfer_revisions",
+        ),
+        CheckConstraint("state_revision > 0", name="ck_be1_teacher_transfer_state_revision"),
+        CheckConstraint("attempt_count >= 0", name="ck_be1_teacher_transfer_attempt_count"),
+        CheckConstraint(
+            "((action = 'OFFBOARD') = (new_assignment_id IS NULL)) AND "
+            "((action = 'OFFBOARD') = (new_subject IS NULL))",
+            name="ck_be1_teacher_transfer_new_assignment",
+        ),
+        CheckConstraint(
+            "length(idempotency_key) BETWEEN 1 AND 128 AND "
+            "idempotency_key ~ '^[!-~]+$'",
+            name="ck_be1_teacher_transfer_key",
+        ),
+        CheckConstraint(
+            "fingerprint ~ '^[0-9a-f]{64}$'", name="ck_be1_teacher_transfer_fingerprint"
+        ),
+        UniqueConstraint(
+            "principal_ref",
+            "operation_scope",
+            "idempotency_key",
+            name="uq_be1_teacher_transfer_idempotency",
+        ),
+        Index(
+            "uq_be1_teacher_transfer_pending_class",
+            "organization_id",
+            "class_id",
+            unique=True,
+            postgresql_where=text("state IN ('TRANSFER_PENDING','RECONCILE_REQUIRED')"),
+        ),
+        Index(
+            "ix_be1_teacher_transfer_org_class_created",
+            "organization_id",
+            "class_id",
+            "created_at",
+        ),
+        Index("ix_be1_teacher_transfer_state_updated", "state", "updated_at"),
+    )
+
+    transfer_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    organization_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    class_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    action: Mapped[str] = mapped_column(String(16), nullable=False)
+    state: Mapped[str] = mapped_column(String(24), nullable=False)
+    principal_ref: Mapped[str] = mapped_column(String(256), nullable=False)
+    old_subject: Mapped[str] = mapped_column(String(256), nullable=False)
+    new_subject: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    old_assignment_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    new_assignment_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    expected_revision: Mapped[int] = mapped_column(Integer, nullable=False)
+    fenced_revision: Mapped[int] = mapped_column(Integer, nullable=False)
+    operation_scope: Mapped[str] = mapped_column(String(256), nullable=False)
+    idempotency_key: Mapped[str] = mapped_column(String(128), nullable=False)
+    fingerprint: Mapped[str] = mapped_column(String(64), nullable=False)
+    story_receipt_ref: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    state_revision: Mapped[int] = mapped_column(
+        BigInteger, nullable=False, default=1, server_default="1"
+    )
+    attempt_count: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default="0"
+    )
+    last_failure_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    finalized_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
 class ManagedProfileModel(CorePersistenceBase):
@@ -177,6 +321,18 @@ class ManagedProfileModel(CorePersistenceBase):
             name="ck_be1_profile_origin_consent_refs",
         ),
         Index("ix_be1_profile_org_class", "organization_id", "class_id"),
+        # T-12b (migration 20261121_bpr_0001): the head of the immutable revisions. The pair is a
+        # deferred composite FK, so a profile and its revision are written in one transaction
+        # (``use_alter`` keeps the unit of work from sorting on this cycle).
+        CheckConstraint("profile_revision_no >= 1", name="ck_be1_profile_revision_no"),
+        ForeignKeyConstraint(
+            ["child_id", "current_profile_revision_id"],
+            ["be1_profile_revisions.child_id", "be1_profile_revisions.profile_revision_id"],
+            name="fk_be1_profile_head_revision",
+            deferrable=True,
+            initially="DEFERRED",
+            use_alter=True,
+        ),
     )
 
     child_id: Mapped[str] = mapped_column(String(128), primary_key=True)
@@ -203,6 +359,121 @@ class ManagedProfileModel(CorePersistenceBase):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+    # T-12b: the head of `be1_profile_revisions`. Display name and age above are the projection
+    # of this revision, written in the same transaction. NOT NULL in the database; an ORM insert
+    # without a head gets its baseline revision from the `before_flush` listener below.
+    current_profile_revision_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    profile_revision_no: Mapped[int] = mapped_column(Integer, nullable=False)
+
+
+class ProfileRevisionModel(CorePersistenceBase):
+    """One immutable snapshot of the Teacher-editable profile fields (T-12b, SRS l.497, l.829).
+
+    Append only: a trigger refuses UPDATE and DELETE. The row holds child data (name, age,
+    interests); the purge of revisions follows FR-C-10 and is not built yet (OPEN-4).
+    """
+
+    __tablename__ = "be1_profile_revisions"
+    __table_args__ = (
+        UniqueConstraint("child_id", "revision_no", name="uq_be1_profile_revision_no"),
+        UniqueConstraint("child_id", "profile_revision_id", name="uq_be1_profile_revision_pair"),
+        CheckConstraint("revision_no >= 1", name="ck_be1_profile_revision_no_positive"),
+        CheckConstraint(
+            "char_length(btrim(display_name)) >= 1", name="ck_be1_profile_revision_name"
+        ),
+        CheckConstraint("age_months BETWEEN 36 AND 155", name="ck_be1_profile_revision_age"),
+        CheckConstraint(
+            "(age_months BETWEEN 36 AND 71 AND age_band_version = 1"
+            " AND age_band_code = 'AGE_36_71')"
+            " OR (age_months BETWEEN 72 AND 107 AND age_band_version = 1"
+            " AND age_band_code = 'AGE_72_107')"
+            " OR (age_months BETWEEN 108 AND 120 AND age_band_version = 1"
+            " AND age_band_code = 'AGE_108_120')"
+            " OR (age_months > 120 AND age_band_version IS NULL AND age_band_code IS NULL)",
+            name="ck_be1_profile_revision_band",
+        ),
+        CheckConstraint(
+            "jsonb_typeof(structured_interests) = 'array'"
+            " AND octet_length(structured_interests::text) <= 8192",
+            name="ck_be1_profile_revision_interests",
+        ),
+        CheckConstraint(
+            "revision_hash_version = 1 AND revision_hash ~ '^[0-9a-f]{64}$'",
+            name="ck_be1_profile_revision_hash",
+        ),
+    )
+
+    profile_revision_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    child_id: Mapped[str] = mapped_column(
+        String(128),
+        ForeignKey(
+            "be1_managed_profiles.child_id",
+            ondelete="RESTRICT",
+            name="fk_be1_profile_revision_profile",
+        ),
+        nullable=False,
+    )
+    revision_no: Mapped[int] = mapped_column(Integer, nullable=False)
+    display_name: Mapped[str] = mapped_column(String(200), nullable=False)
+    age_months: Mapped[int] = mapped_column(Integer, nullable=False)
+    age_band_version: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    age_band_code: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    structured_interests: Mapped[list[str]] = mapped_column(
+        JSONB, nullable=False, default=list, server_default=text("'[]'::jsonb")
+    )
+    authored_by: Mapped[str] = mapped_column(String(256), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    revision_hash_version: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=HASH_VERSION
+    )
+    revision_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+
+
+def _attach_baseline_revisions(session: Session, *_unused: object) -> None:
+    """Give every new profile that carries no head its revision 1, in the same flush (T-12b).
+
+    The database requires a head on every profile (NOT NULL plus a deferred composite FK), so no
+    writer can store a profile without one. This listener is what makes the ORM writers
+    (`create_profile`, `create_synthetic_profile` and the test fixtures) correct without each of
+    them repeating the baseline: the revision holds the profile's own name and age, no
+    interests, and the creator as author. Core-level writers (the seed tools) write both rows
+    themselves.
+    """
+    for obj in tuple(session.new):
+        if not isinstance(obj, ManagedProfileModel):
+            continue
+        if getattr(obj, "current_profile_revision_id", None) is not None:
+            continue
+        band = age_band(obj.age_months)
+        revision_id = baseline_revision_id(obj.child_id)
+        session.add(
+            ProfileRevisionModel(
+                profile_revision_id=revision_id,
+                child_id=obj.child_id,
+                revision_no=1,
+                display_name=obj.display_name,
+                age_months=obj.age_months,
+                age_band_version=None if band is None else BAND_VERSION,
+                age_band_code=None if band is None else band[1],
+                structured_interests=[],
+                authored_by=obj.created_by,
+                revision_hash_version=HASH_VERSION,
+                revision_hash=revision_hash(
+                    child_id=obj.child_id,
+                    revision_no=1,
+                    display_name=obj.display_name,
+                    age_months=obj.age_months,
+                    structured_interests=[],
+                ),
+            )
+        )
+        obj.current_profile_revision_id = revision_id
+        obj.profile_revision_no = 1
+
+
+event.listen(Session, "before_flush", _attach_baseline_revisions)
 
 
 class SyntheticEligibilityProofModel(CorePersistenceBase):
@@ -645,8 +916,55 @@ class DataLifecycleRequestModel(CorePersistenceBase):
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
+class Be1ProfileSupportNeedsModel(CorePersistenceBase):
+    """T-12c: the encrypted support needs of a managed profile (DDL-D, ``psn_0002``).
+
+    A singleton current record, never part of a profile projection, a revision or a run snapshot.
+    ``ciphertext`` holds the category and the note (AES-256-GCM, the tag included). A trigger
+    refuses a DELETE and any UPDATE that does not raise the revision by exactly one.
+    """
+
+    __tablename__ = "be1_profile_support_needs"
+    __table_args__ = (
+        CheckConstraint("revision >= 1", name="ck_be1_profile_support_needs_revision"),
+        CheckConstraint(
+            "octet_length(ciphertext) BETWEEN 16 AND 16384",
+            name="ck_be1_profile_support_needs_ciphertext",
+        ),
+        CheckConstraint("octet_length(nonce) = 12", name="ck_be1_profile_support_needs_nonce"),
+        CheckConstraint(
+            "char_length(key_id) BETWEEN 1 AND 128", name="ck_be1_profile_support_needs_key_id"
+        ),
+        CheckConstraint("algorithm_version = 1", name="ck_be1_profile_support_needs_algorithm"),
+        UniqueConstraint("key_id", "nonce", name="uq_be1_profile_support_needs_key_nonce"),
+    )
+
+    child_id: Mapped[str] = mapped_column(
+        String(128),
+        ForeignKey(
+            "be1_managed_profiles.child_id",
+            ondelete="RESTRICT",
+            name="fk_be1_profile_support_needs_profile",
+        ),
+        primary_key=True,
+    )
+    revision: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    ciphertext: Mapped[bytes] = mapped_column(BYTEA, nullable=False)
+    nonce: Mapped[bytes] = mapped_column(BYTEA, nullable=False)
+    key_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    algorithm_version: Mapped[int] = mapped_column(SmallInteger, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
 __all__ = [
     "AdultIdentityModel",
+    "Be1ProfileSupportNeedsModel",
+    "Be1TeacherAssignmentTransferModel",
     "ChildTurnModel",
     "ClassroomModel",
     "ClassroomSessionModel",

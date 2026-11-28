@@ -11,10 +11,13 @@ down_revision = "20261113_parent_consent_policy"
 branch_labels = None
 depends_on = None
 
+LEGACY_SUGGESTION_SET_TABLE = "legacy_parent_activity_suggestion_sets"
+LEGACY_SELECTION_TABLE = "legacy_parent_activity_selections"
+
 
 def upgrade() -> None:
     op.create_table(
-        "activity_suggestion_sets",
+        LEGACY_SUGGESTION_SET_TABLE,
         sa.Column("suggestion_set_id", sa.String(36), primary_key=True),
         sa.Column("run_id", sa.String(36), nullable=False),
         sa.Column("owner_scope_kind", sa.String(32), nullable=False),
@@ -42,12 +45,12 @@ def upgrade() -> None:
     )
     op.create_index(
         "ix_story_activity_suggestion_current",
-        "activity_suggestion_sets",
+        LEGACY_SUGGESTION_SET_TABLE,
         ["run_id", "input_revision", "understanding_revision", "created_at"],
         schema="story",
     )
     op.create_table(
-        "activity_selections",
+        LEGACY_SELECTION_TABLE,
         sa.Column("selection_id", sa.String(36), primary_key=True),
         sa.Column("run_id", sa.String(36), nullable=False),
         sa.Column("suggestion_set_id", sa.String(36), nullable=False),
@@ -62,7 +65,10 @@ def upgrade() -> None:
         sa.Column("selected_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
         sa.ForeignKeyConstraint(
             ["run_id", "suggestion_set_id"],
-            ["story.activity_suggestion_sets.run_id", "story.activity_suggestion_sets.suggestion_set_id"],
+            [
+                f"story.{LEGACY_SUGGESTION_SET_TABLE}.run_id",
+                f"story.{LEGACY_SUGGESTION_SET_TABLE}.suggestion_set_id",
+            ],
             ondelete="RESTRICT",
             name="fk_story_activity_selection_suggestion_set",
         ),
@@ -78,7 +84,7 @@ def upgrade() -> None:
     )
     op.create_index(
         "uq_story_activity_selection_one_active",
-        "activity_selections",
+        LEGACY_SELECTION_TABLE,
         ["run_id"],
         unique=True,
         schema="story",
@@ -86,15 +92,27 @@ def upgrade() -> None:
     )
     op.create_index(
         "ix_story_activity_selection_current",
-        "activity_selections",
+        LEGACY_SELECTION_TABLE,
         ["run_id", "input_revision", "understanding_revision", "selected_at"],
         schema="story",
     )
 
 
 def downgrade() -> None:
-    op.drop_index("ix_story_activity_selection_current", table_name="activity_selections", schema="story")
-    op.drop_index("uq_story_activity_selection_one_active", table_name="activity_selections", schema="story")
-    op.drop_table("activity_selections", schema="story")
-    op.drop_index("ix_story_activity_suggestion_current", table_name="activity_suggestion_sets", schema="story")
-    op.drop_table("activity_suggestion_sets", schema="story")
+    op.drop_index(
+        "ix_story_activity_selection_current",
+        table_name=LEGACY_SELECTION_TABLE,
+        schema="story",
+    )
+    op.drop_index(
+        "uq_story_activity_selection_one_active",
+        table_name=LEGACY_SELECTION_TABLE,
+        schema="story",
+    )
+    op.drop_table(LEGACY_SELECTION_TABLE, schema="story")
+    op.drop_index(
+        "ix_story_activity_suggestion_current",
+        table_name=LEGACY_SUGGESTION_SET_TABLE,
+        schema="story",
+    )
+    op.drop_table(LEGACY_SUGGESTION_SET_TABLE, schema="story")

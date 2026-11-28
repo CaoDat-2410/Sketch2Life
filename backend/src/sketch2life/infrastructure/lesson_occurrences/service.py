@@ -363,6 +363,70 @@ class LessonOccurrenceService:
         self.db.rollback()
         return {"contract": "LessonOccurrencePageV1", "items": items, "next_cursor": next_cursor}
 
+    def list_teacher_history(
+        self,
+        *,
+        organization_id: str,
+        principal: VerifiedPrincipal,
+        state: str | None,
+        limit: int,
+        cursor: str | None,
+    ) -> dict[str, Any]:
+        """Merge occurrence history across the caller's current, non-archived class scope."""
+        facts = load_caller_facts(self.db, principal, organization_id)
+        if facts is None:
+            raise not_found()
+        if not 1 <= limit <= MAX_PAGE_SIZE:
+            raise LessonOccurrenceError(
+                400,
+                "INVALID_REQUEST",
+                field_errors=[{"field": "limit", "code": "OUT_OF_RANGE"}],
+            )
+        readable_class_ids = [
+            row.class_id
+            for row in self.db.scalars(
+                select(ClassroomModel).where(
+                    ClassroomModel.organization_id == organization_id,
+                    ClassroomModel.state != "archived",
+                )
+            ).all()
+            if decide_read(facts.rows, row.class_id) is AccessOutcome.PROCEED
+        ]
+        after = decode_cursor(cursor) if cursor is not None else None
+        statement = select(OCCURRENCES).select_from(
+            OCCURRENCES.join(ClassroomModel, ClassroomModel.class_id == OCCURRENCES.c.class_ref)
+        ).where(
+            OCCURRENCES.c.organization_ref == organization_id,
+            ClassroomModel.organization_id == organization_id,
+            ClassroomModel.state != "archived",
+            ClassroomModel.class_id.in_(readable_class_ids),
+        )
+        if state is not None:
+            statement = statement.where(OCCURRENCES.c.state == state)
+        if after is not None:
+            statement = statement.where(
+                tuple_(OCCURRENCES.c.created_at, OCCURRENCES.c.occurrence_id)
+                < tuple_(literal(after[0]), literal(after[1]))
+            )
+        rows = (
+            self.db.execute(
+                statement.order_by(
+                    OCCURRENCES.c.created_at.desc(), OCCURRENCES.c.occurrence_id.desc()
+                ).limit(limit + 1)
+            )
+            .mappings()
+            .all()
+        )
+        page = rows[:limit]
+        next_cursor = (
+            encode_cursor(page[-1]["created_at"], page[-1]["occurrence_id"])
+            if len(rows) > limit
+            else None
+        )
+        items = [self._view(row) for row in page]
+        self.db.rollback()
+        return {"contract": "LessonOccurrencePageV1", "items": items, "next_cursor": next_cursor}
+
 
 __all__ = [
     "AUDIT_CREATE_ACTION",

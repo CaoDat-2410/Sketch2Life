@@ -10,6 +10,8 @@ down_revision = "20261111_parent_platform_support"
 branch_labels = None
 depends_on = None
 
+LEGACY_TRANSCRIPT_TABLE = "parent_audio_transcript_revisions"
+
 
 def upgrade() -> None:
     op.create_table(
@@ -45,7 +47,7 @@ def upgrade() -> None:
     )
 
     op.create_table(
-        "transcript_revisions",
+        LEGACY_TRANSCRIPT_TABLE,
         sa.Column("transcript_revision_id", sa.String(36), primary_key=True),
         sa.Column("run_id", sa.String(36), nullable=False),
         sa.Column("audio_input_id", sa.String(36), nullable=False),
@@ -69,7 +71,7 @@ def upgrade() -> None:
             name="fk_story_transcript_audio",
         ),
         sa.UniqueConstraint("run_id", "transcript_revision_id", name="uq_story_transcript_owner"),
-        sa.UniqueConstraint("run_id", "revision_no", name="uq_story_transcript_revision"),
+        sa.UniqueConstraint("run_id", "revision_no", name="uq_parent_audio_transcript_revision"),
         sa.CheckConstraint("revision_no > 0", name="ck_story_transcript_revision_no"),
         sa.CheckConstraint("state IN ('DRAFT','CONFIRMED','SUPERSEDED')", name="ck_story_transcript_state"),
         sa.CheckConstraint("language = 'vi'", name="ck_story_transcript_language"),
@@ -86,15 +88,19 @@ def upgrade() -> None:
 
     op.add_column("run_inputs", sa.Column("audio_input_id", sa.String(36)), schema="story")
     op.add_column("run_inputs", sa.Column("transcript_revision_id", sa.String(36)), schema="story")
-    op.drop_constraint("ck_story_run_input_typed_idea", "run_inputs", schema="story", type_="check")
-    op.create_check_constraint(
-        "ck_story_run_input_typed_idea",
-        "run_inputs",
-        "(typed_idea IS NULL AND idea_source IS NULL) OR "
-        "(typed_idea IS NOT NULL AND length(typed_idea) BETWEEN 1 AND 500 "
-        "AND idea_source IN ('TEXT','TRANSCRIPT'))",
-        schema="story",
-    )
+    # A database already upgraded with 20261120_b1_0001 has replaced the typed-idea check
+    # with its own idea checks; leave those in place.
+    checks = sa.inspect(op.get_bind()).get_check_constraints("run_inputs", schema="story")
+    if any(check["name"] == "ck_story_run_input_typed_idea" for check in checks):
+        op.drop_constraint("ck_story_run_input_typed_idea", "run_inputs", schema="story", type_="check")
+        op.create_check_constraint(
+            "ck_story_run_input_typed_idea",
+            "run_inputs",
+            "(typed_idea IS NULL AND idea_source IS NULL) OR "
+            "(typed_idea IS NOT NULL AND length(typed_idea) BETWEEN 1 AND 500 "
+            "AND idea_source IN ('TEXT','TRANSCRIPT'))",
+            schema="story",
+        )
     op.create_foreign_key(
         "fk_story_run_input_audio",
         "run_inputs",
@@ -108,7 +114,7 @@ def upgrade() -> None:
     op.create_foreign_key(
         "fk_story_run_input_transcript",
         "run_inputs",
-        "transcript_revisions",
+        LEGACY_TRANSCRIPT_TABLE,
         ["run_id", "transcript_revision_id"],
         ["run_id", "transcript_revision_id"],
         source_schema="story",
@@ -135,6 +141,6 @@ def downgrade() -> None:
     )
     op.drop_column("run_inputs", "transcript_revision_id", schema="story")
     op.drop_column("run_inputs", "audio_input_id", schema="story")
-    op.drop_table("transcript_revisions", schema="story")
+    op.drop_table(LEGACY_TRANSCRIPT_TABLE, schema="story")
     op.drop_index("ix_story_run_audio_asset", table_name="run_audio_inputs", schema="story")
     op.drop_table("run_audio_inputs", schema="story")

@@ -449,7 +449,7 @@ class ProjectionService:
             generation_id=grant[1],
             occurrence_id=occurrence_id,
             confirmed_ms=rules.confirmed_ms(occurrence["class_projection_confirmed_at"]),
-            actor_scope_ref=parent_scope_ref(principal),
+            actor_scope_ref=f"{parent_scope_ref(principal)}:story-owner-epoch:{grant[2]}",
         )
 
 
@@ -460,8 +460,10 @@ def _class_is_active(db: Session, occurrence: RowMapping) -> bool:
     return state is None or state == _CLASS_ACTIVE
 
 
-def _current_grant(db: Session, occurrence: RowMapping, account: str) -> tuple[str, str] | None:
-    """``(run_id, generation_id)`` of the sample the stored confirmation covers, else ``None``.
+def _current_grant(
+    db: Session, occurrence: RowMapping, account: str
+) -> tuple[str, str, int] | None:
+    """``(run_id, generation_id, owner_epoch)`` of the confirmed sample, else ``None``.
 
     The occurrence must not be archived, its class active, the slot claimed by a run, the
     confirmation given by ``account`` and the run the occurrence's own, ``VIDEO_READY`` or
@@ -486,6 +488,7 @@ def _current_grant(db: Session, occurrence: RowMapping, account: str) -> tuple[s
         or facts.occurrence_ref != occurrence["occurrence_id"]
         or not facts.playable
         or facts.generation_id is None
+        or facts.owner_epoch is None
         or not rules.confirmation_covers(confirmed_at, facts.ready_at)
         or not rules.confirmation_survives_completion(
             run_completed=facts.run_state == rules.RUN_STATE_COMPLETED,
@@ -494,7 +497,7 @@ def _current_grant(db: Session, occurrence: RowMapping, account: str) -> tuple[s
         )
     ):
         return None
-    return str(run_id), facts.generation_id
+    return str(run_id), facts.generation_id, facts.owner_epoch
 
 
 class SqlProjectionAuthorization:
@@ -530,7 +533,7 @@ class SqlProjectionAuthorization:
             grant = _current_grant(self._session, occurrence, account)
         except (LessonOccurrenceError, SQLAlchemyError):
             return False
-        return grant is not None and grant == (run_id, generation_id)
+        return grant is not None and grant[:2] == (run_id, generation_id)
 
 
 __all__ = [

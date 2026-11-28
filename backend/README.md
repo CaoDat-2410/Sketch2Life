@@ -12,12 +12,12 @@ See:
 
 ## BE1 runtime API
 
-FEAT-047 exposes the durable BE1 API under `/api/be1/v1`. It requires PostgreSQL; there is no fixture or in-memory fallback for these routes. Apply Alembic migrations before starting the API:
+FEAT-047 exposes the durable BE1 API under `/api/be1/v1`. It requires PostgreSQL; there is no fixture or in-memory fallback for these routes. Apply every Alembic head before starting the API (`upgrade heads`, not `upgrade be1_core@head`: later BE1 columns, such as the classroom revision and the Teacher profile revision head of goal v4 T-12b, sit on other Alembic branches, which `be1_core` does not contain):
 
 ```powershell
 cd backend
 $env:SKETCH2LIFE_DATABASE_URL = "postgresql+psycopg://<user>:<password>@<host>:5432/<database>"
-.\.venv\Scripts\alembic.exe upgrade be1_core@head
+.\.venv\Scripts\alembic.exe upgrade heads
 .\.venv\Scripts\uvicorn.exe sketch2life.main:app --host 127.0.0.1 --port 8000 --no-proxy-headers
 ```
 

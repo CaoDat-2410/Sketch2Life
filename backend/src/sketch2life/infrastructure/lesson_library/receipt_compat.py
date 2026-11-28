@@ -66,8 +66,12 @@ def _validate_response(
     response: Mapping[str, Any],
     *,
     revision_override: int | None = None,
+    organization_id: str | None = None,
 ) -> None:
     candidate = dict(response)
+    if organization_id is not None:
+        # Receipts stored before organization_id existed: backfill it from the operation scope.
+        candidate.setdefault("organization_id", organization_id)
     if revision_override is not None:
         candidate["revision"] = revision_override
     try:
@@ -95,10 +99,12 @@ def parent_group_membership_lookup(
         raise ReceiptCompatibilityError("receipt organization does not match operation scope")
 
     if "revision" in response_data:
-        _validate_response(target, response_data)
+        _validate_response(target, response_data, organization_id=organization_id)
         return None
 
-    _validate_response(target, response_data, revision_override=1)
+    _validate_response(
+        target, response_data, revision_override=1, organization_id=organization_id
+    )
     membership_id = response_data.get("membership_id")
     parent_group_id = response_data.get("parent_group_id")
     if not isinstance(membership_id, str) or not isinstance(parent_group_id, str):
@@ -130,11 +136,14 @@ def upgrade_parent_group_receipt(
     if target is None:
         return response_data
 
+    scope_organization_id = organization_id or target.organization_id
     if "revision" in response_data:
-        _validate_response(target, response_data)
+        _validate_response(target, response_data, organization_id=scope_organization_id)
         return response_data
 
-    _validate_response(target, response_data, revision_override=1)
+    _validate_response(
+        target, response_data, revision_override=1, organization_id=scope_organization_id
+    )
     if membership_row is None:
         raise ReceiptCompatibilityError("current membership row is unavailable")
     if organization_id is None:
@@ -162,5 +171,6 @@ def upgrade_parent_group_receipt(
     upgraded = dict(response_data)
     upgraded["revision"] = revision
     upgraded["revision_source"] = "reconstructed_from_current_row"
+    upgraded.setdefault("organization_id", organization_id)
     _validate_response(target, upgraded)
     return upgraded

@@ -70,6 +70,10 @@ from sketch2life.infrastructure.lesson_occurrences.scope import (
     not_found,
     require_class_writable,
 )
+from sketch2life.infrastructure.lesson_occurrences.sketch_deck_tables import (
+    SKETCH_DECK_REVISIONS,
+    SKETCH_DECK_STEPS,
+)
 from sketch2life.infrastructure.lesson_occurrences.tables import (
     DOCUMENT_REVISIONS,
     OCCURRENCES,
@@ -153,6 +157,7 @@ def plan_body(
     return {
         "contract": "LessonPlanRevisionV1",
         "occurrence_id": plan["occurrence_id"],
+        "plan_revision_id": str(plan["plan_revision_id"]),
         "revision_no": int(plan["revision_no"]),
         "state": plan["state"],
         "content_hash": plan["content_hash"],
@@ -274,20 +279,29 @@ class PlanRevisionService:
         return self._with_activity_ids(dict(receipt.response_json))
 
     def _with_activity_ids(self, body: dict[str, Any]) -> dict[str, Any]:
-        """Fill ``plan_activity_id`` into a stored replay body written before the field existed
-        (V4-A OPEN-B D11b). The activity rows of a revision are immutable, so the id of an activity
-        is found by its order; a plan row that is gone leaves the body as stored."""
+        """Backfill IDs omitted from older stored plan response bodies.
+
+        The plan and activity rows are immutable, so replay responses can recover these IDs from
+        their rows without changing the original command result.
+        """
 
         activities = body.get("activities")
-        if not isinstance(activities, list) or all(
-            isinstance(item, dict) and item.get("plan_activity_id") for item in activities
-        ):
+        needs_activity_ids = isinstance(activities, list) and any(
+            not isinstance(item, dict) or not item.get("plan_activity_id")
+            for item in activities
+        )
+        needs_plan_id = not body.get("plan_revision_id")
+        if not needs_plan_id and not needs_activity_ids:
             return body
         occurrence_id, number = body.get("occurrence_id"), body.get("revision_no")
         if not isinstance(occurrence_id, str) or type(number) is not int:
             return body
         plan = self._plan_row(occurrence_id, number)
         if plan is None:
+            return body
+        if needs_plan_id:
+            body["plan_revision_id"] = str(plan["plan_revision_id"])
+        if not needs_activity_ids:
             return body
         ids = {
             int(row["activity_order"]): str(row["plan_activity_id"])
@@ -745,6 +759,29 @@ class PlanRevisionService:
                     updated_at=now,
                 )
             )
+            stale_deck_ids = self.db.scalars(
+                select(SKETCH_DECK_REVISIONS.c.sketch_deck_revision_id).where(
+                    SKETCH_DECK_REVISIONS.c.occurrence_id == occurrence_id,
+                    SKETCH_DECK_REVISIONS.c.state == "READY",
+                    SKETCH_DECK_REVISIONS.c.plan_revision_id != plan["plan_revision_id"],
+                )
+            ).all()
+            if stale_deck_ids:
+                self.db.execute(
+                    SKETCH_DECK_REVISIONS.update()
+                    .where(
+                        SKETCH_DECK_REVISIONS.c.sketch_deck_revision_id.in_(stale_deck_ids)
+                    )
+                    .values(state="STALE")
+                )
+                self.db.execute(
+                    SKETCH_DECK_STEPS.update()
+                    .where(
+                        SKETCH_DECK_STEPS.c.sketch_deck_revision_id.in_(stale_deck_ids),
+                        SKETCH_DECK_STEPS.c.state == "READY",
+                    )
+                    .values(state="STALE")
+                )
             self.db.add(
                 CoreAuditEntryModel(
                     audit_id=str(uuid4()),

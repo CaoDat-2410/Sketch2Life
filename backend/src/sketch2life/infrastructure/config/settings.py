@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hmac
+import os
 import secrets
 from functools import lru_cache
 from ipaddress import ip_address
@@ -10,10 +11,19 @@ from pathlib import Path
 from typing import Literal, Self
 from urllib.parse import urlsplit
 
-from pydantic import Field, SecretStr, field_validator, model_validator
+from pydantic import (
+    Field,
+    SecretStr,
+    TypeAdapter,
+    ValidationError,
+    field_validator,
+    model_validator,
+)
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 MIN_PROFILE_RECEIPT_KEY_BYTES = 32
+TeacherAIEngine = Literal["vllm", "transformers"]
+_TEACHER_AI_ENGINE_DEFAULT: TeacherAIEngine = "vllm"
 
 
 class Settings(BaseSettings):
@@ -50,7 +60,8 @@ class Settings(BaseSettings):
     # T-1a (OD-03): "local_test" composes the accept-all local/test pair of the Parent video
     # admission ports. Refused outside local/test (see the policy validator below). "unconfigured"
     # composes nothing: the video route answers 503 PROVIDER_UNAVAILABLE after its other checks.
-    story_video_adapters: Literal["unconfigured", "local_test"] = "unconfigured"
+    # "billing" selects the quota adapter; the default stays fail-closed as unconfigured.
+    story_video_adapters: Literal["unconfigured", "local_test", "billing"] = "unconfigured"
     # FEAT-093: "modal_dev" makes the video worker render real videos through the Modal dev apps; "fixture" keeps the
     # synthetic stand-in. Only the worker process reads it (no Modal credential reaches the app or the API route).
     story_video_renderer: Literal["fixture", "modal_dev"] = "fixture"
@@ -65,6 +76,11 @@ class Settings(BaseSettings):
     story_video_scene_check: Literal["off", "report", "enforce"] = "off"
     # Per-call timeout of the two admission ports (BR-38: no port call inside a transaction).
     story_video_port_timeout_seconds: float = Field(default=5.0, ge=0.1, le=30.0)
+    # Monthly free ("INCLUDED") video units per owner scope and Vietnam calendar month. Parent
+    # demo default 2, owner decision 2026-11-25; Admin-configurable. 0 grants nothing (not
+    # configured). Never a sellable product.
+    video_quota_included_units_parent: int = Field(default=2, ge=0, le=1000)
+    video_quota_included_units_organization: int = Field(default=0, ge=0, le=100000)
     # T-1c (SRS l.1676, l.1691, TD-07): signing secret of the Parent video playback token. Blank
     # means unset. Unset in staging/production the playback routes answer 503 (fail closed at the
     # route; the API still starts); local/test then use a per-process key. Never logged or echoed.
@@ -120,6 +136,7 @@ class Settings(BaseSettings):
     be1_artifact_root: Path = Path(".runtime/be1-artifacts")
     session_idle_ttl_seconds: int = Field(default=1800, ge=60, le=86_400)
     # FEAT-064 dev pilot: synthetic eligibility is honored only when this is on in local/test.
+    parent_topic_subject_ai_enabled: bool = False
     synthetic_pilot_enabled: bool = False
     # FEAT-066 T-4b1 (OPEN-3, owner-visible): the most draws (one draw, one stale reselect) a
     # lesson occurrence ever gets. A product deviation that goes beyond SRS l.346; 1 forbids the
@@ -150,11 +167,12 @@ class Settings(BaseSettings):
     firebase_credentials_file: Path | None = None
     firebase_admin_json_base64: SecretStr | None = None
     firebase_check_revoked_tokens: bool = True
+    # A2: Parent self-registration is opt-in for the synthetic-only local/test demo.
+    parent_self_registration_enabled: bool = False
 
     # Provider calls stay backend-side; Modal is limited to local synthetic validation.
     ai_provider: Literal["disabled", "lightning_dev", "runpod", "modal_dev"] = "disabled"
-    # Checking an adult's own topic with the model (see .env.example); off unless enabled locally.
-    parent_topic_subject_ai_enabled: bool = False
+    teacher_ai_engine: TeacherAIEngine = _TEACHER_AI_ENGINE_DEFAULT
     lightning_ai_base_url: str = ""
     lightning_ai_token_file: Path | None = None
     lightning_model_profile: str = "live-p2-understanding-v1"
@@ -288,9 +306,11 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def enforce_deployment_provider_policy(self) -> Self:
         # Checked first so staging/production fail on this reason before any other policy reason.
+        if self.parent_self_registration_enabled and self.env not in {"local", "test"}:
+            raise ValueError("Parent self-registration is available only in local/test")
         if self.scanner_adapter != "clamav" and self.env not in {"local", "test"}:
             raise ValueError("the local test scanner adapter is available only in local/test")
-        if self.story_video_adapters != "unconfigured" and self.env not in {"local", "test"}:
+        if self.story_video_adapters == "local_test" and self.env not in {"local", "test"}:
             raise ValueError("the local test video adapters are available only in local/test")
 
         if self.ops_probe_token is not None:
@@ -382,6 +402,18 @@ class CoreDatabaseSettings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
+
+
+def read_teacher_ai_engine_for_invoke() -> TeacherAIEngine:
+    """Read the Teacher routing override at call time, without loading dotenv files."""
+
+    value = os.environ.get("SKETCH2LIFE_TEACHER_AI_ENGINE", _TEACHER_AI_ENGINE_DEFAULT)
+    try:
+        return TypeAdapter(TeacherAIEngine).validate_python(value)
+    except ValidationError:
+        raise ValueError(
+            "SKETCH2LIFE_TEACHER_AI_ENGINE must be 'vllm' or 'transformers'"
+        ) from None
 
 
 @lru_cache

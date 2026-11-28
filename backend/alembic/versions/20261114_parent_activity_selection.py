@@ -11,15 +11,21 @@ down_revision = "20261113_svg_catalog_review"
 branch_labels = None
 depends_on = None
 
+FINAL_RECEIPT_OPERATIONS = (
+    "'CREATE_RUN','ATTACH_ASSET','CONFIRM_SUBJECT','CONFIRM_CONTEXT','CANCEL_RUN',"
+    "'GENERATE_STORY_REVISION','CONFIRM_STORY_REVISION','DELETE_RUN','SUBMIT_IDEA',"
+    "'CONFIRM_TRANSCRIPT','CREATE_VIDEO_GENERATION','MARK_VIDEO_UNSUITABLE',"
+    "'COMPLETE_RUN','SELECT_ACTIVITY','GENERATE_ACTIVITY_SET','TRANSFER_TEACHER_OWNER',"
+    "'FORCE_CLOSE_RUN'"
+)
+
 
 def upgrade() -> None:
     op.drop_constraint("ck_story_receipt_operation", "command_receipts", schema="story", type_="check")
     op.create_check_constraint(
         "ck_story_receipt_operation",
         "command_receipts",
-        "operation IN ('CREATE_RUN','ATTACH_ASSET','CONFIRM_SUBJECT','CONFIRM_CONTEXT',"
-        "'CANCEL_RUN','GENERATE_STORY_REVISION','CONFIRM_STORY_REVISION',"
-        "'GENERATE_ACTIVITY_SET','SELECT_ACTIVITY')",
+        f"operation IN ({FINAL_RECEIPT_OPERATIONS})",
         schema="story",
     )
 

@@ -6,9 +6,10 @@ cached, so a revocation or a move of the child takes effect on the next step (SR
 The profile and the enrollment state are not conditions: a withdrawn child's run stays reachable
 for the class Teacher (FR-C-08 cleanup, T-4a1-DEC-3).
 
-A run written by T-4b2 carries ``occurrence_ref``: its access follows the occurrence pin instead
-(T-4b2 D10): the CURRENT ``responsible_teacher_ref`` of the occurrence who also holds an active
-exact-class ``teacher`` assignment. ``created_by_actor_ref`` never grants access (SRS l.553).
+A run written by T-4b2 carries ``occurrence_ref`` and the immutable organization/class binding. Its
+access follows the CURRENT BE1 class assignment, not the occurrence's creation-time responsible
+Teacher: a completed transfer changes the class assignment and the Story run owner together.
+``created_by_actor_ref`` never grants access (SRS l.553).
 
 The occurrence-pin rule is written ONCE, in ``occurrence_pin_select``, over the identity's
 ``account_id``: the access port adds the caller's subject and issuer; the Teacher job port of the
@@ -20,7 +21,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from sqlalchemy import Select, select
+from sqlalchemy import Select, or_, select
 from sqlalchemy.orm import Session
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
@@ -28,6 +29,7 @@ from sketch2life.application.ports.story_run_actor import TeacherRunAccess
 from sketch2life.infrastructure.lesson_occurrences.tables import OCCURRENCES
 from sketch2life.infrastructure.persistence.be1_models import (
     AdultIdentityModel,
+    Be1TeacherAssignmentTransferModel,
     ClassroomModel,
     ManagedProfileModel,
     OrganizationAssignmentModel,
@@ -35,14 +37,31 @@ from sketch2life.infrastructure.persistence.be1_models import (
 
 
 def occurrence_pin_select(*columns: Any, occurrence_ref: Any, organization_id: Any) -> Select[Any]:
-    """The occurrence-pin rule (T-4b2 D10, T-4b3b D14): the select over the occurrence, its class,
-    the exact-class ``teacher`` assignment and the identity, restricted to the identity that is the
-    occurrence's CURRENT responsible Teacher, active, with the role ``teacher``.
+    """The occurrence-pin rule (T-6b): the select over the occurrence, its class, the exact-class
+    active ``teacher`` assignment and the identity. The assignment is the current authority;
+    ``responsible_teacher_ref`` records who opened the occurrence and does not survive reassignment.
 
     The caller adds who is asking (the access port: subject and issuer; the job port: the account
     id). ``occurrence_ref`` and ``organization_id`` are values or columns of an enclosing query.
     """
 
+    # A fresh occurrence is pinned to its creating Teacher. After reassignment, the completed
+    # receipt and the current active assignment extend that pin to the successor.
+    transferred_owner = (
+        select(Be1TeacherAssignmentTransferModel.transfer_id)
+        .where(
+            Be1TeacherAssignmentTransferModel.organization_id
+            == OCCURRENCES.c.organization_ref,
+            Be1TeacherAssignmentTransferModel.class_id == OCCURRENCES.c.class_ref,
+            Be1TeacherAssignmentTransferModel.action == "REASSIGN",
+            Be1TeacherAssignmentTransferModel.state == "COMPLETED",
+            Be1TeacherAssignmentTransferModel.new_subject
+            == OrganizationAssignmentModel.subject,
+            Be1TeacherAssignmentTransferModel.story_receipt_ref.is_not(None),
+        )
+        .correlate(OCCURRENCES, OrganizationAssignmentModel)
+        .exists()
+    )
     return (
         select(*columns)
         .select_from(OCCURRENCES)
@@ -63,11 +82,14 @@ def occurrence_pin_select(*columns: Any, occurrence_ref: Any, organization_id: A
         .where(
             OCCURRENCES.c.occurrence_id == occurrence_ref,
             OCCURRENCES.c.organization_ref == organization_id,
-            OCCURRENCES.c.responsible_teacher_ref == AdultIdentityModel.account_id,
             OrganizationAssignmentModel.role == "teacher",
             OrganizationAssignmentModel.active.is_(True),
             AdultIdentityModel.state == "active",
             AdultIdentityModel.account_role == "teacher",
+            or_(
+                OCCURRENCES.c.responsible_teacher_ref == AdultIdentityModel.account_id,
+                transferred_owner,
+            ),
         )
     )
 
@@ -145,9 +167,9 @@ class SqlTeacherRunAccess:
         occurrence_ref: str,
         lock: bool,
     ) -> TeacherRunAccess | None:
-        """The occurrence-pin rule: a plain read of the occurrence (no row lock, so no cycle with
-        the occurrence-first lock order of the create and of T-5a), the identity's account id as
-        the responsible Teacher, and the exact-class assignment (``FOR SHARE`` with ``lock``)."""
+        """Resolve the current exact-class Teacher assignment for the occurrence's immutable
+        organization/class pin. The occurrence read stays unlocked to preserve the create/T-5a lock
+        order; the assignment and class are ``FOR SHARE`` when the caller requests a write lock."""
 
         statement = occurrence_pin_select(
             ClassroomModel.class_id,
