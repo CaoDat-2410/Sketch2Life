@@ -9,9 +9,16 @@ import type {
   ParentProfilePatchV1,
   ParentProfileRecordV1,
   ParentProfileViewV1,
+  CreateParentContextEntryRequest,
+  ParentContextEntryEnvelope,
+  ParentContextEntryListView,
+  ParentSupportNeedsV1,
+  ParentSupportNeedsWriteV1,
+  SupportNeedsPutV1,
 } from '../../domain/types';
 import { ParentApplicationError } from '../ParentApplicationError';
 import { CHILD_AGE_RANGE_MESSAGE, isSupportedChildAge } from '../../domain/profileRules';
+import { validateContextEntryRequest, validateSupportNeedsPut } from '../parentProfileInputValidation';
 
 export type ParentProfilePatchOutcomeV1 =
   | { status: 'UPDATED'; profile: ParentProfileViewV1 }
@@ -24,6 +31,38 @@ export class ParentProfileUseCases {
   listProfiles() { return this.api.listProfiles(); }
   listPageV1(limit?: number, cursor?: string | null) { return this.api.listProfilesV1(limit, cursor); }
   getV1(profileId: string) { return this.api.getProfileV1(profileId); }
+  listContextEntriesV1(profileId: string, cursor?: string | null): Promise<ParentContextEntryListView> {
+    return this.api.listContextEntriesV1(profileId, cursor);
+  }
+  async createContextEntryV1(
+    profileId: string,
+    input: CreateParentContextEntryRequest,
+    actionIdentity: ParentActionIdentity,
+  ): Promise<ParentContextEntryEnvelope> {
+    const fieldErrors = validateContextEntryRequest(input);
+    if (fieldErrors.length > 0) {
+      throw new ParentApplicationError(
+        'INVALID_REQUEST', 'Hãy kiểm tra lại ghi chú rồi thử lại.', undefined, 400, { fieldErrors },
+      );
+    }
+    return this.api.createContextEntryV1(profileId, input, actionIdentity);
+  }
+  getSupportNeedsV1(profileId: string): Promise<ParentSupportNeedsV1> {
+    return this.api.getSupportNeedsV1(profileId);
+  }
+  async putSupportNeedsV1(
+    profileId: string,
+    input: SupportNeedsPutV1,
+    actionIdentity: ParentActionIdentity,
+  ): Promise<ParentSupportNeedsWriteV1> {
+    const fieldErrors = validateSupportNeedsPut(input);
+    if (fieldErrors.length > 0) {
+      throw new ParentApplicationError(
+        'INVALID_REQUEST', 'Hãy kiểm tra lại thông tin cần hỗ trợ rồi thử lại.', undefined, 400, { fieldErrors },
+      );
+    }
+    return this.api.putSupportNeedsV1(profileId, input, actionIdentity);
+  }
   createV1(input: ParentProfileCreateV1, actionIdentity: ParentActionIdentity) {
     this.assertValidProfile(input.age_months, input.display_name);
     return this.api.createProfileV1(input, actionIdentity);

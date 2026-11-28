@@ -66,7 +66,8 @@ describe('Phase B error and state degradation', () => {
     expect((error as ParentApiError).status).toBe(404);
     expect(safeParentFlowErrorMessage(error)).toBe('Không tìm thấy nội dung hoặc bạn không thể truy cập nội dung này.');
     expect(parentRecoveryGroupForError(error)).toBe('resource-refresh');
-    for (const code of ['PROFILE_NOT_FOUND', 'INVALID_REQUEST', 'SOME_FUTURE_CODE']) {
+    expect(safeParentFlowErrorMessage({ code: 'PROFILE_NOT_FOUND' })).toBe('Hồ sơ không còn khả dụng.');
+    for (const code of ['INVALID_REQUEST', 'SOME_FUTURE_CODE']) {
       const message = safeParentFlowErrorMessage({ code });
       expect(message).toBe('Chưa thể hoàn tất thao tác. Vui lòng kiểm tra lại sau.');
       expect(message).not.toContain(code);

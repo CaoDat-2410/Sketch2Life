@@ -1,7 +1,9 @@
 import { isSupportedChildAge } from '../../domain/profileRules';
 import type {
   LessonDetail,
+  ParentLessonListOptions,
   LessonSummary,
+  ParentGroupMembershipV1,
   ParentProfileShareGrant,
   ParentProfileViewV1,
 } from '../../domain/types';
@@ -9,6 +11,78 @@ import type {
   ParentCapabilityUnavailableReason,
   ParentOperationState,
 } from '../../application/ports/ParentCapabilityPorts';
+
+export type ParentLessonSearchFilters = Pick<ParentLessonListOptions, 'source' | 'q' | 'topic'>;
+
+export type ParentGroupLeaveActionIdentity = { signature: string; identity: string };
+
+export function parentGroupLeaveActionKey(
+  membership: Pick<ParentGroupMembershipV1, 'membership_id' | 'revision'>,
+): string {
+  return JSON.stringify([membership.membership_id, membership.revision]);
+}
+
+export function retainedParentGroupLeaveActionIdentity(
+  actions: Map<string, ParentGroupLeaveActionIdentity>,
+  membership: Pick<ParentGroupMembershipV1, 'membership_id' | 'revision'>,
+  createIdentity: () => string,
+): string {
+  const actionKey = parentGroupLeaveActionKey(membership);
+  const current = actions.get(actionKey);
+  if (current?.signature === actionKey) return current.identity;
+  const retained = { signature: actionKey, identity: createIdentity() };
+  actions.set(actionKey, retained);
+  return retained.identity;
+}
+
+export function canLeaveParentGroupMembership(
+  membership: ParentGroupMembershipV1,
+): boolean {
+  return membership.state === 'ACTIVE'
+    && typeof membership.organization_id === 'string'
+    && membership.organization_id.trim().length > 0;
+}
+
+export type ParentLessonSearchState = {
+  filters: ParentLessonSearchFilters;
+  cursor: string | null;
+};
+
+export function lessonSearchFilterSignature(filters: ParentLessonSearchFilters): string {
+  return JSON.stringify([
+    filters.source ?? 'ALL',
+    filters.q?.trim() ?? '',
+    filters.topic?.trim() ?? '',
+  ]);
+}
+
+export function updateLessonSearchState(
+  current: ParentLessonSearchState,
+  nextFilters: ParentLessonSearchFilters,
+): ParentLessonSearchState & { changed: boolean } {
+  const filters: ParentLessonSearchFilters = {
+    source: nextFilters.source ?? 'ALL',
+    q: nextFilters.q?.trim() ?? '',
+    topic: nextFilters.topic?.trim() ?? '',
+  };
+  const changed = lessonSearchFilterSignature(current.filters) !== lessonSearchFilterSignature(filters);
+  return { filters, cursor: changed ? null : current.cursor, changed };
+}
+
+export function mergeLessonSummaryPages(
+  current: LessonSummary[],
+  incoming: LessonSummary[],
+): LessonSummary[] {
+  const seen = new Set(current.map((item) => `${item.lesson_id}\u0000${item.version_id}`));
+  const merged = [...current];
+  for (const item of incoming) {
+    const key = `${item.lesson_id}\u0000${item.version_id}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    merged.push(item);
+  }
+  return merged;
+}
 
 export type SelectedPhoto = {
   uri: string;
@@ -89,12 +163,14 @@ export type AppStep =
   | 'profile'
   | 'profile-create'
   | 'profile-edit'
+  | 'support-needs'
   | 'account'
   | 'settings'
   | 'notifications'
   | 'quota'
   | 'history'
   | 'profile-sharing'
+  | 'consent-policy'
   | 'lesson-history'
   | 'lesson-library'
   | 'entry'

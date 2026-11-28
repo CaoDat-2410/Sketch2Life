@@ -9,6 +9,7 @@ type Props = {
   stepLabel: string;
   currentIndex: number;
   onIndexChange: (index: number) => void;
+  onBrowseCatalog: () => void;
   onContinue: () => void;
   onBack: () => void;
 };
@@ -42,6 +43,7 @@ export function DrawingGuideScreen(props: Props): React.JSX.Element {
           />
         </> : <Notice variant="creative" text="Hướng dẫn vẽ chưa khả dụng." tone="warning" />}
       </Card>
+      <SecondaryButton variant="creative" label="Hướng dẫn có sẵn" onPress={props.onBrowseCatalog} />
       <PrimaryButton variant="creative" label="Bỏ qua hướng dẫn" onPress={props.onContinue} />
     </ScreenFrame>
   );

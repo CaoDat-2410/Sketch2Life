@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Defs, Ellipse, LinearGradient as SvgGradient, Path, Rect, Stop } from 'react-native-svg';
 import type { ParentCapabilityState } from '../../application/ports/ParentCapabilityPorts';
-import { classifyNotificationInbox, notificationUnreadCountLabel } from '../../application/parentNotifications';
+import { classifyNotificationInbox, notificationCopyForType, notificationUnreadCountLabel } from '../../application/parentNotifications';
 import type { ParentNotification } from '../../domain/types';
 import { ScreenScrollView } from '../components/ui';
 
@@ -20,6 +20,7 @@ type Props = {
   onLoadMore: () => void;
   onMarkRead: (notificationId: string) => void;
   onMarkAllRead: () => void;
+  onOpenStoryHistory: () => void;
   onBack: () => void;
 };
 
@@ -59,6 +60,10 @@ export function NotificationsScreen(props: Props): React.JSX.Element {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
+          <View accessibilityRole="summary" style={styles.pushSupportNotice}>
+            <Ionicons name="information-circle-outline" size={19} color="#684193" accessible={false} />
+            <Text style={styles.pushSupportNoticeText}>Thông báo đẩy chưa hỗ trợ trên Android. Bạn vẫn nhận thông báo trong hộp thư của ứng dụng.</Text>
+          </View>
           {props.capability.state === 'unavailable' ? (
             <View style={styles.centeredState}>
               <UnavailableInbox reason={props.capability.reason} />
@@ -92,7 +97,13 @@ export function NotificationsScreen(props: Props): React.JSX.Element {
                         <Text style={styles.groupCount}>{group.items.length} tin</Text>
                       </View>
                       {group.items.map((item) => (
-                        <NotificationCard key={item.inbox_item_id} item={item} loading={props.loading} onMarkRead={props.onMarkRead} />
+                        <NotificationCard
+                          key={item.inbox_item_id}
+                          item={item}
+                          loading={props.loading}
+                          onMarkRead={props.onMarkRead}
+                          onOpenStoryHistory={props.onOpenStoryHistory}
+                        />
                       ))}
                     </View>
                   ))}
@@ -196,8 +207,19 @@ function EmptyInboxIllustration(): React.JSX.Element {
   );
 }
 
-function NotificationCard({ item, loading, onMarkRead }: { item: ParentNotification; loading: boolean; onMarkRead: (id: string) => void }): React.JSX.Element {
+function NotificationCard({
+  item,
+  loading,
+  onMarkRead,
+  onOpenStoryHistory,
+}: {
+  item: ParentNotification;
+  loading: boolean;
+  onMarkRead: (id: string) => void;
+  onOpenStoryHistory: () => void;
+}): React.JSX.Element {
   const unread = !item.read_at;
+  const copy = notificationCopyForType(item.notification_type);
 
   return (
     <View style={[styles.notificationCard, unread ? styles.unreadCard : styles.readCard]}>
@@ -212,7 +234,18 @@ function NotificationCard({ item, loading, onMarkRead }: { item: ParentNotificat
             {unread ? <View accessibilityLabel="Chưa đọc" style={styles.unreadDot} /> : null}
           </View>
         </View>
-        <Text style={styles.notificationTitle}>Bạn có một cập nhật mới trong ứng dụng.</Text>
+        <Text style={styles.notificationTitle}>{copy.title}</Text>
+        {copy.body ? <Text style={styles.notificationBody}>{copy.body}</Text> : null}
+        {copy.action === 'story-history' && copy.actionLabel ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={copy.actionLabel}
+            onPress={onOpenStoryHistory}
+            style={({ pressed }) => [styles.storyHistoryAction, pressed && styles.markReadPressed]}
+          >
+            <Text style={styles.storyHistoryActionText}>{copy.actionLabel}</Text>
+          </Pressable>
+        ) : null}
         {unread ? (
           <Pressable
             accessibilityRole="button"
@@ -314,6 +347,8 @@ const styles = StyleSheet.create({
   subtitle: { color: '#74677D', fontSize: 12, lineHeight: 17, flexShrink: 1 },
   scroll: { flex: 1, minHeight: 0 },
   content: { width: '100%', maxWidth: 560, alignSelf: 'center', paddingHorizontal: 16, paddingTop: 7, paddingBottom: 22, gap: 16, flexGrow: 1 },
+  pushSupportNotice: { alignItems: 'flex-start', backgroundColor: '#F4EEFC', borderColor: '#E7DCF2', borderRadius: 15, borderWidth: 1, flexDirection: 'row', gap: 9, padding: 12 },
+  pushSupportNoticeText: { color: '#5C4374', flex: 1, fontSize: 12, lineHeight: 18 },
   centeredState: { flexGrow: 1, minHeight: 280, justifyContent: 'center', paddingVertical: 16 },
   inboxActions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, minHeight: 44 },
   unreadCount: { color: '#5B2B89', fontSize: 13, lineHeight: 18, fontWeight: '800' },
@@ -334,6 +369,9 @@ const styles = StyleSheet.create({
   notificationTime: { color: '#8A7D95', fontSize: 11, lineHeight: 15, fontWeight: '600' },
   unreadDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#8B3FE8' },
   notificationTitle: { marginTop: 6, color: '#352047', fontSize: 14, lineHeight: 20, fontWeight: '700', flexShrink: 1 },
+  notificationBody: { marginTop: 4, color: '#655873', fontSize: 13, lineHeight: 19, flexShrink: 1 },
+  storyHistoryAction: { alignSelf: 'flex-start', minHeight: 40, justifyContent: 'center', marginTop: 4, paddingHorizontal: 8, borderRadius: 12 },
+  storyHistoryActionText: { color: '#7435D5', fontSize: 12, lineHeight: 16, fontWeight: '700' },
   markReadButton: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44, marginTop: 4, paddingHorizontal: 8, borderRadius: 12 },
   markReadPressed: { backgroundColor: '#EEE3FC' },
   markReadText: { color: '#7435D5', fontSize: 12, lineHeight: 16, fontWeight: '700' },

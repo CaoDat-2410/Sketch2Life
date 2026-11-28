@@ -4,6 +4,7 @@ import type {
   ParentActivitySuggestionSetV1,
   ParentSuggestedActivityV1,
   ParentActivityV1,
+  ParentMainActivityV1,
   ParentPlaybackGrantV1,
   ParentPlaybackSourceV1,
   ParentRunAssetAcceptedV1,
@@ -17,6 +18,7 @@ import type {
   ParentTranscriptConfirmedV1,
   ParentVideoGenerationAcceptedV1,
   ParentVideoReasonCodeV1,
+  SuggestedActivity,
 } from '../domain/types';
 
 /**
@@ -71,11 +73,18 @@ function readActivityRef(value: unknown): ParentActivityRefV1 | null {
 
 function readActivity(value: unknown): ParentActivityV1 | null {
   if (!isRecord(value)) return null;
-  const activity_ref = readActivityRef(value.activity_ref);
-  const textFields = ['title', 'objective', 'materials_text', 'preparation_text', 'instructions_text', 'observation_notes', 'safety_notes', 'lesson_title', 'lesson_topic'] as const;
-  if (!activity_ref || textFields.some((field) => !isString(value[field]))) return null;
+  const isDraft = value.source === 'AI_DRAFT' || value.source === 'AI_GENERATED_DRAFT';
+  const activity_ref = value.activity_ref === null && isDraft
+    ? null
+    : readActivityRef(value.activity_ref);
+  const textFields = ['title', 'objective', 'materials_text', 'preparation_text', 'instructions_text', 'observation_notes', 'safety_notes'] as const;
+  if ((isDraft ? value.activity_ref !== null : !activity_ref)
+    || textFields.some((field) => !isString(value[field]))
+    || (value.lesson_title !== null && !isString(value.lesson_title))
+    || (value.lesson_topic !== null && !isString(value.lesson_topic))) return null;
   if (value.activity_kind !== 'outdoor' && value.activity_kind !== 'indoor' && value.activity_kind !== 'mixed') return null;
-  if (value.source !== 'PINNED_LESSON' && value.source !== 'PUBLIC' && value.source !== 'SHARED') return null;
+  if (value.source !== 'PINNED_LESSON' && value.source !== 'PUBLIC' && value.source !== 'SHARED'
+    && value.source !== 'PUBLISHED_SHARED_LESSON' && value.source !== 'AI_GENERATED_DRAFT' && value.source !== 'AI_DRAFT') return null;
   return {
     activity_ref,
     title: value.title as string,
@@ -87,8 +96,92 @@ function readActivity(value: unknown): ParentActivityV1 | null {
     safety_notes: value.safety_notes as string,
     activity_kind: value.activity_kind,
     source: value.source,
-    lesson_title: value.lesson_title as string,
-    lesson_topic: value.lesson_topic as string,
+    lesson_title: value.lesson_title as string | null,
+    lesson_topic: value.lesson_topic as string | null,
+  };
+}
+
+/** Reads the selected activity projection, including a draft that has no catalog reference. */
+export function readMainActivityV1(value: unknown): ParentMainActivityV1 | null {
+  if (!isRecord(value) || (value.state !== 'NOT_SELECTED' && value.state !== 'SELECTED')
+    || (value.selected_at !== null && !isString(value.selected_at))) return null;
+  const selected = value.selected === null ? null : readActivity(value.selected);
+  if ((value.state === 'SELECTED' && !selected) || (value.state === 'NOT_SELECTED' && selected !== null)) return null;
+  return {
+    state: value.state,
+    selected,
+    selected_at: value.selected_at,
+  };
+}
+
+function readSuggestedActivity(value: unknown): SuggestedActivity | null {
+  if (!isRecord(value)) return null;
+  const textFields = [
+    'title', 'objective', 'materials_text', 'preparation_text', 'instructions_text', 'observation_notes', 'safety_notes',
+  ] as const;
+  if (textFields.some((field) => !isString(value[field]))) return null;
+  if (value.activity_kind !== 'outdoor' && value.activity_kind !== 'indoor' && value.activity_kind !== 'mixed') return null;
+  if (value.source !== 'PINNED_LESSON' && value.source !== 'PUBLISHED_SHARED_LESSON' && value.source !== 'AI_GENERATED_DRAFT') return null;
+  const nullableTextFields = [
+    'source_lesson_id', 'source_lesson_title', 'source_lesson_version_id', 'source_content_sha256', 'match_reason',
+  ] as const;
+  if (nullableTextFields.some((field) => value[field] !== null && !isString(value[field]))) return null;
+  const sourceActivityIndex = value.source_activity_index;
+  if (sourceActivityIndex !== null && (typeof sourceActivityIndex !== 'number'
+    || !Number.isInteger(sourceActivityIndex) || sourceActivityIndex < 0 || sourceActivityIndex > 23)) return null;
+  const sourceContentSha256 = value.source_content_sha256;
+  if (sourceContentSha256 !== null && !/^[0-9a-f]{64}$/i.test(sourceContentSha256 as string)) return null;
+  if (value.source === 'AI_GENERATED_DRAFT') {
+    if (value.source_lesson_id !== null || value.source_lesson_title !== null
+      || value.source_lesson_version_id !== null || value.source_content_sha256 !== null || sourceActivityIndex !== null) return null;
+  } else if (!isString(value.source_lesson_id) || !isString(value.source_lesson_title)
+    || !isString(value.source_lesson_version_id) || !isString(sourceContentSha256)
+    || typeof sourceActivityIndex !== 'number') return null;
+  return {
+    title: value.title as string,
+    objective: value.objective as string,
+    materials_text: value.materials_text as string,
+    preparation_text: value.preparation_text as string,
+    instructions_text: value.instructions_text as string,
+    observation_notes: value.observation_notes as string,
+    safety_notes: value.safety_notes as string,
+    activity_kind: value.activity_kind,
+    source: value.source,
+    source_lesson_id: value.source_lesson_id as string | null,
+    source_lesson_title: value.source_lesson_title as string | null,
+    source_lesson_version_id: value.source_lesson_version_id as string | null,
+    source_content_sha256: value.source_content_sha256 as string | null,
+    source_activity_index: sourceActivityIndex as number | null,
+    match_reason: value.match_reason as string | null,
+  };
+}
+
+/** Reads the versioned Parent suggestions before they reach the activity selection screen. */
+export function readActivitySuggestionSetV1(value: unknown): ParentActivitySuggestionSetV1 | null {
+  if (!isRecord(value) || value.contract !== 'ParentActivitySuggestionSetV1'
+    || !isString(value.request_id) || !isString(value.story_run_id) || !isString(value.suggestion_set_id)
+    || !isPositiveInt(value.set_revision) || !isPositiveInt(value.understanding_revision)
+    || (value.selection_mode !== 'CATALOG_SELECTION' && value.selection_mode !== 'AI_GENERATED_FALLBACK')
+    || typeof value.catalog_candidate_count !== 'number' || !Number.isInteger(value.catalog_candidate_count)
+    || value.catalog_candidate_count < 0 || value.catalog_candidate_count > 500
+    || !isString(value.activities_snapshot_sha256) || !/^[0-9a-f]{64}$/.test(value.activities_snapshot_sha256)
+    || value.review_required !== true || (value.modal_call_id !== null && !isString(value.modal_call_id))
+    || !Array.isArray(value.activities) || value.activities.length < 1 || value.activities.length > 24) return null;
+  const activities = value.activities.map(readSuggestedActivity);
+  if (activities.some((activity) => activity === null)) return null;
+  return {
+    contract: 'ParentActivitySuggestionSetV1',
+    request_id: value.request_id,
+    story_run_id: value.story_run_id,
+    suggestion_set_id: value.suggestion_set_id,
+    set_revision: value.set_revision,
+    understanding_revision: value.understanding_revision,
+    selection_mode: value.selection_mode,
+    catalog_candidate_count: value.catalog_candidate_count,
+    activities_snapshot_sha256: value.activities_snapshot_sha256,
+    review_required: true,
+    modal_call_id: value.modal_call_id,
+    activities: activities as SuggestedActivity[],
   };
 }
 
@@ -99,7 +192,10 @@ export function readActivityListV1(value: unknown): ParentActivityListV1 | null 
   const age_band = value.basis.age_band;
   if (age_band !== '36-71' && age_band !== '72-107' && age_band !== '108-120') return null;
   if (typeof value.basis.pinned_lesson !== 'boolean' || typeof value.basis.no_candidate !== 'boolean') return null;
-  const items = value.items.map(readActivity);
+  const items = value.items.map((item) => {
+    const activity = readActivity(item);
+    return activity && activity.source !== 'AI_DRAFT' && activity.activity_ref !== null ? activity : null;
+  });
   if (items.some((item) => item === null) || (items.length === 0) !== value.basis.no_candidate) return null;
   return {
     request_id: value.request_id,
@@ -127,7 +223,7 @@ export function readParentActivitySuggestionSetV1(
     || !(value.modal_call_id === null || isString(value.modal_call_id))
     || !Array.isArray(value.activities) || value.activities.length < 1 || value.activities.length > 24) return null;
 
-  const activities = value.activities.map(readSuggestedActivity);
+  const activities = value.activities.map(readParentSuggestedActivity);
   if (activities.some((activity) => activity === null)) return null;
   const typed = activities as ParentSuggestedActivityV1[];
   if (value.selection_mode === 'AI_GENERATED_FALLBACK'
@@ -151,7 +247,7 @@ export function readParentActivitySuggestionSetV1(
   };
 }
 
-function readSuggestedActivity(value: unknown): ParentSuggestedActivityV1 | null {
+function readParentSuggestedActivity(value: unknown): ParentSuggestedActivityV1 | null {
   if (!isRecord(value)) return null;
   const textFields = [
     'title', 'objective', 'materials_text', 'preparation_text',
@@ -201,12 +297,13 @@ function isNonNegativeInt(value: unknown): value is number {
 export function readPostVideoActivities(value: unknown): ParentPostVideoActivityV1[] | null {
   if (value === null || value === undefined) return null;
   if (!Array.isArray(value) || value.length > 24) return null;
-  const items = value.map((item) => {
+  const parsed = value.map((item) => {
     if (!isRecord(item) || typeof item.is_main !== 'boolean') return null;
     const activity = readActivity(item);
     return activity ? { ...activity, is_main: item.is_main } : null;
   });
-  return items.some((item) => item === null) ? null : items as ParentPostVideoActivityV1[];
+  if (parsed.some((item) => item === null)) return null;
+  return parsed as ParentPostVideoActivityV1[];
 }
 
 // --------------------------------------------------------------------------- answer readers

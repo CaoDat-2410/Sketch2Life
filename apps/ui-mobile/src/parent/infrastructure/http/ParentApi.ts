@@ -3,15 +3,23 @@ import { ParentApplicationError, type ParentApplicationErrorMetadata, type Paren
 import type { ParentCapabilityId } from '../../application/ports/ParentCapabilityPorts';
 import type {
   AuthTokenPort,
+  ActivitySelectionReceipt,
+  ActivitySuggestionResult,
   ParentActionIdentity,
   ParentApiPort,
   ParentDrawingMediaType,
 } from '../../application/ports/ParentPorts';
 import type {
   ConsentPolicy,
+  ParentConsentPolicyV1,
   LessonDetail,
+  LessonExportV1,
   LessonInvitation,
-  LessonSummary,
+  ParentLessonListOptions,
+  ParentLessonPage,
+  CreateParentContextEntryRequest,
+  ParentContextEntryEnvelope,
+  ParentContextEntryListView,
   ParentCandidate,
   ParentActivityListV1,
   ParentActivitySuggestionSetV1,
@@ -21,10 +29,14 @@ import type {
   ParentSubjectRoleV1,
   ParentTopicSuggestionSetV1,
   ParentGroupInvitation,
+  ParentGroupMembershipPage,
+  ParentGroupMembershipV1,
   ParentLessonDeliveryPage,
   ParentNotification,
   ParentNotificationPage,
   ParentNotificationReadAllV1,
+  PushEndpointRegistrationResultV1,
+  PushEndpointRegistrationV1,
   ParentProfile,
   ParentProfileCreateV1,
   ParentProfileDeletePendingV1,
@@ -33,20 +45,37 @@ import type {
   ParentProfileRecordV1,
   ParentProfileReferenceV1,
   ParentProfileViewV1,
+  ParentSupportNeedsV1,
+  ParentSupportNeedsWriteV1,
   ParentProfileShareGrant,
   ParentProfileSharePage,
+  ParentShareField,
+  ParentShareGrantV1,
+  ParentShareGrantCreatedV1,
+  ParentShareGrantPageV1,
+  ParentShareDeliveryPageV1,
+  ParentLessonFeedbackV1,
+  ParentLessonFeedbackStateV1,
+  ParentLessonFeedbackReplyPageV1,
   ParentRunLifecycleReceipt,
   ParentStoryRunLifecycleEnvelopeV1,
   ParentStoryRunResultV1,
   ParentActiveStoryRunEnvelopeV1,
   ParentStoryRunHistoryPage,
   ParentVideoQuota,
+  ParentQuotaProduct,
+  ParentQuotaInvoicePage,
+  ParentQuotaPaymentSettings,
+  ParentQuotaCheckoutResult,
+  ParentQuotaReconcileResult,
+  ParentQuotaCancelResult,
   ParentStoryContextConfirmationV1,
   ParentStoryRevisionResultV1,
   ParentStoryRunCreateV1,
   ParentStoryRunEnvelopeV1,
   ParentDrawingAnalysisResumeV1,
   ParentStoryRunV1,
+  SupportNeedsPutV1,
   ParentStoryScriptConfirmationV1,
   ParentStorySubjectConfirmationAcceptedV1,
   ParentPlaybackSourceV1,
@@ -64,7 +93,22 @@ import type {
   StoryRun,
 } from '../../domain/types';
 import type { SvgTopicStrokeGuideDraftV1 } from '../../domain/svgGuide';
-import { buildPlaybackSource, isPlaybackGrantForRun } from '../../application/parentPhaseB';
+import type { ParentPaymentProvider } from '../../application/parentQuota';
+import {
+  readParentQuotaCancelResult,
+  readParentQuotaCheckoutResult,
+  readParentQuotaInvoices,
+  readParentQuotaPaymentSettings,
+  readParentQuotaProducts,
+  readParentQuotaReconcileResult,
+  readParentVideoQuota,
+} from '../../application/parentQuota';
+import {
+  filterSafeSvgGuideCatalogItems,
+  type SvgGuideCatalogPageV1,
+  type SvgTopicStrokeGuideSourceDraftV1,
+} from '../../domain/svgGuide';
+import { buildPlaybackSource, isPlaybackGrantForRun, readMainActivityV1 } from '../../application/parentPhaseB';
 import {
   readNotificationPageV1,
   readNotificationReadAllV1,
@@ -77,9 +121,224 @@ const PHASE_A_ACTIVITY_ERROR_CODES = new Set([
   'PARENT_ACTIVITY_SELECTION_REQUIRED', 'PARENT_STORY_RUN_STORE_UNAVAILABLE', 'DEPENDENCY_UNAVAILABLE',
 ]);
 
+const PHASE_B_PARENT_PROFILE_ERROR_CODES = new Set([
+  'AUTH_REQUIRED', 'INVALID_TOKEN', 'INVALID_REQUEST', 'INVALID_IDEMPOTENCY_KEY',
+  'PROFILE_NOT_FOUND', 'RESOURCE_NOT_FOUND', 'INVALID_STATE_TRANSITION', 'STALE_REVISION',
+  'SUPPORT_NEEDS_UNAVAILABLE', 'PARENT_STORY_RUN_STORE_UNAVAILABLE', 'PARENT_PROFILE_STORE_UNAVAILABLE',
+]);
+
+const PHASE_B_PARENT_CONTEXT_CONFIRMATION_ERROR_CODES = new Set([
+  ...PHASE_A_ACTIVITY_ERROR_CODES,
+  'PROFILE_NOT_FOUND', 'PARENT_STORY_RUN_STORE_UNAVAILABLE',
+]);
+
+// FEAT-083 parent_topic_suggestions.py enforces 2–80 characters per exclude_subject and Query(max_length=24).
+const EXCLUDED_SUBJECT_MIN_CHARS = 2;
+const EXCLUDED_SUBJECT_MAX_CHARS = 80;
+const EXCLUDED_SUBJECT_MAX_ITEMS = 24;
+
+function normalizeExcludedSubjects(values: readonly string[] | undefined): string[] {
+  return (values ?? [])
+    .map((value) => value.trim().replace(/\s+/gu, ' '))
+    .filter((value) => {
+      const characterCount = Array.from(value).length;
+      return characterCount >= EXCLUDED_SUBJECT_MIN_CHARS && characterCount <= EXCLUDED_SUBJECT_MAX_CHARS;
+    })
+    .slice(-EXCLUDED_SUBJECT_MAX_ITEMS);
+}
+
+function invalidLessonListRequest(): ParentApiError {
+  return new ParentApiError('INVALID_REQUEST', 'local-request', 400);
+}
+
+function lessonListQuery(options: ParentLessonListOptions): URLSearchParams {
+  const source = options.source ?? 'ALL';
+  const limit = options.limit ?? 25;
+  if (!['ALL', 'PUBLIC', 'SHARED'].includes(source) || !Number.isInteger(limit) || limit < 1 || limit > 100) {
+    throw invalidLessonListRequest();
+  }
+  const query = new URLSearchParams({ source, limit: String(limit) });
+  if (options.cursor !== undefined && options.cursor !== null) {
+    if (typeof options.cursor !== 'string' || options.cursor.length > 1024 || /\p{Cc}/u.test(options.cursor)) {
+      throw invalidLessonListRequest();
+    }
+    query.set('cursor', options.cursor);
+  }
+  for (const [field, value, maxLength] of [
+    ['q', options.q, 100],
+    ['topic', options.topic, 120],
+  ] as const) {
+    if (value === undefined) continue;
+    if (typeof value !== 'string' || /\p{Cc}/u.test(value)) throw invalidLessonListRequest();
+    const trimmed = value.trim();
+    if (!trimmed) continue;
+    if (Array.from(trimmed).length > maxLength) throw invalidLessonListRequest();
+    query.set(field, trimmed);
+  }
+  if (options.ageBand !== undefined) {
+    const ageBand = options.ageBand as { ref?: unknown; version?: unknown } | null;
+    if (!ageBand || typeof ageBand.ref !== 'string' || typeof ageBand.version !== 'number') {
+      throw invalidLessonListRequest();
+    }
+    const ref = ageBand.ref.trim();
+    if (Array.from(ref).length < 1 || Array.from(ref).length > 256
+      || /\p{Cc}/u.test(ageBand.ref) || !/^[A-Za-z0-9._:-]+$/.test(ref)
+      || !Number.isInteger(ageBand.version) || ageBand.version < 1) {
+      throw invalidLessonListRequest();
+    }
+    query.set('target_age_band_ref', ref);
+    query.set('target_age_band_version', String(ageBand.version));
+  }
+  return query;
+}
+
+function readParentGroupMembershipV1(value: unknown): ParentGroupMembershipV1 | null {
+  if (!isRecord(value)
+    || value.contract !== 'ParentGroupMembershipV1'
+    || typeof value.membership_id !== 'string'
+    || typeof value.parent_group_id !== 'string'
+    || (value.organization_id !== undefined && typeof value.organization_id !== 'string')
+    || !['INVITED', 'ACTIVE', 'REVOKED', 'EXPIRED', 'DECLINED'].includes(String(value.state))
+    || typeof value.invited_at !== 'string'
+    || !(typeof value.expires_at === 'string' || value.expires_at === null)
+    || !(typeof value.accepted_at === 'string' || value.accepted_at === null)
+    || typeof value.revision !== 'number'
+    || !Number.isInteger(value.revision)
+    || typeof value.revision_source !== 'string') return null;
+  return value as unknown as ParentGroupMembershipV1;
+}
+
+function readParentGroupMembershipPage(value: unknown): ParentGroupMembershipPage | null {
+  if (!isRecord(value) || typeof value.contract !== 'string' || !Array.isArray(value.items)
+    || !(typeof value.next_cursor === 'string' || value.next_cursor === null)) return null;
+  const items = value.items.map(readParentGroupMembershipV1);
+  if (items.some((item) => !item || item.state !== 'ACTIVE')) return null;
+  return { contract: value.contract, items: items as ParentGroupMembershipV1[], next_cursor: value.next_cursor };
+}
+
+function readParentConsentPolicyV1(value: unknown): ParentConsentPolicyV1 | null {
+  if (!isRecord(value) || value.contract !== 'ParentConsentPolicyV1'
+    || typeof value.request_id !== 'string' || !value.request_id || !isRecord(value.policy)) return null;
+  const policy = value.policy;
+  if (policy.purpose_code !== 'SYNTHETIC_TEST_ONLY'
+    || policy.policy_version !== 'parent-consent-placeholder-v0'
+    || typeof policy.consent_text !== 'string' || !policy.consent_text.trim()
+    || typeof policy.consent_text_sha256 !== 'string' || !/^[a-f0-9]{64}$/.test(policy.consent_text_sha256)
+    || policy.policy_state !== 'PLACEHOLDER_NOT_APPROVED'
+    || policy.data_origin_scope !== 'SYNTHETIC_TEST'
+    || policy.effective_from !== null
+    || !Array.isArray(policy.purposes)
+    || policy.purposes.length !== 1
+    || !isRecord(policy.purposes[0])
+    || policy.purposes[0].purpose_code !== 'SYNTHETIC_TEST_ONLY'
+    || policy.purposes[0].text_key !== 'parent.consent.placeholder.synthetic_test_only'
+    || !Array.isArray(policy.links) || policy.links.length !== 0
+    || policy.acceptance_recording !== 'NOT_AVAILABLE') return null;
+  return value as unknown as ParentConsentPolicyV1;
+}
+
+const PARENT_SHARE_FIELDS = ['DISPLAY_NAME', 'AGE_BAND', 'INTERESTS_SUMMARY'] as const;
+
+function isUuid(value: unknown): value is string {
+  return typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
+function isTimestamp(value: unknown): value is string {
+  return typeof value === 'string' && Number.isFinite(Date.parse(value));
+}
+
+function readParentShareGrantV1(value: unknown): ParentShareGrantV1 | null {
+  if (!isRecord(value) || value.contract !== 'ParentShareGrantV1'
+    || !isUuid(value.share_grant_id) || !isUuid(value.profile_id)
+    || !['INVITED', 'ACTIVE', 'REVOKED', 'EXPIRED'].includes(String(value.state))
+    || !Array.isArray(value.granted_fields)
+    || !value.granted_fields.every((field) => PARENT_SHARE_FIELDS.includes(field as ParentShareField))
+    || new Set(value.granted_fields).size !== value.granted_fields.length
+    || JSON.stringify(value.granted_fields) !== JSON.stringify([...value.granted_fields].sort())
+    || !isTimestamp(value.created_at) || !isTimestamp(value.invitation_expires_at)
+    || !(typeof value.accepted_at === 'string' || value.accepted_at === null)
+    || !(typeof value.expires_at === 'string' || value.expires_at === null)
+    || !(typeof value.revoked_at === 'string' || value.revoked_at === null)
+    || typeof value.revision !== 'number' || !Number.isInteger(value.revision) || value.revision < 1) return null;
+  if ((typeof value.accepted_at === 'string' && !isTimestamp(value.accepted_at))
+    || (typeof value.expires_at === 'string' && !isTimestamp(value.expires_at))
+    || (typeof value.revoked_at === 'string' && !isTimestamp(value.revoked_at))) return null;
+  return value as unknown as ParentShareGrantV1;
+}
+
+function readParentShareGrantCreatedV1(value: unknown): ParentShareGrantCreatedV1 | null {
+  const grant = readParentShareGrantV1(value);
+  if (!grant || !isRecord(value)
+    || !(value.invitation_code === null
+      || (typeof value.invitation_code === 'string' && /^[A-Za-z0-9_-]{22}$/.test(value.invitation_code)))) return null;
+  return value as ParentShareGrantCreatedV1;
+}
+
+function readParentShareGrantPageV1(value: unknown): ParentShareGrantPageV1 | null {
+  if (!isRecord(value) || value.contract !== 'ParentShareGrantListV1' || !Array.isArray(value.items)
+    || !(typeof value.next_cursor === 'string' || value.next_cursor === null)) return null;
+  const items = value.items.map(readParentShareGrantV1);
+  if (items.some((item) => !item)) return null;
+  return value as unknown as ParentShareGrantPageV1;
+}
+
+function readParentShareDeliveryPageV1(value: unknown): ParentShareDeliveryPageV1 | null {
+  if (!isRecord(value) || value.contract !== 'ParentShareDeliveryListV1'
+    || typeof value.share_grant_id !== 'string'
+    || !['AVAILABLE', 'ENDED'].includes(String(value.content_access))
+    || !Array.isArray(value.items)
+    || !(typeof value.next_cursor === 'string' || value.next_cursor === null)) return null;
+  const validItems = value.items.every((item) => isRecord(item)
+    && isTimestamp(item.delivered_at)
+    && (typeof item.title === 'string' || item.title === null)
+    && (value.content_access !== 'ENDED' || item.title === null));
+  return validItems ? value as unknown as ParentShareDeliveryPageV1 : null;
+}
+
+function readParentLessonFeedbackV1(value: unknown): ParentLessonFeedbackV1 | null {
+  if (!isRecord(value) || value.contract !== 'ParentLessonFeedbackV1'
+    || typeof value.feedback_id !== 'string' || typeof value.lesson_id !== 'string'
+    || typeof value.version_id !== 'string' || typeof value.revision !== 'number'
+    || !Number.isInteger(value.revision) || value.revision < 1
+    || typeof value.feedback_text !== 'string'
+    || Array.from(value.feedback_text.trim()).length < 1 || Array.from(value.feedback_text.trim()).length > 1200
+    || !isTimestamp(value.created_at) || !isTimestamp(value.updated_at) || typeof value.reply_count !== 'number'
+    || !Number.isInteger(value.reply_count) || value.reply_count < 0) return null;
+  return value as unknown as ParentLessonFeedbackV1;
+}
+
+function readParentLessonFeedbackStateV1(value: unknown): ParentLessonFeedbackStateV1 | null {
+  if (!isRecord(value) || value.contract !== 'ParentLessonFeedbackStateV1'
+    || typeof value.lesson_id !== 'string') return null;
+  if (value.feedback === null) return value as unknown as ParentLessonFeedbackStateV1;
+  const feedback = readParentLessonFeedbackV1(value.feedback);
+  return feedback && feedback.lesson_id === value.lesson_id
+    ? value as unknown as ParentLessonFeedbackStateV1 : null;
+}
+
+function readParentLessonFeedbackReplyPageV1(value: unknown): ParentLessonFeedbackReplyPageV1 | null {
+  if (!isRecord(value) || value.contract !== 'ParentLessonFeedbackReplyPageV1'
+    || !(typeof value.feedback_id === 'string' || value.feedback_id === null)
+    || !Array.isArray(value.items)
+    || !(typeof value.next_cursor === 'string' || value.next_cursor === null)) return null;
+  const validItems = value.items.every((item) => isRecord(item)
+    && typeof item.reply_id === 'string' && typeof item.reply_text === 'string'
+    && isTimestamp(item.created_at));
+  return validItems ? value as unknown as ParentLessonFeedbackReplyPageV1 : null;
+}
+
 export class ParentApiError extends ParentApplicationError {
-  constructor(code: string, requestId: string, status?: number, metadata: ParentApplicationErrorMetadata = {}) {
-    super(code, apiErrorMessage(code), requestId, status, metadata);
+  constructor(
+    code: string,
+    requestId: string,
+    status?: number,
+    metadata: ParentApplicationErrorMetadata = {},
+    displayMessage?: string,
+  ) {
+    super(code, displayMessage ?? apiErrorMessage(code), requestId, status, {
+      ...metadata,
+      ...(displayMessage ? { safeDisplayMessage: displayMessage } : {}),
+    });
     this.name = 'ParentApiError';
   }
 }
@@ -102,7 +361,7 @@ export class ParentApi implements ParentApiPort {
   ) {}
 
   getConsentPolicy() {
-    return this.unavailable<{ request_id: string; policy: ConsentPolicy }>('consent');
+    return this.requestValidated('/v1/parent/consent-policy', readParentConsentPolicyV1);
   }
 
   listProfiles() {
@@ -120,6 +379,50 @@ export class ParentApi implements ParentApiPort {
 
   getProfileV1(profileId: string) {
     return this.request<ParentProfileRecordV1>(`/v1/parent/profiles/${encodeURIComponent(profileId)}`, 'GET');
+  }
+
+  listContextEntriesV1(profileId: string, cursor?: string | null) {
+    const query = new URLSearchParams({ limit: '25' });
+    if (cursor !== undefined && cursor !== null) query.set('cursor', cursor);
+    return this.request<ParentContextEntryListView>(
+      `/v1/parent/profiles/${encodeURIComponent(profileId)}/context-entries?${query.toString()}`,
+      'GET',
+    );
+  }
+
+  createContextEntryV1(profileId: string, input: CreateParentContextEntryRequest, actionIdentity: ParentActionIdentity) {
+    assertVisibleAsciiKey(actionIdentity);
+    const body = {
+      entry_kind: input.entry_kind,
+      short_text: input.short_text,
+      source_kind: input.source_kind,
+      ...(input.approximate_date === undefined ? {} : { approximate_date: input.approximate_date }),
+    };
+    return this.request<ParentContextEntryEnvelope>(
+      `/v1/parent/profiles/${encodeURIComponent(profileId)}/context-entries`,
+      'POST',
+      body,
+      30_000,
+      { 'Idempotency-Key': actionIdentity },
+    );
+  }
+
+  getSupportNeedsV1(profileId: string) {
+    return this.request<ParentSupportNeedsV1>(
+      `/v1/parent/profiles/${encodeURIComponent(profileId)}/support-needs`,
+      'GET',
+    );
+  }
+
+  putSupportNeedsV1(profileId: string, input: SupportNeedsPutV1, actionIdentity: ParentActionIdentity) {
+    assertVisibleAsciiKey(actionIdentity);
+    return this.request<ParentSupportNeedsWriteV1>(
+      `/v1/parent/profiles/${encodeURIComponent(profileId)}/support-needs`,
+      'PUT',
+      { expected_revision: input.expected_revision, category: input.category, note: input.note },
+      30_000,
+      { 'Idempotency-Key': actionIdentity },
+    );
   }
 
   createProfileV1(input: ParentProfileCreateV1, actionIdentity: ParentActionIdentity) {
@@ -203,11 +506,19 @@ export class ParentApi implements ParentApiPort {
   }
 
   getActiveStoryRunV1() {
-    return this.request<ParentActiveStoryRunEnvelopeV1>('/v1/story-runs/active/current', 'GET');
+    return this.request<ParentActiveStoryRunEnvelopeV1>('/v1/story-runs/active/current', 'GET').then((result) => ({
+      ...result,
+      story_run: result.story_run ? validateRunMainActivity(result.story_run, result.request_id) : null,
+    }));
   }
 
   getStoryRunV1(runId: string) {
-    return this.request<ParentStoryRunResultV1>(`/v1/story-runs/${encodeURIComponent(runId)}`, 'GET');
+    return this.request<ParentStoryRunResultV1>(`/v1/story-runs/${encodeURIComponent(runId)}`, 'GET').then((result) => {
+      if ('story_run' in result) {
+        return { ...result, story_run: validateRunMainActivity(result.story_run, result.request_id) };
+      }
+      return result;
+    });
   }
 
   listActivitiesV1(runId: string) {
@@ -224,6 +535,46 @@ export class ParentApi implements ParentApiPort {
       { expected_understanding_revision: expectedUnderstandingRevision, reuse_latest: true },
       1_850_000,
       { 'Idempotency-Key': actionIdentity },
+    );
+  }
+
+  requestActivitySuggestionsV1(storyRunId: string, revision: number, actionIdentity: ParentActionIdentity) {
+    assertIdempotencyKey(actionIdentity, 200);
+    if (!storyRunId.trim() || !Number.isInteger(revision) || revision < 1) {
+      return Promise.reject(new ParentApiError('PARENT_ACTIVITY_CONTEXT_REQUIRED', 'local-request', 400));
+    }
+    return this.request<ActivitySuggestionResult>(
+      `/api/parent/v1/ai/story-runs/${encodeURIComponent(storyRunId)}/activity-suggestions`,
+      'POST',
+      { expected_understanding_revision: revision },
+      1_850_000,
+      { 'Idempotency-Key': actionIdentity },
+    );
+  }
+
+  selectSuggestedActivityV1(input: {
+    storyRunId: string;
+    suggestionSetId: string;
+    revision: number;
+    activityIndex: number;
+    actionIdentity: ParentActionIdentity;
+  }) {
+    assertIdempotencyKey(input.actionIdentity, 200);
+    if (!input.storyRunId.trim() || !input.suggestionSetId.trim()
+      || !Number.isInteger(input.revision) || input.revision < 1
+      || !Number.isInteger(input.activityIndex) || input.activityIndex < 0 || input.activityIndex > 23) {
+      return Promise.reject(new ParentApiError('PARENT_ACTIVITY_SELECTION_INVALID', 'local-request', 400));
+    }
+    return this.request<ActivitySelectionReceipt>(
+      `/api/parent/v1/ai/story-runs/${encodeURIComponent(input.storyRunId)}/activity-selection`,
+      'POST',
+      {
+        suggestion_set_id: input.suggestionSetId,
+        expected_understanding_revision: input.revision,
+        activity_index: input.activityIndex,
+      },
+      30_000,
+      { 'Idempotency-Key': input.actionIdentity },
     );
   }
 
@@ -528,10 +879,34 @@ export class ParentApi implements ParentApiPort {
     }
   }
 
-  listLessons() {
-    return this.request<{ contract: string; items: LessonSummary[]; next_cursor: string | null }>(
-      '/api/lesson-library/v1/me/lessons?source=ALL&limit=50', 'GET', undefined, 30_000,
+  listLessons(options: ParentLessonListOptions = {}): Promise<ParentLessonPage> {
+    const query = lessonListQuery(options);
+    return this.request<ParentLessonPage>(
+      `/api/lesson-library/v1/me/lessons?${query.toString()}`, 'GET', undefined, 30_000,
     );
+  }
+
+  listSvgCatalogGuides(topicKey?: string, limit = 50): Promise<SvgGuideCatalogPageV1> {
+    if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
+      return Promise.reject(new ParentApiError('INVALID_LIMIT', 'local-request', 422));
+    }
+    if (topicKey !== undefined && !/^[a-z0-9-]{1,120}$/.test(topicKey)) {
+      return Promise.reject(new ParentApiError('INVALID_REQUEST', 'local-request', 422));
+    }
+    const query = new URLSearchParams({ limit: String(limit) });
+    if (topicKey !== undefined) query.set('topic_key', topicKey);
+    return this.request<unknown>(`/api/svg-catalog/v1/parent/guides?${query.toString()}`, 'GET')
+      .then((payload) => {
+        if (!isRecord(payload) || payload.contract !== 'SvgGuideCatalogPageV1'
+          || !Array.isArray(payload.items)) {
+          throw new ParentApiError('INVALID_API_RESPONSE', 'local-response', 200);
+        }
+        const items = filterSafeSvgGuideCatalogItems(payload.items);
+        if (payload.items.length > 0 && items.length === 0) {
+          throw new ParentApiError('PARENT_SVG_GUIDE_INVALID', 'local-response', 200);
+        }
+        return { ...payload, items } as unknown as SvgGuideCatalogPageV1;
+      });
   }
 
   listLessonInvitations() {
@@ -541,23 +916,25 @@ export class ParentApi implements ParentApiPort {
     );
   }
 
-  acceptLessonInvitation(invitationId: string) {
+  acceptLessonInvitation(invitationId: string, actionIdentity: ParentActionIdentity = createIdempotencyKey()) {
+    assertVisibleAsciiKey(actionIdentity);
     return this.request<unknown>(
       `/api/lesson-library/v1/me/lesson-invitations/${encodeURIComponent(invitationId)}/accept`,
       'POST',
       undefined,
       30_000,
-      { 'Idempotency-Key': createIdempotencyKey() },
+      { 'Idempotency-Key': actionIdentity },
     );
   }
 
-  declineLessonInvitation(invitationId: string) {
+  declineLessonInvitation(invitationId: string, actionIdentity: ParentActionIdentity = createIdempotencyKey()) {
+    assertVisibleAsciiKey(actionIdentity);
     return this.request<unknown>(
       `/api/lesson-library/v1/me/lesson-invitations/${encodeURIComponent(invitationId)}/decline`,
       'POST',
       undefined,
       30_000,
-      { 'Idempotency-Key': createIdempotencyKey() },
+      { 'Idempotency-Key': actionIdentity },
     );
   }
 
@@ -568,24 +945,111 @@ export class ParentApi implements ParentApiPort {
     );
   }
 
-  acceptParentGroupInvitation(membershipId: string) {
+  acceptParentGroupInvitation(membershipId: string, actionIdentity: ParentActionIdentity = createIdempotencyKey()) {
+    assertVisibleAsciiKey(actionIdentity);
     return this.request<unknown>(
       `/api/lesson-library/v1/me/parent-group-invitations/${encodeURIComponent(membershipId)}/accept`,
       'POST',
       undefined,
       30_000,
-      { 'Idempotency-Key': createIdempotencyKey() },
+      { 'Idempotency-Key': actionIdentity },
     );
+  }
+
+  declineParentGroupInvitation(
+    membershipId: string,
+    actionIdentity: ParentActionIdentity,
+  ): Promise<ParentGroupMembershipV1> {
+    assertVisibleAsciiKey(actionIdentity);
+    if (!membershipId.trim()) throw invalidLessonListRequest();
+    return this.request<unknown>(
+      `/api/lesson-library/v1/me/parent-group-invitations/${encodeURIComponent(membershipId)}/decline`,
+      'POST',
+      undefined,
+      30_000,
+      { 'Idempotency-Key': actionIdentity },
+    ).then((payload) => {
+      const membership = readParentGroupMembershipV1(payload);
+      if (!membership || membership.membership_id !== membershipId || membership.state !== 'DECLINED' || membership.accepted_at !== null) {
+        throw new ParentApiError('INVALID_API_RESPONSE', 'local-response', 200);
+      }
+      return membership;
+    });
+  }
+
+  leaveParentGroup(
+    organizationId: string,
+    parentGroupId: string,
+    membershipId: string,
+    revision: number,
+    actionIdentity: ParentActionIdentity,
+  ): Promise<ParentGroupMembershipV1> {
+    assertVisibleAsciiKey(actionIdentity);
+    if (!organizationId.trim() || !parentGroupId.trim() || !membershipId.trim()
+      || !Number.isInteger(revision)) {
+      throw invalidLessonListRequest();
+    }
+    return this.request<unknown>(
+      `/api/lesson-library/v1/organizations/${encodeURIComponent(organizationId)}/parent-groups/${encodeURIComponent(parentGroupId)}/members/${encodeURIComponent(membershipId)}`,
+      'DELETE',
+      undefined,
+      30_000,
+      { 'If-Match': `"${revision}"`, 'Idempotency-Key': actionIdentity },
+    ).then((payload) => {
+      const membership = readParentGroupMembershipV1(payload);
+      if (!membership
+        || membership.membership_id !== membershipId
+        || membership.parent_group_id !== parentGroupId
+        || (membership.organization_id !== undefined && membership.organization_id !== organizationId)
+        || membership.state !== 'REVOKED'
+        || membership.revision !== revision + 1) {
+        throw new ParentApiError('INVALID_API_RESPONSE', 'local-response', 200);
+      }
+      return membership;
+    });
+  }
+
+  listParentGroupMemberships(cursor?: string | null): Promise<ParentGroupMembershipPage> {
+    if (cursor !== undefined && cursor !== null
+      && (typeof cursor !== 'string' || cursor.length > 1024 || /\p{Cc}/u.test(cursor))) {
+      throw invalidLessonListRequest();
+    }
+    const query = new URLSearchParams({ limit: '25' });
+    if (cursor !== undefined && cursor !== null) query.set('cursor', cursor);
+    return this.request<unknown>(
+      `/api/lesson-library/v1/me/parent-group-memberships?${query.toString()}`,
+      'GET',
+    ).then((payload) => {
+      const page = readParentGroupMembershipPage(payload);
+      if (!page) throw new ParentApiError('INVALID_API_RESPONSE', 'local-response', 200);
+      return page;
+    });
   }
 
   getLesson(lessonId: string) {
     return this.request<LessonDetail>(`/api/lesson-library/v1/me/lessons/${encodeURIComponent(lessonId)}`, 'GET');
   }
 
-  listTopicSuggestions(draftId: string, excludedSetIds: string[], requestId: string) {
+  downloadLesson(lessonId: string): Promise<LessonExportV1> {
+    if (!lessonId.trim()) return Promise.reject(new ParentApiError('INVALID_REQUEST', 'local-request', 400));
+    return this.request<unknown>(
+      `/api/lesson-library/v1/me/lessons/${encodeURIComponent(lessonId)}/download`,
+      'GET',
+    ).then((payload) => {
+      if (!isLessonExportV1(payload, lessonId)) {
+        throw new ParentApiError('INVALID_API_RESPONSE', 'local-response', 200);
+      }
+      return payload;
+    });
+  }
+
+  listTopicSuggestions(draftId: string, excludedSetIds: string[], requestId = createRequestId()) {
     const query = new URLSearchParams({ draft_id: draftId, request_id: requestId });
-    excludedSetIds.forEach((setId) => query.append('exclude_set_ids', setId));
-    return this.request<ParentTopicSuggestionSetV1>(`/api/parent/v1/topics/suggestions?${query.toString()}`, 'GET');
+    excludedSetIds.slice(-16).forEach((setId) => query.append('exclude_set_ids', setId));
+    return this.request<ParentTopicSuggestionSetV1>(
+      `/api/parent/v1/topics/suggestions?${query.toString()}`,
+      'GET',
+    );
   }
 
   listDrawingSubjectSuggestions(input: {
@@ -594,11 +1058,15 @@ export class ParentApi implements ParentApiPort {
     topic: string;
     excludedSetIds: string[];
     excludedSubjects?: string[];
-    requestId: string;
+    requestId?: string;
   }) {
-    const query = new URLSearchParams({ draft_id: input.draftId, request_id: input.requestId, topic: input.topic });
-    input.excludedSetIds.forEach((setId) => query.append('exclude_set_ids', setId));
-    (input.excludedSubjects ?? []).forEach((subject) => query.append('exclude_subjects', subject));
+    const query = new URLSearchParams({
+      draft_id: input.draftId,
+      request_id: input.requestId ?? createRequestId(),
+      topic: input.topic,
+    });
+    input.excludedSetIds.slice(-16).forEach((setId) => query.append('exclude_set_ids', setId));
+    normalizeExcludedSubjects(input.excludedSubjects).forEach((subject) => query.append('exclude_subjects', subject));
     return this.request<ParentDrawingSubjectSuggestionSetV1>(
       `/api/parent/v1/topics/${encodeURIComponent(input.topicId)}/drawing-subject-suggestions?${query.toString()}`,
       'GET',
@@ -613,13 +1081,28 @@ export class ParentApi implements ParentApiPort {
     );
   }
 
-  generateSketchGuide(topic: string, intendedSubject?: string, difficulty: 'beginner' | 'simple' = 'beginner') {
-    return this.request<SvgTopicStrokeGuideDraftV1>('/api/parent/v1/ai/sketch-guides', 'POST', {
-      contract: 'SvgTopicStrokeGuideRequestV1',
-      topic,
-      intended_subject: intendedSubject,
-      difficulty,
-    }, 60_000);
+  generateSketchGuide(topic: string, intendedSubject?: string): Promise<SvgTopicStrokeGuideSourceDraftV1>;
+  generateSketchGuide(
+    topic: string,
+    intendedSubject: string | undefined,
+    difficulty: 'beginner' | 'simple',
+  ): Promise<SvgTopicStrokeGuideDraftV1>;
+  generateSketchGuide(
+    topic: string,
+    intendedSubject?: string,
+    difficulty: 'beginner' | 'simple' = 'beginner',
+  ): Promise<SvgTopicStrokeGuideDraftV1> {
+    return this.request<SvgTopicStrokeGuideDraftV1>(
+      '/api/parent/v1/ai/sketch-guides',
+      'POST',
+      {
+        contract: 'SvgTopicStrokeGuideRequestV1',
+        topic,
+        ...(intendedSubject?.trim() ? { intended_subject: intendedSubject.trim() } : {}),
+        difficulty,
+      },
+      60_000,
+    );
   }
 
   createStoryRun(input: {
@@ -677,21 +1160,94 @@ export class ParentApi implements ParentApiPort {
     return this.unavailable<{ request_id: string; story_run: StoryRun }>('story-creation');
   }
 
-  listProfileShares(profileId: string) {
-    void profileId;
-    return this.unavailable<ParentProfileSharePage>('profile-sharing');
+  listProfileShares(profileId: string, limit = 25, cursor?: string | null): Promise<ParentShareGrantPageV1> {
+    if (!isUuid(profileId) || !Number.isInteger(limit) || limit < 1 || limit > 100
+      || (cursor !== undefined && cursor !== null
+        && (typeof cursor !== 'string' || cursor.length > 2048 || /\p{Cc}/u.test(cursor)))) {
+      return Promise.reject(new ParentApiError('INVALID_REQUEST', 'local-request', 400));
+    }
+    const query = new URLSearchParams({ profile_id: profileId, limit: String(limit) });
+    if (cursor !== undefined && cursor !== null) query.set('cursor', cursor);
+    return this.requestValidated(`/v1/parent/share-grants?${query.toString()}`, (value) => {
+      const page = readParentShareGrantPageV1(value);
+      return page && page.items.every((grant) => grant.profile_id === profileId) ? page : null;
+    });
   }
 
-  createProfileShare(profileId: string, teacherSubject: string) {
-    void profileId;
-    void teacherSubject;
-    return this.unavailable<{ request_id: string; grant: ParentProfileShareGrant }>('profile-sharing');
+  getProfileShare(grantId: string): Promise<ParentShareGrantV1> {
+    if (!isUuid(grantId)) return Promise.reject(new ParentApiError('INVALID_REQUEST', 'local-request', 400));
+    return this.requestValidated(
+      `/v1/parent/share-grants/${encodeURIComponent(grantId)}`,
+      (value) => {
+        const grant = readParentShareGrantV1(value);
+        return grant?.share_grant_id === grantId ? grant : null;
+      },
+    );
   }
 
-  revokeProfileShare(profileId: string, grantId: string) {
-    void profileId;
-    void grantId;
-    return this.unavailable<{ request_id: string; grant: ParentProfileShareGrant }>('profile-sharing');
+  createProfileShare(
+    profileId: string,
+    grantedFields: ParentShareField[],
+    actionIdentity: ParentActionIdentity,
+  ): Promise<ParentShareGrantCreatedV1> {
+    assertVisibleAsciiKey(actionIdentity);
+    const fields = [...new Set(grantedFields)].sort();
+    if (!isUuid(profileId) || fields.length < 1 || fields.length > 3
+      || fields.some((field) => !PARENT_SHARE_FIELDS.includes(field as ParentShareField))) {
+      return Promise.reject(new ParentApiError('INVALID_REQUEST', 'local-request', 400));
+    }
+    return this.requestValidated(
+      '/v1/parent/share-grants',
+      (value) => {
+        const created = readParentShareGrantCreatedV1(value);
+        return created?.profile_id === profileId ? created : null;
+      },
+      'POST',
+      { profile_id: profileId, granted_fields: fields },
+      { 'Idempotency-Key': actionIdentity },
+    );
+  }
+
+  revokeProfileShare(
+    grantId: string,
+    revision: number,
+    actionIdentity: ParentActionIdentity,
+  ): Promise<ParentShareGrantV1> {
+    assertVisibleAsciiKey(actionIdentity);
+    if (!isUuid(grantId) || !Number.isInteger(revision) || revision < 1) {
+      return Promise.reject(new ParentApiError('INVALID_REQUEST', 'local-request', 400));
+    }
+    return this.requestValidated(
+      `/v1/parent/share-grants/${encodeURIComponent(grantId)}/revoke`,
+      (value) => {
+        const grant = readParentShareGrantV1(value);
+        return grant?.share_grant_id === grantId ? grant : null;
+      },
+      'POST',
+      undefined,
+      { 'If-Match': `"${revision}"`, 'Idempotency-Key': actionIdentity },
+    );
+  }
+
+  listProfileShareDeliveries(
+    grantId: string,
+    limit = 25,
+    cursor?: string | null,
+  ): Promise<ParentShareDeliveryPageV1> {
+    if (!isUuid(grantId) || !Number.isInteger(limit) || limit < 1 || limit > 100
+      || (cursor !== undefined && cursor !== null
+        && (typeof cursor !== 'string' || cursor.length > 2048 || /\p{Cc}/u.test(cursor)))) {
+      return Promise.reject(new ParentApiError('INVALID_REQUEST', 'local-request', 400));
+    }
+    const query = new URLSearchParams({ limit: String(limit) });
+    if (cursor !== undefined && cursor !== null) query.set('cursor', cursor);
+    return this.requestValidated(
+      `/v1/parent/share-grants/${encodeURIComponent(grantId)}/deliveries?${query.toString()}`,
+      (value) => {
+        const page = readParentShareDeliveryPageV1(value);
+        return page?.share_grant_id === grantId ? page : null;
+      },
+    );
   }
 
   listLessonDeliveries(profileId: string, cursor?: string | null) {
@@ -700,17 +1256,59 @@ export class ParentApi implements ParentApiPort {
     return this.unavailable<ParentLessonDeliveryPage>('lesson-history');
   }
 
-  submitLessonFeedback(occurrenceId: string, profileId: string, feedbackText: string) {
-    void occurrenceId;
-    void profileId;
-    void feedbackText;
-    return this.unavailable<{
-      contract: 'LessonDeliveryFeedbackV1';
-      feedback_id: string;
-      feedback_text: string;
-      created_at: string;
-      updated_at: string;
-    }>('lesson-history');
+  submitLessonFeedback(
+    lessonId: string,
+    feedbackText: string,
+    actionIdentity: ParentActionIdentity,
+  ): Promise<ParentLessonFeedbackV1> {
+    assertVisibleAsciiKey(actionIdentity);
+    const value = feedbackText.trim();
+    const characterCount = Array.from(value).length;
+    if (!lessonId.trim() || characterCount < 1 || characterCount > 1200) {
+      return Promise.reject(new ParentApiError('INVALID_REQUEST', 'local-request', 400));
+    }
+    return this.requestValidated(
+      `/api/lesson-library/v1/me/lessons/${encodeURIComponent(lessonId)}/feedback`,
+      (payload) => {
+        const feedback = readParentLessonFeedbackV1(payload);
+        return feedback?.lesson_id === lessonId ? feedback : null;
+      },
+      'POST',
+      { feedback_text: value },
+      { 'Idempotency-Key': actionIdentity },
+    );
+  }
+
+  getParentLessonFeedback(lessonId: string): Promise<ParentLessonFeedbackStateV1> {
+    if (!lessonId.trim()) return Promise.reject(new ParentApiError('INVALID_REQUEST', 'local-request', 400));
+    return this.requestValidated(
+      `/api/lesson-library/v1/me/lessons/${encodeURIComponent(lessonId)}/feedback`,
+      (payload) => {
+        const state = readParentLessonFeedbackStateV1(payload);
+        return state?.lesson_id === lessonId ? state : null;
+      },
+    );
+  }
+
+  listParentLessonFeedbackReplies(
+    lessonId: string,
+    limit = 25,
+    cursor?: string | null,
+  ): Promise<ParentLessonFeedbackReplyPageV1> {
+    if (!lessonId.trim() || !Number.isInteger(limit) || limit < 1 || limit > 100
+      || (cursor !== undefined && cursor !== null
+        && (typeof cursor !== 'string' || cursor.length > 768 || /\p{Cc}/u.test(cursor)))) {
+      return Promise.reject(new ParentApiError('INVALID_REQUEST', 'local-request', 400));
+    }
+    const query = new URLSearchParams({ limit: String(limit) });
+    if (cursor !== undefined && cursor !== null) query.set('cursor', cursor);
+    return this.requestValidated(
+      `/api/lesson-library/v1/me/lessons/${encodeURIComponent(lessonId)}/feedback/replies?${query.toString()}`,
+      (payload) => {
+        const page = readParentLessonFeedbackReplyPageV1(payload);
+        return page !== null ? page : null;
+      },
+    );
   }
 
   listNotifications(cursor?: string | null, limit = 25): Promise<ParentNotificationPage> {
@@ -762,13 +1360,149 @@ export class ParentApi implements ParentApiPort {
     });
   }
 
+  registerPushEndpointV1(
+    input: PushEndpointRegistrationV1,
+    actionIdentity: ParentActionIdentity,
+  ): Promise<PushEndpointRegistrationResultV1> {
+    assertVisibleAsciiKey(actionIdentity);
+    if (input.contract !== 'PushEndpointRegistrationV1'
+      || !['WEB', 'ANDROID'].includes(input.platform_kind)
+      || !['WEB_PUSH', 'ANDROID_PUSH'].includes(input.provider_kind)
+      || typeof input.encrypted_registration_proof !== 'string'
+      || input.encrypted_registration_proof.length < 1
+      || input.encrypted_registration_proof.length > 8192
+      || (input.app_version !== undefined && typeof input.app_version !== 'string')) {
+      throw invalidLessonListRequest();
+    }
+    const body: PushEndpointRegistrationV1 = {
+      contract: 'PushEndpointRegistrationV1',
+      platform_kind: input.platform_kind,
+      provider_kind: input.provider_kind,
+      encrypted_registration_proof: input.encrypted_registration_proof,
+      ...(input.app_version === undefined ? {} : { app_version: input.app_version }),
+    };
+    return this.request<unknown>(
+      '/v1/notifications/push-endpoints',
+      'POST',
+      body,
+      30_000,
+      { 'Idempotency-Key': actionIdentity },
+    ).then((payload) => {
+      if (!isRecord(payload) || typeof payload.contract !== 'string'
+        || typeof payload.endpoint_id !== 'string' || typeof payload.version !== 'number'
+        || !Number.isInteger(payload.version) || payload.version < 1) {
+        throw new ParentApiError('INVALID_API_RESPONSE', 'local-response', 201);
+      }
+      return payload as unknown as PushEndpointRegistrationResultV1;
+    });
+  }
+
+  deletePushEndpointV1(
+    endpointId: string,
+    expectedVersion: number,
+    actionIdentity: ParentActionIdentity,
+  ): Promise<void> {
+    assertVisibleAsciiKey(actionIdentity);
+    if (!endpointId.trim() || !Number.isInteger(expectedVersion) || expectedVersion < 1) {
+      throw invalidLessonListRequest();
+    }
+    return this.request<void>(
+      `/v1/notifications/push-endpoints/${encodeURIComponent(endpointId)}`,
+      'DELETE',
+      undefined,
+      30_000,
+      { 'If-Match': `"${expectedVersion}"`, 'Idempotency-Key': actionIdentity },
+    );
+  }
+
   getVideoQuota() {
-    return this.unavailable<ParentVideoQuota>('quota');
+    return this.readQuota<ParentVideoQuota>(
+      '/api/be1/v1/billing/video-quota',
+      readParentVideoQuota,
+    );
+  }
+
+  getQuotaProducts() {
+    return this.readQuota<ParentQuotaProduct[]>(
+      '/api/be1/v1/billing/video-quota/products',
+      readParentQuotaProducts,
+    );
+  }
+
+  getQuotaInvoices(limit = 50) {
+    if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
+      return Promise.reject(new ParentApiError('INVALID_LIMIT', 'local-request'));
+    }
+    const query = new URLSearchParams({ limit: String(limit) });
+    return this.readQuota<ParentQuotaInvoicePage>(
+      `/api/be1/v1/billing/video-quota/invoices?${query.toString()}`,
+      readParentQuotaInvoices,
+    );
+  }
+
+  getQuotaPaymentSettings() {
+    return this.readQuota<ParentQuotaPaymentSettings>(
+      '/api/be1/v1/billing/video-quota/payment-settings',
+      readParentQuotaPaymentSettings,
+    );
+  }
+
+  checkoutQuotaProduct(productId: string, provider: ParentPaymentProvider, actionIdentity: ParentActionIdentity) {
+    if (!productId.trim()) throw new ParentApiError('INVALID_REQUEST', 'local-request', 400);
+    assertVisibleAsciiKey(actionIdentity);
+    return this.readQuota<ParentQuotaCheckoutResult>(
+      '/api/be1/v1/billing/video-quota/checkout',
+      readParentQuotaCheckoutResult,
+      'POST',
+      { product_id: productId, provider, payment_mode: 'MANUAL' },
+      { 'Idempotency-Key': actionIdentity },
+    );
+  }
+
+  reconcileQuotaInvoice(invoiceId: string) {
+    if (!invoiceId.trim()) throw new ParentApiError('INVALID_REQUEST', 'local-request', 400);
+    return this.readQuota<ParentQuotaReconcileResult>(
+      `/api/be1/v1/billing/video-quota/invoices/${encodeURIComponent(invoiceId)}/reconcile`,
+      readParentQuotaReconcileResult,
+      'POST',
+    );
+  }
+
+  cancelQuotaInvoice(invoiceId: string) {
+    if (!invoiceId.trim()) throw new ParentApiError('INVALID_REQUEST', 'local-request', 400);
+    return this.readQuota<ParentQuotaCancelResult>(
+      `/api/be1/v1/billing/video-quota/invoices/${encodeURIComponent(invoiceId)}/cancel`,
+      readParentQuotaCancelResult,
+      'POST',
+    );
+  }
+
+  private async readQuota<T>(
+    path: string,
+    reader: (value: unknown) => T | null,
+    method: 'GET' | 'POST' = 'GET',
+    body?: unknown,
+    headers: Record<string, string> = {},
+  ): Promise<T> {
+    const payload = await this.request<unknown>(path, method, body, 30_000, headers);
+    const result = reader(payload);
+    if (result === null) throw new ParentApiError('INVALID_API_RESPONSE', 'local-response', 200);
+    return result;
+  }
+
+  private requestValidated<T>(
+    path: string,
+    reader: (value: unknown) => T | null,
+    method: 'GET' | 'POST' = 'GET',
+    body?: unknown,
+    headers: Record<string, string> = {},
+  ): Promise<T> {
+    return this.readQuota(path, reader, method, body, headers);
   }
 
   private async request<T>(
     path: string,
-    method: 'GET' | 'POST' | 'PATCH' | 'DELETE',
+    method: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE',
     body?: unknown,
     timeoutMs = 30_000,
     additionalHeaders: Record<string, string> = {},
@@ -791,12 +1525,17 @@ export class ParentApi implements ParentApiPort {
         ...(body === undefined ? {} : { body: JSON.stringify(body) }),
         signal: controller.signal,
       });
+      if (response.status === 204 && response.ok) return undefined as T;
       const payload = await response.json().catch(() => null) as Record<string, unknown> | null;
       if (!response.ok) {
-        const activityErrorCodes = path.startsWith('/v1/activities') || path.endsWith('/activity-selection')
+        const allowedCodes = path.startsWith('/v1/activities') || path.endsWith('/activity-selection')
           ? PHASE_A_ACTIVITY_ERROR_CODES
-          : undefined;
-        throw apiErrorFromResponse(payload, response.status, requestId, response.headers, activityErrorCodes);
+          : path.includes('/context-entries') || path.endsWith('/support-needs')
+            ? PHASE_B_PARENT_PROFILE_ERROR_CODES
+            : path.endsWith('/context-confirmation')
+              ? PHASE_B_PARENT_CONTEXT_CONFIRMATION_ERROR_CODES
+              : undefined;
+        throw apiErrorFromResponse(payload, response.status, requestId, response.headers, allowedCodes);
       }
       if (!payload || typeof payload !== 'object') throw new ParentApiError('INVALID_API_RESPONSE', requestId, response.status);
       return payload as T;
@@ -825,7 +1564,12 @@ function apiErrorMessage(code: string): string {
     PARENT_STORE_UNAVAILABLE: 'Hồ sơ đang tạm thời không khả dụng. Vui lòng thử lại sau.',
     PARENT_STORY_RUN_STORE_UNAVAILABLE: 'Buổi học đang tạm thời không khả dụng. Hãy thử tải lại sau.',
     DEPENDENCY_UNAVAILABLE: 'Danh sách hoạt động đang tạm thời không khả dụng. Hãy thử tải lại sau.',
+    FORBIDDEN: 'Tài khoản này chưa có quyền thực hiện thao tác vừa chọn.',
+    ACCOUNT_SCOPE_UNAVAILABLE: 'Tài khoản phụ huynh chưa sẵn sàng cho thao tác này.',
+    LESSON_NOT_FOUND: 'Không tìm thấy bài học này hoặc bài học không còn khả dụng.',
     PARENT_ACTIVITY_SELECTION_REQUIRED: 'Hãy chọn và lưu một hoạt động trước khi tiếp tục câu chuyện.',
+    SUPPORT_NEEDS_UNAVAILABLE: 'Mục này chưa khả dụng, hãy thử lại sau.',
+    PROFILE_NOT_FOUND: 'Không tìm thấy hồ sơ này hoặc hồ sơ không còn khả dụng.',
     SUBJECT_NOT_CONFIRMED: 'Hãy xem lại và xác nhận chủ thể trước khi chọn hoạt động.',
     RESOURCE_NOT_FOUND: 'Không tìm thấy nội dung hoặc bạn không thể truy cập nội dung này.',
     INVALID_IDEMPOTENCY_KEY: 'Thao tác chưa khớp với lần gửi trước. Hãy tải lại trạng thái rồi thử lại.',
@@ -847,6 +1591,8 @@ function apiErrorMessage(code: string): string {
     MODAL_MODEL_OUTPUT_INVALID: 'AI đã phản hồi nhưng dữ liệu không đúng cấu trúc yêu cầu.',
     MODAL_MODEL_REVISION_MISMATCH: 'Phiên bản model trả về không khớp cấu hình.',
     MODAL_FUNCTION_UNAVAILABLE: 'Dịch vụ AI hiện chưa sẵn sàng.',
+    PARENT_TOPIC_SUBJECT_AI_NOT_ENABLED: 'Chủ đề này chưa có gợi ý trong danh mục. Hãy chọn một chủ đề gợi ý hoặc thử lại sau.',
+    PARENT_TOPIC_TEXT_NOT_ALLOWED: 'Chỉ nhập tên chủ đề hoặc đồ vật chung; không nhập tên, thông tin liên hệ hay dữ liệu riêng của trẻ.',
   };
   return messages[code] ?? 'Yêu cầu chưa hoàn tất. Vui lòng kiểm tra lại rồi thử lại sau.';
 }
@@ -871,7 +1617,9 @@ export function apiErrorFromResponse(
     : typeof detail?.retryable === 'boolean' ? detail.retryable : undefined;
   const retryAfterValue = finiteNumber(payload?.retry_after_seconds)
     ?? finiteNumber(detail?.retry_after_seconds);
-  const currentVersion = primitiveVersion(payload?.current_version) ?? primitiveVersion(detail?.current_version);
+  const currentVersion = status === 409 && code === 'STALE_REVISION'
+    ? primitiveVersion(payload?.current_version) ?? primitiveVersion(detail?.current_version)
+    : undefined;
   const fieldErrors = safeFieldErrors(payload?.field_errors) ?? safeFieldErrors(detail?.field_errors);
   const metadata: ParentApplicationErrorMetadata = {
     ...(correlationId ? { correlationId } : {}),
@@ -880,7 +1628,17 @@ export function apiErrorFromResponse(
     ...(currentVersion === undefined ? {} : { currentVersion }),
     ...(fieldErrors ? { fieldErrors } : {}),
   };
-  return new ParentApiError(code, requestId, status, metadata);
+  const displayMessage = code === 'PARENT_TOPIC_SUBJECT_AI_NOT_ENABLED' || code === 'PARENT_TOPIC_TEXT_NOT_ALLOWED'
+    ? safeApiDisplayMessage(detail?.message)
+    : undefined;
+  return new ParentApiError(code, requestId, status, metadata, displayMessage);
+}
+
+function safeApiDisplayMessage(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined;
+  const message = value.trim();
+  if (message.length < 2 || message.length > 240 || /[\u0000-\u001f\u007f]/.test(message)) return undefined;
+  return message;
 }
 
 function safeFieldErrors(value: unknown): ParentSafeFieldError[] | undefined {
@@ -898,6 +1656,13 @@ function safeFieldErrors(value: unknown): ParentSafeFieldError[] | undefined {
     lesson_version: 'lesson_version',
     topic: 'topic',
     adult_confirmed_idea: 'adult_confirmed_idea',
+    entry_kind: 'entry_kind',
+    short_text: 'short_text',
+    source_kind: 'source_kind',
+    approximate_date: 'approximate_date',
+    selected_context_entry_ids: 'selected_context_entry_ids',
+    category: 'category',
+    note: 'note',
     // Generic upload sessions (T-2a): request fields and the two headers the server names.
     purpose: 'purpose',
     target_ref: 'target_ref',
@@ -921,6 +1686,7 @@ function safeFieldErrors(value: unknown): ParentSafeFieldError[] | undefined {
   const codes = new Set([
     'REQUIRED', 'EMPTY', 'TOO_LONG', 'OUT_OF_RANGE', 'INVALID_TYPE', 'INVALID_FORMAT',
     'UNKNOWN_FIELD', 'INVALID_CURSOR', 'INVALID_LIMIT', 'STALE_REVISION', 'NOT_ALLOWED', 'INVALID_VALUE',
+    'DIAGNOSIS_LIKE',
   ]);
   const result: ParentSafeFieldError[] = [];
   for (const item of value) {
@@ -953,8 +1719,53 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
+function isLessonExportV1(value: unknown, requestedLessonId: string): value is LessonExportV1 {
+  if (!isRecord(value)
+    || value.contract !== 'LessonExportV1'
+    || value.lesson_id !== requestedLessonId
+    || typeof value.version_id !== 'string' || !value.version_id.trim()
+    || typeof value.version_no !== 'number' || !Number.isInteger(value.version_no) || value.version_no < 1
+    || typeof value.content_sha256 !== 'string' || !/^[0-9a-f]{64}$/.test(value.content_sha256)
+    || typeof value.title !== 'string' || typeof value.topic !== 'string'
+    || value.locale !== 'vi-VN'
+    || typeof value.target_age_band_ref !== 'string' || !value.target_age_band_ref.trim()
+    || typeof value.target_age_band_version !== 'number'
+    || !Number.isInteger(value.target_age_band_version) || value.target_age_band_version < 1
+    || !isStringArray(value.objectives)
+    || typeof value.drawing_subject !== 'string'
+    || typeof value.drawing_steps_text !== 'string'
+    || typeof value.subject_learning_notes !== 'string'
+    || (value.script_direction !== null && typeof value.script_direction !== 'string')
+    || typeof value.script_following_allowed !== 'boolean'
+    || !Array.isArray(value.activities)
+    || (value.access_source !== 'PUBLIC' && value.access_source !== 'SHARED')
+    || (value.access_expires_at !== null && typeof value.access_expires_at !== 'string')) return false;
+
+  return value.activities.every((activity) => isRecord(activity)
+    && typeof activity.title === 'string'
+    && typeof activity.objective === 'string'
+    && typeof activity.materials_text === 'string'
+    && typeof activity.preparation_text === 'string'
+    && typeof activity.instructions_text === 'string'
+    && typeof activity.observation_notes === 'string'
+    && typeof activity.safety_notes === 'string'
+    && (activity.activity_kind === 'outdoor' || activity.activity_kind === 'indoor' || activity.activity_kind === 'mixed'));
+}
+
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((item) => typeof item === 'string');
+}
+
 function stringValue(value: unknown): string | null {
   return typeof value === 'string' ? value : null;
+}
+
+/** Validate the optional selected-activity projection when present; older Phase A runs omit it. */
+function validateRunMainActivity(run: ParentStoryRunV1, requestId: string): ParentStoryRunV1 {
+  if (run.main_activity === undefined || run.main_activity === null) return run;
+  const mainActivity = readMainActivityV1(run.main_activity);
+  if (!mainActivity) throw new ParentApiError('INVALID_API_RESPONSE', requestId, 200);
+  return { ...run, main_activity: mainActivity };
 }
 
 /** The server accepts 1 to 128 visible ASCII characters (0x21 to 0x7E); a space is refused. */

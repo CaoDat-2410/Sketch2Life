@@ -9,6 +9,7 @@ import {
   canAnalyzeDrawing,
   canBeginContextStep,
   canConfirmDisplayedStory,
+  isRecoverableFirstStoryFailure,
   lessonVersionPinFromDetail,
   selectProfileById,
 } from './navigation/parentFlowV1';
@@ -18,12 +19,14 @@ import { AccountScreen } from './screens/AccountScreen';
 import { ActivityScreen } from './screens/ActivityScreen';
 import { AuthScreen } from './screens/AuthScreen';
 import { CaptureScreen } from './screens/CaptureScreen';
+import { ConsentPolicyScreen } from './screens/ConsentPolicyScreen';
 import { ContextScreen } from './screens/ContextScreen';
 import { DrawingSubjectScreen } from './screens/DrawingSubjectScreen';
 import { DrawingGuideScreen } from './screens/DrawingGuideScreen';
 import { HandoffScreen } from './screens/HandoffScreen';
 import { HomeScreen } from './screens/HomeScreen';
 import { IdeaScreen } from './screens/IdeaScreen';
+import { LegacySketchGuideScreen } from './screens/LegacySketchGuideScreen';
 import { SketchGuideScreen } from './screens/SketchGuideScreen';
 import { TranscriptReviewScreen } from './screens/TranscriptReviewScreen';
 import { VideoScreen } from './screens/VideoScreen';
@@ -38,8 +41,9 @@ import { ParentVisualPreviewHarness } from './ParentVisualPreviewHarness';
 import { ProfileFormScreen } from './screens/ProfileFormScreen';
 import { ProfileScreen } from './screens/ProfileScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
-import { ProfileSharingScreen } from './screens/ProfileSharingScreen';
+import { ProfileShareScreen } from './screens/ProfileShareScreen';
 import { StoryScreen } from './screens/StoryScreen';
+import { SupportNeedsScreen } from './screens/SupportNeedsScreen';
 import { StoryHistoryScreen } from './screens/StoryHistoryScreen';
 import { QuotaScreen } from './screens/QuotaScreen';
 import { TopicScreen } from './screens/TopicScreen';
@@ -65,8 +69,46 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
   const accountSubject = parent.currentUser?.subject ?? null;
   React.useEffect(() => { platform.resetAccountData(); }, [accountSubject]);
   const [historyReturnStep, setHistoryReturnStep] = React.useState<'home' | 'profile'>('profile');
+  const [quotaReturnStep, setQuotaReturnStep] = React.useState<'profile' | 'video'>('profile');
   const [pendingCaptureSource, setPendingCaptureSource] = React.useState<'camera' | 'gallery' | null>(null);
   const [drawingGuideEntryRequested, setDrawingGuideEntryRequested] = React.useState(false);
+  const [videoQuotaSummaryLoaded, setVideoQuotaSummaryLoaded] = React.useState(false);
+  const quotaAutoLoadAttempted = React.useRef(false);
+  const quotaExceededSummaryRequest = React.useRef(0);
+
+  React.useEffect(() => {
+    const requestNumber = quotaExceededSummaryRequest.current + 1;
+    quotaExceededSummaryRequest.current = requestNumber;
+    if (!parent.videoQuotaExceeded) {
+      setVideoQuotaSummaryLoaded(false);
+      return undefined;
+    }
+
+    setVideoQuotaSummaryLoaded(false);
+    void platform.loadQuotaSummary().then((result) => {
+      if (requestNumber === quotaExceededSummaryRequest.current) {
+        setVideoQuotaSummaryLoaded(result.state === 'confirmed');
+      }
+    });
+    return () => {
+      if (requestNumber === quotaExceededSummaryRequest.current) quotaExceededSummaryRequest.current += 1;
+    };
+  }, [parent.videoQuotaExceeded]);
+
+  React.useEffect(() => {
+    if (parent.step !== 'quota') platform.clearQuotaScreenState();
+  }, [parent.step]);
+
+  React.useEffect(() => {
+    if (parent.step !== 'video') {
+      quotaAutoLoadAttempted.current = false;
+      return;
+    }
+    if (!quotaAutoLoadAttempted.current) {
+      quotaAutoLoadAttempted.current = true;
+      void platform.loadQuotaSummary();
+    }
+  }, [parent.step]);
 
   // The history screen is reached from the tab bar, the profile, the story and the video screens: load it on arrival.
   React.useEffect(() => {
@@ -113,6 +155,7 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
   }
 
   function openQuota(): void {
+    setQuotaReturnStep(parent.step === 'video' ? 'video' : 'profile');
     parent.setStep('quota');
     void platform.loadQuota();
   }
@@ -210,8 +253,31 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
       onOpenQuota={openQuota}
       onOpenHistory={openHistory}
       onOpenSharing={openSharing}
+      onOpenConsentPolicy={() => parent.setStep('consent-policy')}
       onOpenDeliveredLessons={openDeliveredLessons}
+      onOpenSupportNeeds={() => { parent.clearError(); parent.setStep('support-needs'); }}
+      newActionIdentity={parent.newActionIdentity}
+      onListContextEntries={parent.listContextEntries}
+      onCreateContextEntry={parent.createContextEntry}
       onSignOut={() => void parent.signOut()}
+    />);
+  }
+
+  if (parent.step === 'support-needs') {
+    const selectedProfile = parent.profile ?? selectProfileById(parent.profiles, parent.selectedProfileId);
+    if (!selectedProfile) {
+      return mainSection('profiles', <ScreenFrame
+        title="Nhu cầu hỗ trợ"
+        subtitle="Hãy chọn hồ sơ trước khi mở mục này."
+        onBack={() => parent.setStep('profile')}
+      ><Notice text="Hồ sơ không còn khả dụng." tone="warning" /></ScreenFrame>);
+    }
+    return mainSection('profiles', <SupportNeedsScreen
+      profileId={selectedProfile.profile_id}
+      newActionIdentity={parent.newActionIdentity}
+      onLoad={parent.getSupportNeeds}
+      onSave={parent.putSupportNeeds}
+      onBack={() => { parent.clearError(); parent.setStep('profile'); }}
     />);
   }
 
@@ -255,14 +321,31 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
       selectedPresetVersionId={parent.lesson?.version_id ?? null}
       lessonInvitations={parent.lessonInvitations}
       groupInvitations={parent.groupInvitations}
+      groupMemberships={parent.groupMemberships}
+      searchQuery={parent.searchQuery}
+      searchTopic={parent.searchTopic}
+      hasMoreLessons={parent.hasMoreLessons}
+      hasMoreGroupMemberships={parent.hasMoreGroupMemberships}
+      groupMembershipsLoading={parent.groupMembershipsLoading}
       loading={parent.lessonLoading}
       loadingId={parent.lessonLoadingId}
       error={parent.lessonError}
+      lessonExportLoadingId={parent.lessonExportLoadingId}
+      lessonExportError={parent.lessonExportError}
       onOpenLesson={(lessonId) => void parent.chooseLesson(lessonId)}
       onUseLesson={parent.setLesson}
+      onDownloadLesson={(lessonId, action) => void parent.downloadLesson(lessonId, action)}
+      onLoadFeedback={(lessonId) => platform.getLessonFeedback(lessonId)}
+      onLoadFeedbackReplies={(lessonId, cursor) => platform.listLessonFeedbackReplies(lessonId, cursor)}
+      onSubmitFeedback={(lessonId, text, actionIdentity) => platform.submitFeedback(lessonId, text, actionIdentity)}
       onAcceptLessonInvitation={(id) => void parent.acceptLessonInvitation(id)}
       onDeclineLessonInvitation={(id) => void parent.declineLessonInvitation(id)}
       onAcceptGroupInvitation={(id) => void parent.acceptGroupInvitation(id)}
+      onDeclineGroupInvitation={(id) => void parent.declineGroupInvitation(id)}
+      onLeaveGroup={(membership) => void parent.leaveGroup(membership)}
+      onSearchLessons={(query, topic) => void parent.searchLessons(query, topic)}
+      onLoadMoreLessons={() => void parent.loadMoreLessons()}
+      onLoadMoreGroupMemberships={() => void parent.loadMoreGroupMemberships()}
       onBack={() => parent.setStep('home')}
     />);
   }
@@ -297,39 +380,61 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
     onLoadMore={() => void platform.loadNotifications(platform.notificationsCursor)}
     onMarkRead={(id) => void platform.markNotificationRead(id)}
     onMarkAllRead={() => void platform.markAllNotificationsRead()}
+    onOpenStoryHistory={() => openHistory('profile')}
     onBack={() => parent.setStep('profile')}
   />);
   if (parent.step === 'quota') return mainSection('profiles', <QuotaScreen
     capability={platform.capabilities.quota}
     quota={platform.quota}
+    products={platform.quotaProducts}
+    invoices={platform.quotaInvoices}
+    paymentSettings={platform.quotaPaymentSettings}
     loading={platform.quotaBusy}
+    checkoutBusy={platform.quotaCheckoutBusy}
+    actionInvoiceId={platform.quotaActionInvoiceId}
     error={platform.quotaError}
+    paymentStatus={platform.quotaPaymentStatus}
+    now={platform.quotaClock}
+    reconcileSecondsRemaining={platform.quotaReconcileSecondsRemaining}
     onLoad={() => void platform.loadQuota()}
-    onBack={() => parent.setStep('profile')}
+    onCheckout={(productId, provider) => void platform.checkoutQuotaProduct(productId, provider)}
+    onResumePayment={(invoiceId, url) => void platform.resumeQuotaPayment(invoiceId, url)}
+    onReconcile={(invoiceId) => void platform.reconcileQuotaInvoice(invoiceId)}
+    onCancel={(invoiceId) => void platform.cancelExpiredQuotaInvoice(invoiceId)}
+    onBack={() => parent.setStep(quotaReturnStep)}
   />);
   if (parent.step === 'history') return mainSection('activity', <StoryHistoryScreen
     capability={platform.capabilities.runs}
     runs={platform.runs}
     loading={platform.runsBusy}
-    error={platform.runsError}
+    error={parent.error || platform.runsError}
     hasMore={Boolean(platform.runsCursor)}
     onLoad={() => void platform.loadRuns(parent.profile?.profile_id)}
     onLoadMore={() => void platform.loadRuns(parent.profile?.profile_id, platform.runsCursor)}
     onCancel={(id) => void platform.cancelRun(id)}
     onDelete={(id) => void platform.deleteRun(id)}
     onWatch={(id) => void parent.watchHistoryRun(id)}
+    recoveryBusy={parent.busy === 'history-story-recovery'}
+    onRecoverFailed={(id) => void parent.openFailedRunForRecovery(id)}
     onBack={() => parent.setStep(historyReturnStep)}
   />);
-  if (parent.step === 'profile-sharing') return mainSection('profiles', <ProfileSharingScreen
+  if (parent.step === 'profile-sharing') return mainSection('profiles', <ProfileShareScreen
     profile={parent.profile ?? selectedProfile}
     grants={platform.shares}
+    nextCursor={platform.sharesCursor}
     loading={platform.sharesBusy}
     error={platform.sharesError}
     capability={platform.shareCapability}
-    inviteState={platform.shareInviteState}
-    revokeState={platform.shareRevokeState}
-    onInvite={platform.inviteTeacher}
+    onLoad={platform.loadShares}
+    onCreate={platform.inviteTeacher}
+    onGetGrant={platform.getShareGrant}
     onRevoke={platform.revokeShare}
+    onListDeliveries={platform.listShareDeliveries}
+    onOpenConsentPolicy={() => parent.setStep('consent-policy')}
+    onBack={() => parent.setStep('profile')}
+  />);
+  if (parent.step === 'consent-policy') return mainSection('profiles', <ConsentPolicyScreen
+    onLoad={() => application.profiles.getConsentPolicy()}
     onBack={() => parent.setStep('profile')}
   />);
   if (parent.step === 'lesson-history') return mainSection('profiles', <LessonHistoryScreen
@@ -345,7 +450,7 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
   />);
 
   return <View style={{ flex: 1 }}>
-    {renderLearningStep(parent, platform, pendingCaptureSource, () => setPendingCaptureSource(null))}
+    {renderLearningStep(parent, platform, videoQuotaSummaryLoaded, pendingCaptureSource, () => setPendingCaptureSource(null), openQuota)}
     <VideoWatcher run={parent.contextRun} onVideoStep={parent.step === 'video'} onOpenVideo={() => parent.setStep('video')} onPoll={() => void parent.pollVideoQuietly()} />
   </View>;
 }
@@ -353,8 +458,10 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
 function renderLearningStep(
   parent: ReturnType<typeof useParentController>,
   platform: ReturnType<typeof useParentPlatformController>,
+  videoQuotaSummaryLoaded: boolean,
   pendingCaptureSource: 'camera' | 'gallery' | null,
   clearPendingCaptureIntent: () => void,
+  onOpenQuota: () => void,
 ): React.JSX.Element {
   const step: AppStep = parent.step;
   const stepLabel = (number: number): string => `${number} / 8`;
@@ -374,7 +481,10 @@ function renderLearningStep(
     && parent.subjectConfirmed
     && (parent.contextRun.main_activity?.state === 'SELECTED' || parent.story),
   );
-  const storyBlockedReason = 'Hãy hoàn tất lựa chọn hoạt động và xác nhận ngữ cảnh trước khi xem câu chuyện.';
+  const storyRecoveryAvailable = isRecoverableFirstStoryFailure(parent.contextRun) || parent.storyRecoveryContinuing;
+  const storyBlockedReason = storyRecoveryAvailable
+    ? ''
+    : 'Hãy hoàn tất lựa chọn hoạt động và xác nhận ngữ cảnh trước khi xem câu chuyện.';
   const canConfirmStory = canConfirmDisplayedStory({
     runId: parent.contextRun?.run_id,
     displayedRunId: parent.storyDisplayedRunId,
@@ -394,8 +504,8 @@ function renderLearningStep(
     topic={parent.topic}
     selectedTopicId={parent.selectedTopicId}
     cards={parent.topicSuggestions}
-    loading={parent.topicSuggestionBusy}
-    error={parent.topicSuggestionError}
+    loading={parent.topicSuggestionBusy || parent.subjectSuggestionBusy}
+    error={parent.topicSuggestionError || parent.subjectSuggestionError}
     canContinue={parent.topic.trim().length >= 2 && !parent.topicSuggestionBusy && !parent.subjectSuggestionBusy}
     stepLabel={stepLabel(1)}
     onSelect={parent.selectTopicCard}
@@ -409,7 +519,7 @@ function renderLearningStep(
     topic={parent.topic}
     topicId={parent.selectedTopicId}
     cards={parent.subjectSuggestions}
-    generationSource={parent.subjectSuggestionSets.at(-1)?.generation_source ?? null}
+    generationSource={parent.subjectGenerationSource === 'QWEN_DRAFT' ? null : parent.subjectGenerationSource}
     selectedSubject={parent.intendedDrawingSubject}
     customSubject={parent.customDrawingSubject}
     loading={parent.subjectSuggestionBusy}
@@ -435,7 +545,7 @@ function renderLearningStep(
     guideBusy={parent.guideBusy}
     guideError={parent.guideError}
     lesson={parent.lesson}
-    stepLabel={stepLabel(2)}
+    stepLabel={stepLabel(parent.selectedTopicId && parent.selectedTopicId !== 'lesson' ? 3 : 2)}
     canContinue={canOpenGuide}
     error={parent.error}
     onIdea={parent.setIdea}
@@ -446,25 +556,49 @@ function renderLearningStep(
     onContinue={parent.openDrawingGuide}
     onBack={() => parent.setStep(parent.lesson ? 'drawing-guide' : parent.selectedTopicId ? 'subject' : 'topic')}
   />;
-  if (step === 'sketch-guide') return <SketchGuideScreen
+  if (step === 'sketch-guide') return <LegacySketchGuideScreen
     topic={parent.topic}
     layout={null}
     draft={parent.guideDraft}
     level={parent.guideLevel}
     onLevelChange={(level) => void parent.createGuide(level)}
-    catalogChecked
+    catalogChecked={false}
     busy={parent.guideBusy}
     error={parent.guideError}
-    onFindCatalog={() => undefined}
+    onFindCatalog={parent.browseCatalogGuides}
     onGenerateDraft={() => void parent.createGuide()}
     onSkip={parent.openDrawingGuide}
     onBack={() => parent.setStep('idea')}
+  />;
+  if ((step === 'drawing-guide' && (!parent.lesson || parent.svgGuideDraft || parent.guideBusy || parent.guideError))
+    || (step === 'drawing-guide' && parent.catalogGuidePickerOpen)) return <SketchGuideScreen
+    topic={parent.topic}
+    draft={parent.svgGuideDraft}
+    catalogGuides={parent.catalogGuides}
+    selectedCatalogGuide={parent.selectedCatalogGuide}
+    catalogGuidePickerOpen={parent.catalogGuidePickerOpen}
+    catalogGuidesLoading={parent.catalogGuidesLoading}
+    catalogGuidesError={parent.catalogGuidesError}
+    canCreateGuide={parent.guideEnabled}
+    busy={parent.guideBusy}
+    error={parent.guideError}
+    onLoadCatalogGuides={() => void parent.loadSvgCatalogGuides()}
+    onChooseCatalogGuide={parent.chooseCatalogGuide}
+    onCreateGuide={() => void parent.createGuide()}
+    onContinue={parent.selectedCatalogGuide ? parent.continueAfterCatalogGuide : parent.continueAfterSketchGuide}
+    onSkip={parent.selectedCatalogGuide ? parent.continueAfterCatalogGuide : parent.continueAfterSketchGuide}
+    showSkip={!(parent.catalogGuidePickerOpen && parent.lesson && !parent.svgGuideDraft && !parent.guideBusy)}
+    skipLabel={parent.lesson ? 'Tiếp tục bài học' : 'Bỏ qua · chụp tranh'}
+    onBack={parent.catalogGuidePickerOpen
+      ? parent.closeCatalogGuidePicker
+      : () => parent.setStep('idea')}
   />;
   if (step === 'drawing-guide' && parent.lesson) return <DrawingGuideScreen
     lesson={parent.lesson}
     stepLabel={stepLabel(3)}
     currentIndex={parent.drawingGuideIndex}
     onIndexChange={parent.setDrawingGuideIndex}
+    onBrowseCatalog={parent.browseCatalogGuides}
     onContinue={parent.openContextReview}
     onBack={() => parent.setStep('idea')}
   />;
@@ -474,9 +608,14 @@ function renderLearningStep(
     loading={parent.lessonLoading}
     loadingId={parent.lessonLoadingId}
     error={parent.lessonError}
+    searchQuery={parent.searchQuery}
+    searchTopic={parent.searchTopic}
+    hasMore={parent.hasMoreLessons}
+    onSearch={(query, topic) => void parent.searchLessons(query, topic)}
+    onLoadMore={() => void parent.loadMoreLessons()}
     onSelect={(id) => void parent.chooseLesson(id)}
-    onClear={() => { parent.setLesson(null); parent.setStep('idea'); }}
-    onBack={() => parent.setStep('idea')}
+    onClear={() => { parent.setLesson(null); parent.setStep(parent.lessonPickerReturnStep); }}
+    onBack={() => parent.setStep(parent.lessonPickerReturnStep)}
   />;
   if (step === 'context') return <ContextScreen
     profile={parent.profile}
@@ -486,7 +625,8 @@ function renderLearningStep(
     confirmed={parent.contextConfirmed}
     error={parent.error}
     onRetryCreate={() => void parent.retryContextCreation()}
-    onConfirm={() => void parent.confirmContext()}
+    onConfirm={(selectedIds) => parent.confirmContext(selectedIds)}
+    onListContextEntries={parent.listContextEntries}
     onContinue={parent.continueToCapture}
     onBack={parent.contextRun?.context_confirmed ? undefined : parent.contextRun ? () => parent.setStep('activity') : () => parent.setStep('drawing-guide')}
   />;
@@ -501,7 +641,7 @@ function renderLearningStep(
     analysisFailed={parent.contextRun?.run_state === 'INPUT_REVIEW' && parent.contextRun.job_state === 'FAILED'}
     retakeAvailable={parent.retakeAvailable}
     initialCaptureSource={pendingCaptureSource}
-  onCaptureIntentHandled={clearPendingCaptureIntent}
+    onCaptureIntentHandled={clearPendingCaptureIntent}
     onPhoto={parent.setPhoto}
     onContinue={() => void parent.analyzeDrawingForCurrentRun()}
     onCheckStatus={() => void parent.resumeActiveRun()}
@@ -560,6 +700,9 @@ function renderLearningStep(
     activity={parent.contextRun?.main_activity?.selected ?? null}
     busy={['video-request', 'video-playback', 'video-unsuitable', 'video-complete', 'video-refresh'].includes(parent.busy) ? parent.busy : ''}
     error={parent.error}
+    quotaExceeded={parent.videoQuotaExceeded}
+    quotaSummary={videoQuotaSummaryLoaded ? platform.quota : null}
+    onOpenQuota={onOpenQuota}
     playback={parent.playback}
     reason={parent.videoReason}
     markingUnsuitable={parent.markingUnsuitable}
@@ -583,7 +726,7 @@ function renderLearningStep(
     blockedReason={storyBlockedReason}
     rewriteCount={parent.rewriteCount}
     rewriteInstruction={parent.rewriteInstruction}
-    busy={parent.busy === 'story' || parent.busy === 'rewrite' || parent.busy === 'confirm-story'}
+    busy={parent.busy === 'story' || parent.busy === 'rewrite' || parent.busy === 'confirm-story' || parent.busy === 'story-recovery'}
     attempted={parent.storyAttempted}
     generating={parent.busy === 'story'}
     canConfirm={canConfirmStory}
@@ -591,6 +734,13 @@ function renderLearningStep(
     confirmed={parent.storyConfirmed}
     rewriting={parent.busy === 'rewrite'}
     rewriteNotice={parent.rewriteNotice}
+    recovery={{
+      available: storyRecoveryAvailable,
+      busy: parent.busy === 'story-recovery',
+      hint: parent.storyRecoveryHint,
+      onHint: parent.setStoryRecoveryHint,
+      onRecover: () => void parent.recoverFirstStory(parent.storyRecoveryHint),
+    }}
     rewriteAfterVideo={parent.rewriteAfterVideo}
     confirmationRequired={parent.storyConfirmationRequired}
     onlyCancel={parent.storyOnlyCancel}

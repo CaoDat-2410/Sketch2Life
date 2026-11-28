@@ -31,6 +31,56 @@ import {
 } from '../parentPhaseB';
 import { base64ToBytes, uploadRunMedia, type BinaryDigestPort, type RunUploadKeys, type UploadSessionsPort } from '../parentRunUploads';
 import type { ParentVideoReasonCodeV1 } from '../../domain/types';
+import type { SvgTopicStrokeGuideDraftV1, SvgTopicStrokeGuideSourceDraftV1 } from '../../domain/svgGuide';
+
+export type RetainedSuggestedActivitySelectionAction = Readonly<{
+  signature: string;
+  identity: ParentActionIdentity;
+}>;
+
+export type SuggestedActivitySelectionKeyInput = Readonly<{
+  runId: string;
+  suggestionSetId: string;
+  activityIndex: number;
+  understandingRevision: number;
+}>;
+
+/** Keep the idempotency key tied to the exact suggestion choice across uncertain retries. */
+export function retainedSuggestedActivitySelectionAction(
+  actions: Map<string, RetainedSuggestedActivitySelectionAction>,
+  input: SuggestedActivitySelectionKeyInput,
+): RetainedSuggestedActivitySelectionAction {
+  const signature = JSON.stringify([
+    input.runId,
+    input.suggestionSetId,
+    input.activityIndex,
+    input.understandingRevision,
+  ]);
+  const existing = actions.get(signature);
+  if (existing) return existing;
+  const retained = { signature, identity: createParentActionIdentity() };
+  actions.set(signature, retained);
+  return retained;
+}
+
+/** Suggestion lookup can use Phase A when its dedicated route is absent or unavailable. */
+export function isActivitySuggestionFallbackError(cause: unknown): boolean {
+  return cause instanceof ParentApplicationError && (
+    cause.status === 404 || cause.status === 503
+    || cause.code === 'NETWORK_ERROR' || cause.code === 'REQUEST_TIMEOUT'
+  );
+}
+
+/** Only an explicitly unavailable selection route permits a Phase A selection fallback. */
+export function isActivitySelectionPhaseAFallbackError(cause: unknown): boolean {
+  return cause instanceof ParentApplicationError && (cause.status === 404 || cause.status === 503);
+}
+
+/** A network or timeout result is ambiguous, so keep the choice and replay the same key. */
+export function isUncertainActivitySelectionError(cause: unknown): boolean {
+  return cause instanceof ParentApplicationError
+    && (cause.code === 'NETWORK_ERROR' || cause.code === 'REQUEST_TIMEOUT');
+}
 
 /** Phone side of the uploads: generic upload sessions, SHA-256 and the bytes of a recorded file. */
 export interface ParentUploadPort {
@@ -49,19 +99,30 @@ export class ParentLearningUseCases {
   resumeDrawingAnalysisV1(runId: string, inputRevision: number): Promise<ParentDrawingAnalysisResumeV1> {
     return this.api.resumeDrawingAnalysisV1(runId, inputRevision);
   }
-  listTopicSuggestions(draftId: string, excludedSetIds: string[], requestId: string): Promise<ParentTopicSuggestionSetV1> {
+  listTopicSuggestions(draftId: string, excludedSetIds: string[], requestId?: string): Promise<ParentTopicSuggestionSetV1> {
     return this.api.listTopicSuggestions(draftId, excludedSetIds, requestId);
   }
   listDrawingSubjectSuggestions(input: {
-    draftId: string; topicId: string; topic: string; excludedSetIds: string[]; excludedSubjects?: string[]; requestId: string;
+    draftId: string; topicId: string; topic: string; excludedSetIds: string[]; excludedSubjects?: string[]; requestId?: string;
   }): Promise<ParentDrawingSubjectSuggestionSetV1> {
     return this.api.listDrawingSubjectSuggestions(input);
   }
   validateCustomSubject(input: { topicId: string; topic: string; subject: string }): Promise<ParentCustomSubjectValidationV1> {
     return this.api.validateCustomSubject(input);
   }
+  listSvgCatalogGuides(topicKey?: string, limit?: number) {
+    return this.api.listSvgCatalogGuides(topicKey, limit);
+  }
+  generateSketchGuide(topic: string, intendedSubject?: string): Promise<SvgTopicStrokeGuideSourceDraftV1>;
+  generateSketchGuide(
+    topic: string,
+    intendedSubject: string | undefined,
+    difficulty: 'beginner' | 'simple',
+  ): Promise<SvgTopicStrokeGuideDraftV1>;
   generateSketchGuide(topic: string, intendedSubject?: string, difficulty?: 'beginner' | 'simple') {
-    return this.api.generateSketchGuide(topic, intendedSubject, difficulty);
+    return difficulty === undefined
+      ? this.api.generateSketchGuide(topic, intendedSubject)
+      : this.api.generateSketchGuide(topic, intendedSubject, difficulty);
   }
   async createRunBeforeDrawingV1(input: {
     profileId: string;
@@ -129,7 +190,11 @@ export class ParentLearningUseCases {
       } } : {}),
     }, input.actionIdentity);
   }
-  confirmRunContextV1(run: ParentStoryRunV1, actionIdentity: ParentActionIdentity) {
+  confirmRunContextV1(
+    run: ParentStoryRunV1,
+    actionIdentity: ParentActionIdentity,
+    selectedContextEntryIds?: readonly string[],
+  ) {
     if (!run.run_id.trim() || run.context_revision < 1 || !run.context_snapshot_sha256.trim()) {
       throw new ParentApplicationError('PARENT_CONTEXT_SNAPSHOT_INVALID', 'Chưa thể xác nhận ngữ cảnh của buổi học này.');
     }
@@ -137,6 +202,7 @@ export class ParentLearningUseCases {
       expected_context_revision: run.context_revision,
       context_snapshot_sha256: run.context_snapshot_sha256,
       confirmed: true,
+      ...(selectedContextEntryIds === undefined ? {} : { selected_context_entry_ids: [...selectedContextEntryIds] }),
     }, actionIdentity);
   }
   createRunForDrawing(input: {
@@ -210,6 +276,24 @@ export class ParentLearningUseCases {
       throw new ParentApplicationError('PARENT_ACTIVITY_SELECTION_INVALID', 'Chưa xác nhận được hoạt động đã chọn.');
     }
     return this.api.selectActivityV1(runId, input, actionIdentity);
+  }
+  requestActivitySuggestionsV1(runId: string, revision: number, actionIdentity: ParentActionIdentity) {
+    return this.api.requestActivitySuggestionsV1(runId, revision, actionIdentity);
+  }
+  selectSuggestedActivityV1(input: {
+    runId: string;
+    suggestionSetId: string;
+    revision: number;
+    activityIndex: number;
+    actionIdentity: ParentActionIdentity;
+  }) {
+    return this.api.selectSuggestedActivityV1({
+      storyRunId: input.runId,
+      suggestionSetId: input.suggestionSetId,
+      revision: input.revision,
+      activityIndex: input.activityIndex,
+      actionIdentity: input.actionIdentity,
+    });
   }
   generateStory(runId: string, revision: number, rewriteInstruction?: string, rewriteCount = 0) {
     if (rewriteInstruction?.trim() && rewriteCount >= 3) {

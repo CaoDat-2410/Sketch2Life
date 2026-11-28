@@ -26,6 +26,19 @@ export type ConsentPolicy = {
   consent_text_sha256: string;
 };
 
+export type ParentConsentPolicyV1 = {
+  contract: 'ParentConsentPolicyV1';
+  request_id: string;
+  policy: ConsentPolicy & {
+    policy_state: 'PLACEHOLDER_NOT_APPROVED';
+    data_origin_scope: 'SYNTHETIC_TEST';
+    effective_from: string | null;
+    purposes: { purpose_code: string; text_key: string }[];
+    links: unknown[];
+    acceptance_recording: 'NOT_AVAILABLE';
+  };
+};
+
 export type LessonSummary = {
   contract?: 'ParentLessonSummaryV1';
   lesson_id: string;
@@ -36,6 +49,21 @@ export type LessonSummary = {
   target_age_band_version: number;
   activity_count: number;
   access_source: 'PUBLIC' | 'SHARED';
+};
+
+export type ParentLessonListOptions = {
+  source?: 'ALL' | 'PUBLIC' | 'SHARED';
+  q?: string;
+  topic?: string;
+  ageBand?: { ref: string; version: number };
+  cursor?: string | null;
+  limit?: number;
+};
+
+export type ParentLessonPage = {
+  contract: string;
+  items: LessonSummary[];
+  next_cursor: string | null;
 };
 
 export type Activity = {
@@ -73,6 +101,28 @@ export type LessonDetail = Omit<LessonSummary, 'contract'> & {
   activities: Activity[];
 };
 
+export type LessonExportV1 = Readonly<{
+  contract: 'LessonExportV1';
+  lesson_id: string;
+  version_id: string;
+  version_no: number;
+  content_sha256: string;
+  title: string;
+  topic: string;
+  locale: 'vi-VN';
+  target_age_band_ref: string;
+  target_age_band_version: number;
+  objectives: ReadonlyArray<string>;
+  drawing_subject: string;
+  drawing_steps_text: string;
+  subject_learning_notes: string;
+  script_direction: string | null;
+  script_following_allowed: boolean;
+  activities: ReadonlyArray<Activity>;
+  access_source: 'PUBLIC' | 'SHARED';
+  access_expires_at: string | null;
+}>;
+
 export type LessonInvitation = {
   contract?: 'LessonAccessGrantV1';
   access_grant_id: string;
@@ -89,10 +139,29 @@ export type ParentGroupInvitation = {
   contract?: 'ParentGroupMembershipV1';
   membership_id: string;
   parent_group_id: string;
-  state: 'INVITED' | 'ACTIVE' | 'REVOKED' | 'EXPIRED';
+  state: 'INVITED' | 'ACTIVE' | 'REVOKED' | 'EXPIRED' | 'DECLINED';
   invited_at: string;
   expires_at: string | null;
   revision: number;
+};
+
+export type ParentGroupMembershipV1 = {
+  contract: 'ParentGroupMembershipV1';
+  membership_id: string;
+  parent_group_id: string;
+  organization_id?: string;
+  state: 'INVITED' | 'ACTIVE' | 'REVOKED' | 'EXPIRED' | 'DECLINED';
+  invited_at: string;
+  expires_at: string | null;
+  accepted_at: string | null;
+  revision: number;
+  revision_source: string;
+};
+
+export type ParentGroupMembershipPage = {
+  contract: string;
+  items: ParentGroupMembershipV1[];
+  next_cursor: string | null;
 };
 
 export type ParentCandidate = {
@@ -222,6 +291,71 @@ export type ParentProfileSharePage = {
   items: ParentProfileShareGrant[];
 };
 
+export type ParentShareField = 'DISPLAY_NAME' | 'AGE_BAND' | 'INTERESTS_SUMMARY';
+
+export type ParentShareGrantV1 = {
+  contract: 'ParentShareGrantV1';
+  share_grant_id: string;
+  profile_id: string;
+  state: 'INVITED' | 'ACTIVE' | 'REVOKED' | 'EXPIRED';
+  granted_fields: ParentShareField[];
+  created_at: string;
+  invitation_expires_at: string;
+  accepted_at: string | null;
+  expires_at: string | null;
+  revoked_at: string | null;
+  revision: number;
+};
+
+export type ParentShareGrantCreatedV1 = ParentShareGrantV1 & { invitation_code: string | null };
+
+export type ParentShareGrantPageV1 = {
+  contract: 'ParentShareGrantListV1';
+  items: ParentShareGrantV1[];
+  next_cursor: string | null;
+};
+
+export type ParentShareDeliveryV1 = { delivered_at: string; title: string | null };
+
+export type ParentShareDeliveryPageV1 = {
+  contract: 'ParentShareDeliveryListV1';
+  share_grant_id: string;
+  content_access: 'AVAILABLE' | 'ENDED';
+  items: ParentShareDeliveryV1[];
+  next_cursor: string | null;
+};
+
+export type ParentLessonFeedbackV1 = {
+  contract: 'ParentLessonFeedbackV1';
+  feedback_id: string;
+  lesson_id: string;
+  version_id: string;
+  revision: number;
+  feedback_text: string;
+  created_at: string;
+  updated_at: string;
+  reply_count: number;
+};
+
+export type ParentLessonFeedbackStateV1 = {
+  contract: 'ParentLessonFeedbackStateV1';
+  lesson_id: string;
+  feedback: ParentLessonFeedbackV1 | null;
+};
+
+export type ParentLessonFeedbackReplyV1 = {
+  reply_id: string;
+  reply_text: string;
+  created_at: string;
+};
+
+export type ParentLessonFeedbackReplyPageV1 = {
+  contract: 'ParentLessonFeedbackReplyPageV1';
+  feedback_id: string | null;
+  items: ParentLessonFeedbackReplyV1[];
+  next_cursor: string | null;
+};
+
 export type ParentNotification = {
   contract: 'NotificationV1';
   inbox_item_id: string;
@@ -245,14 +379,110 @@ export type ParentNotificationReadAllV1 = {
   marked_count: number;
 };
 
+export type PushEndpointRegistrationV1 = {
+  contract: 'PushEndpointRegistrationV1';
+  platform_kind: 'WEB' | 'ANDROID';
+  provider_kind: 'WEB_PUSH' | 'ANDROID_PUSH';
+  encrypted_registration_proof: string;
+  app_version?: string;
+};
+
+export type PushEndpointRegistrationResultV1 = {
+  contract: string;
+  endpoint_id: string;
+  version: number;
+};
+
+/** Parent-scoped BE1 quota summary. Field names mirror the billing service response. */
+export type ParentQuotaGrant = {
+  grant_id: string;
+  kind: string;
+  units: number;
+  used: number;
+  available: number;
+  period: string | null;
+  expires_at: string | null;
+};
+
+export type ParentQuotaAllocation = {
+  allocated_unused_units: number;
+  available_school_units: number;
+  teachers: {
+    teacher_ref: string;
+    allocation_id: string;
+    available_units: number;
+    revision: number;
+    active: boolean;
+  }[];
+};
+
 export type ParentVideoQuota = {
-  contract: 'ParentVideoQuotaSummaryV1';
-  configuration_state: 'CONFIGURED' | 'NOT_CONFIGURED';
-  period_start: string;
-  period_end: string;
-  granted: number | null;
-  used: number | null;
-  available: number | null;
+  owner_kind: string;
+  available_units: number;
+  granted_units: number;
+  used_units: number;
+  grants: ParentQuotaGrant[];
+  allocation: ParentQuotaAllocation | null;
+};
+
+export type ParentQuotaProduct = {
+  product_id: string;
+  offer_id: string;
+  version: number;
+  display_name: string;
+  offer_kind: 'MONTHLY' | 'TOP_UP';
+  cycle_months: number | null;
+  units: number;
+  amount_vnd: number;
+  active: boolean;
+};
+
+export type ParentQuotaPaymentAttempt = {
+  provider: string;
+  state: string;
+  checkout_url: string | null;
+  expires_at: string | null;
+};
+
+export type ParentQuotaInvoice = {
+  invoice_id: string;
+  units: number;
+  amount_vnd: number;
+  state: string;
+  provider: string;
+  payment_mode: string;
+  created_at: string | null;
+  attempts: ParentQuotaPaymentAttempt[];
+};
+
+export type ParentQuotaInvoicePage = { items: ParentQuotaInvoice[]; total: number };
+
+export type ParentQuotaPaymentSettings = {
+  real_payments_enabled: boolean;
+  momo_checkout_enabled: boolean;
+  vnpay_checkout_enabled: boolean;
+  momo_sandbox_enabled: boolean;
+  vnpay_sandbox_enabled: boolean;
+  monthly_auto_renew_enabled: boolean;
+};
+
+export type ParentQuotaCheckoutResult = {
+  invoice_id: string;
+  state: string;
+  checkout_url: string | null;
+};
+
+export type ParentQuotaReconcileResult = {
+  invoice_id: string;
+  state: string;
+  reconciled: boolean;
+};
+
+export type ParentQuotaCancelResult = {
+  invoice_id: string;
+  state: string;
+  canceled: boolean;
+  reconciled: boolean;
 };
 
 export type ParentLessonDelivery = {
@@ -353,6 +583,56 @@ export type ParentProfilePatchV1 = {
   interests_summary?: string | null;
 };
 
+export type ParentContextEntryKind = 'OBSERVATION' | 'ACHIEVEMENT' | 'OUTSIDE_EXPERIENCE';
+
+export type ParentContextEntryV1 = {
+  context_entry_id: string;
+  entry_kind: ParentContextEntryKind;
+  short_text: string;
+  source_kind: string;
+  approximate_date: string | null;
+  created_at: string;
+};
+
+export type ParentContextEntryListView = {
+  context_entries: ParentContextEntryV1[];
+  next_cursor: string | null;
+  limit: number;
+};
+
+/** source_ref is part of the server contract, but this client never sends it. */
+export type CreateParentContextEntryRequest = {
+  entry_kind: ParentContextEntryKind;
+  short_text: string;
+  source_kind: string;
+  source_ref?: string;
+  approximate_date?: string;
+};
+
+export type ParentContextEntryEnvelope = {
+  context_entry: ParentContextEntryV1;
+};
+
+export type ParentSupportNeedsV1 = {
+  contract: 'ParentSupportNeedsV1';
+  profile_id: string;
+  revision: number;
+  category: string | null;
+  note: string | null;
+};
+
+export type SupportNeedsPutV1 = {
+  expected_revision: number;
+  category: string | null;
+  note: string | null;
+};
+
+export type ParentSupportNeedsWriteV1 = {
+  contract: 'ParentSupportNeedsWriteV1';
+  profile_id: string;
+  revision: number;
+};
+
 export type ParentLessonVersionPinV1 = {
   lesson_id: string;
   version_id: string;
@@ -368,6 +648,27 @@ export type ParentStoryContextV1 = {
   age_months: number;
   interests_summary: string;
 };
+
+export type ParentRunContextSnapshotV1 = ParentStoryContextV1;
+
+export type ParentRunContextSnapshotV2 = {
+  schema_version: 'sketch2life.parent-context.v2';
+  profile_revision_ref: string;
+  age_months: number;
+  interests_summary: string;
+  topic: string;
+  adult_confirmed_idea: string;
+  selected_entries: Array<{
+    kind: ParentContextEntryKind;
+    text: string;
+  }>;
+};
+
+export function isParentRunContextSnapshotV2(
+  snapshot: ParentRunContextSnapshotV1 | ParentRunContextSnapshotV2,
+): snapshot is ParentRunContextSnapshotV2 {
+  return snapshot.schema_version === 'sketch2life.parent-context.v2';
+}
 
 /** V1 StoryRun is separate from the legacy consent-bearing StoryRun type. */
 export type ParentLessonPinSnapshotV1 = ParentLessonVersionPinV1 & {
@@ -442,7 +743,7 @@ export type ParentActivityV1 = {
   observation_notes: string;
   safety_notes: string;
   activity_kind: 'outdoor' | 'indoor' | 'mixed';
-  source: 'PINNED_LESSON' | 'PUBLIC' | 'SHARED' | 'PUBLISHED_SHARED_LESSON' | 'AI_GENERATED_DRAFT';
+  source: 'PINNED_LESSON' | 'PUBLIC' | 'SHARED' | 'PUBLISHED_SHARED_LESSON' | 'AI_GENERATED_DRAFT' | 'AI_DRAFT';
   lesson_title: string | null;
   lesson_topic: string | null;
 };
@@ -490,6 +791,19 @@ export type ParentActivityListV1 = {
   };
 };
 
+export type ParentActivitySelectionReceiptV1 = Readonly<{
+  contract: 'ParentActivitySelectionReceiptV1';
+  request_id: string;
+  story_run_id: string;
+  suggestion_set_id: string;
+  activity_selection_id: string;
+  selection_revision: number;
+  understanding_revision: number;
+  activity_index: number;
+  activity_snapshot_sha256: string;
+  persisted_at: string;
+}>;
+
 export type ParentTopicCardV1 = Readonly<{
   topic_id: string;
   title_vi: string;
@@ -521,7 +835,7 @@ export type ParentDrawingSubjectSuggestionSetV1 = Readonly<{
   topic_id: string;
   topic: string;
   catalog_revision: string;
-  generation_source: 'CURATED_CATALOG' | 'CUSTOM_INPUT_REQUIRED';
+  generation_source: 'CURATED_CATALOG' | 'CUSTOM_INPUT_REQUIRED' | 'QWEN_DRAFT';
   review_required: true;
   cards: ReadonlyArray<ParentDrawingSubjectCardV1>;
   excluded_set_ids: ReadonlyArray<string>;
@@ -550,7 +864,19 @@ export type ParentMainActivityV1 = {
   selected_at: string | null;
 };
 
-export type ParentPostVideoActivityV1 = ParentActivityV1 & { is_main: boolean };
+type ParentPostVideoActivityBaseV1 = Omit<ParentActivityV1, 'activity_ref' | 'source'> & {
+  is_main: boolean;
+};
+
+export type ParentPostVideoActivityV1 =
+  | (ParentPostVideoActivityBaseV1 & {
+    activity_ref: ParentActivityRefV1;
+    source: 'PINNED_LESSON' | 'PUBLIC' | 'SHARED';
+  })
+  | (ParentPostVideoActivityBaseV1 & {
+    activity_ref: null;
+    source: 'AI_DRAFT';
+  });
 
 export type ParentDrawingCandidateDecisionV1 =
   | 'REVIEW_REQUIRED'
@@ -614,7 +940,7 @@ export type ParentStoryRunV1 = {
   profile_revision_ref: string;
   context_revision: number;
   context_confirmed: boolean;
-  context_snapshot: ParentStoryContextV1;
+  context_snapshot: ParentRunContextSnapshotV1 | ParentRunContextSnapshotV2;
   context_snapshot_sha256: string;
   lesson_pin_snapshot?: ParentLessonPinSnapshotV1 | null;
   current_input_revision: number | null;
@@ -669,6 +995,7 @@ export type ParentStoryContextConfirmationV1 = {
   expected_context_revision: number;
   context_snapshot_sha256: string;
   confirmed: true;
+  selected_context_entry_ids?: readonly string[];
 };
 
 export type ParentStorySubjectConfirmationV1 = {

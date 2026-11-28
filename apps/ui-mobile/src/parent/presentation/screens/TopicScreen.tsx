@@ -46,7 +46,7 @@ export function TopicScreen(props: Props): React.JSX.Element {
       <Text style={styles.customTitle}>Chủ đề riêng</Text>
       <View style={styles.inputWrap}>
         <Ionicons name="pencil-outline" size={18} color={palette.creativeMuted} accessible={false} />
-        <TextInput accessibilityLabel="Nhập chủ đề riêng" value={props.selectedTopicId === 'custom' ? props.topic : ''} onChangeText={props.onTopic} placeholder="Ví dụ: Khu vườn phép thuật" placeholderTextColor={palette.creativeMuted} style={styles.input} />
+        <TextInput accessibilityLabel="Nhập chủ đề riêng" value={props.selectedTopicId === 'custom' ? props.topic : ''} onChangeText={props.onTopic} maxLength={120} placeholder="Ví dụ: Khu vườn phép thuật" placeholderTextColor={palette.creativeMuted} style={styles.input} />
       </View>
       <Text style={styles.subcopy}>Chủ đề trong thư viện sẽ có thẻ vẽ riêng. Chủ đề mới: nhập đối tượng ở bước sau.</Text>
     </Card>

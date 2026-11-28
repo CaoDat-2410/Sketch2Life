@@ -247,6 +247,13 @@ export type SvgTopicStrokeGuideDraftV1 =
   | SvgTopicStrokeGuideSourceDraftV1
   | SvgTopicStrokeGuideConstructionDraftV1;
 
+export type SvgTopicStrokeGuideRequestV1 = Readonly<{
+  contract: 'SvgTopicStrokeGuideRequestV1';
+  topic: string;
+  intended_subject?: string;
+  difficulty?: 'beginner' | 'simple';
+}>;
+
 export type SvgReferenceSourceProvenanceV1 = Readonly<{
   asset_id: string;
   dataset_name: string;
@@ -269,10 +276,257 @@ export type ParentSvgGuideItemV1 = Readonly<{
   guide: SketchStrokeGuideV3;
 }>;
 
+export type SvgGuideCatalogItemV1 = Readonly<{
+  contract: 'SvgGuideCatalogItemV1';
+  catalog_entry_id: string;
+  guide_revision_id: string;
+  topic_key: string;
+  title_vi: string;
+  alt_text_vi: string;
+  source_uri: string;
+  license_id: string;
+  license_uri: string;
+  source_sha256: string;
+  guide_sha256: string;
+  document: SvgDocumentV1;
+  guide: SketchStrokeGuideV3;
+}>;
+
 export type ParentSvgGuidePageV1 = Readonly<{
   contract: 'SvgGuideCatalogPageV1';
   items: ReadonlyArray<ParentSvgGuideItemV1>;
 }>;
+
+export type SvgGuideCatalogPageV1 = Readonly<{
+  contract: 'SvgGuideCatalogPageV1';
+  items: ReadonlyArray<SvgGuideCatalogItemV1>;
+}>;
+
+const SVG_ID_PATTERN = /^[A-Za-z0-9._:-]{1,96}$/;
+const SVG_PATH_DATA_PATTERN = /^[AaCcHhLlMmQqSsTtVvZz0-9+.,\-\sEe]+$/;
+const SVG_VIEW_BOX_PATTERN = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)? [+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)? [+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)? [+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/;
+
+/** Validates a reviewed catalog item before it reaches the SVG renderer. */
+export function isSafeSvgGuideCatalogItem(value: unknown): value is SvgGuideCatalogItemV1 {
+  if (!isRecord(value)
+    || value.contract !== 'SvgGuideCatalogItemV1'
+    || !isSvgIdentifier(value.catalog_entry_id)
+    || !isSvgIdentifier(value.guide_revision_id)
+    || typeof value.topic_key !== 'string' || !/^[a-z0-9-]{1,120}$/.test(value.topic_key)
+    || !isSafeSvgText(value.title_vi, 1, 300)
+    || !isSafeSvgText(value.alt_text_vi, 1, 500)
+    || !isHttpsUrl(value.source_uri)
+    || !isSafeSvgText(value.license_id, 1, 120)
+    || !isHttpsUrl(value.license_uri)
+    || !isSha256(value.source_sha256)
+    || !isSha256(value.guide_sha256)) return false;
+
+  const document = value.document;
+  const guide = value.guide;
+  if (!isRecord(document) || document.schema_version !== 'SvgDocumentV1'
+    || typeof document.view_box !== 'string' || !isValidSvgViewBox(document.view_box)
+    || !Array.isArray(document.paths) || document.paths.length < 1 || document.paths.length > 400
+    || !isRecord(guide) || guide.schema_version !== 'SketchStrokeGuideV3'
+    || !isSvgIdentifier(guide.guide_id)
+    || !isSafeSvgText(guide.title_vi, 1, 300)
+    || !isSafeSvgText(guide.source_asset_ref, 1, 2048)
+    || typeof guide.source_asset_version !== 'number' || !Number.isInteger(guide.source_asset_version) || guide.source_asset_version < 1
+    || guide.source_sha256 !== value.source_sha256
+    || !Array.isArray(guide.parts) || guide.parts.length < 1 || guide.parts.length > 32
+    || !Array.isArray(guide.stages) || guide.stages.length < 4 || guide.stages.length > 8) return false;
+
+  const pathIds = new Set<string>();
+  for (const path of document.paths) {
+    if (!isRecord(path)
+      || !isSvgIdentifier(path.path_id)
+      || pathIds.has(path.path_id)
+      || typeof path.d !== 'string' || path.d.length < 1 || path.d.length > 8192
+      || !SVG_PATH_DATA_PATTERN.test(path.d)
+      || !isSafeSvgPaint(path.fill)
+      || !isSafeSvgPaint(path.stroke)
+      || typeof path.stroke_width !== 'number' || !Number.isFinite(path.stroke_width)
+      || path.stroke_width <= 0 || path.stroke_width > 64) return false;
+    pathIds.add(path.path_id);
+  }
+
+  const partIds = new Set<string>();
+  for (const part of guide.parts) {
+    if (!isRecord(part)
+      || !isSvgIdentifier(part.part_id)
+      || partIds.has(part.part_id)
+      || !isSafeSvgText(part.label_vi, 1, 300)
+      || !isStringArray(part.path_ids, 1, 64)
+      || !part.path_ids.every((id) => pathIds.has(id))
+      || !isStringArray(part.depends_on, 0, 32)) return false;
+    partIds.add(part.part_id);
+  }
+  for (const part of guide.parts) {
+    if (!isRecord(part)
+      || !isStringArray(part.depends_on, 0, 32)
+      || !part.depends_on.every((id) => partIds.has(id))) return false;
+  }
+
+  for (const [index, stage] of guide.stages.entries()) {
+    if (!isRecord(stage)
+      || stage.step_index !== index + 1
+      || typeof stage.instruction_vi !== 'string' || !isSafeSvgText(stage.instruction_vi, 1, 120)
+      || !isStringArray(stage.part_ids, 1, 32) || !stage.part_ids.every((id) => partIds.has(id))
+      || !isStringArray(stage.new_path_ids, 1, 64) || !stage.new_path_ids.every((id) => pathIds.has(id))
+      || !isStringArray(stage.animation_order, 1, 64) || !stage.animation_order.every((id) => pathIds.has(id))) return false;
+  }
+
+  return true;
+}
+
+export function filterSafeSvgGuideCatalogItems(values: readonly unknown[]): SvgGuideCatalogItemV1[] {
+  return values.filter(isSafeSvgGuideCatalogItem);
+}
+
+export function svgGuideCatalogAttribution(item: SvgGuideCatalogItemV1): string {
+  let host = 'nguồn trực tuyến';
+  try {
+    host = new URL(item.source_uri).host;
+  } catch {
+    // The catalog item is already validated; keep attribution readable if URL parsing is unavailable.
+  }
+  return `Nguồn: ${host} · Giấy phép ${item.license_id}`;
+}
+
+function isSvgIdentifier(value: unknown): value is string {
+  return typeof value === 'string' && SVG_ID_PATTERN.test(value);
+}
+
+function isSafeSvgText(value: unknown, minLength: number, maxLength: number): value is string {
+  return typeof value === 'string'
+    && value.length >= minLength
+    && value.length <= maxLength
+    && !/[<>]/.test(value)
+    && !/[\u0000-\u001f\u007f]/.test(value);
+}
+
+function isSha256(value: unknown): value is string {
+  return typeof value === 'string' && /^[0-9a-f]{64}$/.test(value);
+}
+
+function isHttpsUrl(value: unknown): value is string {
+  if (typeof value !== 'string' || value.length > 2048 || /[<>\u0000-\u0020]/.test(value)) return false;
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' && Boolean(url.hostname) && !url.username && !url.password;
+  } catch {
+    return false;
+  }
+}
+
+function isSafeSvgPaint(value: unknown): value is string {
+  return typeof value === 'string'
+    && value.length <= 64
+    && /^(?:none|#[0-9a-fA-F]{3,8}|[a-zA-Z]{1,32}|rgba?\([0-9\s.,%]+\))$/.test(value);
+}
+
+/** Checks the response fields used by the mobile renderer before passing paths to react-native-svg. */
+export function isSafeSvgTopicStrokeGuideSourceDraft(
+  value: unknown,
+): value is SvgTopicStrokeGuideSourceDraftV1 {
+  if (!isRecord(value)
+    || value.contract !== 'SvgTopicStrokeGuideSourceDraftV1'
+    || typeof value.request_id !== 'string' || !SVG_ID_PATTERN.test(value.request_id)
+    || typeof value.topic !== 'string' || value.topic.length < 2 || value.topic.length > 120
+    || (value.intended_subject !== undefined && value.intended_subject !== null
+      && (typeof value.intended_subject !== 'string' || value.intended_subject.length < 2 || value.intended_subject.length > 160))
+    || value.status !== 'DRAFT'
+    || value.review_required !== true
+    || value.persisted !== false
+    || typeof value.document_sha256 !== 'string' || !/^[0-9a-f]{64}$/.test(value.document_sha256)
+    || (value.generation_source !== 'CURATED_SOURCE_DERIVATION'
+      && value.generation_source !== 'QWEN_SOURCE_PATH_DERIVATION')) return false;
+
+  const document = value.document;
+  const guide = value.guide;
+  if (!isRecord(document) || document.schema_version !== 'SvgDocumentV1'
+    || typeof document.view_box !== 'string' || !isValidSvgViewBox(document.view_box)
+    || !Array.isArray(document.paths) || document.paths.length < 1 || document.paths.length > 400
+    || !isRecord(guide) || guide.schema_version !== 'SvgTopicStrokeGuideV1'
+    || typeof guide.guide_id !== 'string' || !SVG_ID_PATTERN.test(guide.guide_id)
+    || typeof guide.title_vi !== 'string' || guide.title_vi.length < 1 || guide.title_vi.length > 300
+    || !Array.isArray(guide.parts) || guide.parts.length < 1 || guide.parts.length > 32
+    || !Array.isArray(guide.stages) || guide.stages.length < 4 || guide.stages.length > 8
+    || value.path_count !== document.paths.length || value.stage_count !== guide.stages.length
+    || !isRecord(value.derivation) || !isRecord(value.reference_source)
+    || !isRecord(value.reference_illustration)
+    || value.reference_illustration.schema_version !== 'SvgReferenceIllustrationV1'
+    || typeof value.reference_illustration.view_box !== 'string'
+    || !isValidSvgViewBox(value.reference_illustration.view_box)
+    || !Array.isArray(value.reference_illustration.paths)
+    || value.reference_illustration.paths.length < 1 || value.reference_illustration.paths.length > 400
+    || !Array.isArray(value.quality_gates_passed)
+    || value.quality_gates_passed.length < 4 || value.quality_gates_passed.length > 16) return false;
+
+  const pathIds = new Set<string>();
+  for (const path of document.paths) {
+    if (!isRecord(path)
+      || typeof path.path_id !== 'string' || !SVG_ID_PATTERN.test(path.path_id)
+      || pathIds.has(path.path_id)
+      || typeof path.d !== 'string' || path.d.length < 1 || path.d.length > 8192
+      || !SVG_PATH_DATA_PATTERN.test(path.d)
+      || typeof path.fill !== 'string' || typeof path.stroke !== 'string'
+      || typeof path.stroke_width !== 'number' || !Number.isFinite(path.stroke_width)
+      || path.stroke_width <= 0 || path.stroke_width > 64) return false;
+    pathIds.add(path.path_id);
+  }
+
+  const partIds = new Set<string>();
+  for (const part of guide.parts) {
+    if (!isRecord(part)
+      || typeof part.part_id !== 'string' || !SVG_ID_PATTERN.test(part.part_id)
+      || partIds.has(part.part_id)
+      || typeof part.label_vi !== 'string' || part.label_vi.length < 1 || part.label_vi.length > 300
+      || !isStringArray(part.path_ids, 1, 64) || !part.path_ids.every((id) => pathIds.has(id))
+      || !isStringArray(part.depends_on, 0, 32)) return false;
+    partIds.add(part.part_id);
+  }
+
+  for (const stage of guide.stages) {
+    if (!isRecord(stage)
+      || typeof stage.step_index !== 'number' || !Number.isInteger(stage.step_index) || stage.step_index < 1 || stage.step_index > 8
+      || typeof stage.instruction_vi !== 'string' || stage.instruction_vi.length < 1 || stage.instruction_vi.length > 120
+      || !isStringArray(stage.part_ids, 1, 32) || !stage.part_ids.every((id) => partIds.has(id))
+      || !isStringArray(stage.new_path_ids, 1, 64) || !stage.new_path_ids.every((id) => pathIds.has(id))
+      || !isStringArray(stage.animation_order, 1, 64) || !stage.animation_order.every((id) => pathIds.has(id))) return false;
+  }
+
+  return true;
+}
+
+export function svgGuideFailureMessage(code: string): string {
+  if (code === 'CURATED_SVG_GUIDE_NOT_FOUND') {
+    return 'Chưa có hướng dẫn nét vẽ cho chủ đề này. Bạn vẫn có thể tiếp tục chụp tranh mà không cần gợi ý.';
+  }
+  if (code === 'CURATED_SVG_GUIDE_UNAVAILABLE') {
+    return 'Kho hướng dẫn nét vẽ đang tạm thời không sẵn sàng. Bạn vẫn có thể tiếp tục chụp tranh mà không cần gợi ý.';
+  }
+  return 'Chưa tải được gợi ý nét vẽ. Đây là bước tùy chọn; bạn có thể tiếp tục chụp tranh mà không cần gợi ý.';
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isStringArray(value: unknown, min: number, max: number): value is string[] {
+  return Array.isArray(value)
+    && value.length >= min
+    && value.length <= max
+    && value.every((item) => typeof item === 'string' && item.length > 0 && item.length <= 96);
+}
+
+export function isValidSvgViewBox(value: string): boolean {
+  if (!SVG_VIEW_BOX_PATTERN.test(value)) return false;
+  const dimensions = value.split(' ').map(Number);
+  return dimensions.length === 4
+    && dimensions.every(Number.isFinite)
+    && dimensions[2] > 0
+    && dimensions[3] > 0;
+}
 
 export function orderedVisiblePathIds(guide: ProgressiveStrokeGuideV1, stageIndex: number): string[] {
   return guide.stages.slice(0, stageIndex + 1).flatMap((stage) => stage.animation_order);

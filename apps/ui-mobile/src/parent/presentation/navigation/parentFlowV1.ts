@@ -17,6 +17,23 @@ import { ParentApplicationError } from '../../application/ParentApplicationError
 export type ProfileFieldKey = 'display_name' | 'age_months' | 'interests_summary';
 export type ProfileFieldMessages = Partial<Record<ProfileFieldKey, string>>;
 
+export const STORY_RECOVERY_COPY = {
+  title: 'Chưa tạo được câu chuyện',
+  body: 'Bản câu chuyện vừa rồi chưa đạt yêu cầu nên chưa được hiển thị. Bạn có thể nhờ ứng dụng tạo lại một lần, dựa trên bức tranh, chủ thể và ngữ cảnh bạn đã xác nhận. Hệ thống sẽ kiểm tra lại các thông tin này trước khi tạo. Lần này tính là một trong ba lần viết lại.',
+  hintLabel: 'Gợi ý cho lần tạo lại (không bắt buộc)',
+  hintHelper: 'Không ghi tên, địa chỉ, trường lớp hay thông tin nhận diện của bé. Tối đa 400 ký tự, không xuống dòng.',
+  button: 'Tạo lại câu chuyện',
+  inFlight: 'Đang tạo lại câu chuyện. Bạn không cần gửi lại yêu cầu.',
+  timeout: 'Việc tạo lại đang mất lâu hơn dự kiến. Hãy kiểm tra lại sau; không gửi yêu cầu trùng.',
+  unknownOutcome: 'Đang kiểm tra trạng thái yêu cầu. Không gửi yêu cầu trùng lặp.',
+  terminalFailure: 'Vẫn chưa tạo được câu chuyện nên buổi học đã dừng. Chưa có câu chuyện nào để xem. Bạn có thể xem lịch sử hoặc bắt đầu một buổi học mới.',
+  eligibleFailure: 'Chưa tạo được câu chuyện. Bạn có thể thử tạo lại một lần.',
+  limitReached: 'Buổi học này không thể tạo lại câu chuyện nữa. Bạn có thể xem lịch sử hoặc bắt đầu một buổi học mới.',
+  staleState: 'Thông tin của buổi học đã thay đổi nên chưa thể tạo lại câu chuyện. Bạn có thể bắt đầu một buổi học mới.',
+  activeRunExists: 'Hồ sơ đang có buổi học chưa hoàn tất. Hãy tiếp tục buổi học hiện tại.',
+  hintInvalid: 'Gợi ý viết lại tối đa 400 ký tự, không xuống dòng.',
+} as const;
+
 export function mergeProfilePage(
   current: readonly ParentProfileViewV1[],
   page: ParentProfilePageV1,
@@ -493,6 +510,26 @@ export function canRequestStoryRevision(input: {
   return input.storyPresent && (input.rewriteCount < 3 || input.allowSameActionRetry);
 }
 
+export function isRecoverableFirstStoryFailure(
+  run: ParentStoryRunV1 | null | undefined,
+  expectedRunId?: string,
+): boolean {
+  return Boolean(
+    run
+    && (expectedRunId === undefined || run.run_id === expectedRunId)
+    && run.run_state === 'FAILED'
+    && run.story_revision_no === 1
+    && run.story_status === 'FAILED'
+    && run.job_state === 'FAILED'
+    && run.error_code === 'STORY_OUTPUT_INVALID'
+    && run.retryable === false,
+  );
+}
+
+export function storyRecoverySignature(runId: string, hint?: string): string {
+  return JSON.stringify([runId, 'first-story-recovery', 1, hint]);
+}
+
 export function canConfirmDisplayedStory(input: {
   runId: string | null | undefined;
   displayedRunId: string | null | undefined;
@@ -612,11 +649,18 @@ export function subjectRolesIssueMessage(reason: 'LABEL_EMPTY' | 'LABEL_TOO_LONG
   return messages[reason];
 }
 
+export function isVideoQuotaExceededError(error: unknown): boolean {
+  return readErrorCode(error) === 'VIDEO_QUOTA_EXCEEDED';
+}
+
 export function safeParentFlowErrorMessage(error: unknown): string {
   const code = readErrorCode(error);
   const messages: Record<string, string> = {
     ACTION_NOT_ALLOWED: 'Tài khoản hiện không thể thực hiện thao tác này.',
     PARENT_STORE_UNAVAILABLE: 'Hồ sơ đang tạm thời không khả dụng. Vui lòng thử lại sau.',
+    PARENT_PROFILE_STORE_UNAVAILABLE: 'Ghi chú hồ sơ đang tạm thời không khả dụng. Hãy thử lại sau.',
+    SUPPORT_NEEDS_UNAVAILABLE: 'Mục này chưa khả dụng, hãy thử lại sau.',
+    PROFILE_NOT_FOUND: 'Hồ sơ không còn khả dụng.',
     PARENT_STORY_RUN_STORE_UNAVAILABLE: 'Buổi học đang tạm thời không khả dụng. Hãy thử tải lại sau.',
     UPLOAD_SESSION_CREATE_UNAVAILABLE: 'Ảnh chưa được tải lên. Bạn có thể thử lại một lần.',
     DEPENDENCY_UNAVAILABLE: 'Danh sách hoạt động đang tạm thời không khả dụng. Hãy thử tải lại sau.',
@@ -627,6 +671,8 @@ export function safeParentFlowErrorMessage(error: unknown): string {
     PARENT_ACTIVITY_SELECTION_INVALID: 'Chưa xác nhận được hoạt động đã chọn. Hãy kiểm tra lại danh sách.',
     STALE_REVISION: 'Hồ sơ đã thay đổi. Hãy kiểm tra thông tin mới nhất rồi lưu lại.',
     INVALID_STATE_TRANSITION: 'Hồ sơ đã thay đổi trạng thái. Hãy kiểm tra lại trước khi tiếp tục.',
+    INVITATION_EXPIRED: 'Lời mời đã hết hạn. Danh sách đã được tải lại.',
+    ACCOUNT_SCOPE_UNAVAILABLE: 'Chưa thể kiểm tra quyền của nhóm lúc này. Hãy thử lại sau.',
     ACTIVE_RUN_EXISTS: 'Hồ sơ đang có buổi học chưa hoàn tất. Hãy tiếp tục buổi học hiện tại.',
     RESOURCE_NOT_FOUND: 'Không tìm thấy nội dung hoặc bạn không thể truy cập nội dung này.',
     DELETED: 'Buổi học đã được xóa.',
@@ -640,9 +686,11 @@ export function safeParentFlowErrorMessage(error: unknown): string {
     LESSON_PLAN_NOT_APPROVED: 'Thao tác này chưa khả dụng trong luồng dành cho phụ huynh.',
     STORY_REWRITE_LIMIT_REACHED: 'Đã dùng hết lượt viết lại. Bạn có thể xác nhận kịch bản hiện tại hoặc dừng.',
     VIDEO_REGENERATION_LIMIT_REACHED: 'Đã dùng hết lượt tạo video của buổi học này. Bạn có thể dừng buổi học trong lịch sử.',
-    VIDEO_QUOTA_EXCEEDED: 'Máy chủ chưa xác nhận quyền tạo video. Hãy xem tóm tắt hạn mức nếu có.',
+    VIDEO_QUOTA_EXCEEDED: 'Hiện chưa còn lượt tạo video khả dụng. Hãy xem tóm tắt hạn mức hoặc mua thêm lượt.',
     AI_COST_LIMIT_REACHED: 'Hệ thống tạm thời chưa thể nhận yêu cầu này. Chưa xác nhận tiêu hạn mức.',
-    PROVIDER_UNAVAILABLE: 'Dịch vụ tạo nội dung hiện chưa khả dụng. Hãy kiểm tra trạng thái trước khi thử lại.',
+    PROVIDER_UNAVAILABLE: 'Dịch vụ hiện chưa khả dụng. Hãy thử lại sau.',
+    PUSH_PLATFORM_UNSUPPORTED: 'Thông báo đẩy chưa hỗ trợ trên Android. Bạn vẫn nhận thông báo trong hộp thư của ứng dụng.',
+    PUSH_REGISTRATION_UNAVAILABLE: 'Chưa thể bật thông báo đẩy lúc này. Hộp thư trong ứng dụng vẫn hoạt động.',
     MODAL_FUNCTION_UNAVAILABLE: 'Dịch vụ tạo nội dung hiện chưa khả dụng.',
     MODAL_AI_NOT_ENABLED: 'Dịch vụ tạo nội dung hiện chưa khả dụng.',
     MODAL_DISPATCH_REJECTED: 'Máy chủ AI đang bận. Ảnh chưa được phân tích; bạn có thể chụp lại một lần hoặc thử sau.',
@@ -658,6 +706,10 @@ export function safeParentFlowErrorMessage(error: unknown): string {
     PARENT_CONTEXT_REQUIRED: 'Hãy chọn hồ sơ trước khi tiếp tục.',
     PARENT_CONTEXT_SNAPSHOT_INVALID: 'Chưa thể xác nhận ngữ cảnh của buổi học này.',
     PARENT_CONTEXT_NOT_CONFIRMED: 'Người lớn cần xác nhận ngữ cảnh trước khi tiếp tục.',
+    PARENT_TOPIC_SUBJECT_AI_NOT_ENABLED: 'Chủ đề này chưa có gợi ý trong danh mục. Hãy chọn một chủ đề gợi ý hoặc thử lại sau.',
+    PARENT_TOPIC_TEXT_NOT_ALLOWED: 'Chỉ nhập tên chủ đề hoặc đồ vật chung; không nhập tên, thông tin liên hệ hay dữ liệu riêng của trẻ.',
+    CURATED_SVG_GUIDE_NOT_FOUND: 'Chưa có hướng dẫn nét vẽ cho chủ đề này. Bạn vẫn có thể tiếp tục chụp tranh mà không cần gợi ý.',
+    CURATED_SVG_GUIDE_UNAVAILABLE: 'Kho hướng dẫn nét vẽ đang tạm thời không sẵn sàng. Bạn vẫn có thể tiếp tục chụp tranh mà không cần gợi ý.',
     PARENT_DRAWING_REQUIRED: 'Hãy chọn ảnh tranh trước khi tiếp tục xem xét.',
     PARENT_DRAWING_RESULT_INVALID: 'Chưa thể đọc kết quả xem xét tranh. Hãy kiểm tra trạng thái trước khi gửi lại.',
     DRAWING_OUTPUT_TRUNCATED: 'Kết quả đọc tranh chưa hoàn tất. Hãy thử lại sau.',
@@ -717,6 +769,71 @@ export function safeParentFlowErrorMessage(error: unknown): string {
   return message;
 }
 
+export function parentSvgCatalogFailureMessage(error: unknown): string {
+  const code = readErrorCode(error);
+  const status = readErrorStatus(error);
+  if (status === 403 || code === 'FORBIDDEN') return 'Chưa thể xem hướng dẫn có sẵn cho tài khoản này.';
+  if (code === 'PARENT_SVG_GUIDE_INVALID') {
+    return 'Một số hướng dẫn có sẵn không thể hiển thị an toàn. Bạn vẫn có thể tiếp tục.';
+  }
+  if (status === 503 || code === 'DEPENDENCY_UNAVAILABLE') {
+    return 'Kho hướng dẫn đang tạm thời không sẵn sàng. Bạn vẫn có thể tiếp tục.';
+  }
+  return 'Chưa tải được hướng dẫn có sẵn. Bạn vẫn có thể tiếp tục.';
+}
+
+export function parentLessonExportFailureMessage(error: unknown): string {
+  const code = readErrorCode(error);
+  const status = readErrorStatus(error);
+  if (status === 404 || code === 'LESSON_NOT_FOUND') {
+    return 'Bài học không cho phép tải về hoặc không còn khả dụng.';
+  }
+  if (status === 403 || code === 'ACCOUNT_SCOPE_UNAVAILABLE' || code === 'FORBIDDEN') {
+    return 'Tài khoản phụ huynh chưa thể tải bài học này.';
+  }
+  if (status !== null && status >= 500) return 'Chưa thể tải bài học lúc này. Hãy thử lại sau.';
+  return 'Chưa thể tải bài học. Hãy thử lại sau.';
+}
+
+export function parentLessonExportSaveFailureMessage(result: 'cancelled' | 'unsupported'): string {
+  return result === 'cancelled'
+    ? 'Đã hủy lưu tệp.'
+    : 'Lưu tệp chỉ khả dụng trên Android.';
+}
+
+export function safeParentGroupInvitationErrorMessage(error: unknown): string {
+  const code = readErrorCode(error);
+  if (code === 'STALE_REVISION') return 'Lời mời nhóm đã thay đổi. Danh sách đã được tải lại; hãy kiểm tra trạng thái hiện tại.';
+  if (code === 'INVALID_STATE_TRANSITION') return 'Trạng thái lời mời nhóm đã thay đổi. Danh sách đã được tải lại.';
+  return safeParentFlowErrorMessage(error);
+}
+
+export function safeParentGroupMembershipErrorMessage(error: unknown): string {
+  const code = readErrorCode(error);
+  if (code === 'STALE_REVISION') return 'Dữ liệu nhóm đã thay đổi, hãy xem lại rồi xác nhận lại.';
+  if (code === 'INVALID_STATE_TRANSITION') return 'Nhóm này đã được rời hoặc thu hồi. Danh sách đã được tải lại.';
+  if (code === 'RESOURCE_NOT_FOUND') return 'Không tìm thấy nhóm hoặc bạn không thể truy cập nhóm này.';
+  if (code === 'PROVIDER_UNAVAILABLE') return 'Dịch vụ nhóm tạm thời không khả dụng. Hãy thử lại sau.';
+  if (code === 'RESOURCE_CONFLICT') return 'Nhóm đã thay đổi. Hãy tải lại danh sách rồi thử lại.';
+  return safeParentFlowErrorMessage(error);
+}
+
+export function safeStoryRecoveryMessage(error: unknown): string {
+  switch (readErrorCode(error)) {
+    case 'STORY_REWRITE_LIMIT_REACHED':
+      return STORY_RECOVERY_COPY.limitReached;
+    case 'STALE_REVISION':
+    case 'INVALID_STATE_TRANSITION':
+      return STORY_RECOVERY_COPY.staleState;
+    case 'ACTIVE_RUN_EXISTS':
+      return STORY_RECOVERY_COPY.activeRunExists;
+    case 'PARENT_REWRITE_HINT_INVALID':
+      return STORY_RECOVERY_COPY.hintInvalid;
+    default:
+      return safeParentFlowErrorMessage(error);
+  }
+}
+
 export function safeProfileFieldMessages(error: unknown): ProfileFieldMessages {
   const fieldErrors = readFieldErrors(error);
   const messages: ProfileFieldMessages = {};
@@ -731,6 +848,11 @@ export function safeProfileFieldMessages(error: unknown): ProfileFieldMessages {
 export function readErrorCode(value: unknown): string | null {
   if (!isRecord(value) || typeof value.code !== 'string') return null;
   return /^[A-Z0-9_]{1,80}$/.test(value.code) ? value.code : null;
+}
+
+function readErrorStatus(value: unknown): number | null {
+  if (!isRecord(value) || typeof value.status !== 'number' || !Number.isFinite(value.status)) return null;
+  return value.status;
 }
 
 function readFieldErrors(value: unknown): Array<{ field: string; code: string }> {
@@ -752,6 +874,7 @@ function fieldErrorMessage(field: ProfileFieldKey, code: string): string {
     return 'Hãy nhập tuổi hợp lệ theo tháng.';
   }
   if (code === 'TOO_LONG') return 'Sở thích dài quá. Hãy rút gọn rồi thử lại.';
+  if (code === 'DIAGNOSIS_LIKE') return 'Nội dung không nên nêu chẩn đoán.';
   if (code === 'INVALID_TYPE') return 'Hãy kiểm tra lại phần sở thích.';
   return 'Hãy kiểm tra lại phần sở thích.';
 }
