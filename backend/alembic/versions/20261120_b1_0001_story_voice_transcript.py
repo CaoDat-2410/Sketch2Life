@@ -47,20 +47,25 @@ down_revision = "20261119_frc08_lifecycle_scope"
 branch_labels = None
 depends_on = None
 
-RUN_STATES_BEFORE = (
-    "'INPUT_PROCESSING','SUBJECT_REVIEW','PREPARATION_REVIEW',"
-    "'SCRIPT_GENERATING','SCRIPT_GENERATION_UNKNOWN','SCRIPT_REVIEW',"
-    "'VIDEO_ADMISSION_PENDING','DELETE_PENDING','FAILED','COMPLETED','DELETED'"
+FINAL_RUN_STATES = (
+    "'DRAFT','INPUT_PROCESSING','INPUT_REVIEW','SUBJECT_REVIEW','PREPARATION_REVIEW',"
+    "'STORY_GENERATING','SCRIPT_REVIEW','VIDEO_ADMISSION_PENDING','VIDEO_QUEUED',"
+    "'VIDEO_GENERATING','VIDEO_SAFETY_VALIDATING','VIDEO_READY','SAFETY_BLOCKED',"
+    "'COMPLETED','FAILED','ABANDONED','DELETE_PENDING','DELETED','SCRIPT_GENERATING',"
+    "'SCRIPT_GENERATION_UNKNOWN'"
 )
-RUN_STATES_AFTER = RUN_STATES_BEFORE.replace(
-    "'INPUT_PROCESSING',", "'INPUT_PROCESSING','INPUT_REVIEW',"
+FINAL_RECEIPT_OPERATIONS = (
+    "'CREATE_RUN','ATTACH_ASSET','CONFIRM_SUBJECT','CONFIRM_CONTEXT','CANCEL_RUN',"
+    "'GENERATE_STORY_REVISION','CONFIRM_STORY_REVISION','DELETE_RUN','SUBMIT_IDEA',"
+    "'CONFIRM_TRANSCRIPT','CREATE_VIDEO_GENERATION','MARK_VIDEO_UNSUITABLE',"
+    "'COMPLETE_RUN','SELECT_ACTIVITY','GENERATE_ACTIVITY_SET','TRANSFER_TEACHER_OWNER',"
+    "'FORCE_CLOSE_RUN'"
 )
-RECEIPT_OPERATIONS_BEFORE = (
-    "'CREATE_RUN','ATTACH_ASSET','CONFIRM_SUBJECT','CONFIRM_CONTEXT',"
-    "'CANCEL_RUN','GENERATE_STORY_REVISION','CONFIRM_STORY_REVISION','DELETE_RUN',"
-    "'GENERATE_ACTIVITY_SET','SELECT_ACTIVITY'"
-)
-RECEIPT_OPERATIONS_AFTER = f"{RECEIPT_OPERATIONS_BEFORE},'SUBMIT_IDEA','CONFIRM_TRANSCRIPT'"
+
+RUN_STATES_BEFORE = FINAL_RUN_STATES
+RUN_STATES_AFTER = FINAL_RUN_STATES
+RECEIPT_OPERATIONS_BEFORE = FINAL_RECEIPT_OPERATIONS
+RECEIPT_OPERATIONS_AFTER = FINAL_RECEIPT_OPERATIONS
 
 TYPED_IDEA_CHECK = (
     "(typed_idea IS NULL AND idea_source IS NULL) OR "
@@ -71,6 +76,8 @@ IDEA_CHECK = (
     "(typed_idea IS NULL AND voice_asset_ref IS NULL AND idea_source IS NULL) OR "
     "(typed_idea IS NOT NULL AND length(typed_idea) BETWEEN 1 AND 500 "
     "AND voice_asset_ref IS NULL AND idea_source = 'TEXT') OR "
+    "(typed_idea IS NOT NULL AND length(typed_idea) BETWEEN 1 AND 500 "
+    "AND voice_asset_ref IS NULL AND idea_source = 'TRANSCRIPT') OR "
     "(typed_idea IS NULL AND voice_asset_ref IS NOT NULL AND idea_source = 'VOICE') OR "
     "(typed_idea IS NOT NULL AND length(typed_idea) BETWEEN 1 AND 500 "
     "AND voice_asset_ref IS NOT NULL AND idea_source = 'TEXT_AND_VOICE')"
@@ -156,6 +163,30 @@ def upgrade() -> None:
         "ck_story_run_input_voice", "run_inputs", VOICE_CHECK, schema="story"
     )
 
+    # The earlier Parent audio branch used this name for a different transcript contract. Keep
+    # its rows in a legacy table before installing DDL-B1's voice-confirmation revisions.
+    op.execute(
+        sa.text(
+            """
+            DO $legacy_parent_audio_transcripts$
+            BEGIN
+                IF to_regclass('story.parent_audio_transcript_revisions') IS NULL
+                   AND to_regclass('story.transcript_revisions') IS NOT NULL
+                   AND EXISTS (
+                       SELECT 1 FROM information_schema.columns
+                       WHERE table_schema = 'story'
+                         AND table_name = 'transcript_revisions'
+                         AND column_name = 'transcript_raw'
+                   ) THEN
+                    ALTER TABLE story.transcript_revisions
+                        RENAME TO parent_audio_transcript_revisions;
+                END IF;
+            END;
+            $legacy_parent_audio_transcripts$;
+            """
+        )
+    )
+
     op.create_table(
         "transcript_revisions",
         sa.Column("transcript_revision_id", sa.String(36), primary_key=True),
@@ -212,7 +243,7 @@ def upgrade() -> None:
 
     op.drop_constraint("ck_story_run_state", "runs", schema="story", type_="check")
     op.create_check_constraint(
-        "ck_story_run_state", "runs", f"run_state IN ({RUN_STATES_AFTER})", schema="story"
+        "ck_story_run_state", "runs", f"run_state IN ({FINAL_RUN_STATES})", schema="story"
     )
     op.drop_constraint(
         "ck_story_receipt_operation", "command_receipts", schema="story", type_="check"
@@ -220,7 +251,7 @@ def upgrade() -> None:
     op.create_check_constraint(
         "ck_story_receipt_operation",
         "command_receipts",
-        f"operation IN ({RECEIPT_OPERATIONS_AFTER})",
+        f"operation IN ({FINAL_RECEIPT_OPERATIONS})",
         schema="story",
     )
 

@@ -177,9 +177,10 @@ def run_loop(
 
 
 def _steps_for(settings: Settings, engine: Engine) -> tuple[SweepStep, ...]:
+    session_factory = create_core_session_factory(engine)
     return build_sweep_steps(
-        create_core_session_factory(engine),
-        build_story_video_adapters(settings),
+        session_factory,
+        build_story_video_adapters(settings, session_factory=session_factory),
         lease=timedelta(seconds=settings.story_sweep_task_lease_seconds),
         port_timeout_seconds=settings.story_video_port_timeout_seconds,
     )

@@ -1,8 +1,8 @@
-"""SQL reader of everything the Parent video pipeline needs about a confirmed story (FEAT-093); read-only.
+"""Read source data for the Parent and Teacher story video pipeline (FEAT-093); read-only.
 
-Implements ``VideoSourceReaderPort``: the story revision (title, sections, hash), the child's age and topic from the run
-context, the adult's chosen activity, the approved main and secondary subjects with their boxes, and the original
-drawing bytes from object storage. Anything missing or inconsistent answers ``None`` (the job then fails with a safe code).
+Implements ``VideoSourceReaderPort``: the story revision, age, topic, activity, approved subjects
+with their boxes, and original drawing bytes. Missing or inconsistent data answers ``None`` so the
+job fails with a safe code.
 """
 
 from __future__ import annotations
@@ -22,6 +22,7 @@ from sketch2life.application.story_staging import unpack_sections
 from sketch2life.application.video_pipeline.ports import VideoSource
 from sketch2life.application.video_pipeline.timeline_planner import PlannerSubject
 from sketch2life.infrastructure.story_run_lite import tables as story_tables
+from sketch2life.infrastructure.story_teacher.story_activity import pinned_story_activity
 from sketch2life.infrastructure.story_video.local_boxes import grid_box
 
 MAX_DRAWING_BYTES = 20 * 1024 * 1024
@@ -30,7 +31,9 @@ _ACTIVITY_FIELDS = ("title", "objective", "materials_text", "instructions_text",
 
 class SqlVideoSourceReader:
     def __init__(
-        self, session_factory: Callable[[], Session] | sessionmaker[Session], storage: ObjectStoragePort
+        self,
+        session_factory: Callable[[], Session] | sessionmaker[Session],
+        storage: ObjectStoragePort,
     ) -> None:
         self._sessions = session_factory
         self._storage = storage
@@ -59,7 +62,11 @@ class SqlVideoSourceReader:
         if request.script_hash and revision["story_sha256"] != request.script_hash:
             return None
         run = (
-            session.execute(select(story_tables.story_runs).where(story_tables.story_runs.c.run_id == request.run_id))
+            session.execute(
+                select(story_tables.story_runs).where(
+                    story_tables.story_runs.c.run_id == request.run_id
+                )
+            )
             .mappings()
             .one_or_none()
         )
@@ -82,28 +89,53 @@ class SqlVideoSourceReader:
             session.execute(
                 select(story_tables.understanding_revisions).where(
                     story_tables.understanding_revisions.c.run_id == request.run_id,
-                    story_tables.understanding_revisions.c.revision_no == revision["understanding_revision"],
-                )
-            )
-            .mappings()
-            .one_or_none()
-        )
-        selection = (
-            session.execute(
-                select(story_tables.activity_selections)
-                .where(
-                    story_tables.activity_selections.c.run_id == request.run_id,
-                    story_tables.activity_selections.c.target_understanding_revision
+                    story_tables.understanding_revisions.c.revision_no
                     == revision["understanding_revision"],
                 )
-                .order_by(story_tables.activity_selections.c.selection_no.desc())
-                .limit(1)
             )
             .mappings()
             .one_or_none()
         )
-        if input_row is None or understanding is None or selection is None or not input_row["original_asset_ref"]:
+        teacher_run = run["actor_scope_kind"] == "ORGANIZATION"
+        selection = None
+        if not teacher_run:
+            selection = (
+                session.execute(
+                    select(story_tables.activity_selections)
+                    .where(
+                        story_tables.activity_selections.c.run_id == request.run_id,
+                        story_tables.activity_selections.c.target_understanding_revision
+                        == revision["understanding_revision"],
+                    )
+                    .order_by(story_tables.activity_selections.c.selection_no.desc())
+                    .limit(1)
+                )
+                .mappings()
+                .one_or_none()
+            )
+        if (
+            input_row is None
+            or understanding is None
+            or (not teacher_run and selection is None)
+            or not input_row["original_asset_ref"]
+        ):
             return None
+        primary_activity: dict[str, str] | None = None
+        if teacher_run:
+            pin = input_row["lesson_pin_snapshot"]
+            if not run["occurrence_ref"] or not isinstance(pin, dict):
+                return None
+            organization_id = run["actor_scope_ref"]
+            if not isinstance(organization_id, str) or not organization_id:
+                return None
+            primary_activity = pinned_story_activity(
+                session,
+                input_row,
+                occurrence_id=str(run["occurrence_ref"]),
+                organization_id=organization_id,
+            )
+            if primary_activity is None:
+                return None
         candidate = (understanding["result_snapshot"] or {}).get("result")
         if not isinstance(candidate, dict):
             return None
@@ -116,22 +148,34 @@ class SqlVideoSourceReader:
                 return None
             subjects.append(PlannerSubject(str(entity["entity_id"]), label, role))
             boxes[str(entity["entity_id"])] = box
-        drawing = self._drawing(str(input_row["original_asset_ref"]), str(input_row["original_sha256"]))
+        drawing = self._drawing(
+            str(input_row["original_asset_ref"]), str(input_row["original_sha256"])
+        )
         if drawing is None:
             return None
         context = input_row["context_snapshot"] or {}
         sections = unpack_sections(revision["story_content"])
-        activity_snapshot = selection["activity_snapshot"] or {}
+        if teacher_run:
+            assert primary_activity is not None
+            activity_snapshot = primary_activity
+            topic = str(primary_activity["title"])[:120]
+        else:
+            assert selection is not None
+            activity_snapshot = selection["activity_snapshot"] or {}
+            topic = str(context.get("topic", ""))[:120]
         learning = self._learning(session, revision, request.story_revision_id)
         return VideoSource(
             learning=learning,
             run_id=request.run_id,
             story_sha256=str(revision["story_sha256"]),
             story={"title": revision["title"] or "", **sections},
-            topic=str(context.get("topic", ""))[:120],
+            topic=topic,
             age_months=int(context["age_months"]),
             subjects=tuple(subjects),
-            activity={name: str(activity_snapshot.get(name, ""))[:400] for name in _ACTIVITY_FIELDS},
+            activity={
+                name: str(activity_snapshot.get(name, ""))[:400]
+                for name in _ACTIVITY_FIELDS
+            },
             drawing_png=drawing,
             drawing_sha256=str(input_row["original_sha256"]),
             subject_boxes=boxes,
@@ -157,7 +201,12 @@ class SqlVideoSourceReader:
         return {
             "title": revision["title"] or "",
             "scenes": [
-                {**planned[row["scene_index"]], "title": row["title"], "narration": row["narration"]} for row in rows
+                {
+                    **planned[row["scene_index"]],
+                    "title": row["title"],
+                    "narration": row["narration"],
+                }
+                for row in rows
             ],
         }
 

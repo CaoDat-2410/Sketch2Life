@@ -57,6 +57,10 @@ from sketch2life.infrastructure.persistence.parent_story_repository import (
     SqlParentStoryRunRepository,
     job_side_repository,
 )
+from sketch2life.infrastructure.ai.modal_function_client import (
+    STORY_MODEL_ID,
+    STORY_MODEL_REVISION,
+)
 
 _LOGGER = logging.getLogger("sketch2life.api")
 
@@ -68,8 +72,8 @@ REWRITE_NEUTRAL_INSTRUCTION_V1: Final = (
 )
 STORY_REWRITE_PROMPT_VERSION: Final = "parent-story-rewrite.v1"
 # Written on the reserved revision row until the generator reports its own identity.
-STORY_REWRITE_MODEL_ID: Final = "story-generator-port"
-STORY_REWRITE_MODEL_REVISION: Final = "unassigned"
+STORY_REWRITE_MODEL_ID: Final = STORY_MODEL_ID
+STORY_REWRITE_MODEL_REVISION: Final = STORY_MODEL_REVISION
 STORY_OUTCOME_UNKNOWN: Final = "STORY_OUTCOME_UNKNOWN"
 
 # Generator-supplied strings land in bounded columns (story.runs.error_code 64, provider_call_id

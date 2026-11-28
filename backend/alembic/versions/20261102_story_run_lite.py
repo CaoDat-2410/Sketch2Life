@@ -12,6 +12,22 @@ down_revision = None
 branch_labels = ("story_run_lite",)
 depends_on = ("20261102_pv_0001",)
 
+# Full merge-safe values: later branch migrations must not narrow checks based on apply order.
+FINAL_RUN_STATES = (
+    "'DRAFT','INPUT_PROCESSING','INPUT_REVIEW','SUBJECT_REVIEW','PREPARATION_REVIEW',"
+    "'STORY_GENERATING','SCRIPT_REVIEW','VIDEO_ADMISSION_PENDING','VIDEO_QUEUED',"
+    "'VIDEO_GENERATING','VIDEO_SAFETY_VALIDATING','VIDEO_READY','SAFETY_BLOCKED',"
+    "'COMPLETED','FAILED','ABANDONED','DELETE_PENDING','DELETED','SCRIPT_GENERATING',"
+    "'SCRIPT_GENERATION_UNKNOWN'"
+)
+FINAL_RECEIPT_OPERATIONS = (
+    "'CREATE_RUN','ATTACH_ASSET','CONFIRM_SUBJECT','CONFIRM_CONTEXT','CANCEL_RUN',"
+    "'GENERATE_STORY_REVISION','CONFIRM_STORY_REVISION','DELETE_RUN','SUBMIT_IDEA',"
+    "'CONFIRM_TRANSCRIPT','CREATE_VIDEO_GENERATION','MARK_VIDEO_UNSUITABLE',"
+    "'COMPLETE_RUN','SELECT_ACTIVITY','GENERATE_ACTIVITY_SET','TRANSFER_TEACHER_OWNER',"
+    "'FORCE_CLOSE_RUN'"
+)
+
 
 def upgrade() -> None:
     # Pilot Vision's dependency places the existing Core asset table and A1 ledger before this
@@ -371,8 +387,7 @@ def upgrade() -> None:
         ),
         sa.CheckConstraint("revision > 0 AND version > 0", name="ck_story_run_versions"),
         sa.CheckConstraint(
-            "run_state IN ('INPUT_PROCESSING','SUBJECT_REVIEW',"
-            "'PREPARATION_REVIEW','DELETE_PENDING','FAILED')",
+            f"run_state IN ({FINAL_RUN_STATES})",
             name="ck_story_run_state",
         ),
         sa.CheckConstraint(
@@ -516,7 +531,7 @@ def upgrade() -> None:
             name="ck_story_receipt_actor_kind",
         ),
         sa.CheckConstraint(
-            "operation IN ('CREATE_RUN','ATTACH_ASSET','CONFIRM_SUBJECT','CANCEL_RUN')",
+            f"operation IN ({FINAL_RECEIPT_OPERATIONS})",
             name="ck_story_receipt_operation",
         ),
         sa.CheckConstraint(

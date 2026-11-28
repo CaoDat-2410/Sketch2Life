@@ -233,7 +233,20 @@ class SqlStoryLifecycleStore:
                         )
                 elif operation not in _LIFECYCLE_OPERATIONS:
                     tombstone = tombstone_fingerprint(receipt_id)
-                    if fingerprint != tombstone:
+                    if operation == "GENERATE_ACTIVITY_SET":
+                        # Older receipts carried the set's full activity text; scrub them too.
+                        scrub_values: dict[str, Any] = {
+                            "request_fingerprint_sha256": tombstone,
+                            "state_version": _RECEIPTS.c.state_version + 1,
+                        }
+                        if body is not None:
+                            scrub_values["response_body"] = {"purged": True}
+                        session.execute(
+                            update(_RECEIPTS)
+                            .where(_RECEIPTS.c.receipt_id == receipt_id)
+                            .values(**scrub_values)
+                        )
+                    elif fingerprint != tombstone:
                         session.execute(
                             update(_RECEIPTS)
                             .where(_RECEIPTS.c.receipt_id == receipt_id)
@@ -448,6 +461,16 @@ class SqlStoryLifecycleStore:
                 t.transcript_revisions.c.run_id == run_id,
             ),
             (
+                "parent_audio_transcript_revisions",
+                t.parent_audio_transcript_revisions.c.transcript_revision_id,
+                t.parent_audio_transcript_revisions.c.run_id == run_id,
+            ),
+            (
+                "run_audio_inputs",
+                t.run_audio_inputs.c.audio_input_id,
+                t.run_audio_inputs.c.run_id == run_id,
+            ),
+            (
                 "review_decisions",
                 t.review_decisions.c.decision_id,
                 t.review_decisions.c.run_id == run_id,
@@ -458,6 +481,21 @@ class SqlStoryLifecycleStore:
                 "activity_selections",
                 t.activity_selections.c.selection_id,
                 t.activity_selections.c.run_id == run_id,
+            ),
+            (
+                "activity_suggestion_sets",
+                t.activity_suggestion_sets.c.suggestion_set_id,
+                t.activity_suggestion_sets.c.run_id == run_id,
+            ),
+            (
+                "legacy_parent_activity_selections",
+                t.legacy_parent_activity_selections.c.selection_id,
+                t.legacy_parent_activity_selections.c.run_id == run_id,
+            ),
+            (
+                "legacy_parent_activity_suggestion_sets",
+                t.legacy_parent_activity_suggestion_sets.c.suggestion_set_id,
+                t.legacy_parent_activity_suggestion_sets.c.run_id == run_id,
             ),
             (
                 "story_revisions",
@@ -510,6 +548,19 @@ class SqlStoryLifecycleStore:
             delete(t.activity_selections).where(t.activity_selections.c.run_id == run_id)
         )
         session.execute(
+            delete(t.activity_suggestion_sets).where(t.activity_suggestion_sets.c.run_id == run_id)
+        )
+        session.execute(
+            delete(t.legacy_parent_activity_selections).where(
+                t.legacy_parent_activity_selections.c.run_id == run_id
+            )
+        )
+        session.execute(
+            delete(t.legacy_parent_activity_suggestion_sets).where(
+                t.legacy_parent_activity_suggestion_sets.c.run_id == run_id
+            )
+        )
+        session.execute(
             delete(t.story_scenes).where(t.story_scenes.c.story_revision_id.in_(revisions))
         )
         session.execute(delete(t.story_revisions).where(t.story_revisions.c.run_id == run_id))
@@ -521,6 +572,12 @@ class SqlStoryLifecycleStore:
             delete(t.transcript_revisions).where(t.transcript_revisions.c.run_id == run_id)
         )
         session.execute(delete(t.run_inputs).where(t.run_inputs.c.run_id == run_id))
+        session.execute(
+            delete(t.parent_audio_transcript_revisions).where(
+                t.parent_audio_transcript_revisions.c.run_id == run_id
+            )
+        )
+        session.execute(delete(t.run_audio_inputs).where(t.run_audio_inputs.c.run_id == run_id))
 
     @staticmethod
     def _scope_ref(session: Session, run_id: str) -> str:

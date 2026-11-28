@@ -36,12 +36,16 @@ class SvgCatalogApplicationService:
         for field in ("source_uri", "license_uri"):
             parsed = urlsplit(str(request.get(field, "")))
             if parsed.scheme != "https" or not parsed.hostname:
-                raise SvgCatalogError(422, "SVG_PROVENANCE_URL_INVALID", "Source and license URLs must use HTTPS")
+                raise SvgCatalogError(
+                    422, "SVG_PROVENANCE_URL_INVALID", "Source and license URLs must use HTTPS"
+                )
         try:
             sanitized = self.sanitizer.sanitize(str(request["source_svg"]).encode("utf-8"))
         except (KeyError, UnicodeError, ValueError) as exc:
             code = getattr(exc, "code", "SVG_SOURCE_INVALID")
-            raise SvgCatalogError(422, str(code), "SVG source was rejected by the safe parser") from None
+            raise SvgCatalogError(
+                422, str(code), "SVG source was rejected by the safe parser"
+            ) from None
         return self.catalog.create_asset(
             catalog_entry_id=str(uuid4()),
             scope_kind=scope_kind,
@@ -61,21 +65,37 @@ class SvgCatalogApplicationService:
             raise SvgCatalogError(422, "INVALID_REQUEST", "limit must be between 1 and 100")
         return self.catalog.list_teacher_assets(organization_id=organization_id, limit=limit)
 
+    def get_asset_for_teacher(
+        self, *, organization_id: str, catalog_entry_id: str
+    ) -> dict[str, Any]:
+        return self.catalog.get_asset_for_teacher(
+            organization_id=organization_id,
+            catalog_entry_id=catalog_entry_id,
+        )
+
     def create_guide_revision(
         self,
         *,
-        asset: dict[str, Any],
+        asset_response: dict[str, Any],
+        asset_record: dict[str, Any],
         actor: str,
         organization_id: str | None,
         guide: dict[str, Any],
     ) -> dict[str, Any]:
-        source_ref = str(asset["asset_ref"])
-        source_version = int(asset["asset_version"])
-        source_hash = str(asset["source_sha256"])
-        document = asset["document"]
+        source_ref = str(asset_response["source_asset_ref"])
+        source_version = int(asset_response["source_asset_version"])
+        source_hash = str(asset_record["source_sha256"])
+        document = asset_response["document"]
         path_ids = [path["path_id"] for path in document["paths"]]
-        if guide.get("source_asset_ref") != source_ref or guide.get("source_asset_version") != source_version:
-            raise SvgCatalogError(422, "SVG_GUIDE_SOURCE_MISMATCH", "Guide must reference the selected source revision")
+        if (
+            guide.get("source_asset_ref") != source_ref
+            or guide.get("source_asset_version") != source_version
+        ):
+            raise SvgCatalogError(
+                422,
+                "SVG_GUIDE_SOURCE_MISMATCH",
+                "Guide must reference the selected source revision",
+            )
         try:
             normalized = validate_guide_v3(
                 guide,
@@ -83,12 +103,14 @@ class SvgCatalogApplicationService:
                 expected_source_sha256=source_hash,
             )
         except SvgRuleError as exc:
-            raise SvgCatalogError(422, exc.code, "Guide does not match the canonical source paths") from None
+            raise SvgCatalogError(
+                422, exc.code, "Guide does not match the canonical source paths"
+            ) from None
         guide_bytes = json.dumps(
             normalized, ensure_ascii=False, sort_keys=True, separators=(",", ":")
         ).encode("utf-8")
         return self.catalog.create_guide_revision(
-            asset=asset,
+            asset=asset_record,
             actor=actor,
             organization_id=organization_id,
             guide=normalized,
@@ -98,7 +120,9 @@ class SvgCatalogApplicationService:
     def record_review(self, **values: Any) -> dict[str, Any]:
         return self.catalog.record_review(**values)
 
-    def get_guide_revision(self, *, catalog_entry_id: str, guide_revision_id: str) -> dict[str, Any]:
+    def get_guide_revision(
+        self, *, catalog_entry_id: str, guide_revision_id: str
+    ) -> dict[str, Any]:
         return self.catalog.get_guide_revision(
             catalog_entry_id=catalog_entry_id,
             guide_revision_id=guide_revision_id,

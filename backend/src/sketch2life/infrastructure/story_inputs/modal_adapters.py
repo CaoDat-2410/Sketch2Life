@@ -230,11 +230,21 @@ class ModalParentStoryGenerator:
     def __init__(self, *, client: ModalStoryFunctionClient | None = None) -> None:
         self._client = client or ModalStoryFunctionClient()
 
+    def supports_role(self, role: str) -> bool:
+        return role in {"PARENT", "TEACHER"}
+
     def generate(self, worker_input: Mapping[str, Any]) -> StoryGenerationResult:
-        if not isinstance(worker_input, Mapping):
+        if not isinstance(worker_input, Mapping) or worker_input.get("role") not in {
+            "PARENT",
+            "TEACHER",
+        }:
             raise StoryGenerationFailure("STORY_INPUT_CONTRACT_INVALID")
         try:
-            raw_story, call_id = self._client.generate({"worker_input": dict(worker_input)})
+            from sketch2life.infrastructure.ai.story_generator import to_dev_story_worker_input
+
+            raw_story, call_id = self._client.generate(
+                {"worker_input": to_dev_story_worker_input(worker_input)}
+            )
         except ModalFunctionOutcomeUnknown:
             raise StoryGenerationOutcomeUnknown() from None
         except ModalFunctionExecutionFailed as exc:

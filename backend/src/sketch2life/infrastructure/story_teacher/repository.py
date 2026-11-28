@@ -2,10 +2,10 @@
 
 One transaction per create, serialised by the locks of the plan (D8): the occurrence ``FOR SHARE``,
 its class ``FOR SHARE``, the selection ``FOR UPDATE``, then the new run (the lock order shared with
-T-4b1 and T-5a). The caller is the responsible Teacher of the occurrence with an exact-class
-``teacher`` row (``decide_child_data`` of T-4b1), decided on the current rows and decided again
-under
-the locks (FR-T-14). Only a confirmed selection of the CURRENT approved plan, for a child that is
+T-4b1 and T-5a). The caller has the current exact-class ``teacher`` assignment
+(``decide_child_data`` of T-4b1), decided on the current rows and decided again under the locks
+(FR-T-14). The stored responsible Teacher is provenance and does not override the current BE1
+assignment after T-6b. Only a confirmed selection of the CURRENT approved plan, for a child that is
 still a candidate, creates a run: the run holds the Teacher lock (``active_owner_teacher_id``), the
 occurrence pin and the plan and activity pins, and consumes the selection in the same transaction.
 
@@ -54,6 +54,9 @@ from sketch2life.infrastructure.lesson_occurrences.child_selection import (
     child_is_candidate,
     consume_child_selection,
     stale_child_selection,
+)
+from sketch2life.infrastructure.lesson_occurrences.class_transfer_guard import (
+    SqlClassTransferState,
 )
 from sketch2life.infrastructure.lesson_occurrences.scope import (
     class_is_read_only,
@@ -247,6 +250,9 @@ class TeacherStoryRunCreator:
                 active_owner_teacher_id=account,
                 occurrence_ref=str(occurrence["occurrence_id"]),
                 created_by_actor_ref=account,
+                organization_ref=organization,
+                class_ref=str(occurrence["class_ref"]),
+                owner_epoch=0,
                 current_input_revision=1,
                 created_at=now,
                 updated_at=now,
@@ -304,11 +310,14 @@ class TeacherStoryRunCreator:
         facts = load_caller_facts(self._session, principal, str(occurrence["organization_ref"]))
         if facts is None:
             raise ParentStoryRunError(404, "RESOURCE_NOT_FOUND")
+        # The live BE1 class assignment is the authority after T-6b. Keep the occurrence's
+        # responsible_teacher_ref as provenance; using it here would deny the replacement Teacher
+        # after the owner-transfer saga has finalized.
         outcome = decide_child_data(
             facts.rows,
             str(occurrence["class_ref"]),
             caller_account_ref=facts.account_ref,
-            responsible_teacher_ref=str(occurrence["responsible_teacher_ref"]),
+            responsible_teacher_ref=facts.account_ref,
         )
         if outcome is AccessOutcome.PROCEED:
             return facts.account_ref
@@ -327,9 +336,13 @@ class TeacherStoryRunCreator:
         self._decide(principal, self._occurrence(occurrence_id, lock=False))
         occurrence = self._occurrence(occurrence_id, lock=True)
         read_only = class_is_read_only(self._session, occurrence, lock=True)
+        transfer_pending = SqlClassTransferState(self._session).is_pending(
+            organization_id=str(occurrence["organization_ref"]),
+            class_id=str(occurrence["class_ref"]),
+        )
         self._session.expire_all()
         account = self._decide(principal, occurrence)
-        if read_only:
+        if read_only or transfer_pending:
             raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
         return occurrence, account
 

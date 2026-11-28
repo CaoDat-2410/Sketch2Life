@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from uuid import UUID
 
 from sqlalchemy import select
@@ -13,8 +14,10 @@ from sketch2life.application.ports.parent_story_profile_lookup import (
     ParentStoryProfileLookupUnavailable,
     ParentStoryProfileReference,
 )
+from sketch2life.domain.parent_profile_context import SelectedContextEntry
 from sketch2life.infrastructure.persistence.parent_models import (
     ParentChildProfileModel,
+    ParentProfileContextEntryModel,
     ParentProfileRevisionModel,
 )
 
@@ -36,6 +39,52 @@ class SqlParentStoryProfileLookup:
         except SQLAlchemyError as exc:
             raise ParentStoryProfileLookupUnavailable("profile ownership unavailable") from exc
         return owned is not None
+
+    def resolve_selected_context_entries(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        profile_id: UUID,
+        entry_ids: Sequence[UUID],
+    ) -> list[SelectedContextEntry] | None:
+        """T-12a: only the kind and the text of the named entries, only for an ACTIVE profile of
+        the caller; a foreign, unknown or pending profile and a foreign id all give ``None``."""
+
+        wanted = set(entry_ids)
+        try:
+            active = self._session.scalar(
+                select(ParentChildProfileModel.parent_profile_id)
+                .where(
+                    ParentChildProfileModel.parent_profile_id == profile_id,
+                    ParentChildProfileModel.owner_issuer == principal.issuer,
+                    ParentChildProfileModel.owner_subject == principal.subject,
+                    ParentChildProfileModel.state == "ACTIVE",
+                    ParentChildProfileModel.deleted_at.is_(None),
+                )
+                .with_for_update(read=True)
+            )
+            if active is None:
+                return None
+            if not wanted:
+                return []
+            rows = list(
+                self._session.scalars(
+                    select(ParentProfileContextEntryModel)
+                    .where(
+                        ParentProfileContextEntryModel.parent_profile_id == profile_id,
+                        ParentProfileContextEntryModel.context_entry_id.in_(wanted),
+                    )
+                    .order_by(
+                        ParentProfileContextEntryModel.created_at,
+                        ParentProfileContextEntryModel.context_entry_id,
+                    )
+                )
+            )
+        except SQLAlchemyError:
+            raise ParentStoryProfileLookupUnavailable from None
+        if len(rows) != len(wanted):
+            return None
+        return [SelectedContextEntry(kind=row.entry_kind, text=row.short_text) for row in rows]
 
     def get_owned_profile_current_revision(
         self, *, principal: VerifiedPrincipal, profile_id: UUID

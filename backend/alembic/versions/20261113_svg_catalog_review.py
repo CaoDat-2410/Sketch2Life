@@ -7,7 +7,7 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 revision = "20261113_svg_catalog_review"
-down_revision = "20261112_parent_story_context"
+down_revision = "20261123_rv_0001"
 branch_labels = None
 depends_on = None
 

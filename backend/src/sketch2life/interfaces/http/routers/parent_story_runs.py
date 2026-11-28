@@ -194,6 +194,8 @@ def _invoke[ResultT](callable_: Callable[..., ResultT], **kwargs: Any) -> Result
         detail: dict[str, Any] = {"code": exc.code}
         if isinstance(exc, ParentStoryRunError) and exc.current_version is not None:
             detail["current_version"] = exc.current_version
+        if isinstance(exc, ParentStoryRunError) and exc.field_errors:
+            detail["field_errors"] = exc.field_errors
         raise HTTPException(status_code=exc.status_code, detail=detail) from None
 
 
@@ -653,6 +655,7 @@ def confirm_parent_story_context(
         idempotency_key=key,
         on_story_started=started.append,
         generator_supports_role=generator_supports_role(request, actor),
+        selected_context_entry_ids=payload.selected_context_entry_ids,
     )
     schedule_first_story(request, background_tasks, principal, actor, started)
     return _envelope(record)

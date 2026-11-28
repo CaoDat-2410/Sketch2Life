@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 from datetime import UTC, datetime
 from io import BytesIO
-from typing import Any
+from typing import Any, NoReturn
 from uuid import uuid4
 
 from sqlalchemy import func, insert, select, update
@@ -25,7 +26,6 @@ from sketch2life.infrastructure.persistence.svg_catalog_tables import (
 )
 from sketch2life.infrastructure.svg.sanitizer import (
     SANITIZER_CODE_SHA256,
-    SANITIZER_VERSION,
     SvgInputRejected,
     canonical_json_bytes,
     sanitize_svg_source,
@@ -74,7 +74,9 @@ class SqlSvgCatalogRepository:
     ) -> dict[str, Any]:
         source_bytes = sanitized.source_bytes
         if not source_bytes:
-            raise SvgCatalogPersistenceError(500, "SVG_SOURCE_BYTES_UNAVAILABLE", "Source bytes were not preserved")
+            raise SvgCatalogPersistenceError(
+                500, "SVG_SOURCE_BYTES_UNAVAILABLE", "Source bytes were not preserved"
+            )
         source_ref = f"svg-source-{uuid4().hex}"
         canonical_ref = f"svg-canonical-{uuid4().hex}"
         source_version = canonical_version = 1
@@ -101,9 +103,33 @@ class SqlSvgCatalogRepository:
             )
             canonical_written = True
             owner_ref = organization_id if scope_kind == "ORGANIZATION" else "PLATFORM"
-            for asset_ref, version, owner_kind, content_sha256, media_type, source_refs, derived_from in (
-                (source_ref, source_version, scope_kind, sanitized.source_sha256, "image/svg+xml", [metadata["source_uri"]], None),
-                (canonical_ref, canonical_version, scope_kind, sanitized.canonical_sha256, "application/vnd.sketch2life.svg-document+json", [metadata["source_uri"]], source_ref),
+            for (
+                asset_ref,
+                version,
+                owner_kind,
+                content_sha256,
+                media_type,
+                source_refs,
+                derived_from,
+            ) in (
+                (
+                    source_ref,
+                    source_version,
+                    scope_kind,
+                    sanitized.source_sha256,
+                    "image/svg+xml",
+                    [metadata["source_uri"]],
+                    None,
+                ),
+                (
+                    canonical_ref,
+                    canonical_version,
+                    scope_kind,
+                    sanitized.canonical_sha256,
+                    "application/vnd.sketch2life.svg-document+json",
+                    [metadata["source_uri"]],
+                    source_ref,
+                ),
             ):
                 self.db.add(
                     CoreAssetMetadataModel(
@@ -168,10 +194,16 @@ class SqlSvgCatalogRepository:
             self._delete_if_written(source_key, source_written)
             self._delete_if_written(canonical_key, canonical_written)
             if isinstance(exc, ObjectStorageFailure):
-                raise SvgCatalogPersistenceError(503, "OBJECT_STORAGE_UNAVAILABLE", "SVG object storage is unavailable") from None
+                raise SvgCatalogPersistenceError(
+                    503, "OBJECT_STORAGE_UNAVAILABLE", "SVG object storage is unavailable"
+                ) from None
             if isinstance(exc, KeyError):
-                raise SvgCatalogPersistenceError(422, "SVG_METADATA_INVALID", "Required provenance fields are missing") from None
-            raise SvgCatalogPersistenceError(409, "SVG_ASSET_PERSISTENCE_FAILED", "SVG catalog item could not be saved") from None
+                raise SvgCatalogPersistenceError(
+                    422, "SVG_METADATA_INVALID", "Required provenance fields are missing"
+                ) from None
+            raise SvgCatalogPersistenceError(
+                409, "SVG_ASSET_PERSISTENCE_FAILED", "SVG catalog item could not be saved"
+            ) from None
         return self._asset_response(self._load_asset(catalog_entry_id), include_document=True)
 
     def list_parent_guides(self, *, topic_key: str | None, limit: int) -> dict[str, Any]:
@@ -182,15 +214,24 @@ class SqlSvgCatalogRepository:
         )
         if topic_key:
             stmt = stmt.where(SVG_CATALOG_ASSETS.c.topic_key == topic_key)
-        rows = self.db.execute(
-            stmt.order_by(SVG_CATALOG_ASSETS.c.topic_key, SVG_CATALOG_ASSETS.c.title_vi)
-            .limit(limit * 4)
-        ).mappings().all()
+        rows = (
+            self.db.execute(
+                stmt.order_by(SVG_CATALOG_ASSETS.c.topic_key, SVG_CATALOG_ASSETS.c.title_vi).limit(
+                    limit * 4
+                )
+            )
+            .mappings()
+            .all()
+        )
         items: list[dict[str, Any]] = []
         for asset in rows:
-            if not self._review_approved(asset, subject_kind="SOURCE_ASSET", review_kind="EDUCATOR", grouping=False):
+            if not self._review_approved(
+                asset, subject_kind="SOURCE_ASSET", review_kind="EDUCATOR", grouping=False
+            ):
                 continue
-            if not self._review_approved(asset, subject_kind="SOURCE_ASSET", review_kind="CURATOR", grouping=False):
+            if not self._review_approved(
+                asset, subject_kind="SOURCE_ASSET", review_kind="CURATOR", grouping=False
+            ):
                 continue
             guide = self._latest_approved_guide(asset)
             if guide is None:
@@ -218,47 +259,81 @@ class SqlSvgCatalogRepository:
         return {"contract": "SvgGuideCatalogPageV1", "items": items}
 
     def list_teacher_assets(self, *, organization_id: str, limit: int) -> dict[str, Any]:
-        rows = self.db.execute(
-            select(SVG_CATALOG_ASSETS)
-            .where(
-                SVG_CATALOG_ASSETS.c.catalog_state != "ARCHIVED",
-                SVG_CATALOG_ASSETS.c.catalog_state != "REJECTED",
-                (SVG_CATALOG_ASSETS.c.visibility_scope == "PLATFORM")
-                | (
-                    (SVG_CATALOG_ASSETS.c.visibility_scope == "ORGANIZATION")
-                    & (SVG_CATALOG_ASSETS.c.organization_id == organization_id)
-                ),
+        rows = (
+            self.db.execute(
+                select(SVG_CATALOG_ASSETS)
+                .where(
+                    SVG_CATALOG_ASSETS.c.catalog_state != "ARCHIVED",
+                    SVG_CATALOG_ASSETS.c.catalog_state != "REJECTED",
+                    (SVG_CATALOG_ASSETS.c.visibility_scope == "PLATFORM")
+                    | (
+                        (SVG_CATALOG_ASSETS.c.visibility_scope == "ORGANIZATION")
+                        & (SVG_CATALOG_ASSETS.c.organization_id == organization_id)
+                    ),
+                )
+                .order_by(SVG_CATALOG_ASSETS.c.created_at.desc())
+                .limit(limit)
             )
-            .order_by(SVG_CATALOG_ASSETS.c.created_at.desc())
-            .limit(limit)
-        ).mappings().all()
+            .mappings()
+            .all()
+        )
         return {
             "contract": "SvgCatalogPageV1",
             "items": [self._asset_response(row, include_document=True) for row in rows],
         }
 
-    def get_asset_for_teacher(self, *, organization_id: str, catalog_entry_id: str) -> dict[str, Any]:
+    def get_asset_for_teacher(
+        self, *, organization_id: str, catalog_entry_id: str
+    ) -> dict[str, Any]:
+        row = self._load_asset_for_teacher(
+            organization_id=organization_id, catalog_entry_id=catalog_entry_id
+        )
+        return self._asset_response(row, include_document=True)
+
+    def get_asset_record_for_teacher(
+        self, *, organization_id: str, catalog_entry_id: str
+    ) -> dict[str, Any]:
+        return dict(
+            self._load_asset_for_teacher(
+                organization_id=organization_id, catalog_entry_id=catalog_entry_id
+            )
+        )
+
+    def _load_asset_for_teacher(
+        self, *, organization_id: str, catalog_entry_id: str
+    ) -> Any:
         row = self._load_asset(catalog_entry_id)
         if row["catalog_state"] in {"ARCHIVED", "REJECTED"} or (
             row["visibility_scope"] == "ORGANIZATION" and row["organization_id"] != organization_id
         ):
             self._not_found()
-        return self._asset_response(row, include_document=True)
+        return row
 
     def get_asset_for_platform(self, *, catalog_entry_id: str) -> dict[str, Any]:
+        row = self._load_asset_for_platform(catalog_entry_id=catalog_entry_id)
+        return self._asset_response(row, include_document=True)
+
+    def get_asset_record_for_platform(self, *, catalog_entry_id: str) -> dict[str, Any]:
+        return dict(self._load_asset_for_platform(catalog_entry_id=catalog_entry_id))
+
+    def _load_asset_for_platform(self, *, catalog_entry_id: str) -> Any:
         row = self._load_asset(catalog_entry_id)
         if row["visibility_scope"] != "PLATFORM" or row["catalog_state"] == "ARCHIVED":
             self._not_found()
-        return self._asset_response(row, include_document=True)
+        return row
 
     def get_asset_by_source_ref(self, *, asset_ref: str, asset_version: int) -> dict[str, Any]:
-        row = self.db.execute(
-            select(SVG_CATALOG_ASSETS).where(
-                SVG_CATALOG_ASSETS.c.asset_ref == asset_ref,
-                SVG_CATALOG_ASSETS.c.asset_version == asset_version,
-                SVG_CATALOG_ASSETS.c.catalog_state == "ACTIVE",
+        row = (
+            self.db.execute(
+                select(SVG_CATALOG_ASSETS).where(
+                    SVG_CATALOG_ASSETS.c.asset_ref == asset_ref,
+                    SVG_CATALOG_ASSETS.c.asset_version == asset_version,
+                    SVG_CATALOG_ASSETS.c.catalog_state == "ACTIVE",
+                )
             )
-        ).mappings().one_or_none()
+            .mappings()
+            .one_or_none()
+        )
         if row is None:
             self._not_found()
         return self._asset_response(row, include_document=True)
@@ -278,28 +353,35 @@ class SqlSvgCatalogRepository:
         else:
             scope_kind = "ORGANIZATION"
             scope_ref = organization_id
-        if asset["visibility_scope"] == "ORGANIZATION" and asset["organization_id"] != organization_id:
+        if (
+            asset["visibility_scope"] == "ORGANIZATION"
+            and asset["organization_id"] != organization_id
+        ):
             self._not_found()
         if asset["catalog_state"] != "ACTIVE":
-            raise SvgCatalogPersistenceError(409, "SVG_ASSET_UNAVAILABLE", "This SVG source is not available for authoring")
+            raise SvgCatalogPersistenceError(
+                409, "SVG_ASSET_UNAVAILABLE", "This SVG source is not available for authoring"
+            )
         guide_identity = f"{asset['asset_ref']}:{scope_ref}"
         guide_ref = f"guide-{hashlib.sha256(guide_identity.encode('utf-8')).hexdigest()[:32]}"
-        existing = self.db.execute(
-            select(SVG_CATALOG_GUIDE_REVISIONS).where(
-                SVG_CATALOG_GUIDE_REVISIONS.c.guide_ref == guide_ref,
-                SVG_CATALOG_GUIDE_REVISIONS.c.asset_ref == asset["asset_ref"],
-                SVG_CATALOG_GUIDE_REVISIONS.c.asset_version == asset["asset_version"],
-                SVG_CATALOG_GUIDE_REVISIONS.c.source_sha256 == asset["source_sha256"],
-                SVG_CATALOG_GUIDE_REVISIONS.c.guide_sha256 == guide_sha256,
-                SVG_CATALOG_GUIDE_REVISIONS.c.authored_by == actor,
+        existing = (
+            self.db.execute(
+                select(SVG_CATALOG_GUIDE_REVISIONS)
+                .where(
+                    SVG_CATALOG_GUIDE_REVISIONS.c.guide_ref == guide_ref,
+                    SVG_CATALOG_GUIDE_REVISIONS.c.asset_ref == asset["asset_ref"],
+                    SVG_CATALOG_GUIDE_REVISIONS.c.asset_version == asset["asset_version"],
+                    SVG_CATALOG_GUIDE_REVISIONS.c.source_sha256 == asset["source_sha256"],
+                    SVG_CATALOG_GUIDE_REVISIONS.c.guide_sha256 == guide_sha256,
+                    SVG_CATALOG_GUIDE_REVISIONS.c.authored_by == actor,
+                )
+                .order_by(SVG_CATALOG_GUIDE_REVISIONS.c.guide_revision.desc())
+                .limit(1)
             )
-            .order_by(SVG_CATALOG_GUIDE_REVISIONS.c.guide_revision.desc())
-            .limit(1)
-        ).mappings().one_or_none()
-        if existing is not None:
-            review = self._latest_guide_review(asset, existing)
-        else:
-            review = None
+            .mappings()
+            .one_or_none()
+        )
+        review = self._latest_guide_review(asset, existing) if existing is not None else None
         if existing is not None and (review is None or review["decision"] != "REJECT"):
             return {
                 "guide_revision_id": existing["guide_revision_id"],
@@ -311,7 +393,11 @@ class SqlSvgCatalogRepository:
                 "authored_by": existing["authored_by"],
                 "visibility_scope": existing["visibility_scope"],
                 "organization_id": existing["organization_id"],
-                "review_state": "PENDING" if review is None else review["decision"].replace("APPROVE", "APPROVED").replace("REJECT", "REJECTED"),
+                "review_state": "PENDING"
+                if review is None
+                else review["decision"]
+                .replace("APPROVE", "APPROVED")
+                .replace("REJECT", "REJECTED"),
             }
         current = self.db.scalar(
             select(func.max(SVG_CATALOG_GUIDE_REVISIONS.c.guide_revision)).where(
@@ -341,7 +427,9 @@ class SqlSvgCatalogRepository:
             self.db.commit()
         except SQLAlchemyError:
             self.db.rollback()
-            raise SvgCatalogPersistenceError(409, "SVG_GUIDE_REVISION_CONFLICT", "A guide revision could not be saved") from None
+            raise SvgCatalogPersistenceError(
+                409, "SVG_GUIDE_REVISION_CONFLICT", "A guide revision could not be saved"
+            ) from None
         return {
             "guide_revision_id": guide_revision_id,
             "guide_ref": guide_ref,
@@ -355,15 +443,21 @@ class SqlSvgCatalogRepository:
             "review_state": "PENDING",
         }
 
-    def get_guide_revision(self, *, catalog_entry_id: str, guide_revision_id: str) -> dict[str, Any]:
+    def get_guide_revision(
+        self, *, catalog_entry_id: str, guide_revision_id: str
+    ) -> dict[str, Any]:
         asset = self._load_asset(catalog_entry_id)
-        row = self.db.execute(
-            select(SVG_CATALOG_GUIDE_REVISIONS).where(
-                SVG_CATALOG_GUIDE_REVISIONS.c.guide_revision_id == guide_revision_id,
-                SVG_CATALOG_GUIDE_REVISIONS.c.asset_ref == asset["asset_ref"],
-                SVG_CATALOG_GUIDE_REVISIONS.c.asset_version == asset["asset_version"],
+        row = (
+            self.db.execute(
+                select(SVG_CATALOG_GUIDE_REVISIONS).where(
+                    SVG_CATALOG_GUIDE_REVISIONS.c.guide_revision_id == guide_revision_id,
+                    SVG_CATALOG_GUIDE_REVISIONS.c.asset_ref == asset["asset_ref"],
+                    SVG_CATALOG_GUIDE_REVISIONS.c.asset_version == asset["asset_version"],
+                )
             )
-        ).mappings().one_or_none()
+            .mappings()
+            .one_or_none()
+        )
         if row is None:
             self._not_found()
         return dict(row)
@@ -373,25 +467,33 @@ class SqlSvgCatalogRepository:
     ) -> dict[str, Any]:
         asset = self._load_asset(catalog_entry_id)
         if asset["catalog_state"] in {"ARCHIVED", "REJECTED"} or (
-            asset["visibility_scope"] == "ORGANIZATION" and asset["organization_id"] != organization_id
+            asset["visibility_scope"] == "ORGANIZATION"
+            and asset["organization_id"] != organization_id
         ):
             self._not_found()
-        rows = self.db.execute(
-            select(SVG_CATALOG_GUIDE_REVISIONS)
-            .where(
-                SVG_CATALOG_GUIDE_REVISIONS.c.asset_ref == asset["asset_ref"],
-                SVG_CATALOG_GUIDE_REVISIONS.c.asset_version == asset["asset_version"],
-                (
-                    (SVG_CATALOG_GUIDE_REVISIONS.c.visibility_scope == "PLATFORM")
-                    | (
-                        (SVG_CATALOG_GUIDE_REVISIONS.c.visibility_scope == "ORGANIZATION")
-                        & (SVG_CATALOG_GUIDE_REVISIONS.c.organization_id == organization_id)
-                    )
-                ),
+        rows = (
+            self.db.execute(
+                select(SVG_CATALOG_GUIDE_REVISIONS)
+                .where(
+                    SVG_CATALOG_GUIDE_REVISIONS.c.asset_ref == asset["asset_ref"],
+                    SVG_CATALOG_GUIDE_REVISIONS.c.asset_version == asset["asset_version"],
+                    (
+                        (SVG_CATALOG_GUIDE_REVISIONS.c.visibility_scope == "PLATFORM")
+                        | (
+                            (SVG_CATALOG_GUIDE_REVISIONS.c.visibility_scope == "ORGANIZATION")
+                            & (SVG_CATALOG_GUIDE_REVISIONS.c.organization_id == organization_id)
+                        )
+                    ),
+                )
+                .order_by(
+                    SVG_CATALOG_GUIDE_REVISIONS.c.created_at.desc(),
+                    SVG_CATALOG_GUIDE_REVISIONS.c.guide_revision.desc(),
+                )
+                .limit(limit)
             )
-            .order_by(SVG_CATALOG_GUIDE_REVISIONS.c.created_at.desc(), SVG_CATALOG_GUIDE_REVISIONS.c.guide_revision.desc())
-            .limit(limit)
-        ).mappings().all()
+            .mappings()
+            .all()
+        )
         items = []
         for row in rows:
             review = self._latest_guide_review(asset, row)
@@ -407,7 +509,11 @@ class SqlSvgCatalogRepository:
                     "authored_by": row["authored_by"],
                     "visibility_scope": row["visibility_scope"],
                     "organization_id": row["organization_id"],
-                    "review_state": "PENDING" if review is None else review["decision"].replace("APPROVE", "APPROVED").replace("REJECT", "REJECTED"),
+                    "review_state": "PENDING"
+                    if review is None
+                    else review["decision"]
+                    .replace("APPROVE", "APPROVED")
+                    .replace("REJECT", "REJECTED"),
                 }
             )
         return {"contract": "SvgGuideRevisionPageV1", "items": items}
@@ -427,16 +533,22 @@ class SqlSvgCatalogRepository:
         guide_sha256: str | None = None,
     ) -> dict[str, Any]:
         if source_sha256 != asset["source_sha256"]:
-            raise SvgCatalogPersistenceError(409, "SVG_REVIEW_SOURCE_STALE", "Review targets a different source revision")
+            raise SvgCatalogPersistenceError(
+                409, "SVG_REVIEW_SOURCE_STALE", "Review targets a different source revision"
+            )
         if review_subject_kind == "GUIDE":
             if (
                 guide_revision is None
                 or guide_revision["source_sha256"] != source_sha256
                 or guide_revision["guide_sha256"] != guide_sha256
             ):
-                raise SvgCatalogPersistenceError(409, "SVG_REVIEW_GUIDE_STALE", "Review targets a different guide revision")
+                raise SvgCatalogPersistenceError(
+                    409, "SVG_REVIEW_GUIDE_STALE", "Review targets a different guide revision"
+                )
         elif guide_revision is not None or guide_sha256 is not None:
-            raise SvgCatalogPersistenceError(422, "SVG_REVIEW_SUBJECT_INVALID", "Source review cannot include guide fields")
+            raise SvgCatalogPersistenceError(
+                422, "SVG_REVIEW_SUBJECT_INVALID", "Source review cannot include guide fields"
+            )
         review_id = str(uuid4())
         try:
             self.db.execute(
@@ -444,7 +556,9 @@ class SqlSvgCatalogRepository:
                     review_id=review_id,
                     asset_ref=asset["asset_ref"],
                     asset_version=asset["asset_version"],
-                    guide_revision_id=guide_revision["guide_revision_id"] if guide_revision else None,
+                    guide_revision_id=guide_revision["guide_revision_id"]
+                    if guide_revision
+                    else None,
                     review_subject_kind=review_subject_kind,
                     review_kind=review_kind,
                     source_sha256=source_sha256,
@@ -477,7 +591,9 @@ class SqlSvgCatalogRepository:
             self.db.commit()
         except SQLAlchemyError:
             self.db.rollback()
-            raise SvgCatalogPersistenceError(409, "SVG_REVIEW_CONFLICT", "Review decision could not be saved") from None
+            raise SvgCatalogPersistenceError(
+                409, "SVG_REVIEW_CONFLICT", "Review decision could not be saved"
+            ) from None
         return {
             "review_id": review_id,
             "catalog_entry_id": asset["catalog_entry_id"],
@@ -492,8 +608,12 @@ class SqlSvgCatalogRepository:
         }
 
     def _asset_response(self, row: Any, *, include_document: bool) -> dict[str, Any]:
-        source_review = self._review_approved(row, subject_kind="SOURCE_ASSET", review_kind="EDUCATOR", grouping=False)
-        curator_approval = self._review_approved(row, subject_kind="SOURCE_ASSET", review_kind="CURATOR", grouping=False)
+        source_review = self._review_approved(
+            row, subject_kind="SOURCE_ASSET", review_kind="EDUCATOR", grouping=False
+        )
+        curator_approval = self._review_approved(
+            row, subject_kind="SOURCE_ASSET", review_kind="CURATOR", grouping=False
+        )
         curator_grouping_allowed = self._review_approved(
             row, subject_kind="SOURCE_ASSET", review_kind="CURATOR", grouping=True
         )
@@ -506,16 +626,20 @@ class SqlSvgCatalogRepository:
         else:
             review_state = "PENDING_EDUCATOR_REVIEW"
         document = self._read_canonical(row) if include_document else None
-        readiness = classify_svg_source(
-            drawable_path_ids=[path["path_id"] for path in (document or {}).get("paths", [])],
-            filled_shape_count=int(row["structural_facts"].get("filled_shape_count", 0)),
-            educator_approved=source_review,
-            curator_grouping_allowed=curator_grouping_allowed,
-        ) if document is not None else {
-            "classification": row["readiness_class"],
-            "reason_codes": [],
-            "facts": dict(row["structural_facts"]),
-        }
+        readiness = (
+            classify_svg_source(
+                drawable_path_ids=[path["path_id"] for path in (document or {}).get("paths", [])],
+                filled_shape_count=int(row["structural_facts"].get("filled_shape_count", 0)),
+                educator_approved=source_review,
+                curator_grouping_allowed=curator_grouping_allowed,
+            )
+            if document is not None
+            else {
+                "classification": row["readiness_class"],
+                "reason_codes": [],
+                "facts": dict(row["structural_facts"]),
+            }
+        )
         return {
             "contract": "SvgCatalogAssetResponseV1",
             "catalog_entry_id": row["catalog_entry_id"],
@@ -542,36 +666,58 @@ class SqlSvgCatalogRepository:
         }
 
     def _read_canonical(self, asset: Any) -> dict[str, Any]:
-        key = self._object_key(asset["canonical_asset_ref"], asset["canonical_asset_version"], "canonical.json")
+        key = self._object_key(
+            asset["canonical_asset_ref"], asset["canonical_asset_version"], "canonical.json"
+        )
         try:
             stored = self.storage.get_object(key)
         except ObjectStorageFailure:
-            raise SvgCatalogPersistenceError(503, "OBJECT_STORAGE_UNAVAILABLE", "SVG object storage is unavailable") from None
+            raise SvgCatalogPersistenceError(
+                503, "OBJECT_STORAGE_UNAVAILABLE", "SVG object storage is unavailable"
+            ) from None
         if stored is None:
-            raise SvgCatalogPersistenceError(503, "SVG_CANONICAL_OBJECT_MISSING", "Canonical SVG asset is unavailable")
+            raise SvgCatalogPersistenceError(
+                503, "SVG_CANONICAL_OBJECT_MISSING", "Canonical SVG asset is unavailable"
+            )
         try:
             content = stored.body.read(6_000_000)
         finally:
             stored.body.close()
         if hashlib.sha256(content).hexdigest() != asset["canonical_sha256"]:
-            raise SvgCatalogPersistenceError(503, "SVG_CANONICAL_HASH_MISMATCH", "Canonical SVG asset failed integrity validation")
+            raise SvgCatalogPersistenceError(
+                503,
+                "SVG_CANONICAL_HASH_MISMATCH",
+                "Canonical SVG asset failed integrity validation",
+            )
         try:
             value = json.loads(content)
         except (json.JSONDecodeError, UnicodeDecodeError):
-            raise SvgCatalogPersistenceError(503, "SVG_CANONICAL_JSON_INVALID", "Canonical SVG asset is invalid") from None
+            raise SvgCatalogPersistenceError(
+                503, "SVG_CANONICAL_JSON_INVALID", "Canonical SVG asset is invalid"
+            ) from None
         if not isinstance(value, dict) or value.get("schema_version") != "SvgDocumentV1":
-            raise SvgCatalogPersistenceError(503, "SVG_CANONICAL_SCHEMA_INVALID", "Canonical SVG asset is invalid")
+            raise SvgCatalogPersistenceError(
+                503, "SVG_CANONICAL_SCHEMA_INVALID", "Canonical SVG asset is invalid"
+            )
         return value
 
     def _load_asset(self, catalog_entry_id: str) -> Any:
-        row = self.db.execute(
-            select(SVG_CATALOG_ASSETS).where(SVG_CATALOG_ASSETS.c.catalog_entry_id == catalog_entry_id)
-        ).mappings().one_or_none()
+        row = (
+            self.db.execute(
+                select(SVG_CATALOG_ASSETS).where(
+                    SVG_CATALOG_ASSETS.c.catalog_entry_id == catalog_entry_id
+                )
+            )
+            .mappings()
+            .one_or_none()
+        )
         if row is None:
             self._not_found()
         return row
 
-    def _latest_guide(self, *, asset_ref: str, visibility_scope: str, organization_id: str | None) -> Any:
+    def _latest_guide(
+        self, *, asset_ref: str, visibility_scope: str, organization_id: str | None
+    ) -> Any:
         stmt = select(SVG_CATALOG_GUIDE_REVISIONS).where(
             SVG_CATALOG_GUIDE_REVISIONS.c.asset_ref == asset_ref,
             SVG_CATALOG_GUIDE_REVISIONS.c.visibility_scope == visibility_scope,
@@ -580,20 +726,30 @@ class SqlSvgCatalogRepository:
             stmt = stmt.where(SVG_CATALOG_GUIDE_REVISIONS.c.organization_id.is_(None))
         else:
             stmt = stmt.where(SVG_CATALOG_GUIDE_REVISIONS.c.organization_id == organization_id)
-        return self.db.execute(
-            stmt.order_by(SVG_CATALOG_GUIDE_REVISIONS.c.guide_revision.desc()).limit(1)
-        ).mappings().one_or_none()
+        return (
+            self.db.execute(
+                stmt.order_by(SVG_CATALOG_GUIDE_REVISIONS.c.guide_revision.desc()).limit(1)
+            )
+            .mappings()
+            .one_or_none()
+        )
 
     def _latest_approved_guide(self, asset: Any) -> Any:
-        rows = self.db.execute(
-            select(SVG_CATALOG_GUIDE_REVISIONS).where(
-                SVG_CATALOG_GUIDE_REVISIONS.c.asset_ref == asset["asset_ref"],
-                SVG_CATALOG_GUIDE_REVISIONS.c.asset_version == asset["asset_version"],
-                SVG_CATALOG_GUIDE_REVISIONS.c.visibility_scope == "PLATFORM",
-                SVG_CATALOG_GUIDE_REVISIONS.c.organization_id.is_(None),
-                SVG_CATALOG_GUIDE_REVISIONS.c.source_sha256 == asset["source_sha256"],
-            ).order_by(SVG_CATALOG_GUIDE_REVISIONS.c.guide_revision.desc())
-        ).mappings().all()
+        rows = (
+            self.db.execute(
+                select(SVG_CATALOG_GUIDE_REVISIONS)
+                .where(
+                    SVG_CATALOG_GUIDE_REVISIONS.c.asset_ref == asset["asset_ref"],
+                    SVG_CATALOG_GUIDE_REVISIONS.c.asset_version == asset["asset_version"],
+                    SVG_CATALOG_GUIDE_REVISIONS.c.visibility_scope == "PLATFORM",
+                    SVG_CATALOG_GUIDE_REVISIONS.c.organization_id.is_(None),
+                    SVG_CATALOG_GUIDE_REVISIONS.c.source_sha256 == asset["source_sha256"],
+                )
+                .order_by(SVG_CATALOG_GUIDE_REVISIONS.c.guide_revision.desc())
+            )
+            .mappings()
+            .all()
+        )
         for guide in rows:
             if self._review_approved(
                 asset,
@@ -630,9 +786,15 @@ class SqlSvgCatalogRepository:
                 SVG_CATALOG_REVIEWS.c.guide_revision_id == guide_revision_id,
                 SVG_CATALOG_REVIEWS.c.guide_sha256 == guide_sha256,
             )
-        row = self.db.execute(
-            stmt.order_by(SVG_CATALOG_REVIEWS.c.created_at.desc(), SVG_CATALOG_REVIEWS.c.review_id.desc()).limit(1)
-        ).mappings().one_or_none()
+        row = (
+            self.db.execute(
+                stmt.order_by(
+                    SVG_CATALOG_REVIEWS.c.created_at.desc(), SVG_CATALOG_REVIEWS.c.review_id.desc()
+                ).limit(1)
+            )
+            .mappings()
+            .one_or_none()
+        )
         return bool(
             row
             and row["decision"] == "APPROVE"
@@ -640,20 +802,26 @@ class SqlSvgCatalogRepository:
         )
 
     def _latest_guide_review(self, asset: Any, guide: Any) -> Any:
-        return self.db.execute(
-            select(SVG_CATALOG_REVIEWS)
-            .where(
-                SVG_CATALOG_REVIEWS.c.asset_ref == asset["asset_ref"],
-                SVG_CATALOG_REVIEWS.c.asset_version == asset["asset_version"],
-                SVG_CATALOG_REVIEWS.c.guide_revision_id == guide["guide_revision_id"],
-                SVG_CATALOG_REVIEWS.c.review_subject_kind == "GUIDE",
-                SVG_CATALOG_REVIEWS.c.review_kind == "EDUCATOR",
-                SVG_CATALOG_REVIEWS.c.source_sha256 == guide["source_sha256"],
-                SVG_CATALOG_REVIEWS.c.guide_sha256 == guide["guide_sha256"],
+        return (
+            self.db.execute(
+                select(SVG_CATALOG_REVIEWS)
+                .where(
+                    SVG_CATALOG_REVIEWS.c.asset_ref == asset["asset_ref"],
+                    SVG_CATALOG_REVIEWS.c.asset_version == asset["asset_version"],
+                    SVG_CATALOG_REVIEWS.c.guide_revision_id == guide["guide_revision_id"],
+                    SVG_CATALOG_REVIEWS.c.review_subject_kind == "GUIDE",
+                    SVG_CATALOG_REVIEWS.c.review_kind == "EDUCATOR",
+                    SVG_CATALOG_REVIEWS.c.source_sha256 == guide["source_sha256"],
+                    SVG_CATALOG_REVIEWS.c.guide_sha256 == guide["guide_sha256"],
+                )
+                .order_by(
+                    SVG_CATALOG_REVIEWS.c.created_at.desc(), SVG_CATALOG_REVIEWS.c.review_id.desc()
+                )
+                .limit(1)
             )
-            .order_by(SVG_CATALOG_REVIEWS.c.created_at.desc(), SVG_CATALOG_REVIEWS.c.review_id.desc())
-            .limit(1)
-        ).mappings().one_or_none()
+            .mappings()
+            .one_or_none()
+        )
 
     @staticmethod
     def _object_key(asset_ref: str, version: int, file_name: str) -> str:
@@ -661,14 +829,14 @@ class SqlSvgCatalogRepository:
 
     def _delete_if_written(self, key: str, written: bool) -> None:
         if written:
-            try:
+            with contextlib.suppress(ObjectStorageFailure):
                 self.storage.delete_object(key)
-            except ObjectStorageFailure:
-                pass
 
     @staticmethod
-    def _not_found() -> None:
-        raise SvgCatalogPersistenceError(404, "SVG_CATALOG_ITEM_NOT_FOUND", "SVG catalog item was not found")
+    def _not_found() -> NoReturn:
+        raise SvgCatalogPersistenceError(
+            404, "SVG_CATALOG_ITEM_NOT_FOUND", "SVG catalog item was not found"
+        )
 
 
 __all__ = ["SqlSvgCatalogRepository", "SqlSvgSanitizer", "SvgCatalogPersistenceError"]

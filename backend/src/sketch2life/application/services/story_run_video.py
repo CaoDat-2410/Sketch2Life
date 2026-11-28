@@ -202,7 +202,11 @@ class StoryVideoAdmissionService(_Saga):
             return self._refuse(record, AI_COST_LIMIT_REACHED, None)
         quota = self._call(
             adapters.quota.admit_video_request,
-            scope=scope,
+            scope=VideoRequestScope(
+                record.scope_kind,
+                record.scope_ref,
+                record.teacher_account_id,
+            ),  # type: ignore[arg-type]
             request_ref=record.generation_id,
             idempotency_key=record.key_hash,
             fingerprint=fingerprint,
@@ -215,6 +219,12 @@ class StoryVideoAdmissionService(_Saga):
             raise ParentStoryRunError(400, "INVALID_IDEMPOTENCY_KEY")
         if quota.status is QuotaStatus.QUOTA_EXCEEDED:
             return self._refuse(record, VIDEO_QUOTA_EXCEEDED, reservation.reservation_ref)
+        if quota.status in {
+            QuotaStatus.QUOTA_ALLOCATION_NOT_FOUND,
+            QuotaStatus.TEACHER_QUOTA_INSUFFICIENT,
+            QuotaStatus.SCHOOL_QUOTA_INSUFFICIENT,
+        }:
+            return self._refuse(record, quota.status.value, reservation.reservation_ref)
         if quota.status is QuotaStatus.SUBSCRIPTION_RESTRICTED:
             return self._refuse(record, SUBSCRIPTION_RESTRICTED, reservation.reservation_ref)
         if quota.status is QuotaStatus.ACCEPTED and not quota.usage_ref:

@@ -46,13 +46,15 @@ FUNCTION = "forbid_activity_selection_update"
 TRIGGER = "trg_story_activity_selection_append_only"
 
 NEW_RECEIPT_OPERATIONS = "'SELECT_ACTIVITY'"
-RECEIPT_OPERATIONS_BEFORE = (
-    "'CREATE_RUN','ATTACH_ASSET','CONFIRM_SUBJECT','CONFIRM_CONTEXT',"
-    "'CANCEL_RUN','GENERATE_STORY_REVISION','CONFIRM_STORY_REVISION','DELETE_RUN',"
-    "'GENERATE_ACTIVITY_SET','SELECT_ACTIVITY','SUBMIT_IDEA','CONFIRM_TRANSCRIPT',"
-    "'CREATE_VIDEO_GENERATION','MARK_VIDEO_UNSUITABLE','COMPLETE_RUN'"
+FINAL_RECEIPT_OPERATIONS = (
+    "'CREATE_RUN','ATTACH_ASSET','CONFIRM_SUBJECT','CONFIRM_CONTEXT','CANCEL_RUN',"
+    "'GENERATE_STORY_REVISION','CONFIRM_STORY_REVISION','DELETE_RUN','SUBMIT_IDEA',"
+    "'CONFIRM_TRANSCRIPT','CREATE_VIDEO_GENERATION','MARK_VIDEO_UNSUITABLE',"
+    "'COMPLETE_RUN','SELECT_ACTIVITY','GENERATE_ACTIVITY_SET','TRANSFER_TEACHER_OWNER',"
+    "'FORCE_CLOSE_RUN'"
 )
-RECEIPT_OPERATIONS_AFTER = RECEIPT_OPERATIONS_BEFORE
+RECEIPT_OPERATIONS_BEFORE = FINAL_RECEIPT_OPERATIONS
+RECEIPT_OPERATIONS_AFTER = FINAL_RECEIPT_OPERATIONS
 
 CHECKS: tuple[tuple[str, str], ...] = (
     ("ck_as_selection_no", "selection_no >= 1"),
@@ -96,6 +98,40 @@ $as_downgrade_guard$;
 
 
 def upgrade() -> None:
+    # Keep any rows written under the earlier Parent-specific shape before creating DDL-B3's
+    # version-pinned StoryRun projection with the same historical table names.
+    op.execute(
+        sa.text(
+            """
+            DO $legacy_parent_activity$
+            BEGIN
+                IF to_regclass('story.legacy_parent_activity_selections') IS NULL
+                   AND to_regclass('story.activity_selections') IS NOT NULL
+                   AND EXISTS (
+                       SELECT 1 FROM information_schema.columns
+                       WHERE table_schema = 'story'
+                         AND table_name = 'activity_selections'
+                         AND column_name = 'selection_id'
+                   ) THEN
+                    ALTER TABLE story.activity_selections
+                        RENAME TO legacy_parent_activity_selections;
+                END IF;
+                IF to_regclass('story.legacy_parent_activity_suggestion_sets') IS NULL
+                   AND to_regclass('story.activity_suggestion_sets') IS NOT NULL
+                   AND EXISTS (
+                       SELECT 1 FROM information_schema.columns
+                       WHERE table_schema = 'story'
+                         AND table_name = 'activity_suggestion_sets'
+                         AND column_name = 'owner_scope_kind'
+                   ) THEN
+                    ALTER TABLE story.activity_suggestion_sets
+                        RENAME TO legacy_parent_activity_suggestion_sets;
+                END IF;
+            END;
+            $legacy_parent_activity$;
+            """
+        )
+    )
     op.create_table(
         TABLE,
         sa.Column("selection_id", sa.String(36), primary_key=True),
@@ -152,7 +188,7 @@ def upgrade() -> None:
     op.create_check_constraint(
         "ck_story_receipt_operation",
         "command_receipts",
-        f"operation IN ({RECEIPT_OPERATIONS_AFTER})",
+        f"operation IN ({FINAL_RECEIPT_OPERATIONS})",
         schema=SCHEMA,
     )
 

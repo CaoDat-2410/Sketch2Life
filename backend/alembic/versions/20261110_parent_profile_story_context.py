@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import sqlalchemy as sa
-from alembic import op
 from sqlalchemy.dialects import postgresql
+
+from alembic import op
 
 revision = "20261110_parent_profiles"
 down_revision = (
@@ -15,7 +16,6 @@ down_revision = (
     "20261019_ae_0001",
     "20261019_pa_0001",
     "20261019_vf_0001",
-    "20261104_story_revisions",
     "20261110_ar_0001",
     # I2 owns the live Story run context schema; it must be applied first.
     "20261112_parent_story_context",
@@ -24,6 +24,14 @@ down_revision = (
 )
 branch_labels = None
 depends_on = None
+
+FINAL_RUN_STATES = (
+    "'DRAFT','INPUT_PROCESSING','INPUT_REVIEW','SUBJECT_REVIEW','PREPARATION_REVIEW',"
+    "'STORY_GENERATING','SCRIPT_REVIEW','VIDEO_ADMISSION_PENDING','VIDEO_QUEUED',"
+    "'VIDEO_GENERATING','VIDEO_SAFETY_VALIDATING','VIDEO_READY','SAFETY_BLOCKED',"
+    "'COMPLETED','FAILED','ABANDONED','DELETE_PENDING','DELETED','SCRIPT_GENERATING',"
+    "'SCRIPT_GENERATION_UNKNOWN'"
+)
 
 
 def _create_table(name: str, *args, **kwargs) -> None:
@@ -69,56 +77,67 @@ def upgrade() -> None:
     op.execute("CREATE SCHEMA IF NOT EXISTS parent")
     _create_table(
         "child_profiles",
-        sa.Column("parent_profile_id", sa.String(36), primary_key=True),
-        sa.Column("owner_subject", sa.String(256), nullable=False),
+        sa.Column("parent_profile_id", postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column("owner_issuer", sa.Text(), nullable=False),
+        sa.Column("owner_subject", sa.Text(), nullable=False),
         sa.Column("state", sa.String(16), server_default=sa.text("'ACTIVE'"), nullable=False),
-        sa.Column("current_revision_ref", sa.String(36), nullable=True),
+        sa.Column("current_revision_no", sa.BigInteger(), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
         sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True),
-        sa.CheckConstraint("state IN ('ACTIVE','ARCHIVED','DELETED')", name="ck_parent_child_profile_state"),
-        sa.UniqueConstraint("parent_profile_id", "owner_subject", name="uq_parent_profile_owner_ref"),
+        sa.Column("data_origin", sa.String(32), server_default=sa.text("'SYNTHETIC_DEV'"), nullable=False),
+        sa.CheckConstraint("current_revision_no > 0", name="ck_parent_child_profiles_current_revision_no_positive"),
+        sa.CheckConstraint("data_origin = 'SYNTHETIC_DEV'", name="ck_parent_child_profiles_data_origin_synthetic_dev"),
+        sa.PrimaryKeyConstraint("parent_profile_id", name="pk_parent_child_profiles"),
         schema="parent",
     )
     _create_table(
         "profile_revisions",
-        sa.Column("profile_revision_id", sa.String(36), primary_key=True),
-        sa.Column("parent_profile_id", sa.String(36), nullable=False),
-        sa.Column("revision_no", sa.Integer(), nullable=False),
-        sa.Column("age_months", sa.Integer(), nullable=False),
-        sa.Column("age_band_ref", sa.String(80), nullable=True),
-        sa.Column("age_band_version", sa.String(64), nullable=True),
+        sa.Column("profile_revision_id", postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column("parent_profile_id", postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column("revision_no", sa.BigInteger(), nullable=False),
+        sa.Column("age_months", sa.SmallInteger(), nullable=False),
+        sa.Column("age_band_ref", sa.Text(), nullable=True),
+        sa.Column("age_band_version", sa.Text(), nullable=True),
         sa.Column("display_name", sa.String(120), nullable=False),
-        sa.Column("interests_summary", sa.Text(), server_default=sa.text("''"), nullable=False),
-        sa.Column("authored_by", sa.String(256), nullable=False),
+        sa.Column("interests_summary", sa.String(2000), nullable=True),
+        sa.Column("authored_by_issuer", sa.Text(), nullable=False),
+        sa.Column("authored_by_subject", sa.Text(), nullable=False),
         sa.Column("revision_hash", sa.String(64), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.CheckConstraint("age_months BETWEEN 36 AND 120", name="ck_parent_profile_revision_age_months"),
-        sa.CheckConstraint("revision_no > 0", name="ck_parent_profile_revision_no"),
-        sa.CheckConstraint("length(trim(display_name)) BETWEEN 1 AND 120", name="ck_parent_profile_revision_display_name"),
-        sa.CheckConstraint("length(interests_summary) <= 800", name="ck_parent_profile_revision_interests_length"),
-        sa.CheckConstraint("length(revision_hash) = 64", name="ck_parent_profile_revision_hash"),
+        sa.CheckConstraint("revision_no > 0", name="ck_parent_profile_revisions_revision_no_positive"),
+        sa.CheckConstraint("age_months BETWEEN 36 AND 120", name="ck_parent_profile_revisions_age_months_36_120"),
+        sa.CheckConstraint(
+            "(age_band_ref IS NULL AND age_band_version IS NULL) OR "
+            "(age_band_ref IS NOT NULL AND age_band_version IS NOT NULL)",
+            name="ck_parent_profile_revisions_age_band_pair",
+        ),
+        sa.CheckConstraint("revision_hash ~ '^[0-9a-f]{64}$'", name="ck_parent_profile_revisions_revision_hash_sha256"),
         sa.ForeignKeyConstraint(
             ["parent_profile_id"], ["parent.child_profiles.parent_profile_id"],
-            ondelete="RESTRICT", name="fk_parent_profile_revision_profile",
+            ondelete="RESTRICT", name="fk_parent_profile_revisions_parent_profile",
         ),
-        sa.UniqueConstraint("parent_profile_id", "revision_no", name="uq_parent_profile_revision_no"),
-        sa.UniqueConstraint("parent_profile_id", "profile_revision_id", name="uq_parent_profile_revision_owner"),
+        sa.PrimaryKeyConstraint("profile_revision_id", name="pk_parent_profile_revisions"),
+        sa.UniqueConstraint(
+            "parent_profile_id", "revision_no", name="uq_parent_profile_revisions_parent_revision_no"
+        ),
         schema="parent",
     )
     _create_foreign_key(
-        "fk_parent_profile_current_revision",
+        "fk_parent_child_profiles_current_revision",
         "child_profiles",
         "profile_revisions",
-        ["parent_profile_id", "current_revision_ref"],
-        ["parent_profile_id", "profile_revision_id"],
+        ["parent_profile_id", "current_revision_no"],
+        ["parent_profile_id", "revision_no"],
         source_schema="parent",
         referent_schema="parent",
+        deferrable=True,
+        initially="DEFERRED",
     )
     _create_table(
         "data_authorizations",
-        sa.Column("authorization_id", sa.String(36), primary_key=True),
-        sa.Column("parent_profile_id", sa.String(36), nullable=False),
+        sa.Column("authorization_id", sa.String(36), nullable=False),
+        sa.Column("parent_profile_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("actor_subject", sa.String(256), nullable=False),
         sa.Column("purpose_code", sa.String(64), server_default=sa.text("'PARENT_STORY_PERSONALIZATION'"), nullable=False),
         sa.Column("policy_version", sa.String(80), nullable=False),
@@ -136,6 +155,7 @@ def upgrade() -> None:
             ["parent_profile_id"], ["parent.child_profiles.parent_profile_id"],
             ondelete="RESTRICT", name="fk_parent_authorization_profile",
         ),
+        sa.PrimaryKeyConstraint("authorization_id", name="pk_parent_data_authorizations"),
         schema="parent",
     )
     _create_index(
@@ -173,9 +193,7 @@ def upgrade() -> None:
     op.create_check_constraint(
         "ck_story_run_state",
         "runs",
-        "run_state IN ('INPUT_PROCESSING','SUBJECT_REVIEW','PREPARATION_REVIEW',"
-        "'SCRIPT_GENERATING','SCRIPT_GENERATION_UNKNOWN','SCRIPT_REVIEW',"
-        "'VIDEO_ADMISSION_PENDING','DELETE_PENDING','FAILED','COMPLETED')",
+        f"run_state IN ({FINAL_RUN_STATES})",
         schema="story",
     )
 
@@ -221,7 +239,11 @@ def upgrade() -> None:
         "AND derived_size_bytes BETWEEN 1 AND 5000000)",
         schema="story",
     )
-    op.add_column("run_inputs", sa.Column("source_profile_revision_ref", sa.String(36), nullable=True), schema="story")
+    op.add_column(
+        "run_inputs",
+        sa.Column("source_profile_revision_ref", sa.String(36), nullable=True),
+        schema="story",
+    )
     op.add_column("run_inputs", sa.Column("typed_idea", sa.String(500), nullable=True), schema="story")
     op.add_column("run_inputs", sa.Column("idea_source", sa.String(16), nullable=True), schema="story")
     op.create_check_constraint(
@@ -231,22 +253,16 @@ def upgrade() -> None:
         "(typed_idea IS NOT NULL AND length(typed_idea) BETWEEN 1 AND 500 AND idea_source = 'TEXT')",
         schema="story",
     )
-    op.add_column("run_inputs", sa.Column("data_authorization_id", sa.String(36), nullable=True), schema="story")
+    op.add_column(
+        "run_inputs",
+        sa.Column("data_authorization_id", sa.String(36), nullable=True),
+        schema="story",
+    )
     op.add_column("run_inputs", sa.Column("context_revision", sa.Integer(), nullable=True), schema="story")
     op.add_column("run_inputs", sa.Column("context_snapshot", postgresql.JSONB(astext_type=sa.Text()), nullable=True), schema="story")
     op.add_column("run_inputs", sa.Column("context_snapshot_sha256", sa.String(64), nullable=True), schema="story")
     op.add_column("run_inputs", sa.Column("context_confirmed_by", sa.String(256), nullable=True), schema="story")
     op.add_column("run_inputs", sa.Column("context_confirmed_at", sa.DateTime(timezone=True), nullable=True), schema="story")
-    op.create_foreign_key(
-        "fk_story_run_input_profile_revision",
-        "run_inputs",
-        "profile_revisions",
-        ["source_profile_revision_ref"],
-        ["profile_revision_id"],
-        source_schema="story",
-        referent_schema="parent",
-        ondelete="RESTRICT",
-    )
     op.create_foreign_key(
         "fk_story_run_input_data_authorization",
         "run_inputs",
@@ -285,9 +301,6 @@ def downgrade() -> None:
     op.drop_constraint("ck_story_run_input_parent_context", "run_inputs", schema="story", type_="check")
     op.drop_constraint(
         "fk_story_run_input_data_authorization", "run_inputs", schema="story", type_="foreignkey"
-    )
-    op.drop_constraint(
-        "fk_story_run_input_profile_revision", "run_inputs", schema="story", type_="foreignkey"
     )
     for column in (
         "context_confirmed_at", "context_confirmed_by", "context_snapshot_sha256",
@@ -332,6 +345,11 @@ def downgrade() -> None:
     op.drop_index("ix_parent_authorization_profile_state", table_name="data_authorizations", schema="parent")
     op.drop_index("uq_parent_authorization_active_policy", table_name="data_authorizations", schema="parent")
     op.drop_table("data_authorizations", schema="parent")
-    op.drop_constraint("fk_parent_profile_current_revision", "child_profiles", schema="parent", type_="foreignkey")
+    op.drop_constraint(
+        "fk_parent_child_profiles_current_revision",
+        "child_profiles",
+        schema="parent",
+        type_="foreignkey",
+    )
     op.drop_table("profile_revisions", schema="parent")
     op.drop_table("child_profiles", schema="parent")

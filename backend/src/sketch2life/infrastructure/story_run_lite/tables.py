@@ -22,6 +22,7 @@ from sqlalchemy import (
     text,
 )
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 
 CORE_METADATA = MetaData()
 STORY_SCHEMA = "story"
@@ -262,6 +263,10 @@ story_runs = Table(
     Column("active_owner_teacher_id", String(36)),
     Column("occurrence_ref", String(36)),
     Column("created_by_actor_ref", String(36)),
+    # T-6b DDL-BE1: immutable class binding and the epoch invalidating stale owner claims.
+    Column("organization_ref", String(128)),
+    Column("class_ref", String(128)),
+    Column("owner_epoch", BigInteger, nullable=False, server_default=text("0")),
     Column("created_at", DateTime(timezone=True), nullable=False, server_default=text("now()")),
     Column("updated_at", DateTime(timezone=True), nullable=False, server_default=text("now()")),
     UniqueConstraint(
@@ -276,11 +281,11 @@ story_runs = Table(
         name="ck_story_run_current_input_revision",
     ),
     CheckConstraint(
-        "run_state IN ('INPUT_PROCESSING','INPUT_REVIEW','SUBJECT_REVIEW',"
-        "'PREPARATION_REVIEW','SCRIPT_GENERATING','SCRIPT_GENERATION_UNKNOWN','SCRIPT_REVIEW',"
-        "'VIDEO_ADMISSION_PENDING','DELETE_PENDING','FAILED','COMPLETED','DELETED',"
+        "run_state IN ('DRAFT','INPUT_PROCESSING','INPUT_REVIEW','SUBJECT_REVIEW',"
+        "'PREPARATION_REVIEW','STORY_GENERATING','SCRIPT_REVIEW','VIDEO_ADMISSION_PENDING',"
         "'VIDEO_QUEUED','VIDEO_GENERATING','VIDEO_SAFETY_VALIDATING','VIDEO_READY',"
-        "'SAFETY_BLOCKED','ABANDONED')",
+        "'SAFETY_BLOCKED','COMPLETED','FAILED','ABANDONED','DELETE_PENDING','DELETED',"
+        "'SCRIPT_GENERATING','SCRIPT_GENERATION_UNKNOWN')",
         name="ck_story_run_state",
     ),
     CheckConstraint(
@@ -296,11 +301,17 @@ story_runs = Table(
         "confidence IS NULL OR confidence BETWEEN 0 AND 1", name="ck_story_run_confidence"
     ),
     CheckConstraint(
-        "(occurrence_ref IS NULL) = (created_by_actor_ref IS NULL)",
+        "(occurrence_ref IS NULL) = (created_by_actor_ref IS NULL) AND "
+        "(organization_ref IS NULL) = (class_ref IS NULL)",
         name="ck_story_run_teacher_pins",
     ),
     CheckConstraint(
+        "occurrence_ref IS NULL OR (organization_ref IS NOT NULL AND class_ref IS NOT NULL)",
+        name="ck_story_run_teacher_binding",
+    ),
+    CheckConstraint(
         "active_owner_teacher_id IS NULL OR (occurrence_ref IS NOT NULL "
+        "AND organization_ref IS NOT NULL AND class_ref IS NOT NULL "
         "AND actor_scope_kind = 'ORGANIZATION' AND active_owner_parent_account_id IS NULL)",
         name="ck_story_run_teacher_owner",
     ),
@@ -309,6 +320,7 @@ story_runs = Table(
         "('COMPLETED','FAILED','ABANDONED','DELETE_PENDING','DELETED')",
         name="ck_story_run_teacher_lock_state",
     ),
+    CheckConstraint("owner_epoch >= 0", name="ck_story_run_owner_epoch"),
 )
 Index(
     "uq_story_run_active_teacher",
@@ -328,6 +340,13 @@ Index(
     postgresql_where=story_runs.c.occurrence_ref.is_not(None),
 )
 Index(
+    "ix_story_run_teacher_class_owner",
+    story_runs.c.organization_ref,
+    story_runs.c.class_ref,
+    story_runs.c.active_owner_teacher_id,
+    postgresql_where=story_runs.c.active_owner_teacher_id.is_not(None),
+)
+Index(
     "uq_story_run_active_parent",
     story_runs.c.active_owner_parent_account_id,
     unique=True,
@@ -340,6 +359,93 @@ Index(
     story_runs.c.updated_at,
 )
 
+run_audio_inputs = Table(
+    "run_audio_inputs",
+    STORY_METADATA,
+    Column("audio_input_id", String(36), primary_key=True),
+    Column(
+        "run_id", String(36), ForeignKey("story.runs.run_id", ondelete="CASCADE"), nullable=False
+    ),
+    Column("owner_subject", String(256), nullable=False),
+    Column("idempotency_key_sha256", String(64), nullable=False),
+    Column("request_sha256", String(64), nullable=False),
+    Column("asset_ref", String(256), nullable=False),
+    Column("asset_sha256", String(64), nullable=False),
+    Column("media_type", String(32), nullable=False),
+    Column("size_bytes", BigInteger, nullable=False),
+    Column("duration_ms", Integer, nullable=False),
+    Column("scanner_name", String(64), nullable=False),
+    Column("scanner_version", String(128), nullable=False),
+    Column("created_at", DateTime(timezone=True), nullable=False, server_default=text("now()")),
+    UniqueConstraint("run_id", "audio_input_id", name="uq_story_run_audio_owner"),
+    UniqueConstraint("run_id", "idempotency_key_sha256", name="uq_story_run_audio_idempotency"),
+    CheckConstraint(
+        "length(idempotency_key_sha256) = 64 AND length(request_sha256) = 64",
+        name="ck_story_run_audio_request_hashes",
+    ),
+    CheckConstraint("length(asset_sha256) = 64", name="ck_story_run_audio_asset_hash"),
+    CheckConstraint(
+        "media_type IN ('audio/wav','audio/mp4','audio/webm','audio/ogg')",
+        name="ck_story_run_audio_media_type",
+    ),
+    CheckConstraint("size_bytes BETWEEN 1 AND 20971520", name="ck_story_run_audio_size"),
+    CheckConstraint("duration_ms BETWEEN 1 AND 120000", name="ck_story_run_audio_duration"),
+)
+Index(
+    "ix_story_run_audio_asset",
+    run_audio_inputs.c.asset_ref,
+    run_audio_inputs.c.created_at,
+)
+
+parent_audio_transcript_revisions = Table(
+    "parent_audio_transcript_revisions",
+    STORY_METADATA,
+    Column("transcript_revision_id", String(36), primary_key=True),
+    Column("run_id", String(36), nullable=False),
+    Column("audio_input_id", String(36), nullable=False),
+    Column("revision_no", Integer, nullable=False),
+    Column("transcript_raw", String(4000), nullable=False),
+    Column("transcript_confirmed", String(500)),
+    Column("language", String(16), nullable=False),
+    Column("language_probability", Numeric(5, 4), nullable=False),
+    Column("model_id", String(160), nullable=False),
+    Column("model_revision", String(80), nullable=False),
+    Column("provider_call_id", String(96), nullable=False),
+    Column("state", String(16), nullable=False),
+    Column("created_by", String(256), nullable=False),
+    Column("created_at", DateTime(timezone=True), nullable=False, server_default=text("now()")),
+    Column("confirmed_by", String(256)),
+    Column("confirmed_at", DateTime(timezone=True)),
+    ForeignKeyConstraint(
+        ["run_id", "audio_input_id"],
+        ["story.run_audio_inputs.run_id", "story.run_audio_inputs.audio_input_id"],
+        ondelete="RESTRICT",
+        name="fk_story_transcript_audio",
+    ),
+    UniqueConstraint("run_id", "transcript_revision_id", name="uq_story_transcript_owner"),
+    UniqueConstraint("run_id", "revision_no", name="uq_parent_audio_transcript_revision"),
+    CheckConstraint("revision_no > 0", name="ck_story_transcript_revision_no"),
+    CheckConstraint("state IN ('DRAFT','CONFIRMED','SUPERSEDED')", name="ck_story_transcript_state"),
+    CheckConstraint("language = 'vi'", name="ck_story_transcript_language"),
+    CheckConstraint(
+        "language_probability BETWEEN 0 AND 1", name="ck_story_transcript_probability"
+    ),
+    CheckConstraint(
+        "length(trim(transcript_raw)) <= 4000", name="ck_story_transcript_raw_length"
+    ),
+    CheckConstraint(
+        "transcript_confirmed IS NULL OR "
+        "length(trim(transcript_confirmed)) BETWEEN 1 AND 500",
+        name="ck_story_transcript_confirmed_length",
+    ),
+    CheckConstraint(
+        "(state = 'CONFIRMED' AND transcript_confirmed IS NOT NULL "
+        "AND confirmed_by IS NOT NULL AND confirmed_at IS NOT NULL) OR "
+        "(state IN ('DRAFT','SUPERSEDED'))",
+        name="ck_story_transcript_confirmation_shape",
+    ),
+)
+
 run_inputs = Table(
     "run_inputs",
     STORY_METADATA,
@@ -350,6 +456,8 @@ run_inputs = Table(
     Column("input_revision", Integer, nullable=False),
     Column("typed_idea", String(500)),
     Column("idea_source", String(16)),
+    Column("audio_input_id", String(36)),
+    Column("transcript_revision_id", String(36)),
     # DDL-B1 part 1 (T-2c): the voice idea; hash, type and size live in core_asset_metadata.
     Column("voice_asset_ref", String(256)),
     Column("voice_asset_version", Integer),
@@ -364,7 +472,7 @@ run_inputs = Table(
     Column("derived_sha256", String(64)),
     Column("derived_media_type", String(32)),
     Column("derived_size_bytes", BigInteger),
-    Column("source_profile_revision_ref", String(36)),
+    Column("source_profile_revision_ref", PG_UUID(as_uuid=False)),
     Column("context_revision", Integer),
     Column("context_snapshot", JSONB),
     Column("context_snapshot_sha256", String(64)),
@@ -375,12 +483,29 @@ run_inputs = Table(
     Column("created_at", DateTime(timezone=True), nullable=False, server_default=text("now()")),
     UniqueConstraint("run_id", "input_revision", name="uq_story_run_input_revision"),
     UniqueConstraint("run_id", "run_input_id", name="uq_story_run_input_owner"),
+    ForeignKeyConstraint(
+        ["run_id", "audio_input_id"],
+        ["story.run_audio_inputs.run_id", "story.run_audio_inputs.audio_input_id"],
+        ondelete="RESTRICT",
+        name="fk_story_run_input_audio",
+    ),
+    ForeignKeyConstraint(
+        ["run_id", "transcript_revision_id"],
+        [
+            "story.parent_audio_transcript_revisions.run_id",
+            "story.parent_audio_transcript_revisions.transcript_revision_id",
+        ],
+        ondelete="RESTRICT",
+        name="fk_story_run_input_transcript",
+    ),
     CheckConstraint(
         "input_revision > 0 AND ("
         "(original_asset_ref IS NULL AND original_asset_version IS NULL "
-        "AND original_sha256 IS NULL AND original_media_type IS NULL AND original_size_bytes IS NULL "
+        "AND original_sha256 IS NULL AND original_media_type IS NULL "
+        "AND original_size_bytes IS NULL "
         "AND derived_asset_ref IS NULL AND derived_asset_version IS NULL "
-        "AND derived_sha256 IS NULL AND derived_media_type IS NULL AND derived_size_bytes IS NULL) OR "
+        "AND derived_sha256 IS NULL AND derived_media_type IS NULL "
+        "AND derived_size_bytes IS NULL) OR "
         "(original_asset_ref IS NOT NULL AND original_asset_version IS NOT NULL "
         "AND original_asset_version > 0 AND original_sha256 IS NOT NULL "
         "AND original_media_type IS NOT NULL AND original_size_bytes IS NOT NULL "
@@ -394,6 +519,8 @@ run_inputs = Table(
         "(typed_idea IS NULL AND voice_asset_ref IS NULL AND idea_source IS NULL) OR "
         "(typed_idea IS NOT NULL AND length(typed_idea) BETWEEN 1 AND 500 "
         "AND voice_asset_ref IS NULL AND idea_source = 'TEXT') OR "
+        "(typed_idea IS NOT NULL AND length(typed_idea) BETWEEN 1 AND 500 "
+        "AND voice_asset_ref IS NULL AND idea_source = 'TRANSCRIPT') OR "
         "(typed_idea IS NULL AND voice_asset_ref IS NOT NULL AND idea_source = 'VOICE') OR "
         "(typed_idea IS NOT NULL AND length(typed_idea) BETWEEN 1 AND 500 "
         "AND voice_asset_ref IS NOT NULL AND idea_source = 'TEXT_AND_VOICE')",
@@ -590,8 +717,9 @@ story_command_receipts = Table(
     CheckConstraint(
         "operation IN ('CREATE_RUN','ATTACH_ASSET','CONFIRM_SUBJECT','CONFIRM_CONTEXT',"
         "'CANCEL_RUN','GENERATE_STORY_REVISION','CONFIRM_STORY_REVISION','DELETE_RUN',"
-        "'GENERATE_ACTIVITY_SET','SELECT_ACTIVITY','SUBMIT_IDEA','CONFIRM_TRANSCRIPT',"
-        "'CREATE_VIDEO_GENERATION','MARK_VIDEO_UNSUITABLE','COMPLETE_RUN')",
+        "'SUBMIT_IDEA','CONFIRM_TRANSCRIPT','CREATE_VIDEO_GENERATION',"
+        "'MARK_VIDEO_UNSUITABLE','COMPLETE_RUN','SELECT_ACTIVITY','GENERATE_ACTIVITY_SET',"
+        "'TRANSFER_TEACHER_OWNER','FORCE_CLOSE_RUN')",
         name="ck_story_receipt_operation",
     ),
     CheckConstraint(
@@ -1013,6 +1141,136 @@ Index(
     activity_selections.c.selection_no,
 )
 
+# DDL-B4: each suggestion response is a bounded, immutable snapshot; repeated requests append a
+# new set revision. The activity choice itself remains in ``activity_selections`` above.
+activity_suggestion_sets = Table(
+    "activity_suggestion_sets",
+    STORY_METADATA,
+    Column("suggestion_set_id", String(36), primary_key=True),
+    Column(
+        "run_id", String(36), ForeignKey("story.runs.run_id", ondelete="CASCADE"), nullable=False
+    ),
+    Column("set_revision", Integer, nullable=False),
+    Column("understanding_revision", Integer, nullable=False),
+    Column("input_revision", Integer, nullable=False),
+    Column("context_revision", Integer, nullable=False),
+    Column("selection_mode", String(32), nullable=False),
+    Column("catalog_candidate_count", Integer, nullable=False),
+    Column("activities_snapshot", JSONB, nullable=False),
+    Column("activities_snapshot_sha256", String(64), nullable=False),
+    Column("provider_call_id", String(128)),
+    Column("created_at", DateTime(timezone=True), nullable=False, server_default=text("now()")),
+    UniqueConstraint("run_id", "set_revision", name="uq_ass_run_set_revision"),
+    UniqueConstraint("run_id", "suggestion_set_id", name="uq_ass_run_suggestion_set"),
+    CheckConstraint("set_revision >= 1", name="ck_ass_set_revision"),
+    CheckConstraint("understanding_revision >= 1", name="ck_ass_understanding_revision"),
+    CheckConstraint("input_revision >= 1", name="ck_ass_input_revision"),
+    CheckConstraint("context_revision >= 1", name="ck_ass_context_revision"),
+    CheckConstraint(
+        "selection_mode IN ('CATALOG_SELECTION','AI_GENERATED_FALLBACK')",
+        name="ck_ass_selection_mode",
+    ),
+    CheckConstraint("catalog_candidate_count BETWEEN 0 AND 500", name="ck_ass_catalog_count"),
+    CheckConstraint(
+        "jsonb_typeof(activities_snapshot) = 'array' AND "
+        "jsonb_array_length(activities_snapshot) BETWEEN 1 AND 24",
+        name="ck_ass_snapshot_shape",
+    ),
+    CheckConstraint(
+        "octet_length(activities_snapshot::text) <= 262144", name="ck_ass_snapshot_bound"
+    ),
+    CheckConstraint("length(activities_snapshot_sha256) = 64", name="ck_ass_snapshot_hash"),
+    CheckConstraint(
+        "provider_call_id IS NULL OR length(provider_call_id) <= 128",
+        name="ck_ass_provider_call_id",
+    ),
+)
+Index(
+    "ix_ass_run_understanding_revision",
+    activity_suggestion_sets.c.run_id,
+    activity_suggestion_sets.c.understanding_revision,
+    activity_suggestion_sets.c.set_revision,
+)
+
+# The pre-DDL-B3 Parent activity tables are retained under legacy names during the merge so rows
+# already written on the dev branch survive. Current APIs use the version-pinned tables above.
+legacy_parent_activity_suggestion_sets = Table(
+    "legacy_parent_activity_suggestion_sets",
+    STORY_METADATA,
+    Column("suggestion_set_id", String(36), primary_key=True),
+    Column("run_id", String(36), ForeignKey("story.runs.run_id", ondelete="CASCADE"), nullable=False),
+    Column("owner_scope_kind", String(32), nullable=False),
+    Column("owner_scope_ref", String(256), nullable=False),
+    Column("input_revision", Integer, nullable=False),
+    Column("understanding_revision", Integer, nullable=False),
+    Column("selection_mode", String(32), nullable=False),
+    Column("candidates_snapshot", JSONB, nullable=False),
+    Column("candidates_sha256", String(64), nullable=False),
+    Column("created_at", DateTime(timezone=True), nullable=False, server_default=text("now()")),
+    UniqueConstraint("run_id", "suggestion_set_id", name="uq_story_activity_suggestion_owner"),
+    CheckConstraint("owner_scope_kind = 'PARENT_ACCOUNT'", name="ck_story_activity_suggestion_owner_kind"),
+    CheckConstraint("input_revision > 0 AND understanding_revision > 0", name="ck_story_activity_suggestion_revisions"),
+    CheckConstraint("selection_mode IN ('CATALOG_SELECTION','AI_GENERATED_FALLBACK')", name="ck_story_activity_suggestion_mode"),
+    CheckConstraint("length(candidates_sha256) = 64", name="ck_story_activity_suggestion_hash"),
+    CheckConstraint(
+        "jsonb_typeof(candidates_snapshot) = 'array' AND octet_length(candidates_snapshot::text) <= 262144",
+        name="ck_story_activity_suggestion_snapshot",
+    ),
+)
+Index(
+    "ix_story_activity_suggestion_current",
+    legacy_parent_activity_suggestion_sets.c.run_id,
+    legacy_parent_activity_suggestion_sets.c.input_revision,
+    legacy_parent_activity_suggestion_sets.c.understanding_revision,
+    legacy_parent_activity_suggestion_sets.c.created_at,
+)
+legacy_parent_activity_selections = Table(
+    "legacy_parent_activity_selections",
+    STORY_METADATA,
+    Column("selection_id", String(36), primary_key=True),
+    Column("run_id", String(36), nullable=False),
+    Column("suggestion_set_id", String(36), nullable=False),
+    Column("owner_scope_kind", String(32), nullable=False),
+    Column("owner_scope_ref", String(256), nullable=False),
+    Column("input_revision", Integer, nullable=False),
+    Column("understanding_revision", Integer, nullable=False),
+    Column("activity_selection_id", String(36), nullable=False),
+    Column("selected_activity_sha256", String(64), nullable=False),
+    Column("selected_activity_snapshot", JSONB, nullable=False),
+    Column("state", String(16), nullable=False, server_default=text("'ACTIVE'")),
+    Column("selected_at", DateTime(timezone=True), nullable=False, server_default=text("now()")),
+    ForeignKeyConstraint(
+        ["run_id", "suggestion_set_id"],
+        [
+            "story.legacy_parent_activity_suggestion_sets.run_id",
+            "story.legacy_parent_activity_suggestion_sets.suggestion_set_id",
+        ],
+        ondelete="RESTRICT",
+        name="fk_story_activity_selection_suggestion_set",
+    ),
+    CheckConstraint("owner_scope_kind = 'PARENT_ACCOUNT'", name="ck_story_activity_selection_owner_kind"),
+    CheckConstraint("input_revision > 0 AND understanding_revision > 0", name="ck_story_activity_selection_revisions"),
+    CheckConstraint("length(selected_activity_sha256) = 64", name="ck_story_activity_selection_hash"),
+    CheckConstraint("state IN ('ACTIVE','SUPERSEDED')", name="ck_story_activity_selection_state"),
+    CheckConstraint(
+        "jsonb_typeof(selected_activity_snapshot) = 'object' AND octet_length(selected_activity_snapshot::text) <= 65536",
+        name="ck_story_activity_selection_snapshot",
+    ),
+)
+Index(
+    "uq_story_activity_selection_one_active",
+    legacy_parent_activity_selections.c.run_id,
+    unique=True,
+    postgresql_where=text("state = 'ACTIVE'"),
+)
+Index(
+    "ix_story_activity_selection_current",
+    legacy_parent_activity_selections.c.run_id,
+    legacy_parent_activity_selections.c.input_revision,
+    legacy_parent_activity_selections.c.understanding_revision,
+    legacy_parent_activity_selections.c.selected_at,
+)
+
 
 # FEAT-063 Rev67 activity suggestions use the immutable suggestion/selection records introduced
 # by migration 20261114. The newer ``activity_selections`` table above is the StoryRun projection
@@ -1022,7 +1280,9 @@ parent_activity_suggestion_sets = Table(
     "parent_activity_suggestion_sets",
     STORY_METADATA,
     Column("suggestion_set_id", String(36), primary_key=True),
-    Column("run_id", String(36), ForeignKey("story.runs.run_id", ondelete="CASCADE"), nullable=False),
+    Column(
+        "run_id", String(36), ForeignKey("story.runs.run_id", ondelete="CASCADE"), nullable=False
+    ),
     Column("set_revision", Integer, nullable=False),
     Column("understanding_revision", Integer, nullable=False),
     Column("input_revision", Integer, nullable=False),
@@ -1097,7 +1357,9 @@ parent_activity_selections = Table(
         "selection_revision > 0 AND understanding_revision > 0",
         name="ck_story_parent_activity_selection_revisions",
     ),
-    CheckConstraint("activity_index BETWEEN 0 AND 23", name="ck_story_parent_activity_selection_index"),
+    CheckConstraint(
+        "activity_index BETWEEN 0 AND 23", name="ck_story_parent_activity_selection_index"
+    ),
     CheckConstraint(
         "length(activity_snapshot_sha256) = 64",
         name="ck_story_parent_activity_selection_hash",
@@ -1143,7 +1405,10 @@ __all__ = [
     "CORE_METADATA",
     "STORY_METADATA",
     "STORY_SCHEMA",
+    "activity_suggestion_sets",
     "activity_selections",
+    "legacy_parent_activity_selections",
+    "legacy_parent_activity_suggestion_sets",
     "parent_activity_selections",
     "parent_activity_suggestion_sets",
     "asset_lineage",
