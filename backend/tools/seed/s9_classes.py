@@ -14,7 +14,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.sql.elements import ColumnElement
 
-from sketch2life.contracts.schemas.be1_runtime import CreateProfileRequest, MoveProfileRequest
+from sketch2life.contracts.schemas.be1_runtime import MoveProfileRequest
 from sketch2life.infrastructure.config.settings import get_settings
 from sketch2life.infrastructure.persistence.be1_models import (
     AdultIdentityModel,
@@ -23,6 +23,7 @@ from sketch2life.infrastructure.persistence.be1_models import (
     EnrollmentModel,
     ManagedProfileModel,
     OrganizationAssignmentModel,
+    ProfileRevisionModel,
 )
 from sketch2life.infrastructure.persistence.core_models import (
     CoreAggregateRevisionModel,
@@ -93,7 +94,14 @@ def _profile_key_id(key: bytes) -> str:
 
 
 def _profile_fingerprint(
-    *, key: bytes, subject: str, scope: str, payload: CreateProfileRequest, expected_revision: int
+    *,
+    key: bytes,
+    subject: str,
+    scope: str,
+    display_name: str,
+    age_months: int,
+    consent_id: str | None,
+    expected_revision: int,
 ) -> str:
     message = json.dumps(
         {
@@ -101,9 +109,9 @@ def _profile_fingerprint(
             "v": PROFILE_RECEIPT_VERSION,
             "principal": subject,
             "scope": scope,
-            "display_name": payload.display_name,
-            "age_months": payload.age_months,
-            "consent_id": payload.consent_id,
+            "display_name": display_name,
+            "age_months": age_months,
+            "consent_id": consent_id,
             "if_match": expected_revision,
         },
         ensure_ascii=False,
@@ -354,6 +362,13 @@ def _ensure_lifecycle_profiles(session_factory: sessionmaker[Session]) -> None:
                     .on_conflict_do_nothing(index_elements=[ManagedProfileModel.child_id])
                 )
                 session.execute(
+                    pg_insert(ProfileRevisionModel)
+                    .values(**data.baseline_revision_row(profile))
+                    .on_conflict_do_nothing(
+                        index_elements=[ProfileRevisionModel.profile_revision_id]
+                    )
+                )
+                session.execute(
                     pg_insert(EnrollmentModel)
                     .values(
                         enrollment_id=stage_enrollment_id(profile["child_id"]),
@@ -466,13 +481,14 @@ def _ensure_profile_create(
     principal = seed_principal(subject)
     scope = profile_create_scope()
     idempotency_key = profile_create_key(child_id)
-    payload = CreateProfileRequest(
+    fingerprint = _profile_fingerprint(
+        key=key,
+        subject=subject,
+        scope=scope,
         display_name=str(profile["display_name"]),
         age_months=int(profile["age_months"]),
         consent_id=None,
-    )
-    fingerprint = _profile_fingerprint(
-        key=key, subject=subject, scope=scope, payload=payload, expected_revision=1
+        expected_revision=1,
     )
     key_id = _profile_key_id(key)
     enrollment_id = stage_enrollment_id(child_id)
@@ -510,6 +526,11 @@ def _ensure_profile_create(
                 pg_insert(ManagedProfileModel)
                 .values(**profile)
                 .on_conflict_do_nothing(index_elements=[ManagedProfileModel.child_id])
+            )
+            session.execute(
+                pg_insert(ProfileRevisionModel)
+                .values(**data.baseline_revision_row(profile))
+                .on_conflict_do_nothing(index_elements=[ProfileRevisionModel.profile_revision_id])
             )
             session.execute(
                 pg_insert(EnrollmentModel)
@@ -789,6 +810,13 @@ def count_s9_rows(connection: Connection) -> dict[str, int]:
                 select(func.count())
                 .select_from(ManagedProfileModel)
                 .where(ManagedProfileModel.child_id.in_(profile_ids))
+            ).scalar_one()
+        ),
+        "be1_profile_revisions": int(
+            connection.execute(
+                select(func.count())
+                .select_from(ProfileRevisionModel)
+                .where(ProfileRevisionModel.child_id.in_(profile_ids))
             ).scalar_one()
         ),
         "be1_enrollments": int(

@@ -105,22 +105,22 @@ LESSON_CONTENT: Final[dict[str, Any]] = {
 LESSON_ACTIVITIES: Final[tuple[dict[str, Any], ...]] = (
     {
         "title": "Nhặt lá rụng vẽ tranh cây xanh",
-        "objective": "Giúp bé nhận biết hình dáng lá cây ngoài sân trường.",
+        "objective": "Giúp trẻ nhận biết hình dáng lá cây ngoài sân trường.",
         "materials_text": "Lá cây rụng sạch, giấy vẽ khổ A4 và bút sáp màu.",
-        "preparation_text": "Chọn góc sân trường thoáng mát, an toàn cho bé đi dạo.",
-        "instructions_text": "Cùng bé nhặt ba chiếc lá khác nhau, đặt cạnh tranh cây xanh.",
-        "observation_notes": "Ghi lại màu lá bé chọn để đưa vào câu chuyện.",
+        "preparation_text": "Chọn góc sân trường thoáng mát, an toàn cho trẻ đi dạo.",
+        "instructions_text": "Cùng trẻ nhặt ba chiếc lá khác nhau, đặt cạnh tranh cây xanh.",
+        "observation_notes": "Ghi lại màu lá trẻ chọn để đưa vào câu chuyện.",
         "safety_notes": "Tránh lá có gai hoặc khu vực ẩm ướt trơn trượt.",
         "activity_kind": "outdoor",
     },
     {
         "title": "Tìm bóng nắng và bông hoa ngoài vườn",
-        "objective": "Giúp bé quan sát ánh nắng chiếu qua tán cây xanh.",
+        "objective": "Giúp trẻ quan sát ánh nắng chiếu qua tán cây xanh.",
         "materials_text": "Bình nước cá nhân và phấn màu vẽ trên sân khô.",
         "preparation_text": "Đi dạo buổi sáng khi nắng dịu ở sân trường hoặc công viên.",
-        "instructions_text": "Bé chỉ bóng nắng dưới tán cây xanh và kể màu bông hoa nhìn thấy.",
-        "observation_notes": "Khuyến khích bé đặt một câu ngắn về bông hoa và nắng sớm.",
-        "safety_notes": "Đội mũ cho bé và nhắc uống nước sau hoạt động ngoài trời.",
+        "instructions_text": "Trẻ chỉ bóng nắng dưới tán cây xanh và kể màu bông hoa nhìn thấy.",
+        "observation_notes": "Khuyến khích trẻ nói một câu ngắn về bông hoa và nắng sớm.",
+        "safety_notes": "Đội mũ cho trẻ và nhắc trẻ uống nước khi kết thúc hoạt động ngoài trời.",
         "activity_kind": "outdoor",
     },
 )
@@ -136,6 +136,9 @@ RUN_COMPLETED_ID: Final[str] = s12_uuid_text("run:completed")
 SELECT_STARTED_KEY_1: Final[str] = "seed:s12:started:select-1"
 SELECT_STARTED_KEY_2: Final[str] = "seed:s12:started:select-2"
 CONFIRM_CONTEXT_STARTED_KEY: Final[str] = "seed:s12:started:confirm-context"
+PARENT_ACTIVITY_SUGGESTIONS_KEY: Final[str] = "seed:s12:started:parent-activity-suggestions"
+PARENT_ACTIVITY_REQUEST_ID: Final[str] = s12_uuid_text("parent-activity-request:started")
+PARENT_ACTIVITY_MATCH_REASON: Final[str] = "Phù hợp với bức vẽ cây xanh sân trường."
 
 SAFETY_STORY_REV_ID: Final[str] = s12_uuid_text("story-rev:safety-blocked:1")
 SAFETY_REVIEW_ID: Final[str] = s12_uuid_text("story-review:safety-blocked:1")
@@ -299,7 +302,7 @@ def _story_bundle(
         "story_content": story_content,
         "schema_version": "sketch2life.story-script.v1",
         "prompt_version": "s12-v1",
-        "model_id": "seed-story-model",
+        "model_id": "sketch2life-story-v1",
         "model_revision": "2026-11",
         "request_sha256": sha256_text(f"{tag}:story-request"),
         "provider_call_id": None,
@@ -373,8 +376,11 @@ def _selection_row(
         "actor_scope_ref": actor_scope_ref,
         "selection_no": selection_no,
         "target_understanding_revision": 1,
-        "source_kind": "LIBRARY_CATALOG",
-        "activity_ref": ref,
+        "source_kind": "LESSON_ACTIVITY",
+        "lesson_id": ref["lesson_id"],
+        "version_id": ref["version_id"],
+        "content_sha256": ref["content_sha256"],
+        "activity_index": ref["activity_index"],
         "activity_snapshot": snapshot,
         "activity_snapshot_sha256": data.sha256_json(snapshot),
         "created_at": data.SEED_TIME,
@@ -499,8 +505,6 @@ def build_static_fixture_bundle() -> dict[str, list[dict[str, Any]]]:
             "run_input_id": s12_uuid_text("run-input:started"),
             "run_id": RUN_STARTED_ID,
             "input_revision": 1,
-            "topic": "Thiên nhiên sân trường",
-            "adult_confirmed_idea": "Bé vẽ cây xanh sân trường đón nắng mai",
             "typed_idea": "Bé vẽ cây xanh sân trường đón nắng mai",
             "idea_source": "TEXT",
             "original_asset_ref": "seed/s12/run-started/drawing-orig.png",
@@ -525,8 +529,6 @@ def build_static_fixture_bundle() -> dict[str, list[dict[str, Any]]]:
             "run_input_id": s12_uuid_text("run-input:safety-blocked"),
             "run_id": RUN_SAFETY_BLOCKED_ID,
             "input_revision": 1,
-            "topic": "Vườn hoa buổi sáng",
-            "adult_confirmed_idea": "Bé kể chuyện bông hoa nắng sớm trong vườn",
             "typed_idea": "Bé kể chuyện bông hoa nắng sớm trong vườn",
             "idea_source": "TEXT",
             "original_asset_ref": "seed/s12/run-safety-blocked/drawing-orig.png",
@@ -551,8 +553,6 @@ def build_static_fixture_bundle() -> dict[str, list[dict[str, Any]]]:
             "run_input_id": s12_uuid_text("run-input:completed"),
             "run_id": RUN_COMPLETED_ID,
             "input_revision": 1,
-            "topic": "Công viên cây xanh",
-            "adult_confirmed_idea": "Mít vẽ tán lá xanh sau buổi dạo công viên",
             "typed_idea": "Mít vẽ tán lá xanh sau buổi dạo công viên",
             "idea_source": "TEXT",
             "original_asset_ref": "seed/s12/run-completed/drawing-orig.png",
@@ -576,9 +576,27 @@ def build_static_fixture_bundle() -> dict[str, list[dict[str, Any]]]:
     ]
 
     understanding_specs = (
-        ("started", RUN_STARTED_ID, run_inputs[0]["run_input_id"], "Cây xanh sân trường", ["cây xanh", "lá rụng", "sân trường"]),
-        ("safety-blocked", RUN_SAFETY_BLOCKED_ID, run_inputs[1]["run_input_id"], "Bông hoa nắng sớm", ["bông hoa", "nắng sớm", "vườn cây"]),
-        ("completed", RUN_COMPLETED_ID, run_inputs[2]["run_input_id"], "Tán lá xanh công viên", ["tán lá xanh", "công viên", "cây cối"]),
+        (
+            "started",
+            RUN_STARTED_ID,
+            run_inputs[0]["run_input_id"],
+            "Cây xanh sân trường",
+            ["cây xanh", "lá rụng", "sân trường"],
+        ),
+        (
+            "safety-blocked",
+            RUN_SAFETY_BLOCKED_ID,
+            run_inputs[1]["run_input_id"],
+            "Bông hoa nắng sớm",
+            ["bông hoa", "nắng sớm", "vườn cây"],
+        ),
+        (
+            "completed",
+            RUN_COMPLETED_ID,
+            run_inputs[2]["run_input_id"],
+            "Tán lá xanh công viên",
+            ["tán lá xanh", "công viên", "cây cối"],
+        ),
     )
     understandings: list[dict[str, Any]] = []
     for tag, run_id, run_input_id, label, features in understanding_specs:
@@ -748,6 +766,9 @@ def build_static_fixture_bundle() -> dict[str, list[dict[str, Any]]]:
             "state": "SAFETY_BLOCKED",
             "request_idempotency_key_hash": sha256_text("vg:safety-blocked:key"),
             "request_fingerprint_sha256": sha256_text("vg:safety-blocked:fp"),
+            "compute_reservation_ref": "seed-s12:compute:safety-blocked",
+            "billing_quota_usage_ref": "seed-s12:quota:safety-blocked",
+            "job_ref": "seed-s12:job:safety-blocked",
             "target_script_hash": sb_sha,
             "quality_reason_code": None,
             "technical_validation_state": "PASSED",
@@ -773,6 +794,9 @@ def build_static_fixture_bundle() -> dict[str, list[dict[str, Any]]]:
             "state": "FAILED",
             "request_idempotency_key_hash": sha256_text("vg:completed-spent:key"),
             "request_fingerprint_sha256": sha256_text("vg:completed-spent:fp"),
+            "compute_reservation_ref": "seed-s12:compute:completed-spent",
+            "billing_quota_usage_ref": "seed-s12:quota:completed-spent",
+            "job_ref": "seed-s12:job:completed-spent",
             "target_script_hash": comp_sha,
             "quality_reason_code": None,
             "technical_validation_state": "FAILED",
@@ -795,6 +819,9 @@ def build_static_fixture_bundle() -> dict[str, list[dict[str, Any]]]:
             "state": "READY",
             "request_idempotency_key_hash": sha256_text("vg:completed-ready:key"),
             "request_fingerprint_sha256": sha256_text("vg:completed-ready:fp"),
+            "compute_reservation_ref": "seed-s12:compute:completed-ready",
+            "billing_quota_usage_ref": "seed-s12:quota:completed-ready",
+            "job_ref": "seed-s12:job:completed-ready",
             "target_script_hash": comp_sha,
             "quality_reason_code": QUALITY_REASON_CODE,
             "technical_validation_state": "PASSED",
@@ -859,8 +886,8 @@ RUN_IDS: Final[tuple[str, str, str]] = (
     RUN_COMPLETED_ID,
 )
 
-# Exact S12-owned totals: 3 static receipts on S12 runs plus 3 runtime command receipts
-# (2 activity selections + 1 confirm_context) and 1 started story revision on RUN_STARTED.
+# Exact S12-owned totals: 8 static receipts and 1 runtime catalog-suggestion receipt. The
+# RUN_STARTED fixture remains in PREPARATION_REVIEW so the Parent activity screen is usable.
 EXPECTED: Final[dict[str, int]] = {
     "be1_adult_identities": 2,
     "parent_child_profiles": 2,
@@ -873,11 +900,13 @@ EXPECTED: Final[dict[str, int]] = {
     "story_run_inputs": 3,
     "story_understanding_revisions": 3,
     "story_review_decisions": 3,
-    "story_activity_selections": 4,
-    "story_revisions": 3,
+    "story_activity_selections": 2,
+    "story_parent_activity_suggestion_sets": 1,
+    "story_parent_activity_selections": 0,
+    "story_revisions": 2,
     "story_scenes": 8,
     "story_revision_reviews": 3,
     "story_video_generations": 3,
     "story_video_generation_scenes": 8,
-    "story_command_receipts": 11,
+    "story_command_receipts": 9,
 }

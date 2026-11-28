@@ -60,8 +60,6 @@ def keyed_profile_rows() -> list[dict[str, Any]]:
             8,
             created_by=data.ORG_A_TEACHERS[0],
         )
-        # The keyed profile route requires this visible synthetic-development prefix.
-        profile["display_name"] = f"Synthetic {profile['display_name']}"
         rows.append(profile)
     return rows
 
@@ -71,6 +69,7 @@ EXPECTED = {
     "be1_classrooms": 4,
     "be1_organization_assignments": 1,
     "be1_managed_profiles": 7,
+    "be1_profile_revisions": 7,
     "be1_enrollments": 8,
     "be1_command_receipts": 7,
     "core_audit_entries": 7,

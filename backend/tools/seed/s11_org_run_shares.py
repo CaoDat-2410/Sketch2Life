@@ -190,7 +190,7 @@ def cancel_teacher_run(session_factory: Any) -> ParentStoryLifecycleRecord:
 
 
 def cancel_teacher_run_command(
-    service: Any, principal: VerifiedPrincipal
+    service: ParentStoryRunService, principal: VerifiedPrincipal
 ) -> ParentStoryLifecycleRecord:
     """Call T-13a with the stable revision and idempotency key, without route or HTTP wiring."""
 

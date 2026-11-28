@@ -35,6 +35,44 @@ P3_RUN_B = (
 P3A_TRANSCRIPT = "Con muốn hạt đậu lớn lên thành cây có hai chiếc lá xanh."
 P4_SUBJECT = "Chim sẻ trên cành"
 P5_SUBJECT = "Ngôi nhà có khu vườn nhỏ"
+P3_ACTIVITY_LESSON_KEY = "l2"
+P3_ACTIVITY_LESSON_VERSION_NO = 1
+
+P5_ACTIVITY_LESSON_CONTENT: dict[str, Any] = {
+    "locale": "vi-VN",
+    "title": "Ngôi nhà bên khu vườn",
+    "topic": "Thiết kế ngôi nhà có khu vườn nhỏ",
+    "target_age_band_ref": "age-72-107-months-v1",
+    "target_age_band_version": 1,
+    "objectives": ["Nhận biết hình khối và sắp xếp chi tiết cho một ngôi nhà."],
+    "drawing_subject": "Ngôi nhà có mái đỏ và khu vườn nhỏ",
+    "drawing_steps_text": "Vẽ mái nhà, thân nhà, cửa ra vào rồi thêm các chi tiết của khu vườn.",
+    "subject_learning_notes": "Khuyến khích trẻ mô tả cách các hình khối tạo thành ngôi nhà.",
+    "script_direction": "Kể một câu chuyện nhẹ nhàng về việc cùng gia đình chăm sóc khu vườn.",
+    "script_following_allowed": True,
+    "activities": [
+        {
+            "title": "Khám phá ngôi nhà bên khu vườn",
+            "objective": (
+                "Trẻ quan sát mái nhà, cửa ra vào và cây trong khu vườn rồi chọn "
+                "chi tiết để phác họa."
+            ),
+            "materials_text": "Bảng kẹp giấy, giấy vẽ và bút sáp màu cỡ lớn.",
+            "preparation_text": (
+                "Chọn góc sân bằng phẳng, có lối đi an toàn để trẻ quan sát "
+                "khu vườn cùng người lớn."
+            ),
+            "instructions_text": (
+                "1. Cùng người lớn quan sát mái nhà, cửa ra vào và cây từ lối đi an toàn.\n"
+                "2. Mời trẻ tự chọn hình cơ bản để phác họa mặt tiền ngôi nhà.\n"
+                "3. Thêm cửa sổ, lối đi và một chi tiết nhỏ trong khu vườn."
+            ),
+            "observation_notes": "Lắng nghe trẻ mô tả vị trí các phần của ngôi nhà và khu vườn.",
+            "safety_notes": "Người lớn quan sát trẻ và giữ lối đi khô ráo, thông thoáng.",
+            "activity_kind": "outdoor",
+        }
+    ],
+}
 
 S7B_COMMAND_CASES: dict[str, str] = {
     "profile_create": "p3-profile-create-1",
@@ -44,6 +82,7 @@ S7B_COMMAND_CASES: dict[str, str] = {
     "p3a_submit_idea": "p3-a-submit-idea-1",
     "p3a_confirm_transcript": "p3-a-confirm-transcript-1",
     "p3a_confirm_subject": "p3-a-confirm-subject-1",
+    "p3a_select_activity": "p3-a-select-activity-1",
     "p3a_reserve_story": "p3-a-reserve-story-1",
     "p3a_confirm_story": "p3-a-confirm-story-1",
     "p3a_request_video": "p3-a-request-video-1",
@@ -54,6 +93,7 @@ S7B_COMMAND_CASES: dict[str, str] = {
     "p4_attach": "p4-attach-drawing-1",
     "p5_attach": "p5-attach-drawing-1",
     "p5_confirm_subject": "p5-confirm-subject-1",
+    "p5_select_activity": "p5-select-activity-1",
     "p5_reserve_story": "p5-reserve-story-1",
     "p5_confirm_story": "p5-confirm-story-1",
     "p5_request_video": "p5-request-video-1",
@@ -64,7 +104,17 @@ STORY_CREATE_CASES = {
     "p3-b": S7B_COMMAND_CASES["p3b_create"],
 }
 
-STORY_RECEIPT_CASES = tuple(name for name in S7B_COMMAND_CASES if name != "profile_create")
+STORY_RECEIPT_CASES = tuple(
+    name
+    for name in S7B_COMMAND_CASES
+    if name not in {"profile_create", "p3a_reserve_story", "p5_reserve_story"}
+)
+STORY_CATALOG_RECEIPT_CASES = (
+    "p3-outdoor-lesson-grant",
+    "p5-lesson",
+    "p5-grant",
+    "p5-approve",
+)
 
 ABANDONED_RUN_ID = s1_data.seed_uuid_text("story-run:s7b:p1-abandoned")
 ABANDONED_AT = datetime(2026, 11, 22, 0, 0, tzinfo=UTC)
@@ -284,8 +334,8 @@ P5_STORY: dict[str, Any] = {
 }
 
 STORY_RESULTS = {
-    "p3-a": StoryGenerationResult(P3A_STORY, "fixture-s7b-p3a", "seed-fixture", "1"),
-    "p5": StoryGenerationResult(P5_STORY, "fixture-s7b-p5", "seed-fixture", "1"),
+    "p3-a": StoryGenerationResult(P3A_STORY, "fixture-s7b-p3a", "sketch2life-story-v1", "1"),
+    "p5": StoryGenerationResult(P5_STORY, "fixture-s7b-p5", "sketch2life-story-v1", "1"),
 }
 
 
@@ -346,6 +396,7 @@ EXPECTED: dict[str, int] = {
     "story_story_revisions_s7b": 2,
     "story_video_generations_s7b": 2,
     "story_transcript_revisions_s7b": 1,
+    "story_activity_selections_s7b": 2,
     "parent_child_profiles_s7b": 1,
     "parent_profile_revisions_s7b": 1,
     "story_understanding_revisions_s7b": 3,
@@ -357,6 +408,11 @@ EXPECTED: dict[str, int] = {
     "story_command_receipts_s7b": len(STORY_RECEIPT_CASES),
     "parent_command_receipts_s7b": 1,
     "core_asset_metadata_s7b": 11,
+    "lesson_library_items_s7b": 1,
+    "lesson_library_versions_s7b": 1,
+    "lesson_version_activities_s7b": 1,
+    "lesson_access_grants_s7b": 2,
+    "lesson_command_receipts_s7b": len(STORY_CATALOG_RECEIPT_CASES),
 }
 
 
@@ -371,14 +427,18 @@ __all__ = [
     "EXPECTED",
     "P3A_STORY",
     "P3A_TRANSCRIPT",
+    "P3_ACTIVITY_LESSON_KEY",
+    "P3_ACTIVITY_LESSON_VERSION_NO",
     "P3_RUN_A",
     "P3_RUN_B",
     "P4_SUBJECT",
+    "P5_ACTIVITY_LESSON_CONTENT",
     "P5_SUBJECT",
     "PROFILE_KEY",
     "PROFILE_SNAPSHOT",
     "S7B_COMMAND_CASES",
     "STORY_CREATE_CASES",
+    "STORY_CATALOG_RECEIPT_CASES",
     "STORY_RECEIPT_CASES",
     "STORY_RESULTS",
     "abandoned_rows",

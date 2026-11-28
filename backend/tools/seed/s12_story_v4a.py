@@ -4,7 +4,8 @@ Seeds synthetic Vietnamese Phase A StoryRun shapes:
 - Parent activity selections (including re-selection ``selection_no`` 1 then 2 before story start)
   and context confirmation starting the first story on ``RUN_STARTED``.
 - Story revision review epochs (``review_epoch`` 1 after a spent failed generation and ``2``
-  re-confirming the same revision) ending in a ``COMPLETED`` run whose ready video remains replayable.
+  re-confirming the same revision) ending in a ``COMPLETED`` run whose ready video remains
+  replayable.
 - A run returned to ``SCRIPT_REVIEW`` after ``SAFETY_BLOCKED`` where ``story_confirmation_required``
   is true.
 
@@ -13,17 +14,22 @@ Reuses S1/S8 organization, teacher, and parent/child FK rows without duplicating
 
 from __future__ import annotations
 
+import hashlib
+import json
 from collections.abc import Callable
 from typing import Any, cast
 
-from sqlalchemy import Connection, Engine, func, select
+from sqlalchemy import Connection, Engine, func, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
 
-from sketch2life.application.services.parent_activity_selection import (
-    ParentActivitySelectionService,
+from sketch2life.application.ports.parent_story_runs import ParentStoryRunError
+from sketch2life.application.services.parent_activity_suggestions import (
+    ParentActivitySuggestionError,
+    ParentActivitySuggestionService,
 )
+from sketch2life.contracts.schemas.parent_activity_selection import ParentActivitySuggestionSetV1
 from sketch2life.infrastructure.lesson_library.parent_activity_catalog import (
     LessonLibraryParentActivityCatalogAdapter,
 )
@@ -55,7 +61,7 @@ from tools.seed.stage_common import (
     seed_principal,
 )
 
-SelectionServiceFactory = Callable[[Session], ParentActivitySelectionService]
+ActivitySuggestionServiceFactory = Callable[[Session], ParentActivitySuggestionService]
 RunRepoFactory = Callable[[Session], SqlParentStoryRunRepository]
 
 
@@ -63,21 +69,20 @@ class _UnusedLessonIO:
     """Catalog reads use only SQLAlchemy; asset storage/parser/scanner stay unused here."""
 
 
-def _default_selection_service(session: Session) -> ParentActivitySelectionService:
+def _default_run_repository(session: Session) -> SqlParentStoryRunRepository:
+    return SqlParentStoryRunRepository(session)
+
+
+def _default_activity_suggestion_service(session: Session) -> ParentActivitySuggestionService:
     lesson_service = LessonLibraryService(
         session,
         storage=cast(Any, _UnusedLessonIO()),
         parser=cast(Any, _UnusedLessonIO()),
         scanner=cast(Any, _UnusedLessonIO()),
     )
-    return ParentActivitySelectionService(
-        SqlParentStoryRunRepository(session),
-        LessonLibraryParentActivityCatalogAdapter(lesson_service),
+    return ParentActivitySuggestionService(
+        LessonLibraryParentActivityCatalogAdapter(lesson_service)
     )
-
-
-def _default_run_repository(session: Session) -> SqlParentStoryRunRepository:
-    return SqlParentStoryRunRepository(session)
 
 
 def _table_count(connection: Connection, column: Any, predicate: Any) -> int:
@@ -130,7 +135,9 @@ def count_s12_rows(connection: Connection) -> dict[str, int]:
             ACCESS_GRANTS.c.access_grant_id == s12_story_v4a_data.LESSON_GRANT_ID,
         ),
         "story_runs": _table_count(
-            connection, story_tables.story_runs.c.run_id, story_tables.story_runs.c.run_id.in_(run_ids)
+            connection,
+            story_tables.story_runs.c.run_id,
+            story_tables.story_runs.c.run_id.in_(run_ids),
         ),
         "story_run_inputs": _table_count(
             connection,
@@ -151,6 +158,16 @@ def count_s12_rows(connection: Connection) -> dict[str, int]:
             connection,
             story_tables.activity_selections.c.selection_id,
             story_tables.activity_selections.c.run_id.in_(run_ids),
+        ),
+        "story_parent_activity_suggestion_sets": _table_count(
+            connection,
+            story_tables.parent_activity_suggestion_sets.c.suggestion_set_id,
+            story_tables.parent_activity_suggestion_sets.c.run_id.in_(run_ids),
+        ),
+        "story_parent_activity_selections": _table_count(
+            connection,
+            story_tables.parent_activity_selections.c.activity_selection_id,
+            story_tables.parent_activity_selections.c.run_id.in_(run_ids),
         ),
         "story_revisions": _table_count(
             connection,
@@ -179,8 +196,8 @@ def count_s12_rows(connection: Connection) -> dict[str, int]:
         ),
         "story_command_receipts": _table_count(
             connection,
-            story_tables.command_receipts.c.receipt_id,
-            story_tables.command_receipts.c.resource_ref.in_(run_ids),
+            story_tables.story_command_receipts.c.receipt_id,
+            story_tables.story_command_receipts.c.resource_ref.in_(run_ids),
         ),
     }
 
@@ -214,7 +231,13 @@ def _require_prerequisites(connection: Connection) -> None:
 
 def _insert_ignore(connection: Connection, target: Any, rows: list[dict[str, Any]]) -> None:
     if rows:
-        connection.execute(pg_insert(target).values(rows).on_conflict_do_nothing())
+        # A multi-row VALUES needs the same keys in every row, and an absent key must keep its
+        # column default, so rows with different key sets go in separate statements.
+        groups: dict[frozenset[str], list[dict[str, Any]]] = {}
+        for row in rows:
+            groups.setdefault(frozenset(row), []).append(row)
+        for group in groups.values():
+            connection.execute(pg_insert(target).values(group).on_conflict_do_nothing())
 
 
 def _seed_static_rows(engine: Engine) -> None:
@@ -302,10 +325,21 @@ def _seed_static_rows(engine: Engine) -> None:
                 }
             ],
         )
-        _insert_ignore(connection, story_tables.story_runs, bundle["runs"])
+        # runs.current_video_generation_id and video_generations.story_run_id reference each
+        # other, so runs go in without the pointer and it is set after the generations exist.
+        current_video_ids = {
+            row["run_id"]: row["current_video_generation_id"]
+            for row in bundle["runs"]
+            if row.get("current_video_generation_id")
+        }
+        _insert_ignore(
+            connection,
+            story_tables.story_runs,
+            [{**row, "current_video_generation_id": None} for row in bundle["runs"]],
+        )
         _insert_ignore(connection, story_tables.run_inputs, bundle["run_inputs"])
         _insert_ignore(connection, story_tables.understanding_revisions, bundle["understandings"])
-        _insert_ignore(connection, story_tables.command_receipts, bundle["receipts"])
+        _insert_ignore(connection, story_tables.story_command_receipts, bundle["receipts"])
         _insert_ignore(connection, story_tables.review_decisions, bundle["review_decisions"])
         _insert_ignore(connection, story_tables.activity_selections, bundle["activity_selections"])
         _insert_ignore(connection, story_tables.story_revisions, bundle["story_revisions"])
@@ -317,51 +351,124 @@ def _seed_static_rows(engine: Engine) -> None:
         _insert_ignore(
             connection, story_tables.video_generation_scenes, bundle["video_generation_scenes"]
         )
+        for run_id, video_generation_id in current_video_ids.items():
+            connection.execute(
+                update(story_tables.story_runs)
+                .where(
+                    story_tables.story_runs.c.run_id == run_id,
+                    story_tables.story_runs.c.current_video_generation_id.is_(None),
+                )
+                .values(current_video_generation_id=video_generation_id)
+            )
 
 
-def _drive_started_parent_run(
+def _drive_parent_activity_suggestions(
     session_factory: sessionmaker[Session],
     *,
-    selection_factory: SelectionServiceFactory,
+    service_factory: ActivitySuggestionServiceFactory,
     run_repo_factory: RunRepoFactory,
 ) -> None:
-    """Exercise two Parent activity selections before start, then confirm context to start story."""
+    """Persist a catalog-backed Parent suggestion set before the fixture run advances.
+
+    The fixture uses the product catalog and repository validators but supplies a deterministic
+    catalog selection locally; no model provider or media service is invoked.
+    """
 
     p6 = s12_story_v4a_data.PARENTS_BY_KEY["p6"]
     principal = seed_principal(p6.subject)
-    started_run_id = s12_story_v4a_data.RUN_STARTED_ID
-
     with session_factory() as session:
-        repo = run_repo_factory(session)
-        view = repo.get_run(principal=principal, run_id=started_run_id)
-        selection_service = selection_factory(session)
-        view = selection_service.select_activity(
-            principal=principal,
-            run_id=started_run_id,
-            expected_revision=view.run_revision,
-            activity_ref=s12_story_v4a_data.activity_ref(0),
-            idempotency_key=s12_story_v4a_data.SELECT_STARTED_KEY_1,
+        repository: SqlParentStoryRunRepository = run_repo_factory(session)
+        run_state = session.scalar(
+            select(story_tables.story_runs.c.run_state).where(
+                story_tables.story_runs.c.run_id == s12_story_v4a_data.RUN_STARTED_ID
+            )
         )
-        view = selection_service.select_activity(
+        if run_state != "PREPARATION_REVIEW":
+            return  # the first run already has its suggestion set and has advanced
+        reservation = repository.reserve_activity_suggestion_set(
             principal=principal,
-            run_id=started_run_id,
-            expected_revision=view.run_revision,
-            activity_ref=s12_story_v4a_data.activity_ref(1),
-            idempotency_key=s12_story_v4a_data.SELECT_STARTED_KEY_2,
+            run_id=s12_story_v4a_data.RUN_STARTED_ID,
+            expected_understanding_revision=1,
+            idempotency_key=s12_story_v4a_data.PARENT_ACTIVITY_SUGGESTIONS_KEY,
         )
-        repo.confirm_context(
-            principal=principal,
-            run_id=started_run_id,
-            expected_context_revision=view.context_revision,
-            expected_context_snapshot_sha256=view.context_snapshot_sha256,
-            idempotency_key=s12_story_v4a_data.CONFIRM_CONTEXT_STARTED_KEY,
-        )
+        if reservation.replayed:
+            return
+        try:
+            service: ParentActivitySuggestionService = service_factory(session)
+            prepared = service.prepare(
+                parent_principal_ref=principal.subject,
+                context_snapshot=reservation.context_snapshot,
+                subject_label=reservation.subject_label,
+                visible_features=list(reservation.visible_features),
+                pinned_lesson_snapshot=reservation.lesson_pin_snapshot,
+                exclude_activity_keys=reservation.excluded_candidate_keys,
+            )
+            if prepared.candidate_count < 1:
+                raise StageError("S12_PARENT_ACTIVITY_CATALOG_EMPTY")
+            raw_result = {
+                "schema_version": "sketch2life.parent-activity-suggestions.v2",
+                "decision": "CATALOG_MATCH",
+                "selected_candidates": [
+                    {
+                        "candidate_ref": "C001",
+                        "match_reason": s12_story_v4a_data.PARENT_ACTIVITY_MATCH_REASON,
+                    }
+                ],
+                "no_match_reason": "",
+                "age_band_months": prepared.worker_input["age_band_months"],
+                "fallback_activities": [],
+            }
+            result = service.resolve(
+                prepared=prepared,
+                raw_result=raw_result,
+                request_id=s12_story_v4a_data.PARENT_ACTIVITY_REQUEST_ID,
+                story_run_id=s12_story_v4a_data.RUN_STARTED_ID,
+                understanding_revision=reservation.understanding_revision,
+                modal_call_id=None,
+                excluded_activities=reservation.excluded_activities,
+            )
+            activities = result.get("activities")
+            if not isinstance(activities, list) or not activities:
+                raise StageError("S12_PARENT_ACTIVITY_RESPONSE_INVALID")
+            result.update(
+                {
+                    "contract": "ParentActivitySuggestionSetV1",
+                    "request_id": s12_story_v4a_data.PARENT_ACTIVITY_REQUEST_ID,
+                    "story_run_id": s12_story_v4a_data.RUN_STARTED_ID,
+                    "suggestion_set_id": reservation.suggestion_set_id,
+                    "set_revision": reservation.set_revision,
+                    "understanding_revision": reservation.understanding_revision,
+                    "review_required": True,
+                    "activities_snapshot_sha256": hashlib.sha256(
+                        json.dumps(
+                            activities,
+                            ensure_ascii=False,
+                            sort_keys=True,
+                            separators=(",", ":"),
+                        ).encode("utf-8")
+                    ).hexdigest(),
+                }
+            )
+            validated = ParentActivitySuggestionSetV1.model_validate(result)
+            repository.complete_activity_suggestion_set(
+                principal=principal,
+                reservation=reservation,
+                response=validated.model_dump(mode="json"),
+                provider_call_id=None,
+            )
+        except StageError:
+            raise
+        except (ParentActivitySuggestionError, ParentStoryRunError, ValueError, TypeError):
+            session.rollback()
+            raise StageError("S12_PARENT_ACTIVITY_SUGGESTION_FAILED") from None
 
 
 def run_s12(
     engine: Engine,
     *,
-    selection_factory: SelectionServiceFactory = _default_selection_service,
+    activity_suggestion_service_factory: ActivitySuggestionServiceFactory = (
+        _default_activity_suggestion_service
+    ),
     run_repo_factory: RunRepoFactory = _default_run_repository,
 ) -> StageResult:
     try:
@@ -370,9 +477,9 @@ def run_s12(
             before = count_s12_rows(connection)
         _seed_static_rows(engine)
         session_factory = create_core_session_factory(engine)
-        _drive_started_parent_run(
+        _drive_parent_activity_suggestions(
             session_factory,
-            selection_factory=selection_factory,
+            service_factory=activity_suggestion_service_factory,
             run_repo_factory=run_repo_factory,
         )
         with engine.connect() as connection:

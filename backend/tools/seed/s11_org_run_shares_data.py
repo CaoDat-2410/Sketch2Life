@@ -65,7 +65,7 @@ LESSON_CONTENTS: dict[str, dict[str, Any]] = {
         "locale": "vi-VN",
         "title": "Vẽ chú gà con",
         "topic": "Những hình tròn trong sân nhỏ",
-        "target_age_band_ref": data.PLACEHOLDER_AGE_BAND_REF,
+        "target_age_band_ref": data.SUPPORTED_AGE_BAND_REF,
         "target_age_band_version": 1,
         "objectives": [
             (
@@ -112,7 +112,7 @@ LESSON_CONTENTS: dict[str, dict[str, Any]] = {
         "locale": "vi-VN",
         "title": "Vẽ chiếc thuyền buồm",
         "topic": "Gió đưa thuyền trên mặt nước",
-        "target_age_band_ref": data.PLACEHOLDER_AGE_BAND_REF,
+        "target_age_band_ref": data.SUPPORTED_AGE_BAND_REF,
         "target_age_band_version": 1,
         "objectives": [
             "Sắp xếp thân thuyền, cột buồm và cánh buồm thành một hình cân đối trên mặt nước."
@@ -161,7 +161,7 @@ LESSON_CONTENTS: dict[str, dict[str, Any]] = {
         "locale": "vi-VN",
         "title": "Vẽ bông hoa hướng dương",
         "topic": "Bông hoa đón nắng",
-        "target_age_band_ref": data.PLACEHOLDER_AGE_BAND_REF,
+        "target_age_band_ref": data.SUPPORTED_AGE_BAND_REF,
         "target_age_band_version": 1,
         "objectives": [
             "Quan sát cấu tạo đơn giản của hoa và dùng các nét lặp lại để vẽ cánh, nhụy, thân, lá."

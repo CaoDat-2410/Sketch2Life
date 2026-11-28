@@ -36,7 +36,7 @@ def test_occurrence_specs_have_the_expected_classes_teachers_dates_and_pins() ->
     assert [(row.lesson_key, row.lesson_version_no) for row in fixtures.OCCURRENCES] == [
         ("l1", 2),
         ("l2", 1),
-        (None, None),
+        ("l4", 1),
         (None, None),
         ("l1", 1),
     ]
@@ -70,7 +70,9 @@ def test_plan_fixtures_cover_the_lesson_lifecycle_and_keep_text_authored() -> No
         "lesson_source_documents": 3,
         "lesson_document_revisions": 4,
         "lesson_plan_revisions": 5,
-        "lesson_plan_activities": 4,
+        "lesson_plan_activities": 10,
+        "lesson_presentations": 1,
+        "lesson_presentation_revisions": 1,
     }
     o1 = [row for row in fixtures.PLANS if row.occurrence_key == "o1"]
     o2 = [row for row in fixtures.PLANS if row.occurrence_key == "o2"]
@@ -79,6 +81,7 @@ def test_plan_fixtures_cover_the_lesson_lifecycle_and_keep_text_authored() -> No
     assert o1[0].document_revision_no == 2 and o1[0].activity_orders == (1, 2)
     assert o2[0].document_revision_no == 1 and o2[0].activity_orders == (1, 2)
     assert [row.confirm for row in o3] == [True, True, False]
+    assert all(row.activity_orders == (1, 2) for row in o3)
     assert [row.expected_head_revision_no for row in o3] == [0, 1, 2]
     assert len({row.objectives for row in o3}) == 3
     assert len({row.teacher_direction for row in o3}) == 3
@@ -90,6 +93,27 @@ def test_plan_fixtures_cover_the_lesson_lifecycle_and_keep_text_authored() -> No
             validate_content(content)
     for version in data.library_version_rows():
         assert len(version["structured_content_hash"]) == 64
+
+
+def test_every_confirmed_seeded_plan_has_activities() -> None:
+    assert all(plan.activity_orders for plan in fixtures.PLANS if plan.confirm)
+
+
+def test_house_lesson_is_pinnable_by_occurrence_teacher() -> None:
+    occurrence = next(row for row in fixtures.OCCURRENCES if row.key == "o3")
+    item = next(row for row in data.library_item_rows() if row["lesson_id"] == data.lesson_id("l4"))
+    version = next(
+        row for row in data.library_version_rows() if row["version_id"] == data.version_id("l4", 1)
+    )
+    assert item["created_by"] == occurrence.teacher_subject
+    assert (item["state"], item["moderation_state"], item["visibility"]) == (
+        "ACTIVE", "VISIBLE", "PRIVATE"
+    )
+    assert version["review_state"] == "APPROVED"
+    activities = [
+        row for row in data.version_activity_rows() if row["version_id"] == version["version_id"]
+    ]
+    assert len(activities) == 2
 
 
 def test_occurrence_and_plan_keys_are_fixed_and_distinct() -> None:
@@ -104,6 +128,7 @@ def test_occurrence_and_plan_keys_are_fixed_and_distinct() -> None:
     }
     assert len(create_keys) == 5 and len(confirm_keys) == 3
     assert create_keys.isdisjoint(confirm_keys)
+    assert fixtures.presentation_create_key("o1") not in create_keys | confirm_keys
     assert all(re.fullmatch(r"[A-Za-z0-9:_-]+", value) for value in create_keys | confirm_keys)
 
 
@@ -184,6 +209,13 @@ def test_run_s8_orchestrates_each_fixture_once_with_a_fake_engine(
             ("confirm", plan.occurrence_key, plan.revision_no, occurrence_id, content_hash)
         ),
     )
+    monkeypatch.setattr(
+        s8_lessons,
+        "_create_presentation",
+        lambda _factory, occurrence_id, spec: calls.append(
+            ("presentation", occurrence_id, spec.key)
+        ),
+    )
 
     result = s8_lessons.run_s8(cast(Engine, FakeEngine()))
 
@@ -197,3 +229,6 @@ def test_run_s8_orchestrates_each_fixture_once_with_a_fake_engine(
     assert len([call for call in calls if call[0] == "edit"]) == 1
     assert len([call for call in calls if call[0] == "plan"]) == 5
     assert len([call for call in calls if call[0] == "confirm"]) == 3
+    assert [call for call in calls if call[0] == "presentation"] == [
+        ("presentation", "occurrence-o1", "o1")
+    ]

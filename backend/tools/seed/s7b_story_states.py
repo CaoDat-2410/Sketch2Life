@@ -15,14 +15,19 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
+from sketch2life.application.ports.lesson_documents import LessonDocumentParser, MalwareScanner
 from sketch2life.application.ports.object_storage import ObjectStoragePort, StoredObject
 from sketch2life.application.ports.parent_story_inputs import (
     StoryGenerationResult,
     VoiceInput,
 )
 from sketch2life.application.ports.parent_story_runs import (
+    ParentStoryRevisionReservation,
     ParentStoryRunError,
     ParentStoryRunRecord,
+)
+from sketch2life.application.services.parent_activity_selection import (
+    ParentActivitySelectionService,
 )
 from sketch2life.application.services.parent_profiles import ParentProfileService
 from sketch2life.application.services.parent_story_runs import (
@@ -37,7 +42,30 @@ from sketch2life.application.services.story_run_video import (
     StoryVideoAdmissionService,
     StoryVideoCommandService,
 )
+from sketch2life.contracts.schemas.lesson_library import LessonContentInputV1
 from sketch2life.domain.parent_profiles import ParentProfileError
+from sketch2life.infrastructure.lesson_library.parent_activity_catalog import (
+    LessonLibraryParentActivityCatalogAdapter,
+)
+from sketch2life.infrastructure.lesson_library.service import (
+    LessonLibraryError,
+    LessonLibraryService,
+)
+from sketch2life.infrastructure.lesson_library.tables import (
+    ACCESS_GRANTS as LESSON_ACCESS_GRANTS,
+)
+from sketch2life.infrastructure.lesson_library.tables import (
+    COMMAND_RECEIPTS as LESSON_COMMAND_RECEIPTS,
+)
+from sketch2life.infrastructure.lesson_library.tables import (
+    LIBRARY_ITEMS as LESSON_LIBRARY_ITEMS,
+)
+from sketch2life.infrastructure.lesson_library.tables import (
+    LIBRARY_VERSIONS as LESSON_LIBRARY_VERSIONS,
+)
+from sketch2life.infrastructure.lesson_library.tables import (
+    VERSION_ACTIVITIES as LESSON_VERSION_ACTIVITIES,
+)
 from sketch2life.infrastructure.persistence.core_models import CoreAssetMetadataModel
 from sketch2life.infrastructure.persistence.database import create_core_session_factory
 from sketch2life.infrastructure.persistence.parent_models import (
@@ -133,6 +161,24 @@ def _principal(parent_key: str) -> VerifiedPrincipal:
 def _build_story_service(session: Session) -> ParentStoryRunService:
     return ParentStoryRunService(
         SqlParentStoryRunRepository(session), SqlParentStoryProfileLookup(session)
+    )
+
+
+def _build_lesson_library_service(session: Session) -> LessonLibraryService:
+    """Build the catalog service without enabling lesson upload I/O."""
+
+    return LessonLibraryService(
+        session,
+        storage=cast(ObjectStoragePort, None),
+        parser=cast(LessonDocumentParser, None),
+        scanner=cast(MalwareScanner, None),
+    )
+
+
+def _build_activity_selection_service(session: Session) -> ParentActivitySelectionService:
+    return ParentActivitySelectionService(
+        SqlParentStoryRunRepository(session),
+        LessonLibraryParentActivityCatalogAdapter(_build_lesson_library_service(session)),
     )
 
 
@@ -303,6 +349,148 @@ def _has_story_receipt(factory: Any, run_id: str, key: str) -> bool:
             )
         )
     return bool(count)
+
+
+def _story_catalog_key(case: str) -> str:
+    return stage_key("s7b", f"story-catalog-{case}")
+
+
+def _ensure_p3_story_catalog_access(factory: Any) -> None:
+    """Share an age-fit outdoor plant lesson that matches p3's drawing context."""
+
+    with factory() as session:
+        try:
+            grant = _build_lesson_library_service(session).create_access_grant(
+                organization_id=data.org_id("a"),
+                lesson_id=data.lesson_id(seed_data.P3_ACTIVITY_LESSON_KEY),
+                actor=data.ORG_A_TEACHERS[0],
+                version_id=data.version_id(
+                    seed_data.P3_ACTIVITY_LESSON_KEY,
+                    seed_data.P3_ACTIVITY_LESSON_VERSION_NO,
+                ),
+                audience_kind="PARENT_GROUP",
+                audience_ref=data.PARENT_GROUP_IDS[1],
+                capability="VIEW",
+                expires_at=None,
+                idempotency_key=_story_catalog_key("p3-outdoor-lesson-grant"),
+            )
+        except LessonLibraryError as exc:
+            raise StageError("S7B_P3_ACTIVITY_CATALOG_GRANT_FAILED") from exc
+    if grant.get("state") != "ACTIVE":
+        raise StageError("S7B_P3_ACTIVITY_CATALOG_GRANT_INVALID")
+
+
+def _ensure_p5_story_catalog_access(factory: Any) -> tuple[str, str]:
+    """Create and publish an age-appropriate lesson for p5 through the Lesson Library service."""
+
+    teacher = data.ORG_A_TEACHERS[0]
+    organization_id = data.org_id("a")
+    content = LessonContentInputV1.model_validate(seed_data.P5_ACTIVITY_LESSON_CONTENT)
+    with factory() as session:
+        try:
+            lesson = _build_lesson_library_service(session).create_lesson(
+                organization_id=organization_id,
+                actor=teacher,
+                content=content,
+                visibility="PRIVATE",
+                idempotency_key=_story_catalog_key("p5-lesson"),
+            )
+        except LessonLibraryError as exc:
+            raise StageError("S7B_P5_ACTIVITY_LESSON_CREATE_FAILED") from exc
+    lesson_id = lesson.get("lesson_id")
+    current_version = lesson.get("current_version")
+    version_id = (
+        current_version.get("version_id") if isinstance(current_version, dict) else None
+    )
+    if not isinstance(lesson_id, str) or not isinstance(version_id, str):
+        raise StageError("S7B_P5_ACTIVITY_LESSON_INVALID")
+
+    with factory() as session:
+        try:
+            grant = _build_lesson_library_service(session).create_access_grant(
+                organization_id=organization_id,
+                lesson_id=lesson_id,
+                actor=teacher,
+                version_id=version_id,
+                audience_kind="PUBLIC",
+                audience_ref=None,
+                capability="VIEW",
+                expires_at=None,
+                idempotency_key=_story_catalog_key("p5-grant"),
+            )
+        except LessonLibraryError as exc:
+            raise StageError("S7B_P5_ACTIVITY_CATALOG_GRANT_FAILED") from exc
+    grant_id = grant.get("access_grant_id")
+    if not isinstance(grant_id, str) or not grant_id:
+        raise StageError("S7B_P5_ACTIVITY_CATALOG_GRANT_INVALID")
+
+    with factory() as session:
+        try:
+            decision = _build_lesson_library_service(session).decide_access_grant(
+                organization_id=organization_id,
+                grant_id=grant_id,
+                actor=data.manager_subject("a"),
+                expected_revision=1,
+                decision="APPROVE",
+                reason=None,
+                idempotency_key=_story_catalog_key("p5-approve"),
+            )
+        except LessonLibraryError as exc:
+            raise StageError("S7B_P5_ACTIVITY_CATALOG_APPROVAL_FAILED") from exc
+    if decision.get("state") != "ACTIVE":
+        raise StageError("S7B_P5_ACTIVITY_CATALOG_APPROVAL_INVALID")
+    return lesson_id, version_id
+
+
+def _ensure_parent_activity_selection(
+    factory: Any,
+    principal: VerifiedPrincipal,
+    record: ParentStoryRunRecord,
+    selection_case: str,
+) -> ParentStoryRevisionReservation | None:
+    key = _story_key(selection_case)
+    if _has_story_receipt(factory, record.run_id, key):
+        return None
+
+    if selection_case == "p3a_select_activity":
+        _ensure_p3_story_catalog_access(factory)
+        lesson_id = data.lesson_id(seed_data.P3_ACTIVITY_LESSON_KEY)
+        version_id = data.version_id(
+            seed_data.P3_ACTIVITY_LESSON_KEY,
+            seed_data.P3_ACTIVITY_LESSON_VERSION_NO,
+        )
+    elif selection_case == "p5_select_activity":
+        lesson_id, version_id = _ensure_p5_story_catalog_access(factory)
+    else:
+        raise StageError("S7B_ACTIVITY_SELECTION_CASE_UNKNOWN")
+    started: list[ParentStoryRevisionReservation] = []
+    with factory() as session:
+        service = _build_activity_selection_service(session)
+        try:
+            listing = service.list_activities(principal=principal, run_id=record.run_id)
+            candidates = [
+                item
+                for item in listing["items"]
+                if item["activity_ref"]["lesson_id"] == lesson_id
+                and item["activity_ref"]["version_id"] == version_id
+                and item["activity_ref"]["activity_index"] == 0
+            ]
+            if not candidates:
+                raise StageError("S7B_ACTIVITY_CATALOG_EMPTY")
+            service.select_activity(
+                principal=principal,
+                run_id=record.run_id,
+                expected_revision=record.run_revision,
+                activity_ref=candidates[0]["activity_ref"],
+                idempotency_key=key,
+                on_story_started=started.append,
+            )
+        except (ParentStoryRunError, LessonLibraryError) as exc:
+            raise _raise_command_error(exc) from None
+
+    if len(started) > 1:
+        raise StageError("S7B_MULTIPLE_FIRST_STORY_RESERVATIONS")
+    return started[0] if started else None
 
 
 def _submit_voice_idea(
@@ -599,22 +787,33 @@ def _ensure_story_revision(
     record = _get_run(factory, principal, run_id)
     if record.understanding_revision is None:
         raise StageError("S7B_UNDERSTANDING_MISSING")
-    with factory() as session:
-        try:
-            service = _build_story_service(session)
-            reservation = service.reserve_story_revision(
-                principal=principal,
-                run_id=run_id,
-                expected_understanding_revision=record.understanding_revision,
-                rewrite_instruction=None,
-                idempotency_key=_story_key(reserve_key_case),
-                model_id="seed-story-fixture",
-                model_revision="fixture-1",
-                prompt_version="seed-story.v1",
-            )
-        except (ParentStoryRunError, ParentStoryRunServiceError) as exc:
-            raise _raise_command_error(exc) from None
-    if not reservation.replayed:
+    reservation: ParentStoryRevisionReservation | None = None
+    if record.story_revision_id is None:
+        selection_cases = {"p3-a": "p3a_select_activity", "p5": "p5_select_activity"}
+        selection_case = selection_cases.get(story_case)
+        if selection_case is None:
+            raise StageError("S7B_ACTIVITY_SELECTION_CASE_MISSING")
+        reservation = _ensure_parent_activity_selection(
+            factory, principal, record, selection_case
+        )
+        if reservation is None:
+            with factory() as session:
+                try:
+                    identity = _require_parent(session, principal)
+                    reservation = _build_story_service(session).reserve_story_revision(
+                        principal=principal,
+                        account_id=identity.account_id,
+                        run_id=run_id,
+                        expected_understanding_revision=record.understanding_revision,
+                        rewrite_instruction=None,
+                        idempotency_key=_story_key(reserve_key_case),
+                        model_id="sketch2life-story-v1",
+                        model_revision="1",
+                        prompt_version="seed-story.v1",
+                    )
+                except (ParentStoryRunError, ParentStoryRunServiceError) as exc:
+                    raise _raise_command_error(exc) from None
+    if reservation is not None and not reservation.replayed:
         generator = FixtureStoryGenerator()
         generator.register(worker_input_sha256(reservation.worker_input), result)
         # The first story is generated synchronously by the route (parent_ai.py): generate, then
@@ -628,8 +827,8 @@ def _ensure_story_revision(
                     reservation=reservation,
                     raw_story=generated.story,
                     provider_call_id=generated.call_id,
-                    model_id="seed-story-fixture",
-                    model_revision="fixture-1",
+                    model_id="sketch2life-story-v1",
+                    model_revision="1",
                 )
             except (ParentStoryRunError, ParentStoryRunServiceError, StoryOutputInvalid) as exc:
                 raise _raise_command_error(exc) from None
@@ -934,6 +1133,19 @@ def _count(connection: Connection, table: Any, *conditions: Any) -> int:
     return int(count)
 
 
+def _lesson_catalog_receipt_response(
+    connection: Connection, case: str, actor: str
+) -> Mapping[str, Any] | None:
+    response = connection.execute(
+        select(LESSON_COMMAND_RECEIPTS.c.response_json).where(
+            LESSON_COMMAND_RECEIPTS.c.organization_id == data.org_id("a"),
+            LESSON_COMMAND_RECEIPTS.c.principal_ref == actor,
+            LESSON_COMMAND_RECEIPTS.c.idempotency_key == _story_catalog_key(case),
+        )
+    ).scalar_one_or_none()
+    return response if isinstance(response, Mapping) else None
+
+
 def count_s7b_rows(connection: Connection) -> dict[str, int]:
     """Count S7b data through its five deterministic or receipt-owned Parent run ids."""
 
@@ -976,6 +1188,25 @@ def count_s7b_rows(connection: Connection) -> dict[str, int]:
     story_receipt_hashes = [
         _idempotency_key_hash(_story_key(case)) for case in seed_data.STORY_RECEIPT_CASES
     ]
+    teacher = data.ORG_A_TEACHERS[0]
+    p3_group_grant = _lesson_catalog_receipt_response(
+        connection, "p3-outdoor-lesson-grant", teacher
+    )
+    p5_lesson = _lesson_catalog_receipt_response(connection, "p5-lesson", teacher)
+    p5_grant = _lesson_catalog_receipt_response(connection, "p5-grant", teacher)
+    p5_current_version = p5_lesson.get("current_version") if p5_lesson is not None else None
+    p5_version_id = (
+        p5_current_version.get("version_id")
+        if isinstance(p5_current_version, Mapping)
+        else None
+    )
+    p3_group_grant_id = (
+        p3_group_grant.get("access_grant_id") if p3_group_grant is not None else None
+    )
+    p5_grant_id = p5_grant.get("access_grant_id") if p5_grant is not None else None
+    lesson_catalog_keys = tuple(
+        _story_catalog_key(case) for case in seed_data.STORY_CATALOG_RECEIPT_CASES
+    )
     scope_refs = [
         data.principal_scope_ref(data.SEED_ISSUER, data.PARENT_SUBJECTS[parent_key])
         for parent_key in ("p3", "p4", "p5")
@@ -1002,6 +1233,11 @@ def count_s7b_rows(connection: Connection) -> dict[str, int]:
             connection,
             story_tables.transcript_revisions,
             story_tables.transcript_revisions.c.run_id.in_(run_ids),
+        ),
+        "story_activity_selections_s7b": _count(
+            connection,
+            story_tables.activity_selections,
+            story_tables.activity_selections.c.run_id.in_(run_ids),
         ),
         "parent_child_profiles_s7b": profile_count,
         "parent_profile_revisions_s7b": revision_count,
@@ -1057,6 +1293,54 @@ def count_s7b_rows(connection: Connection) -> dict[str, int]:
             metadata.c.owner_scope_kind == "PARENT_ACCOUNT",
             metadata.c.owner_scope_ref.in_(scope_refs),
             metadata_sources,
+        ),
+        "lesson_library_items_s7b": (
+            _count(
+                connection,
+                LESSON_LIBRARY_ITEMS,
+                LESSON_LIBRARY_ITEMS.c.lesson_id == p5_lesson.get("lesson_id"),
+            )
+            if p5_lesson is not None and isinstance(p5_lesson.get("lesson_id"), str)
+            else 0
+        ),
+        "lesson_library_versions_s7b": (
+            _count(
+                connection,
+                LESSON_LIBRARY_VERSIONS,
+                LESSON_LIBRARY_VERSIONS.c.version_id == p5_version_id,
+            )
+            if isinstance(p5_version_id, str)
+            else 0
+        ),
+        "lesson_version_activities_s7b": (
+            _count(
+                connection,
+                LESSON_VERSION_ACTIVITIES,
+                LESSON_VERSION_ACTIVITIES.c.version_id == p5_version_id,
+            )
+            if isinstance(p5_version_id, str)
+            else 0
+        ),
+        "lesson_access_grants_s7b": (
+            _count(
+                connection,
+                LESSON_ACCESS_GRANTS,
+                LESSON_ACCESS_GRANTS.c.access_grant_id.in_(
+                    [
+                        grant_id
+                        for grant_id in (p3_group_grant_id, p5_grant_id)
+                        if isinstance(grant_id, str)
+                    ]
+                ),
+            )
+            if isinstance(p3_group_grant_id, str) and isinstance(p5_grant_id, str)
+            else 0
+        ),
+        "lesson_command_receipts_s7b": _count(
+            connection,
+            LESSON_COMMAND_RECEIPTS,
+            LESSON_COMMAND_RECEIPTS.c.organization_id == data.org_id("a"),
+            LESSON_COMMAND_RECEIPTS.c.idempotency_key.in_(lesson_catalog_keys),
         ),
     }
 

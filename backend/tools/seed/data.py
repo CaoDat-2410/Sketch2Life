@@ -13,6 +13,13 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
+from sketch2life.domain.be1_profile_revisions import (
+    BAND_VERSION,
+    HASH_VERSION,
+    age_band,
+    baseline_revision_id,
+    revision_hash,
+)
 from sketch2life.domain.lesson_library.model import canonical_content_hash
 from sketch2life.domain.parent_profiles import ProfileSnapshot
 
@@ -20,9 +27,9 @@ SEED_NAMESPACE = uuid.UUID("6f1c3c2e-6a51-5d0e-9a43-2b6c1f0e5a17")
 SEED_ISSUER = "urn:sketch2life:seed:issuer"
 SEED_TIME = datetime(2026, 11, 18, 0, 0, tzinfo=UTC)
 MEMBERSHIP_EXPIRES_AT = datetime(2030, 1, 1, 0, 0, tzinfo=UTC)
-PLACEHOLDER_AGE_BAND_REF = "seed-age-band-placeholder"
+SUPPORTED_AGE_BAND_REF = "age-36-71-months-v1"
 PARENT_CONTEXT_SCHEMA = "sketch2life.parent-context.v1"
-FAILED_RUN_ERROR_CODE = "SEED_SYNTHETIC_FAILURE"
+FAILED_RUN_ERROR_CODE = "VIDEO_TECHNICAL_FAILURE"
 CLASS_PROFILE_AGE_RANGES = {"mam": (36, 47), "choi": (48, 59), "la": (60, 71)}
 _CLASS_AGE_LABELS = {"mam": "Mầm", "choi": "Chồi", "la": "Lá"}
 _CLASS_AGE_GROUPS = ("mam", "choi", "la")
@@ -220,6 +227,40 @@ def teacher_subject(key: str) -> str:
     return f"seed-tch-{key}"
 
 
+# Synthetic sign-in e-mail and display name of the demo accounts, keyed by subject. The database
+# stores neither: both live on the identity provider, so the local login setup reads them here.
+DEMO_ACCOUNT_PROFILES: dict[str, tuple[str, str]] = {
+    PLATFORM_ADMIN_SUBJECT: ("admin@sketch2life.com.test", "Trần Minh Quân"),
+    manager_subject("a"): ("ha.nguyen@sketch2life.edu.test", "Nguyễn Thị Thu Hà"),
+    ORG_A_TEACHERS[0]: ("lan.le@sketch2life.edu.test", "Lê Ngọc Lan"),
+    ORG_A_TEACHERS[1]: ("mai.pham@sketch2life.edu.test", "Phạm Hoàng Mai"),
+    NO_ORG_TEACHER_SUBJECT: ("truc.do@sketch2life.com.test", "Đỗ Thanh Trúc"),
+    manager_subject("b"): ("quang.vu@sketch2life.edu.test", "Vũ Đức Quang"),
+    manager_subject("c"): ("yen.bui@sketch2life.edu.test", "Bùi Hải Yến"),
+    manager_subject("d"): ("khoa.dang@sketch2life.edu.test", "Đặng Anh Khoa"),
+    manager_subject("e"): ("linh.ngo@sketch2life.edu.test", "Ngô Mỹ Linh"),
+    manager_subject("f"): ("son.hoang@sketch2life.edu.test", "Hoàng Thanh Sơn"),
+    manager_subject("g"): ("thao.duong@sketch2life.edu.test", "Dương Phương Thảo"),
+    manager_subject("h"): ("huy.trinh@sketch2life.edu.test", "Trịnh Gia Huy"),
+    ORG_A_TEACHERS[2]: ("ngoc.tran@sketch2life.edu.test", "Trần Bảo Ngọc"),
+    teacher_subject("b"): ("hanh.vo@sketch2life.edu.test", "Võ Mỹ Hạnh"),
+    teacher_subject("c"): ("nhi.phan@sketch2life.edu.test", "Phan Yến Nhi"),
+    teacher_subject("d"): ("trang.ly@sketch2life.edu.test", "Lý Thùy Trang"),
+    teacher_subject("e"): ("duyen.ho@sketch2life.edu.test", "Hồ Kỳ Duyên"),
+    teacher_subject("f"): ("my.cao@sketch2life.edu.test", "Cao Diễm My"),
+    teacher_subject("g"): ("tam.dinh@sketch2life.edu.test", "Đinh Minh Tâm"),
+    teacher_subject("h"): ("chi.luu@sketch2life.edu.test", "Lưu Quỳnh Chi"),
+    PARENT_SUBJECTS["p1"]: ("hung.nguyen@sketch2life.com.test", "Nguyễn Văn Hùng"),
+    PARENT_SUBJECTS["p2"]: ("hoa.tran@sketch2life.com.test", "Trần Thị Hoa"),
+    PARENT_SUBJECTS["p3"]: ("nam.le@sketch2life.com.test", "Lê Hoàng Nam"),
+    PARENT_SUBJECTS["p4"]: ("huong.pham@sketch2life.com.test", "Phạm Thu Hương"),
+    PARENT_SUBJECTS["p5"]: ("tuan.do@sketch2life.com.test", "Đỗ Anh Tuấn"),
+    # The two extra parents of stage s12 (s12_story_v4a_data.PARENT_SPECS).
+    "seed-parent-s12-p6": ("loan.vu@sketch2life.com.test", "Vũ Thanh Loan"),
+    "seed-parent-s12-p7": ("phuc.bui@sketch2life.com.test", "Bùi Hữu Phúc"),
+}
+
+
 def _adult(subject: str, role: str) -> dict[str, Any]:
     return {
         "subject": subject,
@@ -340,7 +381,38 @@ def managed_profile_row(
         "data_origin": "SYNTHETIC_DEV",
         "state": "active",
         "created_by": created_by or manager_subject(key),
+        # T-12b: the head of the baseline revision written by `baseline_revision_row`.
+        "current_profile_revision_id": baseline_revision_id(child_id),
+        "profile_revision_no": 1,
     }
+
+
+def baseline_revision_row(profile: dict[str, Any]) -> dict[str, Any]:
+    """Revision 1 of a seeded profile (T-12b): the profile's own name and age, no interests."""
+    band = age_band(int(profile["age_months"]))
+    return {
+        "profile_revision_id": baseline_revision_id(str(profile["child_id"])),
+        "child_id": profile["child_id"],
+        "revision_no": 1,
+        "display_name": profile["display_name"],
+        "age_months": profile["age_months"],
+        "age_band_version": None if band is None else BAND_VERSION,
+        "age_band_code": None if band is None else band[1],
+        "structured_interests": [],
+        "authored_by": profile["created_by"],
+        "revision_hash_version": HASH_VERSION,
+        "revision_hash": revision_hash(
+            child_id=str(profile["child_id"]),
+            revision_no=1,
+            display_name=str(profile["display_name"]),
+            age_months=int(profile["age_months"]),
+            structured_interests=[],
+        ),
+    }
+
+
+def be1_profile_revision_rows() -> list[dict[str, Any]]:
+    return [baseline_revision_row(profile) for profile in managed_profile_rows()]
 
 
 def managed_profile_rows() -> list[dict[str, Any]]:
@@ -591,7 +663,7 @@ def lesson_content(
         "locale": "vi-VN",
         "title": title,
         "topic": topic,
-        "target_age_band_ref": PLACEHOLDER_AGE_BAND_REF,
+        "target_age_band_ref": SUPPORTED_AGE_BAND_REF,
         "target_age_band_version": 1,
         "objectives": lesson_objectives,
         "drawing_subject": drawing_subject,
@@ -936,6 +1008,37 @@ LESSON_SPECS: tuple[tuple[str, str, int, tuple[tuple[int, str, dict[str, Any]], 
             ),
         ),
     ),
+    (
+        "l4",
+        "PRIVATE",
+        1,
+        (
+            (
+                1,
+                "APPROVED",
+                lesson_content(
+                    "Vẽ ngôi nhà thân yêu",
+                    "Những hình dạng tạo nên ngôi nhà",
+                    "ngôi nhà của bé",
+                    objectives=[
+                        "Trẻ nhận biết mái nhà, thân nhà và các ô cửa.",
+                        "Trẻ dùng hình đơn giản để vẽ ngôi nhà theo ý thích.",
+                    ],
+                    drawing_steps_text=(
+                        "1. Cùng trẻ nhìn tranh và gọi tên mái nhà, thân nhà và cửa.\n"
+                        "2. Vẽ một hình chữ nhật làm thân nhà.\n"
+                        "3. Thêm mái nhà bằng hai nét nghiêng.\n"
+                        "4. Vẽ cửa ra vào và cửa sổ ở nơi trẻ chọn.\n"
+                        "5. Thêm cây hoặc hoa, tô màu và kể về bức tranh."
+                    ),
+                    subject_learning_notes=(
+                        "Mái nhà che nắng mưa, cửa ra vào giúp mọi người đi lại. "
+                        "Nhà có nhiều hình dáng và màu sắc khác nhau."
+                    ),
+                ),
+            ),
+        ),
+    ),
 )
 LESSON_AUTHOR = ORG_A_TEACHERS[0]
 
@@ -1011,7 +1114,7 @@ def access_grant_rows() -> list[dict[str, Any]]:
     ]
 
 
-EXPECTED_VISIBILITY = {"l1": "SCHOOL", "l2": "PRIVATE", "l3": "SCHOOL"}
+EXPECTED_VISIBILITY = {"l1": "SCHOOL", "l2": "PRIVATE", "l3": "SCHOOL", "l4": "PRIVATE"}
 
 
 def library_item_rows() -> list[dict[str, Any]]:
@@ -1181,6 +1284,7 @@ def expected_counts() -> dict[str, int]:
         "be1_organization_assignments": len(assignment_rows()),
         "be1_classrooms": len(classroom_rows()),
         "be1_managed_profiles": len(managed_profile_rows()),
+        "be1_profile_revisions": len(be1_profile_revision_rows()),
         "be1_enrollments": len(enrollment_rows()),
         "be1_parent_groups": len(parent_group_rows()),
         "be1_parent_group_members": len(parent_group_member_rows()),
@@ -1201,14 +1305,15 @@ EXPECTED_COUNTS: dict[str, int] = {
     "be1_organization_assignments": 19,
     "be1_classrooms": 41,
     "be1_managed_profiles": 52,
+    "be1_profile_revisions": 52,
     "be1_enrollments": 52,
     "be1_parent_groups": 2,
     "be1_parent_group_members": 3,
     "parent.child_profiles": 5,
     "parent.profile_revisions": 7,
-    "lesson.library_items": 3,
-    "lesson.library_versions": 4,
-    "lesson.version_activities": 8,
+    "lesson.library_items": 4,
+    "lesson.library_versions": 5,
+    "lesson.version_activities": 10,
     "lesson.access_grants": 4,
     "story.runs": 6,
     "story.run_inputs": 6,

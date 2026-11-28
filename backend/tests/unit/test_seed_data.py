@@ -26,6 +26,7 @@ ALL_ROWS = {
     "be1_organization_assignments": data.assignment_rows,
     "be1_classrooms": data.classroom_rows,
     "be1_managed_profiles": data.managed_profile_rows,
+    "be1_profile_revisions": data.be1_profile_revision_rows,
     "be1_enrollments": data.enrollment_rows,
     "be1_parent_groups": data.parent_group_rows,
     "be1_parent_group_members": data.parent_group_member_rows,
@@ -78,7 +79,7 @@ def test_all_s1_primary_ids_and_account_ids_are_unchanged() -> None:
     snapshot.sort()
     encoded = json.dumps(snapshot, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     assert hashlib.sha256(encoded).hexdigest() == (
-        "409dac4d2519036e4b933cc4952464db7270f0be210bd50ff458b43587ff30f4"
+        "c97e30f12e2208cda0ae2482dbb833384baddaab69b6e06c6512cb5618a5f1c7"
     )
 
 
@@ -295,7 +296,9 @@ def test_public_grant_binds_a_pending_version() -> None:
 def test_expected_visibility() -> None:
     items = {row["lesson_id"]: row["visibility"] for row in data.library_item_rows()}
     assert items == {data.lesson_id(key): value for key, value in data.EXPECTED_VISIBILITY.items()}
-    assert data.EXPECTED_VISIBILITY == {"l1": "SCHOOL", "l2": "PRIVATE", "l3": "SCHOOL"}
+    assert data.EXPECTED_VISIBILITY == {
+        "l1": "SCHOOL", "l2": "PRIVATE", "l3": "SCHOOL", "l4": "PRIVATE"
+    }
 
 
 @pytest.mark.parametrize(

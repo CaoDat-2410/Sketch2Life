@@ -106,7 +106,7 @@ def test_all_three_lesson_contents_are_structurally_complete_and_specific() -> N
     for key, content in LESSON_CONTENTS.items():
         model = _valid_lesson_model(content)
         assert model.locale == "vi-VN"
-        assert model.target_age_band_ref == data.PLACEHOLDER_AGE_BAND_REF
+        assert model.target_age_band_ref == data.SUPPORTED_AGE_BAND_REF
         assert model.target_age_band_version == 1
         assert len(model.activities) == 2
         assert all(activity.instructions_text for activity in model.activities)

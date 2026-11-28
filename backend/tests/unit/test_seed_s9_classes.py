@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import hashlib
+import hmac
+import json
 import re
 
 import pytest
@@ -13,7 +16,7 @@ from tools.seed.guard import SeedGuardError
 from tools.seed.stage_common import check_database_prefix
 
 
-def test_class_lifecycle_and_profile_fixtures_are_stable_and_synthetic() -> None:
+def test_class_lifecycle_and_profile_fixtures_are_stable_and_realistic() -> None:
     assert [(row.class_number, row.target_state, row.command) for row in fixtures.CLASS_STATES] == [
         (5, "archived", "archive"),
         (6, "suspended", "suspend"),
@@ -42,7 +45,12 @@ def test_class_lifecycle_and_profile_fixtures_are_stable_and_synthetic() -> None
     assert fixtures.PROFILE_CREATE_CHILD_IDS[0] == fixtures.MOVED_CHILD_ID
     assert fixtures.MOVE_FROM_CLASS_NUMBER == 1 and fixtures.MOVE_TO_CLASS_NUMBER == 3
     keyed = fixtures.keyed_profile_rows()
-    assert all(row["display_name"].startswith("Synthetic ") for row in keyed)
+    assert all(not row["display_name"].startswith("Synthetic ") for row in keyed)
+    assert [row["display_name"] for row in keyed] == [
+        "Lê Bảo Hiếu",
+        "Phạm Khánh Ngân",
+        "Phạm Đức Tín",
+    ]
     assert [row["child_id"] for row in keyed] == list(fixtures.PROFILE_CREATE_CHILD_IDS)
 
 
@@ -51,6 +59,7 @@ def test_expected_counts_and_route_idempotency_keys_are_valid() -> None:
         "be1_classrooms": 4,
         "be1_organization_assignments": 1,
         "be1_managed_profiles": 7,
+        "be1_profile_revisions": 7,
         "be1_enrollments": 8,
         "be1_command_receipts": 7,
         "core_audit_entries": 7,
@@ -80,29 +89,51 @@ def test_route_fingerprints_are_deterministic_and_bind_revisions() -> None:
     assert s9_classes._state_fingerprint("suspend", 1) != s9_classes._state_fingerprint(
         "suspend", 2
     )
-    profile = CreateProfileRequest(display_name="Synthetic Mai An", age_months=40, consent_id=None)
-    fingerprint = s9_classes._profile_fingerprint(
-        key=b"x" * 32,
-        subject=data.ORG_A_TEACHERS[0],
-        scope=fixtures.profile_create_scope(),
-        payload=profile,
-        expected_revision=1,
-    )
+    profile = fixtures.keyed_profile_rows()[0]
+    fingerprint_args = {
+        "subject": data.ORG_A_TEACHERS[0],
+        "scope": fixtures.profile_create_scope(),
+        "display_name": str(profile["display_name"]),
+        "age_months": int(profile["age_months"]),
+        "consent_id": None,
+        "expected_revision": 1,
+    }
+    fingerprint = s9_classes._profile_fingerprint(key=b"x" * 32, **fingerprint_args)
     assert fingerprint == s9_classes._profile_fingerprint(
-        key=b"x" * 32,
-        subject=data.ORG_A_TEACHERS[0],
-        scope=fixtures.profile_create_scope(),
-        payload=profile,
-        expected_revision=1,
+        key=b"x" * 32, **fingerprint_args
     )
     assert len(fingerprint) == 64
     assert fingerprint != s9_classes._profile_fingerprint(
-        key=b"y" * 32,
+        key=b"y" * 32, **fingerprint_args
+    )
+    route_payload = CreateProfileRequest(
+        display_name="Synthetic Mai An", age_months=40, consent_id=None
+    )
+    route_fingerprint = s9_classes._profile_fingerprint(
+        key=b"x" * 32,
         subject=data.ORG_A_TEACHERS[0],
         scope=fixtures.profile_create_scope(),
-        payload=profile,
+        display_name=route_payload.display_name,
+        age_months=route_payload.age_months,
+        consent_id=route_payload.consent_id,
         expected_revision=1,
     )
+    route_message = json.dumps(
+        {
+            "domain": s9_classes.PROFILE_RECEIPT_DOMAIN,
+            "v": s9_classes.PROFILE_RECEIPT_VERSION,
+            "principal": data.ORG_A_TEACHERS[0],
+            "scope": fixtures.profile_create_scope(),
+            "display_name": route_payload.display_name,
+            "age_months": route_payload.age_months,
+            "consent_id": route_payload.consent_id,
+            "if_match": 1,
+        },
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    assert route_fingerprint == hmac.new(b"x" * 32, route_message, hashlib.sha256).hexdigest()
     move = MoveProfileRequest(target_class_id=data.class_id("a", 3), target_class_revision=1)
     assert (
         len(
@@ -114,6 +145,73 @@ def test_route_fingerprints_are_deterministic_and_bind_revisions() -> None:
             )
         )
         == 64
+    )
+
+
+def test_keyed_profile_create_uses_persistence_path_without_http_name_schema() -> None:
+    profile = fixtures.keyed_profile_rows()[0]
+
+    class FakeFreshProfileSession:
+        def __init__(self) -> None:
+            self.executed_tables: list[str] = []
+            self.added: list[object] = []
+            self.closed = False
+
+        def begin(self) -> FakeFreshProfileSession:
+            return self
+
+        def __enter__(self) -> FakeFreshProfileSession:
+            return self
+
+        def __exit__(self, *_args: object) -> None:
+            return None
+
+        def get(self, model: object, key: object) -> object:
+            if getattr(model, "__name__", None) == "Be1CommandReceiptModel":
+                return None
+            if getattr(model, "__name__", None) == "ClassroomModel":
+                return type("Classroom", (), {"state": "active", "revision": 1})()
+            return None
+
+        def scalar(self, _statement: object) -> str:
+            return "seed-assignment"
+
+        def execute(self, statement: object) -> None:
+            self.executed_tables.append(str(statement.table.name))  # type: ignore[attr-defined]
+
+        def add(self, row: object) -> None:
+            self.added.append(row)
+
+        def close(self) -> None:
+            self.closed = True
+
+    session = FakeFreshProfileSession()
+    s9_classes._ensure_profile_create(lambda: session, profile, b"x" * 32)  # type: ignore[arg-type]
+
+    assert session.closed
+    assert session.executed_tables == [
+        s9_classes.ManagedProfileModel.__tablename__,
+        s9_classes.ProfileRevisionModel.__tablename__,
+        s9_classes.EnrollmentModel.__tablename__,
+        s9_classes.CoreAuditEntryModel.__tablename__,
+        s9_classes.CoreAggregateRevisionModel.__tablename__,
+        s9_classes.CoreOutboxEventModel.__tablename__,
+    ]
+    assert len(session.added) == 1
+    receipt = session.added[0]
+    assert isinstance(receipt, s9_classes.Be1CommandReceiptModel)
+    assert receipt.idempotency_key == fixtures.profile_create_key(str(profile["child_id"]))
+    assert receipt.request_fingerprint == s9_classes._profile_fingerprint(
+        key=b"x" * 32,
+        subject=data.ORG_A_TEACHERS[0],
+        scope=fixtures.profile_create_scope(),
+        display_name=str(profile["display_name"]),
+        age_months=int(profile["age_months"]),
+        consent_id=None,
+        expected_revision=1,
+    )
+    assert receipt.response_json["enrollment_id"] == fixtures.stage_enrollment_id(
+        str(profile["child_id"])
     )
 
 

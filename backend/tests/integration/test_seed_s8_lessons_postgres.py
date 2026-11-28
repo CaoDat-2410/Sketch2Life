@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from sketch2life.infrastructure.lesson_occurrences.documents import OccurrenceDocumentService
 from sketch2life.infrastructure.lesson_occurrences.plans import PlanRevisionService
+from sketch2life.infrastructure.lesson_occurrences.presentations import LessonPresentationService
 from sketch2life.infrastructure.lesson_occurrences.service import LessonOccurrenceService
 from tools.seed import data
 from tools.seed.guard import SEED_URL_VARIABLE, guarded_engine
@@ -187,10 +188,37 @@ def test_product_reads_return_document_and_plan_history_without_storage(
                 assert revisions[0]["activity_count"] == 2
             if spec.key == "o3":
                 assert [row["revision_no"] for row in revisions] == [3, 2, 1]
-                assert all(row["activity_count"] == 0 for row in revisions)
+                # The house session pins lesson l4, so no revision is left without activities.
+                assert all(row["activity_count"] == 2 for row in revisions)
         finally:
             session.rollback()
             session.close()
+
+
+def test_teacher_presentation_is_built_from_the_approved_plan(
+    seed_engine: Engine, seeded: SeededRows
+) -> None:
+    assert seeded["first"].ok
+    occurrence_spec = next(row for row in OCCURRENCES if row.key == "o1")
+    session = Session(seed_engine)
+    try:
+        body = LessonPresentationService(
+            session,
+            storage=None,
+            svg_drafter=None,
+        ).get_presentation(
+            principal=seed_principal(occurrence_spec.teacher_subject),
+            occurrence_id=_occurrence_id(seed_engine, "o1"),
+        )
+        slides = body["head"]["slides"]
+        assert body["source_state"] == "CURRENT"
+        assert body["presentable"] is False
+        assert len(slides) == 2
+        assert all(slide["title"] and slide["body_text"] for slide in slides)
+        assert all(slide["media"] is None for slide in slides)
+    finally:
+        session.rollback()
+        session.close()
 
 
 def _occurrence_id(engine: Engine, key: str) -> str:

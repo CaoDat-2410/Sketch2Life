@@ -108,44 +108,84 @@ def test_run_s12_returns_expected_counts_and_is_idempotent(
         {key: 0 for key in fixtures.EXPECTED} if not second_run else dict(fixtures.EXPECTED),
         dict(fixtures.EXPECTED),
     ]
-    events: list[tuple[str, int]] = []
+    events: list[str] = []
 
-    class _FakeSelectService:
-        def select_activity(
-            self,
-            *,
-            principal: object,
-            run_id: str,
-            expected_revision: int,
-            activity_ref: dict[str, object],
-            idempotency_key: str,
-        ) -> SimpleNamespace:
-            events.append((idempotency_key, expected_revision))
-            return SimpleNamespace(
-                run_revision=expected_revision + 1,
-                context_revision=1,
-                context_snapshot_sha256="a" * 64,
-            )
+    class _FakeSuggestionService:
+        def prepare(self, **kwargs: object) -> SimpleNamespace:
+            events.append("suggestion-prepare")
+            assert kwargs["pinned_lesson_snapshot"] is None
+            return SimpleNamespace(candidate_count=1, worker_input={"age_band_months": "36-71"})
+
+        def resolve(self, **kwargs: object) -> dict[str, object]:
+            events.append("suggestion-resolve")
+            assert kwargs["modal_call_id"] is None
+            return {
+                "contract": "ParentActivitySuggestionResponseV2",
+                "request_id": str(fixtures.PARENT_ACTIVITY_REQUEST_ID),
+                "story_run_id": fixtures.RUN_STARTED_ID,
+                "understanding_revision": 1,
+                "selection_mode": "CATALOG_SELECTION",
+                "catalog_candidate_count": 1,
+                "review_required": True,
+                "modal_call_id": None,
+                "activities": [
+                    {
+                        "title": "Quan sát lá cây ngoài sân trường",
+                        "objective": "Giúp trẻ nhận biết hình dáng của lá cây.",
+                        "materials_text": "Lá cây rụng sạch và giấy vẽ.",
+                        "preparation_text": "Chọn lối đi khô ráo, thoáng mát.",
+                        "instructions_text": "Cùng trẻ so sánh ba chiếc lá rụng.",
+                        "observation_notes": "Ghi lại màu lá trẻ yêu thích.",
+                        "safety_notes": "Tránh lá có gai và nền sân trơn.",
+                        "activity_kind": "outdoor",
+                        "source": "PUBLISHED_SHARED_LESSON",
+                        "source_lesson_id": "lesson-a",
+                        "source_lesson_title": "Khám phá cây xanh sân trường",
+                        "source_lesson_version_id": "version-a",
+                        "source_content_sha256": "a" * 64,
+                        "source_activity_index": 0,
+                        "match_reason": fixtures.PARENT_ACTIVITY_MATCH_REASON,
+                    }
+                ],
+            }
 
     class _FakeRunRepo:
-        def get_run(self, *, principal: object, run_id: str) -> SimpleNamespace:
-            return SimpleNamespace(
-                run_revision=1,
-                context_revision=1,
-                context_snapshot_sha256="a" * 64,
-            )
-
-        def confirm_context(
+        def reserve_activity_suggestion_set(
             self,
             *,
             principal: object,
             run_id: str,
-            expected_context_revision: int,
-            expected_context_snapshot_sha256: str,
+            expected_understanding_revision: int,
             idempotency_key: str,
         ) -> SimpleNamespace:
-            events.append((idempotency_key, expected_context_revision))
-            return SimpleNamespace(run_revision=4)
+            events.append("suggestion-reserve")
+            assert run_id == fixtures.RUN_STARTED_ID
+            assert expected_understanding_revision == 1
+            assert idempotency_key == fixtures.PARENT_ACTIVITY_SUGGESTIONS_KEY
+            return SimpleNamespace(
+                replayed=second_run,
+                context_snapshot={},
+                subject_label="Cây xanh sân trường",
+                visible_features=("cây xanh", "lá rụng"),
+                lesson_pin_snapshot=None,
+                excluded_candidate_keys=(),
+                excluded_activities=(),
+                understanding_revision=1,
+                suggestion_set_id="00000000-0000-4000-8000-000000000012",
+                set_revision=1,
+            )
+
+        def complete_activity_suggestion_set(
+            self,
+            *,
+            principal: object,
+            reservation: object,
+            response: dict[str, object],
+            provider_call_id: str | None,
+        ) -> None:
+            events.append("suggestion-complete")
+            assert response["review_required"] is True
+            assert provider_call_id is None
 
     class _FakeSession:
         def __enter__(self) -> _FakeSession:
@@ -153,6 +193,9 @@ def test_run_s12_returns_expected_counts_and_is_idempotent(
 
         def __exit__(self, *_args: object) -> None:
             return None
+
+        def scalar(self, _statement: object) -> str:
+            return "PREPARATION_REVIEW"
 
     monkeypatch.setattr(s12_story_v4a, "_require_prerequisites", lambda _conn: None)
     monkeypatch.setattr(s12_story_v4a, "count_s12_rows", lambda _conn: counts_seq.pop(0))
@@ -164,18 +207,17 @@ def test_run_s12_returns_expected_counts_and_is_idempotent(
     fake_engine = MagicMock()
     result = s12_story_v4a.run_s12(
         fake_engine,
-        selection_factory=lambda _sess: _FakeSelectService(),  # type: ignore[arg-type, return-value]
+        activity_suggestion_service_factory=lambda _sess: _FakeSuggestionService(),  # type: ignore[arg-type, return-value]
         run_repo_factory=lambda _sess: _FakeRunRepo(),  # type: ignore[arg-type, return-value]
     )
 
     assert isinstance(result, StageResult)
     assert result.ok is expected_ok
     assert result.after == fixtures.EXPECTED
-    assert events == [
-        (fixtures.SELECT_STARTED_KEY_1, 1),
-        (fixtures.SELECT_STARTED_KEY_2, 2),
-        (fixtures.CONFIRM_CONTEXT_STARTED_KEY, 1),
-    ]
+    expected_events = ["suggestion-reserve"]
+    if not second_run:
+        expected_events.extend(["suggestion-prepare", "suggestion-resolve", "suggestion-complete"])
+    assert events == expected_events
 
 
 @pytest.mark.parametrize(
