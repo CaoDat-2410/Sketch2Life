@@ -486,13 +486,13 @@ describe("Parent group memberships", () => {
 
     render(<MemoryRouter><ParentGroupsPage /></MemoryRouter>);
     fireEvent.click(await screen.findByRole("button", { name: /Nhóm Lá/ }));
-    const input = await screen.findByLabelText("Mã tài khoản phụ huynh") as HTMLInputElement;
-    expect(screen.getByText("Không có tra cứu bằng email. Nhập mã tài khoản do Phụ huynh sao chép từ tài khoản của họ.")).toBeTruthy();
+    const input = await screen.findByLabelText("Mã tài khoản phụ huynh") as HTMLTextAreaElement;
+    expect(screen.getByText("Không tra cứu bằng email. Nhập một mã mỗi dòng; dấu phẩy, chấm phẩy hoặc khoảng trắng cũng được tính là dấu ngăn cách.")).toBeTruthy();
     fireEvent.change(input, { target: { value: "parent:opaque-ref" } });
     fireEvent.click(screen.getByRole("button", { name: "Mời phụ huynh" }));
 
     await waitFor(() => expect(invite).toHaveBeenCalledWith("group-1", "parent:opaque-ref", "manager-invite-key"));
-    expect(await screen.findByText(`Đã mời, hết hạn ngày ${new Date(invitation.expires_at).toLocaleDateString("vi-VN")}`)).toBeTruthy();
+    expect(await screen.findByText(`Đã gửi lời mời · Hết hạn ngày ${new Date(invitation.expires_at).toLocaleDateString("vi-VN")}`)).toBeTruthy();
     await waitFor(() => expect(members).toHaveBeenCalledTimes(2));
     expect(members).toHaveBeenLastCalledWith("group-1", { state: "INVITED", cursor: undefined, signal: undefined });
     expect(screen.getByLabelText("Số lượng thành viên theo trạng thái").textContent).toContain("16");
@@ -511,7 +511,7 @@ describe("Parent group memberships", () => {
 
     render(<MemoryRouter><ParentGroupsPage /></MemoryRouter>);
     fireEvent.click(await screen.findByRole("button", { name: /Nhóm Lá/ }));
-    const input = await screen.findByLabelText("Mã tài khoản phụ huynh") as HTMLInputElement;
+    const input = await screen.findByLabelText("Mã tài khoản phụ huynh") as HTMLTextAreaElement;
     fireEvent.change(input, { target: { value: "parent:first" } });
     fireEvent.click(screen.getByRole("button", { name: "Mời phụ huynh" }));
     fireEvent.click(await screen.findByRole("button", { name: "Gửi lại cùng yêu cầu" }));
@@ -525,7 +525,7 @@ describe("Parent group memberships", () => {
       ["group-1", "parent:first", "manager-invite-1"],
       ["group-1", "parent:second", "manager-invite-2"],
     ]);
-    expect(await screen.findByText(/^Đã mời, hết hạn ngày/)).toBeTruthy();
+    expect(await screen.findByText(/^Đã gửi lời mời · Hết hạn ngày/)).toBeTruthy();
   });
 
   it("disables Parent invitation for archived groups and while a request is pending", async () => {
@@ -536,7 +536,7 @@ describe("Parent group memberships", () => {
 
     const { unmount } = render(<MemoryRouter><ParentGroupsPage /></MemoryRouter>);
     fireEvent.click(await screen.findByRole("button", { name: /Nhóm Lá/ }));
-    const archivedInput = await screen.findByLabelText("Mã tài khoản phụ huynh") as HTMLInputElement;
+    const archivedInput = await screen.findByLabelText("Mã tài khoản phụ huynh") as HTMLTextAreaElement;
     expect(archivedInput.disabled).toBe(true);
     expect(screen.getByRole("button", { name: "Mời phụ huynh" }).hasAttribute("disabled")).toBe(true);
     expect(screen.getByText("Nhóm đã lưu trữ; không thể mời thành viên.")).toBeTruthy();
@@ -552,14 +552,14 @@ describe("Parent group memberships", () => {
 
     render(<MemoryRouter><ParentGroupsPage /></MemoryRouter>);
     fireEvent.click(await screen.findByRole("button", { name: /Nhóm Lá/ }));
-    const activeInput = await screen.findByLabelText("Mã tài khoản phụ huynh") as HTMLInputElement;
+    const activeInput = await screen.findByLabelText("Mã tài khoản phụ huynh") as HTMLTextAreaElement;
     fireEvent.change(activeInput, { target: { value: "parent:opaque-ref" } });
     fireEvent.click(screen.getByRole("button", { name: "Mời phụ huynh" }));
     await waitFor(() => expect(pendingService).toHaveBeenCalledOnce());
     expect(activeInput.disabled).toBe(true);
     expect(screen.getByRole("button", { name: "Đang gửi lời mời…" }).hasAttribute("disabled")).toBe(true);
     finishInvite(invitation);
-    expect(await screen.findByText(/^Đã mời, hết hạn ngày/)).toBeTruthy();
+    expect(await screen.findByText(/^Đã gửi lời mời · Hết hạn ngày/)).toBeTruthy();
     expect(activeGroups).toHaveBeenCalled();
     expect(activeMembers).toHaveBeenCalledTimes(2);
   });

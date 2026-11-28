@@ -280,6 +280,7 @@ describe("School Manager business API adapter", () => {
     [409, "INVALID_TRANSITION", "Nhóm đã lưu trữ; không thể mời thành viên."],
     [400, "INVALID_REQUEST", "Mã tài khoản phụ huynh chưa hợp lệ. Hãy kiểm tra và thử lại."],
     [422, "INVALID_REQUEST", "Mã tài khoản phụ huynh chưa hợp lệ. Hãy kiểm tra và thử lại."],
+    [404, "PARENT_NOT_FOUND", "Không tìm thấy phụ huynh với mã này"],
     [404, "RESOURCE_NOT_FOUND", "Không tìm thấy nhóm hoặc membership yêu cầu."],
     [503, "PROVIDER_UNAVAILABLE", "Dịch vụ tạm thời chưa sẵn sàng. Hãy thử lại sau."],
     [403, "ACTION_NOT_ALLOWED", "Tài khoản không có quyền thực hiện thao tác này."],

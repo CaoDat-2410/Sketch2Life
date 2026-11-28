@@ -243,6 +243,7 @@ function safeInvitationError(cause: unknown) {
   let message: string | undefined;
   if (source.status === 409 && source.code === "INVITATION_EXISTS") message = "Phụ huynh này đã được mời hoặc đang là thành viên.";
   else if (source.status === 409 && source.code === "INVALID_TRANSITION") message = "Nhóm đã lưu trữ; không thể mời thành viên.";
+  else if (source.status === 404 && source.code === "PARENT_NOT_FOUND") message = "Không tìm thấy phụ huynh với mã này";
   else if (source.status === 400 || source.status === 422 || source.code === "INVALID_REQUEST") message = "Mã tài khoản phụ huynh chưa hợp lệ. Hãy kiểm tra và thử lại.";
   else if (source.code === "INVALID_RESPONSE") message = "Không thể xác nhận kết quả lời mời. Hãy làm mới danh sách.";
   if (message === undefined) return safeMembershipError(cause);

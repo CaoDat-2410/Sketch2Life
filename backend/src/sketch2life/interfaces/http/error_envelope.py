@@ -78,7 +78,11 @@ GENERIC_CODE_MAP: Mapping[str, str] = {
 }
 
 # 404 codes that keep their own name (anti-enumeration or deferred to a slice).
-KEPT_404_CODES = frozenset({"JOIN_UNAVAILABLE", "CANVAS_SOURCE_UNAVAILABLE"})
+KEPT_404_CODES = frozenset({
+    "JOIN_UNAVAILABLE",
+    "CANVAS_SOURCE_UNAVAILABLE",
+    "PARENT_NOT_FOUND",
+})
 
 STATUS_DEFAULT_CODES: Mapping[int, str] = {
     400: "INVALID_REQUEST",
@@ -97,6 +101,7 @@ STATUS_DEFAULT_CODES: Mapping[int, str] = {
 }
 
 MESSAGES: Mapping[str, str] = {
+    "PARENT_NOT_FOUND": "Không tìm thấy tài khoản phụ huynh.",
     "AUTH_REQUIRED": "Vui lòng đăng nhập để tiếp tục.",
     "INVALID_TOKEN": "Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.",
     "TOKEN_EXPIRED": "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
@@ -269,7 +274,7 @@ def map_code(status: int, code: str | None) -> str:
         )
     if code in GENERIC_CODE_MAP:
         return GENERIC_CODE_MAP[code]
-    if status == 404 and code.endswith("_NOT_FOUND"):
+    if status == 404 and code.endswith("_NOT_FOUND") and code not in KEPT_404_CODES:
         return "RESOURCE_NOT_FOUND"
     return code
 

@@ -1004,6 +1004,96 @@ html[data-cozy="1"][data-portal="school-be1"] .manager-business-card[aria-labell
   min-width: 0;
   max-width: 100%;
 }
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-parent-groups-invite-form textarea {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 112px;
+  resize: vertical;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-parent-group-id-panel {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--manager-rule);
+  border-radius: 12px;
+  background: var(--manager-board);
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-parent-group-id-copy {
+  display: grid;
+  flex: 1 1 180px;
+  min-width: 0;
+  gap: 4px;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-parent-group-id-value {
+  max-width: 100%;
+  color: var(--manager-ink);
+  font-family: var(--font-code, ui-monospace, monospace);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-parent-group-id-panel > p {
+  flex: 1 1 100%;
+  min-width: 0;
+  margin: 0;
+  color: var(--manager-muted);
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-parent-groups-invite-count {
+  margin: -3px 0 0;
+  color: var(--manager-muted);
+  font-size: 11px;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-parent-groups-invite-limit {
+  margin: 0;
+  color: var(--manager-danger, #a8332b);
+  font-size: 12px;
+  line-height: 1.5;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-parent-groups-invite-summary {
+  margin: 0;
+  color: var(--manager-ink);
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-parent-groups-invite-results {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-parent-groups-invite-results li {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr);
+  gap: 8px;
+  padding: 9px;
+  border: 1px solid var(--manager-rule);
+  border-radius: 10px;
+  background: var(--s2l-ui-paper);
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-parent-groups-invite-results code,
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-parent-groups-invite-results span {
+  min-width: 0;
+  font-size: 11px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+:is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-parent-groups-invite-results code {
+  color: var(--manager-ink);
+  font-family: var(--font-code, ui-monospace, monospace);
+  user-select: text;
+}
 :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-parent-groups-empty {
   margin: 0;
   padding: 13px;
@@ -1094,6 +1184,9 @@ html[data-cozy="1"][data-portal="school-be1"] .manager-business-card[aria-labell
   }
 }
 @media (max-width: 560px) {
+  :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-parent-groups-invite-results li {
+    grid-template-columns: minmax(0, 1fr);
+  }
   :is(html[data-portal="school-preview"], html[data-portal="school-be1"]) .manager-business-parent-groups-member-row {
     gap: 8px;
   }

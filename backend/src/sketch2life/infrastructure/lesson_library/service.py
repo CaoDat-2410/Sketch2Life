@@ -81,6 +81,7 @@ _REMIX_OPERATION_SCOPE = "POST /lesson-library/remixes"
 _REMIX_RECEIPT_PK = "pk_be1_command_receipts"
 _PARENT_GROUP_DECLINE_SCOPE = "POST /lesson-library/v1/me/parent-group-invitations/decline"
 _PARENT_GROUP_REVOKE_SCOPE = "DELETE /lesson-library/v1/organizations/parent-groups/members"
+_PARENT_INVITATION_NOT_FOUND_MESSAGE = "Parent account not found"
 _REMIX_SERIALIZATION_RETRIES = 3
 _ALLOWED_UPLOADS = {
     ".pdf": "application/pdf",
@@ -3232,10 +3233,10 @@ class LessonLibraryService:
             ).with_for_update()
         ).scalars().all()
         if len(identities) != 1:
-            return (parent_principal_ref,)
+            fail(404, "PARENT_NOT_FOUND", _PARENT_INVITATION_NOT_FOUND_MESSAGE)
         identity = identities[0]
         if identity.state != "active" or identity.account_role != "parent":
-            return (parent_principal_ref,)
+            fail(404, "PARENT_NOT_FOUND", _PARENT_INVITATION_NOT_FOUND_MESSAGE)
         return self._parent_audience_refs(identity.subject) or (parent_principal_ref,)
 
     def _parent_access_rows(

@@ -4,6 +4,7 @@ import { PageHeading } from "../../../../shared/components/FeatureAvailability";
 import { Alert, Button, ConfirmDialog, FormField } from "../../../../shared/ui";
 import { AdminBe1Error } from "../services/be1Client";
 import { managerBusinessService, type ParentGroup, type ParentGroupMember, type ParentGroupMemberCounts, type ParentGroupMemberFilter } from "../services/managerBusinessService";
+import { MAX_PARENT_GROUP_INVITATIONS, parseParentPrincipalRefs } from "./parentGroupInvitationBatch";
 
 function errorMessage(cause: unknown) {
   return cause instanceof Error ? cause.message : "Không hoàn tất được yêu cầu nhóm phụ huynh.";
@@ -58,6 +59,71 @@ function failureRetryable(cause: unknown) {
   return cause && typeof cause === "object" && "retryable" in cause && cause.retryable === true;
 }
 
+type ParentInvitationResultStatus = "sent" | "already" | "not-found" | "invalid" | "error" | "not-sent";
+
+interface ParentInvitationResult {
+  parentPrincipalRef: string;
+  status: ParentInvitationResultStatus;
+  message: string;
+}
+
+function failureStatus(cause: unknown) {
+  return cause && typeof cause === "object" && "status" in cause && typeof cause.status === "number"
+    ? cause.status
+    : null;
+}
+
+function invitationOutcomeUnknown(cause: unknown) {
+  const status = failureStatus(cause);
+  return status === null || status === 0 || status === 408 || status >= 500;
+}
+
+function invitationStopMessage(cause: unknown) {
+  const status = failureStatus(cause);
+  const code = failureCode(cause);
+  if (status === 401) return "Phiên đăng nhập không còn hợp lệ. Đã dừng gửi; hãy đăng nhập lại.";
+  if (status === 403) return "Bạn không có quyền gửi lời mời vào nhóm này. Đã dừng gửi.";
+  if (code === "RESOURCE_NOT_FOUND" || code === "GROUP_NOT_FOUND" || code === "PARENT_GROUP_NOT_FOUND" || (status === 404 && code !== "PARENT_NOT_FOUND")) {
+    return "Không tìm thấy nhóm phụ huynh. Đã dừng gửi.";
+  }
+  if (status === 409 && (code === "INVALID_TRANSITION" || code === "INVALID_STATE_TRANSITION")) {
+    return "Nhóm đã lưu trữ. Đã dừng gửi.";
+  }
+  return null;
+}
+
+function parentInvitationFailure(parentPrincipalRef: string, cause: unknown): ParentInvitationResult {
+  const status = failureStatus(cause);
+  const code = failureCode(cause);
+  if (status === 409 && code === "INVITATION_EXISTS") {
+    return { parentPrincipalRef, status: "already", message: "Đã được mời hoặc đang là thành viên." };
+  }
+  if (status === 404 && code === "PARENT_NOT_FOUND") {
+    return { parentPrincipalRef, status: "not-found", message: "Không tìm thấy phụ huynh với mã này" };
+  }
+  if (status === 422 || (status === 400 && code === "INVALID_REQUEST")) {
+    return { parentPrincipalRef, status: "invalid", message: "Mã tài khoản phụ huynh chưa hợp lệ." };
+  }
+  if (invitationOutcomeUnknown(cause)) {
+    return { parentPrincipalRef, status: "error", message: "Chưa xác định được kết quả. Mã này được giữ lại để thử lại." };
+  }
+  return { parentPrincipalRef, status: "error", message: "Không thể gửi lời mời cho mã này. Hãy thử lại sau." };
+}
+
+function invitationBatchSummary(results: ParentInvitationResult[], total: number, stopMessage: string | null) {
+  const count = (status: ParentInvitationResultStatus) => results.filter((result) => result.status === status).length;
+  const sent = count("sent");
+  if (stopMessage) {
+    const processed = results.filter((result) => result.status !== "not-sent").length;
+    return `Đã dừng lô sau ${processed}/${total} mã; ${sent} lời mời đã gửi. ${stopMessage}`;
+  }
+  return `Đã xử lý ${total} mã: ${sent} lời mời đã gửi, ${count("already")} đã được mời hoặc là thành viên, ${count("not-found")} không tìm thấy, ${count("invalid")} mã không hợp lệ, ${count("error")} lỗi.`;
+}
+
+function parentInvitationSignature(groupId: string, parentPrincipalRef: string) {
+  return JSON.stringify([groupId, parentPrincipalRef]);
+}
+
 export function ParentGroupsPage() {
   const [groups, setGroups] = useState<ParentGroup[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
@@ -77,14 +143,17 @@ export function ParentGroupsPage() {
   const [membersLoading, setMembersLoading] = useState(false);
   const [memberError, setMemberError] = useState("");
   const [memberSuccess, setMemberSuccess] = useState("");
-  const [parentPrincipalRef, setParentPrincipalRef] = useState("");
+  const [parentPrincipalRefs, setParentPrincipalRefs] = useState("");
+  const [invitationResults, setInvitationResults] = useState<ParentInvitationResult[]>([]);
+  const [inviteSummary, setInviteSummary] = useState("");
+  const [copyMessage, setCopyMessage] = useState("");
   const [inviting, setInviting] = useState(false);
-  const [inviteRetryKey, setInviteRetryKey] = useState<string | null>(null);
   const [revokingSignature, setRevokingSignature] = useState<string | null>(null);
   const [pendingRevoke, setPendingRevoke] = useState<{ groupId: string; member: ParentGroupMember } | null>(null);
   const [retryRevokeSignatures, setRetryRevokeSignatures] = useState<Set<string>>(() => new Set());
   const [clockNow, setClockNow] = useState(() => Date.now());
   const revokeKeys = useRef(new Map<string, string>());
+  const inviteKeys = useRef(new Map<string, string>());
   const cursor = cursorHistory[cursorHistory.length - 1];
 
   const loadMemberPage = useCallback(async (
@@ -267,36 +336,82 @@ export function ParentGroupsPage() {
   const inviteParent = async (event: FormEvent) => {
     event.preventDefault();
     const groupId = selectedGroupId;
-    if (!groupId || selectedGroup?.state !== "ACTIVE" || inviting || !parentPrincipalRef.trim()) return;
-    const idempotencyKey = inviteRetryKey ?? createIdempotencyKey();
-    setInviteRetryKey(idempotencyKey);
+    const refs = parseParentPrincipalRefs(parentPrincipalRefs);
+    if (!groupId || selectedGroup?.state !== "ACTIVE" || inviting || !refs.length || refs.length > MAX_PARENT_GROUP_INVITATIONS) return;
     setInviting(true);
     setMemberError("");
     setMemberSuccess("");
+    setInviteSummary("");
+    setInvitationResults([]);
+    const results: ParentInvitationResult[] = [];
+    const sentRefs = new Set<string>();
+    let stopMessage: string | null = null;
+
     try {
-      const invitation = await managerBusinessService.inviteParentToGroup(groupId, parentPrincipalRef, idempotencyKey);
-      setInviteRetryKey(null);
-      setParentPrincipalRef("");
-      setMemberFilter("INVITED");
-      setMemberSuccess(`Đã mời, hết hạn ngày ${formatDate(invitation.expires_at)}`);
-      await loadMemberPage(groupId, "INVITED");
-    } catch (cause: unknown) {
-      const outcomeKnown = cause instanceof AdminBe1Error
-        && cause.status >= 400
-        && cause.status < 500
-        && cause.status !== 408;
-      setInviteRetryKey(outcomeKnown ? null : idempotencyKey);
-      setMemberError(errorMessage(cause));
+      for (let index = 0; index < refs.length; index += 1) {
+        const parentPrincipalRef = refs[index];
+        const signature = parentInvitationSignature(groupId, parentPrincipalRef);
+        const idempotencyKey = inviteKeys.current.get(signature) ?? createIdempotencyKey();
+        inviteKeys.current.set(signature, idempotencyKey);
+
+        try {
+          const invitation = await managerBusinessService.inviteParentToGroup(groupId, parentPrincipalRef, idempotencyKey);
+          inviteKeys.current.delete(signature);
+          sentRefs.add(parentPrincipalRef);
+          results.push({
+            parentPrincipalRef,
+            status: "sent",
+            message: `Đã gửi lời mời · Hết hạn ngày ${formatDate(invitation.expires_at)}`,
+          });
+        } catch (cause: unknown) {
+          stopMessage = invitationStopMessage(cause);
+          if (stopMessage) {
+            inviteKeys.current.delete(signature);
+            results.push({ parentPrincipalRef, status: "error", message: stopMessage });
+            for (const unsentRef of refs.slice(index + 1)) {
+              results.push({ parentPrincipalRef: unsentRef, status: "not-sent", message: "Chưa gửi vì lô đã dừng." });
+            }
+            break;
+          }
+
+          if (!invitationOutcomeUnknown(cause)) inviteKeys.current.delete(signature);
+          results.push(parentInvitationFailure(parentPrincipalRef, cause));
+        }
+      }
+
+      setParentPrincipalRefs(refs.filter((ref) => !sentRefs.has(ref)).join("\n"));
+      setInvitationResults(results);
+      setInviteSummary(invitationBatchSummary(results, refs.length, stopMessage));
+      const nextFilter = sentRefs.size > 0 ? "INVITED" : memberFilter;
+      if (sentRefs.size > 0) setMemberFilter("INVITED");
+      await loadMemberPage(groupId, nextFilter);
     } finally {
       setInviting(false);
+    }
+  };
+
+  const copySelectedGroupId = async () => {
+    const groupId = selectedGroup?.parent_group_id;
+    if (!groupId) return;
+    if (typeof navigator === "undefined" || typeof navigator.clipboard?.writeText !== "function") {
+      setCopyMessage("Không thể sao chép tự động trên trình duyệt này. Mã nhóm bên trên vẫn có thể bôi đen để sao chép.");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(groupId);
+      setCopyMessage("Đã sao chép mã nhóm.");
+    } catch {
+      setCopyMessage("Không thể sao chép tự động. Mã nhóm bên trên vẫn có thể bôi đen để sao chép.");
     }
   };
 
   const selectGroup = (groupId: string) => {
     setSelectedGroupId(groupId);
     setMemberFilter("ALL");
-    setParentPrincipalRef("");
-    setInviteRetryKey(null);
+    setParentPrincipalRefs("");
+    setInvitationResults([]);
+    setInviteSummary("");
+    setCopyMessage("");
     setMembers([]);
     setMemberCounts(null);
     setMemberCursor(null);
@@ -318,6 +433,8 @@ export function ParentGroupsPage() {
   const requestOutcomeUnknown = retryKey !== null;
   const pageNumber = cursorHistory.length;
   const selectedGroup = groups.find((group) => group.parent_group_id === selectedGroupId);
+  const parsedParentPrincipalRefs = parseParentPrincipalRefs(parentPrincipalRefs);
+  const inviteBatchOverLimit = parsedParentPrincipalRefs.length > MAX_PARENT_GROUP_INVITATIONS;
   const pendingRevokeMemberIndex = activePendingRevoke
     ? members.findIndex((member) => member.membership_id === activePendingRevoke.member.membership_id)
     : -1;
@@ -484,6 +601,19 @@ export function ParentGroupsPage() {
           </>
         ) : (
           <>
+            {selectedGroup && (
+              <div className="manager-business-parent-group-id-panel">
+                <div className="manager-business-parent-group-id-copy">
+                  <span className="manager-business-eyebrow">ID nhóm phụ huynh</span>
+                  <code className="manager-business-parent-group-id-value">{selectedGroup.parent_group_id}</code>
+                </div>
+                <button type="button" className="manager-business-button" onClick={() => void copySelectedGroupId()}>
+                  Sao chép mã nhóm
+                </button>
+                <p>Giáo viên dán mã này tại Giáo án &gt; Chia sẻ &gt; Nhóm phụ huynh.</p>
+                {copyMessage && <p role="status" aria-live="polite">{copyMessage}</p>}
+              </div>
+            )}
             <FormField label="Lọc trạng thái" htmlFor="parent-group-member-state">
               <select
                 id="parent-group-member-state"
@@ -520,26 +650,35 @@ export function ParentGroupsPage() {
               <form className="cozy-form-stack manager-business-parent-groups-invite-form" onSubmit={(event) => void inviteParent(event)}>
               <FormField
                 label="Mã tài khoản phụ huynh"
-                htmlFor="parent-group-principal-ref"
+                htmlFor="parent-group-principal-refs"
                 required
-                help="Không có tra cứu bằng email. Nhập mã tài khoản do Phụ huynh sao chép từ tài khoản của họ."
+                help="Không tra cứu bằng email. Nhập một mã mỗi dòng; dấu phẩy, chấm phẩy hoặc khoảng trắng cũng được tính là dấu ngăn cách."
               >
-                <input
-                  id="parent-group-principal-ref"
+                <textarea
+                  id="parent-group-principal-refs"
                   className="cozy-input"
-                  value={parentPrincipalRef}
+                  rows={5}
+                  value={parentPrincipalRefs}
                   onChange={(event) => {
-                    setParentPrincipalRef(event.target.value);
-                    setInviteRetryKey(null);
+                    setParentPrincipalRefs(event.target.value);
+                    setInvitationResults([]);
+                    setInviteSummary("");
                     setMemberError("");
                     setMemberSuccess("");
                   }}
-                  minLength={1}
                   required
                   autoComplete="off"
                   disabled={inviteFormDisabled}
                 />
               </FormField>
+              <p className="manager-business-parent-groups-invite-count" aria-live="polite">
+                {parsedParentPrincipalRefs.length} mã duy nhất · Tối đa {MAX_PARENT_GROUP_INVITATIONS} mã mỗi lần.
+              </p>
+              {inviteBatchOverLimit && (
+                <p className="manager-business-parent-groups-invite-limit" role="alert">
+                  Tối đa {MAX_PARENT_GROUP_INVITATIONS} mã mỗi lần. Hiện có {parsedParentPrincipalRefs.length}; chưa gửi lời mời nào.
+                </p>
+              )}
               {selectedGroup?.state === "ARCHIVED" && (
                 <p className="cozy-form-disabled-hint">Nhóm đã lưu trữ; không thể mời thành viên.</p>
               )}
@@ -548,13 +687,24 @@ export function ParentGroupsPage() {
                   type="submit"
                   variant="primary"
                   loading={inviting}
-                  disabled={inviteFormDisabled || !parentPrincipalRef.trim()}
+                  disabled={inviteFormDisabled || !parsedParentPrincipalRefs.length}
                   iconLeft={<Plus size={16} aria-hidden="true" />}
                 >
-                  {inviting ? "Đang gửi lời mời…" : inviteRetryKey ? "Gửi lại cùng yêu cầu" : "Mời phụ huynh"}
+                  {inviting ? "Đang gửi lời mời…" : parsedParentPrincipalRefs.length === 1 && invitationResults.some((result) => result.status === "error" && result.message.startsWith("Chưa xác định")) ? "Gửi lại cùng yêu cầu" : "Mời phụ huynh"}
                 </Button>
               </div>
               </form>
+              {inviteSummary && <p className="manager-business-parent-groups-invite-summary" role="status" aria-live="polite">{inviteSummary}</p>}
+              {invitationResults.length > 0 && (
+                <ul className="manager-business-parent-groups-invite-results" aria-label="Kết quả lời mời">
+                  {invitationResults.map((result) => (
+                    <li key={result.parentPrincipalRef} data-status={result.status}>
+                      <code>{result.parentPrincipalRef}</code>
+                      <span>{result.message}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
             {membersLoading && members.length === 0 ? (
               <p className="manager-business-state manager-business-parent-groups-empty" role="status">Đang tải danh sách phụ huynh…</p>

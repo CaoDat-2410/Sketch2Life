@@ -1098,6 +1098,40 @@ def test_local_storage_example_upload_download_and_delete_routes(
     assert missing.status_code == 404
 
 
+def test_manager_inviting_unknown_parent_returns_generic_404_body(
+    lesson_api_acceptance: LessonApiAcceptance,
+) -> None:
+    accepted = lesson_api_acceptance
+    group = accepted.client.post(
+        f"/api/lesson-library/v1/organizations/{accepted.organization_id}/parent-groups",
+        json={"contract": "CreateParentGroupRequestV1", "display_name": "Synthetic lookup group"},
+        headers=_headers(accepted.manager, **{"Idempotency-Key": f"lookup-group-{uuid4()}"}),
+    )
+    assert group.status_code == 201, group.text
+
+    response = accepted.client.post(
+        f"/api/lesson-library/v1/organizations/{accepted.organization_id}/parent-groups/"
+        f"{group.json()['parent_group_id']}/invitations",
+        json={
+            "contract": "InviteParentToGroupRequestV1",
+            "parent_principal_ref": f"unknown-parent-{uuid4()}",
+        },
+        headers=_headers(accepted.manager, **{"Idempotency-Key": f"lookup-invite-{uuid4()}"}),
+    )
+
+    request_id = response.headers["X-Request-ID"]
+    assert response.status_code == 404, response.text
+    assert response.json() == {
+        "code": "PARENT_NOT_FOUND",
+        "message": "Không tìm thấy tài khoản phụ huynh.",
+        "correlation_id": request_id,
+        "retryable": False,
+        "retry_after_seconds": None,
+        "field_errors": None,
+        "request_id": request_id,
+    }
+
+
 def test_parent_group_accept_replays_legacy_receipt_without_repeating_effects(
     lesson_api_acceptance: LessonApiAcceptance,
 ) -> None:
@@ -1192,12 +1226,22 @@ def test_parent_group_accept_replays_legacy_receipt_without_repeating_effects(
         ).scalar_one()
     assert stored == legacy_response
 
+    other_parent = f"synthetic-other-parent-{uuid4()}"
+    with accepted.app.state.be1_runtime.session_factory.begin() as db:
+        db.add(
+            AdultIdentityModel(
+                subject=other_parent,
+                issuer="synthetic-lesson-test-issuer",
+                state="active",
+                account_role="parent",
+            )
+        )
     conflicting_retry = client.post(
         f"/api/lesson-library/v1/organizations/{accepted.organization_id}/parent-groups/"
         f"{group_id}/invitations",
         json={
             "contract": "InviteParentToGroupRequestV1",
-            "parent_principal_ref": f"synthetic-other-parent-{uuid4()}",
+            "parent_principal_ref": other_parent,
         },
         headers=_headers(accepted.manager, **{"Idempotency-Key": invite_key}),
     )

@@ -18,6 +18,7 @@ from sketch2life.infrastructure.lesson_library.service import (
 )
 from sketch2life.infrastructure.lesson_library.tables import (
     ACCESS_GRANTS,
+    COMMAND_RECEIPTS,
     LIBRARY_ITEMS,
     LIBRARY_VERSIONS,
     PARENT_GROUP_MEMBERS,
@@ -49,7 +50,19 @@ GROUPS = (
     "duplicate-account",
     "duplicate-subject",
     "new-invitation",
+    "new-subject-invitation",
+    "invalid-unknown",
+    "invalid-teacher",
+    "invalid-school-manager",
+    "invalid-platform-admin",
+    "invalid-no-role",
+    "invalid-disabled",
+    "invalid-inactive",
+    "invalid-ambiguous",
+    "active-staff",
+    "replay-after-disable",
 )
+PARENT_NOT_FOUND_MESSAGE = "Parent account not found"
 
 
 @compiles(JSONB, "sqlite")
@@ -153,6 +166,7 @@ def parent_groups():
     OrganizationAssignmentModel.__table__.create(engine)
     PARENT_GROUPS.create(engine)
     PARENT_GROUP_MEMBERS.create(engine)
+    COMMAND_RECEIPTS.create(engine)
     LIBRARY_ITEMS.create(engine)
     LIBRARY_VERSIONS.create(engine)
     ACCESS_GRANTS.create(engine)
@@ -412,6 +426,228 @@ def test_duplicate_invitation_check_unifies_the_parents_two_references(
     assert (duplicate.value.status_code, duplicate.value.code) == (
         409,
         "INVITATION_EXISTS",
+    )
+
+
+def test_new_manager_invitation_accepts_and_stores_the_supplied_parent_subject(
+    parent_groups: Any,
+) -> None:
+    db, service = parent_groups
+    response = service.invite_parent_to_group(
+        organization_id=ORG_ID,
+        group_id="new-subject-invitation",
+        actor=MANAGER,
+        parent_principal_ref=PARENT_A,
+        idempotency_key="new-parent-subject-invitation",
+    )
+    stored = db.execute(
+        PARENT_GROUP_MEMBERS.select().where(
+            PARENT_GROUP_MEMBERS.c.membership_id == response["membership_id"]
+        )
+    ).mappings().one()
+    assert stored["parent_principal_ref"] == PARENT_A
+    assert response["state"] == "INVITED"
+
+
+def test_unusable_parent_references_have_one_error_and_write_nothing(
+    parent_groups: Any,
+) -> None:
+    db, service = parent_groups
+    delattr(service, "_idempotent")
+    db.add_all(
+        [
+            AdultIdentityModel(
+                subject="teacher-ref",
+                account_id="teacher-account",
+                issuer="test-issuer",
+                state="active",
+                account_role="teacher",
+            ),
+            AdultIdentityModel(
+                subject="school-manager-ref",
+                account_id="school-manager-account",
+                issuer="test-issuer",
+                state="active",
+                account_role="school_manager",
+            ),
+            AdultIdentityModel(
+                subject="platform-admin-ref",
+                account_id="platform-admin-account",
+                issuer="test-issuer",
+                state="active",
+                account_role="platform_admin",
+            ),
+            AdultIdentityModel(
+                subject="no-role-ref",
+                account_id="no-role-account",
+                issuer="test-issuer",
+                state="active",
+                account_role=None,
+            ),
+            AdultIdentityModel(
+                subject="disabled-parent-ref",
+                account_id="disabled-parent-account",
+                issuer="test-issuer",
+                state="disabled",
+                account_role="parent",
+            ),
+            AdultIdentityModel(
+                subject="inactive-parent-ref",
+                account_id="inactive-parent-account",
+                issuer="test-issuer",
+                state="inactive",
+                account_role="parent",
+            ),
+            AdultIdentityModel(
+                subject="ambiguous-ref",
+                account_id="ambiguous-owner-account",
+                issuer="test-issuer",
+                state="active",
+                account_role="parent",
+            ),
+            AdultIdentityModel(
+                subject="ambiguous-account-owner",
+                account_id="ambiguous-ref",
+                issuer="test-issuer",
+                state="active",
+                account_role="parent",
+            ),
+        ]
+    )
+    db.flush()
+
+    cases = (
+        ("invalid-unknown", "unknown-parent-ref"),
+        ("invalid-teacher", "teacher-ref"),
+        ("invalid-school-manager", "school-manager-ref"),
+        ("invalid-platform-admin", "platform-admin-ref"),
+        ("invalid-no-role", "no-role-ref"),
+        ("invalid-disabled", "disabled-parent-ref"),
+        ("invalid-inactive", "inactive-parent-ref"),
+        ("invalid-ambiguous", "ambiguous-ref"),
+    )
+    errors: list[tuple[int, str, str]] = []
+    for index, (group_id, parent_ref) in enumerate(cases):
+        key = f"invalid-parent-{index}"
+        with pytest.raises(LessonLibraryError) as invalid:
+            service.invite_parent_to_group(
+                organization_id=ORG_ID,
+                group_id=group_id,
+                actor=MANAGER,
+                parent_principal_ref=parent_ref,
+                idempotency_key=key,
+            )
+
+        error = invalid.value
+        errors.append((error.status_code, error.code, error.message))
+        assert db.execute(
+            PARENT_GROUP_MEMBERS.select().where(
+                PARENT_GROUP_MEMBERS.c.parent_group_id == group_id
+            )
+        ).mappings().all() == []
+        assert db.execute(
+            COMMAND_RECEIPTS.select().where(
+                COMMAND_RECEIPTS.c.organization_id == ORG_ID,
+                COMMAND_RECEIPTS.c.principal_ref == MANAGER,
+                COMMAND_RECEIPTS.c.operation_scope
+                == f"POST /organizations/{ORG_ID}/parent-groups/{group_id}/invitations",
+                COMMAND_RECEIPTS.c.idempotency_key == key,
+            )
+        ).mappings().all() == []
+
+    assert errors == [(404, "PARENT_NOT_FOUND", PARENT_NOT_FOUND_MESSAGE)] * len(cases)
+
+
+def test_active_staff_assignment_keeps_the_existing_422_rejection(
+    parent_groups: Any,
+) -> None:
+    db, service = parent_groups
+    db.add(
+        AdultIdentityModel(
+            subject="assigned-teacher-ref",
+            account_id="assigned-teacher-account",
+            issuer="test-issuer",
+            state="active",
+            account_role="teacher",
+        )
+    )
+    db.add(
+        OrganizationAssignmentModel(
+            assignment_id="assigned-teacher-assignment",
+            organization_id=ORG_ID,
+            subject="assigned-teacher-ref",
+            class_id=None,
+            role="teacher",
+            active=True,
+        )
+    )
+    db.commit()
+
+    with pytest.raises(LessonLibraryError) as rejected:
+        service.invite_parent_to_group(
+            organization_id=ORG_ID,
+            group_id="active-staff",
+            actor=MANAGER,
+            parent_principal_ref="assigned-teacher-ref",
+            idempotency_key="active-staff-rejected",
+        )
+
+    assert (rejected.value.status_code, rejected.value.code) == (422, "INVALID_REQUEST")
+
+
+def test_successful_invitation_replays_after_parent_is_disabled(
+    parent_groups: Any,
+) -> None:
+    db, service = parent_groups
+    delattr(service, "_idempotent")
+    first = service.invite_parent_to_group(
+        organization_id=ORG_ID,
+        group_id="replay-after-disable",
+        actor=MANAGER,
+        parent_principal_ref=PARENT_A,
+        idempotency_key="parent-disabled-after-success",
+    )
+    identity = db.get(AdultIdentityModel, PARENT_A)
+    assert identity is not None
+    identity.state = "disabled"
+    db.commit()
+
+    replayed = service.invite_parent_to_group(
+        organization_id=ORG_ID,
+        group_id="replay-after-disable",
+        actor=MANAGER,
+        parent_principal_ref=PARENT_A,
+        idempotency_key="parent-disabled-after-success",
+    )
+    assert LessonLibraryService._json_safe(replayed) == LessonLibraryService._json_safe(first)
+    membership_rows = db.execute(
+        PARENT_GROUP_MEMBERS.select().where(
+            PARENT_GROUP_MEMBERS.c.parent_group_id == "replay-after-disable"
+        )
+    ).mappings().all()
+    receipt_rows = db.execute(
+        COMMAND_RECEIPTS.select().where(
+            COMMAND_RECEIPTS.c.organization_id == ORG_ID,
+            COMMAND_RECEIPTS.c.principal_ref == MANAGER,
+            COMMAND_RECEIPTS.c.operation_scope
+            == f"POST /organizations/{ORG_ID}/parent-groups/replay-after-disable/invitations",
+            COMMAND_RECEIPTS.c.idempotency_key == "parent-disabled-after-success",
+        )
+    ).mappings().all()
+    assert len(membership_rows) == 1
+    assert len(receipt_rows) == 1
+
+    with pytest.raises(LessonLibraryError) as mismatch:
+        service.invite_parent_to_group(
+            organization_id=ORG_ID,
+            group_id="replay-after-disable",
+            actor=MANAGER,
+            parent_principal_ref=PARENT_B,
+            idempotency_key="parent-disabled-after-success",
+        )
+    assert (mismatch.value.status_code, mismatch.value.code) == (
+        400,
+        "INVALID_IDEMPOTENCY_KEY",
     )
 
 
