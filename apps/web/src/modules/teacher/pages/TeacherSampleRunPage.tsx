@@ -25,10 +25,14 @@ type PendingRunAction = {
 };
 
 export function TeacherSampleRunPage() {
-  const activitySelectId = useId();
-  const quotaOrganizationId = configuredOrganizationId();
   const [params] = useSearchParams();
   const id = params.get("occurrence") ?? "";
+  return <SampleRunForOccurrence key={id} id={id} />;
+}
+
+function SampleRunForOccurrence({ id }: { id: string }) {
+  const activitySelectId = useId();
+  const quotaOrganizationId = configuredOrganizationId();
   const valid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
   const [occ, setOcc] = useState<Occurrence | null>(null);
   const [plan, setPlan] = useState<PlanRevision | null>(null);
@@ -153,7 +157,7 @@ export function TeacherSampleRunPage() {
   const sampleRunId = run && run.occurrence_id === id ? run.run_id : null;
   useEffect(() => { if (sampleRunId) rememberSampleRun(id, sampleRunId); }, [id, sampleRunId]);
 
-  const pollingRunId = run && shouldPoll(run) ? run.run_id : null;
+  const pollingRunId = run && run.occurrence_id === id && shouldPoll(run) ? run.run_id : null;
   const pollingState = run?.run_state;
   useEffect(() => {
     if (!pollingRunId) { pollStart.current = null; return; }
@@ -311,6 +315,7 @@ export function TeacherSampleRunPage() {
     }
   }
 
+  const isOwnRun = run?.occurrence_id === id;
   const runStatusTone = run ? teacherStatusMeta(run.run_state, "job").tone : "neutral";
   const destructiveAction = run && runActions.cancel
     ? <button type="button" className="s2l-button tp-quiet-danger" disabled={busy || Boolean(activePendingRunAction)} onClick={requestCancel}>{copy.cancel}</button>
@@ -359,11 +364,11 @@ export function TeacherSampleRunPage() {
             <div className="s2l-section-heading">
               <div>
                 <h2>{occ?.title ?? "Lượt video mẫu"}</h2>
-                {run.video && <p className="tw-meta">{copy.videoSummary}: {stateLabel(run.run_state)}</p>}
+                {isOwnRun && run.video && <p className="tw-meta">{copy.videoSummary}: {stateLabel(run.run_state)}</p>}
               </div>
               <div className="tp-chip-row">
                 <span className="tp-value-chip" role="status">{quotaBalance}</span>
-                <StatusBadge tone={runStatusTone} dot>{stateLabel(run.run_state)}</StatusBadge>
+                {isOwnRun && <StatusBadge tone={runStatusTone} dot>{stateLabel(run.run_state)}</StatusBadge>}
               </div>
             </div>
             {run.occurrence_id && run.occurrence_id !== id && (
@@ -372,7 +377,7 @@ export function TeacherSampleRunPage() {
                 <Link className="s2l-button" to={`/teacher/t06-sample-story-run?occurrence=${encodeURIComponent(run.occurrence_id)}`}>{copy.openOther}</Link>
               </div>
             )}
-            {(run.story_revision_no === null || !run.story) && (
+            {isOwnRun && (run.story_revision_no === null || !run.story) && (
               <p className="s2l-muted-copy">
                 {run.run_state === "SCRIPT_GENERATING" ? copy.generatingStory : waitingForFirstStory(run) ? copy.waitingStory : copy.firstStory}
               </p>
@@ -381,13 +386,13 @@ export function TeacherSampleRunPage() {
               {run.occurrence_id === id && (
                 <Link className="s2l-button" to={`/teacher/t07-video-presentation-confirmation?occurrence=${encodeURIComponent(id)}`}>Chiếu cho lớp</Link>
               )}
-              <button type="button" className="s2l-button" onClick={() => { void refreshRun(run.run_id); void loadOccurrence().catch(fail); }}>{copy.refresh}</button>
+              <button type="button" className="s2l-button" onClick={() => { if (isOwnRun) void refreshRun(run.run_id); else void active().catch(fail); void loadOccurrence().catch(fail); }}>{copy.refresh}</button>
             </FormActionBar>
           </section>
 
-          <TeacherRunInputs key={run.run_id} run={run} refresh={async () => { await refreshRun(run.run_id); }} fail={fail} lifecycle={applyRun} />
+          {isOwnRun && <><TeacherRunInputs key={run.run_id} run={run} refresh={async () => { await refreshRun(run.run_id); }} fail={fail} lifecycle={applyRun} />
           <TeacherRunStory key={`story-${run.run_id}`} run={run} execute={storyVideoCommand} planFenced={planFenceRunId === run.run_id} />
-          <TeacherRunVideo key={`video-${run.run_id}`} run={run} fail={fail} execute={storyVideoCommand} planFenced={planFenceRunId === run.run_id} />
+          <TeacherRunVideo key={`video-${run.run_id}`} run={run} fail={fail} execute={storyVideoCommand} planFenced={planFenceRunId === run.run_id} /></>}
         </div>
       )}
 

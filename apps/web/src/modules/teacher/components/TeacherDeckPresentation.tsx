@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { TeacherProgressiveDrawing, hasTeacherDrawing } from "./TeacherProgressiveDrawing";
 
 type SlideKind = 'orientation' | 'drawing_guide' | 'subject_exploration' | 'approved_activity'
@@ -310,7 +311,7 @@ export function TeacherDeckPresentation({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [slideIndex, onClose])
 
-  return (
+  return createPortal(
     <div className="teacher-deck-presentation fixed inset-0 z-[100] flex flex-col bg-slate-950 p-3 text-white sm:p-5" role="dialog" aria-modal="true" aria-label="Trình chiếu Sketch Deck">
       <header className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-4 pb-3">
         <div className="min-w-0">
@@ -426,6 +427,7 @@ export function TeacherDeckPresentation({
         <div className="hidden text-xs text-slate-400 sm:block">Dùng phím ← → để chuyển slide · Esc để đóng</div>
         <button type="button" onClick={() => moveSlide(1)} disabled={slideIndex === deck.slides.length - 1} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 disabled:opacity-40">Tiếp →</button>
       </footer>
-    </div>
+    </div>,
+    document.body,
   )
 }

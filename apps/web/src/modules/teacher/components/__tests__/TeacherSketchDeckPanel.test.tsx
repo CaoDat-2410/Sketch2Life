@@ -19,7 +19,7 @@ const plan: PlanRevision = {
   safety_notes: null,
   lesson_version_ref: null,
   lesson_version_no: null,
-  activities: [],
+  activities: [{ plan_activity_id: "activity-1", order: 1, kind: "CUSTOM", lesson_activity_id: null, title: "Activity", description: null, snapshot_hash: null, checklist_required: false, checklist_version: null, confirmed: false }],
   created_at: "2026-11-26T00:00:00Z",
   approved_at: "2026-11-26T00:00:01Z",
   supersedes_revision_no: null,
@@ -321,4 +321,17 @@ describe("TeacherSketchDeckPanel", () => {
       expect.any(String),
     );
   });
+});
+
+
+it.each([0, 7])("blocks deck creation for %i approved activities", async (count) => {
+  const create = setup(current({ current_revision: null, steps: [], presentable: false }));
+  vi.mocked(teacherOccurrenceApi.getPlan).mockResolvedValue({ data: { ...plan, activities: Array.from({ length: count }, (_, index) => ({ ...plan.activities[0], order: index + 1 })) }, etag: null, notModified: false });
+  render(<TeacherSketchDeckPanel occurrenceId="occ-1" approvedRevisionNo={2} />);
+  const button = await screen.findByRole("button", { name: "Tạo Sketch Deck" }) as HTMLButtonElement;
+  expect(button.disabled).toBe(true);
+  const message = screen.getByText("Giáo án cần có từ 1 đến 6 hoạt động. Hãy thêm hoạt động rồi duyệt lại giáo án.");
+  expect(button.getAttribute("aria-describedby")).toBe(message.id);
+  fireEvent.submit(button.closest("form")!);
+  expect(create).not.toHaveBeenCalled();
 });

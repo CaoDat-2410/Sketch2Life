@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { Link, MemoryRouter } from "react-router-dom";
 import { TeacherSampleRunPage } from "../TeacherSampleRunPage";
 import { teacherOccurrenceApi } from "../../../../shared/api/teacherOccurrenceApi";
 import { teacherRunApi, type ChildSelection, type TeacherRun } from "../../../../shared/api/teacherRunApi";
@@ -109,4 +109,31 @@ it("C47 remembers the sample run of the occurrence so t07 can find it after comp
   m.get.mockResolvedValue(response({ request_id: "r", story_run: ready }));
   await waitFor(() => expect(window.localStorage.getItem(`s2l.teacher.sample-run.${id}`)).toBe(ready.run_id));
   window.localStorage.clear();
+});
+
+
+it("hides another occurrence's run content but keeps recovery actions", async () => {
+  const other = run({ occurrence_id: "87654321-4321-4321-4321-cba987654321", run_state: "VIDEO_READY", story_revision_no: 1, story: { title: "Private other story", story: { opening: "Secret opening", middle: "b", ending: "c" }, scenes: [] }, video: { state: "READY", current_generation_id: "generation", video_requests_used: 1, video_requests_remaining: 0, playback: { state: "AVAILABLE" }, history: [] } });
+  const m = setup({ active: { request_id: "r", story_run: other } });
+  expect(await screen.findByRole("link", { name: copy.openOther })).toBeTruthy();
+  expect(screen.getByRole("button", { name: copy.cancel })).toBeTruthy();
+  expect(screen.getByRole("button", { name: copy.refresh })).toBeTruthy();
+  expect(document.body.textContent).not.toContain("Private other story");
+  expect(document.body.textContent).not.toContain("Secret opening");
+  expect(document.body.textContent).not.toContain(`${copy.videoSummary}:`);
+  expect(screen.queryByRole("button", { name: storyVideoCopy.watch })).toBeNull();
+  expect(m.get).not.toHaveBeenCalled();
+});
+
+
+it("clears the previous occurrence immediately when navigating", async () => {
+  const otherId = "87654321-4321-4321-4321-cba987654321";
+  const original = run({ run_state: "VIDEO_READY", story_revision_no: 1, story: { title: "Previous occurrence story", story: { opening: "old", middle: "b", ending: "c" }, scenes: [] } });
+  vi.spyOn(teacherOccurrenceApi, "get").mockImplementation(async (occurrenceId) => response({ occurrence_id: occurrenceId, title: occurrenceId, state: "APPROVED", approved_plan: null, sample_video: { slot_state: "AVAILABLE", run_ref: null } }));
+  vi.spyOn(teacherRunApi, "active").mockResolvedValue({ request_id: "r", story_run: original });
+  render(<MemoryRouter initialEntries={[`/?occurrence=${id}`]}><Link to={`/?occurrence=${otherId}`}>Switch occurrence</Link><TeacherSampleRunPage /></MemoryRouter>);
+  expect(await screen.findByText(/Previous occurrence story/)).toBeTruthy();
+  fireEvent.click(screen.getByRole("link", { name: "Switch occurrence" }));
+  expect(screen.queryByText(/Previous occurrence story/)).toBeNull();
+  expect(await screen.findByRole("link", { name: copy.openOther })).toBeTruthy();
 });

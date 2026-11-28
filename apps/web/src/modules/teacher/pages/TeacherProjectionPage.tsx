@@ -14,6 +14,10 @@ import { copy, projectionCopy as text, projectionError } from "../services/teach
 export function TeacherProjectionPage() {
   const [params] = useSearchParams();
   const id = params.get("occurrence") ?? "";
+  return <ProjectionForOccurrence key={id} id={id} />;
+}
+
+function ProjectionForOccurrence({ id }: { id: string }) {
   const valid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
   const [occ, setOcc] = useState<Occurrence | null>(null);
   const [run, setRun] = useState<TeacherRun | null>(null);
@@ -70,7 +74,7 @@ export function TeacherProjectionPage() {
   const slotUsable = slotAvailable || (run?.run_state === "VIDEO_READY" && claimedForRun) || claimAfterComplete;
   const ready = !!occ && !!run && run.occurrence_id === id && uuid.test(run.run_id) && ["VIDEO_READY", "COMPLETED"].includes(run.run_state) && run.video?.playback.state === "AVAILABLE" && !!run.video.current_generation_id && uuid.test(run.video.current_generation_id) && slotUsable && ["APPROVED", "SAMPLE_AVAILABLE", "SAMPLE_USED"].includes(occ.state);
   const confirmed = ready && receipt?.run_id === run.run_id && receipt.generation_id === run.video?.current_generation_id;
-  const videoPending = !!run && ["VIDEO_ADMISSION_PENDING", "VIDEO_QUEUED", "VIDEO_GENERATING", "VIDEO_SAFETY_VALIDATING"].includes(run.run_state);
+  const videoPending = !!run && run.occurrence_id === id && ["VIDEO_ADMISSION_PENDING", "VIDEO_QUEUED", "VIDEO_GENERATING", "VIDEO_SAFETY_VALIDATING"].includes(run.run_state);
   async function refresh() {
     if (lock.current) return;
     lock.current = true; setBusy(true); setError(""); clearVideo(); setReceipt(null); setAck(false);

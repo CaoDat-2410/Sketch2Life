@@ -244,3 +244,21 @@ describe("TeacherDeckPresentation recipe captions", () => {
     expect(screen.getByText("Hình mẫu tham khảo, không theo đúng từng bước hướng dẫn.")).toBeTruthy();
   });
 });
+
+
+it("renders the presentation outside the shell and retains keyboard controls", () => {
+  const deck = parseTeacherSketchDeck(serverDeckWithSteps(4, true))!;
+  const shell = document.createElement("div");
+  document.body.appendChild(shell);
+  let closed = false;
+  const view = render(<TeacherDeckPresentation deck={deck} onClose={() => { closed = true; }} />, { container: shell });
+  const dialog = screen.getByRole("dialog");
+  expect(dialog.parentElement).toBe(document.body);
+  expect(shell.contains(dialog)).toBe(false);
+  fireEvent.keyDown(window, { key: "ArrowRight" });
+  expect(screen.getByRole("region", { name: "Slide 2: Opening" })).toBeTruthy();
+  fireEvent.keyDown(window, { key: "Escape" });
+  expect(closed).toBe(true);
+  view.unmount();
+  shell.remove();
+});

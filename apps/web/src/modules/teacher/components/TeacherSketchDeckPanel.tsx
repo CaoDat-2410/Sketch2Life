@@ -226,6 +226,7 @@ export function TeacherSketchDeckPanel({ occurrenceId, approvedRevisionNo }: Pro
     markEdited();
   };
 
+  const invalidActivityCount = Boolean(plan && (plan.activities.length < 1 || plan.activities.length > 6));
   const revision = current?.current_revision ?? null;
   const needsTeacherAgeBand = plan?.lesson_version_ref === null;
   const planMatches = Boolean(plan && revision && revision.plan_revision_id === plan.plan_revision_id && revision.plan_content_hash === plan.content_hash);
@@ -238,7 +239,7 @@ export function TeacherSketchDeckPanel({ occurrenceId, approvedRevisionNo }: Pro
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!plan || submissionLock.current || loading || generationInProgress) return;
+    if (!plan || invalidActivityCount || submissionLock.current || loading || generationInProgress) return;
     setAttempted(true);
     const issues = validateInput(
       topic,
@@ -404,10 +405,11 @@ export function TeacherSketchDeckPanel({ occurrenceId, approvedRevisionNo }: Pro
             <span>Tôi đã rà soát chủ đề, các bước vẽ và ghi chú{needsTeacherAgeBand || teacherConfirmedAgeBandRef ? ", đồng thời xác nhận nhóm tuổi mục tiêu" : ""} trước khi tạo Sketch Deck.</span>
           </label>
           {issues.length > 0 && <ul className="s2l-alert" role="alert" aria-label="Thông tin Sketch Deck chưa hợp lệ">{issues.map((issue) => <li key={issue}>{issue}</li>)}</ul>}
+          {invalidActivityCount && <p id="sketch-deck-activity-count-error" className="s2l-note">Giáo án cần có từ 1 đến 6 hoạt động. Hãy thêm hoạt động rồi duyệt lại giáo án.</p>}
           <FormActionBar hint={generationInProgress
             ? "Đang có yêu cầu tạo Sketch Deck được xử lý; hãy chờ hoặc làm mới trạng thái trước khi tạo lại."
             : !loading && !submitting && !reviewConfirmed ? "Xác nhận đã rà soát để tạo Sketch Deck." : undefined}>
-            <Button type="submit" variant="primary" loading={submitting} disabled={loading || submitting || !plan || generationInProgress}>
+            <Button type="submit" variant="primary" loading={submitting} disabled={loading || submitting || !plan || generationInProgress || invalidActivityCount} aria-describedby={invalidActivityCount ? "sketch-deck-activity-count-error" : undefined}>
               {submitting ? "Đang tạo Sketch Deck…" : "Tạo Sketch Deck"}
             </Button>
           </FormActionBar>

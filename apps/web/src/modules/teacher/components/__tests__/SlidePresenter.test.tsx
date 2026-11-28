@@ -50,6 +50,7 @@ describe("SlidePresenter", () => {
 
     const dialog = screen.getByRole("dialog", { name: "Trình chiếu · Bản nháp" });
     expect(fullscreenRequest).toHaveBeenCalledTimes(1);
+    expect(dialog.parentElement?.parentElement).toBe(document.body);
     expect(screen.getByText("Slide nội dung 1")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Thoát" })).toBeTruthy();
 

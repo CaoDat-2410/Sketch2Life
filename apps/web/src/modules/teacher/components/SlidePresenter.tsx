@@ -1,3 +1,4 @@
+import { createPortal, flushSync } from "react-dom";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 
 export interface SlidePresenterRenderState {
@@ -23,6 +24,13 @@ function getFocusableElements(root: HTMLElement): HTMLElement[] {
 export function SlidePresenter({ revisionLabel, slideIndex, slideCount, onPrevious, onNext, children }: SlidePresenterProps) {
   const [isPresenting, setIsPresenting] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const placeholderRef = useRef<HTMLDivElement>(null);
+  const [portalHost] = useState(() => { const host = document.createElement("div"); host.style.display = "contents"; return host; });
+
+  useLayoutEffect(() => {
+    (isPresenting ? document.body : placeholderRef.current)?.appendChild(portalHost);
+    return () => { portalHost.remove(); };
+  }, [isPresenting, portalHost]);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const exitRef = useRef<HTMLButtonElement>(null);
   const openRef = useRef(false);
@@ -42,7 +50,7 @@ export function SlidePresenter({ revisionLabel, slideIndex, slideCount, onPrevio
     if (slideCount === 0 || openRef.current) return;
     openRef.current = true;
     enteredFullscreenRef.current = false;
-    setIsPresenting(true);
+    flushSync(() => setIsPresenting(true));
     const root = rootRef.current;
     root?.classList.add("is-open");
     if (!root?.requestFullscreen) return;
@@ -124,7 +132,7 @@ export function SlidePresenter({ revisionLabel, slideIndex, slideCount, onPrevio
     }
   }, []);
 
-  return (
+  const content = (
     <div
       ref={rootRef}
       className={`tp-presenter-root${isPresenting ? " is-open" : ""}`}
@@ -164,4 +172,5 @@ export function SlidePresenter({ revisionLabel, slideIndex, slideCount, onPrevio
       })}
     </div>
   );
+  return <><div ref={placeholderRef} style={{ display: "contents" }} />{createPortal(content, portalHost)}</>;
 }
