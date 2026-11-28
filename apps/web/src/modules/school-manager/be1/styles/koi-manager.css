@@ -1,0 +1,45 @@
+/* Koi screens use the existing data and controls, arranged as a compact workspace. */
+html[data-portal="school-be1"] .s2l-app-shell .manager-overview-school.manager-overview-school { position: relative; background: var(--s2l-ui-hero-wash); color: var(--s2l-ui-ink); padding: 30px 36px; border: 0; border-radius: 28px; }
+html[data-portal="school-be1"] .s2l-app-shell .manager-overview-school :is(h2, p, dt, dd) { color: var(--s2l-ui-ink); }
+html[data-portal="school-be1"] .s2l-app-shell .manager-overview-school .manager-business-eyebrow { color: var(--s2l-ui-primary-hover); }
+html[data-portal="school-be1"] .s2l-app-shell .manager-overview-school dd { font-size: clamp(28px, 4vw, 44px); line-height: 1.1; overflow-wrap: anywhere; padding-right: 150px; }
+html[data-portal="school-be1"] .s2l-app-shell .manager-overview-school .manager-business-card-heading > .manager-business-chip { position: absolute; right: 36px; bottom: 30px; }
+html[data-portal="school-be1"] .s2l-app-shell .manager-overview > .manager-business-grid { display: grid; grid-template-columns: 1fr; gap: 0; margin-top: 14px; }
+html[data-portal="school-be1"] .s2l-app-shell .manager-overview .manager-business-summary { display: grid; grid-template-columns: 46px minmax(0, 1fr) minmax(0, 1.2fr) auto; align-items: center; gap: 6px 18px; min-height: 78px; padding: 12px 6px; border: 0; border-top: 1px solid #ded7eb; border-radius: 0; background: transparent; box-shadow: none; }
+html[data-portal="school-be1"] .s2l-app-shell .manager-overview .manager-business-summary .manager-business-card-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-start; gap: 6px 12px; min-width: 0; margin: 0; }
+html[data-portal="school-be1"] .s2l-app-shell .manager-overview .manager-business-summary :is(h2, p, a) { min-width: 0; margin: 0; }
+html[data-portal="school-be1"] .s2l-app-shell .manager-overview .manager-business-summary > a { white-space: nowrap; }
+html[data-portal="school-be1"] .s2l-app-shell .manager-overview .manager-business-limitation { display: grid; grid-template-columns: 46px minmax(0, 1fr) minmax(0, 1.2fr) auto; align-items: center; gap: 6px 18px; padding: 20px 6px; border: 0; border-top: 1px solid #ded7eb; border-radius: 0; background: transparent; box-shadow: none; }
+html[data-portal="school-be1"] .s2l-app-shell .manager-overview .manager-business-limitation :is(h2, p) { margin: 0; }
+
+html[data-portal="school-be1"] .s2l-app-shell .koi-manager-roster { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr); gap: 20px 36px; align-items: start; }
+html[data-portal="school-be1"] .koi-manager-roster > :is(header, .s2l-page-heading, .koi-roster-unplaced, .koi-roster-class, .manager-business-roster-stats) { grid-column: 1 / -1; }
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-card.cozy-form-card.koi-roster-unplaced { background: var(--s2l-ui-paper-muted); border-color: var(--s2l-ui-rule); }
+html[data-portal="school-be1"] .s2l-app-shell .koi-roster-unplaced { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); column-gap: 36px; }
+html[data-portal="school-be1"] .koi-roster-unplaced > :not(.koi-unplaced-table) { grid-column: 1; }
+html[data-portal="school-be1"] .koi-roster-unplaced > .koi-unplaced-table { grid-column: 2; grid-row: 1 / span 8; }
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-card.cozy-form-card.koi-roster-class { display: grid; grid-template-columns: minmax(220px, 1fr) minmax(0, 1.6fr); gap: 24px; align-items: center; background: var(--s2l-ui-hero-wash); border-color: var(--s2l-ui-sidebar-edge); color: var(--s2l-ui-ink); }
+html[data-portal="school-be1"] .koi-roster-class :is(label, .s2l-note) { color: var(--s2l-ui-ink) !important; }
+html[data-portal="school-be1"] .koi-roster-class .s2l-note { background: transparent; border: 0; padding: 0; }
+html[data-portal="school-be1"] .koi-roster-class .cozy-form-grid { grid-template-columns: 1fr; }
+html[data-portal="school-be1"] .koi-roster-class .cozy-form-grid > * { grid-column: 1 / -1; }
+html[data-portal="school-be1"] .koi-roster-class .manager-business-roster-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; }
+html[data-portal="school-be1"] .koi-roster-class .pa-stat-card { display: flex; flex-direction: column-reverse; gap: 6px; border: 0; border-left: 1px solid var(--s2l-ui-sidebar-edge); border-radius: 0; background: transparent; box-shadow: none; }
+html[data-portal="school-be1"] .koi-roster-class .pa-stat-card p { color: var(--s2l-ui-ink); }
+html[data-portal="school-be1"] .koi-roster-class .pa-stat-value { font-size: 36px; line-height: 1; }
+html[data-portal="school-be1"] .koi-roster-unplaced code, html[data-portal="school-be1"] .koi-roster-move code { overflow-wrap: anywhere; }
+html[data-portal="school-be1"] .s2l-app-shell .koi-roster-move, html[data-portal="school-be1"] .s2l-app-shell .koi-manager-roster > .manager-business-grid, html[data-portal="school-be1"] .s2l-app-shell .koi-manager-roster > section[aria-labelledby="teacher-assignment-title"] { border: 0; background: transparent; box-shadow: none; padding: 0; }
+html[data-portal="school-be1"] .koi-manager-roster > .manager-business-grid { grid-template-columns: 1fr; }
+html[data-portal="school-be1"] .koi-manager-roster > .manager-business-grid > article { border: 0; border-top: 1px solid #ded7eb; border-radius: 0; background: transparent; box-shadow: none; padding: 18px 0; }
+html[data-portal="school-be1"] .koi-manager-roster > .manager-business-grid > article:nth-child(2) { order: -1; }
+html[data-portal="school-be1"] .koi-manager-roster > section[aria-labelledby="teacher-assignment-title"] { grid-column: 2; }
+@media (max-width: 820px) {
+  html[data-portal="school-be1"] .s2l-app-shell .koi-manager-roster { grid-template-columns: minmax(0, 1fr); }
+  html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-card.cozy-form-card:is(.koi-roster-unplaced, .koi-roster-class) { grid-template-columns: minmax(0, 1fr); }
+  html[data-portal="school-be1"] .koi-roster-unplaced > .koi-unplaced-table { grid-column: 1; grid-row: auto; }
+  html[data-portal="school-be1"] .koi-manager-roster > section[aria-labelledby="teacher-assignment-title"] { grid-column: 1; }
+  html[data-portal="school-be1"] .s2l-app-shell .manager-overview :is(.manager-business-summary, .manager-business-limitation) { grid-template-columns: 46px minmax(0, 1fr); align-items: start; gap: 8px 14px; padding: 16px 6px; }
+  html[data-portal="school-be1"] .s2l-app-shell .manager-overview :is(.manager-business-summary, .manager-business-limitation) > :is(p, a, .manager-business-chip) { grid-column: 2; justify-self: start; white-space: normal; }
+  html[data-portal="school-be1"] .s2l-app-shell .manager-overview-school dd { padding-right: 0; }
+  html[data-portal="school-be1"] .s2l-app-shell .manager-overview-school .manager-business-card-heading > .manager-business-chip { position: static; }
+}

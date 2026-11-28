@@ -8,6 +8,7 @@ type AccessibleDialogProps = {
   title: string;
   description?: string;
   showTitle?: boolean;
+  titleIcon?: React.ReactNode;
   showDescription?: boolean;
   className?: string;
   showClose?: boolean;
@@ -23,6 +24,7 @@ export function AccessibleDialog({
   title,
   description,
   showTitle = false,
+  titleIcon,
   showDescription = false,
   className = "",
   showClose = true,
@@ -40,7 +42,7 @@ export function AccessibleDialog({
           onOpenAutoFocus={onOpenAutoFocus}
           onCloseAutoFocus={onCloseAutoFocus}
         >
-          <DialogPrimitive.Title className={showTitle ? "s2l-dialog-title" : "s2l-sr-only"}>{title}</DialogPrimitive.Title>
+          <DialogPrimitive.Title className={showTitle ? "s2l-dialog-title" : "s2l-sr-only"}>{titleIcon}{title}</DialogPrimitive.Title>
           {description && (
             <DialogPrimitive.Description className={showDescription ? "s2l-dialog-description" : "s2l-sr-only"}>
               {description}

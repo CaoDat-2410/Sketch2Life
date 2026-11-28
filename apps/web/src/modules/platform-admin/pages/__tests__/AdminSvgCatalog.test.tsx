@@ -90,6 +90,7 @@ describe("AdminSvgCatalogPage", () => {
 
   it("submits a source-bound guide and curator decision only", async () => {
     mount();
+    fireEvent.click(screen.getAllByRole("tab")[1]);
     const guide = {
       schema_version: "SketchStrokeGuideV3",
       guide_id: "guide-1",
@@ -105,6 +106,7 @@ describe("AdminSvgCatalogPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Tạo phiên bản hướng dẫn" }));
     await waitFor(() => expect(createGuideMock).toHaveBeenCalledWith("svg-entry-1", { contract: "CreateSvgGuideRevisionRequestV1", guide }));
 
+    fireEvent.click(screen.getAllByRole("tab")[2]);
     fireEvent.change(screen.getByLabelText("Mã băm nguồn SHA-256"), { target: { value: asset.source_sha256 } });
     fireEvent.click(screen.getByRole("button", { name: "Ghi nhận quyết định" }));
     await waitFor(() => expect(curateAssetMock).toHaveBeenCalledWith("svg-entry-1", expect.objectContaining({ contract: "SvgCurationRequestV1", decision: "APPROVE" })));
@@ -121,12 +123,14 @@ describe("AdminSvgCatalogPage", () => {
     fireEvent.submit(formFor("Tạo mục SVG"));
     expect(createAssetMock).toHaveBeenCalledTimes(1);
 
+    fireEvent.click(screen.getAllByRole("tab")[1]);
     fireEvent.change(screen.getAllByLabelText("Mã mục SVG")[0], { target: { value: "svg-entry-1" } });
     fireEvent.change(screen.getByLabelText("Nội dung hướng dẫn JSON"), { target: { value: "{}" } });
     fireEvent.submit(formFor("Tạo phiên bản hướng dẫn"));
     fireEvent.submit(formFor("Tạo phiên bản hướng dẫn"));
     expect(createGuideMock).toHaveBeenCalledTimes(1);
 
+    fireEvent.click(screen.getAllByRole("tab")[2]);
     fireEvent.change(screen.getByLabelText("Mã băm nguồn SHA-256"), { target: { value: "a".repeat(64) } });
     fireEvent.submit(formFor("Duyệt mục SVG"));
     fireEvent.submit(formFor("Duyệt mục SVG"));

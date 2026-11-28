@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import '../../../shared/styles/tailwind-utilities.css'
 import { Alert, Button, FormField, Select } from '../../../shared/ui'
 import { PageHeading } from '../../../shared/components/FeatureAvailability'
 import { AutoGrowTextarea } from '../components/AutoGrowTextarea'

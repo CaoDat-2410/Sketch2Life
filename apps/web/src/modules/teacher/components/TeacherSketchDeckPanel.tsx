@@ -420,18 +420,17 @@ export function TeacherSketchDeckPanel({ occurrenceId, approvedRevisionNo }: Pro
           <fieldset className="cozy-form-stack">
             <legend className="cozy-form-label">Các bước vẽ <span className="cozy-form-required" aria-hidden="true">*</span></legend>
             <p className="cozy-form-hint">Nhập từ 4 đến 8 bước. Thao tác và vị trí mỗi bước dài 1–240 ký tự.</p>
-            <div className="grid min-w-0 gap-3 sm:grid-cols-2">
-              {drawingSteps.map((step, index) => <section key={index} className="min-w-0 rounded-lg border border-slate-200 p-3">
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <h3 className="text-sm font-semibold">Bước {index + 1}</h3>
-                  {drawingSteps.length > MIN_STEPS && <Button type="button" variant="ghost" size="sm" aria-label={`Bỏ bước ${index + 1}`} onClick={() => { setDrawingSteps((items) => items.filter((_, itemIndex) => itemIndex !== index)); markEdited(); }}>Bỏ</Button>}
-                </div>
-                  <FormField label={`Thao tác bước ${index + 1}`} htmlFor={`sketch-deck-action-${index}`} required help={`${textLength(step.action.trim())} / ${MAX_TEXT_LENGTH}`}>
+            <div className="sketch-step-list">
+              <div className="sketch-step-columns" aria-hidden="true"><span></span><span>Thao tác</span><span>Vị trí</span><span></span></div>
+              {drawingSteps.map((step, index) => <section key={index} className="sketch-step-row">
+                <h3 className="sketch-step-number"><span className="sketch-visually-hidden">Bước </span>{index + 1}</h3>
+                  <FormField className="sketch-step-field" label={`Thao tác bước ${index + 1}`} htmlFor={`sketch-deck-action-${index}`} required help={`${textLength(step.action.trim())} / ${MAX_TEXT_LENGTH}`}>
                   <textarea id={`sketch-deck-action-${index}`} className="cozy-textarea" rows={2} value={step.action} onChange={(event) => changeStep(index, "action", event.target.value)} />
                 </FormField>
-                <FormField label={`Vị trí bước ${index + 1}`} htmlFor={`sketch-deck-placement-${index}`} required help={`${textLength(step.placement.trim())} / ${MAX_TEXT_LENGTH}`}>
+                <FormField className="sketch-step-field" label={`Vị trí bước ${index + 1}`} htmlFor={`sketch-deck-placement-${index}`} required help={`${textLength(step.placement.trim())} / ${MAX_TEXT_LENGTH}`}>
                   <textarea id={`sketch-deck-placement-${index}`} className="cozy-textarea" rows={2} value={step.placement} onChange={(event) => changeStep(index, "placement", event.target.value)} />
                 </FormField>
+                {drawingSteps.length > MIN_STEPS && <Button type="button" variant="ghost" size="sm" aria-label={`Bỏ bước ${index + 1}`} onClick={() => { setDrawingSteps((items) => items.filter((_, itemIndex) => itemIndex !== index)); markEdited(); }}>Bỏ</Button>}
               </section>)}
             </div>
             {drawingSteps.length < MAX_STEPS && <Button type="button" variant="secondary" iconLeft={<Plus size={16} aria-hidden="true" />} onClick={() => { setDrawingSteps((items) => [...items, { action: "", placement: "" }]); markEdited(); }}>Thêm bước</Button>}

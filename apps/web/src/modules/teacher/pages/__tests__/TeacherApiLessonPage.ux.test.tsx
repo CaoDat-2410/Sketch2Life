@@ -285,14 +285,14 @@ describe("TeacherApiLessonPage UX restructure", () => {
     const titleInput = screen.getByLabelText(/Tiêu đề/) as HTMLInputElement;
     fireEvent.change(titleInput, { target: { value: "Giáo án một đã chỉnh" } });
 
-    // Sticky save bar is inside visible Nội dung panel
+    // Save actions live in the editor header while Nội dung is active.
     const saveButton = screen.getByRole("button", { name: "Lưu cập nhật" });
-    expect(saveButton.closest("[role='tabpanel']")?.hasAttribute("hidden")).toBe(false);
+    expect(saveButton.closest(".teacher-lesson-heading")).toBeTruthy();
 
     // Switch to Chia sẻ -> Nội dung panel and save bar are hidden, start in-flight share request
     fireEvent.click(shareTab);
     expect(shareTab.getAttribute("aria-selected")).toBe("true");
-    expect(saveButton.closest("[role='tabpanel']")?.hasAttribute("hidden")).toBe(true);
+    expect(screen.queryByRole("button", { name: "Lưu cập nhật" })).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Tạo chia sẻ" }));
 
     // Switch to Phiên bản while share request is still in flight

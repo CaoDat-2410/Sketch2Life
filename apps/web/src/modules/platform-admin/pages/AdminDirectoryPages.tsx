@@ -438,7 +438,7 @@ export function OperationsPage() {
         <CozyButton className="max-[620px]:w-full" onClick={refresh} disabled={q.loading || apiHealth.loading} iconLeft={<RefreshCw size={16} aria-hidden="true" />}>Tải lại</CozyButton>
       </Heading>
       <Section title="Tình trạng hệ thống" variant="plain">
-        <div aria-live="polite" className="grid min-w-0 grid-cols-1 gap-3 p-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div aria-live="polite" className="pa-ops-grid grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {healthCards.map(({ title, status, detail, value, icon: Icon }) => (
             <StatCard
               key={title}
@@ -453,7 +453,7 @@ export function OperationsPage() {
         </div>
       </Section>
       <LoadBoundary {...q}>
-        {q.data?.queue && <div aria-label="Tóm tắt hàng đợi" className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {q.data?.queue && <div aria-label="Tóm tắt hàng đợi" className="pa-ops-grid grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard
             label="Tác vụ đang chờ"
             value={q.data.queue.queued_jobs.toLocaleString("vi-VN")}

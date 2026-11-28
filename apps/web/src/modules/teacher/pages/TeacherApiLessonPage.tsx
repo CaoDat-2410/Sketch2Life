@@ -494,7 +494,7 @@ export function TeacherApiLessonPage() {
 
         <section className="tw-card cozy-form-card cozy-form-card--wide teacher-lesson-card">
           <div className="tp-form-column">
-            <div className="tw-row tw-between tw-wrap">
+            <div className="tw-row tw-between tw-wrap koi-teacher-band teacher-lesson-heading">
               <h2 className="tw-h2" style={{ margin: 0 }}>{detail ? "Cập nhật giáo án" : "Tạo giáo án"}</h2>
               {detail && detailReviewMeta && detailVisibilityMeta && (
                 <div className="tp-chip-row">
@@ -502,6 +502,26 @@ export function TeacherApiLessonPage() {
                   <StatusBadge tone={detailReviewMeta.tone} dot>{detailReviewMeta.label}</StatusBadge>
                   <StatusBadge tone={detailVisibilityMeta.tone}>{detailVisibilityMeta.label}</StatusBadge>
                 </div>
+              )}
+              {(!detail || activeTab === "content") && (
+                  <FormActionBar
+                    className="teacher-lesson-sticky-bar"
+                    hint={actionHint}
+                    danger={detail && (
+                      <Button type="button" variant="danger" className="tp-quiet-danger" disabled={saving || Boolean(activePendingArchive)} onClick={requestArchive}>
+                        Lưu trữ giáo án
+                      </Button>
+                    )}
+                  >
+                    {canRequestPublic && (
+                      <Button type="button" variant="secondary" disabled={saving} iconLeft={<Icon name="share" size={16} />} onClick={() => void requestPublic()}>
+                        Gửi duyệt công khai
+                      </Button>
+                    )}
+                    <Button type="submit" form={`${tabIdBase}-form`} variant="primary" loading={saving} disabled={saving || Boolean(selectedId && !detail)} iconLeft={<Icon name="check" size={16} />}>
+                      {saving ? "Đang lưu…" : detail ? "Lưu cập nhật" : "Tạo giáo án"}
+                    </Button>
+                  </FormActionBar>
               )}
             </div>
             {remixProvenance && detail?.lesson_id === selectedId && (
@@ -563,11 +583,11 @@ export function TeacherApiLessonPage() {
               hidden={Boolean(detail) && activeTab !== "content"}
               className="teacher-lesson-tabpanel"
             >
-              <form className="teacher-lesson-form" onSubmit={(event) => void save(event)}>
+              <form id={`${tabIdBase}-form`} className="teacher-lesson-form" onSubmit={(event) => void save(event)}>
                 <div className="tp-form-column">
                   <section className="cozy-form-section" aria-labelledby="lesson-sec-general">
                     <div className="tp-form-section-intro">
-                      <h3 id="lesson-sec-general">1. Thông tin chung</h3>
+                      <h3 id="lesson-sec-general"><span className="teacher-lesson-section-number">1.</span> Thông tin chung</h3>
                       <p>Tên giáo án, chủ đề, nhóm tuổi và đối tượng trẻ sẽ vẽ.</p>
                     </div>
                     <div className="cozy-form-grid">
@@ -603,7 +623,7 @@ export function TeacherApiLessonPage() {
 
                   <section className="cozy-form-section" aria-labelledby="lesson-sec-objectives">
                     <div className="tp-form-section-intro">
-                      <h3 id="lesson-sec-objectives">2. Mục tiêu và hướng dẫn vẽ</h3>
+                      <h3 id="lesson-sec-objectives"><span className="teacher-lesson-section-number">2.</span> Mục tiêu và hướng dẫn vẽ</h3>
                       <p>Mục tiêu học tập và các bước hướng dẫn trẻ thực hiện nét vẽ.</p>
                     </div>
                     <div className="cozy-form-grid">
@@ -618,7 +638,7 @@ export function TeacherApiLessonPage() {
 
                   <section className="cozy-form-section" aria-labelledby="lesson-sec-script">
                     <div className="tp-form-section-intro">
-                      <h3 id="lesson-sec-script">3. Kịch bản</h3>
+                      <h3 id="lesson-sec-script"><span className="teacher-lesson-section-number">3.</span> Kịch bản</h3>
                       <p>Ghi chú kiến thức cho giáo viên và định hướng lời kể khi tạo câu chuyện.</p>
                     </div>
                     <div className="cozy-form-grid">
@@ -638,7 +658,7 @@ export function TeacherApiLessonPage() {
                   <section className="cozy-form-section" aria-labelledby="lesson-sec-activities">
                     <div className="cozy-form-section-head">
                       <div className="tp-form-section-intro" style={{ borderBottom: 0, paddingBottom: 0 }}>
-                        <h3 id="lesson-sec-activities">4. Hoạt động thực hành</h3>
+                        <h3 id="lesson-sec-activities"><span className="teacher-lesson-section-number">4.</span> Hoạt động thực hành</h3>
                         <p>Các hoạt động gợi mở, chuẩn bị vật liệu và lưu ý an toàn cho trẻ.</p>
                       </div>
                       <Button type="button" variant="secondary" size="sm" disabled={content.activities.length >= 24} iconLeft={<Icon name="plus" size={15} />} onClick={() => updateContent({ activities: [...content.activities, blankActivity()] })}>
@@ -721,24 +741,7 @@ export function TeacherApiLessonPage() {
                     </div>
                   </section>
 
-                  <FormActionBar
-                    className="teacher-lesson-sticky-bar"
-                    hint={actionHint}
-                    danger={detail && (
-                      <Button type="button" variant="danger" className="tp-quiet-danger" disabled={saving || Boolean(activePendingArchive)} onClick={requestArchive}>
-                        Lưu trữ giáo án
-                      </Button>
-                    )}
-                  >
-                    {canRequestPublic && (
-                      <Button type="button" variant="secondary" disabled={saving} iconLeft={<Icon name="share" size={16} />} onClick={() => void requestPublic()}>
-                        Gửi duyệt công khai
-                      </Button>
-                    )}
-                    <Button type="submit" variant="primary" loading={saving} disabled={saving || Boolean(selectedId && !detail)} iconLeft={<Icon name="check" size={16} />}>
-                      {saving ? "Đang lưu…" : detail ? "Lưu cập nhật" : "Tạo giáo án"}
-                    </Button>
-                  </FormActionBar>
+
                 </div>
               </form>
             </div>

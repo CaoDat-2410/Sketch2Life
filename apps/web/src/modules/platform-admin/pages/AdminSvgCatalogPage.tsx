@@ -95,6 +95,7 @@ function Receipt({ title, value }: { title: string; value: ReactNode }) {
 }
 
 export function AdminSvgCatalogPage() {
+  const [activeTab, setActiveTab] = useState(0);
   const assetSubmitLock = useRef(false);
   const [assetForm, setAssetForm] = useState(emptyAsset);
   const [assetBusy, setAssetBusy] = useState(false);
@@ -200,7 +201,19 @@ export function AdminSvgCatalogPage() {
         <p>Quản trị viên chỉ có thể tạo mục SVG, tạo phiên bản hướng dẫn và duyệt mục bằng mã mục đang có. Màn hình không có danh sách tra cứu SVG. Giáo viên thực hiện các lượt duyệt của nhà giáo dục.</p>
       </aside>
 
-      <section className="pa-panel pa-padded grid gap-4" aria-labelledby="pa-svg-create-title">
+      <div className="pa-panel pa-padded pa-svg-workspace">
+        <div className="pa-svg-tabs" role="tablist" aria-label="SVG">
+          {["T\u1ea1o m\u1ee5c", "Phi\u00ean b\u1ea3n h\u01b0\u1edbng d\u1eabn", "Duy\u1ec7t"].map((label, index) => (
+            <button key={label} type="button" role="tab" id={`pa-svg-tab-${index}`} aria-controls={`pa-svg-panel-${index}`} aria-selected={activeTab === index} tabIndex={activeTab === index ? 0 : -1} onClick={() => setActiveTab(index)} onKeyDown={(event) => {
+              if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+              event.preventDefault();
+              const next = event.key === "Home" ? 0 : event.key === "End" ? 2 : (index + (event.key === "ArrowRight" ? 1 : 2)) % 3;
+              setActiveTab(next);
+              document.getElementById(`pa-svg-tab-${next}`)?.focus();
+            }}>{label}</button>
+          ))}
+        </div>
+      <section className="pa-svg-tab-panel grid gap-4" role="tabpanel" id="pa-svg-panel-0" aria-labelledby="pa-svg-tab-0" hidden={activeTab !== 0}>
         <div>
           <h2 id="pa-svg-create-title" className="m-0">Tạo mục SVG</h2>
           <p className="pa-muted mt-1">Nhập nguồn và thông tin giấy phép. Nội dung được gửi dưới dạng dữ liệu SVG.</p>
@@ -215,7 +228,7 @@ export function AdminSvgCatalogPage() {
             <Field label="Đường dẫn giấy phép HTTPS"><input required type="url" maxLength={2048} value={assetForm.license_uri} onChange={(event) => setAssetForm({ ...assetForm, license_uri: event.target.value })} /></Field>
           </div>
           <Field label="Mã SVG nguồn" hint="Tối đa 1.000.000 ký tự.">
-            <textarea required minLength={1} maxLength={1_000_000} rows={10} spellCheck={false} value={assetForm.source_svg} onChange={(event) => setAssetForm({ ...assetForm, source_svg: event.target.value })} />
+            <textarea required minLength={1} maxLength={1_000_000} rows={6} spellCheck={false} value={assetForm.source_svg} onChange={(event) => setAssetForm({ ...assetForm, source_svg: event.target.value })} />
           </Field>
           {assetError && <p className="pa-svg-error" role="alert">{assetError}</p>}
           <Button primary type="submit" disabled={assetBusy}>{assetBusy ? "Đang tạo…" : "Tạo mục SVG"}</Button>
@@ -223,7 +236,7 @@ export function AdminSvgCatalogPage() {
         {assetReceipt && <AssetResult asset={assetReceipt} />}
       </section>
 
-      <section className="pa-panel pa-padded grid gap-4" aria-labelledby="pa-svg-guide-title">
+      <section className="pa-svg-tab-panel grid gap-4" role="tabpanel" id="pa-svg-panel-1" aria-labelledby="pa-svg-tab-1" hidden={activeTab !== 1}>
         <div>
           <h2 id="pa-svg-guide-title" className="m-0">Tạo phiên bản hướng dẫn</h2>
           <p className="pa-muted mt-1">Dán mã mục từ kết quả vừa tạo hoặc nhập mã mục đã được cung cấp. Mã nguồn, phiên bản và mã băm trong hướng dẫn phải khớp chính xác tài sản.</p>
@@ -231,7 +244,7 @@ export function AdminSvgCatalogPage() {
         <form className="pa-form grid gap-4" onSubmit={submitGuide}>
           <Field label="Mã mục SVG"><input required value={catalogEntryId} onChange={(event) => setCatalogEntryId(event.target.value)} /></Field>
           <Field label="Nội dung hướng dẫn JSON" hint="Từ 1 đến 64 phần và từ 4 đến 8 bước.">
-            <textarea required rows={16} spellCheck={false} value={guideJson} onChange={(event) => setGuideJson(event.target.value)} />
+            <textarea required rows={6} spellCheck={false} value={guideJson} onChange={(event) => setGuideJson(event.target.value)} />
           </Field>
           {guideError && <p className="pa-svg-error" role="alert">{guideError}</p>}
           <Button primary type="submit" disabled={guideBusy || !catalogEntryId.trim()}>{guideBusy ? "Đang lưu…" : "Tạo phiên bản hướng dẫn"}</Button>
@@ -241,7 +254,7 @@ export function AdminSvgCatalogPage() {
         )}
       </section>
 
-      <section className="pa-panel pa-padded grid gap-4" aria-labelledby="pa-svg-curation-title">
+      <section className="pa-svg-tab-panel grid gap-4" role="tabpanel" id="pa-svg-panel-2" aria-labelledby="pa-svg-tab-2" hidden={activeTab !== 2}>
         <div>
           <h2 id="pa-svg-curation-title" className="m-0">Duyệt mục SVG</h2>
           <p className="pa-muted mt-1">Chỉ người không tạo ra mục SVG mới có thể ghi nhận quyết định duyệt.</p>
@@ -264,7 +277,7 @@ export function AdminSvgCatalogPage() {
             </Field>
           </div>
           <Field label="Lý do từ chối" hint="Bắt buộc khi từ chối; tối đa 1000 ký tự.">
-            <textarea maxLength={1000} required={decision === "REJECT"} rows={3} value={reason} onChange={(event) => setReason(event.target.value)} />
+            <textarea maxLength={1000} required={decision === "REJECT"} rows={6} value={reason} onChange={(event) => setReason(event.target.value)} />
           </Field>
           {curationError && <p className="pa-svg-error" role="alert">{curationError}</p>}
           <Button primary type="submit" disabled={curationBusy || !catalogEntryId.trim()}>{curationBusy ? "Đang ghi nhận…" : "Ghi nhận quyết định"}</Button>
@@ -273,6 +286,7 @@ export function AdminSvgCatalogPage() {
           <Receipt title="Đã ghi nhận quyết định duyệt" value={<dl><dt>Mã biên nhận</dt><dd>{curationReceipt.review_id}</dd><dt>Quyết định</dt><dd>{curationReceipt.decision === "APPROVE" ? "Chấp thuận" : "Từ chối"}</dd><dt>Người duyệt</dt><dd>{curationReceipt.reviewer_ref}</dd><dt>Thời điểm</dt><dd>{curationReceipt.created_at}</dd><dt>Cho phép nhóm nét</dt><dd>{curationReceipt.grouping_allowed ? "Có" : "Không"}</dd></dl>} />
         )}
       </section>
+      </div>
     </div>
   );
 }

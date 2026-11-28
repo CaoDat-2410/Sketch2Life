@@ -1,0 +1,86 @@
+/*
+ * School Manager rules that used to live in the shared theme files (cozy-shell.css, cozy-v9.css).
+ * Moved here in phase 1 (same selectors; values now read tokens) so the shared files hold only shared patterns.
+ * Rebuilt with the School Manager screens in phase 4. Imported first so later Manager files keep
+ * the cascade order they had.
+ */
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-limitation { background: var(--s2l-ui-paper); }
+html[data-cozy="1"][data-portal="school-be1"] .manager-business-limitation .manager-business-chip.is-pending { border-color: var(--s2l-ui-butter-300); background: var(--s2l-ui-warn-soft); color: var(--s2l-ui-warn-ink); }
+
+/* Create, reply, assignment and review forms. */
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-card.cozy-form-card { width: 100%; max-width: 40rem; background: var(--s2l-ui-paper-muted); }
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-card.cozy-form-card.cozy-form-card--wide { max-width: none; }
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-create-class { row-gap: var(--s2l-form-field-gap); max-width: 40rem; }
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-create-class.cozy-form-card--wide { max-width: none; }
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-create-class form { grid-template-columns: minmax(0, 1fr); gap: var(--s2l-form-field-gap); align-items: stretch; }
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-create-form { row-gap: var(--s2l-form-field-gap); margin-top: 0; }
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-split { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; gap: 20px; }
+@media (min-width: 960px) {
+  html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-split { grid-template-columns: minmax(320px, 1fr) minmax(0, 1.25fr); }
+}
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-card-head-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 16px; }
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-card-head-row > h2 { margin: 0; }
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-filter-inline { min-width: min(100%, 220px); margin: 0; }
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-lifecycle > .cozy-form-section,
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-business-lifecycle > .cozy-form-stack { display: grid; width: 100%; margin-top: 12px; }
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-feedback-threads { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-feedback-list { margin: 0; padding-left: 1.35rem; }
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-feedback-form textarea { min-height: 96px; }
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-review-detail { display: grid; align-content: start; max-width: none; gap: var(--s2l-form-field-gap); padding: var(--s2l-form-card-padding); }
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-review-decision { display: grid; max-width: none; gap: var(--s2l-form-section-gap); padding: var(--s2l-form-section-padding); border: 1px solid var(--s2l-ui-rule); border-radius: var(--s2l-radius-md); background: var(--s2l-ui-paper-muted); }
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-review-decision textarea { min-height: 76px; }
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-feedback-list li { padding: 12px; border: 1px solid var(--s2l-ui-rule); border-radius: var(--s2l-radius-md); background: var(--s2l-ui-paper); }
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-decision-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--s2l-form-control-gap); margin-top: 4px; }
+html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .manager-counter-boundary { margin: 0; font-size: var(--s2l-form-helper-size); }
+@media (min-width: 800px) {
+  html[data-cozy="1"][data-portal="school-be1"] .s2l-app-shell .cozy-form-grid > .manager-business-assignment-list.cozy-span-4 { grid-column: span 4; margin-top: 0; }
+}
+
+/* Overview: school card, then the action cards. */
+:root[data-cozy="1"] .s2l-shell-v9.s2l-shell-v9.s2l-shell-v9 .manager-overview {
+  display: grid;
+  gap: 18px;
+  > * { margin: 0; }
+  > .s2l-page-heading { margin-bottom: 4px; }
+
+  .manager-overview-school { display: block; max-width: none; margin: 0; padding: 24px 26px; border: 1px solid var(--s2l-ui-rule); border-radius: var(--s2l-radius-lg); background: var(--s2l-ui-paper); box-shadow: var(--s2l-ui-shadow); }
+  .manager-business-card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px 16px; margin: 0; }
+  .manager-business-eyebrow { margin: 0 0 8px; color: var(--s2l-ui-primary-hover); font-size: var(--s2l-text-xs); font-weight: 800; letter-spacing: .14em; line-height: 1.2; text-transform: uppercase; }
+  .manager-business-card h2 { margin: 0; color: var(--s2l-ui-ink); font-family: var(--s2l-font-display); font-size: 20px; font-weight: 800; letter-spacing: -.02em; line-height: 1.25; }
+  .manager-business-chip { flex: 0 0 auto; align-self: center; white-space: nowrap; }
+
+  .manager-overview-school {
+    border-color: color-mix(in srgb, var(--s2l-ui-primary) 16%, var(--s2l-ui-rule));
+    background: linear-gradient(118deg, var(--s2l-ui-primary-soft), color-mix(in srgb, var(--s2l-ui-primary-soft) 55%, var(--s2l-ui-paper)));
+    box-shadow: none;
+  }
+  .manager-business-organization { display: grid; gap: 4px; margin: 14px 0 0; padding: 0; border: 0; background: none; }
+  .manager-business-organization > div { display: grid; gap: 2px; margin: 0; padding: 0; border: 0; background: none; }
+  .manager-business-organization dt { color: var(--s2l-ui-ink-soft); font-size: var(--s2l-text-sm); font-weight: 500; }
+  .manager-business-organization dd { margin: 0; color: var(--s2l-ui-ink); font-size: clamp(28px, 4vw, 44px); line-height: 1.15; font-weight: 800; overflow-wrap: anywhere; }
+  .manager-business-organization, .manager-business-organization > div { grid-template-columns: minmax(0, 1fr); width: 100%; max-width: none; }
+  .manager-overview-school :is(.manager-business-state, .manager-business-alert) { margin: 14px 0 0; }
+
+  .manager-business-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .manager-business-grid > .manager-business-summary, > .manager-business-limitation { display: grid; grid-template-columns: 42px minmax(0, 1fr) minmax(0, 1.3fr) 150px; align-items: center; gap: 6px 18px; margin: 0; padding: 16px 6px; border: 0; border-top: 1px solid var(--s2l-ui-rule); border-radius: 0; background: transparent; box-shadow: none; }
+  .manager-business-summary .manager-business-card-heading { flex-wrap: wrap; align-items: center; justify-content: flex-start; gap: 6px 12px; }
+  .manager-business-icon { display: grid; width: 42px; height: 42px; flex: 0 0 42px; place-items: center; border: 0; border-radius: var(--s2l-radius-md); background: var(--s2l-ui-primary-soft); color: var(--s2l-ui-primary-hover); }
+  .manager-business-summary > p, .manager-business-limitation p:not(.manager-business-eyebrow) { margin: 0; color: var(--s2l-ui-ink-soft); font-size: var(--s2l-text-md); line-height: var(--s2l-leading-body); }
+  .manager-business-summary > a { display: inline-flex; min-height: 40px; align-items: center; justify-self: end; gap: 7px; color: var(--s2l-ui-primary); font-size: var(--s2l-text-md); font-weight: 800; white-space: nowrap; text-decoration: none; }
+  .manager-business-summary > a:hover { color: var(--s2l-ui-primary-hover); text-decoration: underline; text-underline-offset: 3px; }
+  .manager-business-limitation > .manager-business-chip { justify-self: end; }
+}
+@media (max-width: 760px) {
+  :root[data-cozy="1"] .s2l-shell-v9.s2l-shell-v9.s2l-shell-v9 .manager-overview {
+    gap: 14px;
+    .manager-overview-school { padding: 20px 18px; }
+    .manager-business-grid > .manager-business-summary, > .manager-business-limitation { grid-template-columns: 42px minmax(0, 1fr); align-items: start; }
+    .manager-business-summary > p, .manager-business-summary > a, .manager-business-limitation > .manager-business-chip { grid-column: 2; justify-self: start; }
+  }
+}
+
+/* Roster move card: same inset and frame as the consent card beside it. */
+:root[data-cozy="1"] .s2l-shell-v9.s2l-shell-v9.s2l-shell-v9 .koi-roster-move.koi-roster-move.koi-roster-move { padding: 24px 26px; border: 1px solid var(--s2l-ui-rule); border-radius: var(--s2l-radius-lg); background: var(--s2l-ui-paper); box-shadow: var(--s2l-ui-shadow); }
+@media (max-width: 640px) { :root[data-cozy="1"] .s2l-shell-v9.s2l-shell-v9.s2l-shell-v9 .koi-roster-move.koi-roster-move.koi-roster-move { padding: 18px 16px; } }
+:root[data-cozy="1"] .s2l-shell-v9.s2l-shell-v9.s2l-shell-v9 .koi-manager-roster.koi-manager-roster > .manager-business-grid > article { padding: 24px 26px; border: 1px solid var(--s2l-ui-rule); border-radius: var(--s2l-radius-lg); background: var(--s2l-ui-paper); }
+@media (max-width: 640px) { :root[data-cozy="1"] .s2l-shell-v9.s2l-shell-v9.s2l-shell-v9 .koi-manager-roster.koi-manager-roster > .manager-business-grid > article { padding: 18px 16px; } }

@@ -83,15 +83,15 @@ export function OrganizationStateOverview({ summary }: { summary: OrganizationSu
     share: sharePercentage(summary[state.key], summary.total),
   }));
   return (
-    <div className="pa-columns-panel">
+    <div className="pa-columns-panel pa-school-status">
       <p className="pa-columns-summary">
         <strong>{percent(sharePercentage(summary.active, summary.total))}</strong> trường hoạt động · {number(summary.active)} / {number(summary.total)} trường
       </p>
-      <ColumnChart
-        columns={columns}
-        summary={`Trường đang hoạt động chiếm ${percent(sharePercentage(summary.active, summary.total))} trong tổng số ${number(summary.total)} trường. ${columnSummary("Số trường theo trạng thái", columns)}`}
-        unit="trường"
-      />
+      <div className="pa-school-stack" role="img" aria-label={`Trường đang hoạt động chiếm ${percent(sharePercentage(summary.active, summary.total))} trong tổng số ${number(summary.total)} trường. ${columnSummary("Số trường theo trạng thái", columns)}`}>
+        {columns.filter((column) => column.value > 0).map((column) => (
+          <span key={column.key} className={"is-" + column.key} style={{ flex: column.value }} aria-hidden="true" />
+        ))}
+      </div>
       <ColumnLegend columns={columns} label="Số trường theo trạng thái" />
     </div>
   );
@@ -114,10 +114,19 @@ export function AccountRoleOverview({
   }
   const columns = rows.map((row) => ({ key: row.label, label: row.label, value: row.count, share: row.percentage }));
   return (
-    <div className="pa-columns-panel">
-      <ColumnChart columns={columns} summary={columnSummary("Số tài khoản theo vai trò", columns)} unit="tài khoản" />
-      <ColumnLegend columns={columns} label="Tỷ lệ tài khoản theo vai trò" />
-    </div>
+    <>
+    <span role="img" aria-label={columnSummary("Số tài khoản theo vai trò", columns)} />
+    <ul className="pa-role-bars" aria-label="Tỷ lệ tài khoản theo vai trò">
+      {columns.map((column) => (
+        <li key={column.key}>
+          <span>{column.label}</span>
+          <span className="pa-role-bars-track" aria-hidden="true"><i style={{ width: `${column.share}%` }} /></span>
+          <strong>{number(column.value)}</strong>
+          <small>{percent(column.share)}</small>
+        </li>
+      ))}
+    </ul>
+    </>
   );
 }
 

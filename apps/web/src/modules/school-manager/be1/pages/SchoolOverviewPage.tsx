@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, BookOpen, School, Users } from "lucide-react";
+import { ArrowRight, BookOpen, GraduationCap, School, Users } from "lucide-react";
 import { PageHeading } from "../../../../shared/components/FeatureAvailability";
 import {
   managerBusinessService,
@@ -107,11 +107,11 @@ export function SchoolOverviewPage() {
           const Icon = card.icon;
           return (
             <article className="manager-business-card manager-business-summary" key={card.href}>
+              <span className="manager-business-icon"><Icon size={19} aria-hidden="true" /></span>
               <div className="manager-business-card-heading">
-                <span className="manager-business-icon"><Icon size={19} aria-hidden="true" /></span>
+                <h2>{card.title}</h2>
                 <span className="manager-business-chip">{card.state}</span>
               </div>
-              <h2>{card.title}</h2>
               <p>{card.description}</p>
               <Link to={card.href}>{card.action}<ArrowRight size={16} aria-hidden="true" /></Link>
             </article>
@@ -120,13 +120,14 @@ export function SchoolOverviewPage() {
       </section>
 
       <section className="manager-business-card manager-business-limitation">
+        <span className="manager-business-icon"><GraduationCap size={19} aria-hidden="true" /></span>
         <div>
           <p className="manager-business-eyebrow">Phạm vi vận hành</p>
           <h2>Sức chứa và phân công giáo viên</h2>
+        </div>
           <p>
             Tạo lớp, mời giáo viên, phân công, đổi và gỡ giáo viên phụ trách theo lớp.
           </p>
-        </div>
         <span className="manager-business-chip">Sẵn sàng</span>
       </section>
     </div>

@@ -1,0 +1,93 @@
+/*
+ * Teacher-only rules that used to live in the shared theme files (cozy-shell.css, cozy-v9.css).
+ * Moved here in phase 1 (same selectors; values now read tokens) so the shared files hold only shared patterns.
+ * Rebuilt with the Teacher screens in phases 2 and 3. Imported first so later Teacher files keep
+ * the cascade order they had.
+ */
+
+/* Lesson authoring, import, roster, session and AI editor cards. */
+html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .teacher-lesson-layout { display: grid; grid-template-columns: minmax(240px, 300px) minmax(0, 1fr); align-items: start; gap: 18px; }
+html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .tw-page > form.tw-card:not(.cozy-form-card--wide) { width: 100%; max-width: 40rem; padding: var(--s2l-form-card-padding); }
+html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .tw-page form.tw-card.cozy-form-card--wide { width: 100%; max-width: none; padding: var(--s2l-form-card-padding); }
+html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .tw-page > :is(form.tw-card, section.tw-card.cozy-form-card) > :is(h2, .tw-h2):first-child { margin: 0; }
+html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .teacher-file-field { display: grid; min-width: 0; gap: var(--s2l-form-helper-gap); margin-top: 0; }
+html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .teacher-file-help { margin: var(--s2l-form-helper-gap) 0 0; font-size: var(--s2l-form-helper-size); }
+html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .teacher-lesson-activities { display: grid; gap: var(--s2l-form-section-gap); padding: 0; }
+html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .teacher-lesson-activities > .tw-row:first-child { column-gap: var(--s2l-form-control-gap); margin-bottom: 0; }
+html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .s2l-data-card.teacher-roster-create { display: grid; align-content: start; gap: var(--s2l-form-field-gap); }
+html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .teacher-roster-create > h2 { margin: 0; }
+html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .teacher-occurrence-page :is(.teacher-occurrence-create, .teacher-occurrence-plan-form) { gap: var(--s2l-form-field-gap); padding: var(--s2l-form-card-padding); }
+html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .teacher-occurrence-page :is(.teacher-occurrence-create, .teacher-occurrence-plan-form) > h2 { margin: 0; }
+html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .teacher-occurrence-upload { gap: var(--s2l-form-control-gap); padding: var(--s2l-form-section-padding); }
+html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .teacher-occurrence-upload [role="status"] { font-size: var(--s2l-form-helper-size); }
+html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .teacher-ai-workflow > section.cozy-form-card > :is(h2, h3):first-child { margin: 0; }
+@media (max-width: 900px) {
+  html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .teacher-lesson-layout { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Overview hero. */
+:root[data-cozy="1"] .s2l-shell-v9.s2l-shell-v9.s2l-shell-v9 {
+  .s2l-hero {
+    position: relative;
+    display: grid;
+    min-height: 296px;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, .75fr);
+    align-items: center;
+    margin: 0 0 var(--s2l-space-5);
+    padding: 30px 34px;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--s2l-ui-paper) 70%, transparent);
+    border-radius: var(--s2l-radius-xl);
+    background:
+      radial-gradient(46% 70% at 76% 56%, color-mix(in srgb, var(--s2l-ui-paper) 58%, transparent), transparent 72%),
+      var(--s2l-ui-hero-wash);
+    box-shadow: var(--s2l-ui-shadow);
+  }
+  .s2l-hero + .s2l-dashboard-grid { margin-top: 0; }
+  .s2l-hero-copy { position: relative; z-index: 2; display: grid; min-width: 0; justify-items: start; gap: 0; }
+  .s2l-hero-eyebrow { margin: 0 0 10px; color: var(--s2l-ui-primary-hover); font-size: var(--s2l-text-xs); font-weight: 800; letter-spacing: .16em; line-height: 1.2; text-transform: uppercase; }
+  .s2l-hero h2 {
+    margin: 0;
+    color: var(--s2l-ui-primary-hover);
+    font-family: var(--s2l-font-display);
+    font-size: clamp(32px, 3.5vw, 48px);
+    font-weight: 900;
+    letter-spacing: -.035em;
+    line-height: 1.06;
+    text-wrap: balance;
+  }
+  .s2l-hero-copy > p:not(.s2l-hero-eyebrow) { max-width: 44ch; margin: 12px 0 0; color: var(--s2l-ui-neutral-700); font-size: 15px; line-height: 1.5; }
+  .s2l-hero-action { min-height: 48px; margin-top: 22px; padding-inline: 20px; border-radius: var(--s2l-radius-md); font-size: var(--s2l-text-md); font-weight: 800; text-decoration: none; box-shadow: var(--s2l-ui-shadow-hover); }
+  .s2l-hero-stage { position: absolute; z-index: 1; inset: 6px 8px 6px 54%; pointer-events: none; }
+}
+@media (max-width: 760px) {
+  :root[data-cozy="1"] .s2l-shell-v9.s2l-shell-v9.s2l-shell-v9 {
+    .s2l-hero { min-height: 0; grid-template-columns: minmax(0, 1fr); padding: 22px 20px 0; border-radius: var(--s2l-radius-lg); }
+    .s2l-hero h2 { font-size: clamp(28px, 8vw, 36px); }
+    .s2l-hero-stage { position: relative; inset: auto; height: 190px; margin-top: 6px; }
+  }
+}
+
+/* Presentation: must read from the back of a room. */
+:root[data-cozy="1"][data-portal="teacher"] .s2l-shell-v9.s2l-shell-v9.s2l-shell-v9 {
+  .tp-presenter-root.is-open { background: var(--s2l-ui-stage); }
+  /* Long slides scroll instead of being cut; short ones stay centred. */
+  .tp-slide-presenter-canvas { justify-content: safe center; overflow-x: hidden; overflow-y: auto; background: var(--s2l-ui-cream); color: var(--s2l-ui-ink); }
+  .tp-slide-presenter-canvas .tp-slide-preview-title { color: var(--s2l-ui-stage-ink); font-family: var(--s2l-font-display); font-size: clamp(14px, 6.4cqi, 112px); font-weight: 800; letter-spacing: -.02em; text-wrap: balance; }
+  .tp-slide-presenter-canvas.has-media .tp-slide-preview-title { font-size: clamp(12px, 4.8cqi, 84px); }
+  .tp-slide-presenter-canvas .tp-slide-preview-body { max-width: 46ch; color: var(--s2l-ui-ink); font-size: clamp(11px, 4cqi, 70px); font-weight: 500; line-height: 1.38; }
+  .tp-slide-presenter-canvas.has-media .tp-slide-preview-body { max-width: 60ch; font-size: clamp(9px, 2.9cqi, 52px); }
+  /* Give the drawing more of the slide; video keeps its own 16:9 rules. */
+  .tp-slide-presenter-canvas .tp-slide-media-preview:not(.tp-slide-video-preview),
+  .tp-slide-presenter-canvas .tp-slide-media-preview:not(.tp-slide-video-preview) .tp-slide-media-preview-inner { max-height: 46cqh; }
+  .tp-slide-presenter-canvas .tp-slide-media-preview:not(.tp-slide-video-preview) .tp-slide-media-preview-inner > img { max-height: 46cqh !important; }
+  :is(.tp-slide-presenter-topbar, .tp-slide-presenter-controls) { border-color: rgb(255 255 255 / 18%); border-radius: var(--s2l-radius-md); background: rgb(255 255 255 / 7%); }
+  .tp-slide-presenter-topbar h2 { font-family: var(--s2l-font-display); font-weight: 700; }
+  :is(.tp-slide-presenter-topbar, .tp-slide-presenter-controls) .s2l-button { min-height: 44px; padding-inline: 18px; border-color: rgb(255 255 255 / 30%); background: rgb(255 255 255 / 10%); color: var(--s2l-ui-on-primary); font-size: var(--s2l-text-md); }
+  :is(.tp-slide-presenter-topbar, .tp-slide-presenter-controls) .s2l-button:hover:not(:disabled) { border-color: rgb(255 255 255 / 60%); background: rgb(255 255 255 / 20%); color: var(--s2l-ui-on-primary); }
+  :is(.tp-slide-presenter-topbar, .tp-slide-presenter-controls) .s2l-button:disabled { border-color: rgb(255 255 255 / 14%); background: transparent; color: rgb(255 255 255 / 45%); }
+  .tp-slide-presenter-controls [aria-live="polite"] { font-size: 15px; font-weight: 700; }
+  /* The in-page 16:9 preview uses the same title voice. */
+  .tp-slide-preview-canvas { border-radius: var(--s2l-radius-lg); }
+  .tp-slide-preview-title { font-family: var(--s2l-font-display); letter-spacing: -.02em; }
+}

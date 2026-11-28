@@ -1,4 +1,4 @@
-/* Role-neutral shell and page chrome live in shared/styles/cozy-shell.css. */
+/* Role-neutral shell and page chrome live in shared/styles/shell.css and components.css. */
 html[data-portal="platform"][data-theme="dark"] a:not([role="button"]):not([class*="button"]):not([class*="btn"]) {
   color: var(--s2l-ui-primary-ink);
 }
@@ -495,14 +495,14 @@ html[data-portal="platform"] .s2l-app-shell :is(button.bg-primary, .pa-button.is
   box-shadow: none;
   cursor: not-allowed;
 }
-html[data-portal="platform"] .s2l-app-shell :is(button.bg-danger-base, .pa-button.is-danger, .accounts-button-danger) {
+html[data-portal="platform"] .s2l-app-shell :is(button.bg-danger-base, .pa-button.is-danger) {
   border-color: var(--s2l-ui-danger-base);
   border-radius: 15px;
   background: var(--s2l-ui-danger-base);
   color: var(--s2l-ui-on-primary);
   font-weight: 700;
 }
-html[data-portal="platform"] .s2l-app-shell :is(button.bg-danger-base, .pa-button.is-danger, .accounts-button-danger):hover:not(:disabled) {
+html[data-portal="platform"] .s2l-app-shell :is(button.bg-danger-base, .pa-button.is-danger):hover:not(:disabled) {
   border-color: var(--s2l-ui-coral-800);
   background: var(--s2l-ui-coral-800);
   color: var(--s2l-ui-on-primary);

@@ -12,6 +12,8 @@ import {
   ClipboardCheck,
   CreditCard,
   DatabaseBackup,
+  Eye,
+  EyeOff,
   FileClock,
   FileUp,
   Gauge,
@@ -229,6 +231,7 @@ export function WebAppShell({
   const badge = unreadCount === null ? null : <span className="s2l-nav-unread" aria-hidden="true">{unreadCount > 99 ? "99+" : unreadCount}</span>;
   const [menuOpen, setMenuOpen] = useState(false);
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [visiblePasswords, setVisiblePasswords] = useState([false, false, false]);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
@@ -455,17 +458,28 @@ export function WebAppShell({
         title="Đổi mật khẩu"
         description="Xác minh mật khẩu hiện tại và đặt mật khẩu mới cho tài khoản."
         showTitle
+        showDescription
+        titleIcon={<span className="s2l-password-icon"><KeyRound size={19} aria-hidden="true" /></span>}
         className="s2l-password-dialog"
       >
         <form className="s2l-password-form cozy-form-stack" onSubmit={(event) => void changePassword(event)} aria-busy={passwordBusy}>
           <FormField label="Mật khẩu hiện tại" htmlFor="s2l-current-password" required>
-            <input id="s2l-current-password" className="cozy-input" type="password" autoComplete="current-password" required value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} />
+            <div className="s2l-password-control">
+            <input id="s2l-current-password" className="cozy-input" type={visiblePasswords[0] ? "text" : "password"} autoComplete="current-password" required value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} />
+              <button type="button" className="s2l-password-visibility" aria-label={visiblePasswords[0] ? "\u1ea8n m\u1eadt kh\u1ea9u hi\u1ec7n t\u1ea1i" : "Hi\u1ec7n m\u1eadt kh\u1ea9u hi\u1ec7n t\u1ea1i"} aria-pressed={visiblePasswords[0]} aria-controls="s2l-current-password" onClick={() => setVisiblePasswords((values) => values.map((value, index) => index === 0 ? !value : value))}>{visiblePasswords[0] ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}</button>
+            </div>
           </FormField>
           <FormField label="Mật khẩu mới" htmlFor="s2l-new-password" required>
-            <input id="s2l-new-password" className="cozy-input" type="password" autoComplete="new-password" minLength={6} required value={newPassword} onChange={(event) => setNewPassword(event.target.value)} />
+            <div className="s2l-password-control">
+            <input id="s2l-new-password" className="cozy-input" type={visiblePasswords[1] ? "text" : "password"} autoComplete="new-password" minLength={6} required value={newPassword} onChange={(event) => setNewPassword(event.target.value)} />
+              <button type="button" className="s2l-password-visibility" aria-label={visiblePasswords[1] ? "\u1ea8n m\u1eadt kh\u1ea9u m\u1edbi" : "Hi\u1ec7n m\u1eadt kh\u1ea9u m\u1edbi"} aria-pressed={visiblePasswords[1]} aria-controls="s2l-new-password" onClick={() => setVisiblePasswords((values) => values.map((value, index) => index === 1 ? !value : value))}>{visiblePasswords[1] ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}</button>
+            </div>
           </FormField>
           <FormField label="Xác nhận mật khẩu mới" htmlFor="s2l-confirm-password" required>
-            <input id="s2l-confirm-password" className="cozy-input" type="password" autoComplete="new-password" minLength={6} required value={passwordConfirmation} onChange={(event) => setPasswordConfirmation(event.target.value)} />
+            <div className="s2l-password-control">
+            <input id="s2l-confirm-password" className="cozy-input" type={visiblePasswords[2] ? "text" : "password"} autoComplete="new-password" minLength={6} required value={passwordConfirmation} onChange={(event) => setPasswordConfirmation(event.target.value)} />
+              <button type="button" className="s2l-password-visibility" aria-label={visiblePasswords[2] ? "\u1ea8n m\u1eadt kh\u1ea9u x\u00e1c nh\u1eadn" : "Hi\u1ec7n m\u1eadt kh\u1ea9u x\u00e1c nh\u1eadn"} aria-pressed={visiblePasswords[2]} aria-controls="s2l-confirm-password" onClick={() => setVisiblePasswords((values) => values.map((value, index) => index === 2 ? !value : value))}>{visiblePasswords[2] ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}</button>
+            </div>
           </FormField>
           {passwordMessage && (
             <Alert

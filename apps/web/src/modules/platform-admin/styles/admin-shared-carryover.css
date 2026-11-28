@@ -1,0 +1,58 @@
+/*
+ * Platform Admin rules that used to live in the shared theme file cozy-v9.css.
+ * Moved here in phase 1 (same selectors; values now read tokens) so the shared files hold only shared patterns.
+ * Rebuilt with the Admin screens in phase 5.
+ */
+
+/* Column charts: CSS only, one hue, value on every column. */
+:root[data-cozy="1"] .s2l-shell-v9.s2l-shell-v9.s2l-shell-v9 {
+  .pa-columns-panel { display: grid; min-width: 0; gap: 14px; }
+  .pa-dashboard-panel > .pa-columns-panel { padding: 16px 22px 20px; }
+  .pa-columns-summary { margin: 0; color: var(--s2l-ui-ink-soft); font-size: var(--s2l-text-sm); line-height: 1.4; }
+  .pa-columns-summary strong { margin-right: 4px; color: var(--s2l-ui-ink); font-family: var(--s2l-font-display); font-size: var(--s2l-text-2xl); font-weight: 800; letter-spacing: -.02em; }
+
+  .pa-columns { --pa-columns-height: 180px; display: grid; min-width: 0; grid-template-columns: auto minmax(0, 1fr); gap: 0 8px; padding-top: 30px; }
+  .pa-columns-axis { display: flex; height: var(--pa-columns-height); flex-direction: column; justify-content: space-between; margin: 0; padding: 0; color: var(--s2l-ui-ink-soft); font-size: var(--s2l-text-2xs); font-variant-numeric: tabular-nums; list-style: none; text-align: right; }
+  .pa-columns-axis li { display: flex; height: 0; min-width: 16px; align-items: center; justify-content: flex-end; line-height: 1; }
+  .pa-columns-plot { display: grid; min-width: 0; grid-auto-columns: minmax(0, 1fr); grid-auto-flow: column; }
+  .pa-columns-item { display: grid; min-width: 0; grid-template-rows: var(--pa-columns-height) auto; }
+  .pa-columns-area {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    border-bottom: 1px solid color-mix(in srgb, var(--s2l-ui-ink) 34%, var(--s2l-ui-rule));
+    background-image: linear-gradient(to bottom, var(--s2l-ui-rule) 1px, transparent 1px);
+    background-repeat: repeat-y;
+  }
+  .pa-columns-bar {
+    position: relative;
+    width: min(46px, 62%);
+    min-height: 2px;
+    border-radius: 6px 6px 0 0;
+    /* 68% keeps the column above 3:1 against the card surface (WCAG 1.4.11). */
+    background: color-mix(in srgb, var(--s2l-ui-primary) 68%, var(--s2l-ui-paper));
+    transition: filter var(--s2l-duration-fast) ease;
+  }
+  .pa-columns-item:hover .pa-columns-bar { filter: brightness(.92); }
+  .pa-columns-item.is-empty .pa-columns-bar { border-radius: 0; background: color-mix(in srgb, var(--s2l-ui-primary) 40%, var(--s2l-ui-paper)); }
+  .pa-columns-bar b { position: absolute; bottom: calc(100% + 5px); left: 50%; transform: translateX(-50%); color: var(--s2l-ui-ink); font-family: var(--s2l-font-display); font-size: var(--s2l-text-lg); font-variant-numeric: tabular-nums; font-weight: 800; line-height: 1.1; white-space: nowrap; }
+  .pa-columns-item.is-empty .pa-columns-bar b { color: var(--s2l-ui-ink-soft); }
+  .pa-columns-item small { display: block; padding: 8px 3px 0; color: var(--s2l-ui-ink-soft); font-size: var(--s2l-text-2xs); line-height: 1.25; overflow-wrap: anywhere; text-align: center; }
+
+  .pa-columns-legend { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+  .pa-columns-legend li { display: grid; grid-template-columns: minmax(0, 1fr) auto 56px; align-items: baseline; gap: 12px; padding: 7px 2px; border-top: 1px solid var(--s2l-ui-rule); color: var(--s2l-ui-ink); font-size: var(--s2l-text-sm); }
+  .pa-columns-legend strong { font-variant-numeric: tabular-nums; font-weight: 800; }
+  .pa-columns-legend small { color: var(--s2l-ui-ink-soft); font-size: var(--s2l-text-xs); font-variant-numeric: tabular-nums; text-align: right; }
+
+  .pa-columns-panel-wide { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .pa-columns-panel-wide > div { display: grid; min-width: 0; gap: 14px; }
+  .pa-columns-table { width: 100%; border-collapse: collapse; font-size: var(--s2l-text-sm); }
+  .pa-columns-table :is(th, td) { padding: 8px 6px; overflow-wrap: normal; word-break: normal; border-bottom: 1px solid var(--s2l-ui-rule); color: var(--s2l-ui-ink); text-align: left; }
+  .pa-columns-table thead th { color: var(--s2l-ui-ink-soft); font-size: var(--s2l-text-2xs); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
+  .pa-columns-table tbody th { font-weight: 600; }
+  .pa-columns-table td { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+  .pa-columns-table thead th:not(:first-child) { text-align: right; }
+}
+@media (max-width: 760px) {
+  :root[data-cozy="1"] .s2l-shell-v9.s2l-shell-v9.s2l-shell-v9 .pa-columns { --pa-columns-height: 150px; }
+}

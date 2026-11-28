@@ -424,7 +424,7 @@ export function RosterConsentPage() {
   };
 
   return (
-    <div className="s2l-page manager-business-page">
+    <div className="s2l-page manager-business-page koi-manager-roster">
       <PageHeading
         eyebrow="Quản lý trường"
         title="Danh sách lớp & đồng ý"
@@ -456,7 +456,7 @@ export function RosterConsentPage() {
 
       {classError && <Alert role="alert" tone="danger">{classError}</Alert>}
 
-      <section className="manager-business-card cozy-form-card cozy-form-card--wide cozy-form-stack" aria-labelledby="unplaced-title">
+      <section className="manager-business-card cozy-form-card cozy-form-card--wide cozy-form-stack koi-roster-unplaced" aria-labelledby="unplaced-title">
         <h2 id="unplaced-title">Hồ sơ chưa được xếp lớp</h2>
         <p className="manager-business-subtle">Những hồ sơ này được giữ để xem xét và không bao giờ được xếp lớp tự động. Sự đồng ý không được sao chép khi xếp lớp.</p>
         {unplacedState === "loading" && <Alert role="status">Đang tải mã tham chiếu…</Alert>}
@@ -469,10 +469,13 @@ export function RosterConsentPage() {
             {classes.filter((item) => item.state === "active").map((item) => <option key={item.class_id} value={item.class_id}>{item.display_name}</option>)}
           </Select>
         </FormField>
-        {unplaced.map((childId, index) => <div key={childId}>
-          <span>Hồ sơ {index + 1}: <code>{childId}</code></span>{" "}
-          <button type="button" className="manager-business-button" aria-label={`Xếp lớp Hồ sơ ${index + 1}`} disabled={!placeTarget || placePrompt !== null || classState !== "loaded"} onClick={() => { setPlaceMessage(""); setPlacePrompt({ childId, rowNumber: index + 1 }); }}>Xếp lớp</button>
-        </div>)}
+        {unplaced.length > 0 && <div className="manager-business-table-wrap koi-unplaced-table"><table className="manager-business-table">
+          <thead><tr><th>Hồ sơ</th><th>Mã tham chiếu</th><th>Thao tác</th></tr></thead>
+          <tbody>{unplaced.map((childId, index) => <tr key={childId}>
+            <td>Hồ sơ {index + 1}</td><td><code>{childId}</code></td>
+            <td><button type="button" className="manager-business-button" aria-label={`Xếp lớp Hồ sơ ${index + 1}`} disabled={!placeTarget || placePrompt !== null || classState !== "loaded"} onClick={() => { setPlaceMessage(""); setPlacePrompt({ childId, rowNumber: index + 1 }); }}>Xếp lớp</button></td>
+          </tr>)}</tbody>
+        </table></div>}
         {placePrompt && <ModalPortal><div className="manager-business-confirm-backdrop"><div className="manager-business-card manager-business-confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="place-confirm-title">
           <h2 id="place-confirm-title">Xếp Hồ sơ {placePrompt.rowNumber}?</h2>
           <p>Xác nhận xếp một hồ sơ vào lớp đã chọn. Sự đồng ý không được sao chép.</p>
@@ -483,7 +486,7 @@ export function RosterConsentPage() {
         </div></div></ModalPortal>}
       </section>
 
-      <section className="manager-business-card cozy-form-card cozy-form-card--wide cozy-form-stack">
+      <section className="manager-business-card cozy-form-card cozy-form-card--wide cozy-form-stack koi-roster-class">
         {classState === "loading" ? (
           <Alert role="status">Đang tải lớp được cấp quyền…</Alert>
         ) : classState === "error" ? (
@@ -519,16 +522,16 @@ export function RosterConsentPage() {
             )}
           </div>
         )}
-      </section>
-
-      {selectedClassId && <>
-        <section className="manager-business-stats manager-business-roster-stats" aria-label="Thống kê hồ sơ và đồng ý">
+        {selectedClassId && <div className="manager-business-stats manager-business-roster-stats" aria-label="Thống kê hồ sơ và đồng ý">
           <StatCard label="Hồ sơ đang hoạt động" value={profileCount ?? "—"} accent="primary" loading={profileState === "loading"} />
           <StatCard label="Đang chờ xác nhận" value={consentState === "loaded" ? pendingConsentCount : "—"} accent="butter" loading={consentState === "loading"} />
           <StatCard label="Đã thu hồi" value={consentState === "loaded" ? revokedConsentCount : "—"} accent="coral" loading={consentState === "loading"} />
-        </section>
+        </div>}
+      </section>
 
-        <section className="manager-business-card cozy-form-card cozy-form-card--wide cozy-form-stack" aria-label="Sắp xếp hồ sơ trong lớp">
+      {selectedClassId && <>
+
+        <section className="manager-business-card cozy-form-card cozy-form-card--wide cozy-form-stack koi-roster-move" aria-label="Sắp xếp hồ sơ trong lớp">
           <div className="manager-business-card-heading">
             <div>
               <p className="manager-business-eyebrow">Xếp lớp</p>

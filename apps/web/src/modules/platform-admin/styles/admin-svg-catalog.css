@@ -24,3 +24,14 @@
   .pa-svg-result-data, .pa-svg-receipt dl { grid-template-columns: 1fr; gap: 3px; }
   .pa-svg-result-data dd:not(:last-child), .pa-svg-receipt dd:not(:last-child) { margin-bottom: 7px; }
 }
+
+html[data-portal="platform"] .pa-svg-catalog-note { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; padding-block: 10px; }
+.pa-svg-catalog-note p { margin: 0; flex: 1 1 40rem; }
+.pa-svg-workspace { display: grid; gap: 20px; }
+.pa-svg-tabs { display: flex; flex-wrap: wrap; gap: 6px; border-bottom: 1px solid var(--pa-border); }
+.pa-svg-tabs button { padding: 10px 14px; border: 0; border-bottom: 3px solid transparent; background: transparent; color: var(--pa-muted); font: inherit; cursor: pointer; }
+.pa-svg-tabs button[aria-selected="true"] { border-bottom-color: var(--s2l-ui-primary); color: var(--pa-ink); font-weight: 700; }
+.pa-svg-tab-panel[hidden] { display: none !important; }
+.pa-svg-catalog .pa-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.pa-svg-catalog .pa-form > button[type="submit"] { justify-self: end; width: auto; }
+@media (max-width: 640px) { .pa-svg-catalog .pa-form-grid { grid-template-columns: minmax(0, 1fr); } }

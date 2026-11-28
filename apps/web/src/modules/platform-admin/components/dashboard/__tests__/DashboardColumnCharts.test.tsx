@@ -20,17 +20,12 @@ describe("dashboard column charts", () => {
     }
   });
 
-  it("shows a value on every school-state column, keeps zero as a labelled empty column and repeats the figures as text", () => {
+  it("shows a proportional school-state bar and preserves the full accessible legend", () => {
     const { container } = render(<OrganizationStateOverview summary={{ total: 10, active: 6, paused: 2, disabled: 2, other: 0 } as never} />);
     const chart = screen.getByRole("img", { name: /Trường đang hoạt động chiếm 60% trong tổng số 10 trường/ });
-    const columns = [...chart.querySelectorAll(".pa-columns-item")];
-    expect(columns.map((column) => column.querySelector("b")?.textContent)).toEqual(["6", "2", "2", "0"]);
-    expect(columns.map((column) => column.querySelector("small")?.textContent)).toEqual(["Đang hoạt động", "Tạm dừng", "Đã ngừng", "Trạng thái khác"]);
-    expect(columns[3].className).toContain("is-empty");
-    expect((columns[3].querySelector(".pa-columns-bar") as HTMLElement).style.height).toBe("0%");
-    expect((columns[0].querySelector(".pa-columns-bar") as HTMLElement).style.height).toBe("100%");
-    expect((columns[1].querySelector(".pa-columns-bar") as HTMLElement).style.height).toMatch(/^33\.3/);
-    expect(container.querySelector(".pa-dashboard-gauge, .pa-donut")).toBeNull();
+    const segments = [...chart.querySelectorAll("span")];
+    expect(segments.map((segment) => segment.style.flexGrow)).toEqual(["6", "2", "2"]);
+    expect(container.querySelector(".pa-columns")).toBeNull();
     const legend = screen.getByRole("list", { name: "Số trường theo trạng thái" });
     expect(within(legend).getAllByRole("listitem").map((item) => item.textContent)).toEqual([
       "Đang hoạt động660%", "Tạm dừng220%", "Đã ngừng220%", "Trạng thái khác00%",

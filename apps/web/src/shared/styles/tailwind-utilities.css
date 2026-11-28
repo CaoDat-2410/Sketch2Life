@@ -1,3 +1,4 @@
+/* Imported once from main.tsx. Role stylesheets must not import it again. */
 @import "tailwindcss/theme" layer(theme);
-@import "./sketch2life-theme.css";
+@import "./tailwind-theme.css";
 @import "tailwindcss/utilities" layer(utilities);

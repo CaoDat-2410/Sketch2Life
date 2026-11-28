@@ -403,19 +403,29 @@ html[data-cozy="1"][data-portal="teacher"] .teacher-deck-presentation :is(button
 html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-main > .s2l-data-card { scroll-margin-top: 16px; }
 html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-step-label { margin: 0 0 -6px; text-transform: uppercase; }
 html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-steps {
-  display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: 8px; border-top: 1px solid var(--s2l-ui-rule);
-  padding-top: 12px; color: var(--s2l-ui-ink-soft); font-size: 12px; font-weight: 650;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; min-width: 0;
+  border-top: 1px solid var(--s2l-ui-rule); padding-top: 16px;
 }
 html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-steps button {
-  display: inline-flex; min-height: 32px; align-items: center; gap: 8px; border: 1px solid var(--s2l-ui-rule);
-  border-radius: 999px; background: var(--s2l-ui-paper-muted); padding: 4px 12px 4px 5px; color: var(--s2l-ui-ink);
-  font: inherit; font-weight: 700; cursor: pointer;
+  display: flex; min-width: 0; min-height: 76px; align-items: center; gap: 12px; padding: 12px;
+  border: 1px solid var(--s2l-ui-rule); border-radius: 16px; background: var(--s2l-ui-paper);
+  color: var(--s2l-ui-ink); font: inherit; text-align: left; cursor: pointer;
 }
 html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-steps button:hover { border-color: var(--s2l-ui-primary); }
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-steps button[aria-current="step"] { border-color: var(--s2l-ui-primary); background: var(--s2l-ui-primary-soft); color: var(--s2l-ui-primary-hover); }
 html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-steps button:focus-visible { outline: 3px solid var(--s2l-ui-focus); outline-offset: 2px; }
 html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-steps button > b {
-  display: inline-grid; width: 22px; height: 22px; place-items: center; border-radius: 50%;
-  background: var(--s2l-ui-primary); color: var(--s2l-ui-on-primary); font-size: 11px;
+  display: grid; flex: none; width: 40px; height: 40px; place-items: center; border-radius: 50%;
+  background: var(--s2l-ui-primary-soft); color: var(--s2l-ui-primary-hover); font-size: 16px;
+}
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-steps button[aria-current="step"] > b { background: var(--s2l-ui-primary); color: var(--s2l-ui-on-primary); }
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-steps button > span { min-width: 0; overflow-wrap: anywhere; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-steps :is(strong, small) { display: block; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-steps small { margin-top: 3px; color: var(--s2l-ui-ink-soft); font-size: 12px; font-weight: 400; }
+@media (max-width: 600px) {
+  html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-steps { gap: 8px; }
+  html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-steps button { flex-direction: column; align-items: flex-start; gap: 8px; padding: 10px; }
+  html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-steps button > b { width: 32px; height: 32px; }
 }
 html[data-cozy="1"][data-portal="teacher"] .teacher-sketch-deck-editor { min-width: 0; border: 1px solid var(--s2l-ui-rule); border-radius: 14px; background: var(--s2l-ui-paper); }
 html[data-cozy="1"][data-portal="teacher"] .teacher-sketch-deck-editor > summary {
@@ -445,3 +455,63 @@ html[data-cozy="1"][data-portal="teacher"] .teacher-quota-balance {
 }
 html[data-cozy="1"][data-portal="teacher"] .teacher-quota-balance > strong { color: var(--s2l-ui-ink); font-size: 34px; font-weight: 800; line-height: 1; }
 html[data-cozy="1"][data-portal="teacher"] .teacher-quota-balance.is-empty { color: var(--s2l-ui-ink); font-weight: 650; }
+/* Compact drawing step rows; labels remain associated with their controls. */
+.sketch-step-list { display: grid; gap: 10px; min-width: 0; }
+.sketch-step-columns, .sketch-step-row { display: grid; grid-template-columns: 32px minmax(0, 1fr) minmax(0, 1fr) 52px; gap: 10px; align-items: start; }
+.sketch-step-columns { color: var(--s2l-ui-ink-soft); font-size: 13px; font-weight: 700; }
+.sketch-step-number { display: grid; place-items: center; width: 32px; height: 32px; margin: 6px 0 0; border-radius: 50%; background: var(--s2l-ui-primary-soft); color: var(--s2l-ui-primary-hover); font-size: 14px; }
+.sketch-step-row:nth-child(3n) .sketch-step-number { background: var(--s2l-ui-hero-wash); }
+.sketch-visually-hidden, .sketch-step-field .cozy-form-label-group { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.sketch-step-field { min-width: 0; }
+.sketch-step-field .cozy-textarea { min-height: 52px; }
+.teacher-lesson-section-number { display: inline-grid; place-items: center; width: 44px; height: 44px; margin-right: 12px; border-radius: 14px; background: var(--s2l-ui-primary-soft); color: var(--s2l-ui-primary-hover); font-size: 20px; vertical-align: middle; }
+.teacher-lesson-heading .teacher-lesson-sticky-bar { position: static; margin: 0; }
+@media (max-width: 600px) {
+  .sketch-step-columns { display: none; }
+  .sketch-step-row { grid-template-columns: 32px minmax(0, 1fr) auto; }
+  .sketch-step-field { grid-column: 2; }
+  .sketch-step-field .cozy-form-label-group { position: static; width: auto; height: auto; margin: 0; overflow: visible; clip: auto; white-space: normal; }
+  .sketch-step-row > button { grid-column: 3; grid-row: 1; }
+}
+
+/* UI-KOI-7: session header and navigation */
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-main > .koi-teacher-band { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px 24px; padding: 28px; background: var(--s2l-ui-hero-wash); border-radius: 24px; }
+html[data-cozy="1"][data-portal="teacher"] .koi-teacher-band .teacher-occurrence-heading { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+html[data-cozy="1"][data-portal="teacher"] .koi-teacher-band > .s2l-note { grid-column: 1; margin: 0; }
+html[data-cozy="1"][data-portal="teacher"] .koi-teacher-band > .tp-actions { grid-column: 2; grid-row: 1 / span 3; align-self: center; justify-content: flex-end; }
+html[data-cozy="1"][data-portal="teacher"] .koi-teacher-band > .teacher-occurrence-steps { grid-column: 1 / -1; margin-top: 12px; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-steps button { min-height: 100px; padding: 16px; }
+@media (max-width: 1280px) { html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-main > .koi-teacher-band { grid-template-columns: minmax(0, 1fr); padding: 20px; } html[data-cozy="1"][data-portal="teacher"] .koi-teacher-band > .tp-actions { grid-column: 1; grid-row: auto; justify-content: flex-start; } }
+
+/* UI-KOI-7: overview sheets, class rows and quota */
+:root[data-cozy="1"][data-portal="teacher"] .s2l-shell-v9.s2l-shell-v9.s2l-shell-v9 .koi-teacher-overview {
+  .s2l-dashboard-grid > :first-child .s2l-record-list li { background: var(--s2l-ui-paper); }
+  .s2l-dashboard-grid > :first-child .s2l-record-list strong::before { height: 7px; width: 68px; transform: rotate(-3deg); background: linear-gradient(90deg, #b49ae5, #e7b6c1); }
+  .teacher-overview-side > :first-child .s2l-record-list a { display: flex; align-items: center; gap: 12px; padding: 14px 4px; }
+  .teacher-overview-side > :first-child .s2l-record-list a > span:nth-child(2) { flex: 1 1 auto; text-align: left; }
+  .koi-class-row-icon { display: grid; place-items: center; flex: 0 0 40px; height: 40px; border-radius: 13px; background: var(--s2l-ui-primary-soft); color: var(--s2l-ui-primary-hover); }
+  .teacher-overview-side > .s2l-dashboard-card:last-child { padding: 22px; border-radius: 20px; background: var(--s2l-ui-hero-wash); box-shadow: var(--s2l-ui-shadow); }
+}
+
+/* UI-KOI-7: authoring header keeps its actions together. */
+html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-heading { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; padding: 22px; border-radius: 20px; background: var(--s2l-ui-hero-wash); }
+html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-heading .teacher-lesson-sticky-bar { width: auto; margin-left: auto; padding: 0; }
+@media (max-width: 760px) { html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-heading .teacher-lesson-sticky-bar { width: 100%; margin-left: 0; } }
+
+/* Lesson editor header: one clean action row, hint below, no inner panel. */
+html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-heading .teacher-lesson-sticky-bar.teacher-lesson-sticky-bar { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 10px 16px; width: 100%; margin: 0; padding: 14px 0 0; border: 0; border-top: 1px solid var(--s2l-ui-rule); border-radius: 0; background: transparent; box-shadow: none; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-heading .teacher-lesson-sticky-bar.teacher-lesson-sticky-bar .tp-form-action-bar-lead { display: contents; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-heading .teacher-lesson-sticky-bar.teacher-lesson-sticky-bar .tp-form-action-danger { grid-column: 1; grid-row: 1; margin: 0; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-heading .teacher-lesson-sticky-bar.teacher-lesson-sticky-bar .tp-form-action-bar-buttons { grid-column: 2; grid-row: 1; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin: 0; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-heading .teacher-lesson-sticky-bar.teacher-lesson-sticky-bar .tp-form-action-hint { display: block; grid-column: 1 / -1; grid-row: 2; margin: 0; }
+@media (max-width: 620px) {
+  html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-heading .teacher-lesson-sticky-bar.teacher-lesson-sticky-bar { grid-template-columns: minmax(0, 1fr); }
+  html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-heading .teacher-lesson-sticky-bar.teacher-lesson-sticky-bar .tp-form-action-danger { grid-row: 2; }
+  html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-heading .teacher-lesson-sticky-bar.teacher-lesson-sticky-bar .tp-form-action-bar-buttons { grid-column: 1; justify-content: flex-start; }
+  html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-heading .teacher-lesson-sticky-bar.teacher-lesson-sticky-bar .tp-form-action-hint { grid-row: 3; }
+}
+/* Narrow desktop: one step per row so labels never break inside a word. */
+@media (max-width: 1280px) {
+  html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .koi-teacher-band.koi-teacher-band > .teacher-occurrence-steps.teacher-occurrence-steps { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  html[data-cozy="1"][data-portal="teacher"] .s2l-app-shell .koi-teacher-band.koi-teacher-band > .teacher-occurrence-steps.teacher-occurrence-steps > button { min-height: 56px; }
+}

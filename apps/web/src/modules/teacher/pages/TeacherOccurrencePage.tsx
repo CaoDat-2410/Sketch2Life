@@ -1,6 +1,6 @@
-﻿import { entryLinks } from "../services/teacherRunLogic";
+import { entryLinks } from "../services/teacherRunLogic";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { RefreshCw, Upload, FileText, ClipboardList, CalendarDays } from "lucide-react";
 import { PageHeading } from "../../../shared/components/FeatureAvailability";
 import { Button, DateField, FormField, Select, StatusBadge, formatDateDdMmYyyy, formatDateTimeDdMmYyyy } from "../../../shared/ui";
@@ -143,6 +143,14 @@ const OCCURRENCE_STEPS = [
 ] as const;
 
 export function TeacherOccurrencePage() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [activeStep, setActiveStep] = useState(() => OCCURRENCE_STEPS.findIndex((step) => `#${step.id}` === location.hash));
+  useEffect(() => {
+    const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+    const index = OCCURRENCE_STEPS.findIndex((step) => `#${step.id}` === location.hash || target?.closest(`#${step.id}`));
+    if (index >= 0) setActiveStep(index);
+  }, [location.hash]);
   const [classes, setClasses] = useState<Be1Class[]>([]);
   const [selectedClassId, setSelectedClassId] = useState("");
   const [lessons, setLessons] = useState<LessonSummary[]>([]);
@@ -651,6 +659,7 @@ export function TeacherOccurrencePage() {
               {nextCursor && <Button type="button" variant="secondary" disabled={busy} onClick={() => void runAction(() => refreshOccurrences(selectedClassId, nextCursor))}>Tải thêm buổi dạy</Button>}
             </section>
 
+            <details className="teacher-occurrence-create-disclosure"><summary>Tạo buổi dạy</summary>
             <form onSubmit={(event) => { event.preventDefault(); void createOccurrence(); }} className="s2l-data-card cozy-form-card cozy-form-card--wide teacher-occurrence-create cozy-form-stack">
               <div className="tp-form-column">
                 <h2><CalendarDays size={18} aria-hidden="true" /> Tạo buổi dạy</h2>
@@ -675,11 +684,11 @@ export function TeacherOccurrencePage() {
                   <Button type="submit" variant="primary" loading={busy} disabled={busy || !selectedClassId || !title.trim()} className="teacher-occurrence-submit">Tạo buổi dạy</Button>
                 </FormActionBar>
               </div>
-            </form>
+            </form></details>
           </div>
 
           {occurrence ? <div className="teacher-occurrence-main">
-            <section className="s2l-data-card" aria-label="Chi tiết buổi dạy">
+            <section className="s2l-data-card koi-teacher-band" aria-label="Chi tiết buổi dạy">
               <div className="teacher-occurrence-heading">
                 <div>
                   <p className="teacher-occurrence-eyebrow">{selectedClass?.display_name ?? "Lớp"}</p>
@@ -698,20 +707,13 @@ export function TeacherOccurrencePage() {
                 {entryLinks(occurrence).projection && <Link className="s2l-button is-primary" to={`/teacher/t07-video-presentation-confirmation?occurrence=${encodeURIComponent(occurrence.occurrence_id)}`}>Chiếu cho lớp</Link>}
               </div>
               <nav className="teacher-occurrence-steps" aria-label="Các bước chuẩn bị buổi dạy">
-                <span>Đi tới:</span>
-                {OCCURRENCE_STEPS.map((step, index) => <button key={step.id} type="button" onClick={() => document.getElementById(step.id)?.scrollIntoView?.({ behavior: "smooth", block: "start" })}>
-                  <b aria-hidden="true">{index + 1}</b>{step.label}
+                {OCCURRENCE_STEPS.map((step, index) => <button key={step.id} type="button" aria-label={step.label} aria-current={(activeStep < 0 ? 0 : activeStep) === index ? "step" : undefined} onClick={() => { setActiveStep(index); navigate({ pathname: location.pathname, search: location.search, hash: `#${step.id}` }, { replace: true }); }}>
+                  <b aria-hidden="true">{index + 1}</b><span><strong>{step.label}</strong><small aria-hidden="true">{(activeStep < 0 ? 0 : activeStep) === index ? "Đang xem" : "Chọn để xem"}</small></span>
                 </button>)}
               </nav>
             </section>
 
-            <TeacherSketchDeckPanel
-              key={`${occurrence.occurrence_id}:${occurrence.approved_plan?.revision_no ?? "none"}`}
-              occurrenceId={occurrence.occurrence_id}
-              approvedRevisionNo={occurrence.approved_plan?.revision_no ?? null}
-            />
-
-            <section id="teacher-occurrence-documents" className="s2l-data-card" aria-label="Tài liệu của buổi dạy">
+            <section hidden={activeStep > 0} id="teacher-occurrence-documents" className="s2l-data-card" aria-label="Tài liệu của buổi dạy">
               <p className="teacher-occurrence-eyebrow teacher-occurrence-step-label">Bước 1 · Chuẩn bị tài liệu</p>
               <div className="teacher-occurrence-section-title"><h2><FileText size={18} aria-hidden="true" /> Tài liệu và văn bản trích xuất</h2></div>
               <form onSubmit={(event) => { event.preventDefault(); void uploadAndAttach(); }} className="teacher-occurrence-upload cozy-form-stack">
@@ -761,7 +763,7 @@ export function TeacherOccurrencePage() {
               </div>}
             </section>
 
-            <section id="teacher-occurrence-plan" className="s2l-data-card" aria-label="Kế hoạch buổi dạy">
+            <section hidden={activeStep !== 1} id="teacher-occurrence-plan" className="s2l-data-card" aria-label="Kế hoạch buổi dạy">
               <p className="teacher-occurrence-eyebrow teacher-occurrence-step-label">Bước 2 · Lập và xác nhận kế hoạch</p>
               <div className="teacher-occurrence-section-title"><h2><ClipboardList size={18} aria-hidden="true" /> Kế hoạch buổi dạy</h2></div>
               <div className="teacher-occurrence-plan-layout">
@@ -844,6 +846,11 @@ export function TeacherOccurrencePage() {
                 </form>
               </div>
             </section>
+            <div hidden={activeStep !== 2}><TeacherSketchDeckPanel
+              key={`${occurrence.occurrence_id}:${occurrence.approved_plan?.revision_no ?? "none"}`}
+              occurrenceId={occurrence.occurrence_id}
+              approvedRevisionNo={occurrence.approved_plan?.revision_no ?? null}
+            /></div>
           </div> : <section className="s2l-data-card teacher-occurrence-empty"><h2>Chọn buổi dạy</h2><p>Chọn một buổi dạy trong lớp hoặc tạo buổi mới để quản lý tài liệu và kế hoạch.</p></section>}
         </div>
       )}

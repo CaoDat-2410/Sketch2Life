@@ -1,9 +1,11 @@
 import type { ReactNode } from "react";
+import "../styles/manager-shared-carryover.css";
 import "../styles/tokens.css";
 import "../styles/mg-manage.css";
 import "../styles/manager-rebuild.css";
 import "../styles/manager-business.css";
-import "../../../shared/styles/tailwind-utilities.css";
+import "./styles/koi-manager.css";
+import "./styles/ui-koi-7.css";
 import { useEffect, useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { WebAppShell, SCHOOL_MANAGER_NAVIGATION } from "../../../shared/navigation/WebAppShell";

@@ -1,5 +1,4 @@
 body:has(.s2l-login-shell) { margin: 0; background: var(--s2l-ui-cream); }
-body:has(.s2l-route-not-found) { margin: 0; }
 
 .s2l-login-shell {
   display: grid;
@@ -463,88 +462,9 @@ body:has(.s2l-route-not-found) { margin: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .s2l-login-shell *, .s2l-login-shell *::before, .s2l-login-shell *::after, .s2l-route-not-found * {
+  .s2l-login-shell *, .s2l-login-shell *::before, .s2l-login-shell *::after {
     scroll-behavior: auto;
     animation-duration: .01ms !important;
     transition-duration: .01ms !important;
   }
-}
-
-.s2l-route-not-found {
-  display: grid;
-  min-height: 100dvh;
-  grid-template-rows: auto 1fr;
-  padding: clamp(28px, 6vw, 76px);
-  background:
-    radial-gradient(ellipse at 91% 9%, rgb(182 210 196 / 25%), transparent 32%),
-    #f4f4ef;
-  color: #19322d;
-  font-family: "Segoe UI Variable", "Aptos", ui-sans-serif, system-ui, sans-serif;
-}
-
-.s2l-route-not-found-brand {
-  width: fit-content;
-  color: #173f38;
-  font-size: 20px;
-  font-weight: 760;
-  letter-spacing: -0.045em;
-  text-decoration: none;
-}
-
-.s2l-route-not-found section {
-  width: min(100%, 620px);
-  align-self: center;
-  justify-self: center;
-  padding: 32px 0;
-}
-
-.s2l-route-not-found section > p {
-  margin: 0 0 14px;
-  color: #176c61;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-}
-
-.s2l-route-not-found h1 {
-  margin: 0;
-  font-size: clamp(36px, 6vw, 58px);
-  letter-spacing: -0.06em;
-  line-height: 1.05;
-  text-wrap: balance;
-}
-
-.s2l-route-not-found section > span {
-  display: block;
-  max-width: 470px;
-  margin-top: 17px;
-  color: #65756f;
-  font-size: 15px;
-  line-height: 1.7;
-}
-
-.s2l-route-not-found-action {
-  display: inline-flex;
-  min-height: 48px;
-  align-items: center;
-  gap: 12px;
-  margin-top: 28px;
-  padding: 0 17px;
-  border-radius: 11px;
-  background: #176c61;
-  color: #fff;
-  font-size: 13px;
-  font-weight: 700;
-  text-decoration: none;
-  transition: background 240ms cubic-bezier(0.32, 0.72, 0, 1), transform 240ms cubic-bezier(0.32, 0.72, 0, 1);
-}
-
-.s2l-route-not-found-action:hover {
-  transform: translateY(-1px);
-  background: #11584f;
-}
-
-.s2l-route-not-found-action:focus-visible {
-  outline: 3px solid #4c927f;
-  outline-offset: 3px;
 }
