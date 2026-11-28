@@ -71,14 +71,14 @@ export function SchoolOverviewPage() {
   }, []);
 
   return (
-    <div className="s2l-page manager-business-page">
+    <div className="s2l-page manager-business-page manager-overview">
       <PageHeading
         eyebrow="Quản lý trường"
         title="Tổng quan nhà trường"
         description="Dữ liệu và thao tác chỉ mở trong phạm vi nhà trường đã được xác minh."
       />
 
-      <section className="manager-business-card" aria-labelledby="school-organization-title">
+      <section className="manager-business-card manager-overview-school" aria-labelledby="school-organization-title">
         <div className="manager-business-card-heading">
           <div>
             <p className="manager-business-eyebrow">Phạm vi hiện tại</p>

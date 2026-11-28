@@ -116,17 +116,38 @@ describe("cozy role shell", () => {
     expect(screen.getByRole("link", { name: "Giáo án" }).getAttribute("aria-current")).toBe("page");
   });
 
-  it("hides the Teacher shell caption and session verification labels", () => {
+  it("shows one brand block and one footer in all three portals, without captions or mode chips", () => {
     const teacher = renderRoleShell("Giáo viên", TEACHER_NAVIGATION, "teacher", "/teacher/t01-lesson-workspace");
     expect(screen.queryByText("Nội dung dành cho giáo viên")).toBeNull();
     expect(screen.queryByText("Quyền được kiểm tra theo phiên")).toBeNull();
     expect(document.querySelector(".s2l-mode-chip")).toBeNull();
+    expect(document.querySelector(".s2l-session-status")?.textContent).toBe("Phiên đã xác minh");
+    expect(screen.getByRole("button", { name: "Đổi mật khẩu" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Đăng xuất" })).toBeTruthy();
     teacher.unmount();
 
-    renderRoleShell("School Manager", SCHOOL_MANAGER_NAVIGATION, "manager", "/school");
-    expect(screen.getByText("Nội dung dành cho quản lý")).toBeTruthy();
-    expect(screen.getByText("Quyền được kiểm tra theo phiên")).toBeTruthy();
-    expect(document.querySelector(".s2l-mode-chip")?.textContent).toBe("Phiên đang hoạt động");
+    const manager = renderRoleShell("Quản lý trường", SCHOOL_MANAGER_NAVIGATION, "manager", "/school");
+    expect(screen.queryByText("Nội dung dành cho quản lý")).toBeNull();
+    expect(screen.queryByText("Quyền được kiểm tra theo phiên")).toBeNull();
+    expect(document.querySelector(".s2l-mode-chip")).toBeNull();
+    expect(document.querySelector(".s2l-brand-wordmark")?.textContent).toBe("Sketch2LifeQuản lý trường");
+    expect(document.querySelector(".s2l-session-status")?.textContent).toBe("Phiên đang hoạt động");
+    expect(screen.getByRole("button", { name: "Đổi mật khẩu" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Đăng xuất" })).toBeTruthy();
+    manager.unmount();
+
+    renderPlatformShell();
+    expect(document.querySelector(".s2l-brand-wordmark")?.textContent).toBe("Sketch2LifePlatform Admin");
+    expect(screen.getByRole("button", { name: "Đổi mật khẩu" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Đăng xuất" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Cài đặt tài khoản" })).toBeTruthy();
+  });
+
+  it("gives every menu item of a role its own icon", () => {
+    for (const groups of [TEACHER_NAVIGATION, SCHOOL_MANAGER_NAVIGATION, PLATFORM_ADMIN_NAVIGATION]) {
+      const icons = groups.flatMap((group) => group.items.map((item) => item.icon));
+      expect(new Set(icons).size).toBe(icons.length);
+    }
   });
 
   it("shows the Teacher SVG catalog as an available learning resource", () => {

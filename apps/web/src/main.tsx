@@ -9,6 +9,7 @@ import "./shared/styles/role-crayon-theme.css";
 import "./shared/styles/web-app.css";
 import "./shared/styles/sketch2life-theme.css";
 import "./shared/styles/cozy-shell.css";
+import "./shared/styles/cozy-v9.css";
 
 window.sketch2lifeAuth = {
   signIn: async (email, password) => {

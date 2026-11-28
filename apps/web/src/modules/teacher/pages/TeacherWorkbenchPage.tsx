@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ArrowRight, BookOpen, CalendarDays, RefreshCw, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import { PageHeading } from "../../../shared/components/FeatureAvailability";
+import { KoiHero } from "../../../shared/koi/KoiHero";
 import { TeacherQuotaCard } from "../components/TeacherQuotaCard";
 import { StatusBadge } from "../../../shared/ui";
 import { teacherStatusMeta } from "../services/teacherStatus";
@@ -69,6 +70,16 @@ export function TeacherWorkbenchPage() {
       {error && <div className="s2l-alert" role="alert">{error}</div>}
       {loading && <div className="s2l-data-card" role="status">Đang tải dữ liệu lớp và giáo án…</div>}
 
+      <section className="s2l-hero" aria-labelledby="teacher-hero-title">
+        <div className="s2l-hero-copy">
+          <p className="s2l-hero-eyebrow">Buổi dạy</p>
+          <h2 id="teacher-hero-title">Trình chiếu cho lớp</h2>
+          <p>Lên lịch và theo dõi buổi dạy theo lớp</p>
+          <Link className="s2l-button is-primary s2l-hero-action" to="/teacher/t04-session-sketch-deck">Mở buổi dạy <ArrowRight size={17} aria-hidden="true" /></Link>
+        </div>
+        <div className="s2l-hero-stage"><KoiHero /></div>
+      </section>
+
       <section className="s2l-dashboard-grid" aria-label="Tóm tắt công việc">
         <article className="s2l-data-card s2l-dashboard-card">
           <div className="s2l-dashboard-card-title"><span className="s2l-summary-icon"><Users size={19} aria-hidden="true" /></span><div><h2>Lớp được phân công</h2><p>Danh sách lớp bạn đang phụ trách</p></div></div>
@@ -92,7 +103,6 @@ export function TeacherWorkbenchPage() {
             <li><b aria-hidden="true">3</b><span>Trình chiếu cho lớp</span></li>
           </ol>
           <div className="teacher-overview-links">
-            <Link className="s2l-card-link" to="/teacher/t04-session-sketch-deck">Mở buổi dạy <ArrowRight size={15} aria-hidden="true" /></Link>
             <Link className="s2l-card-link" to="/teacher/t09-history">Lịch sử buổi dạy <ArrowRight size={15} aria-hidden="true" /></Link>
           </div>
         </article>

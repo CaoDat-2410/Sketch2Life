@@ -203,3 +203,14 @@ export function isTestPaymentMode(settings: {
     || settings.vnpay_sandbox_enabled === true
     || settings.billing_sandbox_enabled === true;
 }
+
+/** Whole-number axis from zero: the smallest 1/2/5 step that needs at most four intervals. */
+export function integerAxis(maxValue: number) {
+  const top = Math.max(1, Math.ceil(maxValue));
+  let step = 1;
+  for (let magnitude = 1; top / step > 4; magnitude *= 10) {
+    step = [1, 2, 5, 10].map((base) => base * magnitude).find((candidate) => top / candidate <= 4) ?? 10 * magnitude;
+  }
+  const intervals = Math.ceil(top / step);
+  return { max: intervals * step, ticks: Array.from({ length: intervals + 1 }, (_, index) => index * step) };
+}

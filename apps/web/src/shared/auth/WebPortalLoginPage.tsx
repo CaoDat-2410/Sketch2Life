@@ -2,9 +2,11 @@ import { useState, type FormEvent } from "react";
 import { ArrowRight, Check, Eye, EyeOff, GraduationCap, LoaderCircle, School, ShieldCheck } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import "./WebPortalLoginPage.css";
+import "./WebPortalLoginPage.v9.css";
 import { backendMessage } from "../api/backendApi";
 import { Alert, FormField } from "../ui";
 import sketch2lifeLogo from "../assets/sketch2life-logo-mark-256.png";
+import { KoiHero } from "../koi/KoiHero";
 
 export type WebPortalAppRole = "TEACHER" | "MANAGER" | "ADMIN";
 
@@ -187,7 +189,7 @@ export function WebPortalLoginPage({
     setNotice("Nếu email đã được đăng ký, bạn sẽ nhận được liên kết đặt lại mật khẩu. Kiểm tra cả thư mục spam.");
   };
   return (
-    <main className="s2l-login-shell">
+    <main className="s2l-login-shell s2l-login-v9">
       <div className="s2l-login-card">
         <section className="s2l-login-intro">
           <div className="s2l-login-message">
@@ -198,7 +200,7 @@ export function WebPortalLoginPage({
               {portal.highlights.map((item) => <li key={item}><Check size={14} aria-hidden="true" /><span>{item}</span></li>)}
             </ul>
           </div>
-          <img className="s2l-login-illustration" src="/images/sketch2life-login-learning.png" alt="" aria-hidden="true" />
+          <div className="s2l-login-stage"><KoiHero /></div>
         </section>
 
         <section className="s2l-login-form-panel" aria-labelledby="s2l-login-title">
