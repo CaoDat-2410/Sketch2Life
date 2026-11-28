@@ -4,7 +4,7 @@ import { createIdempotencyKey } from "../../../../shared/api/backendApi";
 import { PageHeading } from "../../../../shared/components/FeatureAvailability";
 import { Button } from "../../../../shared/ui";
 import { AdminBe1Error } from "../services/be1Client";
-import { capacityService, type Be1OrganizationCapacity, type CapacityCommand } from "../services/capacityService";
+import { capacityService, safeCapacityCheckoutUrl, type Be1OrganizationCapacity, type CapacityCommand, type CapacityQuote, type CapacityPurchase } from "../services/capacityService";
 import { classService, type Be1Class } from "../services/classService";
 import { managerBusinessService, type Be1Organization } from "../services/managerBusinessService";
 
@@ -22,6 +22,44 @@ function formatDate(value: string | null, withTime = false) {
     : { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
+function checkoutLink(value: string | null): string | null {
+  if (!value) return null;
+  try { return safeCapacityCheckoutUrl(value); } catch { return null; }
+}
+
+function purchaseLabel(item: CapacityPurchase) {
+  if (item.state === "PAID") return item.activated ? "Đã kích hoạt" : "Đã thanh toán, chờ xử lý thủ công";
+  const labels: Record<string, string> = {
+    PENDING: "Đang chờ thanh toán", FAILED: "Thanh toán thất bại", CANCELED: "Đã hủy",
+  };
+  return labels[item.state] ?? "Trạng thái chưa xác định";
+}
+
+function purchaseKindLabel(kind: CapacityPurchase["kind"]) {
+  const labels: Record<CapacityPurchase["kind"], string> = {
+    START: "Đăng ký gói",
+    RENEW: "Gia hạn gói",
+    ADDON: "Mua thêm slot",
+  };
+  return labels[kind];
+}
+
+function attemptLabel(state: string) {
+  const labels: Record<string, string> = {
+    REQUESTING: "Đang tạo yêu cầu", OPEN: "Đang chờ thanh toán", UNKNOWN: "Chờ xác minh",
+    FAILED: "Thanh toán thất bại", CANCELED: "Đã hủy", PAID: "Đã thanh toán",
+  };
+  return labels[state] ?? "Trạng thái chưa xác định";
+}
+
+function providerLabel(provider: string) {
+  return provider === "MOMO" ? "MoMo" : provider === "VNPAY" ? "VNPay" : provider === "SANDBOX" ? "Thử nghiệm (quản trị)" : "Cổng thanh toán chưa xác định";
+}
+
+function supportsPurchaseActions(provider: string) {
+  return provider === "MOMO" || provider === "VNPAY";
+}
+
 function subscriptionLabel(state: string) {
   const labels: Record<string, string> = {
     NONE: "Chưa có gói",
@@ -35,6 +73,10 @@ function subscriptionLabel(state: string) {
 function errorText(cause: unknown) {
   if (cause instanceof AdminBe1Error) {
     if (cause.status === 403 || cause.status === 404) return "Không có quyền hoặc không tìm thấy thông tin sức chứa.";
+    if (cause.code === "DOWNGRADE_SCHEDULED") return "Đã lên lịch hạ sức chứa; chưa thể mua thêm slot trong kỳ này.";
+    if (cause.code === "PAYMENT_ATTEMPT_ALREADY_OPEN") return "Đã có đơn mua slot đang chờ; hãy kiểm tra trạng thái đơn đó.";
+    if (cause.code === "SUBSCRIPTION_REQUIRED" || cause.code === "SUBSCRIPTION_NOT_ACTIVE") return "Cần có gói đang hoạt động để mua thêm slot.";
+    if (cause.code === "MOMO_AMOUNT_OUT_OF_RANGE" || cause.code === "VNPAY_AMOUNT_OUT_OF_RANGE") return "Số tiền nằm ngoài giới hạn của cổng thanh toán.";
     if (cause.code === "STALE_REVISION") return "Thông tin sức chứa đã thay đổi. Hãy xem lại trước khi xác nhận.";
     if (cause.code === "SUBSCRIPTION_PERIOD_ENDED") return "Kỳ gói đã kết thúc. Hãy tải lại thông tin sức chứa.";
     if (cause.code === "CLASS_SELECTION_REQUIRED") return "Hãy chọn đủ số lớp cần tạm ngưng trước khi xác nhận.";
@@ -66,6 +108,10 @@ export function CapacityPage() {
   const [classLoadError, setClassLoadError] = useState("");
   const [addonSlots, setAddonSlots] = useState("");
   const [selectedClassRefs, setSelectedClassRefs] = useState<string[]>([]);
+  const [purchaseQuantity, setPurchaseQuantity] = useState("1");
+  const [quote, setQuote] = useState<CapacityQuote | null>(null);
+  const [purchases, setPurchases] = useState<CapacityPurchase[]>([]);
+  const [provider, setProvider] = useState<"MOMO" | "VNPAY">("MOMO");
   const actionKeys = useRef(new Map<string, string>());
 
   const load = useCallback(async (signal?: AbortSignal) => {
@@ -74,6 +120,13 @@ export function CapacityPage() {
       const result = await capacityService.getCapacity(organization.organization_id, signal);
       if (!signal?.aborted) {
         setPageData({ organization, capacity: result.data });
+        const returnedInvoice = new URLSearchParams(window.location.search).get("invoice");
+        void Promise.all([
+          capacityService.purchases(organization.organization_id),
+          returnedInvoice ? capacityService.purchases(organization.organization_id, returnedInvoice) : Promise.resolve([]),
+        ]).then(([recent, returned]) => {
+          if (!signal?.aborted) setPurchases([...returned, ...recent.filter(item => !returned.some(match => match.invoice_id === item.invoice_id))]);
+        }).catch(() => { if (!signal?.aborted) setCommandError("Không tải được lịch sử mua slot. Hãy tải lại."); });
         setError("");
       }
     } catch (cause) {
@@ -205,6 +258,50 @@ export function CapacityPage() {
     }
   };
 
+  const refreshPurchases = async () => {
+    if (organization) setPurchases(await capacityService.purchases(organization.organization_id));
+  };
+  const showQuote = async () => {
+    if (!organization || busy) return;
+    setBusy(true); setCommandError(""); setQuote(null);
+    try {
+      const result = await capacityService.quote(organization.organization_id, Number(purchaseQuantity));
+      setQuote(result); setProvider(result.momo_checkout_enabled ? "MOMO" : "VNPAY");
+    } catch (cause) { setCommandError(errorText(cause)); } finally { setBusy(false); }
+  };
+  const buy = async () => {
+    if (!organization || !quote || busy) return;
+    const signature = JSON.stringify(["purchase", quote.quantity, provider, quote.price_id, quote.period_end, quote.quoted_at, quote.amount_vnd]);
+    const key = actionKeys.current.get(signature) ?? createIdempotencyKey();
+    actionKeys.current.set(signature, key); setBusy(true); setCommandError("");
+    try {
+      const result = await capacityService.checkout(organization.organization_id, quote, provider, key);
+      if (result.state !== "PENDING") actionKeys.current.delete(signature);
+      if (result.state === "PENDING" && result.checkout_url) window.location.assign(result.checkout_url);
+      else {
+        await refreshPurchases();
+        setNotice(result.state === "PENDING" ? "Đơn đang chờ cổng xác nhận. Hãy kiểm tra trạng thái." : "Hãy kiểm tra trạng thái giao dịch bên dưới.");
+      }
+    } catch (cause) {
+      if (cause instanceof AdminBe1Error && cause.status >= 400 && cause.status < 500) actionKeys.current.delete(signature);
+      if (cause instanceof AdminBe1Error && cause.status === 409 && cause.code === "CAPACITY_QUOTE_CHANGED") {
+        setQuote(null);
+        try {
+          const updated = await capacityService.quote(organization.organization_id, quote.quantity);
+          setQuote(updated);
+          setProvider(updated.momo_checkout_enabled ? "MOMO" : "VNPAY");
+          setCommandError("Báo giá đã thay đổi. Hãy xem lại số tiền mới và bấm thanh toán để xác nhận lại.");
+        } catch (refreshError) { setCommandError(errorText(refreshError)); }
+      } else setCommandError(errorText(cause));
+    } finally { setBusy(false); }
+  };
+  const purchaseAction = async (invoiceId: string, action: "reconcile" | "cancel") => {
+    if (!organization || busy) return;
+    setBusy(true); setCommandError("");
+    try { await capacityService.purchaseAction(organization.organization_id, invoiceId, action); actionKeys.current.clear(); await refreshPurchases(); await load(); }
+    catch (cause) { setCommandError(errorText(cause)); } finally { setBusy(false); }
+  };
+
   const toggleClass = (classId: string, checked: boolean) => {
     clearActionKeys();
     setCommandError("");
@@ -256,6 +353,58 @@ export function CapacityPage() {
             <div><dt>Kết thúc kỳ</dt><dd>{formatDate(data.period_end)}</dd></div>
           </dl>
           {!hasSubscription && <div className="manager-quota-empty">Trường chưa có gói sức chứa. Sức chứa mặc định gồm 10 lớp.</div>}
+        </section>
+
+        <section className="manager-business-card manager-quota-section">
+          <h2>Mua thêm slot lớp</h2>
+          <p className="manager-business-alert">Giá thử nghiệm giả lập (sandbox), chưa phải giá thương mại chính thức.</p>
+          {hasSubscription && (data.subscription_state === "ACTIVE" || data.subscription_state === "CANCEL_AT_PERIOD_END") ? <>
+            <label htmlFor="purchase-slots">Số slot muốn mua thêm</label>
+            <input
+              id="purchase-slots" className="cozy-input" type="number" min={1} max={1000} step={1}
+              value={purchaseQuantity} onChange={(event) => { setPurchaseQuantity(event.target.value); setQuote(null); }}
+            />
+            <Button type="button" variant="secondary" disabled={busy || !/^\d+$/.test(purchaseQuantity) || Number(purchaseQuantity) < 1 || Number(purchaseQuantity) > 1000} onClick={() => void showQuote()}>
+              Xem báo giá
+            </Button>
+            {quote && <div className="cozy-form-section cozy-form-stack">
+              <p>Phí gói cơ bản cho 10 slot: {number(quote.base_amount_vnd)} ₫ (tham khảo, không thu lần này)</p>
+              <p>Chu kỳ gói: {quote.cycle_months % 12 === 0 ? `${number(quote.cycle_months / 12)} năm` : `${number(quote.cycle_months)} tháng`}</p>
+              <p>Đơn giá mỗi slot: {number(quote.slot_amount_vnd)} ₫ · Số lượng: {quote.quantity}</p>
+              <p>Sức chứa sau khi mua: {number(quote.resulting_capacity)} lớp</p>
+              <p>Tỷ lệ thời gian còn lại: {new Intl.NumberFormat("vi-VN", { style: "percent", maximumFractionDigits: 2 }).format(Number(quote.remaining_time_ratio))}</p>
+              <p>Số lượng × đơn giá × tỷ lệ thời gian còn lại; làm tròn nửa lên đến đồng.</p>
+              <strong>Tổng tạm tính: {number(quote.amount_vnd)} ₫</strong>
+              <p>Ngày gia hạn không thay đổi: {formatDate(quote.period_end)}</p>
+              {(quote.momo_checkout_enabled || quote.vnpay_checkout_enabled) ? <>
+                <fieldset>
+                  <legend>Chọn cổng thanh toán</legend>
+                  {quote.momo_checkout_enabled && <label><input type="radio" name="capacity-provider" checked={provider === "MOMO"} onChange={() => setProvider("MOMO")} /> MoMo</label>}
+                  {quote.vnpay_checkout_enabled && <label><input type="radio" name="capacity-provider" checked={provider === "VNPAY"} onChange={() => setProvider("VNPAY")} /> VNPay</label>}
+                </fieldset>
+                <Button type="button" variant="primary" disabled={busy} onClick={() => void buy()}>Thanh toán</Button>
+              </> : <p>Chưa có cổng thanh toán khả dụng.</p>}
+            </div>}
+          </> : <p>Cần có gói đang hoạt động để mua thêm slot lớp.</p>}
+          <h3>Hóa đơn sức chứa</h3>
+          {(() => {
+            const invoiceId = new URLSearchParams(window.location.search).get("invoice");
+            if (!invoiceId) return null;
+            const returned = purchases.find((item) => item.invoice_id === invoiceId);
+            return <p role="status">{returned ? `Trạng thái giao dịch: ${purchaseLabel(returned)}.` : "Chưa có thông tin giao dịch trả về."}</p>;
+          })()}
+          {purchases.map((item) => <div className="manager-quota-product" key={item.invoice_id}>
+            <p>Mã đơn: {item.invoice_id.slice(0, 8)} · {purchaseKindLabel(item.kind)} · {providerLabel(item.provider)} · {item.provider === "SANDBOX" ? `${number(item.units)} slot bổ sung trong gói` : `${number(item.units)} slot`} · {number(item.amount_vnd)} ₫ · {purchaseLabel(item)}</p>
+            {item.created_at && <p>Ngày tạo: {formatDate(item.created_at, true)}</p>}
+            {item.attempts.map((attempt, index) => <p key={index}>
+              Trạng thái cổng: {attemptLabel(attempt.state)} {attempt.expires_at && <>· Hết hạn: {formatDate(attempt.expires_at, true)}</>}
+              {supportsPurchaseActions(item.provider) && item.state === "PENDING" && (!attempt.expires_at || Date.parse(attempt.expires_at) > Date.now()) && checkoutLink(attempt.checkout_url) && <> · <a href={checkoutLink(attempt.checkout_url) ?? undefined} target="_blank" rel="noreferrer">Mở lại thanh toán</a></>}
+            </p>)}
+            {supportsPurchaseActions(item.provider) && item.state === "PENDING" && <>
+              <Button type="button" variant="secondary" disabled={busy} onClick={() => void purchaseAction(item.invoice_id, "reconcile")}>Kiểm tra trạng thái</Button>
+              {item.provider === "VNPAY" && item.attempts.some((attempt) => attempt.expires_at && Date.parse(attempt.expires_at) <= Date.now()) && <Button type="button" variant="secondary" disabled={busy} onClick={() => void purchaseAction(item.invoice_id, "cancel")}>Hủy đơn đã hết hạn</Button>}
+            </>}
+          </div>)}
         </section>
 
         {data.scheduled_change && <section className="manager-business-card manager-quota-section" aria-label="Thay đổi đã lên lịch">

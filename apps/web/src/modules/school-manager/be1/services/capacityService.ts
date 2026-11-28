@@ -169,7 +169,74 @@ function validateCommand(body: CapacityCommand): void {
   }
 }
 
+export interface CapacityQuote {
+  price_id: string; cycle_months: number; base_amount_vnd: number; slot_amount_vnd: number;
+  quantity: number; current_addon_slots: number; resulting_capacity: number; period_start: string;
+  period_end: string; remaining_time_ratio: string; amount_vnd: number; formula: string;
+  quoted_at: string; momo_checkout_enabled: boolean; vnpay_checkout_enabled: boolean; synthetic_sandbox_price: true;
+}
+export interface CapacityPurchase {
+  invoice_id: string; kind: "START" | "RENEW" | "ADDON"; state: string; provider: string; units: number; amount_vnd: number;
+  created_at?: string | null; activated: boolean; attempts: { state: string; checkout_url: string | null; expires_at: string | null }[];
+}
+function record(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Invalid capacity response");
+  return value as Record<string, unknown>;
+}
+function parseQuote(value: unknown): CapacityQuote {
+  const v = record(value);
+  if (!["price_id", "period_start", "period_end", "remaining_time_ratio", "formula", "quoted_at"].every(k => typeof v[k] === "string")
+    || !["cycle_months", "base_amount_vnd", "slot_amount_vnd", "quantity", "current_addon_slots", "resulting_capacity", "amount_vnd"].every(k => isCount(v[k]))
+    || typeof v.momo_checkout_enabled !== "boolean" || typeof v.vnpay_checkout_enabled !== "boolean" || v.synthetic_sandbox_price !== true) throw new Error("Invalid capacity quote");
+  return v as unknown as CapacityQuote;
+}
+function parsePurchase(value: unknown): CapacityPurchase {
+  const v = record(value);
+  if (typeof v.invoice_id !== "string" || (v.kind !== "START" && v.kind !== "RENEW" && v.kind !== "ADDON")
+    || typeof v.state !== "string" || typeof v.provider !== "string"
+    || !isCount(v.units) || !isCount(v.amount_vnd) || typeof v.activated !== "boolean" || !Array.isArray(v.attempts)) throw new Error("Invalid capacity purchase");
+  for (const entry of v.attempts) {
+    const a = record(entry);
+    if (typeof a.state !== "string" || !(a.checkout_url === null || typeof a.checkout_url === "string") || !(a.expires_at === null || typeof a.expires_at === "string")) throw new Error("Invalid payment attempt");
+  }
+  return v as unknown as CapacityPurchase;
+}
+export function safeCapacityCheckoutUrl(value: string): string {
+  const url = new URL(value);
+  if (url.protocol !== "https:" || !url.hostname || url.username || url.password) throw new Error("Invalid checkout URL");
+  return url.href;
+}
+
 export const capacityService = {
+  quote: async (organizationId: string, quantity: number): Promise<CapacityQuote> => {
+    if (!isCount(quantity, 1000) || quantity < 1) throw new CapacityServiceError("Invalid quantity", 400, "INVALID_REQUEST");
+    const { data } = await requestCapacity<unknown>(organizationPath(organizationId) + "/quote?addon_slots=" + quantity);
+    return parseQuote(data);
+  },
+  purchases: async (organizationId: string, invoiceId?: string): Promise<CapacityPurchase[]> => {
+    const { data } = await requestCapacity<unknown>(organizationPath(organizationId) + "/purchases?limit=100" + (invoiceId ? "&invoice_id=" + encodeURIComponent(invoiceId) : ""));
+    const v = record(data);
+    if (!Array.isArray(v.items) || !isCount(v.total)) throw new Error("Invalid capacity purchases");
+    return v.items.map(parsePurchase);
+  },
+  checkout: async (organizationId: string, quote: CapacityQuote, provider: "MOMO" | "VNPAY", key: string): Promise<{ state: string; checkout_url: string | null }> => {
+    const quantity = quote.quantity;
+    if (!isCount(quantity, 1000) || quantity < 1 || !/^[\x21-\x7E]{1,128}$/.test(key)) throw new CapacityServiceError("Invalid checkout", 400, "INVALID_REQUEST");
+    const { data } = await requestCapacity<unknown>(organizationPath(organizationId) + "/checkout", {
+      method: "POST", headers: { "Idempotency-Key": key }, body: JSON.stringify({ addon_slots: quantity, provider, expected_amount_vnd: quote.amount_vnd, price_id: quote.price_id, period_end: quote.period_end, quoted_at: quote.quoted_at }),
+    });
+    const v = record(data);
+    if (typeof v.invoice_id !== "string" || typeof v.state !== "string" || !(v.checkout_url === null || typeof v.checkout_url === "string")) throw new Error("Invalid checkout response");
+    return {
+      state: v.state as string,
+      checkout_url: v.state !== "PENDING" || v.checkout_url === null ? null : safeCapacityCheckoutUrl(v.checkout_url as string),
+    };
+  },
+  purchaseAction: async (organizationId: string, invoiceId: string, action: "reconcile" | "cancel"): Promise<void> => {
+    const { data } = await requestCapacity<unknown>(organizationPath(organizationId) + "/purchases/" + encodeURIComponent(invoiceId) + "/" + action, { method: "POST" });
+    const v = record(data);
+    if (v.invoice_id !== invoiceId || typeof v.state !== "string") throw new Error("Invalid purchase status");
+  },
   getCapacity: async (organizationId: string, signal?: AbortSignal): Promise<CapacityResponse> => {
     const { data, etag } = await requestCapacity<unknown>(
       organizationPath(organizationId),

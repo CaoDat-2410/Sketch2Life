@@ -1,6 +1,7 @@
+import { capacityService } from "../services/capacityService";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AlertTriangle, ArrowDownToLine, ArrowUpRight, CreditCard, Gauge, RefreshCw, Users, X } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { createIdempotencyKey } from "../../../../shared/api/backendApi";
 import { PageHeading } from "../../../../shared/components/FeatureAvailability";
 import { managerBusinessService, type Be1Organization } from "../services/managerBusinessService";
@@ -156,6 +157,7 @@ export function SchoolQuotaPage() { return <SchoolQuotaBillingPage focus="quota"
 export function SchoolBillingPage() { return <SchoolQuotaBillingPage focus="billing" />; }
 
 function SchoolQuotaBillingPage({ focus }: { focus: Focus }) {
+  const navigate = useNavigate();
   const [data, setData] = useState<Data | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -244,6 +246,14 @@ function SchoolQuotaBillingPage({ focus }: { focus: Focus }) {
         if (cancelled) return;
         setData((current) => current ? { ...current, invoices: result.items } : current);
         const invoice = result.items.find((item) => item.invoice_id === returnInvoiceId);
+        if (!invoice) {
+          const capacityPurchases = await capacityService.purchases(organizationId, returnInvoiceId);
+          if (cancelled) return;
+          if (capacityPurchases.some((item) => item.invoice_id === returnInvoiceId)) {
+            navigate("/school/capacity?invoice=" + encodeURIComponent(returnInvoiceId), { replace: true });
+            return;
+          }
+        }
         if (invoice?.state === "PAID") {
           stopTracking({ kind: "success", text: "Thanh toán đã được xác nhận; hạn mức đã được cộng vào số dư trường." });
           return;
@@ -272,7 +282,7 @@ function SchoolQuotaBillingPage({ focus }: { focus: Focus }) {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [data?.organization.organization_id, focus, returnInvoiceId]);
+  }, [data?.organization.organization_id, focus, returnInvoiceId, navigate]);
 
   const allocationsByTeacher = useMemo(() => new Map((data?.allocations ?? []).map((item) => [item.teacher_ref, item])), [data?.allocations]);
   const labelsByTeacher = useMemo(() => quotaTeacherLabels(data?.teachers ?? []), [data?.teachers]);

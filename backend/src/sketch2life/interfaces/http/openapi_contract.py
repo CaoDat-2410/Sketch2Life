@@ -15090,3 +15090,49 @@ UNMOUNTED_OPERATIONS: Final[tuple[UnmountedOperationMetadata, ...]] = ({'method'
                  'description': 'Validation Error',
                  'media_type': 'application/json',
                  'schema_name': 'HTTPValidationError'})})
+
+
+MOUNTED_OPERATIONS[("get", "/api/be1/v1/organizations/{organization_id}/capacity/quote")] = {
+    "purpose": "Manage the assigned organization's capacity purchase.",
+    "request_inputs": "path `organization_id*`: string; header `X-Request-ID`: string; query `addon_slots*`: integer",
+    "surface": "BE1 / billing capacity", "tag": "BE1 — Organizations & Classes",
+    "handler": "be1_billing.py::capacity_purchase_quote", "authentication": "HTTPBearer (bearer)",
+    "verification": "Requires school administrator assignment; provider outcomes are verified.",
+    "responses": ({"status": "200", "description": "Successful Response", "media_type": "application/json", "schema_name": "Be1CapacityQuoteV1"}, *_BE1_CAPACITY_ERRORS),
+}
+
+MOUNTED_OPERATIONS[("post", "/api/be1/v1/organizations/{organization_id}/capacity/checkout")] = {
+    "purpose": "Manage the assigned organization's capacity purchase.",
+    "request_inputs": "path `organization_id*`: string; header `X-Request-ID`: string; header `Idempotency-Key*`: string; application/json (required): Be1CapacityCheckoutRequest",
+    "surface": "BE1 / billing capacity", "tag": "BE1 — Organizations & Classes",
+    "handler": "be1_billing.py::capacity_purchase_checkout", "authentication": "HTTPBearer (bearer)",
+    "verification": "Requires school administrator assignment; provider outcomes are verified.",
+    "responses": ({"status": "201", "description": "Successful Response", "media_type": "application/json", "schema_name": "Be1CapacityCheckoutV1"}, *_BE1_CAPACITY_ERRORS),
+}
+
+MOUNTED_OPERATIONS[("get", "/api/be1/v1/organizations/{organization_id}/capacity/purchases")] = {
+    "purpose": "Manage the assigned organization's capacity purchase.",
+    "request_inputs": "path `organization_id*`: string; header `X-Request-ID`: string; query `limit`: integer; query `invoice_id`: string",
+    "surface": "BE1 / billing capacity", "tag": "BE1 — Organizations & Classes",
+    "handler": "be1_billing.py::capacity_purchases", "authentication": "HTTPBearer (bearer)",
+    "verification": "Requires school administrator assignment; returns all capacity invoice providers, including SANDBOX.",
+    "responses": ({"status": "200", "description": "Successful Response", "media_type": "application/json", "schema_name": "Be1CapacityPurchasesV1"}, *_BE1_CAPACITY_ERRORS),
+}
+
+MOUNTED_OPERATIONS[("post", "/api/be1/v1/organizations/{organization_id}/capacity/purchases/{invoice_id}/reconcile")] = {
+    "purpose": "Manage the assigned organization's capacity purchase.",
+    "request_inputs": "path `organization_id*`: string; header `X-Request-ID`: string; path `invoice_id*`: string",
+    "surface": "BE1 / billing capacity", "tag": "BE1 — Organizations & Classes",
+    "handler": "be1_billing.py::reconcile_capacity_purchase", "authentication": "HTTPBearer (bearer)",
+    "verification": "Requires school administrator assignment; provider outcomes are verified.",
+    "responses": ({"status": "200", "description": "Successful Response", "media_type": "application/json", "schema_name": "Be1CapacityPurchaseActionV1"}, *_BE1_CAPACITY_ERRORS),
+}
+
+MOUNTED_OPERATIONS[("post", "/api/be1/v1/organizations/{organization_id}/capacity/purchases/{invoice_id}/cancel")] = {
+    "purpose": "Manage the assigned organization's capacity purchase.",
+    "request_inputs": "path `organization_id*`: string; header `X-Request-ID`: string; path `invoice_id*`: string",
+    "surface": "BE1 / billing capacity", "tag": "BE1 — Organizations & Classes",
+    "handler": "be1_billing.py::cancel_capacity_purchase", "authentication": "HTTPBearer (bearer)",
+    "verification": "Requires school administrator assignment; provider outcomes are verified.",
+    "responses": ({"status": "200", "description": "Successful Response", "media_type": "application/json", "schema_name": "Be1CapacityPurchaseActionV1"}, *_BE1_CAPACITY_ERRORS),
+}

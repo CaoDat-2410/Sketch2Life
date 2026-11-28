@@ -13,6 +13,7 @@ from zoneinfo import ZoneInfo
 from sqlalchemy import case, func, or_, select, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
+from sqlalchemy.sql.selectable import Exists
 
 from sketch2life.domain.billing_capacity import quota_month
 from sketch2life.domain.platform_admin import AdminError, require_revision
@@ -39,9 +40,17 @@ from sketch2life.infrastructure.persistence.billing_models import (
     BillingQuotaAllocationModel,
     BillingQuotaProductModel,
     BillingReceiptModel,
+    SubscriptionEventModel,
     VideoQuotaGrantModel,
     VideoQuotaUsageModel,
 )
+
+
+def capacity_invoice_filter() -> Exists:
+    return select(SubscriptionEventModel.event_id).where(
+        SubscriptionEventModel.invoice_id == BillingInvoiceModel.invoice_id,
+        SubscriptionEventModel.kind == "CAPACITY_QUOTED",
+    ).exists()
 
 
 class QuotaCommerceService:
@@ -307,6 +316,7 @@ class QuotaCommerceService:
                     BillingInvoiceModel.owner_kind == owner_kind,
                     BillingInvoiceModel.owner_ref == owner_ref,
                     BillingInvoiceModel.state == "PENDING",
+                    ~capacity_invoice_filter(),
                     BillingPaymentAttemptModel.state.in_(("REQUESTING", "OPEN", "UNKNOWN")),
                 )
                 .limit(1)
@@ -480,7 +490,12 @@ class QuotaCommerceService:
 
     def invoice(self, invoice_id: str) -> BillingInvoiceModel:
         row = self.db.get(BillingInvoiceModel, invoice_id)
-        if row is None:
+        if row is None or self.db.scalar(
+            select(SubscriptionEventModel.event_id).where(
+                SubscriptionEventModel.invoice_id == invoice_id,
+                SubscriptionEventModel.kind == "CAPACITY_QUOTED",
+            )
+        ):
             raise AdminError("INVOICE_NOT_FOUND", 404)
         return row
 
@@ -705,7 +720,7 @@ class QuotaCommerceService:
         state: str | None = None,
         limit: int = 100,
     ) -> dict[str, Any]:
-        query = select(BillingInvoiceModel)
+        query = select(BillingInvoiceModel).where(~capacity_invoice_filter())
         if owner_kind:
             query = query.where(BillingInvoiceModel.owner_kind == owner_kind)
         if owner_ref:
@@ -782,6 +797,7 @@ class QuotaCommerceService:
                 BillingInvoiceModel.invoice_id == invoice_id,
                 BillingInvoiceModel.owner_kind == owner_kind,
                 BillingInvoiceModel.owner_ref == owner_ref,
+                ~capacity_invoice_filter(),
             )
         )
         if row is None:
@@ -854,7 +870,16 @@ class QuotaCommerceService:
         attempt.state = "PAID" if paid else ("CANCELED" if was_canceled else "FAILED")
         attempt.revision += 1
         attempt.updated_at = self.clock()
-        if paid:
+        quote = None
+        if invoice.owner_kind == "ORGANIZATION":
+            quote = self.db.scalar(select(SubscriptionEventModel).where(
+                SubscriptionEventModel.invoice_id == invoice.invoice_id,
+                SubscriptionEventModel.kind == "CAPACITY_QUOTED",
+            ))
+        if paid and quote:
+            from sketch2life.infrastructure.billing.capacity_commerce import apply_capacity_payment
+            apply_capacity_payment(self, invoice, quote)
+        elif paid:
             offer = self.db.get(BillingOfferModel, invoice.offer_id)
             if offer is None:
                 raise AdminError("QUOTA_PRODUCT_OFFER_UNAVAILABLE", 409)

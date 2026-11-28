@@ -12,6 +12,7 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
+from sketch2life.contracts.schemas.be1_capacity import Be1CapacityPurchaseV1
 from sketch2life.contracts.schemas.modal_ai import TeacherLessonSuggestionRequestV1
 from sketch2life.infrastructure.config.settings import (
     CoreDatabaseSettings,
@@ -55,6 +56,18 @@ from sketch2life.interfaces.http.quota_contract import QUOTA_OPERATIONS
 from sketch2life.interfaces.http.routers.lesson_library import get_lesson_library_service
 
 HTTP_METHODS = {"get", "post", "put", "patch", "delete", "options", "head"}
+
+
+def test_capacity_purchase_openapi_contract_exposes_invoice_kind() -> None:
+    path = "/api/be1/v1/organizations/{organization_id}/capacity/purchases"
+    operation = MOUNTED_OPERATIONS[("get", path)]
+    assert "all capacity invoice providers, including SANDBOX" in operation["verification"]
+
+    schema = Be1CapacityPurchaseV1.model_json_schema()
+    assert schema["properties"]["kind"]["enum"] == ["START", "RENEW", "ADDON"]
+    assert "kind" in schema["required"]
+
+
 EXPECTED_IDEMPOTENCY_MISMATCH_OPERATION_KEYS = {
     ("post", "/api/lesson-library/v1/me/lesson-invitations/{access_grant_id}/accept"),
     ("post", "/api/lesson-library/v1/me/lesson-invitations/{access_grant_id}/decline"),
@@ -184,9 +197,7 @@ def _disable_dotenv_for_composition_tests(monkeypatch: pytest.MonkeyPatch) -> It
     monkeypatch.setitem(CoreDatabaseSettings.model_config, "env_file", None)
     monkeypatch.setenv("SKETCH2LIFE_ENV", "test")
     monkeypatch.setenv("STORYRUN_LITE_MAIN_DEMO_ENABLED", "0")
-    monkeypatch.setenv(
-        "SKETCH2LIFE_DATABASE_URL", "postgresql+psycopg://localhost:9/s1at_closed"
-    )
+    monkeypatch.setenv("SKETCH2LIFE_DATABASE_URL", "postgresql+psycopg://localhost:9/s1at_closed")
     get_settings.cache_clear()
     get_core_database_settings.cache_clear()
     assert Settings.model_config.get("env_file") is None
@@ -384,9 +395,9 @@ def runtime_openapi(monkeypatch: pytest.MonkeyPatch) -> Iterator[dict[str, Any]]
 def test_runtime_openapi_preserves_local_synthetic_examples(
     runtime_openapi: dict[str, Any],
 ) -> None:
-    session_example = runtime_openapi["paths"]["/v1/sessions"]["post"]["requestBody"][
-        "content"
-    ]["application/json"]["examples"]["localSyntheticSession"]["value"]
+    session_example = runtime_openapi["paths"]["/v1/sessions"]["post"]["requestBody"]["content"][
+        "application/json"
+    ]["examples"]["localSyntheticSession"]["value"]
     assert session_example["actor_ref"] == "demo:local"
     assert session_example["expected_session_version"] == 0
     assert session_example["payload"] == {"operation": "CREATE_SESSION"}
@@ -414,9 +425,7 @@ def test_teacher_sketch_deck_routes_are_published_in_openapi_json(
     monkeypatch.setitem(CoreDatabaseSettings.model_config, "env_file", None)
     monkeypatch.setenv("SKETCH2LIFE_ENV", "test")
     monkeypatch.setenv("STORYRUN_LITE_MAIN_DEMO_ENABLED", "0")
-    monkeypatch.setenv(
-        "SKETCH2LIFE_DATABASE_URL", "postgresql+psycopg://localhost:9/s1at_closed"
-    )
+    monkeypatch.setenv("SKETCH2LIFE_DATABASE_URL", "postgresql+psycopg://localhost:9/s1at_closed")
     get_settings.cache_clear()
     get_core_database_settings.cache_clear()
     application = create_app()
@@ -434,22 +443,17 @@ def test_teacher_sketch_deck_routes_are_published_in_openapi_json(
         get_core_database_settings.cache_clear()
 
     sketch_deck_path = "/v1/lesson-occurrences/{occurrence_id}/sketch-decks"
-    teacher_ai_sketch_deck_path = (
-        "/api/teacher/v1/organizations/{organization_id}/ai/sketch-decks"
-    )
+    teacher_ai_sketch_deck_path = "/api/teacher/v1/organizations/{organization_id}/ai/sketch-decks"
 
     assert {"get", "post"} <= set(published_spec["paths"][sketch_deck_path])
-    assert published_spec["paths"][sketch_deck_path]["get"]["tags"] == [
-        "Lesson Occurrences"
-    ]
-    assert published_spec["paths"][sketch_deck_path]["post"]["tags"] == [
-        "Lesson Occurrences"
-    ]
+    assert published_spec["paths"][sketch_deck_path]["get"]["tags"] == ["Lesson Occurrences"]
+    assert published_spec["paths"][sketch_deck_path]["post"]["tags"] == ["Lesson Occurrences"]
     assert "post" in published_spec["paths"][teacher_ai_sketch_deck_path]
     assert ("post", teacher_ai_sketch_deck_path) in MOUNTED_OPERATIONS
     assert (
-        published_spec["paths"][teacher_ai_sketch_deck_path]["post"]["requestBody"]
-        ["content"]["application/json"]["schema"]["$ref"]
+        published_spec["paths"][teacher_ai_sketch_deck_path]["post"]["requestBody"]["content"][
+            "application/json"
+        ]["schema"]["$ref"]
         == "#/components/schemas/TeacherReviewedPlanRequestV1"
     )
     schemas = published_spec["components"]["schemas"]
@@ -492,17 +496,17 @@ def test_teacher_sketch_deck_routes_are_published_in_openapi_json(
     assert activity["instructions"]["maxLength"] == 1_200
     assert activity["safety_notes"]["maxLength"] == 500
     # The legacy suggestion route is runtime-only and excluded from published OpenAPI.
-    suggestion_request = TeacherLessonSuggestionRequestV1.model_json_schema(
-        mode="validation"
-    )["properties"]
+    suggestion_request = TeacherLessonSuggestionRequestV1.model_json_schema(mode="validation")[
+        "properties"
+    ]
     assert suggestion_request["objectives"]["items"]["minLength"] == 1
     assert suggestion_request["objectives"]["items"]["maxLength"] == 200
     assert suggestion_request["objectives"]["minItems"] == 1
     assert suggestion_request["objectives"]["maxItems"] == 4
     stored_deck_path = "/v1/lesson-occurrences/{occurrence_id}/sketch-decks"
-    stored_deck_schema_ref = published_spec["paths"][stored_deck_path]["post"][
-        "requestBody"
-    ]["content"]["application/json"]["schema"]
+    stored_deck_schema_ref = published_spec["paths"][stored_deck_path]["post"]["requestBody"][
+        "content"
+    ]["application/json"]["schema"]
     stored_deck_schema_name = next(iter(_schema_refs(stored_deck_schema_ref)))
     stored_deck = schemas[stored_deck_schema_name]["properties"]
     assert stored_deck["expected_plan_revision_id"]["minLength"] == 1
@@ -516,9 +520,7 @@ def test_teacher_sketch_deck_routes_are_published_in_openapi_json(
     assert stored_deck["subject_knowledge"]["minItems"] == 1
     assert stored_deck["subject_knowledge"]["maxItems"] == 8
     assert stored_deck["subject_knowledge"]["items"]["maxLength"] == 240
-    catalog_inputs = MOUNTED_OPERATIONS[("post", teacher_ai_sketch_deck_path)][
-        "request_inputs"
-    ]
+    catalog_inputs = MOUNTED_OPERATIONS[("post", teacher_ai_sketch_deck_path)]["request_inputs"]
     assert "objectives*:array(1..4) of string(1..200)" in catalog_inputs
     assert (
         "drawing_steps*:array(4..8) of {action*:string(1..240), placement*:string(1..240)}"
@@ -545,9 +547,8 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
 
     assert spec["openapi"] == "3.1.0"
     assert spec["tags"] == public_tags(TAG_DESCRIPTIONS)
-    assert (
-        len(operations)
-        == 265 + len(ADMIN_OPERATIONS - PR22_UNCATALOGUED_OPERATIONS) + len(QUOTA_OPERATIONS)
+    assert len(operations) == 265 + len(ADMIN_OPERATIONS - PR22_UNCATALOGUED_OPERATIONS) + len(
+        QUOTA_OPERATIONS
     )
     catalog_operations = set(MOUNTED_OPERATIONS)
     catalog_paths = {path for _method, path in catalog_operations}
@@ -586,24 +587,54 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
     # 202.
     # T-6c adds the active-run conflict GET and force-close POST.
     # FEAT-063 Sketch Deck adds an occurrence-pinned GET/POST and a direct Teacher AI POST.
-    assert len(catalog_paths) == 211
+    assert len(catalog_paths) == 216
     assert MOUNTED_OPERATION_COUNT == 135
     assert (
         len(catalog_operations)
         == MOUNTED_OPERATION_COUNT
-        + 5 + 3 + 5 + 1 + 4 + 2 + 1 + 1 + 3 + 1 + 1 + 2 + 2 + 3 + 3 + 2 + 2 + 16 + 2 + 3 + 4 + 3
-        + 1 + 3 + 2 + 2
-        + 2
-        + 1 + 3 + 9 + 7
-        + 2 + 2 + 2
+        + 5
         + 3
-        == 243
+        + 5
+        + 1
+        + 4
+        + 2
+        + 1
+        + 1
+        + 3
+        + 1
+        + 1
+        + 2
+        + 2
+        + 3
+        + 3
+        + 2
+        + 2
+        + 16
+        + 2
+        + 3
+        + 4
+        + 3
+        + 1
+        + 3
+        + 2
+        + 2
+        + 2
+        + 1
+        + 3
+        + 9
+        + 7
+        + 2
+        + 2
+        + 2
+        + 3
+        + 5
+        == 248
     )
     assert set(operations) - catalog_operations == (
         PILOT_ONLY_OPERATIONS
         | PR22_UNCATALOGUED_OPERATIONS
         | ADMIN_OPERATIONS
-        | QUOTA_OPERATIONS
+        | (QUOTA_OPERATIONS - catalog_operations)
         | {
             (
                 "get",
@@ -661,9 +692,7 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
     ) not in operations
     assignment_key = ("post", "/api/be1/v1/classes/{class_id}/assignments")
     assert assignment_key in operations
-    assignment_body = operations[assignment_key]["requestBody"]["content"][
-        "application/json"
-    ]
+    assignment_body = operations[assignment_key]["requestBody"]["content"]["application/json"]
     assignment_schema_name = next(iter(_schema_refs(assignment_body["schema"])))
     assert set(spec["components"]["schemas"][assignment_schema_name]["properties"]) == {
         "candidate_ref"
@@ -673,9 +702,7 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
         "post",
         "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles",
     )
-    profile_body = operations[profile_key]["requestBody"]["content"][
-        "application/json"
-    ]
+    profile_body = operations[profile_key]["requestBody"]["content"]["application/json"]
     profile_schema_name = next(iter(_schema_refs(profile_body["schema"])))
     profile_schema = spec["components"]["schemas"][profile_schema_name]
     # T-7c: the class is the path only; `consent_id` is the optional real-data reference.
@@ -784,9 +811,7 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
             # 422 stays only on the named kept-422 operations (grouped under "default").
             kept_422 = key in BE1_KEPT_422_OPERATIONS
             if key == RESTORE_CHECKPOINT_OPERATION_KEY:
-                expected_statuses = {
-                    "200", "400", "401", "403", "404", "409", "410", "500", "503"
-                }
+                expected_statuses = {"200", "400", "401", "403", "404", "409", "410", "500", "503"}
                 expected_default_codes = None
             elif key == PORTFOLIO_OPERATION_KEY:
                 expected_statuses = {"200", "400", "401", "403", "404", "409", "default"}
@@ -972,10 +997,12 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
         assert limit_parameter["schema"]["minimum"] == 1
         assert limit_parameter["schema"]["maximum"] == 100
 
-    decline_catalog_response = MOUNTED_OPERATIONS[(
-        "post",
-        "/api/lesson-library/v1/me/parent-group-invitations/{membership_id}/decline",
-    )]["responses"]
+    decline_catalog_response = MOUNTED_OPERATIONS[
+        (
+            "post",
+            "/api/lesson-library/v1/me/parent-group-invitations/{membership_id}/decline",
+        )
+    ]["responses"]
     assert "ETag" in next(
         row["description"] for row in decline_catalog_response if row["status"] == "200"
     )
@@ -1050,9 +1077,7 @@ def test_teacher_svg_catalog_detail_openapi_is_scoped_and_typed(
     path = "/api/svg-catalog/v1/organizations/{organization_id}/assets/{catalog_entry_id}"
     operation = runtime_openapi["paths"][path]["get"]
     path_parameters = {
-        parameter["name"]
-        for parameter in operation["parameters"]
-        if parameter.get("in") == "path"
+        parameter["name"] for parameter in operation["parameters"] if parameter.get("in") == "path"
     }
 
     assert path_parameters == {"organization_id", "catalog_entry_id"}
@@ -1093,7 +1118,6 @@ def test_parent_group_membership_openapi_schema_adds_organization_id(
         "revision_source",
     }
     assert "organization_id" in membership["required"]
-
 
     assert membership["properties"]["organization_id"]["type"] == "string"
 
@@ -1157,9 +1181,9 @@ def test_parent_group_membership_openapi_schema_adds_organization_id(
         ),
     )
     for method, path, status, schema_name in response_contracts:
-        response_schema = runtime_openapi["paths"][path][method]["responses"][status][
-            "content"
-        ]["application/json"]["schema"]
+        response_schema = runtime_openapi["paths"][path][method]["responses"][status]["content"][
+            "application/json"
+        ]["schema"]
         assert schema_name in _schema_refs(response_schema), (method, path)
 
     for key in (
@@ -1182,9 +1206,7 @@ def test_parent_group_membership_openapi_schema_adds_organization_id(
         ),
     ):
         success = next(
-            row
-            for row in MOUNTED_OPERATIONS[key]["responses"]
-            if row["status"] in {"200", "201"}
+            row for row in MOUNTED_OPERATIONS[key]["responses"] if row["status"] in {"200", "201"}
         )
         assert "organization_id" in success["description"], key
 
@@ -1440,9 +1462,7 @@ def test_parent_search_filters_and_cursor_contract(runtime_openapi: dict[str, An
 
 def test_search_invalid_filter_is_400() -> None:
     principal = SimpleNamespace(subject="synthetic-parent", issuer="synthetic-issuer")
-    identity = SimpleNamespace(
-        state="active", account_role="parent", issuer="synthetic-issuer"
-    )
+    identity = SimpleNamespace(state="active", account_role="parent", issuer="synthetic-issuer")
     db = SimpleNamespace(get=lambda _model, _subject: identity)
     service = LessonLibraryService(db, storage=None, parser=None, scanner=None)
     application = create_app()
@@ -1451,9 +1471,7 @@ def test_search_invalid_filter_is_400() -> None:
     application.dependency_overrides[get_lesson_library_service] = lambda: service
     try:
         with TestClient(application) as client:
-            response = client.get(
-                "/api/lesson-library/v1/me/lessons?target_age_band_ref=age-3-6"
-            )
+            response = client.get("/api/lesson-library/v1/me/lessons?target_age_band_ref=age-3-6")
         assert response.status_code == 400
         assert response.json()["code"] == "INVALID_REQUEST"
         assert response.json()["field_errors"] == [
@@ -1480,16 +1498,31 @@ def test_cursor_shape_and_scope_are_opaque() -> None:
     )
     assert "synthetic-teacher-opaque" not in cursor
     assert "bướm" not in cursor
-    assert _decode_scoped_cursor(
-        cursor=cursor, scope=scope, value_kind="datetime"
-    ) == (created_at, "lesson-1")
+    assert _decode_scoped_cursor(cursor=cursor, scope=scope, value_kind="datetime") == (
+        created_at,
+        "lesson-1",
+    )
     for changed_scope in (
         {**scope, "actor": "another-teacher"},
         {**scope, "route": "GET /organizations/org-b/public-lessons"},
         {**scope, "filters": {"q": "other", "topic": None}},
     ):
         with pytest.raises(LessonLibraryError) as refused:
-            _decode_scoped_cursor(
-                cursor=cursor, scope=changed_scope, value_kind="datetime"
-            )
+            _decode_scoped_cursor(cursor=cursor, scope=changed_scope, value_kind="datetime")
         assert (refused.value.status_code, refused.value.code) == (400, "INVALID_REQUEST")
+
+
+def test_capacity_checkout_requires_confirmed_quote(runtime_openapi: dict[str, Any]) -> None:
+    schema = runtime_openapi["components"]["schemas"]["Be1CapacityCheckoutRequest"]
+    assert set(schema["required"]) == {
+        "addon_slots",
+        "provider",
+        "expected_amount_vnd",
+        "price_id",
+        "period_end",
+        "quoted_at",
+    }
+    assert schema["additionalProperties"] is False
+    assert schema["properties"]["expected_amount_vnd"]["exclusiveMinimum"] == 0
+    assert schema["properties"]["period_end"]["format"] == "date-time"
+    assert schema["properties"]["quoted_at"]["format"] == "date-time"

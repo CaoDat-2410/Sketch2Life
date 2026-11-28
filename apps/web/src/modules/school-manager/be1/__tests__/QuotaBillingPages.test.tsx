@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, useLocation } from "react-router-dom";
+import { capacityService } from "../services/capacityService";
 import { AdminBe1Error, adminBe1Request } from "../services/be1Client";
 import { managerBusinessService } from "../services/managerBusinessService";
 import { SchoolBillingPage, SchoolQuotaPage } from "../pages/QuotaBillingPages";
@@ -190,4 +191,20 @@ describe("School billing payment lifecycle", () => {
     await waitFor(() => expect(window.location.search).toBe("") );
     expect(request).toHaveBeenCalledWith("/organizations/org-qa/video-quota/invoices?limit=50");
   });
+});
+
+
+it("routes a capacity return to the capacity page with its invoice", async () => {
+  window.history.replaceState({}, "", "/school/billing?invoice=capacity-invoice");
+  mockOrganization();
+  const request = vi.mocked(adminBe1Request);
+  request.mockReset();
+  mockInitialLoad(request, []);
+  request.mockResolvedValue({ items: [], total: 0 } as never);
+  vi.spyOn(capacityService, "purchases").mockResolvedValue([{ invoice_id: "capacity-invoice",
+    kind: "ADDON", state: "PENDING", provider: "MOMO", units: 1, amount_vnd: 5000, activated: false, attempts: [] }]);
+  function Location() { const location = useLocation(); return <div data-testid="route">{location.pathname + location.search}</div>; }
+  render(<MemoryRouter initialEntries={["/school/billing?invoice=capacity-invoice"]}><SchoolBillingPage /><Location /></MemoryRouter>);
+  await waitFor(() => expect(screen.getByTestId("route").textContent).toBe("/school/capacity?invoice=capacity-invoice"));
+  expect(capacityService.purchases).toHaveBeenCalledWith("org-qa", "capacity-invoice");
 });

@@ -37,8 +37,8 @@ from sketch2life.contracts.schemas.platform_admin import (
     SubscriptionConfigInput,
 )
 from sketch2life.domain.platform_admin import AdminError
-from sketch2life.infrastructure.config.settings import get_settings
 from sketch2life.infrastructure.billing.quota_commerce import QuotaCommerceService
+from sketch2life.infrastructure.config.settings import get_settings
 from sketch2life.infrastructure.learning_content.admin_catalog import AdminCatalogService
 from sketch2life.infrastructure.lesson_library.feedback import LessonFeedbackService
 from sketch2life.infrastructure.lesson_library.platform_publication import PlatformLessonService
@@ -399,6 +399,7 @@ def quota_invoices(
 def reconcile_quota_invoice(invoice_id: str, key: Key, svc=Depends(service)):
     def execute():
         svc.identity()
+        quota_commerce(svc).invoice(invoice_id)
         result = quota_commerce(svc).reconcile_invoice(invoice_id)
         svc.audit(
             "billing.quota_payment.reconcile",

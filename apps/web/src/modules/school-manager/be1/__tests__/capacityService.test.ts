@@ -127,3 +127,41 @@ describe("capacityService", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 });
+
+
+describe("capacity purchase responses", () => {
+  beforeEach(() => {
+    vi.stubEnv("VITE_BE1_BASE_URL", "https://be1.example.test");
+    vi.spyOn(authService, "getIdToken").mockResolvedValue("token");
+    vi.stubGlobal("fetch", vi.fn());
+  });
+  afterEach(() => { vi.restoreAllMocks(); vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
+  it("sends the idempotency key and refuses an insecure checkout URL", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(okResponse({ invoice_id: "inv", state: "PENDING", checkout_url: "http://evil.test/" }));
+    await expect(capacityService.checkout("org", { quantity: 2, amount_vnd: 5000, price_id: "price", period_end: "2026-12-31T00:00:00Z", quoted_at: "2026-06-01T00:00:00Z" } as Parameters<typeof capacityService.checkout>[1], "VNPAY", "same-key")).rejects.toThrow();
+    expect(new Headers(requestCall().init.headers).get("Idempotency-Key")).toBe("same-key");
+    expect(JSON.parse(String(requestCall().init.body))).toEqual({ addon_slots: 2, provider: "VNPAY", expected_amount_vnd: 5000, price_id: "price", period_end: "2026-12-31T00:00:00Z", quoted_at: "2026-06-01T00:00:00Z" });
+  });
+  it("rejects malformed purchase records", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(okResponse({ items: [{ invoice_id: "inv", kind: "ADDON", activated: "yes" }], total: 1 }));
+    await expect(capacityService.purchases("org")).rejects.toThrow();
+  });
+  it("rejects an unrecognized purchase kind", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(okResponse({ items: [{
+      invoice_id: "inv", kind: "OTHER", state: "PENDING", provider: "SANDBOX", units: 4,
+      amount_vnd: 1000, activated: false, attempts: [],
+    }], total: 1 }));
+    await expect(capacityService.purchases("org")).rejects.toThrow();
+  });
+  it.each(["START", "RENEW", "ADDON"] as const)("accepts the declared purchase kind %s", async (kind) => {
+    vi.mocked(fetch).mockResolvedValueOnce(okResponse({ items: [{
+      invoice_id: "inv", kind, state: "PENDING", provider: "SANDBOX", units: 4,
+      amount_vnd: 1000, activated: false, attempts: [],
+    }], total: 1 }));
+    await expect(capacityService.purchases("org")).resolves.toMatchObject([{ kind }]);
+  });
+  it("preserves a completed checkout state without following its URL", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(okResponse({ invoice_id: "inv", state: "PAID", checkout_url: "http://evil.test/" }));
+    await expect(capacityService.checkout("org", { quantity: 2, amount_vnd: 5000, price_id: "price", period_end: "2026-12-31T00:00:00Z", quoted_at: "2026-06-01T00:00:00Z" } as Parameters<typeof capacityService.checkout>[1], "VNPAY", "key")).resolves.toEqual({ state: "PAID", checkout_url: null });
+  });
+});
