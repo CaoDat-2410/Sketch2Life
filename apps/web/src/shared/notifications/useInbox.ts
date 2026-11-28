@@ -1,3 +1,4 @@
+import { notifyNotificationsRead } from "./useUnreadCount";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BackendApiError, createIdempotencyKey } from "../api/backendApi";
 import {
@@ -182,6 +183,7 @@ export function useInbox(): InboxState {
 
     try {
       const updated = await markNotificationRead(inboxItemId, key);
+      notifyNotificationsRead();
       pendingKeys.current.delete(signature);
       if (!mounted.current || version !== viewVersion.current) return;
       setItems((current) => current.map((item) => item.inbox_item_id === inboxItemId ? updated : item));
@@ -193,7 +195,10 @@ export function useInbox(): InboxState {
       if (!mounted.current || version !== viewVersion.current) return;
       const failure = errorMessage(cause);
       // An expired or removed item answers 404: refresh the list so it does not stay stuck as unread.
-      if (errorStatus(cause) === 404) await reload();
+      if (errorStatus(cause) === 404) {
+        await reload();
+        notifyNotificationsRead();
+      }
       if (!mounted.current) return;
       setMessage(failure);
       setMessageIsError(true);
@@ -215,6 +220,7 @@ export function useInbox(): InboxState {
 
     try {
       await markAllNotificationsRead(key);
+      notifyNotificationsRead();
       pendingKeys.current.delete(signature);
       if (!mounted.current || version !== viewVersion.current) return;
       // The server marked everything unread at that moment: show it at once, then confirm with a fresh page.

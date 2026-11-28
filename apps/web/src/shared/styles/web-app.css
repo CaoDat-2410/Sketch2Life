@@ -227,3 +227,6 @@
   .s2l-dashboard-card { min-height: 180px; }
   .s2l-dashboard-card .s2l-empty-copy { margin: 13px 0; }
 }
+
+.s2l-nav-unread { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; min-width: 20px; height: 20px; margin-left: auto; padding: 0 6px; border-radius: 999px; background: var(--s2l-ui-primary, var(--s2l-teal-dark)); color: var(--s2l-ui-paper, #fff); font-size: 11px; font-weight: 700; line-height: 1; }
+.s2l-nav-group-toggle .s2l-nav-unread { margin-right: 6px; }

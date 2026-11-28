@@ -7,6 +7,8 @@ import {
   TEACHER_NAVIGATION,
   WebAppShell,
 } from "../WebAppShell";
+import { InboxPage } from "../../notifications/InboxPage";
+import * as notificationsApi from "../../api/notificationsApi";
 import { authService } from "../../../modules/school-manager/be1/services/authService";
 
 vi.mock("../../../modules/school-manager/be1/services/authService", () => ({
@@ -289,5 +291,45 @@ describe("Teacher AI navigation status", () => {
     expect(screen.getByRole("button", { name: "Lên lớp" }).getAttribute("aria-expanded")).toBe("true");
     expect(screen.getByRole("button", { name: "Tài khoản" }).getAttribute("aria-expanded")).toBe("false");
     expect(screen.getByRole("button", { name: "Mở điều hướng" }).getAttribute("aria-expanded")).toBe("false");
+  });
+});
+
+
+describe("inbox navigation badge", () => {
+  it.each([
+    ["teacher", TEACHER_NAVIGATION, "/teacher/t01-lesson-workspace", "Tài khoản"],
+    ["manager", SCHOOL_MANAGER_NAVIGATION, "/school", "Thông báo"],
+  ] as const)("shows the collapsed and expanded badge for %s", async (portal, navigation, route, group) => {
+    vi.spyOn(notificationsApi, "listNotifications").mockResolvedValue({ contract: "NotificationPageV1", items: [], next_cursor: null, unread_count: 3 });
+    renderRoleShell("Role", navigation, portal, route);
+    const toggle = await screen.findByRole("button", { name: `${group}, 3 thông báo chưa đọc` });
+    expect(toggle.querySelector(".s2l-nav-unread")?.getAttribute("aria-hidden")).toBe("true");
+    fireEvent.click(toggle);
+    expect(screen.getByRole("link", { name: "Hộp thư, 3 thông báo chưa đọc" }).querySelector(".s2l-nav-unread")?.textContent).toBe("3");
+    expect(toggle.querySelector(".s2l-nav-unread")).toBeNull();
+  });
+
+  it("caps the visible and accessible count at 99+", async () => {
+    vi.spyOn(notificationsApi, "listNotifications").mockResolvedValue({ contract: "NotificationPageV1", items: [], next_cursor: null, unread_count: 105 });
+    renderRoleShell("Role", TEACHER_NAVIGATION, "teacher", "/teacher/t10-inbox");
+    const link = await screen.findByRole("link", { name: "Hộp thư, hơn 99 thông báo chưa đọc" });
+    expect(link.querySelector(".s2l-nav-unread")?.textContent).toBe("99+");
+  });
+
+  it("refreshes the badge after an inbox item is marked read", async () => {
+    const item: notificationsApi.NotificationItem = { contract: "NotificationV1", inbox_item_id: "one", notification_type: "CLASS_ARCHIVED", template_version: 1, safe_parameters: {}, created_at: "2026-11-20T10:00:00Z", read_at: null, expires_at: null };
+    let count = 1;
+    vi.spyOn(notificationsApi, "listNotifications").mockImplementation(async (options) => ({ contract: "NotificationPageV1", items: options?.limit === 1 ? [] : [item], next_cursor: null, unread_count: count }));
+    vi.spyOn(notificationsApi, "markNotificationRead").mockImplementation(async () => { count = 0; return { ...item, read_at: "2026-11-20T12:00:00Z" }; });
+    render(<MemoryRouter initialEntries={["/teacher/t10-inbox"]}><WebAppShell portal="teacher" roleLabel="Teacher" navigation={TEACHER_NAVIGATION} loginHref="/login" modeLabel="" onLogout={() => undefined}><InboxPage /></WebAppShell></MemoryRouter>);
+    expect(await screen.findByRole("link", { name: "H\u1ed9p th\u01b0, 1 th\u00f4ng b\u00e1o ch\u01b0a \u0111\u1ecdc" })).toBeTruthy();
+    fireEvent.click(await screen.findByRole("button", { name: "Th\u00f4ng b\u00e1o m\u1edbi: \u0111\u00e1nh d\u1ea5u \u0111\u00e3 \u0111\u1ecdc" }));
+    expect(await screen.findByRole("link", { name: "H\u1ed9p th\u01b0" })).toBeTruthy();
+  });
+
+  it("does not fetch for the admin menu", () => {
+    const list = vi.spyOn(notificationsApi, "listNotifications");
+    renderPlatformShell();
+    expect(list).not.toHaveBeenCalled();
   });
 });

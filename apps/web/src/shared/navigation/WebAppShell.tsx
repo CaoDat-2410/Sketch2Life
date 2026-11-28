@@ -39,6 +39,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import platformAdminLogo from "../assets/sketch2life-logo-mark-128.png";
+import { useUnreadCount } from "../notifications/useUnreadCount";
 import { AccessibleDialog } from "../components/ui";
 import { Alert, Button, FormField } from "../ui";
 import { authService } from "../../modules/school-manager/be1/services/authService";
@@ -222,6 +223,10 @@ export function WebAppShell({
 }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const hasInbox = navigation.some((group) => group.items.some((item) => item.href === "/teacher/t10-inbox" || item.href === "/school/inbox"));
+  const unreadCount = useUnreadCount(hasInbox, location.pathname + location.search + location.hash);
+  const unreadLabel = unreadCount === null ? null : unreadCount > 99 ? "hơn 99 thông báo chưa đọc" : `${unreadCount} thông báo chưa đọc`;
+  const badge = unreadCount === null ? null : <span className="s2l-nav-unread" aria-hidden="true">{unreadCount > 99 ? "99+" : unreadCount}</span>;
   const [menuOpen, setMenuOpen] = useState(false);
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
@@ -334,6 +339,7 @@ export function WebAppShell({
               || (portal === "teacher" && (group.label === "Học liệu" || group.label === "Lên lớp"))
               || activeGroup === group.label;
             const isActiveGroup = activeGroup === group.label;
+            const groupHasInbox = group.items.some((item) => item.href === "/teacher/t10-inbox" || item.href === "/school/inbox");
             const isCollapsed = !!group.label && !isActiveGroup && !(preference ?? defaultOpen);
             return (
             <section className={"s2l-nav-group" + (group.label ? " is-collapsible" : "") + (isCollapsed ? " is-collapsed" : "")} key={group.label || groupIndex} aria-label={group.label || undefined}>
@@ -342,6 +348,7 @@ export function WebAppShell({
                   className="s2l-nav-group-toggle"
                   type="button"
                   aria-expanded={!isCollapsed}
+                  aria-label={isCollapsed && groupHasInbox && unreadLabel ? `${group.label}, ${unreadLabel}` : undefined}
                   aria-controls={groupId}
                   onClick={() => {
                     if (isActiveGroup) return;
@@ -349,6 +356,7 @@ export function WebAppShell({
                   }}
                 >
                   <span>{group.label}</span>
+                  {isCollapsed && groupHasInbox && badge}
                   <ChevronDown size={15} strokeWidth={1.8} aria-hidden="true" />
                 </button>
               ) : null}
@@ -356,6 +364,7 @@ export function WebAppShell({
               {group.items.map((item, index) => {
                 const active = navigationMatches(item.href, location.pathname, location.search, item.matchPrefix);
                 const Icon = item.icon;
+                const isInbox = item.href === "/teacher/t10-inbox" || item.href === "/school/inbox";
                 const hasNavStatus = navStatus !== undefined && Object.prototype.hasOwnProperty.call(navStatus, item.href);
                 const taskStatus = navStatus?.[item.href];
                 const statusText = taskStatus ? NAV_STATUS_LABELS[taskStatus] : undefined;
@@ -367,12 +376,13 @@ export function WebAppShell({
                     to={item.href}
                     className={"s2l-nav-link" + (active ? " is-active" : "") + (hasNavStatus ? " has-ai-status" : "")}
                     aria-current={active ? "page" : false}
-                    aria-label={statusText ? item.label + " " + statusText : undefined}
+                    aria-label={isInbox && unreadLabel ? `${item.label}, ${unreadLabel}` : statusText ? item.label + " " + statusText : undefined}
                     title={statusText}
                     onClick={() => { if (menuOpen) menuButton.current?.focus(); setMenuOpen(false); }}
                   >
                     <Icon size={18} strokeWidth={1.85} aria-hidden="true" />
                     <span>{item.label}</span>
+                    {isInbox && badge}
                     {item.state === "waiting" && <span className="s2l-nav-state" title="Đang chờ dịch vụ">Chờ dịch vụ</span>}
                     {statusText && <span className="s2l-visually-hidden"> {statusText}</span>}
                     {hasNavStatus && (

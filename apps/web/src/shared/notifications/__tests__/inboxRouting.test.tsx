@@ -30,7 +30,9 @@ describe("role inbox routes", () => {
     render(<MemoryRouter initialEntries={["/teacher/t10-inbox"]}><TeacherPortalApp /></MemoryRouter>);
 
     expect(await screen.findByText("Hộp thư hiện đang trống.")).toBeTruthy();
-    expect(notificationsApi.listNotifications).toHaveBeenCalledOnce();
+    // One call from the inbox page and one from the menu badge in the shell.
+    expect(vi.mocked(notificationsApi.listNotifications).mock.calls.map(([options]) => options?.limit ?? "page").sort())
+      .toEqual([1, "page"]);
     expect(screen.queryByText("Chưa khả dụng")).toBeNull();
   });
 
@@ -47,7 +49,9 @@ describe("role inbox routes", () => {
     render(<MemoryRouter initialEntries={["/school/inbox"]}><SchoolManagerBe1App /></MemoryRouter>);
 
     expect(await screen.findByText("Hộp thư hiện đang trống.")).toBeTruthy();
-    expect(notificationsApi.listNotifications).toHaveBeenCalledOnce();
+    // One call from the inbox page and one from the menu badge in the shell.
+    expect(vi.mocked(notificationsApi.listNotifications).mock.calls.map(([options]) => options?.limit ?? "page").sort())
+      .toEqual([1, "page"]);
     expect(screen.queryByText("Chưa khả dụng")).toBeNull();
     expect(classService.currentAssignments).toHaveBeenCalledOnce();
   });
