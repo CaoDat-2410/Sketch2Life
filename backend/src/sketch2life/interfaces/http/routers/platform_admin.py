@@ -9,6 +9,10 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
+from sketch2life.contracts.schemas.lesson_feedback import (
+    LessonFeedbackPageV1,
+    LessonFeedbackThreadV1,
+)
 from sketch2life.contracts.schemas.platform_admin import (
     AuditPurgeInput,
     AuditRetentionInput,
@@ -33,8 +37,8 @@ from sketch2life.contracts.schemas.platform_admin import (
     SubscriptionConfigInput,
 )
 from sketch2life.domain.platform_admin import AdminError
-from sketch2life.infrastructure.config.settings import get_settings
 from sketch2life.infrastructure.billing.quota_commerce import QuotaCommerceService
+from sketch2life.infrastructure.config.settings import get_settings
 from sketch2life.infrastructure.learning_content.admin_catalog import AdminCatalogService
 from sketch2life.infrastructure.lesson_library.feedback import LessonFeedbackService
 from sketch2life.infrastructure.lesson_library.platform_publication import PlatformLessonService
@@ -395,6 +399,7 @@ def quota_invoices(
 def reconcile_quota_invoice(invoice_id: str, key: Key, svc=Depends(service)):
     def execute():
         svc.identity()
+        quota_commerce(svc).invoice(invoice_id)
         result = quota_commerce(svc).reconcile_invoice(invoice_id)
         svc.audit(
             "billing.quota_payment.reconcile",
@@ -605,31 +610,49 @@ def runtime_settings(svc=Depends(service)):
     return run(execute)
 
 
-@router.get("/organizations/{organization_id}/feedback")
+@router.get(
+    "/organizations/{organization_id}/feedback",
+    response_model=LessonFeedbackPageV1,
+)
 def organization_feedback(
     organization_id: str,
+    request: Request,
     limit: int = Query(25, ge=1, le=100),
     cursor: str | None = Query(None, max_length=768),
     svc=Depends(service),
 ):
     def execute():
         svc.identity()
-        return LessonFeedbackService(svc).list(organization_id, limit, cursor)
+        return LessonFeedbackService(
+            svc,
+            identity_provisioner=getattr(
+                request.app.state, "identity_account_provisioner", None
+            ),
+        ).list(organization_id, limit, cursor)
 
     return run(execute)
 
 
-@router.get("/organizations/{organization_id}/feedback/{thread_id}")
+@router.get(
+    "/organizations/{organization_id}/feedback/{thread_id}",
+    response_model=LessonFeedbackThreadV1,
+)
 def feedback_detail(
     organization_id: str,
     thread_id: str,
+    request: Request,
     limit: int = Query(25, ge=1, le=100),
     cursor: str | None = Query(None, max_length=768),
     svc=Depends(service),
 ):
     def execute():
         svc.identity()
-        return LessonFeedbackService(svc).detail(organization_id, thread_id, limit, cursor)
+        return LessonFeedbackService(
+            svc,
+            identity_provisioner=getattr(
+                request.app.state, "identity_account_provisioner", None
+            ),
+        ).detail(organization_id, thread_id, limit, cursor)
 
     return run(execute)
 

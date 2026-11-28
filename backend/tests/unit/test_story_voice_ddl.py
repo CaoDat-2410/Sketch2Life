@@ -26,9 +26,12 @@ _MIGRATION = _VERSIONS / "20261120_b1_0001_story_voice_transcript.py"
 # FEAT-066 T-1a: DDL-B1 part 2 replaces the same two CHECKs on top of this revision; the ORM holds
 # its final sets, so the equality of those two checks is asserted against that migration.
 _NEXT_MIGRATION = _VERSIONS / "20261120_vb_0002_video_generations.py"
-# FEAT-066 goal v4 T-2e-a: DDL-B3 widens the receipt operation CHECK once more (13 to 14 names); the
-# ORM holds the final receipt set, so that one assertion is made against this migration.
+# FEAT-066 goal v4 T-2e-a widens the receipt check from 13 to 14 names; T-6b adds the 15th and
+# T-6c adds the 16th.
+# The ORM holds the final receipt set, so its assertion uses the latest migration below.
 _RECEIPT_FINAL_MIGRATION = _VERSIONS / "20261123_as_0001_story_activity_selections.py"
+_RECEIPT_TRANSFER_MIGRATION = _VERSIONS / "20261122_t6b_0002_story_owner_transfer.py"
+_RECEIPT_FORCE_CLOSE_MIGRATION = _VERSIONS / "20261122_t6c_0001_story_force_close.py"
 _REVISION = "20261120_b1_0001"
 _PARENT = "20261119_frc08_lifecycle_scope"
 _LESSON_LIBRARY_HEAD_AT_T3A = "20261119_oc_0001"
@@ -86,7 +89,7 @@ def test_revision_is_a_short_unlabelled_child_of_the_story_lifecycle_revision() 
     assert len(_REVISION) <= 32
     assert constants["down_revision"] == _PARENT
     assert constants["branch_labels"] is None  # the frc08_lifecycle label is inherited
-    assert constants["depends_on"] is None
+    assert constants["depends_on"] == ("20261112_parent_audio_transcripts",)
     graph = _graph()
     assert _PARENT in graph
     children = {rev for rev, downs in graph.items() if _PARENT in downs}
@@ -104,28 +107,38 @@ def test_the_run_input_checks_equal_the_orm_checks() -> None:
     assert "ck_story_run_input_typed_idea" not in checks
     assert checks["ck_story_run_input_idea"] == _normal(module.IDEA_CHECK)
     assert checks["ck_story_run_input_voice"] == _normal(module.VOICE_CHECK)
+    # The Parent audio migration already allowed this value; DDL-B1 must preserve it for rows
+    # written before the voice-input migration.
+    assert "idea_source = 'TRANSCRIPT'" in module.IDEA_CHECK
 
 
 def test_the_run_state_and_receipt_checks_equal_the_orm_checks() -> None:
     module = _load()
     final = _load(_NEXT_MIGRATION)
     receipt_final = _load(_RECEIPT_FINAL_MIGRATION)
+    owner_transfer = _load(_RECEIPT_TRANSFER_MIGRATION)
+    force_close = _load(_RECEIPT_FORCE_CLOSE_MIGRATION)
     runs = _orm_checks(tables.story_runs)
     receipts = _orm_checks(tables.story_command_receipts)
     # The ORM holds the final sets (T-1a); part 2 starts from exactly the sets of this revision.
     assert runs["ck_story_run_state"] == _normal(f"run_state IN ({final.RUN_STATES_AFTER})")
     # T-2e-a: the receipt set is the one of DDL-B3, which starts from the set of part 2.
-    assert receipts["ck_story_receipt_operation"] == _normal(
-        f"operation IN ({receipt_final.RECEIPT_OPERATIONS_AFTER})"
+    assert force_close.RECEIPT_OPERATIONS_BEFORE == owner_transfer.RECEIPT_OPERATIONS_AFTER
+    repair = _load(_VERSIONS / "20261126_as_0003_activity_set_receipt_operation.py")
+    assert re.findall(r"'([A-Z_]+)'", receipts["ck_story_receipt_operation"]) == list(
+        repair.RECEIPT_OPERATIONS_AFTER
     )
     assert receipt_final.RECEIPT_OPERATIONS_BEFORE == final.RECEIPT_OPERATIONS_AFTER
+    assert tuple(
+        re.findall(r"'([A-Z_]+)'", receipt_final.RECEIPT_OPERATIONS_AFTER)
+    ) == owner_transfer.RECEIPT_OPERATIONS_BEFORE
     assert final.RUN_STATES_BEFORE == module.RUN_STATES_AFTER
     assert final.RECEIPT_OPERATIONS_BEFORE == module.RECEIPT_OPERATIONS_AFTER
-    assert module.RUN_STATES_AFTER.count("'") // 2 == 12
+    assert module.RUN_STATES_AFTER.count("'") // 2 == 20
     assert "'INPUT_REVIEW'" in module.RUN_STATES_AFTER
-    assert module.RECEIPT_OPERATIONS_AFTER.count("'") // 2 == 10
-    assert module.RUN_STATES_BEFORE.count("'") // 2 == 11
-    assert module.RECEIPT_OPERATIONS_BEFORE.count("'") // 2 == 8
+    assert module.RECEIPT_OPERATIONS_AFTER.count("'") // 2 == 17
+    assert module.RUN_STATES_BEFORE.count("'") // 2 == 20
+    assert module.RECEIPT_OPERATIONS_BEFORE.count("'") // 2 == 17
 
 
 def test_the_transcript_checks_equal_the_orm_checks() -> None:

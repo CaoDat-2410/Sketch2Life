@@ -1,4 +1,4 @@
-"""FEAT-066 T-7d: the Teacher enrollment move between two classes on PostgreSQL.
+"""FEAT-066 T-7d: the Manager/Teacher enrollment move within an organization on PostgreSQL.
 
 SRS l.544 (one active enrollment, the earlier one is closed and kept), l.830 and l.1093 (the
 enrollment is the source, the class projection moves in the same transaction), l.1425 (capacity
@@ -123,6 +123,7 @@ def api(monkeypatch: pytest.MonkeyPatch, tmp_path: Any) -> Iterator[Api]:
         db.flush()
         people: tuple[tuple[str, str, str | None, str | None], ...] = (
             ("manager", "school_manager", organization, "school_admin"),
+            ("foreign_manager", "school_manager", foreign, "school_admin"),
             ("orgt", "teacher", organization, "teacher"),  # an organization-wide Teacher row
             ("parent", "parent", None, None),
             ("platform", "platform_admin", None, None),
@@ -215,6 +216,48 @@ def new_child(
                 )
             )
     return child_id
+
+
+def new_real_child(d: Api, class_id: str) -> tuple[str, str]:
+    child_id = f"synthetic-{uuid4().hex[:24]}"
+    consent_id = str(uuid4())
+    with d.factory().begin() as db:
+        db.add(
+            ManagedProfileModel(
+                child_id=child_id,
+                organization_id=d.organization,
+                class_id=class_id,
+                display_name=NAME,
+                age_months=60,
+                age_revision=1,
+                age_source="ADULT_DECLARED",
+                consent_id=consent_id,
+                consent_purpose_ref=PURPOSE,
+                data_origin="REAL",
+                created_by="synthetic-t7d-seed",
+            )
+        )
+        db.add(
+            EnrollmentModel(
+                enrollment_id=str(uuid4()),
+                organization_id=d.organization,
+                class_id=class_id,
+                child_id=child_id,
+                created_by="synthetic-t7d-seed",
+            )
+        )
+        db.add(
+            ConsentRecordModel(
+                consent_id=consent_id,
+                organization_id=d.organization,
+                class_id=class_id,
+                child_id=child_id,
+                purpose_ref=PURPOSE,
+                state="pending",
+                recorded_by="synthetic-t7d-seed",
+            )
+        )
+    return child_id, consent_id
 
 
 def url(source: str, child_id: str) -> str:
@@ -617,15 +660,62 @@ def test_a_read_only_class_on_either_side_is_409_and_writes_nothing(
 
 
 # ------------------------------------------------------------------------------ authorization
-def test_the_school_manager_is_403_and_no_child_data_leaks(api: Api) -> None:
+def test_the_school_manager_can_move_within_the_organization_without_profile_contents(
+    api: Api,
+) -> None:
     d = api
     source, target = two_classes(d)
     child = new_child(d, source)
     response = move(d, "manager", source, child, target)
-    assert response.status_code == 403
-    assert response.json()["code"] == "ACTION_NOT_ALLOWED"
-    assert NAME not in response.text and child not in response.text
-    assert enrollments(d, child) == [(source, "active")]
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["contract"] == "Be1ProfileMoveV1"
+    assert body["child_id"] == child
+    assert set(body) == {
+        "contract",
+        "child_id",
+        "from_class_id",
+        "to_class_id",
+        "enrollment_id",
+        "from_class_revision",
+        "to_class_revision",
+    }
+    assert NAME not in response.text and "age_months" not in response.text
+    assert enrollments(d, child) == [(source, "withdrawn"), (target, "active")]
+    assert profile_class(d, child) == target
+    assert (class_revision(d, source), class_revision(d, target)) == (2, 2)
+    assert audit_count(d, child) == 1
+
+
+def test_manager_move_does_not_copy_real_profile_consent_to_the_target_class(api: Api) -> None:
+    d = api
+    source, target = two_classes(d)
+    child, consent_id = new_real_child(d, source)
+
+    response = move(d, "manager", source, child, target)
+
+    assert response.status_code == 200, response.text
+    with d.factory()() as db:
+        consent = db.get(ConsentRecordModel, consent_id)
+        assert consent is not None and consent.class_id == source
+        moved_profile = db.get(ManagedProfileModel, child)
+        assert moved_profile is not None and moved_profile.class_id == target
+    assert count(
+        d,
+        ConsentRecordModel,
+        ConsentRecordModel.organization_id == d.organization,
+        ConsentRecordModel.class_id == target,
+        ConsentRecordModel.child_id == child,
+    ) == 0
+
+    target_roster = d.client.get(
+        f"/api/be1/v1/organizations/{d.organization}/classes/{target}/profiles",
+        headers={"X-Test-Principal": d.subjects["t1"]},
+    )
+    assert target_roster.status_code == 200, target_roster.text
+    assert target_roster.json()["active_profile_count"] == 1
+    assert target_roster.json()["items"] == []
+    assert child not in target_roster.text and NAME not in target_roster.text
 
 
 def test_everyone_outside_the_two_classes_gets_one_uniform_404(api: Api) -> None:
@@ -644,10 +734,12 @@ def test_everyone_outside_the_two_classes_gets_one_uniform_404(api: Api) -> None
         move(d, "other", class_a, child, class_b),
         move(d, "orgt", class_a, child, class_b),
         move(d, "fteacher", class_a, child, class_b),
+        move(d, "foreign_manager", class_a, child, class_b),
         move(d, "foreign_both", class_a, child, class_b),
         move(d, "parent", class_a, child, class_b),
         move(d, "platform", class_a, child, class_b),
         move(d, "foreign_both", class_a, child, foreign_class),
+        move(d, "manager", class_a, child, foreign_class),
         # a target of another organization, asked by a Teacher of the source
         move(d, "only_a", class_a, child, foreign_class),
         # unknown source class and unknown target class

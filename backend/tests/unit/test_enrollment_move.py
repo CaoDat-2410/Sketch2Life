@@ -1,9 +1,9 @@
-"""FEAT-066 T-7d unit tests: the Teacher enrollment move helpers and handler order.
+"""FEAT-066 T-7d unit tests: the enrollment move helpers and handler order.
 
 No database: a fake session answers the handler's reads in order. SRS l.544 (one active
 enrollment, the earlier one is closed and kept), l.830 and l.1093, l.1425 (no capacity rule),
-l.1651 and l.1699 (expected class revision, STALE_REVISION), l.1697 (keyed commands). The School
-Manager is refused by the role helper (403) and no cross-Teacher move exists (X-19).
+l.1651 and l.1699 (expected class revision, STALE_REVISION), l.1697 (keyed commands). A School
+Manager can move within the organization; a Teacher still needs class-scoped rows on both classes.
 """
 
 from __future__ import annotations
@@ -304,6 +304,39 @@ def test_success_closes_then_opens_projects_bumps_both_and_stores_references() -
     assert len(receipts) == 1
     assert receipts[0].operation_scope == f"POST /classes/class-a/profiles/{CHILD}/move"
     assert receipts[0].response_json == body
+
+
+def test_a_school_manager_moves_between_classes_without_teacher_rows(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    manager = SimpleNamespace(class_id=None, role="school_admin")
+    authorization: dict[str, Any] = {}
+
+    def allow_manager(
+        _db: object, _principal: object, _organization_id: str, *, roles: set[str], class_id: str
+    ) -> tuple[SimpleNamespace, ...]:
+        authorization.update(roles=roles, class_id=class_id)
+        return (manager,)
+
+    monkeypatch.setattr(be1_registry, "require_assignment", allow_manager)
+    db = _db()
+    response = _move(db)
+    assert authorization == {"roles": {"school_admin", "teacher"}, "class_id": "class-a"}
+    assert response["from_class_id"] == "class-a" and response["to_class_id"] == "class-b"
+    assert db.commits == 1
+
+
+def test_a_manager_from_another_organization_gets_the_uniform_404(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def out_of_scope(*_args: object, **_kwargs: object) -> tuple[object, ...]:
+        raise failure(404, "RESOURCE_NOT_FOUND", "The requested resource was not found")
+
+    monkeypatch.setattr(be1_registry, "require_assignment", out_of_scope)
+    db = _db()
+    error = _error(db)
+    assert error.status_code == 404 and _code(error) == "RESOURCE_NOT_FOUND"
+    _wrote_nothing(db)
 
 
 def test_success_projects_the_target_class_on_the_profile_row() -> None:

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { RefreshCw, School } from "lucide-react";
+import { Link } from "react-router-dom";
 import {
   allowedClassCommands,
   classService,
@@ -12,19 +13,47 @@ import {
 import { AdminBe1Error } from "../services/be1Client";
 import { PageHeading } from "../../../../shared/components/FeatureAvailability";
 import { createIdempotencyKey } from "../../../../shared/api/backendApi";
+import { useSessionScopedDraft, type SessionDraftAuth } from "../../../../shared/hooks/useSessionScopedDraft";
 import { Alert, Button, FormField, Select } from "../../../../shared/ui";
+import { authService } from "../services/authService";
+import { adminOrganizationId } from "../services/be1Client";
+
+type ClassCreateDraft = {
+  displayName: string;
+  retryName: string | null;
+  actionKeys: Record<string, string>;
+};
+
+const EMPTY_CLASS_CREATE_DRAFT: ClassCreateDraft = { displayName: "", retryName: null, actionKeys: {} };
+const draftAuth: SessionDraftAuth = {
+  getCurrentUser: () => authService.getCurrentUser(),
+  observe: (callback) => authService.observe((user) => callback(user)),
+};
+
+function assignedOrganizationScope(): string | null {
+  try {
+    return adminOrganizationId();
+  } catch {
+    return null;
+  }
+}
 
 export function ClassesPage() {
   const [classes, setClasses] = useState<Be1Class[]>([]);
   const [selectedId, setSelectedId] = useState("");
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
-  const [retryName, setRetryName] = useState<string | null>(null);
-  const [displayName, setDisplayName] = useState("");
+  const [createDraft, setCreateDraft, clearCreateDraft] = useSessionScopedDraft(
+    "school-manager:class-create",
+    EMPTY_CLASS_CREATE_DRAFT,
+    draftAuth,
+    assignedOrganizationScope(),
+  );
+  const { displayName, retryName, actionKeys } = createDraft;
   const [error, setError] = useState("");
+  const [capacityReached, setCapacityReached] = useState(false);
   const [stateError, setStateError] = useState("");
   const [notice, setNotice] = useState("");
-  const actionKeys = useRef(new Map<string, string>());
   // T-7b: the list filter (default every state) and one key per exact suspend/archive command.
   const [filter, setFilter] = useState<Be1ClassFilter>("all");
   const [pendingCommand, setPendingCommand] = useState<ClassStateCommand | null>(null);
@@ -40,7 +69,7 @@ export function ClassesPage() {
       setSelectedId((current) => items.some((item) => item.class_id === current) ? current : items[0]?.class_id ?? "");
       setError("");
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Không tải được danh sách lớp từ BE1.");
+      setError(cause instanceof Error ? cause.message : "Không tải được danh sách lớp.");
       setClasses([]); setSelectedId("");
     } finally { setLoading(false); }
   };
@@ -49,7 +78,7 @@ export function ClassesPage() {
     let current = true;
     classService.listClasses("all")
       .then((items) => { if (current) { setClasses(items); setSelectedId(items[0]?.class_id ?? ""); } })
-      .catch((cause: unknown) => { if (current) setError(cause instanceof Error ? cause.message : "Không tải được danh sách lớp từ BE1."); })
+      .catch((cause: unknown) => { if (current) setError(cause instanceof Error ? cause.message : "Không tải được danh sách lớp."); })
       .finally(() => { if (current) setLoading(false); });
     return () => { current = false; };
   }, []);
@@ -58,14 +87,14 @@ export function ClassesPage() {
     const name = displayName.trim();
     if (!name || creating) return;
     // One key per user action: a retry of the same name reuses it, a changed name is a new action.
-    const key = actionKeys.current.get(name) ?? createIdempotencyKey();
-    actionKeys.current.set(name, key);
-    setCreating(true); setError(""); setNotice("");
+    const key = actionKeys[name] ?? createIdempotencyKey();
+    if (!actionKeys[name]) {
+      setCreateDraft((current) => ({ ...current, actionKeys: { ...current.actionKeys, [name]: key } }));
+    }
+    setCreating(true); setError(""); setCapacityReached(false); setNotice("");
     try {
       const created = await classService.createClass(name, key);
-      actionKeys.current.delete(name);
-      setRetryName(null);
-      setDisplayName("");
+      clearCreateDraft();
       setNotice(`Đã tạo lớp “${created.display_name}”.`);
       setClasses((items) => [created, ...items.filter((item) => item.class_id !== created.class_id)]);
       setSelectedId(created.class_id);
@@ -73,11 +102,23 @@ export function ClassesPage() {
         const items = await classService.listClasses(filter);
         setClasses(items); setSelectedId(created.class_id);
       } catch {
-        setError("Lớp đã được tạo; danh sách chưa thể làm mới. Chọn Làm mới từ BE1 để cập nhật.");
+        setError("Lớp đã được tạo; danh sách chưa thể làm mới. Chọn Làm mới để cập nhật.");
       }
     } catch (cause) {
-      if (cause instanceof AdminBe1Error && cause.status >= 400 && cause.status < 500) actionKeys.current.delete(name);
-      setRetryName(actionKeys.current.has(name) ? name : null);
+      if (cause instanceof AdminBe1Error && cause.code === "CLASS_CAPACITY_REACHED") {
+        setCreateDraft((current) => {
+          const nextKeys = { ...current.actionKeys };
+          delete nextKeys[name];
+          return { ...current, retryName: null, actionKeys: nextKeys };
+        });
+        setCapacityReached(true);
+        return;
+      }
+      setCreateDraft((current) => {
+        const nextKeys = { ...current.actionKeys };
+        if (cause instanceof AdminBe1Error && cause.status >= 400 && cause.status < 500) delete nextKeys[name];
+        return { ...current, retryName: nextKeys[name] ? name : null, actionKeys: nextKeys };
+      });
       setError(cause instanceof Error ? cause.message : "Không thể tạo lớp. Hãy thử lại cùng yêu cầu.");
     } finally { setCreating(false); }
   };
@@ -113,10 +154,10 @@ export function ClassesPage() {
   return (
     <div className="s2l-page s2l-data-page manager-business-page">
       <PageHeading
-        eyebrow="School Manager · BE1"
+        eyebrow="Quản lý trường"
         title="Lớp học"
-        description="Danh sách lớp trong organization đã xác minh."
-        action={<button type="button" className="manager-business-button" onClick={() => void refresh()} disabled={loading || changingState}><RefreshCw size={16} aria-hidden="true" />Làm mới từ BE1</button>}
+        description="Danh sách và quản lý lớp học trong phạm vi nhà trường."
+        action={<button type="button" className="manager-business-button" onClick={() => void refresh()} disabled={loading || changingState}><RefreshCw size={16} aria-hidden="true" />Làm mới</button>}
       />
 
       <section className="manager-business-card cozy-form-card cozy-form-card--wide manager-business-create-class" aria-labelledby="create-class-heading">
@@ -125,6 +166,9 @@ export function ClassesPage() {
           <p className="manager-business-subtle">Nhập tên lớp. Nếu kết quả gửi chưa rõ, hãy gửi lại cùng yêu cầu để tránh tạo trùng.</p>
         </div>
         <form className="cozy-form-stack" onSubmit={(event) => { event.preventDefault(); void createClass(); }}>
+          {capacityReached && <Alert role="alert" tone="danger">
+            Tổ chức đã đạt giới hạn số lớp hiện tại. <Link to="/school/capacity">Xem sức chứa</Link>
+          </Alert>}
           {error && <Alert role="alert" tone="danger">{error}</Alert>}
           <div className="cozy-form-grid">
             <FormField
@@ -132,9 +176,8 @@ export function ClassesPage() {
               label="Tên lớp"
               htmlFor="manager-class-name"
               required
-              help="API tạo lớp hiện chưa kiểm tra giới hạn sức chứa (SRS FR-T-03); hãy tự kiểm tra sức chứa trước khi tạo lớp."
             >
-              <input id="manager-class-name" className="cozy-input" value={displayName} onChange={(event) => setDisplayName(event.target.value)} maxLength={200} required disabled={creating} />
+              <input id="manager-class-name" className="cozy-input" value={displayName} onChange={(event) => setCreateDraft((current) => ({ ...current, displayName: event.target.value }))} maxLength={200} required disabled={creating} />
             </FormField>
             <div className="cozy-form-actions cozy-span-2 cozy-form-inline-action" style={{ marginTop: 0 }}>
               <Button type="submit" variant="primary" loading={creating} disabled={creating || !displayName.trim()}>
@@ -162,13 +205,13 @@ export function ClassesPage() {
               </Select>
             </FormField>
           </div>
-          {loading ? <p role="status">Đang tải danh sách lớp…</p> : classes.length === 0 ? <p className="s2l-note">BE1 chưa trả lớp nào cho tài khoản này.</p> : (
+          {loading ? <p role="status">Đang tải danh sách lớp…</p> : classes.length === 0 ? <p className="s2l-note">Chưa có lớp nào cho tài khoản này.</p> : (
             <ul className="s2l-class-list">
               {classes.map((item) => (
                 <li key={item.class_id}>
                   <button type="button" onClick={() => { setSelectedId(item.class_id); setPendingCommand(null); }} className={selected?.class_id === item.class_id ? "is-selected" : ""} aria-pressed={selected?.class_id === item.class_id}>
                     <span className="s2l-class-mark"><School size={18} aria-hidden="true" /></span>
-                    <span className="s2l-class-copy"><strong>{item.display_name}</strong><small>{item.class_id}</small></span>
+                    <span className="s2l-class-copy"><strong>{item.display_name}</strong></span>
                     <span className={"s2l-class-state" + (item.state === "active" ? " is-active" : "")}>{classStateLabel(item.state)}</span>
                   </button>
                 </li>
@@ -181,12 +224,11 @@ export function ClassesPage() {
           {selected ? (
             <dl className="s2l-class-details">
               <div><dt>Tên lớp</dt><dd>{selected.display_name}</dd></div>
-              <div><dt>Mã lớp</dt><dd className="is-mono">{selected.class_id}</dd></div>
-              <div><dt>Trạng thái BE1</dt><dd>{classStateLabel(selected.state)}</dd></div>
+              <div><dt>Trạng thái</dt><dd>{classStateLabel(selected.state)}</dd></div>
             </dl>
-          ) : <p>Chọn một lớp trong danh sách để xem thông tin BE1 đã trả.</p>}
+          ) : <p>Chọn một lớp trong danh sách để xem chi tiết.</p>}
           {selected?.state === "suspended" && <p className="s2l-note">Lớp tạm ngưng chỉ đọc, mọi dữ liệu vẫn được giữ.</p>}
-          {selected?.state === "archived" && <p className="s2l-note">Lớp đã lưu trữ: chỉ School Manager còn xem được; không có thao tác khôi phục.</p>}
+          {selected?.state === "archived" && <p className="s2l-note">Lớp đã lưu trữ: chỉ Quản lý trường còn xem được; không có thao tác khôi phục.</p>}
           {selected && commands.length > 0 && (
             <div className="manager-business-lifecycle">
               {selected.class_revision === undefined ? (
@@ -196,7 +238,7 @@ export function ClassesPage() {
                   <p id="class-state-confirm" className="manager-business-subtle" style={{ marginTop: 0 }}>
                     {pendingCommand === "suspend"
                       ? `Tạm ngưng lớp “${selected.display_name}”? Lớp tạm ngưng chỉ đọc, mọi dữ liệu vẫn được giữ.`
-                      : `Lưu trữ lớp “${selected.display_name}”? Lưu trữ là bước cuối: Teacher không còn thấy lớp, dữ liệu vẫn được giữ và không có thao tác khôi phục.`}
+                      : `Lưu trữ lớp “${selected.display_name}”? Lưu trữ là bước cuối: Giáo viên không còn thấy lớp, dữ liệu vẫn được giữ và không có thao tác khôi phục.`}
                   </p>
                   {stateError && <Alert role="alert" tone="danger">{stateError}</Alert>}
                   <div className="cozy-form-actions" style={{ marginTop: 0 }}>
@@ -210,14 +252,14 @@ export function ClassesPage() {
                 <div className="cozy-form-stack">
                   {stateError && <Alert role="alert" tone="danger">{stateError}</Alert>}
                   <div className="cozy-form-actions" style={{ marginTop: 0 }}>
-                    {commands.includes("archive") && <Button type="button" variant="danger" className="cozy-form-action-danger" onClick={() => { setPendingCommand("archive"); setStateError(""); }} disabled={changingState || loading}>Lưu trữ lớp</Button>}
                     {commands.includes("suspend") && <Button type="button" variant="secondary" onClick={() => { setPendingCommand("suspend"); setStateError(""); }} disabled={changingState || loading}>Tạm ngưng lớp</Button>}
+                    {commands.includes("archive") && <Button type="button" variant="danger" className="cozy-form-action-danger" onClick={() => { setPendingCommand("archive"); setStateError(""); }} disabled={changingState || loading}>Lưu trữ lớp</Button>}
                   </div>
                 </div>
               )}
             </div>
           )}
-          <p className="s2l-note">BE1 hiện chưa cung cấp capacity hoặc thao tác khôi phục lớp đã lưu trữ.</p>
+          <p className="s2l-note">Lớp đã lưu trữ không thể khôi phục.</p>
         </aside>
       </section>
     </div>

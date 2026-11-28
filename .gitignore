@@ -225,5 +225,10 @@ apps/ui-mobile/android/.gradle-alt*/
 /features/FEAT-056-be2-knowledge-script/evidence/local/
 /features/FEAT-057-be2-01-14-offline-integration/evidence/local/
 
+# Firebase Authentication emulator local state and debug logs.
+deployment/firebase-auth/.firebase/
+firebase-debug.log
+ui-debug.log
+firestore-debug.log
 # local seed account helper (credentials-bearing, never published)
 scripts/dev-seed-parent-account.ps1

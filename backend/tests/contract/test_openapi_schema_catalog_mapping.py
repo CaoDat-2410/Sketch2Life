@@ -214,7 +214,9 @@ def test_a_lifecycle_union_response_keeps_both_envelopes_after_mapping() -> None
             {
                 "status": "200",
                 "description": (
-                    "StoryRun resource, or the lifecycle projection from DELETE_PENDING on"
+                    "StoryRun resource, including the selected AI_DRAFT activity with a "
+                    "null activity reference, or the lifecycle projection from "
+                    "DELETE_PENDING on"
                 ),
                 "media_type": "application/json",
                 "schema_name": "ParentStoryRunEnvelopeV1",

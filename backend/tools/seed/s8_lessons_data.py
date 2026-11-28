@@ -29,7 +29,7 @@ class DocumentSpec:
     extracted_text: str
     page_coverage: tuple[int, ...]
     warnings: tuple[str, ...] = ()
-    parser_name: str = "seed-text-fixture"
+    parser_name: str = "vietnamese-lesson-text-v1"
     parser_version: str = "1.0"
 
 
@@ -71,6 +71,8 @@ OCCURRENCES = (
         1,
         data.ORG_A_TEACHERS[0],
         date(2026, 12, 2),
+        "l4",
+        1,
     ),
     OccurrenceSpec(
         "o4",
@@ -94,7 +96,7 @@ DOCUMENTS = (
     DocumentSpec(
         "doc-o1",
         "o1",
-        "giao-an-ve-meo-con.docx",
+        "giáo-án-vẽ-mèo-con.docx",
         ".docx",
         3,
         "Cô mời trẻ ngồi thành vòng cung để cùng quan sát tranh chú mèo đang nghỉ bên cửa sổ. "
@@ -110,7 +112,7 @@ DOCUMENTS = (
     DocumentSpec(
         "doc-o2",
         "o2",
-        "ke-hoach-cay-xanh.pdf",
+        "kế-hoạch-cây-xanh.pdf",
         ".pdf",
         2,
         "Trước khi ra sân, cô nhắc trẻ đi thành hàng và dừng tại vạch đã chọn gần cây phượng. "
@@ -127,7 +129,7 @@ DOCUMENTS = (
     DocumentSpec(
         "doc-o5",
         "o5",
-        "bai-giang-meo-lop-la.pptx",
+        "bài-giảng-mèo-lớp-lá.pptx",
         ".pptx",
         12,
         "Bài giảng gợi ý trẻ quan sát mèo ngồi, nhận ra đầu tròn, thân bầu dục và chiếc đuôi cong. "
@@ -201,7 +203,7 @@ PLANS = (
         "Trẻ có thể thêm cửa sổ hoặc một chi tiết gợi nhớ đến gia đình mình.",
         "Dùng giấy và bút sáp màu cỡ lớn; không dùng kéo, và nhắc trẻ giữ màu trên giấy.",
         None,
-        (),
+        (1, 2),
         True,
     ),
     PlanSpec(
@@ -218,7 +220,7 @@ PLANS = (
         "Chuẩn bị bàn ghế vững, chia màu theo nhóm và thu dọn sáp màu "
         "sau khi trẻ giới thiệu tranh.",
         None,
-        (),
+        (1, 2),
         True,
     ),
     PlanSpec(
@@ -235,7 +237,7 @@ PLANS = (
         "Giữ lối đi thông thoáng, chỉ dùng bút màu nguyên vẹn "
         "và nhắc trẻ chuyền màu cho bạn bằng hai tay thay vì ném qua bàn.",
         None,
-        (),
+        (1, 2),
         False,
     ),
 )
@@ -246,7 +248,9 @@ EXPECTED = {
     "lesson_source_documents": 3,
     "lesson_document_revisions": 4,
     "lesson_plan_revisions": 5,
-    "lesson_plan_activities": 4,
+    "lesson_plan_activities": 10,
+    "lesson_presentations": 1,
+    "lesson_presentation_revisions": 1,
 }
 
 
@@ -260,6 +264,10 @@ def plan_create_key(occurrence_key_value: str, revision_no: int) -> str:
 
 def plan_confirm_key(occurrence_key_value: str, revision_no: int) -> str:
     return f"seed:s8:{occurrence_key_value}:plan-{revision_no}-confirm"
+
+
+def presentation_create_key(occurrence_key_value: str) -> str:
+    return f"seed:s8:{occurrence_key_value}:presentation-create"
 
 
 def source_document_id(key: str) -> str:

@@ -15,6 +15,8 @@ from sqlalchemy import Engine, Table, insert, select, text, update
 from sqlalchemy.engine import Connection
 from sqlalchemy.exc import IntegrityError
 
+from sketch2life.domain.ai_jobs.completion import canonical_json
+
 from sketch2life.application.ports.story_run_lite import (
     AdmittedAssetPair,
     AssetBinding,
@@ -34,6 +36,7 @@ from sketch2life.domain.story_run_lite import (
     StoryRunLiteError,
     UploadState,
 )
+from sketch2life.infrastructure.ai.modal_function_client import STORY_MODEL_ID, STORY_MODEL_REVISION
 from sketch2life.infrastructure.persistence.core_models import CoreAssetMetadataModel
 from sketch2life.infrastructure.story_run_lite import tables
 from sketch2life.infrastructure.story_run_lite.quarantine import QuarantineError, QuarantineStore
@@ -41,6 +44,63 @@ from sketch2life.infrastructure.story_run_lite.quarantine import QuarantineError
 _asset_metadata = cast(Table, CoreAssetMetadataModel.__table__)
 _TECHNICAL_ORGANIZATION = "storyrun-lite-photo-bridge-v1"
 _logger = logging.getLogger(__name__)
+
+
+def build_story_run_lite_worker_input(
+    *,
+    topic: str,
+    confirmed_subject: str,
+    understanding_revision: int,
+    drawing_sha256: str,
+    visible_features: list[Any],
+    child_age_months: int,
+    adult_confirmed_idea: str,
+    rewrite_instruction: str | None,
+    primary_activity: dict[str, str],
+) -> dict[str, Any]:
+    """Build the current Parent story-worker input for the demo with an explicit activity."""
+
+    activity_fields = {
+        "title",
+        "objective",
+        "materials_text",
+        "preparation_text",
+        "instructions_text",
+        "observation_notes",
+        "safety_notes",
+        "activity_kind",
+    }
+    if (
+        not isinstance(topic, str)
+        or len(topic) > 120
+        or not isinstance(primary_activity, dict)
+        or set(primary_activity) != activity_fields
+        or any(not isinstance(value, str) for value in primary_activity.values())
+    ):
+        raise ValueError("StoryRun-lite needs a bounded topic and selected activity")
+
+    return {
+        "schema_version": "sketch2life.story-generation-input.v3",
+        "role": "PARENT",
+        "language": "vi",
+        "topic": topic,
+        "confirmed_subject": confirmed_subject,
+        "understanding_revision": understanding_revision,
+        "drawing_sha256": drawing_sha256,
+        "visible_features": [
+            str(value)[:160] for value in visible_features[:4] if str(value).strip()
+        ],
+        "child_age_months": child_age_months,
+        "context_revision": 1,
+        "adult_confirmed_idea": adult_confirmed_idea,
+        "rewrite_instruction": rewrite_instruction,
+        "lesson_subject_learning_notes": None,
+        "lesson_direction": None,
+        "primary_activity": primary_activity,
+        "primary_activity_sha256": hashlib.sha256(
+            canonical_json(primary_activity).encode("utf-8")
+        ).hexdigest(),
+    }
 
 
 class SqlStoryRunLiteRepository:
@@ -2034,9 +2094,10 @@ class SqlStoryRunLiteRepository:
                 raise StoryRunLiteError(
                     409, "SUBJECT_NOT_CONFIRMED", "Confirm the drawing subject first."
                 )
+            model_id, model_revision = STORY_MODEL_ID, STORY_MODEL_REVISION
             revision_no = len(revisions) + 1
             # FEAT-092: the Modal story client and worker validate input v3 (topic, lesson notes and
-            # the adult's main activity); this path built v1, so every first story failed validation.
+            # the adult's main activity); this path built v1, so first stories failed validation.
             from sketch2life.infrastructure.persistence.parent_story_repository import (
                 _story_primary_activity,
             )
@@ -2110,8 +2171,8 @@ class SqlStoryRunLiteRepository:
                     "primary_activity_sha256": primary_activity_sha256,
                 },
                 "confirmed_subject": confirmed_subject,
-                "model_id": "Qwen/Qwen3.8-27B-FP8",
-                "model_revision": "c3a462cc3d38cf351f3b26cbd763469eeb74ef81",
+                "model_id": STORY_MODEL_ID,
+                "model_revision": STORY_MODEL_REVISION,
                 "prompt_version": "parent-story-v4.2026-11-23",
             }
             request_bytes = json.dumps(

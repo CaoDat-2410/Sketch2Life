@@ -1,0 +1,36 @@
+meta {
+  name: 1055 [DRAFT-V4E] [LOCAL / TEST ONLY] Accepting Teacher receives 404 reading parent shared profile after revoke
+  type: http
+  seq: 1055
+}
+
+get {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/classes/{{class_id}}/profiles/{{phase_de_e3_child_id}}/parent-share
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert post-revoke uniform 404", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_NOT_FOUND");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against committed Phase E code at 98aa9837 (PHASE_E_FINAL_ROUTE_LIST_20261125.md / 784134fc); not yet run against a live backend.
+  Role: Accepting Teacher - set bearerToken to seed-tch-a1 token
+  Needs: needs-fixture: run after 960 revokes the ACTIVE share grant accepted in 969
+  Expected: 404 / RESOURCE_NOT_FOUND
+  Source: backend/src/sketch2life/interfaces/http/routers/be1_registry.py, backend/src/sketch2life/infrastructure/profile_sharing/service.py
+}

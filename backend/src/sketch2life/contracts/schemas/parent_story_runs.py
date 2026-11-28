@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Literal
+from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from sketch2life.contracts.schemas.lesson_library import LessonActivityInputV1
 from sketch2life.contracts.schemas.story_run_video import (
@@ -53,6 +53,29 @@ class ParentRunContextSnapshotV1(BaseModel):
     topic: str = Field(max_length=120)
     adult_confirmed_idea: str = Field(max_length=500)
     intended_drawing_subject: str | None = Field(default=None, max_length=160)
+
+
+class ParentSelectedContextEntryV1(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    kind: Literal["OBSERVATION", "ACHIEVEMENT", "OUTSIDE_EXPERIENCE"]
+    text: str = Field(min_length=1, max_length=500)
+
+
+class ParentRunContextSnapshotV2(BaseModel):
+    """T-12a (BR-21): the v1 fields plus the entries the adult chose at confirmation."""
+
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    schema_version: Literal["sketch2life.parent-context.v2"]
+    profile_revision_ref: str = Field(
+        pattern=r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+    )
+    age_months: int = Field(ge=36, le=120)
+    interests_summary: str = Field(max_length=2000)
+    topic: str = Field(max_length=120)
+    adult_confirmed_idea: str = Field(max_length=500)
+    selected_entries: list[ParentSelectedContextEntryV1] = Field(max_length=10)
 
 
 class ParentLessonPinSnapshotV1(BaseModel):
@@ -131,7 +154,7 @@ class ParentStorySceneDisplayV1(BaseModel):
 
 
 class ParentStoryLearningV1(BaseModel):
-    """FEAT-094: what the child learns from this story and whether a person had checked those facts."""
+    """FEAT-094: learning goals and whether a person checked the story facts."""
 
     model_config = ConfigDict(extra="forbid", strict=True)
 
@@ -154,12 +177,27 @@ class ParentStoryDisplayV1(BaseModel):
 
 ParentStoryRunStateV1 = Literal[
     # The 18 StoryRun states of SRS line 394 (D-215 item 4) ...
-    "DRAFT", "INPUT_PROCESSING", "INPUT_REVIEW", "SUBJECT_REVIEW", "PREPARATION_REVIEW",
-    "STORY_GENERATING", "SCRIPT_REVIEW", "VIDEO_ADMISSION_PENDING", "VIDEO_QUEUED",
-    "VIDEO_GENERATING", "VIDEO_SAFETY_VALIDATING", "VIDEO_READY", "SAFETY_BLOCKED",
-    "COMPLETED", "FAILED", "ABANDONED", "DELETE_PENDING", "DELETED",
+    "DRAFT",
+    "INPUT_PROCESSING",
+    "INPUT_REVIEW",
+    "SUBJECT_REVIEW",
+    "PREPARATION_REVIEW",
+    "STORY_GENERATING",
+    "SCRIPT_REVIEW",
+    "VIDEO_ADMISSION_PENDING",
+    "VIDEO_QUEUED",
+    "VIDEO_GENERATING",
+    "VIDEO_SAFETY_VALIDATING",
+    "VIDEO_READY",
+    "SAFETY_BLOCKED",
+    "COMPLETED",
+    "FAILED",
+    "ABANDONED",
+    "DELETE_PENDING",
+    "DELETED",
     # ... plus the two documented extensions of the frozen M2 contract (D-216 item 4).
-    "SCRIPT_GENERATING", "SCRIPT_GENERATION_UNKNOWN",
+    "SCRIPT_GENERATING",
+    "SCRIPT_GENERATION_UNKNOWN",
 ]
 
 
@@ -192,6 +230,7 @@ class ParentActivityV1(BaseModel):
         "PUBLIC",
         "SHARED",
         "PUBLISHED_SHARED_LESSON",
+        "AI_DRAFT",
         "AI_GENERATED_DRAFT",
     ]
     lesson_title: str | None = None
@@ -205,6 +244,15 @@ class ParentActivityV1(BaseModel):
     suggestion_set_id: UUID | None = None
     suggestion_set_revision: int | None = None
     suggestion_activity_index: int | None = None
+
+    @model_validator(mode="after")
+    def validate_activity_reference(self) -> ParentActivityV1:
+        is_ai_draft = self.source in {"AI_DRAFT", "AI_GENERATED_DRAFT"}
+        if is_ai_draft and self.activity_ref is not None:
+            raise ValueError("AI draft activities have no lesson reference")
+        if not is_ai_draft and self.activity_ref is None:
+            raise ValueError("Catalog activities require a lesson reference")
+        return self
 
 
 class ParentPostVideoActivityV1(ParentActivityV1):
@@ -263,7 +311,9 @@ class ParentActivitySelectionRequestV1(BaseModel):
             and self.activity_index is not None
         )
         if not catalog_selection and not suggestion_selection:
-            raise ValueError("provide either a catalog activity reference or a suggestion-set index")
+            raise ValueError(
+                "provide either a catalog activity reference or a suggestion-set index"
+            )
         return self
 
 
@@ -275,7 +325,7 @@ class ParentStoryRunResponseV1(BaseModel):
     profile_revision_ref: UUID
     context_revision: int
     context_confirmed: bool
-    context_snapshot: ParentRunContextSnapshotV1
+    context_snapshot: ParentRunContextSnapshotV1 | ParentRunContextSnapshotV2
     context_snapshot_sha256: str
     lesson_pin_snapshot: ParentLessonPinSnapshotV1 | None = None
     current_input_revision: int | None
@@ -284,9 +334,12 @@ class ParentStoryRunResponseV1(BaseModel):
     candidate: ParentDrawingCandidateV1 | None
     story_revision_id: UUID | None
     story_revision_no: int | None
-    story_status: Literal[
-        "GENERATING", "DRAFT", "CONFIRMED", "SUPERSEDED", "FAILED", "AWAITING_RECONCILIATION"
-    ] | None
+    story_status: (
+        Literal[
+            "GENERATING", "DRAFT", "CONFIRMED", "SUPERSEDED", "FAILED", "AWAITING_RECONCILIATION"
+        ]
+        | None
+    )
     story_sha256: str | None
     story: ParentStoryDisplayV1 | None
     job_state: Literal["QUEUED", "RUNNING", "SUCCEEDED", "FAILED", "AWAITING_RECONCILIATION"] | None
@@ -397,7 +450,9 @@ class ParentSubjectConfirmationRequestV1(BaseModel):
     expected_understanding_revision: int = Field(ge=1)
     confirmed_subject: str = Field(min_length=1, max_length=160)
     # FEAT-087, optional: omitted by older clients, in which case no secondary object is used.
-    subject_roles: list[ParentSubjectRoleV1] | None = Field(default=None, min_length=1, max_length=4)
+    subject_roles: list[ParentSubjectRoleV1] | None = Field(
+        default=None, min_length=1, max_length=4
+    )
 
 
 class ParentContextConfirmationRequestV1(BaseModel):
@@ -406,6 +461,18 @@ class ParentContextConfirmationRequestV1(BaseModel):
     expected_context_revision: int = Field(ge=1)
     context_snapshot_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     confirmed: Literal[True]
+    # T-12a (BR-21, FR-P-06 l.2349): absent or null keeps the v1 path; a list (even ``[]``) writes
+    # the v2 snapshot of the chosen entries. Unique, at most ten; never for a Teacher run.
+    selected_context_entry_ids: list[Annotated[UUID, Field(strict=False)]] | None = Field(
+        default=None, max_length=10
+    )
+
+    @field_validator("selected_context_entry_ids")
+    @classmethod
+    def selected_context_entry_ids_are_unique(cls, value: list[UUID] | None) -> list[UUID] | None:
+        if value is not None and len(set(value)) != len(value):
+            raise ValueError("selected_context_entry_ids must be unique")
+        return value
 
 
 class ParentSubjectConfirmationResponseV1(BaseModel):
@@ -451,6 +518,8 @@ __all__ = [
     "ParentContextConfirmationRequestV1",
     "ParentLessonVersionRefV1",
     "ParentRunContextSnapshotV1",
+    "ParentRunContextSnapshotV2",
+    "ParentSelectedContextEntryV1",
     "ParentStoryErrorEnvelopeV1",
     "ParentStoryErrorFieldV1",
     "ParentStoryDisplayV1",

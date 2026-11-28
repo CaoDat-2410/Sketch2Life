@@ -356,10 +356,8 @@ class Be1LifecycleConsumer:
 
     # ------------------------------------------------------------------ entry points
     def run_once(self, *, target_run_ref: str | None = None) -> str | None:
-        aggregate_ids = None
-        if target_run_ref is not None:
-            aggregate_ids = (validate_run_ref(target_run_ref),)
-        claimed = self._outbox.claim_ready(
+        aggregate_ids = None if target_run_ref is None else (validate_run_ref(target_run_ref),)
+        claimed = cast(Any, self._outbox).claim_ready(
             worker_id=self._config.worker_id,
             limit=1,
             lease_seconds=self._config.lease_seconds,
@@ -509,9 +507,7 @@ class Be1LifecycleConsumer:
         deadline = self._monotonic() + self._config.step_deadline_seconds
         candidates = self._assets.closure_candidates(scope, run_ref)
         candidate_refs = frozenset(row.asset_ref for row in candidates.assets)
-        elsewhere = self._story_refs.assets_referenced_by_other_runs(
-            scope, run_ref, candidate_refs
-        )
+        elsewhere = self._story_refs.assets_referenced_by_other_runs(scope, run_ref, candidate_refs)
         plan = self._assets.plan_run_purge(candidates, elsewhere)
         if plan.retained:
             return True

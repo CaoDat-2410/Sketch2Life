@@ -1,24 +1,119 @@
-import { useMemo, useState } from 'react'
-import '../../../shared/styles/tailwind-utilities.css'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Alert, Button, FormField, Select } from '../../../shared/ui'
-import { parseTeacherSketchDeck, TeacherDeckPresentation } from '../components/TeacherDeckPresentation'
+import { PageHeading } from '../../../shared/components/FeatureAvailability'
+import { AutoGrowTextarea } from '../components/AutoGrowTextarea'
+import {
+  backendApi,
+  backendMessage,
+  configuredOrganizationId,
+  createIdempotencyKey,
+  type LessonActivity,
+  type LessonContent,
+} from '../../../shared/api/backendApi'
+import { clearAiWorkflowDraft, useAiWorkflowState } from '../services/aiWorkflowSession'
+import {
+  beginAiTask,
+  clearAiTaskStatusIfCurrent,
+  finishAiTask,
+  scheduleAiTaskStatusSeen,
+  useAiTaskMark,
+  type AiTaskKey,
+  type AiTaskMark,
+} from '../services/aiTaskStatus'
 import {
   aiWorkflowService,
   type TeacherLessonSuggestionInput,
-  type TeacherReviewedPlanInput,
 } from '../services/aiWorkflowService'
+import { teacherAgeBandForMonths, isTeacherAgeBand } from '../services/ageBands'
 
-type SuggestedActivity = {
+type ActivityKind = LessonActivity['activity_kind']
+
+type SuggestedActivity = Partial<LessonActivity> & {
   title: string
   objective: string
-  materials_text: string
-  preparation_text: string
-  instructions_text: string
-  safety_notes: string
-  activity_kind: string
 }
 
-type ActivityDraft = TeacherReviewedPlanInput['activities'][number]
+type ActivityDraft = {
+  activity_ref: string
+  title: string
+  goal: string
+  materials: string
+  preparation: string
+  instructions: string
+  observation_notes: string
+  safety_notes: string
+  activity_kind: ActivityKind
+}
+
+type SaveCommand = { signature: string; key: string }
+type SavedLesson = { title: string; signature: string }
+
+const textLength = (value: string) => [...value].length
+
+function textLimitError(label: string, value: string, maximum: number, required = false): string {
+  if (required && !value.trim()) return `${label} không được để trống.`
+  if (textLength(value) > maximum) return `${label} tối đa ${maximum.toLocaleString('vi-VN')} ký tự.`
+  return ''
+}
+
+function lessonContentError(content: LessonContent): string {
+  const fields: Array<[string, string, number, boolean?]> = [
+    ['Tên giáo án', content.title, 160, true],
+    ['Chủ đề', content.topic, 120, true],
+    ['Đối tượng cần vẽ', content.drawing_subject, 160, true],
+    ['Các bước vẽ', content.drawing_steps_text, 4000, true],
+    ['Ghi chú kiến thức', content.subject_learning_notes, 5000, true],
+  ]
+  for (const [label, value, maximum, required] of fields) {
+    const error = textLimitError(label, value, maximum, required)
+    if (error) return error
+  }
+  if (!isTeacherAgeBand(content.target_age_band_ref, content.target_age_band_version)) {
+    return 'Tuổi mục tiêu chưa thuộc nhóm tuổi được hỗ trợ.'
+  }
+  if (content.objectives.length < 1 || content.objectives.length > 12) {
+    return 'Giáo án cần từ 1 đến 12 mục tiêu.'
+  }
+  for (const [index, objective] of content.objectives.entries()) {
+    const error = textLimitError(`Mục tiêu ${index + 1}`, objective, 1000, true)
+    if (error) return error
+  }
+  if (content.script_direction !== null) {
+    const error = textLimitError('Định hướng kịch bản', content.script_direction, 2000, true)
+    if (error) return error
+  }
+  if (content.activities.length < 1 || content.activities.length > 24) {
+    return 'Giáo án cần từ 1 đến 24 hoạt động.'
+  }
+  for (const [index, activity] of content.activities.entries()) {
+    const label = `Hoạt động ${index + 1}`
+    const activityFields: Array<[string, string, number, boolean?]> = [
+      [`${label} · tên`, activity.title, 160, true],
+      [`${label} · mục tiêu`, activity.objective, 1000, true],
+      [`${label} · vật liệu`, activity.materials_text, 2000],
+      [`${label} · chuẩn bị`, activity.preparation_text, 2000],
+      [`${label} · cách thực hiện`, activity.instructions_text, 5000, true],
+      [`${label} · ghi chú quan sát`, activity.observation_notes, 3000],
+      [`${label} · lưu ý an toàn`, activity.safety_notes, 3000],
+    ]
+    for (const [fieldLabel, value, maximum, required] of activityFields) {
+      const error = textLimitError(fieldLabel, value, maximum, required)
+      if (error) return error
+    }
+  }
+  return ''
+}
+
+function drawingStepsError(actions: string[], placements: string[]): string {
+  if (actions.length === 0 || placements.length !== actions.length) {
+    return 'Giáo án cần ít nhất một bước vẽ có thao tác và vị trí.'
+  }
+  if (actions.some((action, index) => !action.trim() || !placements[index]?.trim())) {
+    return 'Hãy điền thao tác và vị trí cho từng bước vẽ.'
+  }
+  return ''
+}
 
 function splitSteps(value: unknown): string[] {
   if (typeof value !== 'string') return []
@@ -26,68 +121,138 @@ function splitSteps(value: unknown): string[] {
     .split(/\r?\n|\s*;\s*|(?<=\.)\s+(?=\d+[.)])/)
     .map((item) => item.replace(/^\s*(?:\d+[.)]|[-•])\s*/, '').trim())
     .filter(Boolean)
-    .slice(0, 5)
 }
 
 function splitNotes(value: unknown): string[] {
   if (typeof value !== 'string') return []
-  return value.split(/\r?\n|\s*;\s*|(?<=\.)\s+/).map((item) => item.trim()).filter(Boolean).slice(0, 8)
+  return value
+    .split(/\r?\n|\s*;\s*/)
+    .flatMap((line) => line.split(/(?<!\S)(?=\d+[.)]\s+)/))
+    .map((item) => item.trim())
+    .filter((item) => item && !/^\d+[.)]$/.test(item))
+    .map((item) => item.replace(/^(?:\d+[.)]\s+|[-*\u2022\u2023\u25E6]\s*)/, '').trim())
+    .filter(Boolean)
+}
+
+const DEFAULT_PLACEMENT = 'trên trang vẽ'
+
+function useDocumentVisible() {
+  const [visible, setVisible] = useState(() => document.visibilityState === 'visible')
+  useEffect(() => {
+    const update = () => setVisible(document.visibilityState === 'visible')
+    document.addEventListener('visibilitychange', update)
+    return () => document.removeEventListener('visibilitychange', update)
+  }, [])
+  return visible
+}
+
+function useClearSeenAiTaskMark(key: AiTaskKey, visible: boolean, mark?: AiTaskMark) {
+  const seenRunId = useRef<number | undefined>(undefined)
+  useEffect(() => {
+    if (!visible || !mark || mark.status === 'pending') return
+    seenRunId.current = mark.runId
+    return scheduleAiTaskStatusSeen(key, mark.runId)
+  }, [key, visible, mark])
+  useEffect(() => () => {
+    if (seenRunId.current !== undefined) clearAiTaskStatusIfCurrent(key, seenRunId.current)
+  }, [key])
 }
 
 export function TeacherAiLessonWorkflowPage() {
-  const [topic, setTopic] = useState('')
-  const [ageMonths, setAgeMonths] = useState('')
-  const [drawingSubject, setDrawingSubject] = useState('')
-  const [objectivesText, setObjectivesText] = useState('')
-  const [activityCount, setActivityCount] = useState('1')
-  const [activityKind, setActivityKind] = useState<'outdoor' | 'indoor' | 'mixed'>('outdoor')
-  const [suggestion, setSuggestion] = useState<Record<string, unknown> | null>(null)
-  const [planRevisionRef, setPlanRevisionRef] = useState('')
-  const [actions, setActions] = useState<string[]>([])
-  const [placements, setPlacements] = useState<string[]>([])
-  const [knowledge, setKnowledge] = useState<string[]>([])
-  const [activities, setActivities] = useState<ActivityDraft[]>([])
-  const [reviewConfirmed, setReviewConfirmed] = useState(false)
-  const [deck, setDeck] = useState<unknown>(null)
-  const [presentationOpen, setPresentationOpen] = useState(false)
-  const [busy, setBusy] = useState('')
-  const [error, setError] = useState('')
-  const [notice, setNotice] = useState('')
-  const [promptErrors, setPromptErrors] = useState<{
+  const [topic, setTopic] = useAiWorkflowState('topic', '')
+  const [ageMonths, setAgeMonths] = useAiWorkflowState('ageMonths', '')
+  const [drawingSubject, setDrawingSubject] = useAiWorkflowState('drawingSubject', '')
+  const [objectivesText, setObjectivesText] = useAiWorkflowState('objectivesText', '')
+  const [lessonTitle, setLessonTitle] = useAiWorkflowState('lessonTitle', '')
+  const [scriptDirectionText, setScriptDirectionText] = useAiWorkflowState('scriptDirectionText', '')
+  const [activityCount, setActivityCount] = useAiWorkflowState('activityCount', '1')
+  const [activityKind, setActivityKind] = useAiWorkflowState<'outdoor' | 'indoor' | 'mixed'>('activityKind', 'outdoor')
+  const [suggestion, setSuggestion] = useAiWorkflowState<Record<string, unknown> | null>('suggestion', null)
+  const [actions, setActions] = useAiWorkflowState<string[]>('actions', [])
+  const [placements, setPlacements] = useAiWorkflowState<string[]>('placements', [])
+  const [knowledgeText, setKnowledgeText] = useAiWorkflowState('knowledgeText', '')
+  const [activities, setActivities] = useAiWorkflowState<ActivityDraft[]>('activities', [])
+  const [reviewConfirmed, setReviewConfirmed] = useAiWorkflowState('reviewConfirmed', false)
+  const [saveCommand, setSaveCommand] = useAiWorkflowState<SaveCommand | null>('saveCommand', null)
+  const [savedLesson, setSavedLesson] = useAiWorkflowState<SavedLesson | null>('savedLesson', null)
+  const [busy, setBusy] = useAiWorkflowState('busy', '')
+  const [error, setError] = useAiWorkflowState('error', '')
+  const [notice, setNotice] = useAiWorkflowState('notice', '')
+  const [promptErrors, setPromptErrors] = useAiWorkflowState<{
     topic?: string
     drawingSubject?: string
     ageMonths?: string
     activityCount?: string
     objectives?: string
-  }>({})
+  }>('promptErrors', {})
+  const suggestionTaskMark = useAiTaskMark('suggestion')
+  const saveInFlight = useRef(false)
+  const documentVisible = useDocumentVisible()
+  useClearSeenAiTaskMark('suggestion', documentVisible, suggestionTaskMark)
 
   const objectives = useMemo(
-    () => objectivesText.split(/\r?\n|;/).map((value) => value.trim()).filter(Boolean).slice(0, 4),
+    () => objectivesText.split(/\r?\n|;/).map((value) => value.trim()).filter(Boolean),
     [objectivesText],
   )
+
+  function markDraftEdited() {
+    setReviewConfirmed(false)
+    setError('')
+    setNotice('')
+  }
+
+  function lessonContent(): LessonContent {
+    const ageBand = teacherAgeBandForMonths(Number(ageMonths))
+    return {
+      locale: 'vi-VN',
+      title: lessonTitle.trim(),
+      topic: topic.trim(),
+      target_age_band_ref: ageBand?.ref ?? '',
+      target_age_band_version: ageBand?.version ?? 0,
+      objectives,
+      drawing_subject: drawingSubject.trim(),
+      drawing_steps_text: actions.map((action, index) =>
+        `Bước ${index + 1}: ${action.trim()} — vị trí: ${placements[index]?.trim() ?? ''}`,
+      ).join('\n'),
+      subject_learning_notes: knowledgeText.trim(),
+      script_direction: scriptDirectionText.trim() || null,
+      script_following_allowed: false,
+      activities: activities.map((activity) => ({
+        title: activity.title.trim(),
+        objective: activity.goal.trim(),
+        materials_text: activity.materials.trim(),
+        preparation_text: activity.preparation.trim(),
+        instructions_text: activity.instructions.trim(),
+        observation_notes: activity.observation_notes.trim(),
+        safety_notes: activity.safety_notes.trim(),
+        activity_kind: activity.activity_kind,
+      })),
+    }
+  }
 
   async function requestSuggestion() {
     setError('')
     setNotice('')
     setPromptErrors({})
-    setDeck(null)
-    setVisual(null)
-    setVisualError('')
-    setPresentationOpen(false)
-    setPlanRevisionRef('')
+    setSavedLesson(null)
+    setSaveCommand(null)
     const age = Number(ageMonths)
     const count = Number(activityCount)
     const nextErrors: typeof promptErrors = {}
     if (!topic.trim()) nextErrors.topic = 'Nhập chủ đề.'
+    else if (textLength(topic.trim()) > 120) nextErrors.topic = 'Chủ đề tối đa 120 ký tự.'
     if (!drawingSubject.trim()) nextErrors.drawingSubject = 'Nhập chủ thể trẻ sẽ vẽ.'
+    else if (textLength(drawingSubject.trim()) > 160) nextErrors.drawingSubject = 'Chủ thể cần vẽ tối đa 160 ký tự.'
     if (!Number.isInteger(age) || age < 36 || age > 120) nextErrors.ageMonths = 'Tuổi mục tiêu từ 36–120 tháng.'
     if (!Number.isInteger(count) || count < 1 || count > 6) nextErrors.activityCount = 'Số hoạt động từ 1–6.'
-    if (objectives.length < 1) nextErrors.objectives = 'Nhập ít nhất 1 mục tiêu quan sát/học tập.'
+    if (objectives.length < 1 || objectives.length > 4) nextErrors.objectives = 'Nhập từ 1 đến 4 mục tiêu cho gợi ý AI.'
+    else if (objectives.some((objective) => textLength(objective) > 1000)) nextErrors.objectives = 'Mỗi mục tiêu tối đa 1.000 ký tự.'
     if (Object.keys(nextErrors).length > 0) {
       setPromptErrors(nextErrors)
-      setError('Nhập chủ đề, chủ thể vẽ, 1–4 mục tiêu, 1–6 hoạt động và tuổi từ 36–120 tháng.')
+      setError('Kiểm tra chủ đề, chủ thể vẽ, mục tiêu, số hoạt động và tuổi trước khi gửi yêu cầu.')
       return
     }
+    const taskRunId = beginAiTask('suggestion')
     setBusy('suggestion')
     try {
       const input: TeacherLessonSuggestionInput = {
@@ -101,111 +266,146 @@ export function TeacherAiLessonWorkflowPage() {
         script_direction: null,
       }
       const response = await aiWorkflowService.suggestLessonPlan(input)
-      if (!response.suggestion) throw new Error('Backend không trả về bản nháp giáo án.')
+      if (!response.suggestion) throw new Error('Chưa nhận được bản nháp giáo án. Hãy thử lại.')
       const result = response.suggestion
       const initialActions = splitSteps(result.drawing_steps_text)
       const initialActivities = Array.isArray(result.activities)
         ? (result.activities as SuggestedActivity[]).map((activity, index) => ({
             activity_ref: `activity-${index + 1}`,
-            title: activity.title,
-            goal: activity.objective,
-            materials: activity.materials_text || 'Giáo viên chuẩn bị vật liệu phù hợp.',
-            preparation: activity.preparation_text || 'Giáo viên chuẩn bị trước buổi học.',
-            instructions: activity.instructions_text,
-            safety_notes: activity.safety_notes,
+            title: typeof activity.title === 'string' ? activity.title : '',
+            goal: typeof activity.objective === 'string' ? activity.objective : '',
+            materials: typeof activity.materials_text === 'string' ? activity.materials_text : '',
+            preparation: typeof activity.preparation_text === 'string' ? activity.preparation_text : '',
+            instructions: typeof activity.instructions_text === 'string' ? activity.instructions_text : '',
+            observation_notes: typeof activity.observation_notes === 'string' ? activity.observation_notes : '',
+            safety_notes: typeof activity.safety_notes === 'string' ? activity.safety_notes : '',
+            activity_kind: activity.activity_kind ?? activityKind,
           }))
         : []
       setSuggestion(result)
-      setPlanRevisionRef(`teacher-${response.request_id}`)
+      setLessonTitle(typeof result.title === 'string' ? result.title : topic.trim())
+      setScriptDirectionText(typeof result.script_direction === 'string' ? result.script_direction : '')
       setActions(initialActions)
-      setPlacements(initialActions.map(() => 'trên trang vẽ'))
-      setKnowledge(splitNotes(result.subject_learning_notes))
+      setPlacements(initialActions.map(() => DEFAULT_PLACEMENT))
+      setKnowledgeText(splitNotes(result.subject_learning_notes).join('\n'))
       setActivities(initialActivities)
       setReviewConfirmed(false)
-      setNotice(`Bản nháp từ Qwen đã sẵn sàng. Mã yêu cầu ${response.request_id}; hãy rà soát và chỉnh sửa trước khi tạo deck.`)
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Không thể tạo gợi ý giáo án.')
+      finishAiTask('suggestion', taskRunId, 'done')
+      setNotice('Bản nháp giáo án đã sẵn sàng. Hãy rà soát và chỉnh sửa trước khi lưu thành giáo án.')
+    } catch {
+      finishAiTask('suggestion', taskRunId, 'failed')
+      setError('Chưa thể tạo gợi ý giáo án. Hãy kiểm tra thông tin rồi thử lại.')
     } finally {
       setBusy('')
     }
   }
 
-  function reviewedPlan(): TeacherReviewedPlanInput | null {
-    const age = Number(ageMonths)
-    if (!reviewConfirmed || actions.length < 3 || actions.length > 5 || actions.some((item) => !item.trim()) || placements.length !== actions.length || placements.some((item) => !item.trim()) || !suggestion || !planRevisionRef || activities.length < 1) {
-      setError('Rà soát nội dung, nhập đủ 3–5 bước vẽ và xác nhận duyệt bản nháp trước.')
-      return null
-    }
-    return {
-      review_confirmed: true,
-      plan_revision_ref: planRevisionRef,
-      topic: topic.trim(),
-      target_age_months: age,
-      objectives,
-      drawing_steps: actions.map((action, index) => ({ action: action.trim(), placement: placements[index].trim() })),
-      subject_knowledge: knowledge.filter((item) => item.trim()),
-      activities,
-    }
+  function removeDrawingStep(index: number) {
+    setActions((items) => items.filter((_, itemIndex) => itemIndex !== index))
+    setPlacements((items) => items.filter((_, itemIndex) => itemIndex !== index))
+    markDraftEdited()
   }
 
-  async function generateDeck() {
+  function updateActivity(index: number, change: Partial<ActivityDraft>) {
+    setActivities((items) => items.map((item, itemIndex) => itemIndex === index ? { ...item, ...change } : item))
+    markDraftEdited()
+  }
+
+  function startOver() {
+    // A suggestion costs minutes of GPU time: do not drop it on a stray click.
+    if (suggestion && !window.confirm('Xóa bản nháp giáo án đang soạn và bắt đầu lại?')) return
+    clearAiWorkflowDraft()
+  }
+
+  async function saveLesson() {
+    if (saveInFlight.current) return
     setError('')
     setNotice('')
-    const input = reviewedPlan()
-    if (!input) return
-    setBusy('deck')
+    if (!reviewConfirmed) {
+      setError('Hãy rà soát nội dung rồi xác nhận trước khi lưu thành giáo án.')
+      return
+    }
+    const stepError = drawingStepsError(actions, placements)
+    if (stepError) {
+      setError(stepError)
+      return
+    }
+    const content = lessonContent()
+    const contentError = lessonContentError(content)
+    if (contentError) {
+      setError(contentError)
+      return
+    }
+    const organizationId = configuredOrganizationId()
+    if (!organizationId) {
+      setError('Chưa cấu hình tổ chức cho thư viện giáo án.')
+      return
+    }
+    const signature = JSON.stringify([organizationId, content])
+    if (savedLesson?.signature === signature) return
+    const command = saveCommand?.signature === signature
+      ? saveCommand
+      : { signature, key: createIdempotencyKey() }
+    if (command !== saveCommand) setSaveCommand(command)
+    saveInFlight.current = true
+    setBusy('save')
     try {
-      const response = await aiWorkflowService.generateSketchDeck(input)
-      const parsedDeck = parseTeacherSketchDeck(response.deck)
-      if (!parsedDeck) throw new Error('Sketch Deck trả về không đúng schema hoặc chưa có đủ các slide hợp lệ.')
-      setDeck(response.deck)
-      setPresentationOpen(false)
-      setNotice(`Sketch Deck Qwen đã tạo ở trạng thái bản nháp; mã yêu cầu ${response.request_id}.`)
+      await backendApi.createLesson(organizationId, content, command.key)
+      setSavedLesson({ title: content.title, signature })
+      setSaveCommand(null)
+      setNotice(`Đã lưu “${content.title}” thành giáo án riêng tư.`)
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Không thể tạo Sketch Deck.')
+      setError(backendMessage(cause))
     } finally {
+      saveInFlight.current = false
       setBusy('')
     }
   }
 
-  const presentationDeck = parseTeacherSketchDeck(deck)
+  const currentLessonContent = lessonContent()
+  const currentSignature = JSON.stringify([configuredOrganizationId(), currentLessonContent])
+  const savedLessonForDraft = savedLesson?.signature === currentSignature ? savedLesson : null
 
   return (
     <div className="teacher-ai-workflow mx-auto max-w-5xl space-y-5 px-6 py-7">
-      <header>
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-700">Soạn nội dung · bản nháp</p>
-        <h1 className="mt-1 text-3xl font-extrabold text-slate-950">Tạo giáo án có AI hỗ trợ</h1>
-        <p className="mt-2 max-w-3xl text-sm text-slate-600">Nhập chủ đề và các trường có cấu trúc. Giáo viên luôn rà soát trước khi tạo Sketch Deck hoặc ảnh minh họa.</p>
-      </header>
+      <PageHeading
+        eyebrow="Giáo viên · Soạn nội dung"
+        title="Gợi ý giáo án AI"
+        description="Nhập chủ đề, rà soát bản nháp rồi lưu thành giáo án trong thư viện."
+      />
+
+      <div className="flex justify-end">
+        <Button type="button" variant="secondary" disabled={busy === 'suggestion' || busy === 'save'} onClick={startOver}>Soạn mới</Button>
+      </div>
 
       {notice && <Alert tone="success" role="status">{notice}</Alert>}
 
       <section className="cozy-form-card cozy-form-card--wide cozy-form-stack">
         <div className="cozy-form-grid">
         <FormField className="cozy-span-3" label="Chủ đề" htmlFor="ai-topic" required error={promptErrors.topic}>
-          <input id="ai-topic" className="cozy-input" value={topic} onChange={(event) => { setTopic(event.target.value); setPromptErrors((prev) => ({ ...prev, topic: undefined })); }} placeholder="Ví dụ: vòng đời của bướm" />
+          <input id="ai-topic" className="cozy-input" maxLength={120} value={topic} onChange={(event) => { setTopic(event.target.value); markDraftEdited(); setPromptErrors((prev) => ({ ...prev, topic: undefined })); }} placeholder="Ví dụ: vòng đời của bướm" />
         </FormField>
         <FormField className="cozy-span-3" label="Chủ thể trẻ sẽ vẽ" htmlFor="ai-drawing-subject" required error={promptErrors.drawingSubject}>
-          <input id="ai-drawing-subject" className="cozy-input" value={drawingSubject} onChange={(event) => { setDrawingSubject(event.target.value); setPromptErrors((prev) => ({ ...prev, drawingSubject: undefined })); }} placeholder="Ví dụ: con bướm" />
+          <input id="ai-drawing-subject" className="cozy-input" maxLength={160} value={drawingSubject} onChange={(event) => { setDrawingSubject(event.target.value); markDraftEdited(); setPromptErrors((prev) => ({ ...prev, drawingSubject: undefined })); }} placeholder="Ví dụ: con bướm" />
         </FormField>
         <FormField className="cozy-span-2" label="Tuổi mục tiêu (tháng)" htmlFor="ai-age-months" required error={promptErrors.ageMonths}>
-          <input id="ai-age-months" className="cozy-input" type="number" min={36} max={120} value={ageMonths} onChange={(event) => { setAgeMonths(event.target.value); setPromptErrors((prev) => ({ ...prev, ageMonths: undefined })); }} placeholder="36–120" />
+          <input id="ai-age-months" className="cozy-input" type="number" min={36} max={120} value={ageMonths} onChange={(event) => { setAgeMonths(event.target.value); markDraftEdited(); setPromptErrors((prev) => ({ ...prev, ageMonths: undefined })); }} placeholder="36–120" />
         </FormField>
         <FormField className="cozy-span-2" label="Số hoạt động liên quan" htmlFor="ai-activity-count" required error={promptErrors.activityCount}>
-          <input id="ai-activity-count" className="cozy-input" type="number" min={1} max={6} value={activityCount} onChange={(event) => { setActivityCount(event.target.value); setPromptErrors((prev) => ({ ...prev, activityCount: undefined })); }} />
+          <input id="ai-activity-count" className="cozy-input" type="number" min={1} max={6} value={activityCount} onChange={(event) => { setActivityCount(event.target.value); markDraftEdited(); setPromptErrors((prev) => ({ ...prev, activityCount: undefined })); }} />
         </FormField>
         <FormField className="cozy-span-2" label="Loại hoạt động" htmlFor="ai-activity-kind" required>
-          <Select id="ai-activity-kind" aria-label="Loại hoạt động" value={activityKind} onChange={(event) => setActivityKind(event.target.value as typeof activityKind)}>
-            <option value="outdoor">Ngoài trời</option><option value="indoor">Trong nhà</option><option value="mixed">Trong nhà và ngoài trời</option>
+          <Select id="ai-activity-kind" aria-label="Loại hoạt động" value={activityKind} onChange={(event) => { setActivityKind(event.target.value as typeof activityKind); markDraftEdited(); }}>
+            <option value="outdoor">Ngoài trời</option><option value="indoor">Trong lớp</option><option value="mixed">Trong lớp và ngoài trời</option>
           </Select>
         </FormField>
         <FormField label="Mục tiêu quan sát/học tập (mỗi dòng một mục tiêu)" htmlFor="ai-objectives" required error={promptErrors.objectives}>
-          <textarea id="ai-objectives" className="cozy-textarea" value={objectivesText} onChange={(event) => { setObjectivesText(event.target.value); setPromptErrors((prev) => ({ ...prev, objectives: undefined })); }} rows={3} placeholder="Trẻ quan sát hình dáng và đặc điểm nhìn thấy của chủ thể" />
+          <textarea id="ai-objectives" className="cozy-textarea" maxLength={12011} value={objectivesText} onChange={(event) => { setObjectivesText(event.target.value); markDraftEdited(); setPromptErrors((prev) => ({ ...prev, objectives: undefined })); }} rows={3} placeholder="Trẻ quan sát hình dáng và đặc điểm nhìn thấy của chủ thể" />
         </FormField>
         </div>
         {error && !suggestion && <Alert tone="danger" role="alert">{error}</Alert>}
         <div className="cozy-form-actions" style={{ marginTop: 0 }}>
-          <Button type="button" variant="primary" loading={busy === 'suggestion'} disabled={busy !== ''} onClick={() => void requestSuggestion()}>
+          <Button type="button" variant="primary" loading={busy === 'suggestion'} disabled={busy !== ''} onClick={() => { void requestSuggestion() }}>
             {busy === 'suggestion' ? 'Đang tạo bản nháp…' : 'Gợi ý giáo án bằng AI'}
           </Button>
         </div>
@@ -214,38 +414,40 @@ export function TeacherAiLessonWorkflowPage() {
       {suggestion && (
         <section className="cozy-form-card cozy-form-card--wide cozy-form-stack">
           <div>
-            <h2 className="text-xl font-bold text-slate-900">Rà soát bản nháp Qwen</h2>
-            <p className="mt-1 text-sm text-slate-600">Đây là nội dung chưa được duyệt. Sửa các trường cần thiết rồi xác nhận trước khi tạo deck.</p>
+            <h2 className="text-xl font-bold text-slate-900">Rà soát bản nháp giáo án</h2>
+            <p className="mt-1 text-sm text-slate-600">Đây là nội dung nháp. Chỉnh sửa các trường cần thiết rồi xác nhận trước khi lưu thành giáo án.</p>
           </div>
           <div className="cozy-form-stack">
+            <FormField label="Tên giáo án" htmlFor="ai-lesson-title" required>
+              <input id="ai-lesson-title" className="cozy-input" maxLength={160} value={lessonTitle} onChange={(event) => { setLessonTitle(event.target.value); markDraftEdited(); }} />
+            </FormField>
             <div className="cozy-form-grid">
             <section className="cozy-form-section cozy-form-stack cozy-span-3">
               <div className="cozy-form-section-head">
-                <h3>
-                  Các bước vẽ (3–5{" "}
-                  <span className="cozy-form-label-tail">
-                    dòng)<span className="cozy-form-required" aria-hidden="true">*</span>
-                  </span>
-                </h3>
+                <h3>Các bước vẽ<span className="cozy-form-required" aria-hidden="true">*</span></h3>
               </div>
               {actions.map((value, index) => (
                 <FormField key={`action-${index}`} label={`Bước ${index + 1}`} htmlFor={`ai-action-${index}`} required>
-                  <input
+                  <AutoGrowTextarea
                     id={`ai-action-${index}`}
-                    className="cozy-input"
+                    singleLine
+                    maxLength={4000}
                     aria-label={`Bước vẽ ${index + 1}`}
                     value={value}
-                    onChange={(event) => setActions((items) => items.map((item, i) => i === index ? event.target.value : item))}
+                    onValueChange={(next) => { setActions((items) => items.map((item, i) => i === index ? next : item)); markDraftEdited(); }}
                   />
+                  {actions.length > 1 && (
+                    <Button type="button" variant="secondary" size="sm" aria-label={`Bỏ bước ${index + 1}`} onClick={() => removeDrawingStep(index)}>
+                      Bỏ bước
+                    </Button>
+                  )}
                 </FormField>
               ))}
-              {actions.length < 5 && (
-                <div>
-                  <Button type="button" variant="secondary" onClick={() => { setActions((items) => [...items, '']); setPlacements((items) => [...items, '']); }}>
-                    Thêm bước
-                  </Button>
-                </div>
-              )}
+              <div>
+                <Button type="button" variant="secondary" onClick={() => { setActions((items) => [...items, '']); setPlacements((items) => [...items, '']); markDraftEdited(); }}>
+                  Thêm bước
+                </Button>
+              </div>
             </section>
             <section className="cozy-form-section cozy-form-stack cozy-span-3">
               <div className="cozy-form-section-head">
@@ -256,42 +458,60 @@ export function TeacherAiLessonWorkflowPage() {
                   </span>
                 </h3>
               </div>
+              <p className="s2l-muted-copy">“{DEFAULT_PLACEMENT}” là giá trị mặc định, không phải gợi ý của AI. Hãy sửa lại cho đúng vị trí của từng bước.</p>
               {placements.map((value, index) => (
                 <FormField key={`placement-${index}`} label={`Vị trí bước ${index + 1}`} htmlFor={`ai-placement-${index}`} required>
-                  <input
+                  <AutoGrowTextarea
                     id={`ai-placement-${index}`}
-                    className="cozy-input"
+                    singleLine
+                    maxLength={4000}
                     aria-label={`Vị trí bước ${index + 1}`}
                     value={value}
-                    onChange={(event) => setPlacements((items) => items.map((item, i) => i === index ? event.target.value : item))}
+                    onValueChange={(next) => { setPlacements((items) => items.map((item, i) => i === index ? next : item)); markDraftEdited(); }}
                   />
                 </FormField>
               ))}
             </section>
             </div>
-            <FormField label="Ghi chú kiến thức (mỗi dòng một ý)" htmlFor="ai-knowledge">
-              <textarea id="ai-knowledge" className="cozy-textarea" value={knowledge.join('\n')} onChange={(event) => setKnowledge(splitNotes(event.target.value))} rows={3} />
+            <FormField label="Ghi chú kiến thức" htmlFor="ai-knowledge" required>
+              <AutoGrowTextarea id="ai-knowledge" maxLength={5000} value={knowledgeText} onValueChange={(next) => { setKnowledgeText(next); markDraftEdited(); }} rows={3} />
+            </FormField>
+            <FormField label="Định hướng kịch bản" htmlFor="ai-script-direction">
+              <AutoGrowTextarea id="ai-script-direction" maxLength={2000} value={scriptDirectionText} onValueChange={(next) => { setScriptDirectionText(next); markDraftEdited(); }} rows={3} />
             </FormField>
           </div>
           {activities.map((activity, index) => (
             <section key={activity.activity_ref} className="cozy-form-section cozy-form-grid">
               <div className="cozy-form-section-head">
-                <h3>Hoạt động {index + 1} · {activity.activity_ref}</h3>
+                <h3>Hoạt động {index + 1}</h3>
               </div>
               <FormField className="cozy-span-3" label="Tên hoạt động" htmlFor={`ai-act-title-${index}`} required>
-                <input id={`ai-act-title-${index}`} className="cozy-input" aria-label={`Tên hoạt động ${index + 1}`} value={activity.title} onChange={(event) => setActivities((items) => items.map((item, i) => i === index ? { ...item, title: event.target.value } : item))} />
+                <AutoGrowTextarea id={`ai-act-title-${index}`} singleLine maxLength={160} aria-label={`Tên hoạt động ${index + 1}`} value={activity.title} onValueChange={(next) => updateActivity(index, { title: next })} />
               </FormField>
               <FormField className="cozy-span-3" label="Mục tiêu" htmlFor={`ai-act-goal-${index}`} required>
-                <textarea id={`ai-act-goal-${index}`} className="cozy-textarea" aria-label={`Mục tiêu hoạt động ${index + 1}`} value={activity.goal} onChange={(event) => setActivities((items) => items.map((item, i) => i === index ? { ...item, goal: event.target.value } : item))} rows={2} />
+                <AutoGrowTextarea id={`ai-act-goal-${index}`} maxLength={1000} aria-label={`Mục tiêu hoạt động ${index + 1}`} value={activity.goal} onValueChange={(next) => updateActivity(index, { goal: next })} rows={2} />
               </FormField>
-              <FormField className="cozy-span-3" label="Vật liệu và chuẩn bị" htmlFor={`ai-act-materials-${index}`}>
-                <input id={`ai-act-materials-${index}`} className="cozy-input" aria-label={`Vật liệu hoạt động ${index + 1}`} value={activity.materials} onChange={(event) => setActivities((items) => items.map((item, i) => i === index ? { ...item, materials: event.target.value } : item))} />
+              <FormField className="cozy-span-3" label="Vật liệu" htmlFor={`ai-act-materials-${index}`}>
+                <AutoGrowTextarea id={`ai-act-materials-${index}`} maxLength={2000} aria-label={`Vật liệu hoạt động ${index + 1}`} value={activity.materials} onValueChange={(next) => updateActivity(index, { materials: next })} rows={2} />
+              </FormField>
+              <FormField className="cozy-span-3" label="Chuẩn bị" htmlFor={`ai-act-preparation-${index}`}>
+                <AutoGrowTextarea id={`ai-act-preparation-${index}`} maxLength={2000} aria-label={`Chuẩn bị hoạt động ${index + 1}`} value={activity.preparation} onValueChange={(next) => updateActivity(index, { preparation: next })} rows={2} />
               </FormField>
               <FormField className="cozy-span-3" label="Cách thực hiện" htmlFor={`ai-act-instructions-${index}`} required>
-                <textarea id={`ai-act-instructions-${index}`} className="cozy-textarea" aria-label={`Cách thực hiện hoạt động ${index + 1}`} value={activity.instructions} onChange={(event) => setActivities((items) => items.map((item, i) => i === index ? { ...item, instructions: event.target.value } : item))} rows={3} />
+                <AutoGrowTextarea id={`ai-act-instructions-${index}`} maxLength={5000} aria-label={`Cách thực hiện hoạt động ${index + 1}`} value={activity.instructions} onValueChange={(next) => updateActivity(index, { instructions: next })} rows={3} />
+              </FormField>
+              <FormField label="Ghi chú quan sát" htmlFor={`ai-act-observation-${index}`}>
+                <AutoGrowTextarea id={`ai-act-observation-${index}`} maxLength={3000} aria-label={`Ghi chú quan sát hoạt động ${index + 1}`} value={activity.observation_notes} onValueChange={(next) => updateActivity(index, { observation_notes: next })} rows={2} />
               </FormField>
               <FormField label="Lưu ý an toàn" htmlFor={`ai-act-safety-${index}`}>
-                <textarea id={`ai-act-safety-${index}`} className="cozy-textarea" aria-label={`Lưu ý an toàn hoạt động ${index + 1}`} value={activity.safety_notes} onChange={(event) => setActivities((items) => items.map((item, i) => i === index ? { ...item, safety_notes: event.target.value } : item))} rows={2} />
+                <AutoGrowTextarea id={`ai-act-safety-${index}`} maxLength={3000} aria-label={`Lưu ý an toàn hoạt động ${index + 1}`} value={activity.safety_notes} onValueChange={(next) => updateActivity(index, { safety_notes: next })} rows={2} />
+              </FormField>
+              <FormField label="Loại hoạt động" htmlFor={`ai-act-kind-${index}`} required>
+                <Select id={`ai-act-kind-${index}`} aria-label={`Loại hoạt động ${index + 1}`} value={activity.activity_kind} onChange={(event) => updateActivity(index, { activity_kind: event.target.value as ActivityKind })}>
+                  <option value="outdoor">Ngoài trời</option>
+                  <option value="indoor">Trong lớp</option>
+                  <option value="mixed">Trong lớp và ngoài trời</option>
+                </Select>
               </FormField>
             </section>
           ))}
@@ -301,39 +521,36 @@ export function TeacherAiLessonWorkflowPage() {
           </label>
           {!reviewConfirmed && (
             <p className="cozy-form-disabled-hint">
-              Đánh dấu xác nhận rà soát ở trên để bật nút tạo Sketch Deck và ảnh minh họa.
+              Đánh dấu xác nhận rà soát ở trên để bật nút lưu giáo án.
             </p>
           )}
           {error && suggestion && <Alert tone="danger" role="alert">{error}</Alert>}
           <div className="cozy-form-actions" style={{ marginTop: 0 }}>
-            <Button type="button" variant="secondary" loading={busy === 'visual'} disabled={busy !== '' || !reviewConfirmed} onClick={() => void generateVisual()}>
-              {busy === 'visual' ? 'Đang tạo ảnh…' : 'Tạo ảnh minh họa tùy chọn'}
-            </Button>
-            <Button type="button" variant="primary" loading={busy === 'deck'} disabled={busy !== '' || !reviewConfirmed} onClick={() => void generateDeck()}>
-              {busy === 'deck' ? 'Đang tạo Sketch Deck…' : 'Tạo Sketch Deck'}
+            <Button type="button" variant="primary" loading={busy === 'save'} disabled={busy !== '' || !reviewConfirmed || Boolean(savedLessonForDraft)} onClick={() => void saveLesson()}>
+              {busy === 'save' ? 'Đang lưu giáo án…' : savedLessonForDraft ? 'Đã lưu thành giáo án' : 'Lưu thành giáo án'}
             </Button>
           </div>
         </section>
       )}
 
-      {presentationDeck && (
-        <section className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wide text-emerald-800">Sketch Deck · bản nháp cần duyệt</p>
-              <h2 className="mt-1 text-xl font-bold text-slate-950">{presentationDeck.topic}</h2>
-              <p className="mt-1 text-sm text-slate-600">{presentationDeck.slides.length} slide · khung 16:9 · {presentationDeck.ageMonths} tháng</p>
-            </div>
-            <Button type="button" variant="primary" onClick={() => setPresentationOpen(true)}>Mở trình chiếu</Button>
+      {savedLessonForDraft && (
+        <section className="cozy-form-card cozy-form-card--wide cozy-form-stack" aria-labelledby="saved-lesson-heading">
+          <div>
+            <h2 id="saved-lesson-heading" className="text-xl font-bold text-slate-900">Đã lưu thành giáo án</h2>
+            <p className="mt-1 text-base font-semibold text-slate-900">{savedLessonForDraft.title}</p>
+            <p className="mt-2 text-sm text-slate-600">Giáo án đang ở trạng thái bản nháp riêng tư, chưa được duyệt nên chưa thể ghim vào buổi dạy. Mở thư viện để gửi yêu cầu duyệt công khai tới quản lý nhà trường.</p>
           </div>
-          <ol className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3" aria-label="Các slide đã tạo">
-            {presentationDeck.slides.map((slide) => <li key={slide.slideIndex} className="rounded-lg border border-slate-200 bg-slate-50 p-3"><span className="text-xs font-bold text-blue-700">Slide {slide.slideIndex}</span><p className="mt-1 text-sm font-semibold text-slate-900">{slide.title}</p></li>)}
+          <ol className="list-decimal space-y-1 pl-5 text-sm text-slate-700">
+            <li>Sau khi giáo án được duyệt, ghim giáo án vào một buổi dạy.</li>
+            <li>Rà soát và duyệt kế hoạch của buổi dạy.</li>
+            <li>Tạo Sketch Deck từ trang buổi dạy.</li>
           </ol>
+          <div className="flex flex-wrap gap-3">
+            <Link className="s2l-button is-primary" to="/teacher/t02-lesson-authoring">Mở thư viện giáo án</Link>
+            <Link className="s2l-button" to="/teacher/t04-session-sketch-deck">Mở trang buổi dạy</Link>
+          </div>
         </section>
       )}
-      {deck !== null && deck !== undefined && !presentationDeck && <Alert tone="danger" role="alert">Sketch Deck không khớp schema trình chiếu được hỗ trợ. Hãy tạo lại bản nháp sau khi rà soát giáo án.</Alert>}
-      {visual && <section className="rounded-2xl border border-slate-200 bg-white p-5"><h2 className="text-xl font-bold">Ảnh minh họa · bản nháp cần duyệt</h2><img alt="Ảnh minh họa do AI tạo, chưa được duyệt" src={`data:image/png;base64,${visual}`} className="mt-3 max-h-[30rem] rounded-xl border border-slate-200 object-contain" /></section>}
-      {presentationOpen && presentationDeck && <TeacherDeckPresentation deck={presentationDeck} visualBase64={visual} visualBusy={busy === 'visual'} visualError={visualError} onGenerateVisual={() => void generateVisual()} onClose={() => setPresentationOpen(false)} />}
     </div>
   )
 }

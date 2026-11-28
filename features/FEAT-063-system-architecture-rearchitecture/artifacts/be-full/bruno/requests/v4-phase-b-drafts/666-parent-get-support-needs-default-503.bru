@@ -1,0 +1,38 @@
+meta {
+  name: 666 [DRAFT-V4B] [LOCAL / TEST ONLY] Parent GET support needs returns 503 default when no key source
+  type: http
+  seq: 666
+}
+
+get {
+  url: {{baseUrl}}/v1/parent/profiles/{{parent_profile_id}}/support-needs
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(503);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.code).to.equal("SUPPORT_NEEDS_UNAVAILABLE");
+    expect(body.retryable).to.equal(true);
+  });
+}
+
+docs {
+  DRAFT: written from the Phase B code at 134561f4; not yet run against a live backend.
+  Role: Parent - set bearerToken to seed-parent-p1 token
+  Needs: parent_profile_id (owned ACTIVE profile, e.g. seed k1); production default has no key source configured
+  Expected: 503 / SUPPORT_NEEDS_UNAVAILABLE (retryable true)
+  Source: backend/src/sketch2life/interfaces/http/routers/parent_profiles.py:545-573, backend/src/sketch2life/interfaces/http/support_needs_runtime.py:1-45
+}

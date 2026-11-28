@@ -120,6 +120,7 @@ _RECORD_QUERY = select(
     _VG,
     _RUNS.c.actor_scope_kind.label("owner_scope_kind"),
     _RUNS.c.actor_scope_ref.label("owner_scope_ref"),
+    _RUNS.c.active_owner_teacher_id.label("teacher_account_id"),
     _RUNS.c.run_state.label("current_run_state"),
     _RUNS.c.revision.label("current_run_revision"),
 ).join(_RUNS, _RUNS.c.run_id == _VG.c.story_run_id)
@@ -183,6 +184,9 @@ def _to_record(row: Mapping[Any, Any]) -> GenerationRecord:
         generation_revision=int(row["generation_revision"]),
         run_state=str(row["current_run_state"]),
         run_revision=int(row["current_run_revision"]),
+        teacher_account_id=(
+            None if row["teacher_account_id"] is None else str(row["teacher_account_id"])
+        ),
     )
 
 
@@ -363,6 +367,18 @@ class SqlStoryVideoRepository:
             .one_or_none()
         )
         if row is None or self._teacher_access is None:
+            raise ParentStoryRunError(404, "RESOURCE_NOT_FOUND")
+        if (
+            self._actor is not None
+            and self._actor.is_teacher
+            and "active_owner_teacher_id" in row
+            and row["active_owner_teacher_id"] is not None
+            and row["active_owner_teacher_id"] != self._actor.account_id
+        ):
+            raise ParentStoryRunError(404, "RESOURCE_NOT_FOUND")
+        if "owner_epoch" in row and (
+            type(row["owner_epoch"]) is not int or int(row["owner_epoch"]) < 0
+        ):
             raise ParentStoryRunError(404, "RESOURCE_NOT_FOUND")
         access = self._teacher_access.resolve(
             principal=principal,
@@ -1207,8 +1223,16 @@ class SqlStoryVideoRepository:
             _RUNS.c.actor_scope_kind == _OWNER_SCOPE_KIND,
             _RUNS.c.actor_scope_ref == scope_ref,
         )
+        owner_epoch: int | None = None
         if teacher:
-            columns += [_RUNS.c.actor_scope_ref, _RUNS.c.profile_ref, _RUNS.c.occurrence_ref]
+            columns += [
+                _RUNS.c.run_id,
+                _RUNS.c.actor_scope_ref,
+                _RUNS.c.profile_ref,
+                _RUNS.c.occurrence_ref,
+                _RUNS.c.active_owner_teacher_id,
+                _RUNS.c.owner_epoch,
+            ]
             owner = (
                 _RUNS.c.actor_scope_kind == _TEACHER_SCOPE_KIND,
                 _RUNS.c.occurrence_ref.is_not(None),
@@ -1227,8 +1251,10 @@ class SqlStoryVideoRepository:
                 .mappings()
                 .one_or_none()
             )
-            if row is not None and teacher and not self._teacher_may_read(principal, row):
-                row = None
+            if row is not None and teacher:
+                owner_epoch = self._teacher_may_read(principal, row)
+                if owner_epoch is None:
+                    row = None
         except SQLAlchemyError:
             self._session.rollback()
             raise ParentStoryRunError(503, _STORE_UNAVAILABLE) from None
@@ -1236,6 +1262,11 @@ class SqlStoryVideoRepository:
             return PlaybackResolution(PlaybackStatus.NOT_FOUND)
         if not teacher and self._parent_profile_revoked(run_id):
             return PlaybackResolution(PlaybackStatus.NOT_FOUND)
+        playback_scope_ref = scope_ref
+        if teacher and "owner_epoch" in row:
+            if owner_epoch is None:
+                return PlaybackResolution(PlaybackStatus.NOT_FOUND)
+            playback_scope_ref = f"{scope_ref}:story-owner-epoch:{owner_epoch}"
         current = row["video_generation_id"]
         if not is_playable(
             run_state=str(row["run_state"]),
@@ -1249,7 +1280,9 @@ class SqlStoryVideoRepository:
             return PlaybackResolution(PlaybackStatus.NOT_PLAYABLE)
         return PlaybackResolution(
             PlaybackStatus.PLAYABLE,
-            PlaybackTarget(run_id, str(current), scope_ref, str(row["output_asset_ref"])),
+            PlaybackTarget(
+                run_id, str(current), playback_scope_ref, str(row["output_asset_ref"])
+            ),
         )
 
     def _parent_profile_revoked(self, run_id: str) -> bool:
@@ -1291,19 +1324,51 @@ class SqlStoryVideoRepository:
             profile["state"] != "ACTIVE" or profile["deleted_at"] is not None
         )
 
-    def _teacher_may_read(self, principal: VerifiedPrincipal, run: Mapping[Any, Any]) -> bool:
-        """The occurrence-pin rule on the CURRENT assignment, without a lock (a read)."""
+    def _teacher_may_read(
+        self, principal: VerifiedPrincipal, run: Mapping[Any, Any]
+    ) -> int | None:
+        """Check the current assignment and Story owner under the shared class lock."""
 
         if self._teacher_access is None:
-            return False
+            return None
+        if (
+            self._actor is not None
+            and self._actor.is_teacher
+            and "active_owner_teacher_id" in run
+            and run["active_owner_teacher_id"] is not None
+            and run["active_owner_teacher_id"] != self._actor.account_id
+        ):
+            return None
+        tracks_epoch = "owner_epoch" in run
+        if tracks_epoch and (type(run["owner_epoch"]) is not int or int(run["owner_epoch"]) < 0):
+            return None
         access = self._teacher_access.resolve(
             principal=principal,
             organization_id=str(run["actor_scope_ref"]),
             child_id=None if run["profile_ref"] is None else str(run["profile_ref"]),
-            lock=False,
+            lock=tracks_epoch,
             occurrence_ref=None if run["occurrence_ref"] is None else str(run["occurrence_ref"]),
         )
-        return access is not None
+        if access is None:
+            return None
+        if not tracks_epoch:
+            # Older contract doubles omit T-6b columns; production ORM rows always carry them.
+            return 0
+        current_owner, current_epoch = self._session.execute(
+            select(_RUNS.c.active_owner_teacher_id, _RUNS.c.owner_epoch).where(
+                _RUNS.c.run_id == run["run_id"]
+            )
+        ).one_or_none() or (None, None)
+        if type(current_epoch) is not int or current_epoch < 0:
+            return None
+        if (
+            self._actor is not None
+            and self._actor.is_teacher
+            and current_owner is not None
+            and current_owner != self._actor.account_id
+        ):
+            return None
+        return current_epoch
 
     # ---------------------------------------------------------------------- progress
     def advance(self, generation_id: str, event: ProgressEvent) -> ProgressResult:
@@ -1552,6 +1617,7 @@ def sample_facts(session: Session, run_id: str, *, lock: bool) -> SampleFacts | 
     statement = (
         select(
             _RUNS.c.run_id,
+            _RUNS.c.owner_epoch,
             _RUNS.c.occurrence_ref,
             _RUNS.c.run_state,
             _RUNS.c.finished_at.label("run_finished_at"),
@@ -1608,6 +1674,11 @@ def sample_facts(session: Session, run_id: str, *, lock: bool) -> SampleFacts | 
         plan_revision_id=pin_id if isinstance(pin_id, str) else None,
         plan_revision_no=pin_no if type(pin_no) is int else None,
         plan_hash=pin_hash if isinstance(pin_hash, str) else None,
+        owner_epoch=(
+            int(row["owner_epoch"])
+            if type(row["owner_epoch"]) is int and int(row["owner_epoch"]) >= 0
+            else None
+        ),
     )
 
 

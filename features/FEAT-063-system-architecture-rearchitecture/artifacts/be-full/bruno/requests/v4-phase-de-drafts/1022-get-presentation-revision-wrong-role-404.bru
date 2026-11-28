@@ -1,0 +1,36 @@
+meta {
+  name: 1022 [DRAFT-V4E] [LOCAL / TEST ONLY] School Manager receives 404 getting presentation revision
+  type: http
+  seq: 1022
+}
+
+get {
+  url: {{baseUrl}}/v1/lesson-occurrences/{{phase_de_e1_occurrence_id}}/presentation/revisions/1
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert manager role uniform 404 refusal", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_NOT_FOUND");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against committed Phase E code at 98aa9837 (PHASE_E_FINAL_ROUTE_LIST_20261125.md / 784134fc); not yet run against a live backend.
+  Role: Wrong Role (School Manager) - set bearerToken to seed-mgr-a token
+  Needs: needs-fixture: lesson occurrence phase_de_e1_occurrence_id
+  Expected: 404 / RESOURCE_NOT_FOUND
+  Source: backend/src/sketch2life/interfaces/http/routers/lesson_presentations.py
+}

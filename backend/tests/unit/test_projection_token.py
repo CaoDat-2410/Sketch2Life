@@ -36,6 +36,7 @@ from sketch2life.application.services.story_run_playback import (
     StoryPlaybackService,
     check_playback_token,
 )
+from sketch2life.infrastructure.lesson_occurrences import projection as lesson_projection
 from sketch2life.infrastructure.story_video import repository as video_repository
 from sketch2life.infrastructure.story_video.playback_tokens import (
     MAX_GRANT_LENGTH,
@@ -74,6 +75,11 @@ TEACHER_A = principal("teacher-a")
 TEACHER_B = principal("teacher-b")
 DIGEST_A = actor_digest(parent_scope_ref(TEACHER_A))
 DIGEST_B = actor_digest(parent_scope_ref(TEACHER_B))
+OWNER_EPOCH = 7
+PLAYBACK_SCOPE_A = f"{parent_scope_ref(TEACHER_A)}:story-owner-epoch:{OWNER_EPOCH}"
+PLAYBACK_SCOPE_B = f"{parent_scope_ref(TEACHER_B)}:story-owner-epoch:{OWNER_EPOCH}"
+PROJECTION_DIGEST_A = actor_digest(PLAYBACK_SCOPE_A)
+PROJECTION_DIGEST_B = actor_digest(PLAYBACK_SCOPE_B)
 CLAIMS = ProjectionClaims(OCCURRENCE, CONFIRMED_MS)
 
 
@@ -221,10 +227,10 @@ def test_a_token_names_the_caller_digest_not_the_organization() -> None:
     """R2 N-2: two Teachers of one organization have two different digests, and a token minted for
     one is refused for the other by the digest comparison alone, whatever else is right."""
 
-    assert DIGEST_A != DIGEST_B
+    assert PROJECTION_DIGEST_A != PROJECTION_DIGEST_B
     issuer = codec()
-    grant = issuer.verify(issue_projection(issuer, DIGEST_A))
-    reader = Reader(playable("same-run-same-organization", scope_ref=parent_scope_ref(TEACHER_B)))
+    grant = issuer.verify(issue_projection(issuer, PROJECTION_DIGEST_A))
+    reader = Reader(playable("same-run-same-organization", scope_ref=PLAYBACK_SCOPE_B))
     service = StoryPlaybackService(reader, issuer, Port(True))
     with pytest.raises(ParentStoryRunError) as raised:
         service.authorize_projection(principal=TEACHER_B, run_id=RUN, grant=grant)
@@ -257,7 +263,7 @@ class Port:
 def playable(_label: str = "", *, scope_ref: str | None = None) -> PlaybackResolution:
     return PlaybackResolution(
         PlaybackStatus.PLAYABLE,
-        PlaybackTarget(RUN, GENERATION, scope_ref or parent_scope_ref(TEACHER_A), "parent/x/o.mp4"),
+        PlaybackTarget(RUN, GENERATION, scope_ref or PLAYBACK_SCOPE_A, "parent/x/o.mp4"),
     )
 
 
@@ -266,7 +272,7 @@ def uniform(raised: pytest.ExceptionInfo[ParentStoryRunError]) -> tuple[int, str
 
 
 def projection_grant() -> PlaybackGrant:
-    return codec().verify(issue_projection())
+    return codec().verify(issue_projection(digest=PROJECTION_DIGEST_A))
 
 
 def test_a_good_projection_token_passes_and_asks_the_port_the_exact_question() -> None:
@@ -285,6 +291,52 @@ def test_a_good_projection_token_passes_and_asks_the_port_the_exact_question() -
             "confirmed_ms": CONFIRMED_MS,
         }
     ]
+
+
+def test_projection_grant_and_stream_share_the_current_story_owner_epoch(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    confirmed_at = datetime(2026, 11, 22, 3, 0, tzinfo=UTC)
+    occurrence = {"class_projection_confirmed_at": confirmed_at}
+    monkeypatch.setattr(
+        lesson_projection,
+        "_occurrence_row",
+        lambda _db, _occurrence_id, *, lock: occurrence,
+    )
+    monkeypatch.setattr(
+        lesson_projection, "_decide", lambda _db, _principal, _occurrence: "teacher-account"
+    )
+    monkeypatch.setattr(
+        lesson_projection,
+        "_current_grant",
+        lambda _db, _occurrence, _account: (RUN, GENERATION, OWNER_EPOCH),
+    )
+
+    class _GrantSession:
+        rolled_back = False
+
+        def rollback(self) -> None:
+            self.rolled_back = True
+
+    session = _GrantSession()
+    facts = lesson_projection.ProjectionService(cast("Session", session)).grant(
+        principal=TEACHER_A, occurrence_id=OCCURRENCE
+    )
+    assert session.rolled_back
+    assert facts.actor_scope_ref == PLAYBACK_SCOPE_A
+
+    issuer = codec()
+    token, _ = issuer.issue(
+        run_id=facts.run_id,
+        generation_id=facts.generation_id,
+        actor_digest=issuer.actor_binding(facts.actor_scope_ref),
+        projection=ProjectionClaims(facts.occurrence_id, facts.confirmed_ms),
+    )
+    target = StoryPlaybackService(Reader(playable(scope_ref=PLAYBACK_SCOPE_A)), issuer, Port(True))
+    resolved = target.authorize_projection(
+        principal=TEACHER_A, run_id=RUN, grant=issuer.verify(token)
+    )
+    assert resolved.scope_ref == PLAYBACK_SCOPE_A
 
 
 @pytest.mark.parametrize(
@@ -310,7 +362,7 @@ def test_each_projection_check_fails_alone_with_the_uniform_404(case: str) -> No
     elif case == "run_not_playable":
         resolution = PlaybackResolution(PlaybackStatus.NOT_PLAYABLE)
     elif case == "other_digest":
-        resolution = playable(scope_ref=parent_scope_ref(TEACHER_B))
+        resolution = playable(scope_ref=PLAYBACK_SCOPE_B)
     elif case == "confirmation_not_current":
         port = Port(False)
     elif case == "owner_view_token":
@@ -331,7 +383,7 @@ def test_the_port_is_asked_last_and_only_after_the_run_and_the_digest_passed() -
     for resolution in (
         PlaybackResolution(PlaybackStatus.NOT_FOUND),
         PlaybackResolution(PlaybackStatus.NOT_PLAYABLE),
-        playable(scope_ref=parent_scope_ref(TEACHER_B)),
+        playable(scope_ref=PLAYBACK_SCOPE_B),
     ):
         port = Port(True)
         with pytest.raises(ParentStoryRunError):
@@ -339,6 +391,20 @@ def test_the_port_is_asked_last_and_only_after_the_run_and_the_digest_passed() -
                 principal=TEACHER_A, run_id=RUN, grant=projection_grant()
             )
         assert port.calls == []
+
+
+def test_a_projection_token_expires_when_the_story_owner_epoch_changes() -> None:
+    changed_epoch_scope = f"{parent_scope_ref(TEACHER_A)}:story-owner-epoch:{OWNER_EPOCH + 1}"
+    port = Port(True)
+    with pytest.raises(ParentStoryRunError) as raised:
+        service = StoryPlaybackService(
+            Reader(playable(scope_ref=changed_epoch_scope)), codec(), port
+        )
+        service.authorize_projection(
+            principal=TEACHER_A, run_id=RUN, grant=projection_grant()
+        )
+    assert uniform(raised) == (404, "RESOURCE_NOT_FOUND")
+    assert port.calls == []
 
 
 def test_a_projection_service_without_a_codec_or_a_port_fails_closed_with_503() -> None:
@@ -363,14 +429,15 @@ def test_the_owner_view_path_refuses_a_projection_grant_before_any_read() -> Non
 
 def test_the_owner_view_path_is_unchanged_for_an_owner_view_token() -> None:
     issuer = codec()
-    grant = issuer.verify(
-        issuer.issue(run_id=RUN, generation_id=GENERATION, actor_digest=DIGEST_A)[0]
-    )
     reader = Reader(playable())
-    target = StoryPlaybackService(reader, issuer).authorize(
+    service = StoryPlaybackService(reader, issuer)
+    issued = service.issue(principal=TEACHER_A, run_id=RUN)
+    grant = service.check_token(issued.token)
+    target = service.authorize(
         principal=TEACHER_A, run_id=RUN, grant=grant
     )
-    assert target.generation_id == GENERATION and reader.calls == [(RUN, GENERATION)]
+    assert target.generation_id == GENERATION
+    assert reader.calls == [(RUN, None), (RUN, GENERATION)]
 
 
 def test_a_bad_token_is_refused_before_any_store_read() -> None:
@@ -419,6 +486,7 @@ def facts_of(session: _Session, *, lock: bool = False) -> Any:
 def _row(**changes: Any) -> dict[str, Any]:
     base: dict[str, Any] = {
         "run_id": RUN,
+        "owner_epoch": OWNER_EPOCH,
         "occurrence_ref": OCCURRENCE,
         "run_state": "VIDEO_READY",
         "video_generation_id": GENERATION,
@@ -449,6 +517,7 @@ def test_sample_facts_maps_a_playable_run_and_its_plan_pin() -> None:
         GENERATION,
     )
     assert facts.playable is True
+    assert facts.owner_epoch == OWNER_EPOCH
     assert facts.ready_at == datetime(2026, 11, 22, 10, 0, tzinfo=UTC)  # completed_at wins
     assert (facts.plan_revision_id, facts.plan_revision_no, facts.plan_hash) == (
         "plan-1",
@@ -537,4 +606,11 @@ def test_sample_facts_carries_no_storage_key_no_name_and_no_seed() -> None:
         "plan_revision_id",
         "plan_revision_no",
         "plan_hash",
+        "owner_epoch",
     }
+
+
+@pytest.mark.parametrize("owner_epoch", [None, -1, True, "7"])
+def test_sample_facts_rejects_an_invalid_story_owner_epoch(owner_epoch: Any) -> None:
+    facts = facts_of(_Session(_row(owner_epoch=owner_epoch)))
+    assert facts is not None and facts.owner_epoch is None

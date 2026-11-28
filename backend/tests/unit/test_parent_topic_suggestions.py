@@ -64,16 +64,14 @@ def test_catalog_subject_refresh_excludes_every_subject_already_shown() -> None:
         topic="Động vật",
         excluded_set_ids=(first["set_id"],),
         excluded_subjects=tuple(
-            label
-            for card in first["cards"]
-            for label in (card["title_vi"], card["guide_subject"])
+            label for card in first["cards"] for label in (card["title_vi"], card["guide_subject"])
         ),
     )
 
     assert next_set["generation_source"] == "CURATED_CATALOG"
-    assert not {
-        card["subject_id"] for card in first["cards"]
-    }.intersection(card["subject_id"] for card in next_set["cards"])
+    assert not {card["subject_id"] for card in first["cards"]}.intersection(
+        card["subject_id"] for card in next_set["cards"]
+    )
 
 
 def test_unknown_custom_topic_fails_closed_without_qwen_draft() -> None:
@@ -158,14 +156,15 @@ def test_qwen_fills_catalog_only_after_fewer_than_three_unseen_items_remain() ->
             "relation_to_topic_vi": "Đây là một loài khủng long nổi tiếng.",
         },
     )
-    excluded = (
-        "Con bướm", "Gà mái", "Con mèo", "Rùa con", "Chú chó", "Cá nhỏ", "Hươu con"
-    )
-    assert len(
-        service.eligible_catalog_subjects(
-            topic_id="animals", topic="Động vật", excluded_subjects=excluded
+    excluded = ("Con bướm", "Gà mái", "Con mèo", "Rùa con", "Chú chó", "Cá nhỏ", "Hươu con")
+    assert (
+        len(
+            service.eligible_catalog_subjects(
+                topic_id="animals", topic="Động vật", excluded_subjects=excluded
+            )
         )
-    ) == 2
+        == 2
+    )
 
     result = service.drawing_subject_set(
         draft_id=UUID("70878657-899c-4758-bae2-9e4f856f4aab"),
@@ -195,3 +194,38 @@ def test_custom_subject_gate_rejects_cross_topic_and_holds_ambiguous_input() -> 
     assert off_topic["normalized_subject"] is None
     assert ambiguous["decision"] == "NEEDS_CLARIFICATION"
     assert ambiguous["normalized_subject"] is None
+
+
+@pytest.mark.parametrize(
+    ("environment", "provider", "enabled", "allowed"),
+    [
+        ("local", "modal_dev", True, True),
+        ("test", "modal_dev", True, True),
+        ("production", "modal_dev", True, False),
+        ("local", "disabled", True, False),
+        ("local", "modal_dev", False, False),
+    ],
+)
+def test_topic_ai_gate_uses_app_runtime_settings(
+    environment: str,
+    provider: str,
+    enabled: bool,
+    allowed: bool,
+    monkeypatch,
+) -> None:
+    from types import SimpleNamespace
+
+    from fastapi import HTTPException
+
+    from sketch2life.interfaces.http.routers import parent_topic_suggestions
+
+    settings = SimpleNamespace(
+        env=environment, ai_provider=provider, parent_topic_subject_ai_enabled=enabled
+    )
+    monkeypatch.setattr(parent_topic_suggestions, "get_settings", lambda: settings)
+    if allowed:
+        parent_topic_suggestions._require_topic_ai()
+    else:
+        with pytest.raises(HTTPException) as exc:
+            parent_topic_suggestions._require_topic_ai()
+        assert exc.value.status_code == 503

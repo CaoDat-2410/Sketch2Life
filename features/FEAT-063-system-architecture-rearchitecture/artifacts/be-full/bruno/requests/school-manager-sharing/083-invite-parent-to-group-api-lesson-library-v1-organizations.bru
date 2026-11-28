@@ -22,6 +22,10 @@ headers {
 
 body:json {
   {
-    "parent_principal_ref": "x"
+    "parent_principal_ref": "{{parent_principal_ref}}"
   }
+}
+
+docs {
+  Parent target may be the active Parent subject or account ID; 409 INVITATION_EXISTS also covers a duplicate through the other unambiguous alias.
 }

@@ -1,0 +1,43 @@
+meta {
+  name: 810 [DRAFT-V4D] [LOCAL / TEST ONLY] Manager resends pending Teacher invitation (fixture)
+  type: http
+  seq: 810
+}
+
+post {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/teacher-invitations/{{phase_de_invited_account_ref}}/resend
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Idempotency-Key: {{phase_de_resend_key}}
+}
+
+script:pre-request {
+  bru.setVar("phase_de_resend_key", "t6a-resend-" + Date.now());
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(202);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("Cache-Control")).to.equal("private, no-store");
+    expect(res.getBody().account_ref).to.equal(bru.getVar("phase_de_invited_account_ref"));
+    expect(res.getBody().status).to.equal("PENDING_VERIFICATION");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against the code in .worktrees/v4d at 9e439cee; not yet run against a live backend.
+  Role: Assigned School Manager - set bearerToken to seed-mgr-a token
+  Needs: needs-fixture: run after 801 with phase_de_invited_account_ref, identity provisioner and profile_receipt_hmac_key configured
+  Expected: 202 / TeacherInvitationResponse (PENDING_VERIFICATION)
+  Source: backend/src/sketch2life/interfaces/http/routers/teacher_invitations.py:118-152, backend/src/sketch2life/application/services/teacher_invitations.py:177-253
+}

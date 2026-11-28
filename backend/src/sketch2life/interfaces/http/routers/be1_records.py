@@ -7,10 +7,11 @@ from __future__ import annotations
 
 import json
 from datetime import UTC, datetime
+from typing import Any, cast
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, status
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, Query, Response, status
+from sqlalchemy import select, tuple_
 from sqlalchemy.orm import Session
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
@@ -28,6 +29,7 @@ from sketch2life.infrastructure.persistence.be1_models import (
     ObservationModel,
 )
 from sketch2life.infrastructure.persistence.core_models import CoreAssetMetadataModel
+from sketch2life.interfaces.http.api_conventions import decode_time_cursor, encode_cursor
 from sketch2life.interfaces.http.be1_runtime import get_db, get_verified_adult
 from sketch2life.interfaces.http.routers.be1_common import (
     BE1_ERROR_RESPONSES,
@@ -43,6 +45,10 @@ from sketch2life.interfaces.http.routers.be1_common import (
     require_assignment,
     require_class_teacher_row,
     session_event,
+)
+from sketch2life.interfaces.http.routers.be1_registry import (
+    _profile_released,
+    _profile_withdrawn,
 )
 
 router = APIRouter(
@@ -406,9 +412,14 @@ def read_portfolio(
     organization_id: str,
     class_id: str,
     child_id: str,
+    response: Response,
+    limit: int = Query(default=25, ge=1, le=100),
+    cursor: str | None = None,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
 ) -> dict[str, object]:
+    response.headers["Cache-Control"] = "private, no-store"
+    response.headers["Vary"] = "Authorization"
     assignments = require_assignment(db, principal, organization_id, class_id=class_id)
     # T-7b: a read (suspended and archived classes stay readable); archived is Manager-only.
     hide_archived_from_teacher(get_class(db, organization_id, class_id, write=False), assignments)
@@ -425,13 +436,79 @@ def read_portfolio(
     )
     if profile is None:
         raise failure(404, "PROFILE_NOT_FOUND", "Profile was not found in this class")
-    # Portfolio records aggregate multiple session purposes. Require a future approved
-    # portfolio-purpose verifier before returning any child-owned observation/artifact.
-    raise failure(
-        409,
-        "CONSENT_NOT_EFFECTIVE",
-        "Portfolio purpose verification is pending; child data is blocked",
+    if _profile_withdrawn(db, profile):
+        db.rollback()
+        raise failure(404, "RESOURCE_NOT_FOUND", "Resource was not found")
+    if not _profile_released(db, profile, for_write=False, real_data_enabled=False):
+        deny_pending_consent(
+            db,
+            organization_id=organization_id,
+            actor=principal.subject,
+            resource_type="child_profile",
+            resource_id=child_id,
+            action="portfolio.read",
+        )
+
+    cursor_scope = f"be1.portfolio:{organization_id}:{class_id}:{child_id}"
+    after = decode_time_cursor(cursor, scope=cursor_scope) if cursor is not None else None
+    statement = (
+        select(
+            ObservationModel.observation_id.label("observation_id"),
+            ObservationModel.session_id.label("session_id"),
+            ObservationModel.kind.label("kind"),
+            ObservationModel.content.label("content"),
+            ObservationModel.created_at.label("created_at"),
+        )
+        .join(
+            ClassroomSessionModel,
+            ClassroomSessionModel.session_id == ObservationModel.session_id,
+        )
+        .where(
+            ObservationModel.organization_id == organization_id,
+            ObservationModel.child_id == child_id,
+            ClassroomSessionModel.organization_id == organization_id,
+            ClassroomSessionModel.class_id == class_id,
+        )
     )
+    if after is not None:
+        statement = statement.where(
+            tuple_(ObservationModel.created_at, ObservationModel.observation_id)
+            < tuple_(cast("Any", after[0]), cast("Any", after[1]))
+        )
+    rows = (
+        db.execute(
+            statement.order_by(
+                ObservationModel.created_at.desc(), ObservationModel.observation_id.desc()
+            ).limit(limit + 1)
+        )
+        .mappings()
+        .all()
+    )
+    page = rows[:limit]
+    next_cursor = (
+        encode_cursor(
+            scope=cursor_scope,
+            sort_key=page[-1]["created_at"].isoformat(),
+            item_id=page[-1]["observation_id"],
+        )
+        if len(rows) > limit
+        else None
+    )
+    return {
+        "contract": "Be1PortfolioPageV1",
+        "child_id": child_id,
+        "items": [
+            {
+                "observation_id": row["observation_id"],
+                "session_id": row["session_id"],
+                "kind": row["kind"],
+                "content": row["content"],
+                "created_at": row["created_at"],
+            }
+            for row in page
+        ],
+        "next_cursor": next_cursor,
+    }
 
 
 @router.post("/organizations/{organization_id}/data-requests", status_code=status.HTTP_202_ACCEPTED)

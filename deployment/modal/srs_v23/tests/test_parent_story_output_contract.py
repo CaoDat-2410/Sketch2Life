@@ -356,6 +356,78 @@ def test_parent_story_prompt_marks_length_targets_as_internal_metadata() -> None
     assert '"lesson_subject_learning_notes":"Bướm phát triển' in prompt
 
 
+def _apply_sentence_fixture(content: dict[str, Any], case: dict[str, Any]) -> None:
+    value = case.get("text")
+    if value is None:
+        value = case.get("repeat_char", "") * case.get("repeat_count", 0)
+        value += case.get("suffix", "")
+    field = case["field"]
+    if field.startswith("story."):
+        content["story"][field.removeprefix("story.")] = value
+        return
+    if field.startswith("scenes["):
+        index = int(field.split("[", 1)[1].split("]", 1)[0]) - 1
+        name = field.rsplit(".", 1)[1]
+        content["scenes"][index][name] = value
+        return
+    if field == "title":
+        content["title"] = value
+
+
+def test_story_q38_versioned_validator_matches_sentence_fixtures() -> None:
+    fixture_path = MODAL_DIR / "tests" / "fixtures" / "story_sentence_completeness_v1.json"
+    fixtures = json.loads(fixture_path.read_text(encoding="utf-8"))
+    sentence_cases = [case for case in fixtures["cases"] if case["validation"] == "sentence"]
+    false_positives = 0
+
+    for case in sentence_cases:
+        if case["field"].endswith(".action") and case["valid"]:
+            content = _valid_content()
+            _apply_sentence_fixture(content, case)
+            assert story_worker._story_sentence_completeness_issue_v1(content) is None
+            continue
+        actual = story_worker._story_sentence_completeness_reason_v1(
+            case.get("text")
+            or case.get("repeat_char", "") * case.get("repeat_count", 0)
+            + case.get("suffix", "")
+        )
+        if case["valid"]:
+            false_positives += actual is not None
+            assert actual is None, case["name"]
+        else:
+            assert actual == case["reason"], case["name"]
+
+    false_positive_rate = false_positives / sum(case["valid"] for case in sentence_cases)
+    assert (
+        false_positive_rate
+        <= story_worker.STORY_SENTENCE_COMPLETENESS_FALSE_POSITIVE_THRESHOLD_V1
+    )
+
+
+def test_story_q38_sentence_validator_rejects_incomplete_fixture_fields_only() -> None:
+    fixture_path = MODAL_DIR / "tests" / "fixtures" / "story_sentence_completeness_v1.json"
+    fixtures = json.loads(fixture_path.read_text(encoding="utf-8"))
+    for case in fixtures["cases"]:
+        if case["valid"] or case["validation"] != "sentence":
+            continue
+        content = _valid_content()
+        _apply_sentence_fixture(content, case)
+        issue = story_worker._story_sentence_completeness_issue_v1(content)
+        assert issue == (case["field"], case["reason"]), case["name"]
+
+    excluded = _valid_content()
+    excluded["title"] = "A title without punctuation"
+    excluded["scenes"][0]["visual_prompt"] = "a visual phrase without punctuation"
+    assert story_worker._story_sentence_completeness_issue_v1(excluded) is None
+
+
+def test_story_q38_sentence_validator_ignores_bare_action_stage_directions() -> None:
+    content = _valid_content()
+    content["scenes"][0]["action"] = "Bạn nhỏ bước tới cánh cửa"
+
+    assert story_worker._story_sentence_completeness_issue_v1(content) is None
+
+
 def test_parent_story_generation_schema_uses_compact_fields_with_srs_scene_count() -> (
     None
 ):

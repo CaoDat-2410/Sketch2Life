@@ -1,4 +1,4 @@
-"""FEAT-093: the SQL source reader assembles a VideoSource from stored rows (canned rows, no database)."""
+"""FEAT-093: assemble VideoSource objects from canned rows without a database."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ import io
 
 from sketch2life.application.ports.object_storage import StoredObject
 from sketch2life.application.ports.story_video import VideoRenderRequest
+from sketch2life.domain.story_teacher import TEACHER_PIN_SCHEMA
 from sketch2life.infrastructure.story_video.local_boxes import grid_box
 from sketch2life.infrastructure.story_video.sql_source_reader import SqlVideoSourceReader
 
@@ -59,13 +60,25 @@ class _Storage:
         self.data = data
 
     def get_object(self, key):
-        return None if self.data is None else StoredObject(_Body(self.data), len(self.data), "image/png", {})
+        return (
+            None
+            if self.data is None
+            else StoredObject(_Body(self.data), len(self.data), "image/png", {})
+        )
 
 
 def _rows(**override):
     revision = {
-        "story_sha256": "s" * 64, "story_content": {"opening": "Rùa ra khỏi hang.", "middle": "Rùa ăn lá.", "ending": "Rùa cười."},
-        "title": "Rùa con", "context_revision": 1, "source_asset_sha256": SHA, "understanding_revision": 2,
+        "story_sha256": "s" * 64,
+        "story_content": {
+            "opening": "Rùa ra khỏi hang.",
+            "middle": "Rùa ăn lá.",
+            "ending": "Rùa cười.",
+        },
+        "title": "Rùa con",
+        "context_revision": 1,
+        "source_asset_sha256": SHA,
+        "understanding_revision": 2,
     }
     candidate = {
         "candidate_subject": "con rùa",
@@ -74,17 +87,69 @@ def _rows(**override):
             {"entity_id": "sec-1", "label": "chiếc lá", "box": [13, 9, 19, 15]},
             {"entity_id": "sec-2", "label": "đám mây", "box": [1, 0, 6, 3]},
         ],
-        "approved_roles": [{"entity_id": "main", "role": "main"}, {"entity_id": "sec-1", "role": "secondary"}],
+        "approved_roles": [
+            {"entity_id": "main", "role": "main"},
+            {"entity_id": "sec-1", "role": "secondary"},
+        ],
     }
     rows = [
         revision,
-        {"subject_label": "con rùa"},
-        {"original_asset_ref": "parent/run-1/original.png", "original_sha256": SHA, "context_snapshot": {"topic": "Động vật", "age_months": 48}},
+        {
+            "subject_label": "con rùa",
+            "actor_scope_kind": "PARENT_ACCOUNT",
+            "occurrence_ref": None,
+        },
+        {
+            "original_asset_ref": "parent/run-1/original.png",
+            "original_sha256": SHA,
+            "context_snapshot": {"topic": "Động vật", "age_months": 48},
+        },
         {"result_snapshot": {"result": candidate}},
-        {"activity_snapshot": {"title": "Tìm lá", "objective": "Quan sát lá", "activity_kind": "OUTDOOR"}},
+        {
+            "activity_snapshot": {
+                "title": "Tìm lá",
+                "objective": "Quan sát lá",
+                "activity_kind": "OUTDOOR",
+            }
+        },
     ]
     for index, value in override.items():
         rows[int(index)] = value
+    return rows
+
+
+def _teacher_rows():
+    rows = _rows()
+    rows[1] = {
+        "subject_label": "con rùa",
+        "actor_scope_kind": "ORGANIZATION",
+        "actor_scope_ref": "organization-1",
+        "occurrence_ref": "occurrence-1",
+    }
+    rows[2] = {
+        "original_asset_ref": "organization/run-1/original.png",
+        "original_sha256": SHA,
+        "context_snapshot": {"age_months": 60, "objectives": ["Name circles"]},
+        "lesson_pin_snapshot": {
+            "schema_version": TEACHER_PIN_SCHEMA,
+            "occurrence_id": "occurrence-1",
+            "plan_revision_id": "plan-revision-1",
+            "activity": {
+                "plan_activity_id": "plan-activity-1",
+                "kind": "CUSTOM",
+                "snapshot_hash": None,
+            },
+        },
+    }
+    rows[4] = {
+        "plan_revision_id": "plan-revision-1",
+        "plan_activity_id": "plan-activity-1",
+        "activity_kind": "CUSTOM",
+        "custom_title": "Draw with fingers",
+        "custom_description": "Draw one shape with an adult.",
+        "activity_snapshot": None,
+        "activity_snapshot_hash": None,
+    }
     return rows
 
 
@@ -96,10 +161,32 @@ def test_a_confirmed_story_becomes_a_video_source() -> None:
     source = _read(_rows())
 
     assert source is not None
-    assert source.story_sha256 == "s" * 64 and source.age_months == 48 and source.topic == "Động vật"
-    assert [(s.entity_id, s.role) for s in source.subjects] == [("main", "main"), ("sec-1", "secondary")]
-    assert source.subject_boxes == {"main": (2, 6, 11, 17), "sec-1": (13, 9, 19, 15)}  # sec-2 was not approved
+    assert source.story_sha256 == "s" * 64
+    assert source.age_months == 48 and source.topic == "Động vật"
+    assert [(s.entity_id, s.role) for s in source.subjects] == [
+        ("main", "main"),
+        ("sec-1", "secondary"),
+    ]
+    assert source.subject_boxes == {
+        "main": (2, 6, 11, 17),
+        "sec-1": (13, 9, 19, 15),
+    }  # sec-2 was not approved
     assert source.story["middle"] == "Rùa ăn lá." and source.activity["title"] == "Tìm lá"
+    assert source.drawing_png == DRAWING and source.drawing_sha256 == SHA
+
+
+def test_teacher_source_uses_its_pinned_activity_for_topic_and_video_activity() -> None:
+    source = _read(_teacher_rows())
+
+    assert source is not None
+    assert source.topic == "Draw with fingers" and source.age_months == 60
+    assert source.activity == {
+        "title": "Draw with fingers",
+        "objective": "Name circles",
+        "materials_text": "",
+        "instructions_text": "Draw one shape with an adult.",
+        "activity_kind": "indoor",
+    }
     assert source.drawing_png == DRAWING and source.drawing_sha256 == SHA
 
 
@@ -107,7 +194,11 @@ def test_a_learning_script_brings_the_confirmed_narration_of_every_scene() -> No
     rows = _rows()
     rows[0]["story_content"] = {
         **rows[0]["story_content"],
-        "learning": {"scenes": [{"scene_index": 1, "action_en": "It walks.", "setting_en": "A park."}]},
+        "learning": {
+            "scenes": [
+                {"scene_index": 1, "action_en": "It walks.", "setting_en": "A park."}
+            ]
+        },
     }
     rows.append([{"scene_index": 1, "title": "Cảnh đầu", "narration": "Rùa là một loài bò sát."}])
 
@@ -116,8 +207,13 @@ def test_a_learning_script_brings_the_confirmed_narration_of_every_scene() -> No
     assert source is not None and source.learning == {
         "title": "Rùa con",
         "scenes": [
-            {"scene_index": 1, "action_en": "It walks.", "setting_en": "A park.", "title": "Cảnh đầu",
-             "narration": "Rùa là một loài bò sát."}
+            {
+                "scene_index": 1,
+                "action_en": "It walks.",
+                "setting_en": "A park.",
+                "title": "Cảnh đầu",
+                "narration": "Rùa là một loài bò sát.",
+            }
         ],
     }
     assert _read(_rows()).learning is None

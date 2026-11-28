@@ -6,42 +6,35 @@ from types import SimpleNamespace
 import pytest
 from fastapi import HTTPException
 from sqlalchemy.exc import OperationalError
-from starlette.requests import Request
 
 from sketch2life.interfaces.http.be1_runtime import get_db
 
 
-def test_database_preflight_returns_safe_503_and_logs_typed_correlation(caplog) -> None:
-    class DriverFailure(Exception):
-        sqlstate = "08006"
+class _DriverFailure(Exception):
+    pass
 
-    class FailedSession:
-        rolled_back = False
-        closed = False
 
-        def execute(self, _statement):
-            raise OperationalError("SELECT 1", {}, DriverFailure("private database detail"))
+class _FailedSession:
+    def __init__(self, *, fail_rollback: bool = False) -> None:
+        self.fail_rollback = fail_rollback
+        self.rolled_back = False
+        self.closed = False
 
-        def rollback(self):
-            self.rolled_back = True
+    def execute(self, _statement: object) -> None:
+        raise OperationalError("SELECT 1", {}, _DriverFailure("private child datum detail"))
 
-        def close(self):
-            self.closed = True
+    def rollback(self) -> None:
+        self.rolled_back = True
+        if self.fail_rollback:
+            raise OperationalError("ROLLBACK", {}, _DriverFailure("private rollback detail"))
 
-    session = FailedSession()
-    request = Request(
-        {
-            "type": "http",
-            "method": "GET",
-            "path": "/api/auth/v1/registrations",
-            "headers": [],
-        }
-    )
-    request.state.be1_request_id = "rev51-request-001"
+    def close(self) -> None:
+        self.closed = True
+
+
+def _run_failed_probe(session: _FailedSession) -> None:
     runtime = SimpleNamespace(session_factory=lambda: session)
-
-    caplog.set_level(logging.ERROR, logger="sketch2life.interfaces.http.be1_runtime")
-    dependency = get_db(request=request, runtime=runtime)
+    dependency = get_db(runtime=runtime)
     with pytest.raises(HTTPException) as raised:
         next(dependency)
 
@@ -49,10 +42,39 @@ def test_database_preflight_returns_safe_503_and_logs_typed_correlation(caplog) 
     assert raised.value.detail == {"code": "DATABASE_UNAVAILABLE"}
     assert session.rolled_back is True
     assert session.closed is True
-    log_text = "\n".join(record.getMessage() for record in caplog.records)
-    assert "be1_database_unavailable" in log_text
-    assert "rev51-request-001" in log_text
-    assert "OperationalError" in log_text
-    assert "DriverFailure" in log_text
-    assert "08006" in log_text
-    assert "private database detail" not in log_text
+
+
+def test_database_preflight_returns_safe_503_and_logs_only_code_and_type(caplog) -> None:
+    session = _FailedSession()
+
+    caplog.set_level(logging.ERROR, logger="sketch2life.interfaces.http.be1_runtime")
+    _run_failed_probe(session)
+
+    log_messages = [
+        record.getMessage()
+        for record in caplog.records
+        if record.name == "sketch2life.interfaces.http.be1_runtime"
+    ]
+    assert log_messages == ["code=DATABASE_UNAVAILABLE error_type=OperationalError"]
+    assert "private child datum detail" not in "\n".join(log_messages)
+    assert "SELECT 1" not in "\n".join(log_messages)
+
+
+def test_database_rollback_failure_uses_a_second_safe_typed_diagnostic(caplog) -> None:
+    session = _FailedSession(fail_rollback=True)
+
+    caplog.set_level(logging.ERROR, logger="sketch2life.interfaces.http.be1_runtime")
+    _run_failed_probe(session)
+
+    log_messages = [
+        record.getMessage()
+        for record in caplog.records
+        if record.name == "sketch2life.interfaces.http.be1_runtime"
+    ]
+    assert log_messages == [
+        "code=DATABASE_ROLLBACK_FAILED error_type=OperationalError",
+        "code=DATABASE_UNAVAILABLE error_type=OperationalError",
+    ]
+    assert "private rollback detail" not in "\n".join(log_messages)
+    # The failed statement text must not appear; the diagnostic code itself names the rollback.
+    assert "ROLLBACK" not in "\n".join(log_messages).replace("DATABASE_ROLLBACK_FAILED", "")

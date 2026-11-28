@@ -1,0 +1,57 @@
+/* Dashboard metrics and account filters form the dark Koi bands. */
+html[data-portal="platform"] .s2l-app-shell .pa-dashboard-v3 .pa-dashboard-metrics { gap: 0; padding: 24px 14px; border-radius: 28px; background: var(--s2l-ui-hero-wash); box-shadow: var(--s2l-ui-shadow); }
+html[data-portal="platform"] .s2l-app-shell .pa-dashboard-v3 .pa-dashboard-metric.pa-dashboard-metric { min-height: 90px; padding: 4px 20px; border: 0 !important; border-right: 1px solid var(--s2l-ui-sidebar-edge) !important; border-radius: 0; background: transparent; color: var(--s2l-ui-ink); box-shadow: none; }
+html[data-portal="platform"] .s2l-app-shell .pa-dashboard-v3 .pa-dashboard-metric:last-child { border-right: 0 !important; }
+html[data-portal="platform"] .s2l-app-shell .pa-dashboard-v3 .pa-dashboard-metric :is(span, strong, svg) { color: var(--s2l-ui-ink); }
+html[data-portal="platform"] .s2l-app-shell .pa-dashboard-v3 .pa-dashboard-metric:is(.is-gold, .is-coral) strong { color: var(--s2l-ui-primary-hover); }
+html[data-portal="platform"] .s2l-app-shell .pa-dashboard-v3 .pa-dashboard-metric .pa-metric-icon { display: none; }
+html[data-portal="platform"] .s2l-app-shell .pa-dashboard-v3 .pa-dashboard-tablist { justify-content: flex-start; padding: 0; border: 0; border-bottom: 1px solid #ded7eb; border-radius: 0; background: transparent; }
+html[data-portal="platform"] .s2l-app-shell .pa-dashboard-v3 .pa-dashboard-tablist [role="tab"] { flex: 0 0 auto; padding: 10px 18px; color: #4a4160; }
+html[data-portal="platform"] .s2l-app-shell .pa-dashboard-v3 .pa-dashboard-tablist [role="tab"][aria-selected="true"] { border-bottom: 3px solid #6a2bd9; border-radius: 0; background: transparent; color: #22105a; box-shadow: none; }
+html[data-portal="platform"] .s2l-app-shell .pa-dashboard-v3 .pa-dashboard-overview .pa-dashboard-panel { border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+html[data-portal="platform"] .pa-dashboard-v3 .pa-dashboard-overview .pa-dashboard-panel-heading { padding: 12px 0; }
+html[data-portal="platform"] .pa-dashboard-v3 .pa-school-status .pa-columns-summary strong { font-size: 44px; line-height: 1; }
+html[data-portal="platform"] .pa-dashboard-v3 .pa-school-stack { display: flex; gap: 2px; height: 14px; overflow: hidden; border-radius: 4px; background: var(--s2l-ui-rule); }
+html[data-portal="platform"] .pa-dashboard-v3 .pa-school-stack span { min-width: 0; border-radius: 4px; }
+html[data-portal="platform"] .pa-dashboard-v3 .pa-school-stack .is-active { background: #4b9b70; }
+html[data-portal="platform"] .pa-dashboard-v3 .pa-school-stack .is-paused { background: #c38a2a; }
+html[data-portal="platform"] .pa-dashboard-v3 .pa-school-stack .is-disabled { background: var(--s2l-ui-danger-base); }
+html[data-portal="platform"] .pa-dashboard-v3 .pa-school-stack .is-other { background: #a9a39d; }
+html[data-portal="platform"] .pa-dashboard-v3 .pa-school-stack + .pa-columns-legend li { min-height: 42px; align-items: center; }
+html[data-portal="platform"] .pa-dashboard-v3 .pa-school-stack + .pa-columns-legend li > span::before { content: ""; display: inline-block; width: 10px; height: 10px; margin-right: 10px; border-radius: 3px; background: #4b9b70; }
+html[data-portal="platform"] .pa-dashboard-v3 .pa-school-stack + .pa-columns-legend li:nth-child(2) > span::before { background: #c38a2a; }
+html[data-portal="platform"] .pa-dashboard-v3 .pa-school-stack + .pa-columns-legend li:nth-child(3) > span::before { background: var(--s2l-ui-danger-base); }
+html[data-portal="platform"] .pa-dashboard-v3 .pa-school-stack + .pa-columns-legend li:nth-child(4) > span::before { background: #a9a39d; }
+html[data-portal="platform"] .platform-accounts .koi-accounts-band { padding: 22px 28px; border-radius: 28px; background: var(--s2l-ui-hero-wash); color: var(--s2l-ui-ink); }
+html[data-portal="platform"] .platform-accounts .koi-accounts-band .accounts-list-heading { padding: 0; border: 0; background: transparent; }
+html[data-portal="platform"] .platform-accounts .koi-accounts-band .accounts-list-heading h2 { color: var(--s2l-ui-ink); }
+html[data-portal="platform"] .platform-accounts .koi-accounts-band .accounts-directory-icon { display: none; }
+html[data-portal="platform"] .platform-accounts .koi-accounts-band .accounts-filters { padding: 0; border: 0; background: transparent; box-shadow: none; }
+html[data-portal="platform"] .platform-accounts .koi-accounts-band .accounts-filters > button { background: var(--s2l-ui-primary); border-color: var(--s2l-ui-primary); color: var(--s2l-ui-on-primary); }
+html[data-portal="platform"] .s2l-app-shell .platform-accounts .accounts-list-panel { border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+html[data-portal="platform"] .s2l-app-shell .platform-accounts .accounts-table thead th { background: transparent; color: #4a4160; }
+html[data-portal="platform"] .s2l-app-shell .platform-accounts .accounts-table .accounts-button-danger { border: 1px solid var(--s2l-ui-danger-base); background: transparent; color: var(--s2l-ui-danger-base); box-shadow: none; }
+html[data-portal="platform"] .s2l-app-shell .platform-accounts .accounts-table .accounts-button-danger:hover:not(:disabled) { background: var(--pa-danger-soft); color: var(--s2l-ui-danger-base); }
+@media (min-width: 901px) {
+  html[data-portal="platform"] .s2l-app-shell .platform-accounts .accounts-table tbody td { padding: 5px 12px; }
+  html[data-portal="platform"] .s2l-app-shell .platform-accounts .accounts-table tbody tr { height: 48px; }
+  html[data-portal="platform"] .s2l-app-shell .platform-accounts .accounts-person-copy > span { margin-top: 0; }
+}
+@media (max-width: 820px) {
+  html[data-portal="platform"] .s2l-app-shell .pa-dashboard-v3 .pa-dashboard-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  html[data-portal="platform"] .s2l-app-shell .pa-dashboard-v3 .pa-dashboard-metric.pa-dashboard-metric { border: 0 !important; padding: 12px; }
+  html[data-portal="platform"] .platform-accounts .koi-accounts-band { padding: 20px; }
+}
+/* Account actions: labels never break; stack the buttons on narrower screens. */
+html[data-cozy="1"] .accounts-table .accounts-row-actions.accounts-row-actions > button { white-space: nowrap; }
+@media (max-width: 1280px) {
+  html[data-cozy="1"] .accounts-table .accounts-row-actions.accounts-row-actions { flex-direction: column; align-items: stretch; gap: 6px; }
+  html[data-cozy="1"] .accounts-table .accounts-row-actions.accounts-row-actions > button { padding-inline: 10px; }
+}
+html[data-cozy="1"] .accounts-table .accounts-row-actions.accounts-row-actions > button { width: auto; min-width: max-content; height: auto; }
+html[data-cozy="1"] .accounts-table td[data-label="Thao tác"] { min-width: 170px; }
+@media (min-width: 861px) and (max-width: 1280px) {
+  html[data-cozy="1"] .platform-accounts .accounts-table-wrap .accounts-table.accounts-table { table-layout: auto; width: 100%; min-width: 0; }
+  html[data-cozy="1"] .platform-accounts .accounts-table-wrap .accounts-table.accounts-table :is(th, td) { width: auto; padding-inline: 8px; }
+  html[data-cozy="1"] .platform-accounts .accounts-table-wrap .accounts-table.accounts-table .accounts-role-editor { min-width: 0; max-width: 160px; }
+}

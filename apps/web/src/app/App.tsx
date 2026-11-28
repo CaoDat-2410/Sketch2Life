@@ -1,7 +1,9 @@
 import { lazy, Suspense, useLayoutEffect } from "react";
 import { BrowserRouter, Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { PortalEntryPage } from "./PortalEntryPage";
+import { SessionLimitGuard } from "../shared/auth/SessionLimitGuard";
 import { PortalSessionProvider } from "../shared/auth/PortalSessionContext";
+import brandLogo from "../shared/assets/sketch2life-logo-mark-128.png";
 
 const TeacherPortalApp = lazy(() => import("../modules/teacher/App").then((module) => ({ default: module.TeacherPortalApp })));
 const SchoolManagerBe1App = lazy(() => import("../modules/school-manager/be1/App").then((module) => ({ default: module.SchoolManagerBe1App })));
@@ -10,7 +12,7 @@ const PlatformAdminApp = lazy(() => import("../modules/platform-admin/App").then
 function PortalNotFoundPage() {
   return (
     <main className="s2l-route-not-found">
-      <Link className="s2l-route-not-found-brand" to="/login">Sketch2Life</Link>
+      <Link className="s2l-route-not-found-brand" to="/login"><img src={brandLogo} alt="" />Sketch2Life</Link>
       <section>
         <p>404 · KHÔNG TÌM THẤY TRANG</p>
         <h1>Đường dẫn này chưa được hỗ trợ</h1>
@@ -34,8 +36,8 @@ function PortalRoutes() {
           ? "platform"
           : "entry";
     document.documentElement.dataset.portal = portal;
-    if (portal === "entry" && path !== "/login") delete document.documentElement.dataset.cozy;
-    else document.documentElement.dataset.cozy = "1";
+    // Every route uses the same design system, including 404. Role stylesheets still key on this flag.
+    document.documentElement.dataset.cozy = "1";
   }, [location.pathname]);
 
   return (
@@ -61,7 +63,7 @@ export default function App() {
   return (
     <PortalSessionProvider>
       <BrowserRouter>
-        <PortalRoutes />
+        <SessionLimitGuard><PortalRoutes /></SessionLimitGuard>
       </BrowserRouter>
     </PortalSessionProvider>
   );

@@ -400,8 +400,9 @@ def test_teacher_postgres_contract_and_marker_accounting(s1a_t_client: SimpleNam
             f"profiles/{profile['child_id']}/portfolio",
             headers=headers(winning_subject),
         )
-        assert portfolio.status_code == 409
-        assert portfolio.json()["code"] == "CONSENT_NOT_EFFECTIVE"
-        assert "PROFILE_NOT_FOUND" not in portfolio.text
-        assert profile["child_id"] not in portfolio.text
+        assert portfolio.status_code == 200, portfolio.text
+        portfolio_body = portfolio.json()
+        assert portfolio_body["contract"] == "Be1PortfolioPageV1"
+        assert portfolio_body["items"] == []
+        assert "display_name" not in portfolio_body
         assert display_name not in portfolio.text

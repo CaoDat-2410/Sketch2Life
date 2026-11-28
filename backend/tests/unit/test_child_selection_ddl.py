@@ -114,7 +114,7 @@ def _graph() -> dict[str, tuple[str, ...]]:
 
 
 # ----------------------------------------------------------------------------- the revision graph
-def test_revision_is_the_only_child_of_nt_0001_and_ends_the_library_chain() -> None:
+def test_revision_is_the_only_child_of_nt_0001_before_the_remix_lineage_head() -> None:
     constants = _constants(_MIGRATION)
     assert constants["revision"] == "20261120_sel_0001" and len(str(constants["revision"])) <= 32
     assert constants["down_revision"] == _PARENT
@@ -125,29 +125,64 @@ def test_revision_is_the_only_child_of_nt_0001_and_ends_the_library_chain() -> N
         for down in downs:
             children.setdefault(down, set()).add(revision)
     assert children[_PARENT] == {"20261120_sel_0001"}
-    assert "20261120_sel_0001" not in children
+    assert children["20261120_sel_0001"] == {"20261121_ll_0001"}
+    assert children["20261121_ll_0001"] == {"20261121_pg_0001"}
+    assert children["20261121_pg_0001"] == {"20261121_nt_0002"}
+    assert children["20261121_nt_0002"] == {"20261125_nt_0003"}
+    assert children["20261125_nt_0003"] == {
+        "20261122_t6b_0001",
+        "20261126_sl_0001",
+    }
+    assert children["20261126_sl_0001"] == {"20261126_sh_0001"}
+    assert children["20261126_sh_0001"] == {"20261126_dc_0001"}
+    assert "20261126_dc_0001" not in children
     node, chain = _LIBRARY_ROOT, [_LIBRARY_ROOT]
     while children.get(node):
         # FEAT-072: the Platform Admin chain (20261119_admin_foundation onward) branches from
         # 20261110_ar_0001 as its own branch; it is not part of the lesson_library chain.
-        next_nodes = {child for child in children[node] if "_admin_" not in child}
+        # T-6b starts a transfer branch from 20261125_nt_0003; it is parallel to the
+        # lesson-library continuation and does not change this chain.
+        next_nodes = {
+            child
+            for child in children[node]
+                if "_admin_" not in child
+                and child not in {"20261122_t6b_0001", "20261110_parent_profiles"}
+        }
         if not next_nodes:
             break
         assert len(next_nodes) == 1, node
         (node,) = next_nodes
         chain.append(node)
-    assert chain[-1] == "20261120_sel_0001" and chain[-2] == _PARENT
+    assert chain[-9:] == [
+        _PARENT,
+        "20261120_sel_0001",
+        "20261121_ll_0001",
+        "20261121_pg_0001",
+        "20261121_nt_0002",
+        "20261125_nt_0003",
+        "20261126_sl_0001",
+        "20261126_sh_0001",
+        "20261126_dc_0001",
+    ]
 
 
-def test_the_graph_has_51_revisions_and_fifteen_heads() -> None:
+def test_the_graph_has_83_revisions_and_twelve_raw_heads() -> None:
     graph = _graph()
-    # 41 after T-4b1; T-4b2 adds 20261120_b2_0001 on the Story branch (heads stay 14)
-    # FEAT-072 adds the seven Platform Admin revisions as their own branch (one more head).
+    # T-4b2 follows the video branch; final as_0003 dependencies order all independent leaves.
+    # The final receipt repair depends on all branch heads, leaving one effective head.
     # FEAT-066 goal v4 T-2e-a adds 20261123_as_0001 (DDL-B3) on the Story branch (heads unchanged).
     # FEAT-066 goal v4 T-1b-fix adds 20261123_rv_0001 (DDL-B1c) on the same branch (heads same).
-    assert len(graph) == 51
+    # FEAT-066 goal v4 T-12a adds 20261121_pce_0001 (DDL-D) on the Parent root (one new head).
+    # FEAT-066 goal v4 T-12b adds 20261121_bpr_0001 (DDL-D) as a second child of 20261123_rv_0001,
+    # parallel to the AIPORT1 20261113_svg_catalog_review (the Phase B squash keeps both heads).
+    # FEAT-066 goal v4 T-12c adds 20261121_psn_0001 (Parent root) and 20261121_psn_0002 (bpr).
+    # FEAT-066 goal v4 T-12b-fix adds 20261123_ppg_0001 on the BE1 branch (squash: 55 + 5).
+    # Phase D adds three revisions and the t6b_0001/t6c_0001 down-only leaves.
+    assert len(graph) == 83
     down_targets = {target for downs in graph.values() for target in downs}
-    assert len([revision for revision in graph if revision not in down_targets]) == 15
+    down_heads = {revision for revision in graph if revision not in down_targets}
+    assert len(down_heads) == 12
+    assert {"20261122_t6b_0001", "20261126_as_0003"} <= down_heads
 
 
 # ------------------------------------------------------------------- the closed column list

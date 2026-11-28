@@ -53,13 +53,41 @@ export interface AcceptedDocument {
 }
 export interface PlanActivity { plan_activity_id?: string | null; order: number; kind: "LESSON" | "CUSTOM" | "CATALOG"; lesson_activity_id: string | null; title: string | null; description: string | null; snapshot_hash: string | null; checklist_required: boolean; checklist_version: string | null; confirmed: boolean }
 export interface PlanRevision {
-  contract: "LessonPlanRevisionV1"; occurrence_id: string; revision_no: number; state: "DRAFT" | "APPROVED" | "SUPERSEDED";
+  contract: "LessonPlanRevisionV1"; occurrence_id: string; plan_revision_id: string; revision_no: number; state: "DRAFT" | "APPROVED" | "SUPERSEDED";
   content_hash: string; document_revision_ref: { document_id: string; revision_no: number } | null;
   objectives: string[]; teacher_direction: string; safety_notes: string | null; lesson_version_ref: LessonVersionRef | null;
   lesson_version_no: number | null; activities: PlanActivity[]; created_at: string; approved_at: string | null; supersedes_revision_no: number | null;
 }
 export interface PlanRevisionSummary extends Pick<PlanRevision, "revision_no" | "state" | "content_hash" | "created_at" | "approved_at"> { activity_count: number }
 export interface PlanRevisionPage { contract: "LessonPlanRevisionPageV1"; items: PlanRevisionSummary[]; next_cursor: string | null }
+export type SketchDeckState = "GENERATING" | "READY" | "FAILED" | "STALE" | "SUPERSEDED";
+export interface TeacherDrawingStep { action: string; placement: string }
+export interface SketchDeckStep {
+  sketch_deck_step_id: string; plan_activity_id: string | null; instruction_group_key: string; step_index: number;
+  step_kind: string; subject_key: string; short_title: string; child_facing_prompt: string; teacher_explanation: string;
+  bounded_layout_hints: Record<string, unknown>; line_sketch_asset_ref: string | null; line_sketch_asset_version: number | null;
+  source_job_ref: string | null; state: SketchDeckState; created_at: string;
+}
+export interface SketchDeckRevision {
+  contract: "SketchDeckRevisionV1"; sketch_deck_revision_id: string; occurrence_id: string; plan_revision_id: string;
+  revision_no: number; plan_content_hash: string; review_confirmed: true; topic: string; drawing_steps: TeacherDrawingStep[];
+  subject_knowledge: string[]; target_age_band: string; deck_schema_version: string; state: SketchDeckState;
+  content_hash: string | null; created_at: string; ready_at: string | null; superseded_at: string | null;
+}
+export interface CurrentSketchDeck {
+  contract: "SketchDeckCurrentV1"; occurrence_id: string; current_revision: SketchDeckRevision | null;
+  steps: SketchDeckStep[]; stale: boolean; presentable: boolean;
+}
+export type TeacherConfirmedAgeBandRef =
+  | "age-36-71-months-v1"
+  | "age-72-107-months-v1"
+  | "age-108-120-months-v1"
+  | "36-71";
+export interface CreateSketchDeckInput {
+  expected_plan_revision_id: string; expected_plan_hash: string; review_confirmed: true; topic: string;
+  drawing_steps: TeacherDrawingStep[]; subject_knowledge: string[];
+  teacher_confirmed_age_band_ref?: TeacherConfirmedAgeBandRef;
+}
 export interface CreatePlanInput {
   expected_head_revision_no: number;
   document_revision_ref?: { document_id: string; revision_no: number } | null;
@@ -100,6 +128,7 @@ export const TERMINAL_JOB_STATES: ReadonlySet<JobState> = new Set<JobState>(["su
 const occurrencePath = (id: string) => `/v1/lesson-occurrences/${enc(id)}`;
 const docPath = (occurrenceId: string, documentId?: string) => `${occurrencePath(occurrenceId)}/documents${documentId ? `/${enc(documentId)}` : ""}`;
 const plansPath = (occurrenceId: string, revisionNo?: number) => `${occurrencePath(occurrenceId)}/plan-revisions${revisionNo ? `/${revisionNo}` : ""}`;
+const sketchDeckPath = (occurrenceId: string) => `${occurrencePath(occurrenceId)}/sketch-decks`;
 const uploadPath = (id: string) => `/v1/upload-sessions/${enc(id)}`;
 const pageQuery = (extra: Record<string, string | undefined> = {}, cursor?: string) => {
   const query = new URLSearchParams({ limit: String(LIST_PAGE_LIMIT) });
@@ -174,6 +203,10 @@ export const teacherOccurrenceApi = {
   /** `checklist` stays empty: the backend's production safety-checklist registry is empty, so no entry can be invented here. */
   confirmPlan: (occurrenceId: string, revision: number, hash: string, key = createIdempotencyKey()) =>
     write<PlanRevision>(`${plansPath(occurrenceId, revision)}/confirm`, "POST", key, { expected_plan_hash: hash, checklist: [] }),
+
+  getSketchDeck: (occurrenceId: string) => request<CurrentSketchDeck>(sketchDeckPath(occurrenceId)).then(data),
+  createSketchDeck: (occurrenceId: string, input: CreateSketchDeckInput, key = createIdempotencyKey()) =>
+    write<SketchDeckRevision>(sketchDeckPath(occurrenceId), "POST", key, input),
 
   getJob: (id: string, etag?: string, signal?: AbortSignal) => request<JobStatus>(`/v1/jobs/${enc(id)}`, { headers: ifNoneMatch(etag), signal }, true),
 

@@ -1,7 +1,6 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { getPreferences } from "../../../shared/api/accountPreferencesApi";
 import { TEACHER_NAVIGATION } from "../../../shared/navigation/WebAppShell";
 import { TeacherPortalApp } from "../App";
 
@@ -21,27 +20,20 @@ vi.mock("../../school-manager/be1/services/authService", () => ({
   },
 }));
 
-vi.mock("../../../shared/api/accountPreferencesApi", () => ({
-  getPreferences: vi.fn(),
-  updatePreferences: vi.fn(),
-}));
-
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
 });
 
 describe("Teacher settings route", () => {
-  it("renders the shared settings page with a live navigation link", async () => {
-    vi.mocked(getPreferences).mockResolvedValue({ locale: "vi-VN", email_notifications: true, revision: 1 });
+  it("replaces the legacy settings route with the read-only profile", async () => {
     render(<MemoryRouter initialEntries={["/teacher/t08-settings"]}><TeacherPortalApp /></MemoryRouter>);
 
-    expect(await screen.findByRole("heading", { name: "Cài đặt" })).toBeTruthy();
-    expect(screen.getByText("Thông báo cá nhân")).toBeTruthy();
-    const settingsLink = screen.getByRole("link", { name: /^Cài đặt$/ });
-    expect(settingsLink.getAttribute("href")).toBe("/teacher/t08-settings");
-    expect(settingsLink.getAttribute("aria-current")).toBe("page");
-    expect(settingsLink.textContent).not.toContain("Chờ API");
-    expect(TEACHER_NAVIGATION.flatMap((group) => group.items).find((item) => item.href === "/teacher/t08-settings")?.state).toBe("available");
+    expect(await screen.findByRole("heading", { name: "Hồ sơ cá nhân" })).toBeTruthy();
+    const profileLink = screen.getByRole("link", { name: "Hồ sơ cá nhân" });
+    expect(profileLink.getAttribute("href")).toBe("/teacher/t11-profile");
+    expect(profileLink.getAttribute("aria-current")).toBe("page");
+    expect(screen.queryByRole("link", { name: "Cài đặt" })).toBeNull();
+    expect(TEACHER_NAVIGATION.flatMap((group) => group.items).some((item) => item.href === "/teacher/t08-settings")).toBe(false);
   });
 });

@@ -15,6 +15,8 @@ import { keyForSignature, userService, type AccountRole, type AccountState, type
 
 const ROLE_LABELS: Record<AccountRole, string> = { parent: 'Phụ huynh', teacher: 'Giáo viên', school_manager: 'Quản lý trường', platform_admin: 'Quản trị nền tảng' }
 const ROLE_OPTIONS: AccountRole[] = ['parent', 'teacher', 'school_manager', 'platform_admin']
+// SRS UC-13: the School Manager invites Teachers. An Admin-created Teacher would have no organization.
+const CREATE_ROLE_OPTIONS: AccountRole[] = ROLE_OPTIONS.filter((role) => role !== 'teacher')
 const PAGE_SIZE = 25
 type Filters = { search: string; role: AccountRole | ''; state: AccountState | '' }
 type LoadState = 'loading' | 'ready' | 'error'
@@ -32,6 +34,13 @@ function toLoadFailure(cause: unknown): LoadFailure {
 }
 
 const messageFrom = (cause: unknown, fallback: string) => cause instanceof Error ? cause.message : fallback
+
+function accountMutationErrorMessage(cause: unknown, fallback: string) {
+  if (cause instanceof BackendApiError && cause.code === 'ORGANIZATION_UNAVAILABLE') {
+    return 'Trường được chọn không tồn tại hoặc không còn hoạt động. Hãy tải lại danh sách và chọn một trường đang hoạt động.'
+  }
+  return messageFrom(cause, fallback)
+}
 
 function accountDisplayName(account: ManagedAccount): string | null {
   const name = account.display_name?.trim()
@@ -61,7 +70,7 @@ export function UsersPage() {
   const [creating, setCreating] = useState(false)
   const [email, setEmail] = useState('')
   const [displayName, setDisplayName] = useState('')
-  const [newRole, setNewRole] = useState<AccountRole>('teacher')
+  const [newRole, setNewRole] = useState<AccountRole>('school_manager')
   const [organizationId, setOrganizationId] = useState('')
   const [mutating, setMutating] = useState(false)
   const [actionError, setActionError] = useState('')
@@ -72,6 +81,8 @@ export function UsersPage() {
   const emailSending = useRef(false)
   const needsSchools = (creating && newRole === 'school_manager') || accounts.some(a => roleEdits[a.account_id] === 'school_manager' && a.role !== 'school_manager')
   const schools = useAdminQuery(() => needsSchools ? readAllPages<Organization>('/organizations') : Promise.resolve({items: [] as Organization[], total: 0}), String(needsSchools))
+  const activeSchools = (schools.data?.items ?? []).filter((school) => school.state?.trim().toLowerCase() === 'active')
+  const noActiveSchools = needsSchools && !schools.loading && !schools.error && Boolean(schools.data) && activeSchools.length === 0
 
 
   const loadAccounts = async (starts: (string | null)[] = pageStarts, filters: Filters = { search, role: roleFilter, state: stateFilter }) => {
@@ -134,7 +145,7 @@ export function UsersPage() {
       setNotice('Đã tạo tài khoản. Email thiết lập mật khẩu đã được đưa vào hàng đợi gửi.')
       setSearch(''); setRoleFilter(''); setStateFilter(''); setHasAppliedFilters(false)
       await loadAccounts([null], { search: '', role: '', state: '' })
-    } catch (cause) { setActionError(messageFrom(cause, 'Không tạo được tài khoản.')) }
+    } catch (cause) { setActionError(accountMutationErrorMessage(cause, 'Không tạo được tài khoản.')) }
     finally { setMutating(false) }
   }
 
@@ -149,9 +160,9 @@ export function UsersPage() {
     try {
       await userService.updateAccount(account.account_id, payload, keyForSignature(mutationKeys.current, signature), account.revision)
       mutationKeys.current.delete(signature)
-      setNotice('Đã cập nhật vai trò. Quyền truy cập lớp vẫn cần phân công riêng bởi School Manager.')
+      setNotice('Đã cập nhật vai trò. Quyền truy cập lớp vẫn cần phân công riêng bởi Quản lý trường.')
       await loadAccounts()
-    } catch (cause) { setActionError(messageFrom(cause, 'Không cập nhật được vai trò.')) }
+    } catch (cause) { setActionError(accountMutationErrorMessage(cause, 'Không cập nhật được vai trò.')) }
     finally { setMutating(false) }
   }
 
@@ -178,7 +189,7 @@ export function UsersPage() {
     try {
       await sendCommand('/accounts/' + encodeURIComponent(emailTarget.account_id) + '/setup-email')
       setEmailTarget(null)
-      setNotice('Đã đưa email thiết lập mật khẩu vào hàng đợi. Theo dõi kết quả trong Cài đặt & email.')
+      setNotice('Đã đưa email thiết lập mật khẩu vào hàng đợi. Theo dõi kết quả trong Email hệ thống.')
     } catch (cause) { setActionError(messageFrom(cause, 'Không gửi được yêu cầu email.')) }
     finally { emailSending.current = false; setMutating(false) }
   }
@@ -205,27 +216,31 @@ export function UsersPage() {
         <div className='accounts-error-actions'><button type='button' className='accounts-button accounts-button-secondary' onClick={() => void loadAccounts()} disabled={loadState === 'loading'}><MgIcon name='refresh' size={17} />Thử tải lại</button>{loadFailure.auth && <button type='button' className='accounts-button accounts-button-primary' onClick={loginAgain}>Đăng nhập lại</button>}</div>
       </section>}
 
+      {noActiveSchools && <p className='accounts-form-hint' role='status'>Hiện không có trường nào ở trạng thái đang hoạt động. Chỉ trường đang hoạt động mới có thể được chọn để gán vai trò Quản lý trường.</p>}
+
       {creating && loadState === 'ready' && <form className='accounts-panel accounts-create-form' onSubmit={(event) => void createAccount(event)} aria-busy={mutating}>
         <div className='accounts-panel-heading'><div><p className='accounts-eyebrow'>Danh tính mới</p><h2>Tạo tài khoản</h2></div><span className='accounts-panel-mark' aria-hidden='true'><MgIcon name='userplus' size={21} /></span></div>
         <div className='accounts-form-grid'>
           <label className='accounts-field'><span>Email tài khoản</span><input required type='email' autoComplete='email' value={email} onChange={(event) => setEmail(event.target.value)} disabled={mutating} /></label>
           <label className='accounts-field'><span>Tên hiển thị</span><input required maxLength={200} autoComplete='name' value={displayName} onChange={(event) => setDisplayName(event.target.value)} disabled={mutating} /></label>
-          <label className='accounts-field'><span>Vai trò sản phẩm</span><AdminSelect aria-label='Vai trò sản phẩm' value={newRole} onChange={(event) => setNewRole(event.target.value as AccountRole)} disabled={mutating}>{ROLE_OPTIONS.map((role) => <option key={role} value={role}>{ROLE_LABELS[role]}</option>)}</AdminSelect></label>
-          {newRole === 'school_manager' && <label className='accounts-field'><span>Trường học</span><AdminSelect required aria-label='Trường học cho tài khoản mới' value={organizationId} onChange={(event) => setOrganizationId(event.target.value)} disabled={mutating || schools.loading}><option value=''>Chọn trường học</option>{schools.data?.items.map(o => <option key={o.organization_id} value={o.organization_id}>{o.display_name}</option>)}</AdminSelect></label>}
+          <label className='accounts-field'><span>Vai trò sản phẩm</span><AdminSelect aria-label='Vai trò sản phẩm' value={newRole} onChange={(event) => setNewRole(event.target.value as AccountRole)} disabled={mutating}>{CREATE_ROLE_OPTIONS.map((role) => <option key={role} value={role}>{ROLE_LABELS[role]}</option>)}</AdminSelect></label>
+          {newRole === 'school_manager' && <label className='accounts-field'><span>Trường học</span><AdminSelect required aria-label='Trường học cho tài khoản mới' value={organizationId} onChange={(event) => setOrganizationId(event.target.value)} disabled={mutating || schools.loading || activeSchools.length === 0}><option value=''>{activeSchools.length ? 'Chọn trường học' : 'Không có trường đang hoạt động'}</option>{activeSchools.map(o => <option key={o.organization_id} value={o.organization_id}>{o.display_name}</option>)}</AdminSelect></label>}
         </div>
-        <p className='accounts-form-hint'>Email hướng dẫn đặt mật khẩu; giáo viên cần được phân công lớp.</p>
-        <div className='accounts-form-actions'><button type='button' className='accounts-button accounts-button-secondary' onClick={() => setCreating(false)} disabled={mutating}>Hủy</button><button type='submit' className='accounts-button accounts-button-primary' disabled={mutating}><MgIcon name={mutating ? 'refresh' : 'plus'} size={18} />{mutating ? 'Đang tạo tài khoản…' : 'Tạo tài khoản'}</button></div>
+        <p className='accounts-form-hint'>Người nhận được gửi email hướng dẫn đặt mật khẩu. Tài khoản giáo viên do Quản lý trường mời.</p>
+        <div className='accounts-form-actions'><button type='button' className='accounts-button accounts-button-secondary' onClick={() => setCreating(false)} disabled={mutating}>Hủy</button><button type='submit' className='accounts-button accounts-button-primary' disabled={mutating || (newRole === 'school_manager' && (schools.loading || activeSchools.length === 0))}><MgIcon name={mutating ? 'refresh' : 'plus'} size={18} />{mutating ? 'Đang tạo tài khoản…' : 'Tạo tài khoản'}</button></div>
       </form>}
 
+      <div className='koi-accounts-band'>
+      {loadState !== 'error' && <div className='accounts-list-heading'><div className='accounts-directory-title'><span className='accounts-directory-icon' aria-hidden='true'><MgIcon name='users' size={22} /></span><h2 id='accounts-list-title'>Tài khoản người dùng</h2></div><div className='accounts-row-actions'>{loadState === 'ready' && <span className='accounts-result-pill' aria-live='polite'>{total.toLocaleString('vi-VN')} tài khoản</span>}<button type='button' className='accounts-button accounts-button-small accounts-button-secondary' disabled={loadState === 'loading' || mutating} onClick={() => { setActionError(''); setNotice(''); void loadAccounts() }}><MgIcon name='refresh' size={16} />Tải lại</button></div></div>}
       <form className='accounts-filters accounts-panel' onSubmit={submitFilters} aria-label='Lọc danh sách tài khoản'>
         <AdminSearchInput className='accounts-search-slot' label='Tìm tài khoản theo email hoặc tên hiển thị' value={search} onValueChange={setSearch} placeholder='Email hoặc tên hiển thị' disabled={filtersDisabled} />
         <label className='accounts-select-field'><span className='accounts-visually-hidden'>Lọc theo vai trò</span><AdminSelect aria-label='Lọc theo vai trò' value={roleFilter} onChange={(event) => setRoleFilter(event.target.value as AccountRole | '')} disabled={filtersDisabled}><option value=''>Tất cả vai trò</option>{ROLE_OPTIONS.map((role) => <option key={role} value={role}>{ROLE_LABELS[role]}</option>)}</AdminSelect></label>
         <label className='accounts-select-field'><span className='accounts-visually-hidden'>Lọc theo trạng thái tài khoản</span><AdminSelect aria-label='Lọc theo trạng thái tài khoản' value={stateFilter} onChange={(event) => setStateFilter(event.target.value as AccountState | '')} disabled={filtersDisabled}><option value=''>Tất cả trạng thái</option><option value='active'>Đang hoạt động</option><option value='disabled'>Đã khóa</option><option value='pending_verification'>Chờ xác minh email</option></AdminSelect></label>
         <button type='submit' className='accounts-button accounts-button-secondary' disabled={filtersDisabled}>Tìm tài khoản</button>
       </form>
+      </div>
 
       {loadState !== 'error' && <section className='accounts-panel accounts-list-panel' aria-labelledby='accounts-list-title' aria-busy={loadState === 'loading'}>
-        <div className='accounts-list-heading'><div className='accounts-directory-title'><span className='accounts-directory-icon' aria-hidden='true'><MgIcon name='users' size={22} /></span><h2 id='accounts-list-title'>Tài khoản người dùng</h2></div>{loadState === 'ready' && <span className='accounts-result-pill' aria-live='polite'>{total.toLocaleString('vi-VN')} tài khoản</span>}</div>
         {loadState === 'loading' && <div className='accounts-list-state' role='status' aria-live='polite'><span className='accounts-spinner' aria-hidden='true' /><p>Đang tải danh sách tài khoản…</p></div>}
         {loadState === 'ready' && accounts.length === 0 && <div className='accounts-list-state is-empty-state'><span className='accounts-empty-icon' aria-hidden='true'><MgIcon name={hasAppliedFilters ? 'search' : 'users'} size={25} /></span><h3>{hasAppliedFilters ? 'Không tìm thấy tài khoản phù hợp' : 'Chưa có tài khoản'}</h3><p>{hasAppliedFilters ? 'Thử từ khóa hoặc bộ lọc khác.' : 'Tạo tài khoản đầu tiên để bắt đầu.'}</p>{hasAppliedFilters ? <button type='button' className='accounts-button accounts-button-secondary' onClick={clearFilters}>Xóa bộ lọc</button> : <button type='button' className='accounts-button accounts-button-secondary' onClick={() => setCreating(true)} disabled={!canManage}><MgIcon name='plus' size={17} />Tạo tài khoản đầu tiên</button>}</div>}
 
@@ -239,7 +254,7 @@ export function UsersPage() {
             const displayName = accountDisplayName(account)
             return <tr key={account.account_id} data-account-role={account.role ?? 'unassigned'} data-role-edited={changed || undefined}>
               <td data-label='Tài khoản'><div className='accounts-person'><span className='accounts-avatar' aria-hidden='true'>{(displayName || account.email || '?').replace(/^\[TEST\]\s*/, '').trim().slice(0, 1).toLocaleUpperCase('vi-VN')}</span><span className='accounts-person-copy'><strong>{displayName || 'Chưa có tên'}</strong><span>{account.email || 'Chưa có email'}</span></span></div></td>
-              <td data-label='Vai trò'><div className='accounts-role-editor'><label className='accounts-visually-hidden' htmlFor={`account-role-${account.account_id}`}>Vai trò của {label}</label><AdminSelect id={`account-role-${account.account_id}`} value={role} onChange={(event) => setRoleEdits((current) => ({ ...current, [account.account_id]: event.target.value as AccountRole | '' }))} disabled={!canManage}><option value=''>Chưa gán vai trò</option>{ROLE_OPTIONS.map((item) => <option key={item} value={item}>{ROLE_LABELS[item]}</option>)}</AdminSelect>{needsOrganization && <label className='accounts-inline-organization'><span>Trường học</span><AdminSelect required aria-label={`Trường học cho ${label}`} value={orgValue} onChange={(event) => setOrganizationEdits((current) => ({ ...current, [account.account_id]: event.target.value }))} disabled={!canManage || schools.loading}><option value=''>Chọn trường học</option>{schools.data?.items.map(o => <option key={o.organization_id} value={o.organization_id}>{o.display_name}</option>)}</AdminSelect></label>}</div></td>
+              <td data-label='Vai trò'><div className='accounts-role-editor'><label className='accounts-visually-hidden' htmlFor={`account-role-${account.account_id}`}>Vai trò của {label}</label><AdminSelect id={`account-role-${account.account_id}`} value={role} onChange={(event) => setRoleEdits((current) => ({ ...current, [account.account_id]: event.target.value as AccountRole | '' }))} disabled={!canManage}><option value=''>Chưa gán vai trò</option>{ROLE_OPTIONS.map((item) => <option key={item} value={item}>{ROLE_LABELS[item]}</option>)}</AdminSelect>{needsOrganization && <label className='accounts-inline-organization'><span>Trường học</span><AdminSelect required aria-label={`Trường học cho ${label}`} value={orgValue} onChange={(event) => setOrganizationEdits((current) => ({ ...current, [account.account_id]: event.target.value }))} disabled={!canManage || schools.loading || activeSchools.length === 0}><option value=''>{activeSchools.length ? 'Chọn trường học' : 'Không có trường đang hoạt động'}</option>{activeSchools.map(o => <option key={o.organization_id} value={o.organization_id}>{o.display_name}</option>)}</AdminSelect></label>}</div></td>
               <td data-label='Trạng thái'><span className={`accounts-status ${account.state === 'active' ? 'is-active' : account.state === 'pending_verification' ? 'is-pending' : 'is-disabled'}`}><span aria-hidden='true' />{account.state === 'active' ? 'Đang hoạt động' : account.state === 'pending_verification' ? 'Chờ xác minh email' : 'Đã khóa'}</span></td>
 <td data-label='Thao tác'><div className='accounts-row-actions'>{account.state !== 'disabled' && account.email && <button type='button' className='accounts-button accounts-button-small accounts-button-secondary' disabled={!canManage} onClick={() => { setActionError(''); setEmailTarget(account) }}>Gửi email thiết lập</button>}{changed && <button type='button' className='accounts-button accounts-button-small accounts-button-primary' disabled={!canManage || !changed || (needsOrganization && !orgValue.trim())} onClick={() => void saveRole(account)}>Lưu vai trò</button>}<button type='button' className={`accounts-button accounts-button-small ${account.state === 'disabled' ? 'accounts-button-outline' : 'accounts-button-danger'}`} disabled={!canManage} onClick={() => { setActionError(''); setStateTarget(account) }}>{account.state === 'disabled' ? 'Mở lại' : 'Khóa tài khoản'}</button></div></td>
             </tr>

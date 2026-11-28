@@ -42,12 +42,14 @@ ScopeKind = Literal["PARENT_ACCOUNT", "ORGANIZATION"]
 class VideoRequestScope:
     """The owner scope of a request: an opaque kind and reference, never a name or an e-mail.
 
-    ``PARENT_ACCOUNT`` for a Parent run; ``ORGANIZATION`` plus the organization id for a Teacher run
-    (BR-38 l.282, T-4b3b). The ports only forward it; they never branch on the kind.
+    ``PARENT_ACCOUNT`` for a Parent run; ``ORGANIZATION`` plus the organization id and the active
+    Teacher account id for a Teacher run (BR-38 l.293, T-4b3b). Billing maps the account id to the
+    sign-in subject used by Manager allocations. The ports only forward these opaque references.
     """
 
     kind: ScopeKind
     ref: str
+    teacher_account_id: str | None = None
 
 
 class ReservationStatus(StrEnum):
@@ -64,6 +66,9 @@ class AckStatus(StrEnum):
 class QuotaStatus(StrEnum):
     ACCEPTED = "ACCEPTED"
     QUOTA_EXCEEDED = "QUOTA_EXCEEDED"
+    QUOTA_ALLOCATION_NOT_FOUND = "QUOTA_ALLOCATION_NOT_FOUND"
+    TEACHER_QUOTA_INSUFFICIENT = "TEACHER_QUOTA_INSUFFICIENT"
+    SCHOOL_QUOTA_INSUFFICIENT = "SCHOOL_QUOTA_INSUFFICIENT"
     SUBSCRIPTION_RESTRICTED = "SUBSCRIPTION_RESTRICTED"
     IDEMPOTENCY_MISMATCH = "IDEMPOTENCY_MISMATCH"
     UNAVAILABLE = "UNAVAILABLE"
@@ -172,6 +177,7 @@ class GenerationRecord:
     generation_revision: int
     run_state: str
     run_revision: int
+    teacher_account_id: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -349,7 +355,8 @@ class SampleFacts:
     output). ``completed_at`` is the run's ``finished_at`` while the run is ``COMPLETED``, else
     ``None`` (V4-A T-1c-fix, owner decision C1(a)): the Lesson check ends a confirmation given
     before it and keeps one given after it. The plan pin is read from the CURRENT input revision
-    (T-4b2 D3: copied forward into every revision).
+    (T-4b2 D3: copied forward into every revision). ``owner_epoch`` binds a projection token to
+    the same Teacher playback epoch checked by Story on each stream request.
     """
 
     run_id: str
@@ -362,6 +369,7 @@ class SampleFacts:
     plan_revision_id: str | None
     plan_revision_no: int | None
     plan_hash: str | None
+    owner_epoch: int | None = None
 
 
 @dataclass(frozen=True, slots=True)

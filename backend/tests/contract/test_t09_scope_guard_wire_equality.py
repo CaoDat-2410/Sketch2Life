@@ -60,7 +60,7 @@ TEACHER_PLAN_BODY = {
     "target_age_months": 72,
     "objectives": ["Draw wings"],
     "drawing_steps": [
-        {"action": f"Step {index}", "placement": "centre"} for index in range(1, 4)
+        {"action": f"Step {index}", "placement": "centre"} for index in range(1, 5)
     ],
     "subject_knowledge": ["Butterflies have four wings"],
     "activities": [

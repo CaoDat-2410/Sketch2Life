@@ -1,0 +1,50 @@
+meta {
+  name: 706 [DRAFT-V4C] [LOCAL / TEST ONLY] Replay Teacher remix with same Idempotency-Key
+  type: http
+  seq: 706
+}
+
+post {
+  url: {{baseUrl}}/api/lesson-library/v1/organizations/{{organization_id}}/lessons/{{phase_c_remix_source_lesson_id}}/remixes
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{phase_c_remix_key}}
+}
+
+body:json {
+  {
+    "contract": "RemixLessonRequestV1",
+    "source_version_id": "{{phase_c_remix_source_version_id}}",
+    "source_content_sha256": "{{phase_c_remix_source_sha256}}"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("ETag")).to.equal('"1"');
+    expect(res.getHeader("Cache-Control")).to.equal("private, no-store");
+    const body = res.getBody();
+    expect(body.contract).to.equal("RemixLessonResponseV1");
+    expect(body.lesson.lesson_id).to.equal(bru.getVar("phase_c_remixed_lesson_id"));
+  });
+}
+
+docs {
+  DRAFT: written from the Phase C code at f031fc70; not yet run against a live backend.
+  Role: Assigned Teacher - set bearerToken to seed-tch-a1 token
+  Needs: needs-fixture: run after 705 while source PUBLIC REUSE grant remains active (reuses phase_c_remix_key and exact body)
+  Expected: 201 / RemixLessonResponseV1 (same lesson_id, ETag "1")
+  Source: backend/src/sketch2life/infrastructure/lesson_library/service.py:895-903
+}

@@ -1,0 +1,37 @@
+meta {
+  name: 811 [DRAFT-V4D] [LOCAL / TEST ONLY] Return uniform 404 when resending unknown Teacher invitation
+  type: http
+  seq: 811
+}
+
+post {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/teacher-invitations/00000000-0000-4000-8000-000000000000/resend
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Idempotency-Key: {{$guid}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_NOT_FOUND");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against the code in .worktrees/v4d at 9e439cee; not yet run against a live backend.
+  Role: Assigned School Manager - set bearerToken to seed-mgr-a token
+  Needs: needs-fixture: organization_id=seed-org-a with identity provisioner and profile_receipt_hmac_key configured
+  Expected: 404 / RESOURCE_NOT_FOUND
+  Source: backend/src/sketch2life/application/services/teacher_invitations.py:186-233, backend/tests/contract/test_teacher_invitations_contract.py:239-248
+}

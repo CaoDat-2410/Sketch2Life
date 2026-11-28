@@ -6,13 +6,13 @@ generate_openapi_contract_metadata.py --contract <catalog.md>``.
 
 # ruff: noqa: E501
 
-from typing import Final, TypedDict
+from typing import Final, TypedDict, cast
 
 CONTRACT_REVISION: Final = "FEAT-063 Rev37"
 SOURCE_FILE_NAME: Final = 'API_CONTRACT_CATALOG_FEAT063_REV37_20261030.md'
 SOURCE_SHA256: Final = '56FC8BEA01360E11F73E45B2D43AC1897540B30BC8AE524CDE1ECEFACFBB1B88'
 DECLARED_OPERATION_COUNT: Final = 135
-MOUNTED_OPERATION_COUNT: Final = 135
+MOUNTED_OPERATION_COUNT: Final = 136
 UNMOUNTED_OPERATION_COUNT: Final = 11
 TAG_DESCRIPTIONS: Final[dict[str, str]] = {'BE1 — Organizations & Classes': 'Organization membership, class setup, profiles, assignments, '
                                   'and consents.',
@@ -66,6 +66,24 @@ class OperationMetadata(TypedDict):
     authentication: str
     verification: str
     responses: tuple[ResponseMetadata, ...]
+
+
+_IDEMPOTENCY_MISMATCH_RESPONSE: Final[ResponseMetadata] = {
+    "status": "400",
+    "description": "Idempotency-Key reused with a different payload: INVALID_IDEMPOTENCY_KEY.",
+    "media_type": "application/json",
+    "schema_name": "Be1Error",
+}
+
+
+def _with_idempotency_mismatch_response(
+    responses: tuple[ResponseMetadata, ...],
+) -> tuple[ResponseMetadata, ...]:
+    return (
+        *responses[:1],
+        _IDEMPOTENCY_MISMATCH_RESPONSE.copy(),
+        *responses[1:],
+    )
 
 
 class UnmountedOperationMetadata(TypedDict):
@@ -2877,7 +2895,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                    'not '
                                                                                    'individually '
                                                                                    'live-probed',
-                                                                   'responses': ({'status': '201',
+                                                                   'responses': _with_idempotency_mismatch_response(({'status': '201',
                                                                                   'description': 'Successful '
                                                                                                  'Response',
                                                                                   'media_type': 'application/json',
@@ -2986,7 +3004,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                  'error '
                                                                                                  'occurred',
                                                                                   'media_type': 'application/json',
-                                                                                  'schema_name': 'Be1Error'})},
+                                                                                  'schema_name': 'Be1Error'}))},
  ('get', '/api/be1/v1/organizations/{organization_id}/classes/{class_id}/consents'): {'purpose': 'Liệt '
                                                                                                  'kê '
                                                                                                  'hồ '
@@ -3456,6 +3474,12 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                         'path '
                                                                                                         '`class_id*`: '
                                                                                                         'string; '
+                                                                                                        'query '
+                                                                                                        '`limit`: '
+                                                                                                        'integer; '
+                                                                                                        'query '
+                                                                                                        '`cursor`: '
+                                                                                                        'string; '
                                                                                                         'header '
                                                                                                         '`X-Request-ID`: '
                                                                                                         'string',
@@ -3592,155 +3616,6 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                                     'occurred',
                                                                                                      'media_type': 'application/json',
                                                                                                      'schema_name': 'Be1Error'})},
- ('post', '/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles'): {'purpose': 'Tạo hồ sơ synthetic cho Teacher trong lớp.',
-                                                                                       'request_inputs': 'path '
-                                                                                                         '`organization_id*`: '
-                                                                                                         'string; '
-                                                                                                         'path '
-                                                                                                         '`class_id*`: '
-                                                                                                         'string; '
-                                                                                                         'header '
-                                                                                                         '`X-Request-ID`: '
-                                                                                                         'string; '
-                                                                                                         'application/json '
-                                                                                                         '(required): '
-                                                                                                         'CreateProfileRequest '
-                                                                                                         '{class_id*:string, '
-                                                                                                         'display_name*:string, '
-                                                                                                         'age_months*:integer}',
-                                                                                       'surface': 'BE1 '
-                                                                                                  '/ '
-                                                                                                  'classroom',
-                                                                                       'tag': 'BE1 '
-                                                                                              '— '
-                                                                                              'Organizations '
-                                                                                              '& '
-                                                                                              'Classes',
-                                                                                       'handler': 'be1_registry.py::create_profile',
-                                                                                       'authentication': 'HTTPBearer '
-                                                                                                         '(bearer)',
-                                                                                       'verification': 'Mounted '
-                                                                                                       'in '
-                                                                                                       'OpenAPI; '
-                                                                                                       'see '
-                                                                                                       'API-family '
-                                                                                                       'test '
-                                                                                                       'results '
-                                                                                                       'in '
-                                                                                                       'EV-063-30; '
-                                                                                                       'not '
-                                                                                                       'individually '
-                                                                                                       'live-probed',
-                                                                                       'responses': ({'status': '201',
-                                                                                                      'description': 'Successful '
-                                                                                                                     'Response',
-                                                                                                      'media_type': 'application/json',
-                                                                                                      'schema_name': 'object'},
-                                                                                                     {'status': '401',
-                                                                                                      'description': 'Authentication '
-                                                                                                                     'or '
-                                                                                                                     'device '
-                                                                                                                     'credential '
-                                                                                                                     'is '
-                                                                                                                     'required',
-                                                                                                      'media_type': 'application/json',
-                                                                                                      'schema_name': 'Be1Error'},
-                                                                                                     {'status': '403',
-                                                                                                      'description': 'The '
-                                                                                                                     'caller '
-                                                                                                                     'is '
-                                                                                                                     'not '
-                                                                                                                     'authorized '
-                                                                                                                     'for '
-                                                                                                                     'this '
-                                                                                                                     'resource',
-                                                                                                      'media_type': 'application/json',
-                                                                                                      'schema_name': 'Be1Error'},
-                                                                                                     {'status': '404',
-                                                                                                      'description': 'The '
-                                                                                                                     'scoped '
-                                                                                                                     'resource '
-                                                                                                                     'was '
-                                                                                                                     'not '
-                                                                                                                     'found',
-                                                                                                      'media_type': 'application/json',
-                                                                                                      'schema_name': 'Be1Error'},
-                                                                                                     {'status': '409',
-                                                                                                      'description': 'The '
-                                                                                                                     'command '
-                                                                                                                     'conflicts '
-                                                                                                                     'with '
-                                                                                                                     'current '
-                                                                                                                     'state',
-                                                                                                      'media_type': 'application/json',
-                                                                                                      'schema_name': 'Be1Error'},
-                                                                                                     {'status': '410',
-                                                                                                      'description': 'The '
-                                                                                                                     'requested '
-                                                                                                                     'artifact '
-                                                                                                                     'is '
-                                                                                                                     'no '
-                                                                                                                     'longer '
-                                                                                                                     'available',
-                                                                                                      'media_type': 'application/json',
-                                                                                                      'schema_name': 'Be1Error'},
-                                                                                                     {'status': '413',
-                                                                                                      'description': 'The '
-                                                                                                                     'request '
-                                                                                                                     'exceeds '
-                                                                                                                     'a '
-                                                                                                                     'supported '
-                                                                                                                     'size '
-                                                                                                                     'limit',
-                                                                                                      'media_type': 'application/json',
-                                                                                                      'schema_name': 'Be1Error'},
-                                                                                                     {'status': '415',
-                                                                                                      'description': 'The '
-                                                                                                                     'request '
-                                                                                                                     'media '
-                                                                                                                     'type '
-                                                                                                                     'is '
-                                                                                                                     'not '
-                                                                                                                     'supported',
-                                                                                                      'media_type': 'application/json',
-                                                                                                      'schema_name': 'Be1Error'},
-                                                                                                     {'status': '422',
-                                                                                                      'description': 'The '
-                                                                                                                     'request '
-                                                                                                                     'does '
-                                                                                                                     'not '
-                                                                                                                     'match '
-                                                                                                                     'the '
-                                                                                                                     'API '
-                                                                                                                     'contract',
-                                                                                                      'media_type': 'application/json',
-                                                                                                      'schema_name': 'Be1Error'},
-                                                                                                     {'status': '429',
-                                                                                                      'description': 'The '
-                                                                                                                     'request '
-                                                                                                                     'is '
-                                                                                                                     'temporarily '
-                                                                                                                     'rate '
-                                                                                                                     'limited',
-                                                                                                      'media_type': 'application/json',
-                                                                                                      'schema_name': 'Be1Error'},
-                                                                                                     {'status': '503',
-                                                                                                      'description': 'A '
-                                                                                                                     'required '
-                                                                                                                     'backend '
-                                                                                                                     'dependency '
-                                                                                                                     'is '
-                                                                                                                     'unavailable',
-                                                                                                      'media_type': 'application/json',
-                                                                                                      'schema_name': 'Be1Error'},
-                                                                                                     {'status': '500',
-                                                                                                      'description': 'An '
-                                                                                                                     'unexpected '
-                                                                                                                     'server '
-                                                                                                                     'error '
-                                                                                                                     'occurred',
-                                                                                                      'media_type': 'application/json',
-                                                                                                      'schema_name': 'Be1Error'})},
  ('get', '/api/be1/v1/organizations/{organization_id}/me'): {'purpose': 'Xem tổ chức/lớp/vai trò '
                                                                         'đang được gán cho người '
                                                                         'gọi.',
@@ -9313,7 +9188,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                      'not '
                                                                                                      'individually '
                                                                                                      'live-probed',
-                                                                                     'responses': ({'status': '200',
+                                                                                     'responses': _with_idempotency_mismatch_response(({'status': '200',
                                                                                                     'description': 'Successful '
                                                                                                                    'Response',
                                                                                                     'media_type': 'application/json',
@@ -9322,7 +9197,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                     'description': 'Validation '
                                                                                                                    'Error',
                                                                                                     'media_type': 'application/json',
-                                                                                                    'schema_name': 'HTTPValidationError'})},
+                                                                                                    'schema_name': 'HTTPValidationError'}))},
  ('post', '/api/lesson-library/v1/me/lesson-invitations/{access_grant_id}/decline'): {'purpose': 'Parent '
                                                                                                  'từ '
                                                                                                  'chối '
@@ -9360,7 +9235,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                       'not '
                                                                                                       'individually '
                                                                                                       'live-probed',
-                                                                                      'responses': ({'status': '200',
+                                                                                      'responses': _with_idempotency_mismatch_response(({'status': '200',
                                                                                                      'description': 'Successful '
                                                                                                                     'Response',
                                                                                                      'media_type': 'application/json',
@@ -9369,7 +9244,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                      'description': 'Validation '
                                                                                                                     'Error',
                                                                                                      'media_type': 'application/json',
-                                                                                                     'schema_name': 'HTTPValidationError'})},
+                                                                                                     'schema_name': 'HTTPValidationError'}))},
  ('get', '/api/lesson-library/v1/me/lessons'): {'purpose': 'Parent tìm lesson Public hoặc lesson '
                                                            'đã được chia sẻ hợp lệ.',
                                                 'request_inputs': 'query `source`: string; query '
@@ -9448,85 +9323,6 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                    'Error',
                                                                                     'media_type': 'application/json',
                                                                                     'schema_name': 'HTTPValidationError'})},
- ('get', '/api/lesson-library/v1/me/parent-group-invitations'): {'purpose': 'Parent xem lời mời '
-                                                                            'tham gia nhóm phụ '
-                                                                            'huynh của trường.',
-                                                                 'request_inputs': 'query `limit`: '
-                                                                                   'integer; query '
-                                                                                   '`cursor`: '
-                                                                                   'object',
-                                                                 'surface': 'Lesson Library',
-                                                                 'tag': 'Parent — Invitations & '
-                                                                        'Lesson Library',
-                                                                 'handler': 'lesson_library.py::list_parent_group_invitations',
-                                                                 'authentication': 'HTTPBearer '
-                                                                                   '(bearer)',
-                                                                 'verification': 'Mounted in '
-                                                                                 'OpenAPI; see '
-                                                                                 'API-family test '
-                                                                                 'results in '
-                                                                                 'EV-063-30; not '
-                                                                                 'individually '
-                                                                                 'live-probed',
-                                                                 'responses': ({'status': '200',
-                                                                                'description': 'Successful '
-                                                                                               'Response',
-                                                                                'media_type': 'application/json',
-                                                                                'schema_name': 'ParentGroupInvitationPageV1'},
-                                                                               {'status': '422',
-                                                                                'description': 'Validation '
-                                                                                               'Error',
-                                                                                'media_type': 'application/json',
-                                                                                'schema_name': 'HTTPValidationError'})},
- ('post', '/api/lesson-library/v1/me/parent-group-invitations/{membership_id}/accept'): {'purpose': 'Parent '
-                                                                                                    'chấp '
-                                                                                                    'nhận '
-                                                                                                    'lời '
-                                                                                                    'mời '
-                                                                                                    'tham '
-                                                                                                    'gia '
-                                                                                                    'nhóm '
-                                                                                                    'phụ '
-                                                                                                    'huynh.',
-                                                                                         'request_inputs': 'path '
-                                                                                                           '`membership_id*`: '
-                                                                                                           'string; '
-                                                                                                           'header '
-                                                                                                           '`Idempotency-Key`: '
-                                                                                                           'string',
-                                                                                         'surface': 'Lesson '
-                                                                                                    'Library',
-                                                                                         'tag': 'Parent '
-                                                                                                '— '
-                                                                                                'Invitations '
-                                                                                                '& '
-                                                                                                'Lesson '
-                                                                                                'Library',
-                                                                                         'handler': 'lesson_library.py::accept_parent_group_invitation',
-                                                                                         'authentication': 'HTTPBearer '
-                                                                                                           '(bearer)',
-                                                                                         'verification': 'Mounted '
-                                                                                                         'in '
-                                                                                                         'OpenAPI; '
-                                                                                                         'see '
-                                                                                                         'API-family '
-                                                                                                         'test '
-                                                                                                         'results '
-                                                                                                         'in '
-                                                                                                         'EV-063-30; '
-                                                                                                         'not '
-                                                                                                         'individually '
-                                                                                                         'live-probed',
-                                                                                         'responses': ({'status': '200',
-                                                                                                        'description': 'Successful '
-                                                                                                                       'Response',
-                                                                                                        'media_type': 'application/json',
-                                                                                                        'schema_name': 'ParentGroupMembershipV1'},
-                                                                                                       {'status': '422',
-                                                                                                        'description': 'Validation '
-                                                                                                                       'Error',
-                                                                                                        'media_type': 'application/json',
-                                                                                                        'schema_name': 'HTTPValidationError'})},
  ('get', '/api/lesson-library/v1/organizations/{organization_id}/access-grants'): {'purpose': 'Manager '
                                                                                               'xem '
                                                                                               'danh '
@@ -9646,7 +9442,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                                                'not '
                                                                                                                                'individually '
                                                                                                                                'live-probed',
-                                                                                                               'responses': ({'status': '200',
+                                                                                                               'responses': _with_idempotency_mismatch_response(({'status': '200',
                                                                                                                               'description': 'Successful '
                                                                                                                                              'Response',
                                                                                                                               'media_type': 'application/json',
@@ -9655,7 +9451,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                                               'description': 'Validation '
                                                                                                                                              'Error',
                                                                                                                               'media_type': 'application/json',
-                                                                                                                              'schema_name': 'HTTPValidationError'})},
+                                                                                                                              'schema_name': 'HTTPValidationError'}))},
  ('get', '/api/lesson-library/v1/organizations/{organization_id}/lessons'): {'purpose': 'Teacher/Manager '
                                                                                         'liệt kê '
                                                                                         'lesson '
@@ -9750,7 +9546,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                               'not '
                                                                                               'individually '
                                                                                               'live-probed',
-                                                                              'responses': ({'status': '201',
+                                                                              'responses': _with_idempotency_mismatch_response(({'status': '201',
                                                                                              'description': 'Successful '
                                                                                                             'Response',
                                                                                              'media_type': 'application/json',
@@ -9759,7 +9555,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                              'description': 'Validation '
                                                                                                             'Error',
                                                                                              'media_type': 'application/json',
-                                                                                             'schema_name': 'HTTPValidationError'})},
+                                                                                             'schema_name': 'HTTPValidationError'}))},
  ('delete', '/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}'): {'purpose': 'Archive '
                                                                                                        'lesson '
                                                                                                        'mà '
@@ -9805,7 +9601,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                             'not '
                                                                                                             'individually '
                                                                                                             'live-probed',
-                                                                                            'responses': ({'status': '200',
+                                                                                            'responses': _with_idempotency_mismatch_response(({'status': '200',
                                                                                                            'description': 'Successful '
                                                                                                                           'Response',
                                                                                                            'media_type': 'application/json',
@@ -9814,7 +9610,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                            'description': 'Validation '
                                                                                                                           'Error',
                                                                                                            'media_type': 'application/json',
-                                                                                                           'schema_name': 'HTTPValidationError'})},
+                                                                                                           'schema_name': 'HTTPValidationError'}))},
  ('get', '/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}'): {'purpose': 'Teacher/Manager '
                                                                                                     'đọc '
                                                                                                     'lesson '
@@ -9911,7 +9707,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                            'not '
                                                                                                            'individually '
                                                                                                            'live-probed',
-                                                                                           'responses': ({'status': '200',
+                                                                                           'responses': _with_idempotency_mismatch_response(({'status': '200',
                                                                                                           'description': 'Successful '
                                                                                                                          'Response',
                                                                                                           'media_type': 'application/json',
@@ -9920,7 +9716,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                           'description': 'Validation '
                                                                                                                          'Error',
                                                                                                           'media_type': 'application/json',
-                                                                                                          'schema_name': 'HTTPValidationError'})},
+                                                                                                          'schema_name': 'HTTPValidationError'}))},
  ('post', '/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/access-grants'): {'purpose': 'Tạo '
                                                                                                                    'yêu '
                                                                                                                    'cầu '
@@ -9989,7 +9785,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                                         'not '
                                                                                                                         'individually '
                                                                                                                         'live-probed',
-                                                                                                        'responses': ({'status': '201',
+                                                                                                        'responses': _with_idempotency_mismatch_response(({'status': '201',
                                                                                                                        'description': 'Successful '
                                                                                                                                       'Response',
                                                                                                                        'media_type': 'application/json',
@@ -9998,7 +9794,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                                        'description': 'Validation '
                                                                                                                                       'Error',
                                                                                                                        'media_type': 'application/json',
-                                                                                                                       'schema_name': 'HTTPValidationError'})},
+                                                                                                                       'schema_name': 'HTTPValidationError'}))},
  ('delete', '/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/access-grants/{access_grant_id}'): {'purpose': 'Thu '
                                                                                                                                        'hồi '
                                                                                                                                        'grant '
@@ -10046,7 +9842,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                                                             'not '
                                                                                                                                             'individually '
                                                                                                                                             'live-probed',
-                                                                                                                            'responses': ({'status': '200',
+                                                                                                                            'responses': _with_idempotency_mismatch_response(({'status': '200',
                                                                                                                                            'description': 'Successful '
                                                                                                                                                           'Response',
                                                                                                                                            'media_type': 'application/json',
@@ -10055,7 +9851,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                                                            'description': 'Validation '
                                                                                                                                                           'Error',
                                                                                                                                            'media_type': 'application/json',
-                                                                                                                                           'schema_name': 'HTTPValidationError'})},
+                                                                                                                                           'schema_name': 'HTTPValidationError'}))},
  ('get', '/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/source-documents/{source_document_id}'): {'purpose': 'Teacher '
                                                                                                                                           'xem '
                                                                                                                                           'trạng '
@@ -10215,7 +10011,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                                           'not '
                                                                                                                           'individually '
                                                                                                                           'live-probed',
-                                                                                                          'responses': ({'status': '201',
+                                                                                                          'responses': _with_idempotency_mismatch_response(({'status': '201',
                                                                                                                          'description': 'Successful '
                                                                                                                                         'Response',
                                                                                                                          'media_type': 'application/json',
@@ -10224,7 +10020,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                                          'description': 'Validation '
                                                                                                                                         'Error',
                                                                                                                          'media_type': 'application/json',
-                                                                                                                         'schema_name': 'HTTPValidationError'})},
+                                                                                                                         'schema_name': 'HTTPValidationError'}))},
  ('post', '/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/versions'): {'purpose': 'Teacher '
                                                                                                               'xác '
                                                                                                               'nhận '
@@ -10275,7 +10071,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                                    'not '
                                                                                                                    'individually '
                                                                                                                    'live-probed',
-                                                                                                   'responses': ({'status': '201',
+                                                                                                   'responses': _with_idempotency_mismatch_response(({'status': '201',
                                                                                                                   'description': 'Successful '
                                                                                                                                  'Response',
                                                                                                                   'media_type': 'application/json',
@@ -10284,7 +10080,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                                   'description': 'Validation '
                                                                                                                                  'Error',
                                                                                                                   'media_type': 'application/json',
-                                                                                                                  'schema_name': 'HTTPValidationError'})},
+                                                                                                                  'schema_name': 'HTTPValidationError'}))},
  ('get', '/api/lesson-library/v1/organizations/{organization_id}/parent-groups'): {'purpose': 'Manager '
                                                                                               'liệt '
                                                                                               'kê '
@@ -10381,7 +10177,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                     'not '
                                                                                                     'individually '
                                                                                                     'live-probed',
-                                                                                    'responses': ({'status': '201',
+                                                                                    'responses': _with_idempotency_mismatch_response(({'status': '201',
                                                                                                    'description': 'Successful '
                                                                                                                   'Response',
                                                                                                    'media_type': 'application/json',
@@ -10390,122 +10186,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                    'description': 'Validation '
                                                                                                                   'Error',
                                                                                                    'media_type': 'application/json',
-                                                                                                   'schema_name': 'HTTPValidationError'})},
- ('post', '/api/lesson-library/v1/organizations/{organization_id}/parent-groups/{parent_group_id}/invitations'): {'purpose': 'Manager '
-                                                                                                                             'mời '
-                                                                                                                             'một '
-                                                                                                                             'phụ '
-                                                                                                                             'huynh '
-                                                                                                                             'vào '
-                                                                                                                             'nhóm '
-                                                                                                                             'của '
-                                                                                                                             'trường.',
-                                                                                                                  'request_inputs': 'path '
-                                                                                                                                    '`organization_id*`: '
-                                                                                                                                    'string; '
-                                                                                                                                    'path '
-                                                                                                                                    '`parent_group_id*`: '
-                                                                                                                                    'string; '
-                                                                                                                                    'header '
-                                                                                                                                    '`Idempotency-Key`: '
-                                                                                                                                    'string; '
-                                                                                                                                    'application/json '
-                                                                                                                                    '(required): '
-                                                                                                                                    'InviteParentToGroupRequestV1 '
-                                                                                                                                    '{contract:string, '
-                                                                                                                                    'parent_principal_ref*:string}',
-                                                                                                                  'surface': 'Lesson '
-                                                                                                                             'Library',
-                                                                                                                  'tag': 'School '
-                                                                                                                         'Manager '
-                                                                                                                         '— '
-                                                                                                                         'Sharing '
-                                                                                                                         '& '
-                                                                                                                         'Parent '
-                                                                                                                         'Groups',
-                                                                                                                  'handler': 'lesson_library.py::invite_parent_to_group',
-                                                                                                                  'authentication': 'HTTPBearer '
-                                                                                                                                    '(bearer)',
-                                                                                                                  'verification': 'Mounted '
-                                                                                                                                  'in '
-                                                                                                                                  'OpenAPI; '
-                                                                                                                                  'see '
-                                                                                                                                  'API-family '
-                                                                                                                                  'test '
-                                                                                                                                  'results '
-                                                                                                                                  'in '
-                                                                                                                                  'EV-063-30; '
-                                                                                                                                  'not '
-                                                                                                                                  'individually '
-                                                                                                                                  'live-probed',
-                                                                                                                  'responses': ({'status': '201',
-                                                                                                                                 'description': 'Successful '
-                                                                                                                                                'Response',
-                                                                                                                                 'media_type': 'application/json',
-                                                                                                                                 'schema_name': 'ParentGroupInvitationV1'},
-                                                                                                                                {'status': '422',
-                                                                                                                                 'description': 'Validation '
-                                                                                                                                                'Error',
-                                                                                                                                 'media_type': 'application/json',
-                                                                                                                                 'schema_name': 'HTTPValidationError'})},
- ('delete', '/api/lesson-library/v1/organizations/{organization_id}/parent-groups/{parent_group_id}/members/{membership_id}'): {'purpose': 'Manager '
-                                                                                                                                           'thu '
-                                                                                                                                           'hồi '
-                                                                                                                                           'membership '
-                                                                                                                                           'để '
-                                                                                                                                           'kết '
-                                                                                                                                           'thúc '
-                                                                                                                                           'quyền '
-                                                                                                                                           'chia '
-                                                                                                                                           'sẻ '
-                                                                                                                                           'qua '
-                                                                                                                                           'nhóm.',
-                                                                                                                                'request_inputs': 'path '
-                                                                                                                                                  '`organization_id*`: '
-                                                                                                                                                  'string; '
-                                                                                                                                                  'path '
-                                                                                                                                                  '`parent_group_id*`: '
-                                                                                                                                                  'string; '
-                                                                                                                                                  'path '
-                                                                                                                                                  '`membership_id*`: '
-                                                                                                                                                  'string; '
-                                                                                                                                                  'header '
-                                                                                                                                                  '`If-Match`: '
-                                                                                                                                                  'object',
-                                                                                                                                'surface': 'Lesson '
-                                                                                                                                           'Library',
-                                                                                                                                'tag': 'Parent '
-                                                                                                                                       '& '
-                                                                                                                                       'School '
-                                                                                                                                       'Manager '
-                                                                                                                                       '— '
-                                                                                                                                       'Group '
-                                                                                                                                       'Membership',
-                                                                                                                                'handler': 'lesson_library.py::revoke_parent_group_membership',
-                                                                                                                                'authentication': 'HTTPBearer '
-                                                                                                                                                  '(bearer)',
-                                                                                                                                'verification': 'Mounted '
-                                                                                                                                                'in '
-                                                                                                                                                'OpenAPI; '
-                                                                                                                                                'see '
-                                                                                                                                                'API-family '
-                                                                                                                                                'test '
-                                                                                                                                                'results '
-                                                                                                                                                'in '
-                                                                                                                                                'EV-063-30; '
-                                                                                                                                                'not '
-                                                                                                                                                'individually '
-                                                                                                                                                'live-probed',
-                                                                                                                                'responses': ({'status': '200',
-                                                                                                                                               'description': 'Successful '
-                                                                                                                                                              'Response',
-                                                                                                                                               'media_type': 'application/json',
-                                                                                                                                               'schema_name': 'ParentGroupMembershipV1'},
-                                                                                                                                              {'status': '422',
-                                                                                                                                               'description': 'Validation '
-                                                                                                                                                              'Error',
-                                                                                                                                               'media_type': 'application/json',
-                                                                                                                                               'schema_name': 'HTTPValidationError'})},
+                                                                                                   'schema_name': 'HTTPValidationError'}))},
  ('patch', '/api/lesson-library/v1/platform/lessons/{lesson_id}/moderation'): {'purpose': 'Platform '
                                                                                           'Admin '
                                                                                           'ẩn hoặc '
@@ -10555,7 +10236,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                'not '
                                                                                                'individually '
                                                                                                'live-probed',
-                                                                               'responses': ({'status': '200',
+                                                                               'responses': _with_idempotency_mismatch_response(({'status': '200',
                                                                                               'description': 'Successful '
                                                                                                              'Response',
                                                                                               'media_type': 'application/json',
@@ -10564,7 +10245,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                               'description': 'Validation '
                                                                                                              'Error',
                                                                                               'media_type': 'application/json',
-                                                                                              'schema_name': 'HTTPValidationError'})},
+                                                                                              'schema_name': 'HTTPValidationError'}))},
  ('delete', '/api/lesson-library/v1/upload-sessions/{upload_session_id}'): {'purpose': 'Teacher '
                                                                                        'hủy phiên '
                                                                                        'upload của '
@@ -10595,7 +10276,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                             'not '
                                                                                             'individually '
                                                                                             'live-probed',
-                                                                            'responses': ({'status': '202',
+                                                                            'responses': _with_idempotency_mismatch_response(({'status': '202',
                                                                                            'description': 'Successful '
                                                                                                           'Response',
                                                                                            'media_type': 'application/json',
@@ -10604,7 +10285,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                            'description': 'Validation '
                                                                                                           'Error',
                                                                                            'media_type': 'application/json',
-                                                                                           'schema_name': 'HTTPValidationError'})},
+                                                                                           'schema_name': 'HTTPValidationError'}))},
  ('get', '/api/lesson-library/v1/upload-sessions/{upload_session_id}'): {'purpose': 'Teacher kiểm '
                                                                                     'tra tiến độ, '
                                                                                     'các phần đã '
@@ -10687,7 +10368,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                    'not '
                                                                                                    'individually '
                                                                                                    'live-probed',
-                                                                                   'responses': ({'status': '202',
+                                                                                   'responses': _with_idempotency_mismatch_response(({'status': '202',
                                                                                                   'description': 'Successful '
                                                                                                                  'Response',
                                                                                                   'media_type': 'application/json',
@@ -10696,7 +10377,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                   'description': 'Validation '
                                                                                                                  'Error',
                                                                                                   'media_type': 'application/json',
-                                                                                                  'schema_name': 'HTTPValidationError'})},
+                                                                                                  'schema_name': 'HTTPValidationError'}))},
  ('put', '/api/lesson-library/v1/upload-sessions/{upload_session_id}/parts/{part_number}'): {'purpose': 'Tải '
                                                                                                         'hoặc '
                                                                                                         'gửi '
@@ -10898,10 +10579,14 @@ MOUNTED_OPERATIONS[('post', '/api/be1/v1/classes/{class_id}/assignments')] = {  
     'handler': 'be1_registry.py::assign_class_teacher',
     'authentication': 'HTTPBearer (bearer)',
     'verification': 'S1a-T class assignment contract; PostgreSQL acceptance is owner-only and not run here',
-    'responses': (   {   'status': '200',
+    'responses': _with_idempotency_mismatch_response((   {   'status': '200',
                          'description': 'Successful Response',
                          'media_type': 'application/json',
                          'schema_name': 'object'},
+                     {   'status': '202',
+                         'description': 'Teacher assignment transfer accepted; Cache-Control: private, no-store',
+                         'media_type': 'application/json',
+                         'schema_name': 'Be1TeacherAssignmentTransferAcceptedV1'},
                      {   'status': '401',
                          'description': 'Authentication or device credential is required',
                          'media_type': 'application/json',
@@ -10945,7 +10630,7 @@ MOUNTED_OPERATIONS[('post', '/api/be1/v1/classes/{class_id}/assignments')] = {  
                      {   'status': '500',
                          'description': 'An unexpected server error occurred',
                          'media_type': 'application/json',
-                         'schema_name': 'Be1Error'})}
+                         'schema_name': 'Be1Error'}))}
 
 MOUNTED_OPERATIONS[('post', '/v1/parent/profiles')] = {
     'purpose': 'Create a synthetic Parent-owned profile and its first immutable revision.',
@@ -11080,6 +10765,65 @@ MOUNTED_OPERATIONS[('patch', '/v1/parent/profiles/{profile_id}')] = {
     ),
 }
 
+MOUNTED_OPERATIONS[('get', '/v1/parent/profiles/{profile_id}/context-entries')] = {
+    'purpose': 'List the adult-entered context entries (observations, achievements, out-of-app '
+               'experiences) of an active profile owned by the verified Parent principal, oldest first.',
+    'request_inputs': 'path `profile_id*`: uuid; query `limit`: integer (default 25, maximum 100); '
+                      'query `cursor`: string; header `X-Request-ID`: string',
+    'surface': 'Parent / profile context entries',
+    'tag': 'Parent Profiles',
+    'handler': 'parent_profiles.py::list_parent_profile_context_entries',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'FEAT-066 goal v4 T-12a (SRS l.263-265, l.497-499); owner-scoped keyset list',
+    'responses': (
+        {'status': '200', 'description': 'Context entries of the profile and the next cursor',
+         'media_type': 'application/json', 'schema_name': 'ParentContextEntryListView'},
+        {'status': '400', 'description': 'The request is invalid',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '401', 'description': 'Authentication is required or invalid',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '404', 'description': 'The profile was not found, or the caller is not an active Parent',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '409', 'description': 'The request conflicts with profile state',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '422', 'description': 'The request does not match the API contract',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '503', 'description': 'A required service is unavailable',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+    ),
+}
+MOUNTED_OPERATIONS[('post', '/v1/parent/profiles/{profile_id}/context-entries')] = {
+    'purpose': 'Append one adult-entered context entry (observation, achievement or out-of-app '
+               'experience) to an active profile owned by the verified Parent principal. An entry is '
+               'sent to a story only when the adult selects it at the context confirmation.',
+    'request_inputs': 'path `profile_id*`: uuid; header `Idempotency-Key*`: string; '
+                      'header `X-Request-ID`: string; application/json (required): '
+                      'CreateParentContextEntryRequest {entry_kind*:OBSERVATION|ACHIEVEMENT|OUTSIDE_EXPERIENCE, '
+                      'short_text*:string, source_kind*:string, source_ref:string|null, '
+                      'approximate_date:string|null}',
+    'surface': 'Parent / profile context entries',
+    'tag': 'Parent Profiles',
+    'handler': 'parent_profiles.py::create_parent_profile_context_entry',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'FEAT-066 goal v4 T-12a (SRS l.263-265, l.497-499); append-only, idempotent create',
+    'responses': (
+        {'status': '201', 'description': 'Context entry created, or the stored entry on a replay',
+         'media_type': 'application/json', 'schema_name': 'ParentContextEntryEnvelope'},
+        {'status': '400', 'description': 'The request is invalid',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '401', 'description': 'Authentication is required or invalid',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '404', 'description': 'The profile was not found, or the caller is not an active Parent',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '409', 'description': 'The request conflicts with profile state',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '422', 'description': 'The request does not match the API contract',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '503', 'description': 'A required service is unavailable',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+    ),
+}
+
 MOUNTED_OPERATIONS[('post', '/v1/story-runs')] = {
     'purpose': 'Create a Parent StoryRun from one owned synthetic profile and an optional pinned lesson version. '
                'An active Teacher sends the Teacher body instead: the confirmed child selection, the occurrence, '
@@ -11116,8 +10860,10 @@ MOUNTED_OPERATIONS[('post', '/v1/story-runs')] = {
 MOUNTED_OPERATIONS[('get', '/v1/story-runs/{run_id}')] = {
     'purpose': 'Read one Parent StoryRun owned by the verified principal as the aggregated run '
                'detail: the review state plus the video, its job, scenes, playback readiness, '
-               'request counts, a quota summary marker and a safe timeline. The response carries a '
-               'strong `ETag` and a matching `If-None-Match` answers 304 after authorisation.',
+               'request counts, a quota summary marker and a safe timeline. An AI-generated main '
+               'activity is returned with source `AI_DRAFT` and a null activity reference. The '
+               'response carries a strong `ETag` and a matching `If-None-Match` answers 304 after '
+               'authorisation.',
     'request_inputs': 'path `run_id*`: uuid',
     'surface': 'Parent / StoryRun integration proposal',
     'tag': 'Parent StoryRuns',
@@ -11125,7 +10871,7 @@ MOUNTED_OPERATIONS[('get', '/v1/story-runs/{run_id}')] = {
     'authentication': 'HTTPBearer (bearer)',
     'verification': 'Rev60 §21.2 resource-read path',
     'responses': (
-        {'status': '200', 'description': 'StoryRun resource, or the lifecycle projection from DELETE_PENDING on', 'media_type': 'application/json',
+        {'status': '200', 'description': 'StoryRun resource, including the selected AI_DRAFT activity with a null activity reference, or the lifecycle projection from DELETE_PENDING on', 'media_type': 'application/json',
          'schema_name': 'ParentStoryRunEnvelopeV1'},
         {'status': '304', 'description': 'Not modified (only after the caller was authorised)',
          'media_type': '', 'schema_name': ''},
@@ -11198,10 +10944,14 @@ MOUNTED_OPERATIONS[('get', '/v1/story-runs/active/current')] = {
     ),
 }
 MOUNTED_OPERATIONS[('post', '/v1/story-runs/{run_id}/context-confirmation')] = {
-    'purpose': 'Confirm the pinned Parent context snapshot before story generation.',
+    'purpose': 'Confirm the pinned Parent context snapshot before story generation. A Parent may send '
+               '`selected_context_entry_ids` (unique, at most ten, `[]` for none) to send the chosen '
+               'context entries (kind and text only) with the story: the answer then holds a '
+               '`sketch2life.parent-context.v2` snapshot. A Teacher may not send the field.',
     'request_inputs': 'path `run_id*`: uuid; header `Idempotency-Key*`: string; '
                       'application/json (required): ParentContextConfirmationRequestV1 '
-                      '{expected_context_revision*:integer, context_snapshot_sha256*:string, confirmed*:true}',
+                      '{expected_context_revision*:integer, context_snapshot_sha256*:string, confirmed*:true, '
+                      'selected_context_entry_ids:array<uuid>|null}',
     'surface': 'Parent / StoryRun integration proposal',
     'tag': 'Parent StoryRuns',
     'handler': 'parent_story_runs.py::confirm_parent_story_context',
@@ -11210,7 +10960,8 @@ MOUNTED_OPERATIONS[('post', '/v1/story-runs/{run_id}/context-confirmation')] = {
     'responses': (
         {'status': '200', 'description': 'Context snapshot confirmation recorded, or the lifecycle projection on a replay of a purged run',
          'media_type': 'application/json', 'schema_name': 'ParentStoryRunEnvelopeV1'},
-        {'status': '400', 'description': 'The idempotency key is invalid',
+        {'status': '400', 'description': 'The request is invalid: the idempotency key, or `selected_context_entry_ids` '
+                                         '(more than ten, duplicate, too large, or sent for a Teacher run)',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
         {'status': '401', 'description': 'Authentication is required', 'media_type': 'application/json',
          'schema_name': 'ParentStoryErrorEnvelopeV1'},
@@ -12078,14 +11829,14 @@ _UPLOAD_VERIFICATION: Final = "SRS l.1654-1658; FR-C-12; goal v3 T-2a"
 MOUNTED_OPERATIONS[("post", "/v1/upload-sessions")] = {
     "purpose": "Create an upload session for a Parent run artwork or a Teacher occurrence document.",
     "request_inputs": "header `Idempotency-Key*`: string; application/json (required): "
-    "CreateGenericUploadRequestV1 {purpose*:RUN_ARTWORK|RUN_AUDIO|OCCURRENCE_DOCUMENT, "
+    "CreateGenericUploadRequestV1 {purpose*:RUN_ARTWORK|RUN_AUDIO|OCCURRENCE_DOCUMENT|PRESENTATION_IMAGE, "
     "target_ref*:string, media_type*:string, expected_size_bytes*:integer, "
     "expected_sha256*:string, file_name:string}",
     "handler": "upload_sessions.py::create_upload_session",
-    "responses": _upload_responses(
+    "responses": _with_idempotency_mismatch_response(_upload_responses(
         ("201", "Upload session created, or the first response of a replayed key", "GenericUploadSessionV1"),
         "400", "401", "404", "409", "413", "415", "503",
-    ),
+    )),
     "surface": _UPLOAD_SURFACE,
     "tag": _UPLOAD_TAG,
     "authentication": _UPLOAD_AUTHENTICATION,
@@ -12123,10 +11874,10 @@ MOUNTED_OPERATIONS[("post", "/v1/upload-sessions/{upload_id}/complete")] = {
     "(required): CompleteGenericUploadRequestV1 {expected_size_bytes*:integer, "
     "expected_sha256*:string}",
     "handler": "upload_sessions.py::complete_upload_session",
-    "responses": _upload_responses(
+    "responses": _with_idempotency_mismatch_response(_upload_responses(
         ("202", "Upload completed: asset reference and scan provenance", "GenericUploadCompletionV1"),
         "400", "401", "404", "409", "410", "415", "422", "503",
-    ),
+    )),
     "surface": _UPLOAD_SURFACE,
     "tag": _UPLOAD_TAG,
     "authentication": _UPLOAD_AUTHENTICATION,
@@ -12137,10 +11888,10 @@ MOUNTED_OPERATIONS[("delete", "/v1/upload-sessions/{upload_id}")] = {
     "request_inputs": "path `upload_id*`: string; header `Idempotency-Key*`: string; header "
     "`If-Match`: string",
     "handler": "upload_sessions.py::abort_upload_session",
-    "responses": _upload_responses(
+    "responses": _with_idempotency_mismatch_response(_upload_responses(
         ("202", "Upload session aborted", "GenericUploadSessionV1"),
         "400", "401", "404", "409", "410", "503",
-    ),
+    )),
     "surface": _UPLOAD_SURFACE,
     "tag": _UPLOAD_TAG,
     "authentication": _UPLOAD_AUTHENTICATION,
@@ -12164,6 +11915,9 @@ _OCCURRENCE_ERROR_DESCRIPTIONS: Final[dict[str, str]] = {
     "422": "The file cannot be used (`UPLOAD_INCOMPLETE`, `UPLOAD_CHECKSUM_MISMATCH`, "
     "`OCR_NOT_SUPPORTED`, `ENCRYPTED_DOCUMENT_UNSUPPORTED`, `DOCUMENT_PAGE_LIMIT_EXCEEDED`, "
     "`DOCUMENT_TEXT_LIMIT_EXCEEDED`)",
+    # FEAT-066 T-SLD1: the private SVG draft is rate limited and the drafter may answer badly.
+    "429": "Too many SVG draft requests for the caller (`RATE_LIMITED`)",
+    "502": "The SVG drafter returned an unusable answer (`PROVIDER_BAD_RESPONSE`)",
     "503": "A required service is unavailable (`PROVIDER_UNAVAILABLE`, `STORAGE_UNAVAILABLE`, "
     "`DATABASE_UNAVAILABLE`)",
 }
@@ -12214,10 +11968,10 @@ MOUNTED_OPERATIONS[("post", "/v1/lesson-occurrences")] = {
     "CreateLessonOccurrenceRequestV1 {class_id*:string, title*:string, "
     "scheduled_date:string, lesson_version_ref:LessonVersionRefV1}",
     "handler": "lesson_occurrences.py::create_lesson_occurrence",
-    "responses": _occurrence_responses(
+    "responses": _with_idempotency_mismatch_response(_occurrence_responses(
         ("201", "Occurrence created, or the first response of a replayed key", "LessonOccurrenceV1"),
         "400", "401", "403", "404", "409", "503",
-    ),
+    )),
     "surface": _OCCURRENCE_SURFACE,
     "tag": _OCCURRENCE_TAG,
     "authentication": _OCCURRENCE_AUTHENTICATION,
@@ -12262,14 +12016,14 @@ MOUNTED_OPERATIONS[("post", "/v1/lesson-occurrences/{occurrence_id}/documents")]
     "request_inputs": "path `occurrence_id*`: string; header `Idempotency-Key*`: string; "
     "application/json (required): AttachOccurrenceDocumentRequestV1 {asset_ref*:string}",
     "handler": "lesson_occurrences.py::attach_occurrence_document",
-    "responses": _occurrence_responses(
+    "responses": _with_idempotency_mismatch_response(_occurrence_responses(
         (
             "202",
             "Document attached; poll the job at `Location` (already `succeeded`)",
             "LessonSourceDocumentAcceptedV1",
         ),
         "400", "401", "403", "404", "409", "413", "415", "422", "503",
-    ),
+    )),
     "surface": _OCCURRENCE_SURFACE,
     "tag": _OCCURRENCE_TAG,
     "authentication": _OCCURRENCE_AUTHENTICATION,
@@ -12370,7 +12124,7 @@ MOUNTED_OPERATIONS[
     "`Idempotency-Key*`: string; application/json (required): EditDocumentRevisionRequestV1 "
     "{extracted_text*:string, expected_head_revision_no*:integer}",
     "handler": "lesson_occurrences.py::edit_document_revision",
-    "responses": (
+    "responses": _with_idempotency_mismatch_response((
         _EDIT_RESPONSES[0],
         {
             "status": "200",
@@ -12385,7 +12139,7 @@ MOUNTED_OPERATIONS[
             "media_type": "application/json",
             "schema_name": "Be1Error",
         },
-    ),
+    )),
     "surface": _OCCURRENCE_SURFACE,
     "tag": _OCCURRENCE_TAG,
     "authentication": _OCCURRENCE_AUTHENTICATION,
@@ -12396,9 +12150,6 @@ MOUNTED_OPERATIONS[
 # immutable once written; only the head revision can be confirmed; a stale head or hash is 409
 # `STALE_REVISION` with `current_version`; the safety checklist gate answers 400 with `field_errors`.
 _PLAN_VERIFICATION: Final = "SRS l.547-548, l.775, l.1442, l.1659-1660, l.1699; goal v3 T-3d"
-_PLAN_BASE: Final = "/v1/lesson-occurrences/{occurrence_id}/plan-revisions"
-
-
 def _plan_413(limit: str) -> ResponseMetadata:
     return {
         "status": "413",
@@ -12421,7 +12172,7 @@ _PLAN_CREATE_RESPONSES: Final = _occurrence_responses(
     "409",
     "503",
 )
-MOUNTED_OPERATIONS[("post", _PLAN_BASE)] = {
+MOUNTED_OPERATIONS[("post", "/v1/lesson-occurrences/{occurrence_id}/plan-revisions")] = {
     "purpose": "Write a draft plan revision of the occurrence as head + 1 (objectives 1 to 12 of up "
     "to 1,000 characters, the story direction up to 2,000, optional safety notes up to 2,000, up "
     "to 24 activities, an optional reference to a text revision of one of its documents). Send "
@@ -12436,13 +12187,13 @@ MOUNTED_OPERATIONS[("post", _PLAN_BASE)] = {
     "document_revision_ref:PlanDocumentRefV1, objectives*:array, teacher_direction*:string, "
     "safety_notes:string, activities:array}",
     "handler": "lesson_occurrences.py::create_plan_revision",
-    "responses": (*_PLAN_CREATE_RESPONSES, _plan_413("1 MiB")),
+    "responses": _with_idempotency_mismatch_response((*_PLAN_CREATE_RESPONSES, _plan_413("1 MiB"))),
     "surface": _OCCURRENCE_SURFACE,
     "tag": _OCCURRENCE_TAG,
     "authentication": _OCCURRENCE_AUTHENTICATION,
     "verification": _PLAN_VERIFICATION,
 }
-MOUNTED_OPERATIONS[("get", _PLAN_BASE)] = {
+MOUNTED_OPERATIONS[("get", "/v1/lesson-occurrences/{occurrence_id}/plan-revisions")] = {
     "purpose": "List the plan revisions of an occurrence, newest first (25 per page by default, at "
     "most 100); the head is the first item.",
     "request_inputs": "path `occurrence_id*`: string; query `limit`: integer; query `cursor`: string",
@@ -12456,7 +12207,7 @@ MOUNTED_OPERATIONS[("get", _PLAN_BASE)] = {
     "authentication": _OCCURRENCE_AUTHENTICATION,
     "verification": _PLAN_VERIFICATION,
 }
-MOUNTED_OPERATIONS[("get", _PLAN_BASE + "/{revision_no}")] = {
+MOUNTED_OPERATIONS[("get", "/v1/lesson-occurrences/{occurrence_id}/plan-revisions/{revision_no}")] = {
     "purpose": "Read one plan revision with its activities (strong ETag = content hash and state; "
     "send it in If-None-Match to get 304 while unchanged).",
     "request_inputs": "path `occurrence_id*`: string; path `revision_no*`: integer",
@@ -12469,7 +12220,7 @@ MOUNTED_OPERATIONS[("get", _PLAN_BASE + "/{revision_no}")] = {
     "authentication": _OCCURRENCE_AUTHENTICATION,
     "verification": _PLAN_VERIFICATION,
 }
-MOUNTED_OPERATIONS[("post", _PLAN_BASE + "/{revision_no}/confirm")] = {
+MOUNTED_OPERATIONS[("post", "/v1/lesson-occurrences/{occurrence_id}/plan-revisions/{revision_no}/confirm")] = {
     "purpose": "Approve the head plan revision. Send `expected_plan_hash` (the `content_hash` that "
     "was read) and, for each Teacher-written activity, its safety checklist answers. Only the head "
     "revision can be confirmed and a hash that differs is 409 `STALE_REVISION` with "
@@ -12483,7 +12234,7 @@ MOUNTED_OPERATIONS[("post", _PLAN_BASE + "/{revision_no}/confirm")] = {
     "`Idempotency-Key*`: string; application/json (required): ConfirmPlanRevisionRequestV1 "
     "{expected_plan_hash*:string, checklist:array}",
     "handler": "lesson_occurrences.py::confirm_plan_revision",
-    "responses": (
+    "responses": _with_idempotency_mismatch_response((
         *_occurrence_responses(
             (
                 "200",
@@ -12499,12 +12250,117 @@ MOUNTED_OPERATIONS[("post", _PLAN_BASE + "/{revision_no}/confirm")] = {
             "503",
         ),
         _plan_413("256 KiB"),
-    ),
+    )),
     "surface": _OCCURRENCE_SURFACE,
     "tag": _OCCURRENCE_TAG,
     "authentication": _OCCURRENCE_AUTHENTICATION,
     "verification": _PLAN_VERIFICATION,
 }
+
+# FEAT-063 Rev66 FR-T-18/20, FR-AI-14 and AC-34: Teacher Sketch Deck revisions.
+_SKETCH_DECK_BASE: Final = "/v1/lesson-occurrences/{occurrence_id}/sketch-decks"
+_TEACHER_AI_SKETCH_DECK_PATH: Final = (
+    "/api/teacher/v1/organizations/{organization_id}/ai/sketch-decks"
+)
+_SKETCH_DECK_VERIFICATION: Final = (
+    "SRS Rev66 FR-T-18/20, FR-AI-14, AC-34, BR-42/43; worker output shape NOT VERIFIED"
+)
+SKETCH_DECK_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {
+    ("post", _TEACHER_AI_SKETCH_DECK_PATH): {
+        "purpose": "Generate an unpersisted Teacher-reviewed Sketch Deck draft from explicitly "
+        "supplied plan fields. The caller must review the draft before use.",
+        "request_inputs": "path `organization_id*`: string; application/json (required): "
+        "TeacherReviewedPlanRequestV1 {objectives*:array(1..4) of string(1..200), "
+        "drawing_steps*:array(4..8) of {action*:string(1..240), placement*:string(1..240)}, "
+        "subject_knowledge*:array(1..8) of string(1..240), "
+        "activities*:array(1..6) of {activity_ref*:string(pattern [A-Za-z0-9_-]{1,80}; unique), "
+        "title*:string(1..120), goal*:string(1..200), materials*:string(1..500), "
+        "preparation*:string(1..500), instructions*:string(1..1200), "
+        "safety_notes*:string(1..500)}",
+        "handler": "teacher_ai.py::generate_sketch_deck",
+        # This legacy route keeps FastAPI's own validation error body on 422.
+        "responses": tuple(
+            {**row, "description": "Validation Error", "schema_name": "HTTPValidationError"}
+            if row["status"] == "422"
+            else row
+            for row in _occurrence_responses(
+                ("200", "Teacher-reviewed Sketch Deck draft", "object"),
+                "400",
+                "401",
+                "403",
+                "422",
+                "502",
+            )
+        ),
+        "surface": "Teacher AI lesson preparation",
+        "tag": "Teacher — Lesson Authoring",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": "Legacy direct Teacher AI draft route; review_required is mandatory.",
+    },
+    ("post", _SKETCH_DECK_BASE): {
+        "purpose": "Synchronously create an immutable Sketch Deck revision from Teacher-confirmed "
+        "topic, drawing steps and subject knowledge, pinned to the current approved plan revision "
+        "and hash. Objectives and activities come from the approved plan; age comes from its "
+        "pinned lesson source or Teacher confirmation when the source has no supported age band.",
+        "request_inputs": "path `occurrence_id*`: string; header `Idempotency-Key*`: string; "
+        "application/json (required): CreateSketchDeckRequestV1 "
+        "{expected_plan_revision_id*:string(1..36; pattern [A-Za-z0-9_-]), "
+        "expected_plan_hash*:string, "
+        "review_confirmed*:true, topic*:string(1..120), drawing_steps*:array(4..8) "
+        "of {action*:string(1..240), placement*:string(1..240)}, "
+        "subject_knowledge*:array(1..8) of string(1..240); optional teacher_confirmed_age_band_ref in "
+        "{age-36-71-months-v1, age-72-107-months-v1, age-108-120-months-v1, 36-71}, "
+        "required when no supported age band is pinned; total text <=10000 chars}",
+        "handler": "lesson_occurrences.py::create_sketch_deck_revision",
+        "responses": (
+            *_occurrence_responses(
+                ("201", "Generated revision, including a terminal `FAILED` result", "SketchDeckRevisionV1"),
+                "400",
+                "401",
+                "403",
+                "404",
+                "409",
+                "503",
+            ),
+            {
+                "status": "200",
+                "description": "Completed idempotent replay",
+                "media_type": "application/json",
+                "schema_name": "SketchDeckRevisionV1",
+            },
+            {
+                "status": "202",
+                "description": "An identical command is still running",
+                "media_type": "application/json",
+                "schema_name": "SketchDeckRevisionV1",
+            },
+        ),
+        "surface": _OCCURRENCE_SURFACE,
+        "tag": _OCCURRENCE_TAG,
+        "authentication": _OCCURRENCE_AUTHENTICATION,
+        "verification": _SKETCH_DECK_VERIFICATION,
+    },
+    ("get", _SKETCH_DECK_BASE): {
+        "purpose": "Read the latest Sketch Deck revision and its steps, with explicit stale and "
+        "presentable flags. Only a READY revision pinned to the current approved plan hash is "
+        "presentable.",
+        "request_inputs": "path `occurrence_id*`: string",
+        "handler": "lesson_occurrences.py::get_sketch_deck_revision",
+        "responses": _occurrence_responses(
+            ("200", "Current revision, steps and stale state", "SketchDeckCurrentV1"),
+            "400",
+            "401",
+            "403",
+            "404",
+            "503",
+        ),
+        "surface": _OCCURRENCE_SURFACE,
+        "tag": _OCCURRENCE_TAG,
+        "authentication": _OCCURRENCE_AUTHENTICATION,
+        "verification": _SKETCH_DECK_VERIFICATION,
+    },
+}
+MOUNTED_OPERATIONS.update(SKETCH_DECK_OPERATIONS)
 
 # FEAT-066 goal v3 T-4b1 (SRS l.341-352, l.549-554, l.1441, l.1447-1448, l.1697, AC-56; OD-02): the
 # Teacher random-child selection and its confirmation. The routes are new proposals (the SRS lists no
@@ -12513,7 +12369,6 @@ MOUNTED_OPERATIONS[("post", _PLAN_BASE + "/{revision_no}/confirm")] = {
 _SELECTION_VERIFICATION: Final = (
     "SRS l.341-352, l.549-554, l.1441, l.1447-1448, l.1697-1699, AC-56; goal v3 T-4b1 (OD-02)"
 )
-_SELECTION_BASE: Final = "/v1/lesson-occurrences/{occurrence_id}/child-selections"
 _SELECTION_ERRORS: Final[dict[str, str]] = {
     "403": "The caller covers the class but is not its responsible Teacher, or has no exact-class "
     "`teacher` assignment (`ACTION_NOT_ALLOWED`); the body holds no child data",
@@ -12544,7 +12399,7 @@ def _selection_responses(
     return tuple(sorted(rows, key=lambda row: row["status"]))
 
 
-MOUNTED_OPERATIONS[("post", _SELECTION_BASE)] = {
+MOUNTED_OPERATIONS[("post", "/v1/lesson-occurrences/{occurrence_id}/child-selections")] = {
     "purpose": "Offer one randomly selected eligible child of the occurrence's class for the sample "
     "run (the responsible Teacher at the current assignment only). The server draws with equal "
     "probability among the active, enrolled, synthetic children of 36 to 120 months; the body names "
@@ -12558,16 +12413,16 @@ MOUNTED_OPERATIONS[("post", _SELECTION_BASE)] = {
     "request_inputs": "path `occurrence_id*`: string; header `Idempotency-Key*`: string; "
     "application/json (optional): CreateChildSelectionRequestV1 {}",
     "handler": "lesson_occurrences.py::create_child_selection",
-    "responses": _selection_responses(
+    "responses": _with_idempotency_mismatch_response(_selection_responses(
         ("201", "A new offer or a new empty answer; `Location` is its read, `ETag` its revision", "ChildSelectionV1"),
         "400", "401", "403", "404", "409", "422", "503",
-    ),
+    )),
     "surface": _OCCURRENCE_SURFACE,
     "tag": _OCCURRENCE_TAG,
     "authentication": _OCCURRENCE_AUTHENTICATION,
     "verification": _SELECTION_VERIFICATION,
 }
-MOUNTED_OPERATIONS[("get", _SELECTION_BASE + "/{selection_id}")] = {
+MOUNTED_OPERATIONS[("get", "/v1/lesson-occurrences/{occurrence_id}/child-selections/{selection_id}")] = {
     "purpose": "Read one selection. Every read revalidates (SRS l.348): the child (display name and "
     "age) is returned only while the offer is open or confirmed, not expired and the child is still "
     "eligible; otherwise the state is `STALE` or `EXPIRED` and no child data is returned. A read "
@@ -12583,7 +12438,7 @@ MOUNTED_OPERATIONS[("get", _SELECTION_BASE + "/{selection_id}")] = {
     "authentication": _OCCURRENCE_AUTHENTICATION,
     "verification": _SELECTION_VERIFICATION,
 }
-MOUNTED_OPERATIONS[("post", _SELECTION_BASE + "/{selection_id}/confirmation")] = {
+MOUNTED_OPERATIONS[("post", "/v1/lesson-occurrences/{occurrence_id}/child-selections/{selection_id}/confirmation")] = {
     "purpose": "Confirm the offered child. Send the selection `revision` as a strong `If-Match` and "
     "the `selection_sha256` that was read as `expected_selection_sha256`, so the Teacher confirms "
     "exactly what was shown. The scope, the class, the plan and the child are revalidated; a child "
@@ -12595,10 +12450,10 @@ MOUNTED_OPERATIONS[("post", _SELECTION_BASE + "/{selection_id}/confirmation")] =
     "`Idempotency-Key*`: string; header `If-Match`: string; application/json (required): "
     "ConfirmChildSelectionRequestV1 {expected_selection_sha256*:string}",
     "handler": "lesson_occurrences.py::confirm_child_selection",
-    "responses": _selection_responses(
+    "responses": _with_idempotency_mismatch_response(_selection_responses(
         ("200", "The offer is confirmed (or was already confirmed with this revision)", "ChildSelectionV1"),
         "400", "401", "403", "404", "409", "422", "503",
-    ),
+    )),
     "surface": _OCCURRENCE_SURFACE,
     "tag": _OCCURRENCE_TAG,
     "authentication": _OCCURRENCE_AUTHENTICATION,
@@ -12666,14 +12521,14 @@ MOUNTED_OPERATIONS[("post", "/v1/lesson-occurrences/{occurrence_id}/projection-c
     "`If-Match`: string; application/json (required): ProjectionConfirmationRequestV1 "
     "{run_id*:string, generation_id*:string, audience*:CLASS, use*:CLASS_PROJECTION}",
     "handler": "lesson_occurrences.py::confirm_class_projection",
-    "responses": _projection_responses(
+    "responses": _with_idempotency_mismatch_response(_projection_responses(
         (
             "200",
             "The confirmation receipt (or its replay); `ETag` is the occurrence revision",
             "ClassProjectionConfirmationV1",
         ),
         "400", "401", "403", "404", "409", "503",
-    ),
+    )),
     "surface": _OCCURRENCE_SURFACE,
     "tag": _OCCURRENCE_TAG,
     "authentication": _OCCURRENCE_AUTHENTICATION,
@@ -12700,6 +12555,151 @@ MOUNTED_OPERATIONS[("post", "/v1/lesson-occurrences/{occurrence_id}/projection-p
     "verification": _PROJECTION_VERIFICATION,
 }
 
+# T-SLD1: Teacher presentation proposals are occurrence-scoped and pin an approved plan revision.
+_PRESENTATION_VERIFICATION: Final = "SRS FR-T-19..22, BR-43/44, AC-35, AT-16; T-SLD1"
+MOUNTED_OPERATIONS[("post", "/v1/lesson-occurrences/{occurrence_id}/presentation")] = {
+    "purpose": "Create one 16:9 presentation from an approved occurrence plan or as a blank deck. "
+    "A second presentation for the occurrence conflicts.",
+    "request_inputs": "path `occurrence_id*`: string; header `Idempotency-Key*`: string; "
+    "application/json (required): CreatePresentationRequestV1 {seed:PLAN_ACTIVITIES|BLANK}",
+    "handler": "lesson_presentations.py::create_presentation",
+    "responses": _with_idempotency_mismatch_response(_occurrence_responses(
+        ("201", "Presentation created or replayed", "LessonPresentationV1"),
+        "400", "401", "403", "404", "409", "413", "503",
+    )),
+    "surface": _OCCURRENCE_SURFACE,
+    "tag": _OCCURRENCE_TAG,
+    "authentication": _OCCURRENCE_AUTHENTICATION,
+    "verification": _PRESENTATION_VERIFICATION,
+}
+MOUNTED_OPERATIONS[("get", "/v1/lesson-occurrences/{occurrence_id}/presentation")] = {
+    "purpose": "Read the presentation aggregate, head, current readiness and derived stale state "
+    "after occurrence authorization.",
+    "request_inputs": "path `occurrence_id*`: string",
+    "handler": "lesson_presentations.py::get_presentation",
+    "responses": _occurrence_responses(
+        ("200", "Presentation aggregate", "LessonPresentationV1"), "304", "401", "403", "404", "503"
+    ),
+    "surface": _OCCURRENCE_SURFACE,
+    "tag": _OCCURRENCE_TAG,
+    "authentication": _OCCURRENCE_AUTHENTICATION,
+    "verification": _PRESENTATION_VERIFICATION,
+}
+MOUNTED_OPERATIONS[("post", "/v1/lesson-occurrences/{occurrence_id}/presentation/revisions")] = {
+    "purpose": "Apply 1-50 ordered operations on a copy of the presentation head and create a new "
+    "immutable DRAFT revision. Image handles are scope-checked and verified; URLs are parsed but never fetched.",
+    "request_inputs": "path `occurrence_id*`: string; header `Idempotency-Key*`: string; "
+    "header `If-Match`: string; application/json (required): "
+    "CreatePresentationRevisionRequestV1 {repin_to_current_plan:boolean, operations*:array}",
+    "handler": "lesson_presentations.py::create_presentation_revision",
+    "responses": _with_idempotency_mismatch_response(_occurrence_responses(
+        ("201", "New draft presentation revision", "LessonPresentationV1"),
+        "400", "401", "403", "404", "409", "413", "415", "422", "503",
+    )),
+    "surface": _OCCURRENCE_SURFACE,
+    "tag": _OCCURRENCE_TAG,
+    "authentication": _OCCURRENCE_AUTHENTICATION,
+    "verification": _PRESENTATION_VERIFICATION,
+}
+MOUNTED_OPERATIONS[("get", "/v1/lesson-occurrences/{occurrence_id}/presentation/revisions/{revision_no}")] = {
+    "purpose": "Read an immutable presentation revision and its current per-media state.",
+    "request_inputs": "path `occurrence_id*`: string; path `revision_no*`: integer",
+    "handler": "lesson_presentations.py::get_presentation_revision",
+    "responses": _occurrence_responses(
+        ("200", "Presentation revision", "LessonPresentationRevisionV1"),
+        "304", "401", "403", "404", "503",
+    ),
+    "surface": _OCCURRENCE_SURFACE,
+    "tag": _OCCURRENCE_TAG,
+    "authentication": _OCCURRENCE_AUTHENTICATION,
+    "verification": _PRESENTATION_VERIFICATION,
+}
+MOUNTED_OPERATIONS[("post", "/v1/lesson-occurrences/{occurrence_id}/presentation/revisions/{revision_no}/ready")] = {
+    "purpose": "Mark the head DRAFT ready after the approved plan and every pinned media source "
+    "are current. A published revision is never edited in place.",
+    "request_inputs": "path `occurrence_id*`: string; path `revision_no*`: integer; "
+    "header `Idempotency-Key*`: string; header `If-Match`: string",
+    "handler": "lesson_presentations.py::mark_presentation_revision_ready",
+    "responses": _with_idempotency_mismatch_response(_occurrence_responses(
+        ("200", "Presentation readiness updated", "LessonPresentationV1"),
+        "400", "401", "403", "404", "409", "413", "503",
+    )),
+    "surface": _OCCURRENCE_SURFACE,
+    "tag": _OCCURRENCE_TAG,
+    "authentication": _OCCURRENCE_AUTHENTICATION,
+    "verification": _PRESENTATION_VERIFICATION,
+}
+MOUNTED_OPERATIONS[("get", "/v1/lesson-occurrences/{occurrence_id}/presentation/images/{asset_ref}")] = {
+    "purpose": "Serve the verified original image bytes only when a revision of this presentation "
+    "references the upload handle. The response uses the stored image media type and no-store caching.",
+    "request_inputs": "path `occurrence_id*`: string; path `asset_ref*`: string",
+    "handler": "lesson_presentations.py::get_presentation_image",
+    "responses": (
+        {
+            "status": "200",
+            "description": "Original image bytes with nosniff and an SHA-256 ETag",
+            "media_type": "image/*",
+            "schema_name": "binary",
+        },
+        *(
+            ResponseMetadata(
+                status=code,
+                description=_OCCURRENCE_ERROR_DESCRIPTIONS[code],
+                media_type="application/json",
+                schema_name="Be1Error",
+            )
+            for code in ("401", "403", "404", "422", "503")
+        ),
+    ),
+    "surface": _OCCURRENCE_SURFACE,
+    "tag": _OCCURRENCE_TAG,
+    "authentication": _OCCURRENCE_AUTHENTICATION,
+    "verification": _PRESENTATION_VERIFICATION,
+}
+MOUNTED_OPERATIONS[("post", "/v1/lesson-occurrences/{occurrence_id}/presentation/svg-drafts")] = {
+    "purpose": "Create a private SVG draft from only an approved plan activity title and bounded "
+    "subject text. Production is fail-closed; source is sanitized, schema-checked and deterministically rendered.",
+    "request_inputs": "path `occurrence_id*`: string; header `Idempotency-Key*`: string; "
+    "application/json (required): CreatePresentationSvgDraftRequestV1 "
+    "{plan_activity_id*:string, subject_text*:string}",
+    "handler": "lesson_presentations.py::create_presentation_svg_draft",
+    "responses": _with_idempotency_mismatch_response(_occurrence_responses(
+        ("201", "Private SVG draft pending Teacher review", "PresentationSvgDraftV1"),
+        "400", "401", "403", "404", "409", "413", "429", "502", "503",
+    )),
+    "surface": _OCCURRENCE_SURFACE,
+    "tag": _OCCURRENCE_TAG,
+    "authentication": _OCCURRENCE_AUTHENTICATION,
+    "verification": _PRESENTATION_VERIFICATION,
+}
+MOUNTED_OPERATIONS[("get", "/v1/lesson-occurrences/{occurrence_id}/presentation/svg-drafts/{svg_draft_id}")] = {
+    "purpose": "Read one private SVG draft, its canonical document, preview and provenance.",
+    "request_inputs": "path `occurrence_id*`: string; path `svg_draft_id*`: string",
+    "handler": "lesson_presentations.py::get_presentation_svg_draft",
+    "responses": _occurrence_responses(
+        ("200", "Private SVG draft", "PresentationSvgDraftV1"), "401", "403", "404", "503"
+    ),
+    "surface": _OCCURRENCE_SURFACE,
+    "tag": _OCCURRENCE_TAG,
+    "authentication": _OCCURRENCE_AUTHENTICATION,
+    "verification": _PRESENTATION_VERIFICATION,
+}
+MOUNTED_OPERATIONS[("post", "/v1/lesson-occurrences/{occurrence_id}/presentation/svg-drafts/{svg_draft_id}/decision")] = {
+    "purpose": "Accept or discard a pending SVG draft with its revision ETag. The decision is terminal.",
+    "request_inputs": "path `occurrence_id*`: string; path `svg_draft_id*`: string; "
+    "header `Idempotency-Key*`: string; header `If-Match`: string; "
+    "application/json (required): DecidePresentationSvgDraftRequestV1 {decision*:ACCEPT|DISCARD}",
+    "handler": "lesson_presentations.py::decide_presentation_svg_draft",
+    "responses": _with_idempotency_mismatch_response(_occurrence_responses(
+        ("200", "SVG draft decision", "PresentationSvgDraftV1"),
+        "400", "401", "403", "404", "409", "413", "503",
+    )),
+    "surface": _OCCURRENCE_SURFACE,
+    "tag": _OCCURRENCE_TAG,
+    "authentication": _OCCURRENCE_AUTHENTICATION,
+    "verification": _PRESENTATION_VERIFICATION,
+}
+
 # FEAT-066 goal v3 T-7b (SRS l.593, l.1425, l.1651, l.1697-1699, l.1709; TD-08, TD-28): the School
 # Manager suspends or archives a class. Both are keyed commands that send the class revision as a
 # strong `If-Match`; a stale revision is 409 `STALE_REVISION`, an impossible move is 409
@@ -12708,9 +12708,13 @@ _CLASS_STATE_VERIFICATION: Final = "SRS l.593, l.1425, l.1651, l.1697-1699, l.17
 _CLASS_STATE_TAG: Final = "BE1 — Organizations & Classes"
 # The BE1 error set is the one of the other class commands (the runtime schema groups 409 and
 # the rarer statuses under `default`).
-_CLASS_STATE_RESPONSES: Final = MOUNTED_OPERATIONS[
-    ("post", "/api/be1/v1/classes/{class_id}/assignments")
-]["responses"]
+_CLASS_STATE_RESPONSES: Final = tuple(
+    response
+    for response in MOUNTED_OPERATIONS[
+        ("post", "/api/be1/v1/classes/{class_id}/assignments")
+    ]["responses"]
+    if response != _IDEMPOTENCY_MISMATCH_RESPONSE
+)
 
 
 MOUNTED_OPERATIONS[("post", "/api/be1/v1/classes/{class_id}/suspend")] = {
@@ -12727,7 +12731,7 @@ MOUNTED_OPERATIONS[("post", "/api/be1/v1/classes/{class_id}/suspend")] = {
     "handler": "be1_registry.py::suspend_class",
     "authentication": "HTTPBearer (bearer)",
     "verification": _CLASS_STATE_VERIFICATION,
-    "responses": _CLASS_STATE_RESPONSES,
+    "responses": _with_idempotency_mismatch_response(_CLASS_STATE_RESPONSES),
 }
 MOUNTED_OPERATIONS[("post", "/api/be1/v1/classes/{class_id}/archive")] = {
     "purpose": "Archive an active or suspended class (a School Manager command). `archived` is "
@@ -12742,7 +12746,7 @@ MOUNTED_OPERATIONS[("post", "/api/be1/v1/classes/{class_id}/archive")] = {
     "handler": "be1_registry.py::archive_class",
     "authentication": "HTTPBearer (bearer)",
     "verification": _CLASS_STATE_VERIFICATION,
-    "responses": _CLASS_STATE_RESPONSES,
+    "responses": _with_idempotency_mismatch_response(_CLASS_STATE_RESPONSES),
 }
 
 # FEAT-066 goal v3 T-7c (SRS l.543, l.832, l.1651, l.1697-1699; TD-28): the Teacher profile create is
@@ -12753,38 +12757,92 @@ _PROFILE_CREATE_KEY: Final = (
     "post",
     "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles",
 )
-MOUNTED_OPERATIONS[_PROFILE_CREATE_KEY] = {
-    **MOUNTED_OPERATIONS[_PROFILE_CREATE_KEY],
-    "purpose": "Create a synthetic child profile and its enrollment in a class (an assigned Teacher "
-    "command). Send `Idempotency-Key` and the `class_revision` as a strong `If-Match`; the server "
-    "requires both, although the runtime schema declares `If-Match` as optional (409 "
-    "`STALE_REVISION` with `current_version` when it differs; a missing header is 400 `REQUIRED`, "
-    "a malformed one 400 `INVALID_FORMAT`, a reused key with another request 400 "
-    "`INVALID_IDEMPOTENCY_KEY`); creating a profile does not change the class revision. A class "
-    "that is not active is 409 `INVALID_STATE_TRANSITION`; a School Manager is 403 and any other "
-    "caller outside the class is 404; with the pilot off the answer is 409 "
-    "`SYNTHETIC_PROFILE_CREATION_UNAVAILABLE`. `display_name` must start with `Synthetic `. "
-    "`consent_id` is refused (400) while real data is off and, when on, answered with 409 "
-    "`CONSENT_NOT_EFFECTIVE` until a valid consent state exists; that real-data gate is rate "
-    "limited per account and per client address (provisional limits, not SRS values, X-18) and "
-    "answers 429 `RATE_LIMITED` with a `Retry-After` header once the limit is reached. A reused "
-    "key from before the keyed receipt format is 400 `INVALID_IDEMPOTENCY_KEY` too, and a missing "
-    "server secret is 503 `PROVIDER_UNAVAILABLE`, never a write. The answer holds the child id, "
-    "the enrollment id and the class revision (`ETag`).",
-    "request_inputs": "path `organization_id*`: string; path `class_id*`: string; header "
-    "`X-Request-ID`: string; header `Idempotency-Key*`: string; header `If-Match`: string; "
-    "application/json (required): CreateProfileRequest {display_name*:string, "
-    "age_months*:integer, consent_id:string}",
-    "verification": "SRS l.543, l.832, l.1651, l.1697-1699, l.637; goal v3 T-7c, T-7c-fix",
-}
+MOUNTED_OPERATIONS[("post", "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles")] = {   'purpose': 'Create a synthetic child profile and its enrollment in a class (an assigned '
+               'Teacher command). Send `Idempotency-Key` and the `class_revision` as a strong '
+               '`If-Match`; the server requires both, although the runtime schema declares '
+               '`If-Match` as optional (409 `STALE_REVISION` with `current_version` when it '
+               'differs; a missing header is 400 `REQUIRED`, a malformed one 400 '
+               '`INVALID_FORMAT`, a reused key with another request 400 '
+               '`INVALID_IDEMPOTENCY_KEY`); creating a profile does not change the class '
+               'revision. A class that is not active is 409 `INVALID_STATE_TRANSITION`; a '
+               'School Manager is 403 and any other caller outside the class is 404; with the '
+               'pilot off the answer is 409 `SYNTHETIC_PROFILE_CREATION_UNAVAILABLE`. '
+               '`display_name` must start with `Synthetic `. `consent_id` is refused (400) '
+               'while real data is off and, when on, answered with 409 `CONSENT_NOT_EFFECTIVE` '
+               'until a valid consent state exists; that real-data gate is rate limited per '
+               'account and per client address (provisional limits, not SRS values, X-18) and '
+               'answers 429 `RATE_LIMITED` with a `Retry-After` header once the limit is '
+               'reached. A reused key from before the keyed receipt format is 400 '
+               '`INVALID_IDEMPOTENCY_KEY` too, and a missing server secret is 503 '
+               '`PROVIDER_UNAVAILABLE`, never a write. The answer holds the child id, the '
+               'enrollment id and the class revision (`ETag`).',
+    'request_inputs': 'path `organization_id*`: string; path `class_id*`: string; header '
+                      '`X-Request-ID`: string; header `Idempotency-Key*`: string; header '
+                      '`If-Match`: string; application/json (required): CreateProfileRequest '
+                      '{display_name*:string, age_months*:integer, consent_id:string}',
+    'surface': 'BE1 / classroom',
+    'tag': 'BE1 — Organizations & Classes',
+    'handler': 'be1_registry.py::create_profile',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'SRS l.543, l.832, l.1651, l.1697-1699, l.637; goal v3 T-7c, T-7c-fix',
+    'responses': _with_idempotency_mismatch_response((   {   'status': '201',
+                         'description': 'Successful Response',
+                         'media_type': 'application/json',
+                         'schema_name': 'object'},
+                     {   'status': '401',
+                         'description': 'Authentication or device credential is required',
+                         'media_type': 'application/json',
+                         'schema_name': 'Be1Error'},
+                     {   'status': '403',
+                         'description': 'The caller is not authorized for this resource',
+                         'media_type': 'application/json',
+                         'schema_name': 'Be1Error'},
+                     {   'status': '404',
+                         'description': 'The scoped resource was not found',
+                         'media_type': 'application/json',
+                         'schema_name': 'Be1Error'},
+                     {   'status': '409',
+                         'description': 'The command conflicts with current state',
+                         'media_type': 'application/json',
+                         'schema_name': 'Be1Error'},
+                     {   'status': '410',
+                         'description': 'The requested artifact is no longer available',
+                         'media_type': 'application/json',
+                         'schema_name': 'Be1Error'},
+                     {   'status': '413',
+                         'description': 'The request exceeds a supported size limit',
+                         'media_type': 'application/json',
+                         'schema_name': 'Be1Error'},
+                     {   'status': '415',
+                         'description': 'The request media type is not supported',
+                         'media_type': 'application/json',
+                         'schema_name': 'Be1Error'},
+                     {   'status': '422',
+                         'description': 'The request does not match the API contract',
+                         'media_type': 'application/json',
+                         'schema_name': 'Be1Error'},
+                     {   'status': '429',
+                         'description': 'The request is temporarily rate limited',
+                         'media_type': 'application/json',
+                         'schema_name': 'Be1Error'},
+                     {   'status': '503',
+                         'description': 'A required backend dependency is unavailable',
+                         'media_type': 'application/json',
+                         'schema_name': 'Be1Error'},
+                     {   'status': '500',
+                         'description': 'An unexpected server error occurred',
+                         'media_type': 'application/json',
+                         'schema_name': 'Be1Error'}))}
 
-# FEAT-066 goal v3 T-7d (SRS l.544, l.830, l.1093, l.1425, l.1651, l.1697-1699; TD-28): a Teacher of
-# both classes moves a child. The old enrollment is closed and kept, a new one opens in the target
-# class, and both class revisions move by one. No capacity, quota or billing rule applies.
+# FEAT-066 goal v3 T-7d (SRS l.544, l.830, l.1093, l.1425, l.1651, l.1697-1699; TD-28): a School
+# Manager may move within the organization; a Teacher needs rows on both classes. The old
+# enrollment is closed and kept, a new one opens in the target, and both class revisions move by
+# one. No capacity, quota or billing rule applies.
 _PROFILE_MOVE_KEY: Final = ("post", "/api/be1/v1/classes/{class_id}/profiles/{child_id}/move")
-MOUNTED_OPERATIONS[_PROFILE_MOVE_KEY] = {
-    "purpose": "Move a child from this class to another class of the same Teacher (a Teacher "
-    "command; the caller needs a class-scoped Teacher row on both classes). Send "
+MOUNTED_OPERATIONS[("post", "/api/be1/v1/classes/{class_id}/profiles/{child_id}/move")] = {
+    "purpose": "Move a profile within the organization. An active School Manager assignment "
+    "covers any two classes in that organization; a Teacher still needs class-scoped Teacher "
+    "rows on both classes. Send "
     "`Idempotency-Key`, the source `class_revision` as a strong `If-Match` and the target "
     "`target_class_revision` in the body (409 `STALE_REVISION` with `current_version` for the "
     "source first, then the target; a missing `If-Match` is 400 `REQUIRED`, a reused key with "
@@ -12792,9 +12850,9 @@ MOUNTED_OPERATIONS[_PROFILE_MOVE_KEY] = {
     "source enrollment is closed and kept (`withdrawn`), a new enrollment opens in the target "
     "and both class revisions increase by one. A class that is not active (either side), a "
     "profile without an active enrollment and a child in an unfinished session are 409 "
-    "`INVALID_STATE_TRANSITION`; an unknown child is 404; a School Manager is 403 and any other "
-    "caller outside the classes, or a target class of another organization or not taught by the "
-    "caller, is the uniform 404. A move between Teachers is not available. The answer holds ids "
+    "`INVALID_STATE_TRANSITION`; an unknown child is 404; a target class of another organization "
+    "or an unauthorized caller is the uniform 404, while an in-scope role refusal is 403. The "
+    "answer holds ids "
     "and the two new revisions (no `ETag`: two resources).",
     "request_inputs": "path `class_id*`: string; path `child_id*`: string; header "
     "`X-Request-ID`: string; header `Idempotency-Key*`: string; header `If-Match`: string; "
@@ -12805,18 +12863,59 @@ MOUNTED_OPERATIONS[_PROFILE_MOVE_KEY] = {
     "handler": "be1_registry.py::move_profile",
     "authentication": "HTTPBearer (bearer)",
     "verification": "SRS l.544, l.830, l.1093, l.1425, l.1651, l.1697-1699; goal v3 T-7d",
-    "responses": _CLASS_STATE_RESPONSES,
+    "responses": _with_idempotency_mismatch_response(_CLASS_STATE_RESPONSES),
 }
 
-# FEAT-066 goal v3 T-8a (SRS l.812, l.1681, l.1697; FR-B-09; UC-15; DDL-C part 1): the notification
-# inbox. The inbox is the source of truth; nothing is delivered (no e-mail, no push). T-8b (push
-# endpoints, SRS l.1682-1683) is deferred and not registered.
+# O-PRIV: the School Manager receives one opaque reference per active, actively enrolled profile.
+MOUNTED_OPERATIONS[("get", "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profile-refs")] = {
+    "purpose": "List active profiles with an active enrollment in this class for an assigned "
+    "School Manager. Every item contains `child_id` only: no name, age, media, consent purpose, "
+    "support needs or data origin. The keyset cursor is bound to the organization and class. A "
+    "Teacher or other in-scope role gets 403; a caller outside the organization or a class of "
+    "another organization gets the uniform 404.",
+    "request_inputs": "header `X-Request-ID`: string; path `organization_id*`: string; "
+    "path `class_id*`: string; query `limit`: integer; query `cursor`: string",
+    "surface": "BE1 / classroom",
+    "tag": _CLASS_STATE_TAG,
+    "handler": "be1_registry.py::list_profile_refs",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": "D-066-69 O-PRIV; FR-T-02, FR-T-05, UC-03",
+    "responses": tuple(
+        response for response in _CLASS_STATE_RESPONSES if response["status"] != "202"
+    ),
+}
+
+MOUNTED_OPERATIONS[("get", "/api/be1/v1/organizations/{organization_id}/unplaced-profile-refs")] = {
+    "purpose": "List only opaque references for active profiles without an active enrollment or pending deletion, for the School Manager. The cursor is organization-bound.",
+    "request_inputs": "header `X-Request-ID`: string; path `organization_id*`: string; query `limit`: integer; query `cursor`: string",
+    "surface": "BE1 / classroom", "tag": _CLASS_STATE_TAG,
+    "handler": "be1_registry.py::list_unplaced_profile_refs", "authentication": "HTTPBearer (bearer)",
+    "verification": "FR-T-02, FR-T-05, BR-05; D-066-69",
+    "responses": tuple(response for response in _CLASS_STATE_RESPONSES if response["status"] != "202"),
+}
+MOUNTED_OPERATIONS[("post", "/api/be1/v1/classes/{class_id}/profiles/{child_id}/place")] = {
+    "purpose": "Place one active unplaced profile in an active class, explicitly and without copying consent. Requires a School Manager, a strong class revision and an idempotency key.",
+    "request_inputs": "path `class_id*`: string; path `child_id*`: string; header `X-Request-ID`: string; header `Idempotency-Key*`: string; header `If-Match`: string",
+    "surface": "BE1 / classroom", "tag": _CLASS_STATE_TAG,
+    "handler": "be1_registry.py::place_profile", "authentication": "HTTPBearer (bearer)",
+    "verification": "FR-T-02, FR-T-05, BR-05; D-066-69",
+    "responses": _with_idempotency_mismatch_response(
+        tuple(response for response in _CLASS_STATE_RESPONSES if response["status"] != "202")
+    ),
+}
+
+# FEAT-066 T-8a/T-8b (SRS l.812, l.815, l.1681, l.1684-1685, l.1697; FR-B-09; UC-15; DDL-C):
+# the inbox and scoped push endpoint management. The inbox is the source of truth; no delivery is
+# implemented (no e-mail, no push).
 _NOTIFICATION_ERROR_DESCRIPTIONS: Final[dict[str, str]] = {
     "400": "The request is invalid (`INVALID_REQUEST`, `INVALID_IDEMPOTENCY_KEY`)",
     "401": "Authentication is required",
     "404": "The notification was not found, belongs to someone else, or the caller has no active "
     "adult identity with a role (`RESOURCE_NOT_FOUND`)",
-    "503": "A required service is unavailable (`DATABASE_UNAVAILABLE`)",
+    "409": "The owned endpoint version is stale (`STALE_REVISION` with `current_version`)",
+    "422": "This push platform is unsupported (`PUSH_PLATFORM_UNSUPPORTED`)",
+    "503": "A required service is unavailable (`DATABASE_UNAVAILABLE`, `PROVIDER_UNAVAILABLE`, "
+    "`PUSH_REGISTRATION_UNAVAILABLE`)",
 }
 
 
@@ -12828,7 +12927,7 @@ def _notification_responses(
         {
             "status": status,
             "description": description,
-            "media_type": "application/json",
+            "media_type": "application/json" if schema_name else "",
             "schema_name": schema_name,
         }
     ]
@@ -12844,9 +12943,9 @@ def _notification_responses(
     return tuple(rows)
 
 
-_NOTIFICATION_SURFACE: Final = "Notification inbox"
+_NOTIFICATION_SURFACE: Final = "Notification inbox and push endpoints"
 _NOTIFICATION_TAG: Final = "Notifications"
-_NOTIFICATION_VERIFICATION: Final = "SRS l.784, l.812, l.1681, l.1697; goal v3 T-8a"
+_NOTIFICATION_VERIFICATION: Final = "SRS v2.7-draft l.815, l.1684-1685, l.1697; T-8a/T-8b"
 MOUNTED_OPERATIONS[("get", "/v1/notifications")] = {
     "purpose": "Read the caller's own notification inbox, newest first (25 per page by default, "
     "at most 100) with an opaque cursor. An item names its template and version and carries safe "
@@ -12870,10 +12969,10 @@ MOUNTED_OPERATIONS[("post", "/v1/notifications/{inbox_item_id}/read")] = {
     "another user, an unknown or an expired item is the uniform 404.",
     "request_inputs": "path `inbox_item_id*`: string; header `Idempotency-Key*`: string",
     "handler": "notifications.py::mark_notification_read",
-    "responses": _notification_responses(
+    "responses": _with_idempotency_mismatch_response(_notification_responses(
         ("200", "The notification, read, or the first answer of a replayed key", "NotificationV1"),
         "400", "401", "404", "503",
-    ),
+    )),
     "surface": _NOTIFICATION_SURFACE,
     "tag": _NOTIFICATION_TAG,
     "authentication": "HTTPBearer (bearer)",
@@ -12885,16 +12984,1822 @@ MOUNTED_OPERATIONS[("post", "/v1/notifications/read-all")] = {
     "arrived later; the same key on another request is 400 `INVALID_IDEMPOTENCY_KEY`.",
     "request_inputs": "header `Idempotency-Key*`: string",
     "handler": "notifications.py::mark_all_notifications_read",
-    "responses": _notification_responses(
+    "responses": _with_idempotency_mismatch_response(_notification_responses(
         ("200", "How many items were marked read", "NotificationReadAllV1"),
         "400", "401", "404", "503",
-    ),
+    )),
+    "surface": _NOTIFICATION_SURFACE,
+    "tag": _NOTIFICATION_TAG,
+    "authentication": "HTTPBearer (bearer)",
+    "verification": _NOTIFICATION_VERIFICATION,
+}
+MOUNTED_OPERATIONS[("post", "/v1/notifications/push-endpoints")] = {
+    "purpose": "Register a proof-verified WEB_PUSH endpoint for the active Parent. The request "
+    "is strict and keyed; a replay returns only the original opaque endpoint reference and version. "
+    "Raw endpoint bytes, proof, ciphertext, fingerprint and owner are never returned or logged. "
+    "Android is unsupported until a provider is approved; registration remains disabled when the "
+    "proof or key adapters are unavailable. This operation does not send push notifications.",
+    "request_inputs": "header `Idempotency-Key*`: string; application/json (required): "
+    "PushEndpointRegistrationV1",
+    "handler": "notifications.py::register_push_endpoint",
+    "responses": _with_idempotency_mismatch_response(_notification_responses(
+        ("201", "Opaque endpoint reference and version", "PushEndpointV1"),
+        "400", "401", "404", "422", "503",
+    )),
+    "surface": _NOTIFICATION_SURFACE,
+    "tag": _NOTIFICATION_TAG,
+    "authentication": "HTTPBearer (bearer)",
+    "verification": _NOTIFICATION_VERIFICATION,
+}
+MOUNTED_OPERATIONS[("delete", "/v1/notifications/push-endpoints/{endpoint_id}")] = {
+    "purpose": "Revoke the active Parent's owned endpoint at the strong If-Match version. "
+    "A same-key replay remains 204 after the version advances; an owned stale version is 409 "
+    "`STALE_REVISION` with `current_version`. Unknown and foreign endpoints share one 404. "
+    "Revocation does not change the inbox.",
+    "request_inputs": "path `endpoint_id*`: UUID; header `If-Match*`: strong ETag; "
+    "header `Idempotency-Key*`: string",
+    "handler": "notifications.py::revoke_push_endpoint",
+    "responses": _with_idempotency_mismatch_response(_notification_responses(
+        ("204", "Endpoint revoked; response body is empty", ""),
+        "400", "401", "404", "409", "503",
+    )),
     "surface": _NOTIFICATION_SURFACE,
     "tag": _NOTIFICATION_TAG,
     "authentication": "HTTPBearer (bearer)",
     "verification": _NOTIFICATION_VERIFICATION,
 }
 
+MOUNTED_OPERATIONS[("get", "/v1/parent/consent-policy")] = {
+    "purpose": "Read the current synthetic-only Parent consent-policy placeholder. The text is "
+    "not approved legal wording; no consent acceptance is recorded.",
+    "request_inputs": "No path/query/header/body input declared in OpenAPI",
+    "surface": "Parent profiles",
+    "tag": "Parent Profiles",
+    "handler": "parent_consent_policy.py::get_parent_consent_policy",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": "SRS l.274, l.308, l.836, l.1221; T-CONSENT1",
+    "responses": (
+        {
+            "status": "200",
+            "description": "Current placeholder policy",
+            "media_type": "application/json",
+            "schema_name": "ParentConsentPolicyV1",
+        },
+        {
+            "status": "401",
+            "description": "Authentication is required or invalid",
+            "media_type": "application/json",
+            "schema_name": "Be1Error",
+        },
+        {
+            "status": "403",
+            "description": "The caller is not an active Parent",
+            "media_type": "application/json",
+            "schema_name": "Be1Error",
+        },
+        {
+            "status": "503",
+            "description": "A required identity or database dependency is unavailable",
+            "media_type": "application/json",
+            "schema_name": "Be1Error",
+        },
+    ),
+}
+
+# FEAT-083: approved SVG and topic contracts.
+FEAT083_OPERATIONS: dict[tuple[str, str], OperationMetadata] = {
+    ("get", "/api/svg-catalog/v1/parent/guides"): {
+        "purpose": "List Parent Guides",
+        "request_inputs": "query `topic_key`: string; query `limit`: string",
+        "surface": "SVG catalog and Parent topic guides",
+        "tag": "Parent StoryRuns",
+        "handler": "svg_catalog.py::list_parent_guides",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": "FEAT-083 approved implementation",
+        "responses": (
+            {
+                "status": "200",
+                "description": "Successful Response",
+                "media_type": "application/json",
+                "schema_name": "SvgGuideCatalogPageV1",
+            },
+            {
+                "status": "422",
+                "description": "Validation Error",
+                "media_type": "application/json",
+                "schema_name": "HTTPValidationError",
+            },
+        ),
+    },
+    ("get", "/api/svg-catalog/v1/organizations/{organization_id}/assets"): {
+        "purpose": "List Teacher Assets",
+        "request_inputs": "path `organization_id*`: string; query `limit`: string",
+        "surface": "SVG catalog and Parent topic guides",
+        "tag": "Parent StoryRuns",
+        "handler": "svg_catalog.py::list_teacher_assets",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": "FEAT-083 approved implementation",
+        "responses": (
+            {
+                "status": "200",
+                "description": "Successful Response",
+                "media_type": "application/json",
+                "schema_name": "SvgCatalogPageV1",
+            },
+            {
+                "status": "422",
+                "description": "Validation Error",
+                "media_type": "application/json",
+                "schema_name": "HTTPValidationError",
+            },
+        ),
+    },
+    ("post", "/api/svg-catalog/v1/organizations/{organization_id}/assets"): {
+        "purpose": "Create Organization Asset",
+        "request_inputs": "path "
+        "`organization_id*`: "
+        "string; "
+        "application/json "
+        "(required): "
+        "SvgCatalogAssetCreateRequestV1",
+        "surface": "SVG catalog and Parent topic guides",
+        "tag": "Parent StoryRuns",
+        "handler": "svg_catalog.py::create_organization_asset",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": "FEAT-083 approved implementation",
+        "responses": (
+            {
+                "status": "201",
+                "description": "Successful Response",
+                "media_type": "application/json",
+                "schema_name": "SvgCatalogAssetResponseV1",
+            },
+            {
+                "status": "422",
+                "description": "Validation Error",
+                "media_type": "application/json",
+                "schema_name": "HTTPValidationError",
+            },
+        ),
+    },
+    ("post", "/api/svg-catalog/v1/platform/assets"): {
+        "purpose": "Create Platform Asset",
+        "request_inputs": "application/json (required): SvgCatalogAssetCreateRequestV1",
+        "surface": "SVG catalog and Parent topic guides",
+        "tag": "Parent StoryRuns",
+        "handler": "svg_catalog.py::create_platform_asset",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": "FEAT-083 approved implementation",
+        "responses": (
+            {
+                "status": "201",
+                "description": "Successful Response",
+                "media_type": "application/json",
+                "schema_name": "SvgCatalogAssetResponseV1",
+            },
+            {
+                "status": "422",
+                "description": "Validation Error",
+                "media_type": "application/json",
+                "schema_name": "HTTPValidationError",
+            },
+        ),
+    },
+    (
+        "post",
+        "/api/svg-catalog/v1/organizations/{organization_id}/assets/{catalog_entry_id}/guide-revisions",
+    ): {
+        "purpose": "Create Organization Guide Revision",
+        "request_inputs": "path "
+        "`organization_id*`: "
+        "string; "
+        "path "
+        "`catalog_entry_id*`: "
+        "string; "
+        "application/json "
+        "(required): "
+        "CreateSvgGuideRevisionRequestV1",
+        "surface": "SVG catalog and Parent topic guides",
+        "tag": "Parent StoryRuns",
+        "handler": "svg_catalog.py::create_organization_guide_revision",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": "FEAT-083 approved implementation",
+        "responses": (
+            {
+                "status": "201",
+                "description": "Successful Response",
+                "media_type": "application/json",
+                "schema_name": "SvgGuideRevisionReceiptV1",
+            },
+            {
+                "status": "422",
+                "description": "Validation Error",
+                "media_type": "application/json",
+                "schema_name": "HTTPValidationError",
+            },
+        ),
+    },
+    (
+        "get",
+        "/api/svg-catalog/v1/organizations/{organization_id}/assets/{catalog_entry_id}/guide-revisions",
+    ): {
+        "purpose": "List Organization Guide Revisions",
+        "request_inputs": "path "
+        "`organization_id*`: "
+        "string; "
+        "path "
+        "`catalog_entry_id*`: "
+        "string; "
+        "query "
+        "`limit`: "
+        "string",
+        "surface": "SVG catalog and Parent topic guides",
+        "tag": "Parent StoryRuns",
+        "handler": "svg_catalog.py::list_organization_guide_revisions",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": "FEAT-083 approved implementation",
+        "responses": (
+            {
+                "status": "200",
+                "description": "Successful Response",
+                "media_type": "application/json",
+                "schema_name": "SvgGuideRevisionPageV1",
+            },
+            {
+                "status": "422",
+                "description": "Validation Error",
+                "media_type": "application/json",
+                "schema_name": "HTTPValidationError",
+            },
+        ),
+    },
+    ("post", "/api/svg-catalog/v1/platform/assets/{catalog_entry_id}/guide-revisions"): {
+        "purpose": "Create Platform Guide Revision",
+        "request_inputs": "path "
+        "`catalog_entry_id*`: "
+        "string; "
+        "application/json "
+        "(required): "
+        "CreateSvgGuideRevisionRequestV1",
+        "surface": "SVG catalog and Parent topic guides",
+        "tag": "Parent StoryRuns",
+        "handler": "svg_catalog.py::create_platform_guide_revision",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": "FEAT-083 approved implementation",
+        "responses": (
+            {
+                "status": "201",
+                "description": "Successful Response",
+                "media_type": "application/json",
+                "schema_name": "SvgGuideRevisionReceiptV1",
+            },
+            {
+                "status": "422",
+                "description": "Validation Error",
+                "media_type": "application/json",
+                "schema_name": "HTTPValidationError",
+            },
+        ),
+    },
+    (
+        "post",
+        "/api/svg-catalog/v1/organizations/{organization_id}/assets/{catalog_entry_id}/source-reviews",
+    ): {
+        "purpose": "Review Organization Source",
+        "request_inputs": "path "
+        "`organization_id*`: "
+        "string; "
+        "path "
+        "`catalog_entry_id*`: "
+        "string; "
+        "application/json "
+        "(required): "
+        "SvgSourceReviewRequestV1",
+        "surface": "SVG catalog and Parent topic guides",
+        "tag": "Parent StoryRuns",
+        "handler": "svg_catalog.py::review_organization_source",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": "FEAT-083 approved implementation",
+        "responses": (
+            {
+                "status": "200",
+                "description": "Successful Response",
+                "media_type": "application/json",
+                "schema_name": "SvgReviewReceiptV1",
+            },
+            {
+                "status": "422",
+                "description": "Validation Error",
+                "media_type": "application/json",
+                "schema_name": "HTTPValidationError",
+            },
+        ),
+    },
+    ("post", "/api/svg-catalog/v1/platform/assets/{catalog_entry_id}/source-reviews"): {
+        "purpose": "Review Platform Source",
+        "request_inputs": "path "
+        "`catalog_entry_id*`: "
+        "string; "
+        "application/json "
+        "(required): "
+        "SvgSourceReviewRequestV1",
+        "surface": "SVG catalog and Parent topic guides",
+        "tag": "Parent StoryRuns",
+        "handler": "svg_catalog.py::review_platform_source",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": "FEAT-083 approved implementation",
+        "responses": (
+            {
+                "status": "200",
+                "description": "Successful Response",
+                "media_type": "application/json",
+                "schema_name": "SvgReviewReceiptV1",
+            },
+            {
+                "status": "422",
+                "description": "Validation Error",
+                "media_type": "application/json",
+                "schema_name": "HTTPValidationError",
+            },
+        ),
+    },
+    (
+        "post",
+        "/api/svg-catalog/v1/organizations/{organization_id}/assets/{catalog_entry_id}/guide-revisions/{guide_revision_id}/educator-reviews",
+    ): {
+        "purpose": "Review Organization Guide",
+        "request_inputs": "path "
+        "`organization_id*`: "
+        "string; "
+        "path "
+        "`catalog_entry_id*`: "
+        "string; "
+        "path "
+        "`guide_revision_id*`: "
+        "string; "
+        "application/json "
+        "(required): "
+        "SvgGuideReviewRequestV1",
+        "surface": "SVG catalog and Parent topic guides",
+        "tag": "Parent StoryRuns",
+        "handler": "svg_catalog.py::review_organization_guide",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": "FEAT-083 approved implementation",
+        "responses": (
+            {
+                "status": "200",
+                "description": "Successful Response",
+                "media_type": "application/json",
+                "schema_name": "SvgReviewReceiptV1",
+            },
+            {
+                "status": "422",
+                "description": "Validation Error",
+                "media_type": "application/json",
+                "schema_name": "HTTPValidationError",
+            },
+        ),
+    },
+    (
+        "post",
+        "/api/svg-catalog/v1/platform/assets/{catalog_entry_id}/guide-revisions/{guide_revision_id}/educator-reviews",
+    ): {
+        "purpose": "Review Platform Guide",
+        "request_inputs": "path "
+        "`catalog_entry_id*`: "
+        "string; "
+        "path "
+        "`guide_revision_id*`: "
+        "string; "
+        "application/json "
+        "(required): "
+        "SvgGuideReviewRequestV1",
+        "surface": "SVG catalog and Parent topic guides",
+        "tag": "Parent StoryRuns",
+        "handler": "svg_catalog.py::review_platform_guide",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": "FEAT-083 approved implementation",
+        "responses": (
+            {
+                "status": "200",
+                "description": "Successful Response",
+                "media_type": "application/json",
+                "schema_name": "SvgReviewReceiptV1",
+            },
+            {
+                "status": "422",
+                "description": "Validation Error",
+                "media_type": "application/json",
+                "schema_name": "HTTPValidationError",
+            },
+        ),
+    },
+    ("post", "/api/svg-catalog/v1/platform/assets/{catalog_entry_id}/curation"): {
+        "purpose": "Curate Platform Asset",
+        "request_inputs": "path "
+        "`catalog_entry_id*`: "
+        "string; "
+        "application/json "
+        "(required): "
+        "SvgCurationRequestV1",
+        "surface": "SVG catalog and Parent topic guides",
+        "tag": "Parent StoryRuns",
+        "handler": "svg_catalog.py::curate_platform_asset",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": "FEAT-083 approved implementation",
+        "responses": (
+            {
+                "status": "200",
+                "description": "Successful Response",
+                "media_type": "application/json",
+                "schema_name": "SvgReviewReceiptV1",
+            },
+            {
+                "status": "422",
+                "description": "Validation Error",
+                "media_type": "application/json",
+                "schema_name": "HTTPValidationError",
+            },
+        ),
+    },
+    ("get", "/api/parent/v1/topics/suggestions"): {
+        "purpose": "Return three stable topic cards for a Parent drawing draft",
+        "request_inputs": "query `draft_id*`: string; query `exclude_set_ids`: string",
+        "surface": "SVG catalog and Parent topic guides",
+        "tag": "Parent StoryRuns",
+        "handler": "parent_topic_suggestions.py::get_topic_suggestions",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": "FEAT-083 approved implementation",
+        "responses": (
+            {
+                "status": "200",
+                "description": "Successful Response",
+                "media_type": "application/json",
+                "schema_name": "ParentTopicSuggestionSetV1",
+            },
+            {
+                "status": "422",
+                "description": "Validation Error",
+                "media_type": "application/json",
+                "schema_name": "HTTPValidationError",
+            },
+        ),
+    },
+    ("get", "/api/parent/v1/topics/{topic_id}/drawing-subject-suggestions"): {
+        "purpose": "Return three drawable subjects from the selected topic catalog",
+        "request_inputs": "path "
+        "`topic_id*`: "
+        "string; "
+        "query "
+        "`draft_id*`: "
+        "string; "
+        "query "
+        "`topic*`: "
+        "string; "
+        "query "
+        "`exclude_set_ids`: "
+        "string; "
+        "query "
+        "`exclude_subjects`: "
+        "string",
+        "surface": "SVG catalog and Parent topic guides",
+        "tag": "Parent StoryRuns",
+        "handler": "parent_topic_suggestions.py::get_drawing_subject_suggestions",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": "FEAT-083 approved implementation",
+        "responses": (
+            {
+                "status": "200",
+                "description": "Successful Response",
+                "media_type": "application/json",
+                "schema_name": "ParentDrawingSubjectSuggestionSetV1",
+            },
+            {
+                "status": "422",
+                "description": "Validation Error",
+                "media_type": "application/json",
+                "schema_name": "HTTPValidationError",
+            },
+        ),
+    },
+    ("post", "/api/parent/v1/topics/custom-subject-validation"): {
+        "purpose": "Check whether an adult-entered drawing subject fits the selected topic",
+        "request_inputs": "application/json (required): ParentCustomSubjectValidationRequestV1",
+        "surface": "SVG catalog and Parent topic guides",
+        "tag": "Parent StoryRuns",
+        "handler": "parent_topic_suggestions.py::validate_custom_subject",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": "FEAT-083 approved implementation",
+        "responses": (
+            {
+                "status": "200",
+                "description": "Successful Response",
+                "media_type": "application/json",
+                "schema_name": "ParentCustomSubjectValidationV1",
+            },
+            {
+                "status": "422",
+                "description": "Validation Error",
+                "media_type": "application/json",
+                "schema_name": "HTTPValidationError",
+            },
+        ),
+    },
+    ("post", "/api/parent/v1/ai/sketch-guides"): {
+        "purpose": "Create an optional private SVG guide from a curated source",
+        "request_inputs": "application/json (required): SvgTopicStrokeGuideRequestV1",
+        "surface": "SVG catalog and Parent topic guides",
+        "tag": "Parent StoryRuns",
+        "handler": "parent_ai.py::generate_sketch_guide",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": "FEAT-083 approved implementation",
+        "responses": (
+            {
+                "status": "200",
+                "description": "Successful Response",
+                "media_type": "application/json",
+                "schema_name": "SvgTopicStrokeGuideSourceDraftResponseV1",
+            },
+            {
+                "status": "422",
+                "description": "Validation Error",
+                "media_type": "application/json",
+                "schema_name": "HTTPValidationError",
+            },
+        ),
+    },
+    ("post", "/api/parent/v1/ai/story-runs/{run_id}/activity-suggestions"): {
+        "purpose": "Create and persist an immutable Parent activity suggestion set",
+        "request_inputs": (
+            "path `run_id*`: UUID; header `Idempotency-Key*`: string; "
+            "application/json (required): ParentActivitySuggestionsRequestV1"
+        ),
+        "surface": "Parent StoryRun AI activities",
+        "tag": "Parent StoryRuns",
+        "handler": "parent_ai.py::suggest_parent_activities",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": "Hybrid B activity suggestion contract",
+        "responses": (
+            {
+                "status": "200",
+                "description": "The immutable activity suggestion set",
+                "media_type": "application/json",
+                "schema_name": "ParentActivitySuggestionSetV1",
+            },
+            {
+                "status": "422",
+                "description": "Validation Error",
+                "media_type": "application/json",
+                "schema_name": "HTTPValidationError",
+            },
+        ),
+    },
+    ("post", "/api/parent/v1/ai/story-runs/{run_id}/activity-selection"): {
+        "purpose": "Persist the Parent's choice from a stored activity suggestion set",
+        "request_inputs": (
+            "path `run_id*`: UUID; header `Idempotency-Key*`: string; "
+            "application/json (required): ParentActivitySetSelectionRequestV1"
+        ),
+        "surface": "Parent StoryRun AI activities",
+        "tag": "Parent StoryRuns",
+        "handler": "parent_ai.py::select_parent_activity",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": "Hybrid B activity selection contract",
+        "responses": (
+            {
+                "status": "200",
+                "description": "The persisted activity selection receipt",
+                "media_type": "application/json",
+                "schema_name": "ParentActivitySelectionReceiptV1",
+            },
+            {
+                "status": "422",
+                "description": "Validation Error",
+                "media_type": "application/json",
+                "schema_name": "HTTPValidationError",
+            },
+        ),
+    },
+}
+MOUNTED_OPERATIONS[("get", "/api/svg-catalog/v1/parent/guides")] = FEAT083_OPERATIONS[("get", "/api/svg-catalog/v1/parent/guides")]
+MOUNTED_OPERATIONS[("get", "/api/svg-catalog/v1/organizations/{organization_id}/assets")] = FEAT083_OPERATIONS[("get", "/api/svg-catalog/v1/organizations/{organization_id}/assets")]
+MOUNTED_OPERATIONS[("post", "/api/svg-catalog/v1/organizations/{organization_id}/assets")] = FEAT083_OPERATIONS[("post", "/api/svg-catalog/v1/organizations/{organization_id}/assets")]
+MOUNTED_OPERATIONS[("post", "/api/svg-catalog/v1/platform/assets")] = FEAT083_OPERATIONS[("post", "/api/svg-catalog/v1/platform/assets")]
+MOUNTED_OPERATIONS[("post", "/api/svg-catalog/v1/organizations/{organization_id}/assets/{catalog_entry_id}/guide-revisions")] = FEAT083_OPERATIONS[("post", "/api/svg-catalog/v1/organizations/{organization_id}/assets/{catalog_entry_id}/guide-revisions")]
+MOUNTED_OPERATIONS[("get", "/api/svg-catalog/v1/organizations/{organization_id}/assets/{catalog_entry_id}/guide-revisions")] = FEAT083_OPERATIONS[("get", "/api/svg-catalog/v1/organizations/{organization_id}/assets/{catalog_entry_id}/guide-revisions")]
+MOUNTED_OPERATIONS[("post", "/api/svg-catalog/v1/platform/assets/{catalog_entry_id}/guide-revisions")] = FEAT083_OPERATIONS[("post", "/api/svg-catalog/v1/platform/assets/{catalog_entry_id}/guide-revisions")]
+MOUNTED_OPERATIONS[("post", "/api/svg-catalog/v1/organizations/{organization_id}/assets/{catalog_entry_id}/source-reviews")] = FEAT083_OPERATIONS[("post", "/api/svg-catalog/v1/organizations/{organization_id}/assets/{catalog_entry_id}/source-reviews")]
+MOUNTED_OPERATIONS[("post", "/api/svg-catalog/v1/platform/assets/{catalog_entry_id}/source-reviews")] = FEAT083_OPERATIONS[("post", "/api/svg-catalog/v1/platform/assets/{catalog_entry_id}/source-reviews")]
+MOUNTED_OPERATIONS[("post", "/api/svg-catalog/v1/organizations/{organization_id}/assets/{catalog_entry_id}/guide-revisions/{guide_revision_id}/educator-reviews")] = FEAT083_OPERATIONS[("post", "/api/svg-catalog/v1/organizations/{organization_id}/assets/{catalog_entry_id}/guide-revisions/{guide_revision_id}/educator-reviews")]
+MOUNTED_OPERATIONS[("post", "/api/svg-catalog/v1/platform/assets/{catalog_entry_id}/guide-revisions/{guide_revision_id}/educator-reviews")] = FEAT083_OPERATIONS[("post", "/api/svg-catalog/v1/platform/assets/{catalog_entry_id}/guide-revisions/{guide_revision_id}/educator-reviews")]
+MOUNTED_OPERATIONS[("post", "/api/svg-catalog/v1/platform/assets/{catalog_entry_id}/curation")] = FEAT083_OPERATIONS[("post", "/api/svg-catalog/v1/platform/assets/{catalog_entry_id}/curation")]
+MOUNTED_OPERATIONS[("get", "/api/parent/v1/topics/suggestions")] = FEAT083_OPERATIONS[("get", "/api/parent/v1/topics/suggestions")]
+MOUNTED_OPERATIONS[("get", "/api/parent/v1/topics/{topic_id}/drawing-subject-suggestions")] = FEAT083_OPERATIONS[("get", "/api/parent/v1/topics/{topic_id}/drawing-subject-suggestions")]
+MOUNTED_OPERATIONS[("post", "/api/parent/v1/topics/custom-subject-validation")] = FEAT083_OPERATIONS[("post", "/api/parent/v1/topics/custom-subject-validation")]
+MOUNTED_OPERATIONS[("post", "/api/parent/v1/ai/sketch-guides")] = FEAT083_OPERATIONS[("post", "/api/parent/v1/ai/sketch-guides")]
+MOUNTED_OPERATIONS[("post", "/api/parent/v1/ai/story-runs/{run_id}/activity-suggestions")] = FEAT083_OPERATIONS[("post", "/api/parent/v1/ai/story-runs/{run_id}/activity-suggestions")]
+MOUNTED_OPERATIONS[("post", "/api/parent/v1/ai/story-runs/{run_id}/activity-selection")] = FEAT083_OPERATIONS[("post", "/api/parent/v1/ai/story-runs/{run_id}/activity-selection")]
+
+# FEAT-066 goal v4 T-12b (SRS l.496-499, l.829, l.1651, l.1697; FR-C-04 to FR-C-07; DDL-D): the
+# Teacher profile revisions. The history and one revision are reads; the edit is a keyed command
+# that appends one immutable revision and moves the head. All three share one release rule, the
+# one of the Teacher roster (D-066-100): an assigned Teacher of the class and a profile that is
+# synthetic, or real with an effective consent (a write to a real profile stays blocked).
+_PROFILE_REVISION_TAG: Final = "BE1 — Organizations & Classes"
+_PROFILE_REVISION_VERIFICATION: Final = (
+    "SRS l.496-499, l.829, l.832, l.1651, l.1697, l.2586; goal v4 T-12b"
+)
+_PROFILE_REVISION_PATHS: Final = (
+    "path `organization_id*`: string; path `class_id*`: string; path `child_id*`: string"
+)
+_PROFILE_REVISION_ROSTER_KEY: Final = (
+    "get",
+    "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles",
+)
+
+
+_PROFILE_CONFLICT_DESCRIPTION: Final = (
+    "The command conflicts with current state, or an assigned Teacher meets a profile whose "
+    "consent is not effective (`CONSENT_NOT_EFFECTIVE`; a withdrawn grant or a pending deletion "
+    "is the uniform 404 instead)"
+)
+
+
+def _conflict_row(row: ResponseMetadata) -> ResponseMetadata:
+    if row["status"] != "409":
+        return row
+    changed = dict(row)
+    changed["description"] = _PROFILE_CONFLICT_DESCRIPTION
+    return cast(ResponseMetadata, changed)
+
+
+def _profile_revision_responses(success: str, description: str) -> tuple[ResponseMetadata, ...]:
+    rows = MOUNTED_OPERATIONS[_PROFILE_REVISION_ROSTER_KEY]["responses"]
+    return (
+        {
+            "status": "200",
+            "description": description,
+            "media_type": "application/json",
+            "schema_name": success,
+        },
+        *(_conflict_row(row) for row in rows[1:]),
+    )
+
+
+MOUNTED_OPERATIONS[
+    (
+        "get",
+        "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}"
+        "/revisions",
+    )
+] = {
+    "purpose": "List the immutable revisions of one child profile, newest first (25 per page by "
+    "default, at most 100) with an opaque cursor bound to the route, organization, class and "
+    "child. The first item is the head: send its `revision_no` as `expected_revision` when "
+    "editing. A revision holds the display name, the age in months with its versioned age band "
+    "(`null` above 120 months), the structured interests and the revision hash; it never "
+    "returns the author. An assigned Teacher of the class only (a School Manager is 403, any "
+    "other caller outside the class, an unknown or inactive profile, a profile with a pending "
+    "deletion request and a non-synthetic profile whose consent was revoked are the uniform 404). "
+    "A profile that is neither synthetic nor real with an effective consent is 409 "
+    "`CONSENT_NOT_EFFECTIVE` for the assigned Teacher.",
+    "request_inputs": f"{_PROFILE_REVISION_PATHS}; query `limit`: integer; query `cursor`: "
+    "string; header `X-Request-ID`: string",
+    "surface": "BE1 / classroom",
+    "tag": _PROFILE_REVISION_TAG,
+    "handler": "be1_registry.py::list_profile_revisions",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": _PROFILE_REVISION_VERIFICATION,
+    "responses": _profile_revision_responses(
+        "Be1ProfileRevisionPageV1", "A page of profile revisions and the next cursor"
+    ),
+}
+MOUNTED_OPERATIONS[
+    (
+        "get",
+        "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}"
+        "/revisions/{profile_revision_id}",
+    )
+] = {
+    "purpose": "Read one immutable revision of a child profile. The current scope and release "
+    "rule hold for a past revision too (an assignment that ended, or a profile that is no longer "
+    "released, is refused). An unknown revision, or one of another profile, is the uniform 404, "
+    "and so is a profile with a pending deletion request or a non-synthetic profile whose "
+    "consent was revoked; a profile that is neither synthetic nor released is 409 "
+    "`CONSENT_NOT_EFFECTIVE` for the assigned Teacher.",
+    "request_inputs": f"{_PROFILE_REVISION_PATHS}; path `profile_revision_id*`: string; header "
+    "`X-Request-ID`: string",
+    "surface": "BE1 / classroom",
+    "tag": _PROFILE_REVISION_TAG,
+    "handler": "be1_registry.py::get_profile_revision",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": _PROFILE_REVISION_VERIFICATION,
+    "responses": _profile_revision_responses(
+        "Be1ProfileRevisionV1", "One profile revision"
+    ),
+}
+MOUNTED_OPERATIONS[
+    (
+        "patch",
+        "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}",
+    )
+] = {
+    "purpose": "Edit a child profile (an assigned Teacher command): append one immutable "
+    "revision and move the head, with the display name, age and interests projected in the same "
+    "transaction. Send `Idempotency-Key` and the `expected_revision` (the head `revision_no`) "
+    "in the body, with at least one of `display_name` (it must start with `Synthetic `), "
+    "`age_months` (36 to 120) and `structured_interests` (at most 20 labels of at most 80 "
+    "characters, no duplicates; `[]` clears them); an omitted field keeps its value and an "
+    "explicit null is 400. A stale `expected_revision` is 409 `STALE_REVISION` with "
+    "`current_version`; a reused key with another request is 400 `INVALID_IDEMPOTENCY_KEY`; an "
+    "identical replay returns the first answer. A class that is not active and a profile whose "
+    "stored age is above 120 months are 409 `INVALID_STATE_TRANSITION`; a profile that is "
+    "neither synthetic nor released is 409 `CONSENT_NOT_EFFECTIVE` for the assigned Teacher (the "
+    "write to a real profile is blocked); a School Manager is 403 and any other caller outside "
+    "the class, an unknown profile, a profile with a pending deletion request and a "
+    "non-synthetic profile whose consent was revoked are the uniform 404. A free-text interest "
+    "that names a diagnosis is 400 with the field code `DIAGNOSIS_LIKE` (BR-20). The answer holds the new revision's id, number and hash "
+    "(`ETag` is the revision number); the author and the child data are never returned.",
+    "request_inputs": f"{_PROFILE_REVISION_PATHS}; header `X-Request-ID`: string; header "
+    "`Idempotency-Key*`: string; application/json (required): EditProfileRequest "
+    "{expected_revision*:integer, display_name:string, age_months:integer, "
+    "structured_interests:array<string>}",
+    "surface": "BE1 / classroom",
+    "tag": _PROFILE_REVISION_TAG,
+    "handler": "be1_registry.py::edit_profile",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": _PROFILE_REVISION_VERIFICATION,
+    "responses": _with_idempotency_mismatch_response(_profile_revision_responses(
+        "Be1ProfileEditResultV1", "The new revision, or the first answer of a replayed key"
+    )),
+}
+
+# FEAT-066 goal v4 T-12c (SRS l.264 BR-20, l.499 FR-C-07, l.932, l.1922, l.2338; DDL-D): the
+# encrypted support needs of a profile, one Parent pair and one Teacher pair. The record is an
+# adult-entered optional category and note, encrypted at rest, a singleton with its own revision
+# (0 = none yet). A write needs `Idempotency-Key` and `expected_revision`; the answer of a write
+# holds the new revision only. No value is ever part of a receipt, a log, an error or an example.
+_SUPPORT_NEEDS_VERIFICATION: Final = "SRS l.264, l.499, l.932, l.1922, l.2338; goal v4 T-12c"
+_SUPPORT_NEEDS_PURPOSE_COMMON: Final = (
+    "The record is an optional category (at most 80 characters) and a free-text note (at most "
+    "2000 characters) the adult enters; it is not a diagnosis and nothing is inferred. It is "
+    "encrypted at rest and never part of a profile projection, a run snapshot or an AI input. "
+    "Answers carry `Cache-Control: no-store`; `503 SUPPORT_NEEDS_UNAVAILABLE` means no key "
+    "source is configured or a stored record does not authenticate."
+)
+_PARENT_SUPPORT_NEEDS_ERRORS: Final[tuple[ResponseMetadata, ...]] = (
+    {
+        "status": "400",
+        "description": "The request is invalid, or the idempotency key was used for another request",
+        "media_type": "application/json",
+        "schema_name": "ParentErrorResponse",
+    },
+    {
+        "status": "401",
+        "description": "Authentication is required or invalid",
+        "media_type": "application/json",
+        "schema_name": "ParentErrorResponse",
+    },
+    {
+        "status": "404",
+        "description": "The profile was not found, or the caller is not an active Parent",
+        "media_type": "application/json",
+        "schema_name": "ParentErrorResponse",
+    },
+    {
+        "status": "409",
+        "description": "A stale revision (with `current_version`), or a profile that cannot be "
+        "changed in its current state",
+        "media_type": "application/json",
+        "schema_name": "ParentErrorResponse",
+    },
+    {
+        "status": "422",
+        "description": "The request does not match the API contract",
+        "media_type": "application/json",
+        "schema_name": "ParentErrorResponse",
+    },
+    {
+        "status": "503",
+        "description": "Support needs are unavailable: no key source, or a record that does not "
+        "authenticate",
+        "media_type": "application/json",
+        "schema_name": "ParentErrorResponse",
+    },
+)
+MOUNTED_OPERATIONS[("get", "/v1/parent/profiles/{profile_id}/support-needs")] = {
+    "purpose": "Read the decrypted support needs of a profile owned by the verified Parent "
+    "principal (`revision` 0 and null values when none). " + _SUPPORT_NEEDS_PURPOSE_COMMON,
+    "request_inputs": "path `profile_id*`: uuid; header `X-Request-ID`: string",
+    "surface": "Parent / profile support needs",
+    "tag": "Parent Profiles",
+    "handler": "parent_profiles.py::get_parent_profile_support_needs",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": _SUPPORT_NEEDS_VERIFICATION,
+    "responses": (
+        {
+            "status": "200",
+            "description": "The decrypted record, or revision 0 with null values",
+            "media_type": "application/json",
+            "schema_name": "ParentSupportNeedsV1",
+        },
+        *_PARENT_SUPPORT_NEEDS_ERRORS,
+    ),
+}
+MOUNTED_OPERATIONS[("put", "/v1/parent/profiles/{profile_id}/support-needs")] = {
+    "purpose": "Replace the support needs of a profile owned by the verified Parent principal. "
+    "Send `Idempotency-Key` and `expected_revision` (0 when none exists); `category` and `note` "
+    "are both required keys, each a string or null, and at least one must hold text. A stale "
+    "`expected_revision` is 409 `STALE_REVISION` with `current_version`; an identical replay "
+    "returns the first answer; a profile whose deletion is pending is 409 "
+    "`INVALID_STATE_TRANSITION`. " + _SUPPORT_NEEDS_PURPOSE_COMMON,
+    "request_inputs": "path `profile_id*`: uuid; header `Idempotency-Key*`: string; header "
+    "`X-Request-ID`: string; application/json (required): SupportNeedsPutV1 "
+    "{expected_revision*:integer, category*:string|null, note*:string|null}",
+    "surface": "Parent / profile support needs",
+    "tag": "Parent Profiles",
+    "handler": "parent_profiles.py::put_parent_profile_support_needs",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": _SUPPORT_NEEDS_VERIFICATION,
+    "responses": (
+        {
+            "status": "200",
+            "description": "The new revision, or the first answer of a replayed key",
+            "media_type": "application/json",
+            "schema_name": "ParentSupportNeedsWriteV1",
+        },
+        *_PARENT_SUPPORT_NEEDS_ERRORS,
+    ),
+}
+_BE1_SUPPORT_NEEDS_TEACHER: Final = (
+    " An assigned Teacher of the class only, and only with an effective consent and a narrow "
+    "support-needs permission (both are asked for every profile, synthetic ones included; both "
+    "deny until they exist, so a Teacher without the permission is the uniform 404 (no consent "
+    "state is disclosed and no audit row is written) and a Teacher with the permission but "
+    "without an effective consent is 409 `CONSENT_NOT_EFFECTIVE`); a School Manager is 403 and "
+    "any other caller outside the class, an unknown or inactive profile, a profile with a "
+    "pending deletion request and a non-synthetic profile whose consent was revoked are the "
+    "uniform 404."
+)
+MOUNTED_OPERATIONS[
+    (
+        "get",
+        "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}"
+        "/support-needs",
+    )
+] = {
+    "purpose": "Read the decrypted support needs of one managed profile (`revision` 0 and null "
+    "values when none). " + _SUPPORT_NEEDS_PURPOSE_COMMON + _BE1_SUPPORT_NEEDS_TEACHER,
+    "request_inputs": f"{_PROFILE_REVISION_PATHS}; header `X-Request-ID`: string",
+    "surface": "BE1 / classroom",
+    "tag": _PROFILE_REVISION_TAG,
+    "handler": "be1_registry.py::get_profile_support_needs",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": _SUPPORT_NEEDS_VERIFICATION,
+    "responses": _profile_revision_responses(
+        "Be1SupportNeedsV1", "The decrypted record, or revision 0 with null values"
+    ),
+}
+MOUNTED_OPERATIONS[
+    (
+        "put",
+        "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}"
+        "/support-needs",
+    )
+] = {
+    "purpose": "Replace the support needs of one managed profile (an assigned Teacher command). "
+    "Send `Idempotency-Key` and `expected_revision` (0 when none exists); `category` and `note` "
+    "are both required keys, each a string or null, and at least one must hold text. A stale "
+    "`expected_revision` is 409 `STALE_REVISION` with `current_version`; a reused key with "
+    "another request is 400 `INVALID_IDEMPOTENCY_KEY`; an identical replay returns the first "
+    "answer; a class that is not active is 409 `INVALID_STATE_TRANSITION`. "
+    + _SUPPORT_NEEDS_PURPOSE_COMMON
+    + _BE1_SUPPORT_NEEDS_TEACHER,
+    "request_inputs": f"{_PROFILE_REVISION_PATHS}; header `X-Request-ID`: string; header "
+    "`Idempotency-Key*`: string; application/json (required): Be1SupportNeedsPutV1 "
+    "{expected_revision*:integer, category*:string|null, note*:string|null}",
+    "surface": "BE1 / classroom",
+    "tag": _PROFILE_REVISION_TAG,
+    "handler": "be1_registry.py::put_profile_support_needs",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": _SUPPORT_NEEDS_VERIFICATION,
+    "responses": _with_idempotency_mismatch_response(_profile_revision_responses(
+        "Be1SupportNeedsWriteV1", "The new revision, or the first answer of a replayed key"
+    )),
+}
+
+MOUNTED_OPERATIONS[("get", "/api/lesson-library/v1/me/lessons")]["request_inputs"] = (
+    "query `source`: string; query `q`: string; query `topic`: string; "
+    "query `target_age_band_ref`: string; query `target_age_band_version`: integer; "
+    "query `limit`: integer; query `cursor`: opaque string (max 1024 bytes)"
+)
+
+_BE1_CAPACITY_ERRORS: tuple[ResponseMetadata, ...] = (
+    {"status": "400", "description": "The request or the idempotency key is invalid (`INVALID_REQUEST`, `INVALID_IDEMPOTENCY_KEY`)", "media_type": "application/json", "schema_name": "Be1Error"},
+    {"status": "401", "description": "Authentication or device credential is required", "media_type": "application/json", "schema_name": "Be1Error"},
+    {"status": "403", "description": "The caller is not authorized for this resource", "media_type": "application/json", "schema_name": "Be1Error"},
+    {"status": "404", "description": "The scoped resource was not found", "media_type": "application/json", "schema_name": "Be1Error"},
+    {"status": "409", "description": "The command conflicts with current state", "media_type": "application/json", "schema_name": "Be1Error"},
+    {"status": "410", "description": "The requested artifact is no longer available", "media_type": "application/json", "schema_name": "Be1Error"},
+    {"status": "413", "description": "The request exceeds a supported size limit", "media_type": "application/json", "schema_name": "Be1Error"},
+    {"status": "415", "description": "The request media type is not supported", "media_type": "application/json", "schema_name": "Be1Error"},
+    {"status": "422", "description": "The request does not meet a business rule", "media_type": "application/json", "schema_name": "Be1Error"},
+    {"status": "429", "description": "The request is temporarily rate limited", "media_type": "application/json", "schema_name": "Be1Error"},
+    {"status": "503", "description": "A required backend dependency is unavailable", "media_type": "application/json", "schema_name": "Be1Error"},
+    {"status": "500", "description": "An unexpected server error occurred", "media_type": "application/json", "schema_name": "Be1Error"},
+)
+
+MOUNTED_OPERATIONS[("get", "/api/be1/v1/organizations/{organization_id}/capacity")] = {
+    "purpose": "Read the assigned organization's effective class capacity and active-class usage.",
+    "request_inputs": "path `organization_id*`: string; header `X-Request-ID`: string",
+    "surface": "BE1 / billing capacity",
+    "tag": "BE1 — Organizations & Classes",
+    "handler": "be1_registry.py::read_organization_capacity",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": (
+        "Requires an active School Manager assignment before resolving the Billing subscription. "
+        "Returns only this organization's effective view; due downgrade selections are projected "
+        "from Billing events without exposing price policy."
+    ),
+    "responses": (
+        {"status": "200", "description": "Successful Response", "media_type": "application/json", "schema_name": "Be1OrganizationCapacityV1"},
+        *_BE1_CAPACITY_ERRORS,
+    ),
+}
+MOUNTED_OPERATIONS[("patch", "/api/be1/v1/organizations/{organization_id}/capacity")] = {
+    "purpose": "Configure permitted renewal or downgrade settings for the assigned organization.",
+    "request_inputs": (
+        "path `organization_id*`: string; header `X-Request-ID`: string; "
+        "header `Idempotency-Key*`: string; header `If-Match*`: subscription revision ETag; "
+        "application/json (required): Be1CapacityConfigureRequest"
+    ),
+    "surface": "BE1 / billing capacity",
+    "tag": "BE1 — Organizations & Classes",
+    "handler": "be1_registry.py::configure_organization_capacity",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": (
+        "Binds If-Match and Idempotency-Key to the organization, action and payload. Reuses the "
+        "Billing configuration/event rules; BE1 audit and receipt commit in the same Session. "
+        "Renewal settlement, purchases and price policy remain outside this operation."
+    ),
+    "responses": _with_idempotency_mismatch_response((
+        {"status": "200", "description": "Successful Response", "media_type": "application/json", "schema_name": "Be1OrganizationCapacityV1"},
+        *_BE1_CAPACITY_ERRORS,
+    )),
+}
+
+MOUNTED_OPERATIONS[(
+    "get",
+    "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/versions",
+)] = {
+    "purpose": "List immutable versions of an organization-owned lesson for its assigned Teacher.",
+    "request_inputs": (
+        "path `organization_id*`: string; path `lesson_id*`: string; "
+        "query `limit`: integer; query `cursor`: opaque string (max 1024 bytes)"
+    ),
+    "surface": "Lesson Library",
+    "tag": "Teacher — Lesson Authoring",
+    "handler": "lesson_library.py::list_lesson_versions",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": "Read-only exact-version history; scoped cursor; private no-store response.",
+    "responses": (
+        {"status": "200", "description": "Successful Response", "media_type": "application/json", "schema_name": "LessonVersionPageV1"},
+        {"status": "422", "description": "Validation Error", "media_type": "application/json", "schema_name": "HTTPValidationError"},
+    ),
+}
+MOUNTED_OPERATIONS[(
+    "get",
+    "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/versions/{version_id}",
+)] = {
+    "purpose": "Read the requested immutable version and hash without substituting the current version.",
+    "request_inputs": (
+        "path `organization_id*`: string; path `lesson_id*`: string; path `version_id*`: string"
+    ),
+    "surface": "Lesson Library",
+    "tag": "Teacher — Lesson Authoring",
+    "handler": "lesson_library.py::get_lesson_version",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": "Exact linked version only; missing and out-of-scope resources share one 404.",
+    "responses": (
+        {"status": "200", "description": "Successful Response", "media_type": "application/json", "schema_name": "LessonVersionV1"},
+        {"status": "422", "description": "Validation Error", "media_type": "application/json", "schema_name": "HTTPValidationError"},
+    ),
+}
+MOUNTED_OPERATIONS[(
+    "get",
+    "/api/lesson-library/v1/organizations/{organization_id}/public-lessons",
+)] = {
+    "purpose": "Search eligible approved PUBLIC lessons across organizations for an assigned Teacher.",
+    "request_inputs": (
+        "path `organization_id*`: string; query `q`: string; query `topic`: string; "
+        "query `target_age_band_ref`: string; query `target_age_band_version`: integer; "
+        "query `limit`: integer; query `cursor`: opaque string (max 1024 bytes)"
+    ),
+    "surface": "Lesson Library",
+    "tag": "Teacher — Lesson Authoring",
+    "handler": "lesson_library.py::search_public_lessons",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": "Search results are discovery summaries; cross-organization version reads are not exposed.",
+    "responses": (
+        {"status": "200", "description": "Successful Response", "media_type": "application/json", "schema_name": "PublicLessonPageV1"},
+        {"status": "422", "description": "Validation Error", "media_type": "application/json", "schema_name": "HTTPValidationError"},
+    ),
+}
+MOUNTED_OPERATIONS[(
+    "post",
+    "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/remixes",
+)] = {
+    "purpose": (
+        "Create an organization-owned PRIVATE DRAFT from one exact, currently accessible PUBLIC "
+        "lesson version. Only the REUSE grant authorizes copying; the request carries no editable "
+        "lesson content and starts no AI work."
+    ),
+    "request_inputs": (
+        "path `organization_id*`: string; path `lesson_id*`: string; header `Idempotency-Key*`: "
+        "visible ASCII string (1-128 characters); application/json (required): "
+        "RemixLessonRequestV1 {contract, source_version_id*, source_content_sha256*}"
+    ),
+    "surface": "Lesson Library",
+    "tag": "Teacher — Lesson Authoring",
+    "handler": "lesson_library.py::remix_public_lesson",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": (
+        "Destination Teacher assignment and exact source PUBLIC/REUSE access are checked before "
+        "receipt replay. Inaccessible sources share one 404; source pin drift is 409 "
+        "STALE_SOURCE_VERSION. The copy, ordered activities, lineage, audit and durable receipt "
+        "commit together; response is private no-store with ETag \"1\"."
+    ),
+    "responses": _with_idempotency_mismatch_response((
+        {"status": "201", "description": "Created", "media_type": "application/json", "schema_name": "RemixLessonResponseV1"},
+        {"status": "400", "description": "Invalid request or INVALID_IDEMPOTENCY_KEY", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "404", "description": "Source or destination is unavailable", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "409", "description": "Source version pin is stale", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "503", "description": "Dependency unavailable", "media_type": "application/json", "schema_name": "Be1Error"},
+    )),
+}
+
+MOUNTED_OPERATIONS[(
+    "get",
+    "/api/lesson-library/v1/me/parent-group-invitations",
+)] = {   'purpose': 'Parent xem lời mời tham gia nhóm phụ huynh của trường.',
+    'request_inputs': 'query `limit`: integer; query `cursor`: object',
+    'surface': 'Lesson Library',
+    'tag': 'Parent — Invitations & Lesson Library',
+    'handler': 'lesson_library.py::list_parent_group_invitations',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'Only live invitations addressed to the authenticated Parent are returned. '
+                    "Each item includes organization_id from its parent group's organization.",
+    'responses': (   {   'status': '200',
+                         'description': 'Successful Response; each item includes '
+                                        'organization_id from its parent group',
+                         'media_type': 'application/json',
+                         'schema_name': 'ParentGroupInvitationPageV1'},
+                     {   'status': '422',
+                         'description': 'Validation Error',
+                         'media_type': 'application/json',
+                         'schema_name': 'HTTPValidationError'})}
+MOUNTED_OPERATIONS[(
+    "post",
+    "/api/lesson-library/v1/me/parent-group-invitations/{membership_id}/accept",
+)] = {   'purpose': 'Parent chấp nhận lời mời tham gia nhóm phụ huynh.',
+    'request_inputs': 'path `membership_id*`: string; header `Idempotency-Key`: string',
+    'surface': 'Lesson Library',
+    'tag': 'Parent — Invitations & Lesson Library',
+    'handler': 'lesson_library.py::accept_parent_group_invitation',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'Mounted in OpenAPI; see API-family test results in EV-063-30; not '
+                    'individually live-probed',
+    'responses': _with_idempotency_mismatch_response((   {   'status': '200',
+                         'description': 'Successful Response; includes organization_id from '
+                                        "the parent group's organization",
+                         'media_type': 'application/json',
+                         'schema_name': 'ParentGroupMembershipV1'},
+                     {   'status': '422',
+                         'description': 'Validation Error',
+                         'media_type': 'application/json',
+                         'schema_name': 'HTTPValidationError'}))}
+MOUNTED_OPERATIONS[(
+    "post",
+    "/api/lesson-library/v1/organizations/{organization_id}/parent-groups/{parent_group_id}/invitations",
+)] = {   'purpose': 'Manager mời một phụ huynh vào nhóm của trường.',
+    'request_inputs': 'path `organization_id*`: string; path `parent_group_id*`: string; '
+                      'header `Idempotency-Key`: string; application/json (required): '
+                      'InviteParentToGroupRequestV1 {contract:string, '
+                      'parent_principal_ref*:string}',
+    'surface': 'Lesson Library',
+    'tag': 'School Manager — Sharing & Parent Groups',
+    'handler': 'lesson_library.py::invite_parent_to_group',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'Mounted in OpenAPI; see API-family test results in EV-063-30; not '
+                    'individually live-probed',
+    'responses': _with_idempotency_mismatch_response((   {   'status': '201',
+                         'description': 'Created; includes organization_id from the parent '
+                                        "group's organization",
+                         'media_type': 'application/json',
+                         'schema_name': 'ParentGroupInvitationV1'},
+                     {   'status': '422',
+                         'description': 'Validation Error',
+                         'media_type': 'application/json',
+                         'schema_name': 'HTTPValidationError'}))}
+MOUNTED_OPERATIONS[(
+    "post",
+    "/api/lesson-library/v1/me/parent-group-invitations/{membership_id}/decline",
+)] = {
+    "purpose": "Let the invited Parent decline a named parent-group invitation.",
+    "request_inputs": (
+        "path `membership_id*`: string; header `Idempotency-Key*`: string"
+    ),
+    "surface": "Lesson Library",
+    "tag": "Parent — Invitations & Lesson Library",
+    "handler": "lesson_library.py::decline_parent_group_invitation",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": (
+        "Only the addressed Parent may decline. An expired invitation returns 409 "
+        "INVITATION_EXPIRED without changing the row or saving a receipt. The response includes "
+        "organization_id from the parent group's organization."
+    ),
+    "responses": _with_idempotency_mismatch_response((
+        {"status": "200", "description": "Successful Response; includes organization_id from the parent group's organization; ETag is the resulting strong revision", "media_type": "application/json", "schema_name": "ParentGroupMembershipV1"},
+        {"status": "422", "description": "Validation Error", "media_type": "application/json", "schema_name": "HTTPValidationError"},
+    )),
+}
+MOUNTED_OPERATIONS[(
+    "get",
+    "/api/lesson-library/v1/me/parent-group-memberships",
+)] = {
+    "purpose": "List the authenticated Parent's own active parent-group memberships.",
+    "request_inputs": (
+        "query `limit`: integer (default 25, minimum 1, maximum 100); "
+        "query `cursor`: opaque string (max 1024 bytes)"
+    ),
+    "surface": "Lesson Library",
+    "tag": "Parent — Invitations & Lesson Library",
+    "handler": "lesson_library.py::list_parent_group_memberships",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": (
+        "Only ACTIVE memberships owned by the authenticated Parent are returned. Each item "
+        "includes organization_id from its parent group's organization."
+    ),
+    "responses": (
+        {"status": "200", "description": "Successful Response; Cache-Control: private, no-store; each item includes organization_id from its parent group", "media_type": "application/json", "schema_name": "ParentGroupMembershipPageV1"},
+        {"status": "422", "description": "Validation Error", "media_type": "application/json", "schema_name": "HTTPValidationError"},
+    ),
+}
+MOUNTED_OPERATIONS[(
+    "get",
+    "/api/lesson-library/v1/organizations/{organization_id}/parent-groups/{parent_group_id}/members",
+)] = {
+    "purpose": "List privacy-limited parent-group membership states for an assigned School Manager.",
+    "request_inputs": (
+        "path `organization_id*`: string; path `parent_group_id*`: string; query `state`: "
+        "INVITED|ACCEPTED|DECLINED|REVOKED|EXPIRED; query `limit`: integer "
+        "(default 25, minimum 1, maximum 100); query `cursor`: opaque string (max 1024 bytes)"
+    ),
+    "surface": "Lesson Library",
+    "tag": "Parent & School Manager — Group Membership",
+    "handler": "lesson_library.py::list_parent_group_members",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": (
+        "A missing group, a group in another organization, or an unassigned caller receives the "
+        "same 404. Items contain no identity, contact, or child data; counts cover every state. "
+        "ACCEPTED maps to stored active; counts include invited, accepted, declined, revoked, "
+        "expired and total. The response uses Cache-Control: private, no-store."
+    ),
+    "responses": (
+        {"status": "200", "description": "Successful Response; Cache-Control: private, no-store", "media_type": "application/json", "schema_name": "ParentGroupMemberPageV1"},
+        {"status": "422", "description": "Validation Error", "media_type": "application/json", "schema_name": "HTTPValidationError"},
+    ),
+}
+
+MOUNTED_OPERATIONS[(
+    "delete",
+    "/api/lesson-library/v1/organizations/{organization_id}/parent-groups/{parent_group_id}/members/{membership_id}",
+)] = {   'purpose': 'Manager thu hồi membership để kết thúc quyền chia sẻ qua nhóm.',
+    'request_inputs': 'path `organization_id*`: string; path `parent_group_id*`: string; path '
+                      '`membership_id*`: string; header `If-Match`: strong revision ETag; '
+                      'header `Idempotency-Key*`: string',
+    'surface': 'Lesson Library',
+    'tag': 'Parent & School Manager — Group Membership',
+    'handler': 'lesson_library.py::revoke_parent_group_membership',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'The Manager or addressed Parent may revoke with If-Match and '
+                    'Idempotency-Key. A missing If-Match returns 428. A replay returns the '
+                    'saved response and its revision ETag. A fresh stale revision returns 409 '
+                    'without saving a receipt. The response includes organization_id from the '
+                    "parent group's organization.",
+    'responses': _with_idempotency_mismatch_response((   {   'status': '200',
+                         'description': 'Successful Response; includes organization_id from '
+                                        "the parent group's organization",
+                         'media_type': 'application/json',
+                         'schema_name': 'ParentGroupMembershipV1'},
+                     {   'status': '422',
+                         'description': 'Validation Error',
+                         'media_type': 'application/json',
+                         'schema_name': 'HTTPValidationError'}))}
+
+# FEAT-066 goal v4 E2 T-TCH2: Teacher activities, current-assignment occurrence history, and the
+# authenticated Teacher's own read-only identity profile. R1 remains the existing BE1 portfolio operation.
+MOUNTED_OPERATIONS[(
+    "get",
+    "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}/portfolio",
+)]["request_inputs"] = (
+    "path `organization_id*`: string; path `class_id*`: string; path `child_id*`: string; "
+    "query `limit`: integer (default 25, minimum 1, maximum 100); query `cursor`: opaque string; "
+    "header `X-Request-ID`: string"
+)
+MOUNTED_OPERATIONS[(
+    "get",
+    "/api/lesson-library/v1/organizations/{organization_id}/activities",
+)] = {
+    "purpose": "List activities from each current approved version of an active, visible lesson "
+    "the assigned Teacher or School Manager may read.",
+    "request_inputs": (
+        "path `organization_id*`: string; query `limit`: integer (default 25, minimum 1, "
+        "maximum 100); query `cursor`: opaque string"
+    ),
+    "surface": "Lesson Library",
+    "tag": "Teacher — Lesson Authoring",
+    "handler": "lesson_library.py::list_teacher_activities",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": (
+        "Teachers see their own lessons and non-private lessons; School Managers see all lessons. "
+        "Archived, hidden, and unapproved versions are excluded. No child data is returned. "
+        "Cache-Control is private, no-cache and Vary is Authorization."
+    ),
+    "responses": (
+        {"status": "200", "description": "Successful Response", "media_type": "application/json", "schema_name": "TeacherActivityPageV1"},
+        {"status": "400", "description": "Invalid limit or cursor", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "401", "description": "Authentication is required or invalid", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "403", "description": "The caller has an in-scope role that cannot read activities", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "404", "description": "The organization is outside the caller's scope", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "503", "description": "The Lesson Library is unavailable", "media_type": "application/json", "schema_name": "Be1Error"},
+    ),
+}
+MOUNTED_OPERATIONS[(
+    "get",
+    "/api/teacher/v1/organizations/{organization_id}/history",
+)] = {
+    "purpose": "List the current Teacher's lesson occurrences across assigned non-archived "
+    "classes, newest first.",
+    "request_inputs": (
+        "path `organization_id*`: string; query `state`: OccurrenceStateV1; query `limit`: "
+        "integer (default 25, minimum 1, maximum 100); query `cursor`: opaque string"
+    ),
+    "surface": "Teacher workspace",
+    "tag": "Lesson Occurrences",
+    "handler": "teacher_workspace.py::list_teacher_history",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": (
+        "Only current active teacher-family assignments define scope; an organization-wide row "
+        "covers all non-archived classes. Run and job details remain on their existing routes. "
+        "Cache-Control is private, no-cache and Vary is Authorization."
+    ),
+    "responses": (
+        {"status": "200", "description": "Successful Response", "media_type": "application/json", "schema_name": "LessonOccurrencePageV1"},
+        {"status": "400", "description": "Invalid state, limit, or cursor", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "401", "description": "Authentication is required or invalid", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "404", "description": "The caller has no active Teacher-family scope in this organization", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "503", "description": "The database is unavailable", "media_type": "application/json", "schema_name": "Be1Error"},
+    ),
+}
+MOUNTED_OPERATIONS[("get", "/api/teacher/v1/me/profile")] = {
+    "purpose": "Read the active Teacher's own account profile from the identity provider.",
+    "request_inputs": "No path/query/header/body input declared in OpenAPI",
+    "surface": "Teacher workspace",
+    "tag": "BE1 — Organizations & Classes",
+    "handler": "teacher_workspace.py::read_teacher_profile",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": "The active database identity must be a Teacher with the verified token issuer. "
+    "The response is private, no-store.",
+    "responses": (
+        {"status": "200", "description": "The Teacher's own profile; Cache-Control: private, no-store", "media_type": "application/json", "schema_name": "TeacherProfileV1"},
+        {"status": "401", "description": "Authentication is required or invalid", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "403", "description": "The active identity is not a Teacher or its issuer does not match", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "503", "description": "The identity provider or database is unavailable", "media_type": "application/json", "schema_name": "Be1Error"},
+    ),
+}
+
+# T-SHARE1: Parent-owned, invitation-based profile sharing and derived delivery history.
+_PARENT_SHARE_ERRORS: Final[tuple[ResponseMetadata, ...]] = (
+    {"status": "400", "description": "Invalid request, cursor, key, or idempotency mismatch", "media_type": "application/json", "schema_name": "Be1Error"},
+    {"status": "401", "description": "Authentication is required or invalid", "media_type": "application/json", "schema_name": "Be1Error"},
+    {"status": "404", "description": "The Parent profile or grant was not found", "media_type": "application/json", "schema_name": "Be1Error"},
+    {"status": "409", "description": "The grant state, revision, invitation, or consent conflicts", "media_type": "application/json", "schema_name": "Be1Error"},
+    {"status": "503", "description": "The database is unavailable", "media_type": "application/json", "schema_name": "Be1Error"},
+)
+MOUNTED_OPERATIONS[("post", "/v1/parent/share-grants")] = {
+    "purpose": "Create a named Teacher invitation for selected fields of one Parent-owned profile.",
+    "request_inputs": "header `Idempotency-Key*`: visible ASCII string; application/json (required): "
+    "CreateShareGrantRequestV1 {profile_id*:uuid, granted_fields*:1..3 supported fields}",
+    "surface": "Parent profile sharing",
+    "tag": "Parent Profiles",
+    "handler": "parent_share_grants.py::create_parent_share_grant",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": "The invitation code is shown once; only its SHA-256 is stored. A replay "
+    "returns a null code. Parent and Teacher profile owners remain separate.",
+    "responses": _with_idempotency_mismatch_response((
+        {"status": "201", "description": "Invitation created", "media_type": "application/json", "schema_name": "ParentShareGrantCreatedV1"},
+        *_PARENT_SHARE_ERRORS[1:],
+    )),
+}
+MOUNTED_OPERATIONS[("get", "/v1/parent/share-grants")] = {
+    "purpose": "List a Parent-owned profile's share grants, newest first.",
+    "request_inputs": "query `profile_id*`: uuid; query `limit`: integer (default 25, 1-100); "
+    "query `cursor`: opaque profile-bound string",
+    "surface": "Parent profile sharing",
+    "tag": "Parent Profiles",
+    "handler": "parent_share_grants.py::list_parent_share_grants",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": "No recipient, organization or class detail is returned. The response is "
+    "private, no-cache and varies by Authorization.",
+    "responses": (
+        {"status": "200", "description": "The grant page", "media_type": "application/json", "schema_name": "ParentShareGrantListV1"},
+        *_PARENT_SHARE_ERRORS[:3],
+        _PARENT_SHARE_ERRORS[4],
+    ),
+}
+MOUNTED_OPERATIONS[("get", "/v1/parent/share-grants/{share_grant_id}")] = {
+    "purpose": "Read one grant owned through the verified Parent profile.",
+    "request_inputs": "path `share_grant_id*`: uuid",
+    "surface": "Parent profile sharing",
+    "tag": "Parent Profiles",
+    "handler": "parent_share_grants.py::get_parent_share_grant",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": "The response has a strong ETag and does not expose the invitation code.",
+    "responses": (
+        {"status": "200", "description": "The grant", "media_type": "application/json", "schema_name": "ParentShareGrantV1"},
+        *_PARENT_SHARE_ERRORS[:3],
+        _PARENT_SHARE_ERRORS[4],
+    ),
+}
+MOUNTED_OPERATIONS[("post", "/v1/parent/share-grants/{share_grant_id}/revoke")] = {
+    "purpose": "Immediately revoke an invited or active Parent share grant.",
+    "request_inputs": "path `share_grant_id*`: uuid; header `If-Match*`: strong ETag; "
+    "header `Idempotency-Key*`: visible ASCII string",
+    "surface": "Parent profile sharing",
+    "tag": "Parent Profiles",
+    "handler": "parent_share_grants.py::revoke_parent_share_grant",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": "Every new Teacher profile/history read checks the grant state. A stale "
+    "revision returns `STALE_REVISION` with the current ETag.",
+    "responses": _with_idempotency_mismatch_response((
+        {"status": "200", "description": "The revoked grant", "media_type": "application/json", "schema_name": "ParentShareGrantV1"},
+        *_PARENT_SHARE_ERRORS[1:],
+    )),
+}
+MOUNTED_OPERATIONS[("get", "/v1/parent/share-grants/{share_grant_id}/deliveries")] = {
+    "purpose": "Read a Parent grant's derived delivery history for the preceding 30 days.",
+    "request_inputs": "path `share_grant_id*`: uuid; query `limit`: integer (default 25, 1-100); "
+    "query `cursor`: opaque grant-bound string",
+    "surface": "Parent profile sharing",
+    "tag": "Parent Profiles",
+    "handler": "parent_share_grants.py::list_parent_share_deliveries",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": "Ended grants retain delivery time only; titles are returned only while the "
+    "share is active. The response is private, no-cache and varies by Authorization.",
+    "responses": (
+        {"status": "200", "description": "The delivery page", "media_type": "application/json", "schema_name": "ParentShareDeliveryListV1"},
+        *_PARENT_SHARE_ERRORS[:3],
+        _PARENT_SHARE_ERRORS[4],
+    ),
+}
+MOUNTED_OPERATIONS[("post", "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}/parent-share/accept")] = {
+    "purpose": "Accept a one-time Parent invitation for this active Managed Profile.",
+    "request_inputs": "path `organization_id*`: string; path `class_id*`: string; path "
+    "`child_id*`: string; header `Idempotency-Key*`: visible ASCII string; header "
+    "`X-Request-ID`: string; application/json (required): "
+    "AcceptParentShareRequestV1 {invitation_code*:string}",
+    "surface": "BE1 / classroom",
+    "tag": "BE1 — Organizations & Classes",
+    "handler": "be1_registry.py::accept_parent_profile_share",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": "Only an assigned class Teacher can accept. Acceptance binds one Teacher, "
+    "class and Managed Profile for 90 days; Manager and other roles do not receive profile data.",
+    "responses": _with_idempotency_mismatch_response((
+        {"status": "200", "description": "The accepted link", "media_type": "application/json", "schema_name": "Be1ParentShareLinkV1"},
+        {"status": "401", "description": "Authentication is required or invalid", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "403", "description": "The in-class caller is not a Teacher", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "404", "description": "The invitation or scoped profile was not found", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "409", "description": "The invitation, class, consent, or link conflicts", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "503", "description": "The database is unavailable", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "410", "description": "The requested artifact is no longer available", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "413", "description": "The request exceeds a supported size limit", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "415", "description": "The request media type is not supported", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "422", "description": "The request does not match the API contract", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "429", "description": "The request is temporarily rate limited", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "500", "description": "An unexpected server error occurred", "media_type": "application/json", "schema_name": "Be1Error"},
+    )),
+}
+MOUNTED_OPERATIONS[("get", "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}/parent-share")] = {
+    "purpose": "Read only the current Parent profile fields granted to this accepting Teacher.",
+    "request_inputs": "path `organization_id*`: string; path `class_id*`: string; path "
+    "`child_id*`: string; header `X-Request-ID`: string",
+    "surface": "BE1 / classroom",
+    "tag": "BE1 — Organizations & Classes",
+    "handler": "be1_registry.py::get_parent_shared_profile",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": "Every read re-checks assignment, release, withdrawal, recipient and grant "
+    "expiry. Withdrawn or not released profiles return the uniform 404. Only granted field keys "
+    "are included; response is private, no-store.",
+    "responses": (
+        {"status": "200", "description": "The granted Parent fields", "media_type": "application/json", "schema_name": "Be1ParentSharedProfileV1"},
+        {"status": "401", "description": "Authentication is required or invalid", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "403", "description": "The in-class caller is not a Teacher", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "404", "description": "No effective grant exists for this Teacher and profile", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "503", "description": "The database is unavailable", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "410", "description": "The requested artifact is no longer available", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "413", "description": "The request exceeds a supported size limit", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "415", "description": "The request media type is not supported", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "422", "description": "The request does not match the API contract", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "429", "description": "The request is temporarily rate limited", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "500", "description": "An unexpected server error occurred", "media_type": "application/json", "schema_name": "Be1Error"},
+    ),
+}
+TEACHER_INVITATION_OPERATIONS: dict[tuple[str, str], OperationMetadata] = {
+    (
+        "post",
+        "/api/be1/v1/organizations/{organization_id}/teacher-invitations",
+    ): {
+        "purpose": "Invite a Teacher to one organization and queue the existing password setup email.",
+        "request_inputs": (
+            "path `organization_id*`: string; header `Idempotency-Key*`: string; "
+            "header `X-Request-ID`: string; "
+            "application/json (required): TeacherInvitationRequest {email*:string}"
+        ),
+        "surface": "BE1 / classroom",
+        "tag": "BE1 — Organizations & Classes",
+        "handler": "teacher_invitations.py::invite_teacher",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": (
+            "Phase D T-6a: organization Manager scope is checked before receipt replay; "
+            "response, receipt and audit contain no email or provider identity."
+        ),
+        "responses": _with_idempotency_mismatch_response((
+            {
+                "status": "202",
+                "description": "Invitation queued; Cache-Control: private, no-store",
+                "media_type": "application/json",
+                "schema_name": "TeacherInvitationResponse",
+            },
+            {
+                "status": "401",
+                "description": "Authentication or device credential is required",
+                "media_type": "application/json",
+                "schema_name": "Be1Error",
+            },
+            {
+                "status": "403",
+                "description": "The caller is not authorized for this resource",
+                "media_type": "application/json",
+                "schema_name": "Be1Error",
+            },
+            {
+                "status": "404",
+                "description": "The scoped resource was not found",
+                "media_type": "application/json",
+                "schema_name": "Be1Error",
+            },
+            {
+                "status": "409",
+                "description": "The invitation conflicts with current account state",
+                "media_type": "application/json",
+                "schema_name": "Be1Error",
+            },
+            {
+                "status": "400",
+                "description": "The request or the idempotency key is invalid (`INVALID_REQUEST`, `INVALID_IDEMPOTENCY_KEY`)",
+                "media_type": "application/json",
+                "schema_name": "Be1Error",
+            },
+            {
+                "status": "410",
+                "description": "The requested artifact is no longer available",
+                "media_type": "application/json",
+                "schema_name": "Be1Error",
+            },
+            {
+                "status": "413",
+                "description": "The request exceeds a supported size limit",
+                "media_type": "application/json",
+                "schema_name": "Be1Error",
+            },
+            {
+                "status": "415",
+                "description": "The request media type is not supported",
+                "media_type": "application/json",
+                "schema_name": "Be1Error",
+            },
+            {
+                "status": "429",
+                "description": "The request is temporarily rate limited",
+                "media_type": "application/json",
+                "schema_name": "Be1Error",
+            },
+            {
+                "status": "500",
+                "description": "An unexpected server error occurred",
+                "media_type": "application/json",
+                "schema_name": "Be1Error",
+            },
+            {
+                "status": "503",
+                "description": "A required backend dependency is unavailable",
+                "media_type": "application/json",
+                "schema_name": "Be1Error",
+            },
+        )),
+    },
+    (
+        "post",
+        "/api/be1/v1/organizations/{organization_id}/teacher-invitations/{account_ref}/resend",
+    ): {
+        "purpose": "Resend the existing password setup email for a pending Teacher of this organization.",
+        "request_inputs": (
+            "path `organization_id*`: string; path `account_ref*`: string; "
+            "header `Idempotency-Key*`: string; header `X-Request-ID`: string"
+        ),
+        "surface": "BE1 / classroom",
+        "tag": "BE1 — Organizations & Classes",
+        "handler": "teacher_invitations.py::resend_teacher_invitation",
+        "authentication": "HTTPBearer (bearer)",
+        "verification": (
+            "Phase D T-6a: the caller must hold this organization's Manager scope; "
+            "only a pending Teacher invitation in the same organization can be resent."
+        ),
+        "responses": _with_idempotency_mismatch_response((
+            {
+                "status": "202",
+                "description": "Invitation resend queued; Cache-Control: private, no-store",
+                "media_type": "application/json",
+                "schema_name": "TeacherInvitationResponse",
+            },
+            {
+                "status": "401",
+                "description": "Authentication or device credential is required",
+                "media_type": "application/json",
+                "schema_name": "Be1Error",
+            },
+            {
+                "status": "403",
+                "description": "The caller is not authorized for this resource",
+                "media_type": "application/json",
+                "schema_name": "Be1Error",
+            },
+            {
+                "status": "404",
+                "description": "The scoped resource was not found",
+                "media_type": "application/json",
+                "schema_name": "Be1Error",
+            },
+            {
+                "status": "409",
+                "description": "The invitation conflicts with current account state",
+                "media_type": "application/json",
+                "schema_name": "Be1Error",
+            },
+            {
+                "status": "400",
+                "description": "The request or the idempotency key is invalid (`INVALID_REQUEST`, `INVALID_IDEMPOTENCY_KEY`)",
+                "media_type": "application/json",
+                "schema_name": "Be1Error",
+            },
+            {
+                "status": "410",
+                "description": "The requested artifact is no longer available",
+                "media_type": "application/json",
+                "schema_name": "Be1Error",
+            },
+            {
+                "status": "413",
+                "description": "The request exceeds a supported size limit",
+                "media_type": "application/json",
+                "schema_name": "Be1Error",
+            },
+            {
+                "status": "415",
+                "description": "The request media type is not supported",
+                "media_type": "application/json",
+                "schema_name": "Be1Error",
+            },
+            {
+                "status": "429",
+                "description": "The request is temporarily rate limited",
+                "media_type": "application/json",
+                "schema_name": "Be1Error",
+            },
+            {
+                "status": "500",
+                "description": "An unexpected server error occurred",
+                "media_type": "application/json",
+                "schema_name": "Be1Error",
+            },
+            {
+                "status": "503",
+                "description": "A required backend dependency is unavailable",
+                "media_type": "application/json",
+                "schema_name": "Be1Error",
+            },
+        )),
+    },
+}
+MOUNTED_OPERATIONS[("post", "/api/be1/v1/organizations/{organization_id}/teacher-invitations")] = TEACHER_INVITATION_OPERATIONS[("post", "/api/be1/v1/organizations/{organization_id}/teacher-invitations")]
+MOUNTED_OPERATIONS[("post", "/api/be1/v1/organizations/{organization_id}/teacher-invitations/{account_ref}/resend")] = TEACHER_INVITATION_OPERATIONS[("post", "/api/be1/v1/organizations/{organization_id}/teacher-invitations/{account_ref}/resend")]
+
+_TEACHER_TRANSFER_TAG = MOUNTED_OPERATIONS[
+    ("post", "/api/be1/v1/classes/{class_id}/assignments")
+]["tag"]
+_TEACHER_TRANSFER_AUTHENTICATION = "HTTPBearer (bearer)"
+_TEACHER_TRANSFER_ERRORS = (
+    {
+        "status": "400",
+        "description": "Idempotency-Key reused with a different payload: INVALID_IDEMPOTENCY_KEY",
+        "media_type": "application/json",
+        "schema_name": "Be1Error",
+    },
+    {
+        "status": "401",
+        "description": "Authentication or device credential is required",
+        "media_type": "application/json",
+        "schema_name": "Be1Error",
+    },
+    {
+        "status": "403",
+        "description": "The caller is not authorized for this resource",
+        "media_type": "application/json",
+        "schema_name": "Be1Error",
+    },
+    {
+        "status": "404",
+        "description": "The scoped resource was not found",
+        "media_type": "application/json",
+        "schema_name": "Be1Error",
+    },
+    {
+        "status": "409",
+        "description": "The command conflicts with current state",
+        "media_type": "application/json",
+        "schema_name": "Be1Error",
+    },
+    {
+        "status": "503",
+        "description": "A required backend dependency is unavailable",
+        "media_type": "application/json",
+        "schema_name": "Be1Error",
+    },
+)
+
+MOUNTED_OPERATIONS[("delete", "/api/be1/v1/classes/{class_id}/assignments/current")] = {
+    "purpose": (
+        "Fence and offboard the current Teacher of one class. A valid request creates one durable "
+        "transfer and returns 202; active Story runs without a replacement are compensated with "
+        "409 RESOURCE_CONFLICT."
+    ),
+    "request_inputs": (
+        "path `class_id*`: string; header `Idempotency-Key*`: string; header `X-Request-ID`: string; "
+        "header `If-Match`: strong ETag; empty body"
+    ),
+    "surface": "BE1 / classroom",
+    "tag": _TEACHER_TRANSFER_TAG,
+    "handler": "be1_registry.py::offboard_class_teacher",
+    "authentication": _TEACHER_TRANSFER_AUTHENTICATION,
+    "verification": (
+        "Phase D T-6b: scoped Manager authorization precedes replay; the class remains fenced until "
+        "Story records its owner-transfer receipt and BE1 finalizes."
+    ),
+    "responses": _with_idempotency_mismatch_response((
+        {
+            "status": "202",
+            "description": "Teacher offboard accepted; Cache-Control: private, no-store",
+            "media_type": "application/json",
+            "schema_name": "Be1TeacherAssignmentTransferAcceptedV1",
+        },
+        *_TEACHER_TRANSFER_ERRORS,
+    )),
+}
+
+MOUNTED_OPERATIONS[("get", "/api/be1/v1/classes/{class_id}/assignment-transfers/{transfer_id}")] = {
+    "purpose": "Read the metadata-only status of one Teacher assignment transfer.",
+    "request_inputs": "path `class_id*`: string; path `transfer_id*`: string; header `X-Request-ID`: string",
+    "surface": "BE1 / classroom",
+    "tag": _TEACHER_TRANSFER_TAG,
+    "handler": "be1_registry.py::get_class_teacher_assignment_transfer",
+    "authentication": _TEACHER_TRANSFER_AUTHENTICATION,
+    "verification": (
+        "Phase D T-6b: unknown and foreign transfer ids have the same 404; the response excludes "
+        "Teacher identity, child data and content."
+    ),
+    "responses": (
+        {
+            "status": "200",
+            "description": "Metadata-only transfer status; Cache-Control: private, no-store",
+            "media_type": "application/json",
+            "schema_name": "Be1TeacherAssignmentTransferStatusV1",
+        },
+        *_TEACHER_TRANSFER_ERRORS,
+    ),
+}
+
+
+_TEACHER_FORCE_CLOSE_ERRORS = (
+    {
+        "status": "400",
+        "description": "Idempotency-Key reused with a different payload: INVALID_IDEMPOTENCY_KEY",
+        "media_type": "application/json",
+        "schema_name": "Be1Error",
+    },
+    {
+        "status": "401",
+        "description": "Authentication is required",
+        "media_type": "application/json",
+        "schema_name": "Be1Error",
+    },
+    {
+        "status": "403",
+        "description": "The caller is in scope but lacks the Manager role",
+        "media_type": "application/json",
+        "schema_name": "Be1Error",
+    },
+    {
+        "status": "404",
+        "description": "The scoped organization or StoryRun was not found",
+        "media_type": "application/json",
+        "schema_name": "Be1Error",
+    },
+    {
+        "status": "409",
+        "description": "Stale revision, ineligible state, or metadata conflict",
+        "media_type": "application/json",
+        "schema_name": "Be1Error",
+    },
+    {
+        "status": "503",
+        "description": "The StoryRun store is unavailable",
+        "media_type": "application/json",
+        "schema_name": "Be1Error",
+    },
+)
+
+MOUNTED_OPERATIONS[
+    (
+        "get",
+        "/api/be1/v1/organizations/{organization_id}/teachers/{teacher_ref}/"
+        "active-story-run-conflict",
+    )
+] = {
+    "purpose": "Return the metadata-only active StoryRun conflict for one assigned Teacher.",
+    "request_inputs": (
+        "path `organization_id*`: string; path `teacher_ref*`: string; header `X-Request-ID`: string; "
+        "no body or key"
+    ),
+    "surface": "BE1 / classroom",
+    "tag": _TEACHER_TRANSFER_TAG,
+    "handler": "manager_story_run_force_close.py::get_manager_active_story_run_conflict",
+    "authentication": _TEACHER_TRANSFER_AUTHENTICATION,
+    "verification": (
+        "Phase D T-6c: owning-organization Manager scope is checked; response includes only the "
+        "contract, run id, state and revision, with private no-store caching."
+    ),
+    "responses": (
+        {
+            "status": "200",
+            "description": "Metadata-only conflict projection; Cache-Control: private, no-store",
+            "media_type": "application/json",
+            "schema_name": "ManagerActiveStoryRunConflictV1",
+        },
+        *_TEACHER_FORCE_CLOSE_ERRORS,
+    ),
+}
+
+MOUNTED_OPERATIONS[
+    (
+        "post",
+        "/api/be1/v1/organizations/{organization_id}/story-runs/{run_id}/force-close",
+    )
+] = {
+    "purpose": "Force-close one locked Teacher StoryRun after an explicit Manager reason.",
+    "request_inputs": (
+        "path `organization_id*`: string; path `run_id*`: string; header `Idempotency-Key*`: "
+        "string; header `X-Request-ID`: string; application/json (required): "
+        "ManagerForceCloseStoryRunRequestV1"
+    ),
+    "surface": "BE1 / classroom",
+    "tag": _TEACHER_TRANSFER_TAG,
+    "handler": "manager_story_run_force_close.py::force_close_manager_story_run",
+    "authentication": _TEACHER_TRANSFER_AUTHENTICATION,
+    "verification": (
+        "Phase D T-6c: current Manager scope is checked before receipt replay; Story changes the "
+        "run to ABANDONED, releases the T-4b2 lock, and stores only the reason fingerprint."
+    ),
+    "responses": _with_idempotency_mismatch_response((
+        {
+            "status": "200",
+            "description": "StoryRun force-closed; Cache-Control: private, no-store",
+            "media_type": "application/json",
+            "schema_name": "ManagerForceClosedStoryRunV1",
+        },
+        *_TEACHER_FORCE_CLOSE_ERRORS,
+    )),
+}
 MOUNTED_OPERATIONS[("get", "/api/parent/v1/topics/suggestions")] = {
     "purpose": "Return three distinct catalog topics from the authenticated Parent's rotation.",
     "request_inputs": "query `draft_id*`: uuid; query `request_id*`: uuid (idempotent replay key); "
@@ -12949,9 +14854,14 @@ MOUNTED_OPERATIONS[("post", "/api/parent/v1/topics/custom-subject-validation")] 
 }
 
 IDEMPOTENCY_MISMATCH_OPERATION_KEYS: Final[tuple[tuple[str, str], ...]] = (
+    (
+        "post",
+        "/api/be1/v1/organizations/{organization_id}/story-runs/{run_id}/force-close",
+    ),
     ("post", "/api/lesson-library/v1/me/lesson-invitations/{access_grant_id}/accept"),
     ("post", "/api/lesson-library/v1/me/lesson-invitations/{access_grant_id}/decline"),
     ("post", "/api/lesson-library/v1/me/parent-group-invitations/{membership_id}/accept"),
+    ("post", "/api/lesson-library/v1/me/parent-group-invitations/{membership_id}/decline"),
     ("post", "/api/lesson-library/v1/organizations/{organization_id}/access-grants/{access_grant_id}/decision"),
     ("post", "/api/lesson-library/v1/organizations/{organization_id}/lessons"),
     ("post", "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/access-grants"),
@@ -12963,7 +14873,15 @@ IDEMPOTENCY_MISMATCH_OPERATION_KEYS: Final[tuple[tuple[str, str], ...]] = (
     # FEAT-066 C4: keyed commands A18, A19, B07, B08 and A25 (SRS §21.4).
     ("patch", "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}"),
     ("delete", "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}"),
+    (
+        "delete",
+        "/api/lesson-library/v1/organizations/{organization_id}/parent-groups/{parent_group_id}/members/{membership_id}",
+    ),
     ("post", "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/versions"),
+    (
+        "post",
+        "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/remixes",
+    ),
     (
         "delete",
         "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/access-grants/{access_grant_id}",
@@ -12971,15 +14889,27 @@ IDEMPOTENCY_MISMATCH_OPERATION_KEYS: Final[tuple[tuple[str, str], ...]] = (
     ("delete", "/api/lesson-library/v1/upload-sessions/{upload_session_id}"),
     # FEAT-066 M9-B (SRS §21.4): the first Teacher assignment command.
     ("post", "/api/be1/v1/classes/{class_id}/assignments"),
+    ("delete", "/api/be1/v1/classes/{class_id}/assignments/current"),
     # FEAT-066 T0.1 (C-D5, SRS l.1697): create class is a keyed command.
     ("post", "/api/be1/v1/organizations/{organization_id}/classes"),
+    # T-CAP1: Manager subscription configuration is keyed and revision-bound.
+    ("patch", "/api/be1/v1/organizations/{organization_id}/capacity"),
     # FEAT-066 T-7b (SRS l.1697): the keyed class state commands.
     ("post", "/api/be1/v1/classes/{class_id}/suspend"),
     ("post", "/api/be1/v1/classes/{class_id}/archive"),
     # FEAT-066 T-7c (SRS l.1697): the keyed Teacher profile create.
     ("post", "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles"),
-    # FEAT-066 T-7d (SRS l.1697): the keyed Teacher enrollment move.
+    # FEAT-066 T-7d (SRS l.1697): the keyed Manager/Teacher enrollment move.
     ("post", "/api/be1/v1/classes/{class_id}/profiles/{child_id}/move"),
+    ("post", "/api/be1/v1/classes/{class_id}/profiles/{child_id}/place"),
+    # FEAT-066 goal v4 T-12b (SRS l.1697): the keyed Teacher profile edit.
+    ("patch", "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}"),
+    # FEAT-066 goal v4 T-12c (SRS l.1697): the keyed Teacher support-needs write.
+    (
+        "put",
+        "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}"
+        "/support-needs",
+    ),
     # FEAT-066 T-2a (SRS l.1697): the keyed generic upload commands.
     ("post", "/v1/upload-sessions"),
     ("post", "/v1/upload-sessions/{upload_id}/complete"),
@@ -12993,34 +14923,39 @@ IDEMPOTENCY_MISMATCH_OPERATION_KEYS: Final[tuple[tuple[str, str], ...]] = (
     # FEAT-066 T-3d (SRS l.1697): the keyed plan revision create and confirm.
     ("post", "/v1/lesson-occurrences/{occurrence_id}/plan-revisions"),
     ("post", "/v1/lesson-occurrences/{occurrence_id}/plan-revisions/{revision_no}/confirm"),
+    # FEAT-063 Rev66 FR-T-18/20: generation is a keyed revision command.
+    ("post", "/v1/lesson-occurrences/{occurrence_id}/sketch-decks"),
     # FEAT-066 T-4b1 (SRS l.1697): the keyed child selection and its confirmation.
     ("post", "/v1/lesson-occurrences/{occurrence_id}/child-selections"),
     ("post", "/v1/lesson-occurrences/{occurrence_id}/child-selections/{selection_id}/confirmation"),
     # FEAT-066 T-5a (SRS l.1697): the keyed class projection confirmation.
     ("post", "/v1/lesson-occurrences/{occurrence_id}/projection-confirmation"),
+    # T-SLD1: presentation creation, revisions, readiness, SVG drafts and decisions are keyed.
+    ("post", "/v1/lesson-occurrences/{occurrence_id}/presentation"),
+    ("post", "/v1/lesson-occurrences/{occurrence_id}/presentation/revisions"),
+    ("post", "/v1/lesson-occurrences/{occurrence_id}/presentation/revisions/{revision_no}/ready"),
+    ("post", "/v1/lesson-occurrences/{occurrence_id}/presentation/svg-drafts"),
+    ("post", "/v1/lesson-occurrences/{occurrence_id}/presentation/svg-drafts/{svg_draft_id}/decision"),
     # FEAT-066 T-8a (SRS l.1697): the two keyed mark-read commands of the notification inbox.
     ("post", "/v1/notifications/{inbox_item_id}/read"),
     ("post", "/v1/notifications/read-all"),
+    # FEAT-066 goal v4 T-8b (SRS l.1697): keyed endpoint registration and revoke.
+    ("post", "/v1/notifications/push-endpoints"),
+    ("delete", "/v1/notifications/push-endpoints/{endpoint_id}"),
+    # T-SHARE1: keyed create, revoke and acceptance commands.
+    ("post", "/v1/parent/share-grants"),
+    ("post", "/v1/parent/share-grants/{share_grant_id}/revoke"),
+    ("post", "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}/parent-share/accept"),
+    # Phase D T-6a: keyed Teacher invitation and resend.
+    ("post", "/api/be1/v1/organizations/{organization_id}/teacher-invitations"),
+    (
+        "post",
+        "/api/be1/v1/organizations/{organization_id}/teacher-invitations/{account_ref}/resend",
+    ),
 )
 
-_IDEMPOTENCY_MISMATCH_RESPONSE: Final[ResponseMetadata] = {
-    "status": "400",
-    "description": "Idempotency-Key reused with a different payload: INVALID_IDEMPOTENCY_KEY.",
-    "media_type": "application/json",
-    "schema_name": "Be1Error",
-}
+# Mismatch responses are included in each operation metadata row.
 
-for _operation_key in IDEMPOTENCY_MISMATCH_OPERATION_KEYS:
-    _operation_metadata = MOUNTED_OPERATIONS[_operation_key]
-    _operation_responses = _operation_metadata["responses"]
-    MOUNTED_OPERATIONS[_operation_key] = {
-        **_operation_metadata,
-        "responses": (
-            *_operation_responses[:1],
-            dict(_IDEMPOTENCY_MISMATCH_RESPONSE),
-            *_operation_responses[1:],
-        ),
-    }
 
 
 UNMOUNTED_OPERATIONS: Final[tuple[UnmountedOperationMetadata, ...]] = ({'method': 'post',
@@ -13196,3 +15131,49 @@ UNMOUNTED_OPERATIONS: Final[tuple[UnmountedOperationMetadata, ...]] = ({'method'
                  'description': 'Validation Error',
                  'media_type': 'application/json',
                  'schema_name': 'HTTPValidationError'})})
+
+
+MOUNTED_OPERATIONS[("get", "/api/be1/v1/organizations/{organization_id}/capacity/quote")] = {
+    "purpose": "Manage the assigned organization's capacity purchase.",
+    "request_inputs": "path `organization_id*`: string; header `X-Request-ID`: string; query `addon_slots*`: integer",
+    "surface": "BE1 / billing capacity", "tag": "BE1 — Organizations & Classes",
+    "handler": "be1_billing.py::capacity_purchase_quote", "authentication": "HTTPBearer (bearer)",
+    "verification": "Requires school administrator assignment; provider outcomes are verified.",
+    "responses": ({"status": "200", "description": "Successful Response", "media_type": "application/json", "schema_name": "Be1CapacityQuoteV1"}, *_BE1_CAPACITY_ERRORS),
+}
+
+MOUNTED_OPERATIONS[("post", "/api/be1/v1/organizations/{organization_id}/capacity/checkout")] = {
+    "purpose": "Manage the assigned organization's capacity purchase.",
+    "request_inputs": "path `organization_id*`: string; header `X-Request-ID`: string; header `Idempotency-Key*`: string; application/json (required): Be1CapacityCheckoutRequest",
+    "surface": "BE1 / billing capacity", "tag": "BE1 — Organizations & Classes",
+    "handler": "be1_billing.py::capacity_purchase_checkout", "authentication": "HTTPBearer (bearer)",
+    "verification": "Requires school administrator assignment; provider outcomes are verified.",
+    "responses": ({"status": "201", "description": "Successful Response", "media_type": "application/json", "schema_name": "Be1CapacityCheckoutV1"}, *_BE1_CAPACITY_ERRORS),
+}
+
+MOUNTED_OPERATIONS[("get", "/api/be1/v1/organizations/{organization_id}/capacity/purchases")] = {
+    "purpose": "Manage the assigned organization's capacity purchase.",
+    "request_inputs": "path `organization_id*`: string; header `X-Request-ID`: string; query `limit`: integer; query `invoice_id`: string",
+    "surface": "BE1 / billing capacity", "tag": "BE1 — Organizations & Classes",
+    "handler": "be1_billing.py::capacity_purchases", "authentication": "HTTPBearer (bearer)",
+    "verification": "Requires school administrator assignment; returns all capacity invoice providers, including SANDBOX.",
+    "responses": ({"status": "200", "description": "Successful Response", "media_type": "application/json", "schema_name": "Be1CapacityPurchasesV1"}, *_BE1_CAPACITY_ERRORS),
+}
+
+MOUNTED_OPERATIONS[("post", "/api/be1/v1/organizations/{organization_id}/capacity/purchases/{invoice_id}/reconcile")] = {
+    "purpose": "Manage the assigned organization's capacity purchase.",
+    "request_inputs": "path `organization_id*`: string; header `X-Request-ID`: string; path `invoice_id*`: string",
+    "surface": "BE1 / billing capacity", "tag": "BE1 — Organizations & Classes",
+    "handler": "be1_billing.py::reconcile_capacity_purchase", "authentication": "HTTPBearer (bearer)",
+    "verification": "Requires school administrator assignment; provider outcomes are verified.",
+    "responses": ({"status": "200", "description": "Successful Response", "media_type": "application/json", "schema_name": "Be1CapacityPurchaseActionV1"}, *_BE1_CAPACITY_ERRORS),
+}
+
+MOUNTED_OPERATIONS[("post", "/api/be1/v1/organizations/{organization_id}/capacity/purchases/{invoice_id}/cancel")] = {
+    "purpose": "Manage the assigned organization's capacity purchase.",
+    "request_inputs": "path `organization_id*`: string; header `X-Request-ID`: string; path `invoice_id*`: string",
+    "surface": "BE1 / billing capacity", "tag": "BE1 — Organizations & Classes",
+    "handler": "be1_billing.py::cancel_capacity_purchase", "authentication": "HTTPBearer (bearer)",
+    "verification": "Requires school administrator assignment; provider outcomes are verified.",
+    "responses": ({"status": "200", "description": "Successful Response", "media_type": "application/json", "schema_name": "Be1CapacityPurchaseActionV1"}, *_BE1_CAPACITY_ERRORS),
+}

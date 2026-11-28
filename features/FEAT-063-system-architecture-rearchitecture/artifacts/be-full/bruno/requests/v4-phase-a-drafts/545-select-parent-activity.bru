@@ -64,4 +64,5 @@ docs {
   Needs: parent_story_run_id in PREPARATION_REVIEW, parent_story_run_revision from 559, activity_* vars from 540 (saves phase_a_select_activity_key and phase_a_select_expected_revision for 607/608 replay checks)
   Expected: 200
   Source: backend/src/sketch2life/interfaces/http/routers/parent_story_activities.py:146-183, backend/src/sketch2life/infrastructure/persistence/parent_story_repository.py:1308-1445, backend/tests/contract/test_parent_activities_contract.py:389-404
+  The selected catalog activity must still be in the current accessible list, including private shares addressed through the active Parent alias.
 }

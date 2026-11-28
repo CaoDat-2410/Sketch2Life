@@ -52,6 +52,7 @@ _TYPE_CODES: Mapping[str, str] = {
     "list_type": "INVALID_TYPE",
     "dict_type": "INVALID_TYPE",
     "extra_forbidden": "UNKNOWN_FIELD",
+    "diagnosis_like": "DIAGNOSIS_LIKE",  # BR-20 screen (T-12b-fix)
 }
 
 

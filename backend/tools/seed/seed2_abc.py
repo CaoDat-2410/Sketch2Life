@@ -1,9 +1,11 @@
 """SEED-2 umbrella: every Phase A-C stage in order, one guarded engine, one counts table each.
 
 Run from ``backend/`` as ``python -m tools.seed.seed2_abc``, after S1 and S7a. The stages are
-S8 (lesson occurrences), S9 (class lifecycle and enrollment move), S7b (Parent StoryRun states),
-S10 (notification inbox), S11 (Teacher-cancelled organization run and private lesson shares) and
-S12 (Phase A StoryRun activity selections, review epochs, safety block and replayable video).
+S8 (lesson occurrences and presentation), S9 (class lifecycle and enrollment move), S7b (Parent
+StoryRun states), S10 (notification inbox), S11 (Teacher-cancelled organization run and private
+lesson shares), S12 (Parent activity suggestions and StoryRun reviews/videos), and S13 (Parent
+profile context/sharing and lesson feedback, quota catalog, teacher allocation, and sandbox
+capacity).
 Each stage is idempotent and prints a counts-only table; the exit code is 0 only when every
 stage's totals match its expected counts. The API test kit runs this one module name.
 """
@@ -23,6 +25,7 @@ from tools.seed import (
     s10_inbox,
     s11_org_run_shares,
     s12_story_v4a,
+    s13_system_demo,
 )
 from tools.seed.guard import SeedGuardError
 from tools.seed.stage_common import (
@@ -41,6 +44,7 @@ STAGES: tuple[tuple[str, StageRunner], ...] = (
     ("s10_inbox", s10_inbox.run_s10),
     ("s11_org_run_shares", s11_org_run_shares.run_s11),
     ("s12_story_v4a", s12_story_v4a.run_s12),
+    ("s13_system_demo", s13_system_demo.run_s13),
 )
 
 

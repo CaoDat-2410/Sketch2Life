@@ -1,0 +1,210 @@
+{
+  "schema_version": "sketch2life.story-sentence-fixtures.v1",
+  "validator_version": "vi-sentence-complete.v1",
+  "cases": [
+    {
+      "name": "period",
+      "field": "story.opening",
+      "text": "Chim sẻ trở về tổ.",
+      "valid": true,
+      "validation": "sentence"
+    },
+    {
+      "name": "exclamation",
+      "field": "story.opening",
+      "text": "Cánh cửa mở ra!",
+      "valid": true,
+      "validation": "sentence"
+    },
+    {
+      "name": "question",
+      "field": "story.opening",
+      "text": "Bạn có nghe tiếng mưa không?",
+      "valid": true,
+      "validation": "sentence"
+    },
+    {
+      "name": "ellipsis",
+      "field": "story.opening",
+      "text": "Đốm sáng dần hiện ra…",
+      "valid": true,
+      "validation": "sentence"
+    },
+    {
+      "name": "closing_quotes",
+      "field": "scenes[1].narration",
+      "text": "“Mình đã tìm thấy rồi!”",
+      "valid": true,
+      "validation": "sentence"
+    },
+    {
+      "name": "closing_brackets",
+      "field": "scenes[1].action",
+      "text": "Bạn nhỏ khép cuốn sách!)",
+      "valid": true,
+      "validation": "sentence"
+    },
+    {
+      "name": "mixed_script",
+      "field": "story.middle",
+      "text": "Robot tìm thấy chiếc lá. The journey continues!",
+      "valid": true,
+      "validation": "sentence"
+    },
+    {
+      "name": "multi_sentence_complete",
+      "field": "story.ending",
+      "text": "Cơn mưa dừng lại. Cầu vồng hiện lên.",
+      "valid": true,
+      "validation": "sentence"
+    },
+    {
+      "name": "complete_ending_den",
+      "field": "story.opening",
+      "text": "Mẹ vẫn chưa đến.",
+      "valid": true,
+      "validation": "sentence"
+    },
+    {
+      "name": "complete_ending_theo",
+      "field": "story.opening",
+      "text": "Chú chó chạy theo.",
+      "valid": true,
+      "validation": "sentence"
+    },
+    {
+      "name": "complete_ending_cho",
+      "field": "story.opening",
+      "text": "Bé đi cùng mẹ nhé, mẹ mua cho.",
+      "valid": true,
+      "validation": "sentence"
+    },
+    {
+      "name": "complete_ending_o",
+      "field": "story.opening",
+      "text": "Nhà là nơi con ở.",
+      "valid": true,
+      "validation": "sentence"
+    },
+    {
+      "name": "complete_ending_voi",
+      "field": "story.opening",
+      "text": "Con đi nhé, mẹ sẽ đi với.",
+      "valid": true,
+      "validation": "sentence"
+    },
+    {
+      "name": "complete_ending_ma",
+      "field": "story.opening",
+      "text": "Mẹ đã gọi con mãi mà.",
+      "valid": true,
+      "validation": "sentence"
+    },
+    {
+      "name": "complete_ending_thi",
+      "field": "story.opening",
+      "text": "Câu này kết thúc bằng từ “thì”.",
+      "valid": true,
+      "validation": "sentence"
+    },
+    {
+      "name": "complete_ending_nen",
+      "field": "story.opening",
+      "text": "Làm như vậy là nên.",
+      "valid": true,
+      "validation": "sentence"
+    },
+    {
+      "name": "complete_ending_tu",
+      "field": "story.opening",
+      "text": "Câu này kết thúc bằng từ “từ”.",
+      "valid": true,
+      "validation": "sentence"
+    },
+    {
+      "name": "bare_action_stage_direction",
+      "field": "scenes[1].action",
+      "text": "Bạn nhỏ bước tới cánh cửa",
+      "valid": true,
+      "validation": "sentence"
+    },
+    {
+      "name": "decimal_number_at_sentence_end",
+      "field": "story.middle",
+      "text": "Kết quả đo được là 2.5.",
+      "valid": true,
+      "validation": "sentence"
+    },
+    {
+      "name": "complete_at_900_character_boundary",
+      "field": "story.opening",
+      "repeat_char": "a",
+      "repeat_count": 899,
+      "suffix": ".",
+      "valid": true,
+      "validation": "sentence"
+    },
+    {
+      "name": "dangling_conjunction",
+      "field": "story.opening",
+      "text": "Em chạy ra sân và.",
+      "valid": false,
+      "reason": "DANGLING_VI_ENDING",
+      "validation": "sentence"
+    },
+    {
+      "name": "dangling_preposition",
+      "field": "scenes[1].narration",
+      "text": "Chiếc lá nằm dưới.",
+      "valid": false,
+      "reason": "DANGLING_VI_ENDING",
+      "validation": "sentence"
+    },
+    {
+      "name": "missing_terminal_punctuation",
+      "field": "story.middle",
+      "text": "Bạn nhỏ nhìn quanh",
+      "valid": false,
+      "reason": "MISSING_TERMINAL_PUNCTUATION",
+      "validation": "sentence"
+    },
+    {
+      "name": "multi_sentence_final_fragment",
+      "field": "story.ending",
+      "text": "Em mở cửa. Bạn nhỏ nhìn quanh",
+      "valid": false,
+      "reason": "MISSING_TERMINAL_PUNCTUATION",
+      "validation": "sentence"
+    },
+    {
+      "name": "empty_after_strip",
+      "field": "story.opening",
+      "text": " \u2003 ",
+      "valid": false,
+      "validation": "schema"
+    },
+    {
+      "name": "over_900_character_boundary",
+      "field": "story.opening",
+      "repeat_char": "a",
+      "repeat_count": 900,
+      "suffix": ".",
+      "valid": false,
+      "validation": "schema"
+    },
+    {
+      "name": "visual_prompt_without_punctuation",
+      "field": "scenes[1].visual_prompt",
+      "text": "a child studies a butterfly",
+      "valid": false,
+      "validation": "excluded"
+    },
+    {
+      "name": "title_without_punctuation",
+      "field": "title",
+      "text": "Chuyến đi của chiếc lá",
+      "valid": false,
+      "validation": "excluded"
+    }
+  ]
+}

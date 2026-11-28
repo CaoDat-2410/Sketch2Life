@@ -1,0 +1,49 @@
+meta {
+  name: 784 [DRAFT-V4C] [LOCAL / TEST ONLY] Parent reads RUN_WAIT_REMINDER item in notification inbox
+  type: http
+  seq: 784
+}
+
+get {
+  url: {{baseUrl}}/v1/notifications?limit=25
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("Cache-Control")).to.equal("private, no-cache");
+    const body = res.getBody();
+    expect(body.contract).to.equal("NotificationPageV1");
+    const reminder = body.items.find(function (item) {
+      return item.notification_type === "RUN_WAIT_REMINDER";
+    });
+    expect(reminder).to.be.an("object");
+    expect(reminder.contract).to.equal("NotificationV1");
+    expect(reminder.template_version).to.equal(1);
+    expect(reminder.safe_parameters).to.deep.equal({});
+    expect(reminder.expires_at).to.equal(null);
+    expect(reminder).to.not.have.property("recipient_account_id");
+    expect(reminder).to.not.have.property("run_id");
+    expect(reminder).to.not.have.property("trigger_id");
+  });
+}
+
+docs {
+  DRAFT after Phase C: checked against the code at 0f6e7683; not yet run against a live backend.
+  Role: Owning Parent - set bearerToken to seed-parent-p1 token
+  Needs: needs-fixture: Parent StoryRun waiting >= 144h processed by T-1d2 reminder producer / T-NTF1 reminder sweep (python -m sketch2life.infrastructure.notifications.notification_worker reminders --once)
+  Expected: 200 / NotificationPageV1 containing RUN_WAIT_REMINDER v1 with empty safe_parameters and no run/recipient identifiers
+  Source: backend/src/sketch2life/interfaces/http/routers/notifications.py:105-136, backend/src/sketch2life/application/services/story_run_reminder.py, backend/tests/integration/story_video/test_story_run_reminder_postgres.py:159-177,640-644
+}

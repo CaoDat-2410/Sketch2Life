@@ -6,6 +6,8 @@ import { isProfileDeletionPending, selectProfileById } from '../navigation/paren
 import { canStartProfileLearning, isSyntheticProfileDataOrigin, parentProfileAgeEligibility } from '../navigation/workflowTypes';
 import type { ParentConsentUiState } from '../navigation/workflowTypes';
 import { Card, ConfirmButton, Notice, ScreenFrame, SecondaryButton } from '../components/ui';
+import type { CreateParentContextEntryRequest, ParentContextEntryEnvelope, ParentContextEntryListView } from '../../domain/types';
+import { ProfileContextEntriesSection } from './ProfileContextEntriesSection';
 
 type Props = {
   profiles: ParentProfileViewV1[];
@@ -28,7 +30,12 @@ type Props = {
   onOpenQuota?: () => void;
   onOpenHistory?: () => void;
   onOpenSharing?: () => void;
+  onOpenConsentPolicy?: () => void;
   onOpenDeliveredLessons?: () => void;
+  onOpenSupportNeeds?: () => void;
+  newActionIdentity?: () => string;
+  onListContextEntries?: (profileId: string, cursor?: string | null) => Promise<ParentContextEntryListView>;
+  onCreateContextEntry?: (profileId: string, input: CreateParentContextEntryRequest, actionIdentity: string) => Promise<ParentContextEntryEnvelope>;
   onSignOut?: () => void;
   onResumeRun?: () => void;
   onBackHome?: () => void;
@@ -84,7 +91,15 @@ export function ProfileScreen({
   onOpenQuota = ignoreFamilyAction,
   onOpenHistory = ignoreFamilyAction,
   onOpenSharing = ignoreFamilyAction,
+  onOpenConsentPolicy = ignoreFamilyAction,
   onOpenDeliveredLessons = ignoreFamilyAction,
+  onOpenSupportNeeds = ignoreFamilyAction,
+  newActionIdentity = () => 'preview-action',
+  onListContextEntries = async () => ({ context_entries: [], next_cursor: null, limit: 25 }),
+  onCreateContextEntry = async () => ({ context_entry: {
+    context_entry_id: 'preview-entry', entry_kind: 'OBSERVATION', short_text: '', source_kind: 'PARENT_ENTERED',
+    approximate_date: null, created_at: '2026-11-24T00:00:00Z',
+  } }),
   onSignOut = ignoreFamilyAction,
 }: Props): React.JSX.Element {
   const selected = selectProfileById(profiles, selectedProfileId);
@@ -246,6 +261,14 @@ export function ProfileScreen({
         </View>
       ) : null}
 
+      {selected && !isProfileDeletionPending(selected.profile_id, pendingDeletions) ? <ProfileContextEntriesSection
+        key={selected.profile_id}
+        profileId={selected.profile_id}
+        newActionIdentity={newActionIdentity}
+        onList={onListContextEntries}
+        onCreate={onCreateContextEntry}
+      /> : null}
+
       {error ? <Notice text={error} tone="error" /> : null}
 
       <View style={styles.familyMenuCard}>
@@ -264,10 +287,18 @@ export function ProfileScreen({
           <FamilyMenuRow label="Thông báo" hint="Tin mới dành cho phụ huynh" icon="notifications-outline" onPress={onOpenNotifications} />
         </MenuGroup>
         <MenuGroup title="Học tập & chia sẻ">
+          <FamilyMenuRow
+            label="Nhu cầu hỗ trợ"
+            hint="Thông tin do người lớn nhập"
+            icon="heart-outline"
+            disabled={!selected || isProfileDeletionPending(selected.profile_id, pendingDeletions)}
+            onPress={onOpenSupportNeeds}
+          />
           <FamilyMenuRow label="Lượt tạo video" icon="videocam-outline" onPress={onOpenQuota} />
           <FamilyMenuRow label="Lịch sử hoạt động" icon="time-outline" onPress={onOpenHistory} />
           <FamilyMenuRow label="Bài giáo viên đã dạy" icon="book-outline" disabled={!selected} onPress={onOpenDeliveredLessons} />
           <FamilyMenuRow label="Chia sẻ hồ sơ với giáo viên" icon="share-social-outline" disabled={!selected} onPress={onOpenSharing} />
+          <FamilyMenuRow label="Chính sách đồng ý" hint="Xem chính sách do dịch vụ cung cấp" icon="document-text-outline" onPress={onOpenConsentPolicy} />
         </MenuGroup>
       </View>
 

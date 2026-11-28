@@ -1,8 +1,13 @@
-﻿import { entryLinks } from "../services/teacherRunLogic";
+import { entryLinks } from "../services/teacherRunLogic";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { RefreshCw, Upload, FileText, ClipboardList, CalendarDays } from "lucide-react";
 import { PageHeading } from "../../../shared/components/FeatureAvailability";
-import { Button, FormField, Select } from "../../../shared/ui";
+import { Button, DateField, FormField, Select, StatusBadge, formatDateDdMmYyyy, formatDateTimeDdMmYyyy } from "../../../shared/ui";
+import { FormActionBar } from "../components/FormActionBar";
+import { PlanActivityPicker } from "../components/PlanActivityPicker";
+import { TeacherSketchDeckPanel } from "../components/TeacherSketchDeckPanel";
+import { teacherStatusMeta } from "../services/teacherStatus";
 import { authService } from "../../school-manager/be1/services/authService";
 import {
   BackendApiError,
@@ -131,7 +136,21 @@ const isStale = (cause: unknown) => {
   return source instanceof BackendApiError && source.code === "STALE_REVISION";
 };
 
+const OCCURRENCE_STEPS = [
+  { id: "teacher-occurrence-documents", label: "Tài liệu" },
+  { id: "teacher-occurrence-plan", label: "Kế hoạch" },
+  { id: "teacher-occurrence-sketch-deck", label: "Sketch Deck" },
+] as const;
+
 export function TeacherOccurrencePage() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [activeStep, setActiveStep] = useState(() => OCCURRENCE_STEPS.findIndex((step) => `#${step.id}` === location.hash));
+  useEffect(() => {
+    const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+    const index = OCCURRENCE_STEPS.findIndex((step) => `#${step.id}` === location.hash || target?.closest(`#${step.id}`));
+    if (index >= 0) setActiveStep(index);
+  }, [location.hash]);
   const [classes, setClasses] = useState<Be1Class[]>([]);
   const [selectedClassId, setSelectedClassId] = useState("");
   const [lessons, setLessons] = useState<LessonSummary[]>([]);
@@ -156,6 +175,7 @@ export function TeacherOccurrencePage() {
   const [safetyNotes, setSafetyNotes] = useState("");
   const [planDocumentRevision, setPlanDocumentRevision] = useState("");
   const [carriedActivities, setCarriedActivities] = useState<Array<{ kind: "LESSON"; lesson_activity_id: string }>>([]);
+  const [copiedActivitiesFromPlan, setCopiedActivitiesFromPlan] = useState(false);
   const [jobId, setJobId] = useState("");
   const [job, setJob] = useState<JobStatus | null>(null);
   const [loading, setLoading] = useState(true);
@@ -231,7 +251,7 @@ export function TeacherOccurrencePage() {
     setDocuments([]); setSelectedDocumentId(""); setRevisions([]); setSelectedRevision(null);
     setPlans([]); setSelectedPlan(null); setJobId(""); setJob(null);
     setTitle(""); setScheduledDate(""); setFile(null); setUploadProgress(""); setUploadAbortable(false);
-    setEditedText(""); setObjectives(""); setDirection(""); setSafetyNotes(""); setPlanDocumentRevision(""); setCarriedActivities([]);
+    setEditedText(""); setObjectives(""); setDirection(""); setSafetyNotes(""); setPlanDocumentRevision(""); setCarriedActivities([]); setCopiedActivitiesFromPlan(false);
     failureStepRef.current = null;
     setError(""); setDiagnostic(null); setFieldIssues([]); setNotice("");
     occurrenceCache.current.clear(); documentCache.current.clear(); revisionCache.current.clear(); planCache.current.clear();
@@ -241,7 +261,7 @@ export function TeacherOccurrencePage() {
 
   const refreshClasses = useCallback(async () => {
     if (!hasFirebaseAuthBridge()) throw new BackendApiError("Phiên đăng nhập chưa sẵn sàng.", "AUTHENTICATION_REQUIRED", 401);
-    if (!organizationId) throw new BackendApiError("Chưa cấu hình organization_id.", "ORGANIZATION_REQUIRED", 400);
+    if (!organizationId) throw new BackendApiError("Chưa cấu hình tổ chức.", "ORGANIZATION_REQUIRED", 400);
     const encodedOrganizationId = encodeURIComponent(organizationId);
     const identityEpoch = dataEpochRef.current;
     const identity = await withRequestContext(
@@ -368,7 +388,7 @@ export function TeacherOccurrencePage() {
   useEffect(() => {
     setDocuments([]); setSelectedDocumentId(""); setRevisions([]); setSelectedRevision(null); setPlans([]); setSelectedPlan(null);
     setJobId(""); setJob(null);
-    setObjectives(""); setDirection(""); setSafetyNotes(""); setPlanDocumentRevision(""); setCarriedActivities([]); setEditedText("");
+    setObjectives(""); setDirection(""); setSafetyNotes(""); setPlanDocumentRevision(""); setCarriedActivities([]); setCopiedActivitiesFromPlan(false); setEditedText("");
     setFile(null); setUploadProgress(""); setUploadAbortable(false);
     uploadController.current?.abort(); uploadIdentity.current = null;
     if (!occurrenceId) return;
@@ -551,7 +571,7 @@ export function TeacherOccurrencePage() {
       activities: carriedActivities,
     };
     const saved = await keyedWrite(createPlanIdentity, { occurrence_id: occurrence.occurrence_id, ...input }, (key) => teacherOccurrenceApi.createPlan(occurrence.occurrence_id, input, key));
-    setSelectedPlan(saved); setCarriedActivities([]); setNotice(`Đã tạo bản kế hoạch ${saved.revision_no} ở trạng thái nháp.`);
+    setSelectedPlan(saved); setNotice(`Đã tạo bản kế hoạch ${saved.revision_no} ở trạng thái nháp.`);
     await refreshDocumentsAndPlans(occurrence.occurrence_id);
   });
 
@@ -560,6 +580,7 @@ export function TeacherOccurrencePage() {
     setObjectives(plan.objectives.join("\n")); setDirection(plan.teacher_direction); setSafetyNotes(plan.safety_notes ?? "");
     setPlanDocumentRevision(plan.document_revision_ref ? `${plan.document_revision_ref.document_id}:${plan.document_revision_ref.revision_no}` : "");
     setCarriedActivities(plan.activities.flatMap((activity) => activity.kind === "LESSON" && activity.lesson_activity_id ? [{ kind: "LESSON" as const, lesson_activity_id: activity.lesson_activity_id }] : []));
+    setCopiedActivitiesFromPlan(true);
   };
 
   const openPlan = (revisionNo: number) => runAction(async () => {
@@ -592,7 +613,7 @@ export function TeacherOccurrencePage() {
   return (
     <div className="s2l-page s2l-data-page teacher-occurrence-page">
       <PageHeading
-        eyebrow="Teacher · Lớp và kế hoạch"
+        eyebrow="Giáo viên · Buổi dạy"
         title="Buổi dạy"
         description="Tạo buổi dạy trong lớp được phân công, rà soát tài liệu và quản lý các bản kế hoạch."
         action={<button type="button" className="s2l-button" onClick={() => void refreshAll()} disabled={busy}><RefreshCw size={16} aria-hidden="true" />Làm mới</button>}
@@ -613,67 +634,92 @@ export function TeacherOccurrencePage() {
       </div>}
       {unmappedIssues.length > 0 && <ul className="s2l-alert" aria-label="Trường chưa hợp lệ">{unmappedIssues.map((issue) => <li key={`${issue.field}:${issue.code}`}>{fieldIssueText(issue)}</li>)}</ul>}
       {notice && <div className="s2l-note" role="status">{notice}</div>}
-      {!hasFirebaseAuthBridge() && <div className="s2l-alert" role="alert">Chưa có phiên đăng nhập Teacher.</div>}
+      {!hasFirebaseAuthBridge() && <div className="s2l-alert" role="alert">Chưa có phiên đăng nhập giáo viên.</div>}
       {loading ? <p className="s2l-data-card" role="status">Đang tải lớp và giáo án được cấp quyền…</p> : (
         <div className="teacher-occurrence-layout">
           <div className="teacher-occurrence-top">
             <section className="s2l-data-card teacher-occurrence-sidebar" aria-label="Danh sách buổi dạy">
               <FormField label="Lớp được phân công" htmlFor="occurrence-class">
-                <Select id="occurrence-class" value={selectedClassId} disabled={busy} onChange={(event) => { classIdRef.current = event.target.value; occurrenceIdRef.current = ""; setSelectedClassId(event.target.value); setOccurrence(null); setOccurrences([]); setNextCursor(null); }}>
+                <Select id="occurrence-class" value={selectedClassId} disabled={busy} onChange={(event) => {
+                  const nextClassId = event.target.value;
+                  if (nextClassId === selectedClassId) return;
+                  classIdRef.current = nextClassId;
+                  occurrenceIdRef.current = "";
+                  setSelectedClassId(nextClassId);
+                  setOccurrence(null);
+                  setOccurrences([]);
+                  setNextCursor(null);
+                }}>
                   <option value="">Chọn lớp</option>{classes.map((item) => <option key={item.class_id} value={item.class_id}>{item.display_name}</option>)}
                 </Select>
               </FormField>
               {classes.length === 0 && <p className="s2l-note">Tài khoản chưa có lớp được phân công.</p>}
               <h2>Buổi dạy gần đây</h2>
-              {occurrences.length === 0 ? <p className="s2l-note">Chưa có buổi dạy trong lớp này.</p> : <ul className="teacher-occurrence-list">{occurrences.map((item) => <li key={item.occurrence_id}><button type="button" disabled={busy} aria-current={item.occurrence_id === occurrenceId ? "true" : undefined} onClick={() => void selectOccurrence(item)}><strong>{item.title}</strong><small>{item.scheduled_date ?? "Chưa đặt ngày"} · {OCCURRENCE_STATE_LABEL[item.state]}</small></button></li>)}</ul>}
+              {occurrences.length === 0 ? <p className="s2l-note">Chưa có buổi dạy trong lớp này.</p> : <ul className="teacher-occurrence-list">{occurrences.map((item) => <li key={item.occurrence_id}><button type="button" disabled={busy} aria-current={item.occurrence_id === occurrenceId ? "true" : undefined} onClick={() => void selectOccurrence(item)}><strong>{item.title}</strong><small>{item.scheduled_date ? formatDateDdMmYyyy(item.scheduled_date) : "Chưa đặt ngày"} · {OCCURRENCE_STATE_LABEL[item.state]}</small></button></li>)}</ul>}
               {nextCursor && <Button type="button" variant="secondary" disabled={busy} onClick={() => void runAction(() => refreshOccurrences(selectedClassId, nextCursor))}>Tải thêm buổi dạy</Button>}
             </section>
 
+            <details className="teacher-occurrence-create-disclosure"><summary>Tạo buổi dạy</summary>
             <form onSubmit={(event) => { event.preventDefault(); void createOccurrence(); }} className="s2l-data-card cozy-form-card cozy-form-card--wide teacher-occurrence-create cozy-form-stack">
-              <h2><CalendarDays size={18} aria-hidden="true" /> Tạo buổi dạy</h2>
-              <div className="cozy-form-grid">
-                <FormField className="cozy-span-2" label="Tên buổi dạy" htmlFor="occurrence-title" required help="Tên ngắn giúp dễ nhận biết buổi học." error={issueFor("title")}>
-                  <input id="occurrence-title" className="cozy-input" value={title} onChange={(event) => setTitle(event.target.value)} required maxLength={200} placeholder="Ví dụ: Buổi vẽ lá cây" />
-                </FormField>
-                <FormField className="cozy-span-2" label="Ngày dự kiến" htmlFor="occurrence-date" labelAction={<span className="cozy-form-optional">Không bắt buộc</span>} error={issueFor("scheduled_date")}>
-                  <div className="teacher-occurrence-date-control">
-                    <input id="occurrence-date" className="cozy-input" type="date" value={scheduledDate} onChange={(event) => setScheduledDate(event.target.value)} />
-                  </div>
-                </FormField>
-                <FormField className="cozy-span-2" label="Ghim giáo án đã duyệt" htmlFor="occurrence-lesson" error={issueFor("lesson_version_ref")}>
-                  <Select id="occurrence-lesson" value={selectedLessonId} onChange={(event) => setSelectedLessonId(event.target.value)}>
-                    <option value="">Không ghim giáo án</option>{lessons.map((item) => <option key={item.lesson_id} value={item.lesson_id}>{item.title}</option>)}
-                  </Select>
-                </FormField>
+              <div className="tp-form-column">
+                <h2><CalendarDays size={18} aria-hidden="true" /> Tạo buổi dạy</h2>
+                <div className="cozy-form-grid">
+                  <FormField className="cozy-span-6" label="Tên buổi dạy" htmlFor="occurrence-title" required help="Tên ngắn giúp dễ nhận biết buổi học." error={issueFor("title")}>
+                    <input id="occurrence-title" className="cozy-input" value={title} onChange={(event) => setTitle(event.target.value)} required maxLength={200} placeholder="Ví dụ: Buổi vẽ lá cây" />
+                  </FormField>
+                  <FormField className="cozy-span-3" label="Ngày dự kiến" htmlFor="occurrence-date" labelAction={<span className="cozy-form-optional">(không bắt buộc)</span>} error={issueFor("scheduled_date")}>
+                    <DateField id="occurrence-date" type="date" value={scheduledDate} onChange={(event) => setScheduledDate(event.target.value)} />
+                  </FormField>
+                  <FormField className="cozy-span-3" label="Ghim giáo án đã duyệt" htmlFor="occurrence-lesson" labelAction={<span className="cozy-form-optional">(không bắt buộc)</span>} error={issueFor("lesson_version_ref")}>
+                    <Select id="occurrence-lesson" value={selectedLessonId} onChange={(event) => setSelectedLessonId(event.target.value)}>
+                      <option value="">Không ghim giáo án</option>{lessons.map((item) => <option key={item.lesson_id} value={item.lesson_id}>{item.title}</option>)}
+                    </Select>
+                  </FormField>
+                </div>
+                {lessonLabel && <p className="s2l-note">Đã chọn: {lessonLabel}. Buổi dạy giữ đúng phiên bản hiện tại của giáo án.</p>}
+                {error && diagnostic?.method === "POST" && diagnostic.path === "/v1/lesson-occurrences" && (
+                  <div className="s2l-alert" role="alert">{error}</div>
+                )}
+                <FormActionBar hint={!busy && (!selectedClassId || !title.trim()) ? "Nhập tên buổi dạy để bật nút tạo buổi." : undefined}>
+                  <Button type="submit" variant="primary" loading={busy} disabled={busy || !selectedClassId || !title.trim()} className="teacher-occurrence-submit">Tạo buổi dạy</Button>
+                </FormActionBar>
               </div>
-              {lessonLabel && <p className="s2l-note">Đã chọn: {lessonLabel}. Buổi dạy giữ đúng phiên bản và mã băm hiện tại của giáo án.</p>}
-              {error && diagnostic?.method === "POST" && diagnostic.path === "/v1/lesson-occurrences" && (
-                <div className="s2l-alert" role="alert">{error}</div>
-              )}
-              {!busy && (!selectedClassId || !title.trim()) && (
-                <p className="cozy-form-disabled-hint">Nhập tên buổi dạy để bật nút tạo buổi.</p>
-              )}
-              <div className="cozy-form-actions" style={{ marginTop: 0 }}>
-                <Button type="submit" variant="primary" loading={busy} disabled={busy || !selectedClassId || !title.trim()} className="teacher-occurrence-submit">Tạo buổi dạy</Button>
-              </div>
-            </form>
+            </form></details>
           </div>
 
           {occurrence ? <div className="teacher-occurrence-main">
-            <section className="s2l-data-card" aria-label="Chi tiết buổi dạy">
-              <div className="teacher-occurrence-heading"><div><p className="teacher-occurrence-eyebrow">{selectedClass?.display_name ?? "Lớp"} · {OCCURRENCE_STATE_LABEL[occurrence.state]}</p><h2>{occurrence.title}</h2></div><span>{occurrence.scheduled_date ?? "Chưa đặt ngày"}</span></div>
-              {occurrence.lesson_version_ref && <p className="s2l-note">Đã ghim giáo án {occurrence.lesson_version_ref.lesson_id} · phiên bản {occurrence.lesson_version_no}</p>}
-              {occurrence.approved_plan && <p className="s2l-note">Kế hoạch đã xác nhận: bản {occurrence.approved_plan.revision_no}</p>}
-              {entryLinks(occurrence).sample && <a href={`/teacher/t06-sample-story-run?occurrence=${encodeURIComponent(occurrence.occurrence_id)}`}>Video mẫu</a>}
-              {entryLinks(occurrence).projection && <a href={`/teacher/t07-video-presentation-confirmation?occurrence=${encodeURIComponent(occurrence.occurrence_id)}`}>Chiếu cho lớp</a>}
+            <section className="s2l-data-card koi-teacher-band" aria-label="Chi tiết buổi dạy">
+              <div className="teacher-occurrence-heading">
+                <div>
+                  <p className="teacher-occurrence-eyebrow">{selectedClass?.display_name ?? "Lớp"}</p>
+                  <h2>{occurrence.title}</h2>
+                </div>
+                <div className="tp-chip-row">
+                  <StatusBadge tone={teacherStatusMeta(occurrence.state, "session").tone} dot>{OCCURRENCE_STATE_LABEL[occurrence.state]}</StatusBadge>
+                  <span className="tp-value-chip">{occurrence.scheduled_date ? formatDateDdMmYyyy(occurrence.scheduled_date) : "Chưa đặt ngày"}</span>
+                </div>
+              </div>
+              {occurrence.lesson_version_ref && <p className="s2l-note">Đã ghim giáo án {lessons.find((item) => item.lesson_id === occurrence.lesson_version_ref?.lesson_id)?.title ?? "đã chọn"} · Phiên bản {occurrence.lesson_version_no}</p>}
+              {occurrence.approved_plan && <p className="s2l-note">Kế hoạch đã xác nhận: Phiên bản {occurrence.approved_plan.revision_no}</p>}
+              <div className="tp-actions">
+                <Link className="s2l-button" to={`/teacher/t02-presentation?occurrence=${encodeURIComponent(occurrence.occurrence_id)}`}>Chỉnh sửa và trình bày slide</Link>
+                {entryLinks(occurrence).sample && <Link className="s2l-button" to={`/teacher/t06-sample-story-run?occurrence=${encodeURIComponent(occurrence.occurrence_id)}`}>Video mẫu</Link>}
+                {entryLinks(occurrence).projection && <Link className="s2l-button is-primary" to={`/teacher/t07-video-presentation-confirmation?occurrence=${encodeURIComponent(occurrence.occurrence_id)}`}>Chiếu cho lớp</Link>}
+              </div>
+              <nav className="teacher-occurrence-steps" aria-label="Các bước chuẩn bị buổi dạy">
+                {OCCURRENCE_STEPS.map((step, index) => <button key={step.id} type="button" aria-label={step.label} aria-current={(activeStep < 0 ? 0 : activeStep) === index ? "step" : undefined} onClick={() => { setActiveStep(index); navigate({ pathname: location.pathname, search: location.search, hash: `#${step.id}` }, { replace: true }); }}>
+                  <b aria-hidden="true">{index + 1}</b><span><strong>{step.label}</strong><small aria-hidden="true">{(activeStep < 0 ? 0 : activeStep) === index ? "Đang xem" : "Chọn để xem"}</small></span>
+                </button>)}
+              </nav>
             </section>
 
-            <section className="s2l-data-card" aria-label="Tài liệu của buổi dạy">
+            <section hidden={activeStep > 0} id="teacher-occurrence-documents" className="s2l-data-card" aria-label="Tài liệu của buổi dạy">
+              <p className="teacher-occurrence-eyebrow teacher-occurrence-step-label">Bước 1 · Chuẩn bị tài liệu</p>
               <div className="teacher-occurrence-section-title"><h2><FileText size={18} aria-hidden="true" /> Tài liệu và văn bản trích xuất</h2></div>
               <form onSubmit={(event) => { event.preventDefault(); void uploadAndAttach(); }} className="teacher-occurrence-upload cozy-form-stack">
                 <div className="teacher-file-field">
                   <span id="occurrence-file-label" className="cozy-form-label">
-                    Tải PDF, DOCX hoặc PPTX (tối đa 25 MB){" "}
+                    Tải PDF, DOCX hoặc PPTX{" "}
                     <span className="cozy-form-required" aria-hidden="true">*</span>
                   </span>
                   <label className="teacher-file-picker" htmlFor="occurrence-file">
@@ -681,111 +727,130 @@ export function TeacherOccurrencePage() {
                     <span className="teacher-file-picker-name">{file?.name ?? "Chưa chọn tệp"}</span>
                     <input key={occurrenceId} id="occurrence-file" className="teacher-file-picker-input" type="file" accept=".pdf,.docx,.pptx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.presentationml.presentation" aria-labelledby="occurrence-file-label" aria-required="true" onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
                   </label>
+                  <p className="cozy-form-hint">Dung lượng tối đa 25 MB.</p>
                 </div>
                 {uploadProgress && <span role="status">Đang tải: {uploadProgress}</span>}
-                {!busy && !file && (
-                  <p className="cozy-form-disabled-hint">Chọn tệp ở trên để bật nút tải và đính kèm.</p>
-                )}
-                <div className="cozy-form-actions" style={{ marginTop: 0 }}>
+                <FormActionBar hint={!busy && !file ? "Chọn tệp ở trên để bật nút tải và đính kèm." : undefined}>
                   {uploadAbortable && busy && <Button type="button" variant="secondary" onClick={stopUpload}>Dừng tải lên</Button>}
                   {uploadAbortable && !busy && <Button type="button" variant="secondary" onClick={() => void abortUpload()}>Hủy phiên tải lên</Button>}
                   <Button type="submit" variant="primary" loading={busy} disabled={busy || !file} iconLeft={<Upload size={16} aria-hidden="true" />}>Tải và đính kèm</Button>
-                </div>
+                </FormActionBar>
               </form>
               {job && <p className="s2l-note" role="status">Xử lý tài liệu: {JOB_STATE_LABEL[job.state]}{job.progress.kind === "percentage" && job.progress.value !== null ? ` · ${Math.round(job.progress.value)}%` : ""}{job.failure?.public_message ? ` · ${job.failure.public_message}` : ""}</p>}
               {documents.length === 0 ? <p className="s2l-note">Chưa có tài liệu đính kèm.</p> : <div className="teacher-occurrence-document-grid">
-                <ul className="teacher-occurrence-list" aria-label="Tài liệu của buổi dạy">{documents.map((item) => <li key={item.source_document_id}><button type="button" aria-current={item.source_document_id === selectedDocumentId ? "true" : undefined} onClick={() => setSelectedDocumentId(item.source_document_id)}><strong>{item.file_name}</strong><small>{item.file_extension} · {item.page_or_slide_count ?? "Không rõ số trang"} · bản {item.head_revision_no}</small></button></li>)}</ul>
+                <ul className="teacher-occurrence-list" aria-label="Tài liệu của buổi dạy">{documents.map((item) => <li key={item.source_document_id}><button type="button" aria-current={item.source_document_id === selectedDocumentId ? "true" : undefined} onClick={() => setSelectedDocumentId(item.source_document_id)}><strong>{item.file_name}</strong><small>{item.file_extension} · {item.page_or_slide_count ?? "Không rõ số trang"} · Phiên bản {item.head_revision_no}</small></button></li>)}</ul>
                 {selectedDocument && <div className="teacher-occurrence-revisions cozy-form-stack">
                   <p><strong>{selectedDocument.file_name}</strong> · {DOCUMENT_STATE_LABEL[selectedDocument.document_state]}</p>
                   {selectedDocument.warnings.length > 0 && <ul className="s2l-note">{selectedDocument.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul>}
                   <FormField label="Lịch sử văn bản" htmlFor="document-revision">
                     <Select id="document-revision" value={selectedRevision?.revision_no ?? selectedDocument.head_revision_no} onChange={(event) => void openRevision(Number(event.target.value))}>
-                      {revisions.map((revision) => <option key={revision.revision_no} value={revision.revision_no}>Bản {revision.revision_no} · {revision.origin === "EXTRACTION" ? "trích xuất" : "chỉnh sửa"} · {revision.review_state === "NEEDS_REVIEW" ? "cần rà soát" : "đã xác nhận"}</option>)}
+                      {revisions.map((revision) => <option key={revision.revision_no} value={revision.revision_no}>Phiên bản {revision.revision_no} · {revision.origin === "EXTRACTION" ? "trích xuất" : "chỉnh sửa"} · {revision.review_state === "NEEDS_REVIEW" ? "cần rà soát" : "đã xác nhận"}</option>)}
                     </Select>
                   </FormField>
-                  <FormField label={`Văn bản của bản ${selectedRevision?.revision_no ?? selectedDocument.head_revision_no}`} htmlFor="document-text" required error={issueFor("extracted_text")}>
+                  <FormField label={`Văn bản của phiên bản ${selectedRevision?.revision_no ?? selectedDocument.head_revision_no}`} htmlFor="document-text" required error={issueFor("extracted_text")} help="Lưu sẽ tạo bản mới bất biến; chỉ bản mới nhất có thể được chỉnh sửa tiếp.">
                     <textarea id="document-text" className="cozy-textarea" value={editedText} onChange={(event) => setEditedText(event.target.value)} rows={3} />
                   </FormField>
-                  {!busy && (!selectedRevision || selectedRevision.revision_no !== selectedDocument.head_revision_no) && (
-                    <p className="cozy-form-disabled-hint">Chỉ chỉnh sửa được bản mới nhất của tài liệu.</p>
-                  )}
-                  {!busy && selectedRevision && selectedRevision.revision_no === selectedDocument.head_revision_no && !editedText.trim() && (
-                    <p className="cozy-form-disabled-hint">Nhập nội dung văn bản để bật nút lưu.</p>
-                  )}
-                  <div className="cozy-form-actions" style={{ marginTop: 0 }}>
+                  <FormActionBar
+                    hint={!busy && (!selectedRevision || selectedRevision.revision_no !== selectedDocument.head_revision_no)
+                      ? "Chỉ chỉnh sửa được bản mới nhất của tài liệu."
+                      : !busy && selectedRevision && selectedRevision.revision_no === selectedDocument.head_revision_no && !editedText.trim()
+                        ? "Nhập nội dung văn bản để bật nút lưu."
+                        : undefined}
+                  >
                     <Button type="button" variant="primary" loading={busy} onClick={() => void saveEditedText()} disabled={busy || !selectedRevision || selectedRevision.revision_no !== selectedDocument.head_revision_no || !editedText.trim()}>Lưu thành bản mới</Button>
-                  </div>
-                  <p className="s2l-note">Lưu sẽ tạo bản bất biến; chỉ bản mới nhất có thể được chỉnh sửa tiếp.</p>
+                  </FormActionBar>
                 </div>}
               </div>}
             </section>
 
-            <section className="s2l-data-card" aria-label="Kế hoạch buổi dạy">
+            <section hidden={activeStep !== 1} id="teacher-occurrence-plan" className="s2l-data-card" aria-label="Kế hoạch buổi dạy">
+              <p className="teacher-occurrence-eyebrow teacher-occurrence-step-label">Bước 2 · Lập và xác nhận kế hoạch</p>
               <div className="teacher-occurrence-section-title"><h2><ClipboardList size={18} aria-hidden="true" /> Kế hoạch buổi dạy</h2></div>
               <div className="teacher-occurrence-plan-layout">
                 <div>
                   <h3>Các bản kế hoạch</h3>
-                  {plans.length === 0 ? <p className="s2l-note">Chưa có kế hoạch. Bản đầu tiên sẽ là bản nháp.</p> : <ul className="teacher-occurrence-list">{plans.map((plan) => <li key={plan.revision_no}><button type="button" aria-current={plan.revision_no === selectedPlan?.revision_no ? "true" : undefined} onClick={() => void openPlan(plan.revision_no)}><strong>Bản {plan.revision_no} · {PLAN_STATE_LABEL[plan.state]}</strong><small>{plan.activity_count} hoạt động · {new Date(plan.created_at).toLocaleString("vi-VN")}</small></button></li>)}</ul>}
-                  {selectedPlan && <div className="teacher-occurrence-plan-detail"><h3>Bản {selectedPlan.revision_no} · {PLAN_STATE_LABEL[selectedPlan.state]}</h3>
+                  {plans.length === 0 ? <p className="s2l-note">Chưa có kế hoạch. Bản đầu tiên sẽ là bản nháp.</p> : <ul className="teacher-occurrence-list">{plans.map((plan) => <li key={plan.revision_no}><button type="button" aria-current={plan.revision_no === selectedPlan?.revision_no ? "true" : undefined} onClick={() => void openPlan(plan.revision_no)}><strong>Phiên bản {plan.revision_no} · {PLAN_STATE_LABEL[plan.state]}</strong><small>{plan.activity_count} hoạt động · {formatDateTimeDdMmYyyy(plan.created_at)}</small></button></li>)}</ul>}
+                  {selectedPlan && <div className="teacher-occurrence-plan-detail">
+                    <div className="tw-row tw-between tw-wrap">
+                      <h3>Phiên bản {selectedPlan.revision_no} · {PLAN_STATE_LABEL[selectedPlan.state]}</h3>
+                      <StatusBadge tone={teacherStatusMeta(selectedPlan.state, "plan").tone} size="sm" dot>{PLAN_STATE_LABEL[selectedPlan.state]}</StatusBadge>
+                    </div>
                     <p>{selectedPlan.objectives.join(" · ")}</p><p>{selectedPlan.teacher_direction}</p>{selectedPlan.safety_notes && <p>{selectedPlan.safety_notes}</p>}
                     {selectedPlan.activities.length > 0 && <ul className="s2l-note">{selectedPlan.activities.map((activity) => <li key={activity.order}>{activity.order}. {activity.title ?? "Hoạt động của giáo án"}</li>)}</ul>}
-                    {checklistBlocked && <p className="s2l-note">Bản này có hoạt động cần checklist an toàn nhưng danh mục checklist chưa được cấu hình, nên chưa thể xác nhận.</p>}
-                    {!busy && !checklistBlocked && (selectedPlan.state !== "DRAFT" || selectedPlan.revision_no !== currentHeadPlan?.revision_no) && (
-                      <p className="cozy-form-disabled-hint">Chỉ xác nhận được bản nháp mới nhất.</p>
-                    )}
-                    <div className="cozy-form-actions" style={{ marginTop: 4 }}>
+                    {checklistBlocked && <p className="s2l-note">Bản này có hoạt động cần danh mục kiểm tra an toàn nhưng danh mục chưa được cấu hình, nên chưa thể xác nhận.</p>}
+                    <FormActionBar hint={!busy && !checklistBlocked && (selectedPlan.state !== "DRAFT" || selectedPlan.revision_no !== currentHeadPlan?.revision_no) ? "Chỉ xác nhận được bản nháp mới nhất." : undefined}>
                       <Button type="button" variant="secondary" onClick={() => editPlan(selectedPlan)}>Tạo bản mới từ bản này</Button>
                       <Button type="button" variant="primary" loading={busy} onClick={() => void confirmPlan()} disabled={busy || checklistBlocked || selectedPlan.state !== "DRAFT" || selectedPlan.revision_no !== currentHeadPlan?.revision_no}>Xác nhận bản nháp mới nhất</Button>
-                    </div>
+                    </FormActionBar>
                   </div>}
                 </div>
                 <form onSubmit={(event) => { event.preventDefault(); void savePlan(); }} className="teacher-occurrence-plan-form cozy-form-stack">
                   <h3>{selectedPlan ? "Tạo bản kế hoạch tiếp theo" : "Tạo bản kế hoạch"}</h3>
                   <div className="cozy-form-grid">
                     <FormField
-                      className="cozy-span-3"
-                      label={`Mục tiêu học tập (mỗi dòng một mục, tối đa ${PLAN_LIMITS.objectives}, mỗi mục tối đa ${PLAN_LIMITS.objectiveChars} ký tự)`}
+                      className="cozy-span-6"
+                      label="Mục tiêu học tập"
                       htmlFor="plan-objectives"
                       required
+                      help={`Mỗi dòng một mục tiêu. Tối đa ${PLAN_LIMITS.objectives} mục, mỗi mục tối đa ${PLAN_LIMITS.objectiveChars} ký tự.`}
                       error={issueFor("objectives") ?? (objectivesProblem || undefined)}
                     >
                       <textarea id="plan-objectives" className="cozy-textarea" value={objectives} onChange={(event) => setObjectives(event.target.value)} rows={3} required />
                     </FormField>
                     <FormField
-                      className="cozy-span-3"
+                      className="cozy-span-6"
                       label="Hướng dẫn cho giáo viên"
                       htmlFor="plan-direction"
                       required
+                      help={`Tối đa ${PLAN_LIMITS.directionChars} ký tự.`}
                       error={issueFor("teacher_direction") ?? (directionProblem || undefined)}
                     >
                       <textarea id="plan-direction" className="cozy-textarea" maxLength={PLAN_LIMITS.directionChars} value={direction} onChange={(event) => setDirection(event.target.value)} rows={3} required />
                     </FormField>
                     <FormField
-                      className="cozy-span-3"
-                      label="Ghi chú an toàn (không bắt buộc)"
+                      className="cozy-span-6"
+                      label="Ghi chú an toàn"
                       htmlFor="plan-safety"
+                      labelAction={<span className="cozy-form-optional">(không bắt buộc)</span>}
+                      help={`Tối đa ${PLAN_LIMITS.safetyNotesChars} ký tự.`}
                       error={issueFor("safety_notes") ?? (safetyProblem || undefined)}
                     >
-                      <textarea id="plan-safety" className="cozy-textarea" maxLength={PLAN_LIMITS.safetyNotesChars} value={safetyNotes} onChange={(event) => setSafetyNotes(event.target.value)} rows={2} />
+                      <textarea id="plan-safety" className="cozy-textarea" maxLength={PLAN_LIMITS.safetyNotesChars} value={safetyNotes} onChange={(event) => setSafetyNotes(event.target.value)} rows={3} />
                     </FormField>
-                    <FormField className="cozy-span-3" label="Bản văn bản làm nguồn (không bắt buộc)" htmlFor="plan-document-revision" error={issueFor("document_revision_ref")}>
+                    <FormField
+                      className="cozy-span-6"
+                      label="Bản văn bản làm nguồn"
+                      htmlFor="plan-document-revision"
+                      labelAction={<span className="cozy-form-optional">(không bắt buộc)</span>}
+                      error={issueFor("document_revision_ref")}
+                    >
                       <Select id="plan-document-revision" value={planDocumentRevision} onChange={(event) => setPlanDocumentRevision(event.target.value)}>
                         <option value="">Không chọn nguồn văn bản</option>
-                        {selectedDocument && revisions.map((revision) => <option key={revision.revision_no} value={`${selectedDocument.source_document_id}:${revision.revision_no}`}>{selectedDocument.file_name} · bản {revision.revision_no}</option>)}
+                        {selectedDocument && revisions.map((revision) => <option key={revision.revision_no} value={`${selectedDocument.source_document_id}:${revision.revision_no}`}>{selectedDocument.file_name} · Phiên bản {revision.revision_no}</option>)}
                       </Select>
                     </FormField>
                   </div>
-                  {carriedActivities.length > 0 && <p className="s2l-note">Giữ nguyên {carriedActivities.length} hoạt động lấy từ giáo án đã ghim.</p>}
-                  <p className="s2l-note">Kế hoạch này tạo bản nháp bất biến. Hoạt động tùy chỉnh và danh mục hoạt động chưa dùng được vì checklist an toàn chưa được cấu hình.</p>
-                  {!busy && (planProblems.length > 0 || objectiveLines.length === 0 || !direction.trim()) && (
-                    <p className="cozy-form-disabled-hint">Nhập mục tiêu học tập và hướng dẫn cho giáo viên hợp lệ để bật nút lưu.</p>
-                  )}
-                  <div className="cozy-form-actions" style={{ marginTop: 0 }}>
+                  {occurrence.lesson_version_ref && <PlanActivityPicker
+                    key={`${occurrence.occurrence_id}:${organizationId}:${occurrence.lesson_version_ref.lesson_id}:${occurrence.lesson_version_ref.version_id}`}
+                    organizationId={organizationId}
+                    lessonVersionRef={occurrence.lesson_version_ref}
+                    selection={carriedActivities}
+                    onSelectionChange={setCarriedActivities}
+                    copiedFromPlan={copiedActivitiesFromPlan}
+                    disabled={busy}
+                  />}
+                  <p className="s2l-note">Kế hoạch mới được lưu thành bản nháp riêng.</p>
+                  <FormActionBar hint={!busy && (planProblems.length > 0 || objectiveLines.length === 0 || !direction.trim()) ? "Nhập mục tiêu học tập và hướng dẫn cho giáo viên hợp lệ để bật nút lưu." : undefined}>
                     <Button type="submit" variant="primary" loading={busy} disabled={busy || planProblems.length > 0 || objectiveLines.length === 0 || !direction.trim()}>Lưu bản kế hoạch</Button>
-                  </div>
+                  </FormActionBar>
                 </form>
               </div>
             </section>
+            <div hidden={activeStep !== 2}><TeacherSketchDeckPanel
+              key={`${occurrence.occurrence_id}:${occurrence.approved_plan?.revision_no ?? "none"}`}
+              occurrenceId={occurrence.occurrence_id}
+              approvedRevisionNo={occurrence.approved_plan?.revision_no ?? null}
+            /></div>
           </div> : <section className="s2l-data-card teacher-occurrence-empty"><h2>Chọn buổi dạy</h2><p>Chọn một buổi dạy trong lớp hoặc tạo buổi mới để quản lý tài liệu và kế hoạch.</p></section>}
         </div>
       )}

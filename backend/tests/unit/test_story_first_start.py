@@ -1,7 +1,7 @@
 """FEAT-066 goal v4 T-2e-a / OPEN-A: the implicit first-story start (``FirstStoryStarter``).
 
 Offline, with a scripted session: the truth table of the Parent predicate P and of the Teacher
-predicate P_T (V4-A OPEN-A D2), the v2 worker input of both roles, the reservation, one story under
+predicate P_T (V4-A OPEN-A D2), the v3 worker input of both roles, the reservation, one story under
 two evaluations, the failure path, the generator capability flag and the non-raising probe. The
 behaviour inside the real transactions is proven on PostgreSQL in
 ``tests/integration/test_parent_activity_selection_postgres.py`` and
@@ -21,7 +21,9 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql import Insert, Select, Update
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
-from sketch2life.application.ports.parent_story_runs import ParentStoryRunError
+from sketch2life.application.ports.parent_story_runs import (
+    ParentStoryRunError,
+)
 from sketch2life.domain.story_teacher import TEACHER_PIN_SCHEMA, teacher_pin_ready
 from sketch2life.infrastructure.persistence import story_first_start
 from sketch2life.infrastructure.persistence.parent_story_repository import (
@@ -46,10 +48,11 @@ RUN_ID = "11111111-1111-4111-8111-111111111111"
 PRINCIPAL = VerifiedPrincipal("parent-1", "issuer-1", frozenset())
 NOW = datetime(2026, 11, 22, 10, tzinfo=UTC)
 HASH = "b" * 64
-WORKER_KEYS = {
+TEACHER_WORKER_KEYS = {
     "schema_version",
     "role",
     "language",
+    "topic",
     "confirmed_subject",
     "understanding_revision",
     "drawing_sha256",
@@ -57,22 +60,12 @@ WORKER_KEYS = {
     "child_age_months",
     "context_revision",
     "adult_confirmed_idea",
-    "activity",
+    "rewrite_instruction",
+    "lesson_subject_learning_notes",
     "lesson_direction",
+    "primary_activity",
+    "primary_activity_sha256",
 }
-ACTIVITY_KEYS = {
-    "title",
-    "objective",
-    "instructions_text",
-    "safety_notes",
-    "activity_kind",
-    "source",
-    "lesson_id",
-    "version_id",
-    "content_sha256",
-}
-
-
 def _run(**changes: Any) -> dict[str, Any]:
     run = {
         "run_id": RUN_ID,
@@ -93,6 +86,7 @@ def _selection() -> dict[str, Any]:
         "lesson_id": "lesson-1",
         "version_id": "version-1",
         "content_sha256": HASH,
+        "activity_snapshot_sha256": "d" * 64,
         "activity_index": 0,
         "activity_snapshot": {
             "schema": "sketch2life.parent-activity-pin.v1",
@@ -169,10 +163,20 @@ class _Session:
         has_revision: bool = False,
         selection: dict[str, Any] | None = None,
         fail_on_write: bool = False,
+        plan_activity: dict[str, Any] | None = None,
     ) -> None:
         self.run = run if run is not None else _run()
         self.has_revision = has_revision
         self.selection = selection if selection is not None else _selection()
+        self.plan_activity = plan_activity if plan_activity is not None else {
+            "plan_revision_id": "plan-revision-1",
+            "plan_activity_id": "plan-activity-1",
+            "activity_kind": "CUSTOM",
+            "custom_title": "Ve bang ngon tay",
+            "custom_description": "Draw one shape with an adult.",
+            "activity_snapshot": None,
+            "activity_snapshot_hash": None,
+        }
         self.fail_on_write = fail_on_write
         self.writes: list[Insert | Update] = []
         self.rolled_back = False
@@ -187,9 +191,12 @@ class _Session:
                 self.run = {**self.run, "run_state": "SCRIPT_GENERATING"}
             return _Result(None)
         assert isinstance(statement, Select)
-        table = statement.get_final_froms()[0].name
+        table_names = {column.table.name for column in statement.selected_columns}
+        table = next(iter(table_names)) if len(table_names) == 1 else None
         if table == "runs":
             return _Result(self.run)
+        if "plan_activities" in table_names:
+            return _Result(self.plan_activity)
         assert table == "activity_selections", table
         return _Result(self.selection)
 
@@ -201,7 +208,11 @@ class _Session:
 
 
 def _starter(
-    session: _Session, *, enabled: bool = True, probe: Any = None, teacher: bool = False
+    session: _Session,
+    *,
+    enabled: bool = True,
+    probe: Any = None,
+    teacher: bool = False,
 ) -> FirstStoryStarter:
     return FirstStoryStarter(
         session,  # type: ignore[arg-type]
@@ -299,8 +310,9 @@ def test_the_parent_worker_input_is_the_v3_shape_with_the_primary_activity() -> 
     reservation = _starter(_Session()).start_if_ready(RUN_ID, PRINCIPAL, NOW)
     assert reservation is not None
     worker = reservation.worker_input
-    assert worker["schema_version"] == "sketch2life.story-generation-input.v3"
-    assert FIRST_STORY_INPUT_SCHEMA == "sketch2life.story-generation-input.v2"  # Teacher keeps v2
+    assert worker["schema_version"] == FIRST_STORY_INPUT_SCHEMA == (
+        "sketch2life.story-generation-input.v3"
+    )
     assert set(worker) == {
         "schema_version", "role", "language", "topic", "confirmed_subject",
         "understanding_revision", "drawing_sha256", "visible_features", "child_age_months",
@@ -323,6 +335,210 @@ def test_the_parent_worker_input_is_the_v3_shape_with_the_primary_activity() -> 
     assert "activity" not in worker and "adult_rewrite_hint" not in worker
     canonical = json.dumps(worker, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
     assert reservation.request_sha256 == hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def test_parent_first_story_input_uses_a_canonical_request_sha() -> None:
+    reservation = _starter(_Session()).start_if_ready(RUN_ID, PRINCIPAL, NOW)
+
+    assert reservation is not None
+    assert reservation.worker_input["schema_version"] == FIRST_STORY_INPUT_SCHEMA
+    assert set(reservation.worker_input) == {
+        "schema_version", "role", "language", "topic", "confirmed_subject",
+        "understanding_revision", "drawing_sha256", "visible_features", "child_age_months",
+        "context_revision", "adult_confirmed_idea", "rewrite_instruction",
+        "lesson_subject_learning_notes", "lesson_direction", "primary_activity",
+        "primary_activity_sha256",
+    }
+    assert reservation.request_sha256 == _sha256_json(reservation.worker_input)
+
+
+def test_parent_first_story_uses_only_the_dev_v3_worker_shape() -> None:
+    reservation = _starter(_Session()).start_if_ready(RUN_ID, PRINCIPAL, NOW)
+
+    assert reservation is not None
+    worker = reservation.worker_input
+    assert worker["schema_version"] == FIRST_STORY_INPUT_SCHEMA
+    assert "activity_selection_sha256" not in worker
+    assert "story_validator_version" not in worker
+    assert set(worker) == {
+        "schema_version", "role", "language", "topic", "confirmed_subject",
+        "understanding_revision", "drawing_sha256", "visible_features", "child_age_months",
+        "context_revision", "adult_confirmed_idea", "rewrite_instruction",
+        "lesson_subject_learning_notes", "lesson_direction", "primary_activity",
+        "primary_activity_sha256",
+    }
+
+
+def test_worker_activity_hash_covers_only_the_activity_fields_sent_to_dev() -> None:
+    reservation = _starter(_Session()).start_if_ready(RUN_ID, PRINCIPAL, NOW)
+
+    assert reservation is not None
+    worker = reservation.worker_input
+    canonical = json.dumps(
+        worker["primary_activity"], ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    )
+    assert worker["primary_activity_sha256"] == hashlib.sha256(canonical.encode()).hexdigest()
+    assert worker["primary_activity_sha256"] != "d" * 64
+
+
+def test_first_story_activity_comes_only_from_the_stored_selection_row() -> None:
+    selection = _selection()
+    selection["activity_snapshot"]["title"] = "stored activity title"
+    session = _Session(
+        run=_run(activity={"title": "client supplied activity"}),
+        selection=selection,
+    )
+    starter = _starter(session)
+
+    with pytest.raises(TypeError):
+        starter.start_if_ready(
+            RUN_ID,
+            PRINCIPAL,
+            NOW,
+            activity={"title": "client supplied activity"},
+        )
+
+    reservation = starter.start_if_ready(RUN_ID, PRINCIPAL, NOW)
+
+    assert reservation is not None
+    assert reservation.worker_input["primary_activity"]["title"] == "stored activity title"
+    assert "client supplied activity" not in json.dumps(
+        reservation.worker_input, ensure_ascii=False
+    )
+
+
+def test_request_fingerprint_changes_when_the_dev_activity_payload_changes() -> None:
+    reservation = _starter(_Session()).start_if_ready(RUN_ID, PRINCIPAL, NOW)
+
+    assert reservation is not None
+    worker = dict(reservation.worker_input)
+    assert reservation.request_sha256 == _sha256_json(worker)
+    worker["primary_activity"] = {**worker["primary_activity"], "title": "Changed title"}
+    worker["primary_activity_sha256"] = _sha256_json(worker["primary_activity"])
+    assert _sha256_json(worker) != reservation.request_sha256
+
+
+def test_start_story_generation_fails_closed_when_selection_changed_after_reservation() -> None:
+    class _SelectionResult:
+        def mappings(self) -> _SelectionResult:
+            return self
+
+        def one_or_none(self) -> dict[str, Any]:
+            selected = _selection()
+            selected["activity_snapshot"]["title"] = "Changed after reservation"
+            return selected
+
+    class _DispatchSession:
+        committed = False
+
+        def scalar(self, _statement: Any) -> str:
+            return "story-revision"
+
+        def execute(self, _statement: Any) -> _SelectionResult:
+            return _SelectionResult()
+
+        def commit(self) -> None:
+            self.committed = True
+
+        def rollback(self) -> None:
+            raise AssertionError("a known stale selection must be recorded, not rolled back")
+
+    reservation = _starter(_Session()).start_if_ready(RUN_ID, PRINCIPAL, NOW)
+    assert reservation is not None
+    session = _DispatchSession()
+    repository = SqlParentStoryRunRepository(session)  # type: ignore[arg-type]
+    repository._owned_run = lambda *_args, **_kwargs: {  # type: ignore[method-assign]
+        "run_state": "SCRIPT_GENERATING",
+        "job_state": "QUEUED",
+        "version": 8,
+        "actor_scope_kind": "PARENT_ACCOUNT",
+    }
+    failures: list[dict[str, Any]] = []
+    repository._fail_generating_revision = lambda **kwargs: failures.append(  # type: ignore[method-assign]
+        kwargs
+    )
+
+    started = repository.start_story_generation(
+        principal=PRINCIPAL,
+        run_id=RUN_ID,
+        story_revision_id="story-revision",
+        reservation=reservation,
+    )
+
+    assert started is False
+    assert session.committed is True
+    assert failures[0]["error_code"] == "STORY_INPUT_INTEGRITY_INVALID"
+    assert failures[0]["outcome_unknown"] is False
+
+
+def test_start_story_generation_rechecks_teacher_activity_and_hash_before_dispatch() -> None:
+    reservation = _teacher_starter(_teacher_session()).start_if_ready(RUN_ID, PRINCIPAL, NOW)
+    assert reservation is not None
+    input_row = _basis(_pin())[1]
+    input_row["lesson_pin_snapshot"] = _pin()
+
+    class _TeacherDispatchSession:
+        calls = 0
+        committed = False
+
+        def scalar(self, _statement: Any) -> str:
+            return "story-revision"
+
+        def execute(self, _statement: Any) -> _Result:
+            self.calls += 1
+            if self.calls == 1:
+                return _Result(input_row)
+            if self.calls == 2:
+                return _Result(_teacher_session().plan_activity)
+            return _Result(None)
+
+        def commit(self) -> None:
+            self.committed = True
+
+        def rollback(self) -> None:
+            raise AssertionError("a current Teacher pin must not be rolled back")
+
+    session = _TeacherDispatchSession()
+    repository = SqlParentStoryRunRepository(session)  # type: ignore[arg-type]
+    repository._owned_run = lambda *_args, **_kwargs: {  # type: ignore[method-assign]
+        "run_state": "SCRIPT_GENERATING",
+        "job_state": "QUEUED",
+        "version": 8,
+        "actor_scope_kind": "ORGANIZATION",
+        "actor_scope_ref": ORGANIZATION,
+        "occurrence_ref": OCCURRENCE,
+        "current_input_revision": 3,
+    }
+    failures: list[dict[str, Any]] = []
+    repository._fail_generating_revision = lambda **kwargs: failures.append(  # type: ignore[method-assign]
+        kwargs
+    )
+
+    assert repository.start_story_generation(
+        principal=PRINCIPAL,
+        run_id=RUN_ID,
+        story_revision_id="story-revision",
+        reservation=reservation,
+    ) is True
+    assert session.committed is True and failures == []
+
+    reservation.worker_input["primary_activity_sha256"] = "0" * 64
+    stale_session = _TeacherDispatchSession()
+    stale_repository = SqlParentStoryRunRepository(stale_session)  # type: ignore[arg-type]
+    stale_repository._owned_run = repository._owned_run  # type: ignore[method-assign]
+    stale_failures: list[dict[str, Any]] = []
+    stale_repository._fail_generating_revision = lambda **kwargs: stale_failures.append(  # type: ignore[method-assign]
+        kwargs
+    )
+
+    assert stale_repository.start_story_generation(
+        principal=PRINCIPAL,
+        run_id=RUN_ID,
+        story_revision_id="story-revision",
+        reservation=reservation,
+    ) is False
+    assert stale_session.committed is True
+    assert stale_failures[0]["error_code"] == "STORY_INPUT_INTEGRITY_INVALID"
 
 
 def _learning_switched_on(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -365,14 +581,14 @@ def test_a_pinned_lesson_is_the_source_of_the_first_learning_script(
     assert reservation.worker_input["learning"]["fact_source"] == "LESSON"
 
 
-def test_a_teacher_first_story_asks_for_no_learning_script(
+def test_a_teacher_first_story_asks_for_the_learning_script_too(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     _learning_switched_on(monkeypatch)
 
     reservation = _teacher_starter(_teacher_session()).start_if_ready(RUN_ID, PRINCIPAL, NOW)
 
-    assert reservation is not None and "learning" not in reservation.worker_input
+    assert reservation is not None and "learning" in reservation.worker_input
 
 
 def test_the_first_story_reuses_the_rewrite_identifiers() -> None:
@@ -459,18 +675,30 @@ def test_a_teacher_run_with_a_complete_pin_reserves_revision_one_without_a_selec
     assert update.compile().params["run_state"] == "SCRIPT_GENERATING"
 
 
-def test_the_teacher_worker_input_is_the_v2_shape_with_the_direction_and_no_activity() -> None:
+def test_the_teacher_worker_input_is_v3_with_the_pinned_activity_and_plain_direction() -> None:
     reservation = _teacher_starter(_teacher_session()).start_if_ready(RUN_ID, PRINCIPAL, NOW)
     assert reservation is not None
     worker = reservation.worker_input
-    assert set(worker) == WORKER_KEYS
+    assert set(worker) == TEACHER_WORKER_KEYS
     assert worker["schema_version"] == FIRST_STORY_INPUT_SCHEMA
-    assert worker["role"] == "TEACHER" and worker["activity"] is None
-    assert worker["lesson_direction"] == {
-        "teacher_direction": "Cau chuyen ve chu meo",
-        "objectives": ["Nhan biet hinh tron"],
-        "activity_title": "Ve bang ngon tay",
+    assert worker["role"] == "TEACHER" and worker["topic"] == "Ve bang ngon tay"
+    assert worker["primary_activity"] == {
+        "title": "Ve bang ngon tay",
+        "objective": "Nhan biet hinh tron",
+        "materials_text": "",
+        "preparation_text": "",
+        "instructions_text": "Draw one shape with an adult.",
+        "observation_notes": "",
+        "safety_notes": "",
+        "activity_kind": "indoor",
     }
+    assert worker["rewrite_instruction"] is None
+    assert worker["lesson_subject_learning_notes"] is None
+    assert worker["lesson_direction"] == (
+        "Định hướng: Cau chuyen ve chu meo\n"
+        "Mục tiêu: Nhan biet hinh tron\n"
+        "Hoạt động: Ve bang ngon tay"
+    )
     assert worker["child_age_months"] == 60 and worker["confirmed_subject"] == "rong"
     assert "plan-revision-1" not in json.dumps(worker)  # no pin id reaches the worker
     canonical = json.dumps(worker, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
@@ -488,6 +716,7 @@ def test_the_teacher_worker_input_is_the_v2_shape_with_the_direction_and_no_acti
         "no_plan_number",
         "no_activity",
         "no_activity_id",
+        "activity_missing",
         "unknown_kind",
         "lesson_without_snapshot_hash",
         "no_occurrence_pin_on_the_run",
@@ -522,6 +751,8 @@ def test_each_unmet_teacher_gate_starts_nothing_and_writes_nothing(case: str) ->
         pin = _pin(activity={"plan_activity_id": "a", "kind": "OTHER", "snapshot_hash": None})
     elif case == "lesson_without_snapshot_hash":
         pin = _pin(activity={"plan_activity_id": "a", "kind": "LESSON", "snapshot_hash": None})
+    elif case == "activity_missing":
+        session.plan_activity.update(custom_title=None, activity_snapshot={})
     elif case == "no_occurrence_pin_on_the_run":
         session.run = _run(occurrence_ref=None, actor_scope_ref=ORGANIZATION)
     elif case == "unsupported_generator":
@@ -581,11 +812,8 @@ def test_a_database_failure_on_a_read_is_a_503_with_a_rollback_too() -> None:
     assert session.rolled_back
 
 
-def test_a_teacher_context_with_no_direction_starts_with_neither_activity_nor_direction() -> None:
-    """Documented result (review P3-5): ``teacher_lesson_direction`` is ``None`` when the snapshot
-    holds no direction, objective or title, and a Teacher run has no activity, so the worker
-    receives the confirmed subject and features only. The plan activity title is stored at create,
-    so this is rare; the story is not refused."""
+def test_a_teacher_context_with_no_direction_still_uses_the_pinned_activity() -> None:
+    """A run can lack direction text and still use its independently pinned plan activity."""
 
     def probe(_p: Any, _r: Any, _u: Any) -> Any:
         understanding, input_row, idea, features = _basis(_pin())
@@ -597,5 +825,45 @@ def test_a_teacher_context_with_no_direction_starts_with_neither_activity_nor_di
         RUN_ID, PRINCIPAL, NOW
     )
     assert reservation is not None
-    assert reservation.worker_input["activity"] is None
+    assert reservation.worker_input["primary_activity"]["title"] == "Ve bang ngon tay"
     assert reservation.worker_input["lesson_direction"] is None
+
+
+def test_parent_context_stays_outside_the_dev_story_worker_shape() -> None:
+    """Only the current v3 allowlisted fields are staged to the dev worker."""
+
+    def probe_for(selected: list[dict[str, Any]]) -> Any:
+        def probe(_p: Any, _r: Any, _u: Any) -> Any:
+            understanding, input_row, idea, features = _basis()
+            input_row["context_snapshot"] = {
+                "schema_version": "sketch2life.parent-context.v2",
+                "profile_revision_ref": "11111111-1111-4111-8111-111111111111",
+                "age_months": 60,
+                "interests_summary": "",
+                "topic": "",
+                "adult_confirmed_idea": "",
+                "selected_entries": selected,
+            }
+            return understanding, input_row, idea, features
+
+        return probe
+
+    chosen = [
+        {"kind": "OBSERVATION", "text": "thich ve ca"},
+        {"kind": "ACHIEVEMENT", "text": "tu dap xe"},
+    ]
+    reservation = _starter(_Session(), probe=probe_for(chosen)).start_if_ready(
+        RUN_ID, PRINCIPAL, NOW
+    )
+    assert reservation is not None
+    assert "context_entries" not in reservation.worker_input
+    assert reservation.worker_input["schema_version"] == FIRST_STORY_INPUT_SCHEMA
+    assert set(reservation.worker_input) == {
+        "schema_version", "role", "language", "topic", "confirmed_subject",
+        "understanding_revision", "drawing_sha256", "visible_features", "child_age_months",
+        "context_revision", "adult_confirmed_idea", "rewrite_instruction",
+        "lesson_subject_learning_notes", "lesson_direction", "primary_activity",
+        "primary_activity_sha256",
+    }
+    empty = _starter(_Session(), probe=probe_for([])).start_if_ready(RUN_ID, PRINCIPAL, NOW)
+    assert empty is not None and "context_entries" not in empty.worker_input

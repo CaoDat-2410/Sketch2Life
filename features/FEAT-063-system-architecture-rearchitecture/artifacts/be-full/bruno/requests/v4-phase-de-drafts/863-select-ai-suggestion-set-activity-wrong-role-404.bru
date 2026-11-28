@@ -1,0 +1,46 @@
+meta {
+  name: 863 [DRAFT-V4D2] [LOCAL / TEST ONLY] Teacher gets 404 selecting Parent AI suggestion set activity
+  type: http
+  seq: 863
+}
+
+post {
+  url: {{baseUrl}}/api/parent/v1/ai/story-runs/{{phase_de_t2eb_run_id}}/activity-selection
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: t2eb-select-wrong-role-key
+}
+
+body:json {
+  {
+    "suggestion_set_id": "00000000-0000-4000-8000-000000000000",
+    "expected_understanding_revision": 1,
+    "activity_index": 0
+  }
+}
+
+tests {
+  test("assert non-parent role refusal", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().detail.code).to.equal("RESOURCE_NOT_FOUND");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against committed Hybrid B code at 68c0fdf3; not yet run against a live backend.
+  Role: Wrong Role (Teacher) - set bearerToken to seed-tch-a1 token
+  Needs: needs-fixture: Parent story run phase_de_t2eb_run_id
+  Expected: 404 / RESOURCE_NOT_FOUND
+  Source: backend/src/sketch2life/interfaces/http/routers/parent_ai.py
+}

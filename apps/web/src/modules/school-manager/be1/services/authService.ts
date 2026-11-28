@@ -1,6 +1,7 @@
 import { getApp, getApps, initializeApp } from 'firebase/app'
 import {
   getAuth,
+  connectAuthEmulator,
   EmailAuthProvider,
   onAuthStateChanged,
   reauthenticateWithCredential,
@@ -11,10 +12,30 @@ import {
 } from 'firebase/auth'
 import { apiBaseUrl, BackendApiError } from '../../../../shared/api/backendApi'
 import { parseApiError } from '../../../../shared/api/errorEnvelope'
+import { clearSessionScopedDrafts } from '../../../../shared/hooks/useSessionScopedDraft'
+
+const emulatorConnectedAuths = new WeakSet<object>()
+
+function localAuthEmulatorUrl(): string | undefined {
+  if (!import.meta.env.DEV) return undefined
+
+  const value = import.meta.env.VITE_FIREBASE_AUTH_EMULATOR_URL?.trim()
+  if (!value) return undefined
+
+  const match = /^http:\/\/(?:localhost|127\.0\.0\.1):(\d{1,5})\/?$/i.exec(value)
+  const port = Number(match?.[1])
+  if (match && port >= 1 && port <= 65535) return value
+
+  console.warn('Ignoring invalid VITE_FIREBASE_AUTH_EMULATOR_URL; use http://localhost:<port> or http://127.0.0.1:<port>.')
+  return undefined
+}
 
 function configuredAuth() {
+  const emulatorUrl = localAuthEmulatorUrl()
   const config = {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+    apiKey: emulatorUrl && !import.meta.env.VITE_FIREBASE_API_KEY?.trim()
+      ? 'fake-api-key'
+      : import.meta.env.VITE_FIREBASE_API_KEY,
     authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
     projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
     appId: import.meta.env.VITE_FIREBASE_APP_ID,
@@ -23,7 +44,12 @@ function configuredAuth() {
     throw new Error('Firebase Authentication is not configured for this app.')
   }
   const app = getApps().length ? getApp() : initializeApp(config)
-  return getAuth(app)
+  const auth = getAuth(app)
+  if (emulatorUrl && !emulatorConnectedAuths.has(auth)) {
+    emulatorConnectedAuths.add(auth)
+    connectAuthEmulator(auth, emulatorUrl, { disableWarnings: true })
+  }
+  return auth
 }
 
 export const authService = {
@@ -36,6 +62,7 @@ export const authService = {
     return result.user
   },
   logout: async () => {
+    clearSessionScopedDrafts()
     const auth = configuredAuth()
     if (auth.currentUser) await signOut(auth)
   },

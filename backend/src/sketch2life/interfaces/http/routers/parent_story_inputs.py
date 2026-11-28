@@ -611,6 +611,7 @@ def rewrite_parent_run_story(
     try:
         outcome = story_run_repository(db, actor).reserve_story_rewrite(
             principal=principal,
+            account_id=actor.account_id,
             run_id=str(run_id),
             idempotency_key=key,
             expected_story_revision=payload.expected_story_revision,

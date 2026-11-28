@@ -23,6 +23,34 @@ const safeParameterKeyPattern = /^[a-z][a-z0-9_]{0,31}$/;
 const safeParameterValuePattern = /^[A-Za-z0-9_.:-]{1,64}$/;
 const deniedParameterKeyPattern = /(name|child|story|transcript|media|url|email|token|endpoint|address)/i;
 
+export type ParentNotificationCopy = {
+  title: string;
+  body: string | null;
+  action: 'story-history' | null;
+  actionLabel: string | null;
+};
+
+const genericNotificationCopy: ParentNotificationCopy = {
+  title: 'Bạn có một cập nhật mới trong ứng dụng.',
+  body: null,
+  action: null,
+  actionLabel: null,
+};
+
+const notificationTypeCopy: Record<string, ParentNotificationCopy> = {
+  RUN_WAIT_REMINDER: {
+    title: 'Một câu chuyện đang chờ bạn',
+    body: 'Khi thuận tiện, bạn có thể quay lại buổi học để tiếp tục bước tiếp theo.',
+    action: 'story-history',
+    actionLabel: 'Xem lịch sử buổi học',
+  },
+};
+
+/** Client-owned copy only; notification parameters are never used as display text. */
+export function notificationCopyForType(notificationType: string): ParentNotificationCopy {
+  return notificationTypeCopy[notificationType] ?? genericNotificationCopy;
+}
+
 export function readNotificationV1(value: unknown): ParentNotification | null {
   if (!isRecord(value) || !hasExactKeys(value, notificationItemKeys)) return null;
   if (value.contract !== 'NotificationV1' || typeof value.inbox_item_id !== 'string'

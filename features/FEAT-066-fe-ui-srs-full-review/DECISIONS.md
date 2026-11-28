@@ -95,7 +95,6 @@ Use a warm paper/chalk, forest/leaf, muted marigold/clay palette with restrained
 
 The reviewed recursive FEAT-066 inventories showed no file path present only in root and missing from the authorized worktree. The root subset is stale/different on some matching paths; preserve it and do not overwrite the newer active worktree records.
 
-
 ## D-066-26 — Keep the school theme local to authenticated School Manager
 
 Load the local manager stylesheet after shared styles so scoped selectors win without editing shared/global styles. Keep the school-office palette and responsive shell in apps/school-manager-ui only; do not restyle the shared login or add images, packages or business behavior. Revision 8 visual review is recorded as EV-010.
@@ -119,7 +118,6 @@ EV-011 records the generated Cool Grey + Cobalt palette on /m02-organization-man
 ## D-066-31 — Apply the supplied brand art and bright cobalt palette across browser UIs
 
 The direct user request authorizes the attached image as the web logo and the approved Cool Grey + Cobalt direction across the five existing browser app packages and their shared styles. Parent Android and all native apps remain excluded. The parent-ui and admin-ui sources are styled only as existing browser UIs; this does not establish new product roles or flows. Keep status semantics, behavior and privacy intact.
-
 
 ## D-066-32 — Supersede dashboard-only palette preview with direct cross-web adoption
 
@@ -215,11 +213,9 @@ For Rev24 Platform Admin, the local role flag is visual preview only. Do not inf
 
 For the Rev25 visual pass, keep the accepted role shell and route structure. Match each role's overview to its Rev23 board with fewer content layers and shorter copy: Teacher's three work areas, School Manager's organization/service status, and Platform Admin's four operational status cards. The persistent shell preview label is sufficient; do not repeat the same preview banner in dashboard content. Remove dashboard shortcuts duplicated by the sidebar. Preserve API-truthful status, SRS permissions/privacy and all existing unavailable dependencies.
 
-
 ### D-066-56 outcome — Rev25 overview alignment
 
 The overview pass is complete. Teacher's existing three-area workbench already matched the board after the prior cleanup, so this pass kept its source unchanged. School Manager uses organization status plus service availability; Platform Admin uses four operational status cards. The shell, navigation appearance, routes and logout were preserved. Missing API flows remain unavailable and are recorded without sample values or success claims. A separate same-path `aria-current` issue was found in Manager/Admin navigation and left for a focused accessibility correction outside this dashboard-only scope.
-
 
 ## D-066-57 — Use a restrained paper/crayon canvas behind the three web roles
 
@@ -232,7 +228,6 @@ The same CSS-native paper texture and sparse corner strokes are applied behind T
 ## D-066-58 — Rebuild auth presentation without changing identity flow
 
 For Rev27, use the brainstormed crayon learning-studio layout: keep one role-specific `/login` page per web app, make the login form the clear primary action, and retain simple links for Teacher, School Manager and Platform Admin. Reuse the existing sign-in/role-resolution adapter, URLs, preview state and mismatch handling. Reuse the existing school-model Three.js scene with an immediate SVG fallback; no new dependency, remote asset, real data or provider call. Do not add account recovery, organization selection or help flows without a SRS/API contract. The brainstorm is recorded in `evidence/notes/AUTH_UI_REDESIGN_BRAINSTORM_REV27_20261111.md`. Plan hash `C9EF609A920F3C53F0153ED109660B85003D4D03A8E1E76C2F46C3EB2EEF21C2` was approved before implementation.
-
 
 ### D-066-58 outcome — Rev27 shared web auth
 
@@ -277,7 +272,6 @@ After the owner reported the backend-data error on the active port, make the sam
 
 For FEAT-066 Rev36, preserve Firebase/backend authentication and the existing account GET/POST/PATCH contracts. Represent loading, failure and successful data as distinct UI states so an API error cannot look like an empty result. Show only the four product roles; Content Admin is a scoped permission, not a role, and no child-media access is inferred. Set page size to the supplied SRS default 25 while preserving offset pagination until the backend provides the required opaque cursor contract. Capability grants and visible audit-event browsing remain unavailable because their contracts are not exposed by the current typed API. Follow the owner attachment Rev69 for this task; leave repo SRS authority Rev60 unchanged.
 
-
 ## D-066-68 — Keep Platform Admin sidebar styling portal-scoped
 
 For Rev37, preserve the shared WebAppShell behavior and navigation contract. Apply presentation changes only to sidebar descendants under html[data-portal="platform"] in the existing Platform Admin stylesheet, using shared crayon tokens for paper, ink, focus and status states. Keep active route, waiting labels, auth/session actions, focus handling, responsive drawer, scrollable nav, and footer mechanics intact. This visual decision does not alter SRS requirements or authorization policy.
@@ -318,7 +312,6 @@ Group the School Manager navigation by organization operations, learning-content
 ## D-066-77 — Organize shared web files by responsibility (Rev47 proposal)
 
 Propose moving the shared root files into api, auth, components, navigation and styles, while preserving assets. Rewrite only import paths required by the moves; do not change runtime behavior or unrelated dirty content. Because the move changes shared paths across 27 source files, implementation requires explicit approval of the Rev47 plan. This decision is a proposal, not approval.
-
 
 ## D-066-78 — Complete approved shared-folder organization (Rev47)
 
@@ -823,3 +816,68 @@ Draft 4 fixes the round-3 findings and was not re-reviewed, by owner choice.
 - `post_video_activities: null` is normal. A completed run may be read and played again through a fresh playback grant.
 
 This records the implementation contract for this task only. It does not sign off FEAT-063 SRS v2.7-draft or approve a tech-stack decision.
+
+## Goal v4 Phase B Android Parent T-12a/T-12c/BR-20 implementation record — 2026-11-24
+
+This is an implementation record, not a new product decision. The mobile implementation follows the owner-launched contract in `tmp/phase-v4/PHASE_B_FINAL_ROUTE_LIST_20261124.md` and D-066-101. Support-needs remains unavailable when the production key source is not configured. No SRS wording, route contract, production configuration or backend behavior was changed. Verification results are in `evidence/notes/GOAL_V4_PHASE_B_ANDROID_T12AC_EVIDENCE_20261124.md`.
+## D-066-100 — Teacher class roster returns the synthetic-or-consented list with a count and a cursor (2026-11-23)
+
+**Source:** the owner decision on the Teacher roster (item A11 of `tmp/phase-v4/OWNER_QUESTIONS_V4_20261122.md`: the Teacher always gets 200, with a count and a cursor) and the later owner decision, option B: the roster lists a profile when it is synthetic or has an effective consent, with no roster DDL. The written trace of option B is `tmp/phase-v4/GOAL_V4_PHASE_B_LAUNCH_BRIEF_20261123.md`, which also records that the owner's Phase B launch word approves the DDL of the four Phase B plans; the T-7e plan has no DDL. SRS (v2.7-draft, 701,810 bytes, starts `443A3CA3`): l.2586 (the Profile row of the access matrix: a Teacher reads only the fields granted after the invitation is accepted and the class is assigned), l.832 (consent applies to real data only; a synthetic profile does not fake consent; a legacy profile of unknown origin is not consent), l.423 and l.622 (the demo runs on synthetic data), l.2673 BR-48 and l.2718 AC-49 (cross-role profile read only through invitation, consent and an active grant), l.816 and l.1640 (roster lists are paged, cursor 25 by default, 100 at most), l.1635 (additive fields are allowed in the current version), l.864-865 (uniform 404). By analogy only, not as a rule for this change: l.2201 (an aggregate roster with no eligible child and no child detail; a temporary test assumption that does not settle consent rules) and l.1449 (no per-child reason for an exclusion). Code at `930da61e`: `be1_registry.py:869-938` (`list_profiles`), `be1_common.py:314-336` (`consent_is_effective`), `be1_models.py:290-295` (consent states `pending` and `revoked` only). Basis plan: `tmp/phase-v4/plans/V4_B_T-7E_PLAN_DRAFT6_20261123.md`.
+
+**Decision:** for `GET /api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles`, a Teacher assigned to the class always receives 200. The body is `Be1ManagedProfileListV1` with `items` (the active profiles of the class that are synthetic, `data_origin = SYNTHETIC_DEV`, or are `REAL` with an `effective` consent by the predicate of `consent_is_effective`), `next_cursor` (nullable) and `active_profile_count` (all active profiles of the class, the same definition as the School Manager summary). A profile that is neither synthetic nor a consented `REAL` one (a `REAL` profile without an effective consent, every `LEGACY_UNCLASSIFIED` profile even with a consent row) is not listed and counts only in `active_profile_count`. `items` is empty when no profile qualifies. The SRS names the synthetic origin `SYNTHETIC_TEST` (l.832) and the code names it `SYNTHETIC_DEV`; for this rule they are one value and nothing is renamed in code or migrations. The route no longer answers 409 `CONSENT_NOT_EFFECTIVE` and no longer writes the audit row `profile.list` with decision `denied_consent_pending`, because no request is denied. The list is paged by an opaque cursor over `(created_at, child_id)` of the filtered set, 25 by default and 100 at most, bound to route, organization and class. The School Manager response (`Be1ClassRosterSummaryV1`) is unchanged and ignores the paging parameters. The consent gates of profile create, admission, canvas and the pilot profile reads are unchanged. The change supersedes the roster part of decision T-7a (blanket 409 while any row lacks consent) and the whole-class consent gate of the earlier T-7e plan.
+
+**Consequences recorded:**
+- Synthetic profiles (the demo and seed data) are listed. A `REAL` profile is listed only with an `effective` consent; until a consent grant API and the `effective` state exist (X-19, AC-49; a later task outside goal v4, with no DDL in this change) a class of `REAL` profiles shows an empty list with a non-zero `active_profile_count`.
+- Privacy: the listed set together with `active_profile_count` lets a Teacher infer, by absence, that unreleased children exist in the class. No name, id or reason is returned for them.
+- Tests and clients that pin the old behaviour change in the same release: `tests/integration/test_t7a_roster_privacy_postgres.py` (the gated-class case), the unit guards `test_be1_scope_guard_404_403.py` and `test_be1_roster_privacy_guards.py`, the OpenAPI catalog entry and its Teacher example, the API test kit requests that pin the Teacher roster (T-33 and its variants), and the web class screen (`T05ClassesScreen.tsx`), which must follow `next_cursor` and use the count in its empty state. The test `test_pending_consent_stays_pending_and_blocks_profile_admission_and_canvas` keeps its admission and canvas assertions; its roster assertions (409, and one `profile.list` audit row) change, as do the roster assertions of `test_t011_teacher_class_profile_list_is_unchanged` and `test_class_scoped_teacher_a09_keeps_the_gate_and_its_audit_row`. The backend commit changes backend files and this record only; web, Bruno and the API test kit follow in their own sessions.
+- Pages are single statements; across pages a newly consented, revoked or moved profile can appear, disappear or be missed; there is no snapshot token.
+- The api-test-kit session reruns the Teacher and Manager blocks when the task lands.
+
+**Not decided:** that an `effective` consent row is the grant of l.2586, BR-48 and AC-49 (the `REAL` branch is an interim placeholder and is re-based on the grant when the grant API exists); the consent API and the `effective` consent state (X-19), a separate later task outside goal v4; the Vietnamese wording of the empty state; any index for the keyset order; whether the aggregate count should become a separate consented count.
+
+## D-066-101 — Phase B open items settled against the current SRS (2026-11-24)
+
+**Source:** the owner's instruction of 2026-11-24 to settle the Phase B open items against the latest SRS (FEAT-063 v2.7-draft with Rev70 and Rev71, `features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md`). SRS references: BR-20 (l.266), FR-C-07 (l.501), FR-C-10 (l.504), the retention table (l.1065), the access matrix row for support notes (l.1609), the sensitive-data row (l.1925), the trace rows for `be1.profile_support_needs` (l.2311, l.2341, l.2502), BR-27 and BR-35, and the open-decision list §31.10 items 14 and 17. This record only settles what the SRS already supports. It does not change the SRS and does not sign it off.
+
+**Decisions:**
+1. **Key source for support-needs notes (O-SEED-KEY): not approved.** The SRS requires encrypted notes (l.1925) and names no key source or key service. Production keeps answering 503 `SUPPORT_NEEDS_UNAVAILABLE` on every call of both families until a key source is approved as a technical gate. No key source is added in this phase. Synthetic and test runs use an explicit test key only.
+2. **Teacher narrow-permission store: deferred, default deny stays.** §31.10 item 14 keeps principal and assignment persistence OPEN-TECHNICAL, and the access matrix gives a Teacher no access to Parent support notes (l.1609). A Teacher keeps reaching support needs only through the BE1 routes, which are gated by the class assignment and the consent predicate. No permission store is built in goal v4.
+3. **The two BE1 support-needs operations: kept in the operation catalog and counted under FR-C-07 and BR-20.** The SRS already carries `be1.profile_support_needs` in the trace (l.2311, l.2341, l.2502) but lists no route for it. The routes stay in the catalog. The SRS route table gets them in the next SRS revision, together with the Rev73 batch; this commit does not edit the SRS.
+4. **Role split for `be1_purge_profile`: deferred to the deployment hardening gate.** The SRS fixes no database role model. The function keeps `REVOKE ALL FROM PUBLIC` and `SET search_path = pg_catalog, public`. A dedicated purge role is a release-hardening item before real data.
+5. **FR-C-10 executor wiring: not part of goal v4.** FR-C-10 (l.504) says the Teacher delete role and the account-deletion policy must be settled before real data, and no goal v4 task covers the executor. The purge function covers the profile row, revisions, support needs, eligibility proofs and the child's receipts only; other child-keyed rows are listed as executor items. The executor is a separate later task and is a release gate for real data.
+6. **Real child names in the revision table: release gate, synthetic only until then.** BR-27 keeps the demo synthetic-only until review, and l.504 and l.1065 leave the real-data lifecycle open. No real child data may enter the revision table before the executor (item 5), the key source (item 1) and the retention limit (§31.10 item 17) are closed.
+7. **Deploy order: web before backend.** The web Teacher roster must follow `next_cursor`, use the count in its empty state and no longer expect the old 409 before the backend of this phase is deployed to any shared environment (see D-066-100).
+
+**Not decided:** the key source and key custody; the Teacher permission persistence design; the Vietnamese wording of the SRS route additions; the dedicated purge role; the executor design; the retention duration for real data.
+
+## D-066-102 - T-12b/T-12c Teacher web presentation choices (2026-11-24)
+
+**Source:** the owner-launched plan `PLAN_V4B_FE_WEB_T-12BC_20261124.md`, revision 54, plus the final Phase B route list sections 3 and 4 and D-066-101.
+
+**Decisions:**
+1. Revision history is paged on demand at limit 100. The UI follows each opaque `next_cursor` only after the user selects the load-more action.
+2. Support-needs values exist only in the open panel's component state. Reads use `cache: no-store`; the panel loads only after open and unmounts on close.
+3. Support-needs 404, 503, and `CONSENT_NOT_EFFECTIVE` share one neutral unavailable state. A failed write in those states clears displayed and draft values.
+4. Use the existing `teacherHttp.request` error model, which preserves `current_version` as `currentVersion`; do not duplicate the error parser.
+
+These are web presentation and implementation choices only. They do not change the route contract, support-needs production defaults, or the open SRS operation-set question.
+
+## D-066-103 - Preserve a same-key retry for a pending support-needs write (2026-11-24)
+
+**Source:** T-12b/T-12c acceptance rule that an unclear write retry reuses its idempotency key, together with D-066-101's production defaults.
+
+**Clarification to D-066-102 item 3:** a support-needs GET that returns 503 clears loaded and draft values. A 404 or `CONSENT_NOT_EFFECTIVE` response clears loaded values, draft values, and any pending write. If a PUT returns 503, the panel shows only the shared neutral unavailable copy and a generic retry action; it retains that pending payload and key only in the mounted component memory so the same user action can be retried. Closing the panel unmounts it and clears the payload and key.
+
+No value is rendered in the unavailable state, stored in browser storage, placed in a URL, or logged.
+
+## D-066-104 - School Manager may move a profile between classes of the organization (2026-11-28)
+
+**Source:** owner decision of 2026-11-28, against SRS FR-T-02, FR-T-05 and BR-05.
+
+**Decision:** a School Manager (`school_admin`) of the organization may move a profile's active enrollment between classes of that organization. This replaces the T-7d decision that refused the School Manager with 403. The Manager sees opaque profile references only (D-066-69). No consent is copied: a real profile stays hidden in the target class until consent exists there. Placing a profile with no active enrollment is not covered.
+
+## D-066-105 - School Manager places a profile that has no active enrollment (2026-11-29)
+
+**Source:** owner decision of 2026-11-28 to implement placement if feasible without a migration, against SRS FR-T-02, FR-T-05 and BR-05; commit approved by the owner.
+
+**Decision:** this replaces the last sentence of D-066-104. A School Manager (`school_admin`) of the organization may list active profiles that have no active enrollment and place one of them into an active class of that organization, one explicit confirmation at a time. Nothing is placed automatically. The list shows opaque profile references only (D-066-69). No consent is created or copied: a real profile stays hidden from the Teacher until consent exists for that class. A profile whose active enrollment disagrees with its class record, or that has a pending deletion, stays out of scope.

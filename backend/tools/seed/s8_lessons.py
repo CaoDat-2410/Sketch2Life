@@ -21,12 +21,15 @@ from sketch2life.contracts.schemas.lesson_occurrences import (
 from sketch2life.domain.lesson_occurrences.documents import text_sha256
 from sketch2life.infrastructure.lesson_occurrences.documents import OccurrenceDocumentService
 from sketch2life.infrastructure.lesson_occurrences.plans import PlanRevisionService
+from sketch2life.infrastructure.lesson_occurrences.presentations import LessonPresentationService
 from sketch2life.infrastructure.lesson_occurrences.service import LessonOccurrenceService
 from sketch2life.infrastructure.lesson_occurrences.tables import (
     DOCUMENT_REVISIONS,
     OCCURRENCES,
     PLAN_ACTIVITIES,
     PLAN_REVISIONS,
+    PRESENTATION_REVISIONS,
+    PRESENTATIONS,
     SOURCE_DOCUMENTS,
 )
 from sketch2life.infrastructure.persistence.be1_models import AdultIdentityModel
@@ -45,6 +48,7 @@ from tools.seed.s8_lessons_data import (
     occurrence_key,
     plan_confirm_key,
     plan_create_key,
+    presentation_create_key,
     source_document_id,
 )
 from tools.seed.s8_lessons_data import (
@@ -230,6 +234,39 @@ def _edit_o1_document(session_factory: sessionmaker[Session], occurrence_id: str
         session.close()
 
 
+def _create_presentation(
+    session_factory: sessionmaker[Session],
+    occurrence_id: str,
+    occurrence_spec: OccurrenceSpec,
+) -> dict[str, Any] | None:
+    session = session_factory()
+    try:
+        existing = session.execute(
+            select(PRESENTATIONS.c.presentation_id).where(
+                PRESENTATIONS.c.occurrence_id == occurrence_id
+            )
+        ).scalar_one_or_none()
+        if existing is not None:
+            session.rollback()
+            return None
+        result = LessonPresentationService(
+            session,
+            storage=None,
+            svg_drafter=None,
+        ).create(
+            principal=seed_principal(occurrence_spec.teacher_subject),
+            occurrence_id=occurrence_id,
+            seed="PLAN_ACTIVITIES",
+            idempotency_key=presentation_create_key(occurrence_spec.key),
+        )
+        return result.body
+    except Exception:
+        session.rollback()
+        raise StageError("S8_PRESENTATION_CREATE_FAILED") from None
+    finally:
+        session.close()
+
+
 def _lesson_activity_inputs(
     spec: OccurrenceSpec, orders: tuple[int, ...]
 ) -> list[PlanActivityInputV1]:
@@ -340,6 +377,9 @@ def count_s8_rows(connection: Connection) -> dict[str, int]:
     plan_ids = select(PLAN_REVISIONS.c.plan_revision_id).where(
         PLAN_REVISIONS.c.occurrence_id.in_(occurrence_ids)
     )
+    presentation_ids = select(PRESENTATIONS.c.presentation_id).where(
+        PRESENTATIONS.c.occurrence_id.in_(occurrence_ids)
+    )
     return {
         "lesson_occurrences": int(
             connection.execute(
@@ -374,6 +414,20 @@ def count_s8_rows(connection: Connection) -> dict[str, int]:
                 .where(PLAN_ACTIVITIES.c.plan_revision_id.in_(plan_ids))
             ).scalar_one()
         ),
+        "lesson_presentations": int(
+            connection.execute(
+                select(func.count())
+                .select_from(PRESENTATIONS)
+                .where(PRESENTATIONS.c.occurrence_id.in_(occurrence_ids))
+            ).scalar_one()
+        ),
+        "lesson_presentation_revisions": int(
+            connection.execute(
+                select(func.count())
+                .select_from(PRESENTATION_REVISIONS)
+                .where(PRESENTATION_REVISIONS.c.presentation_id.in_(presentation_ids))
+            ).scalar_one()
+        ),
     }
 
 
@@ -404,6 +458,12 @@ def run_s8(engine: Engine) -> StageResult:
                     plan_spec,
                     str(body["content_hash"]),
                 )
+        presentation_occurrence = next(spec for spec in OCCURRENCE_SPECS if spec.key == "o1")
+        _create_presentation(
+            session_factory,
+            str(occurrences[presentation_occurrence.key]["occurrence_id"]),
+            presentation_occurrence,
+        )
         with engine.connect() as connection:
             after = count_s8_rows(connection)
         return StageResult("s8_lessons", before, after, EXPECTED)

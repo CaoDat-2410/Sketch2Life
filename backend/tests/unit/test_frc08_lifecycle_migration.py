@@ -27,7 +27,8 @@ def test_lifecycle_migration_preserves_every_existing_story_receipt_operation() 
     runtime_operations = set(re.findall(r"'([^']+)'", str(runtime_constraint.sqltext)))
     migration_operations = set(re.findall(r"'([^']+)'", migration.RECEIPT_OPERATIONS_BEFORE))
 
-    assert "GENERATE_ACTIVITY_SET" in runtime_operations
-    assert "SELECT_ACTIVITY" in runtime_operations
+    # The integration model includes operations added after this migration, so compare its
+    # original operation set plus FR-C-08's addition as a subset rather than requiring equality.
+    assert {"GENERATE_ACTIVITY_SET", "SELECT_ACTIVITY"} <= migration_operations
     assert "DELETE_RUN" in runtime_operations
-    assert migration_operations == runtime_operations - {"DELETE_RUN"}
+    assert migration_operations | {"DELETE_RUN"} <= runtime_operations

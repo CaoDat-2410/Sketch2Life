@@ -1,0 +1,44 @@
+meta {
+  name: 681 [DRAFT-V4C] [LOCAL / TEST ONLY] Teacher lists lesson versions page two with cursor
+  type: http
+  seq: 681
+}
+
+get {
+  url: {{baseUrl}}/api/lesson-library/v1/organizations/{{organization_id}}/lessons/seed-lesson-l1/versions?limit=1&cursor={{phase_c_versions_cursor}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("Cache-Control")).to.equal("private, no-store");
+    const body = res.getBody();
+    expect(body.contract).to.equal("LessonVersionPageV1");
+    expect(body.lesson_id).to.equal("seed-lesson-l1");
+    expect(body.items).to.be.an("array");
+    expect(body.items.length).to.equal(1);
+    expect(body.items[0].version_id).to.equal("seed-lv-l1-1");
+    expect(body.items[0].version_no).to.equal(1);
+    expect(body.next_cursor).to.equal(null);
+  });
+}
+
+docs {
+  DRAFT: written from the Phase C code at f031fc70; not yet run against a live backend.
+  Role: Assigned Teacher - set bearerToken to seed-tch-a1 token
+  Needs: run after 680 (phase_c_versions_cursor)
+  Expected: 200 / LessonVersionPageV1 (version_no=1, next_cursor=null)
+  Source: backend/src/sketch2life/interfaces/http/routers/lesson_library.py:501-525, backend/src/sketch2life/infrastructure/lesson_library/service.py:764-820
+}

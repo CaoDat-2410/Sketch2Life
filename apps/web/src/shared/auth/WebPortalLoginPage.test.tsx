@@ -86,20 +86,57 @@ describe("WebPortalLoginPage", () => {
     expect((screen.getByRole("button", { name: "Gửi liên kết đặt lại" }) as HTMLButtonElement).disabled).toBe(true);
   });
 
+  it("validates an empty sign-in without calling authentication", () => {
+    const { onAuthenticate } = renderLogin();
+    fireEvent.click(screen.getByRole("button", { name: "Đăng nhập" }));
+
+    expect(onAuthenticate).not.toHaveBeenCalled();
+    expect(screen.getByRole("alert").textContent).toBe("Nhập email tài khoản.");
+    expect(screen.getByLabelText("Email tài khoản").getAttribute("aria-invalid")).toBe("true");
+  });
+
   it("announces authentication errors through the alert role", async () => {
     const onAuthenticate = vi.fn(async () => {
       throw new BackendApiError("Synthetic sign-in failure", "PREVIEW_AUTH_FAILURE", 0);
     });
     renderLogin({ onAuthenticate });
+    fireEvent.change(screen.getByLabelText("Email tài khoản"), { target: { value: "person@example.test" } });
+    fireEvent.change(screen.getByLabelText("Mật khẩu"), { target: { value: "secret" } });
     fireEvent.submit(document.querySelector(".s2l-login-form")!);
 
     expect((await screen.findByRole("alert")).textContent).toContain("Synthetic sign-in failure");
-    expect(onAuthenticate).toHaveBeenCalledWith("TEACHER", "", "");
+    expect(onAuthenticate).toHaveBeenCalledWith("TEACHER", "person@example.test", "secret");
+  });
+
+  it.each([
+    ["auth/invalid-credential", "Email hoặc mật khẩu không đúng.", true, true],
+    ["auth/wrong-password", "Email hoặc mật khẩu không đúng.", true, true],
+    ["auth/user-not-found", "Email hoặc mật khẩu không đúng.", true, true],
+    ["auth/invalid-email", "Email không hợp lệ.", true, false],
+    ["auth/too-many-requests", "Bạn đã thử đăng nhập quá nhiều lần. Vui lòng thử lại sau.", false, false],
+    ["auth/user-disabled", "Bạn chưa thể đăng nhập lúc này. Hãy liên hệ quản trị viên nếu cần hỗ trợ.", false, false],
+    ["auth/network-request-failed", "Không thể kết nối để đăng nhập. Hãy kiểm tra kết nối mạng và thử lại.", false, false],
+    ["auth/internal-error", "Không thể đăng nhập lúc này. Vui lòng thử lại.", false, false],
+  ] as const)("shows safe Vietnamese guidance for %s", async (code, message, emailInvalid, passwordInvalid) => {
+    const onAuthenticate = vi.fn(async () => {
+      throw Object.assign(new Error("Firebase internal detail"), { code });
+    });
+    renderLogin({ onAuthenticate });
+    fireEvent.change(screen.getByLabelText("Email tài khoản"), { target: { value: "person@example.test" } });
+    fireEvent.change(screen.getByLabelText("Mật khẩu"), { target: { value: "wrong-secret" } });
+    fireEvent.submit(document.querySelector(".s2l-login-form")!);
+
+    expect((await screen.findByRole("alert")).textContent).toBe(message);
+    expect(screen.getByLabelText("Email tài khoản").getAttribute("aria-invalid")).toBe(emailInvalid ? "true" : null);
+    expect(screen.getByLabelText("Mật khẩu").getAttribute("aria-invalid")).toBe(passwordInvalid ? "true" : null);
+    expect(screen.queryByText(/backend|Firebase internal detail/i)).toBeNull();
   });
 
   it("disables the submit action while authentication is pending", async () => {
     const onAuthenticate = vi.fn(() => new Promise<void>(() => undefined));
     renderLogin({ onAuthenticate });
+    fireEvent.change(screen.getByLabelText("Email tài khoản"), { target: { value: "person@example.test" } });
+    fireEvent.change(screen.getByLabelText("Mật khẩu"), { target: { value: "secret" } });
     fireEvent.submit(document.querySelector(".s2l-login-form")!);
 
     await waitFor(() => expect((screen.getByRole("button", { name: "Đang xử lý…" }) as HTMLButtonElement).disabled).toBe(true));

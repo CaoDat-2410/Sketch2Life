@@ -1,15 +1,15 @@
 from __future__ import annotations
 
-import importlib.util
-import importlib.metadata
 import ast
+import hashlib
+import importlib.metadata
+import importlib.util
 import json
 import sys
 import types
-import unicodedata
 from contextlib import nullcontext
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 import pytest
 
@@ -71,6 +71,7 @@ assert SAM2_SPEC is not None and SAM2_SPEC.loader is not None
 sam2_worker = importlib.util.module_from_spec(SAM2_SPEC)
 SAM2_SPEC.loader.exec_module(sam2_worker)
 
+import qwen_vllm
 from sketch2life.contracts.schemas.lesson_library import LessonContentInputV1
 
 
@@ -93,7 +94,9 @@ def _request() -> dict[str, Any]:
 def _content() -> dict[str, Any]:
     return {
         "title": "Quan sát bướm và chiếc lá",
-        "drawing_steps_text": "1. Vẽ thân bướm.\n2. Thêm cánh lớn.\n3. Thêm râu và chi tiết.",
+        "drawing_steps_text": (
+            "1. Vẽ thân bướm.\n2. Thêm cánh lớn.\n3. Thêm râu.\n4. Vẽ thêm chi tiết."
+        ),
         "subject_learning_notes": "Bướm trưởng thành có sáu chân và hai cặp cánh.",
         "script_direction": None,
         "activities": [
@@ -109,6 +112,32 @@ def _content() -> dict[str, Any]:
             }
         ],
     }
+
+
+EVIDENCE_OBJECTIVE = (
+    "Trẻ nhận biết và vẽ lại các bộ phận chính của con bướm dựa trên quan sát trực tiếp "
+    "hoặc hình ảnh tham khảo ngoài trời, phát triển kỹ năng thị giác và vận động tinh "
+    "thông qua việc描绘"
+)
+EVIDENCE_MATERIALS = (
+    "Giấy A4, bút màu, bút chì, bảng kẹp, hình ảnh bướm in sẵn, kính lúp (nếu có), ghế "
+    "nhỏ, khăn trải picnic, bình nước nhỏ, khăn giấy ướt, hộp đựng rác nhỏ, găng vệ"
+)
+EVIDENCE_INSTRUCTIONS = (
+    "1. Mời trẻ ngồi thoải mái, giới thiệu nhẹ nhàng về việc quan sát bướm.\n"
+    "2. Cho trẻ xem hình ảnh bướm hoặc quan sát bướm thật nếu có, chỉ ra các bộ phận chính.\n"
+    "3. Trẻ tự chọn bút màu, bắt đầu vẽ thân bướm trước.\n"
+    "4. Trẻ vẽ tiếp cánh, râu và các chi tiết khác theo quan sát.\n"
+    "5. Người lớn quan sát, hỗ trợ khi trẻ cần, không can thiệp vào cách vẽ của trẻ.\n"
+    "6. Trẻ hoàn thành bức vẽ, chia sẻ cảm nhận về quá trình vẽ.\n"
+    "7. Dọn dẹp vật liệu, rửa tay sạch sẽ.\n"
+    "8"
+)
+EVIDENCE_SAFETY = (
+    "Kiểm tra khu vực không có vật sắc nhọn, hóa chất. Đảm bảo trẻ không ăn phải bút màu "
+    "hoặc vật liệu. Theo dõi trẻ khi sử dụng kính lúp. Kiểm tra trẻ không bị dị ứng với "
+    "côn trùng. Đ"
+)
 
 
 def test_qwen35_lesson_suggestion_composes_the_existing_lesson_draft_contract() -> None:
@@ -128,7 +157,7 @@ def test_qwen35_lesson_suggestion_composes_the_existing_lesson_draft_contract() 
 def test_lesson_suggestion_script_direction_is_only_allowed_when_enabled() -> None:
     request = _request()
     request["script_following_allowed"] = True
-    request["script_direction"] = "Theo dõi vòng đời bướm bằng lời kể ngắn"
+    request["script_direction"] = "Theo dõi vòng đời bướm bằng lời kể ngắn 观察"
     content = _content()
     content["script_direction"] = request["script_direction"]
 
@@ -140,6 +169,252 @@ def test_lesson_suggestion_script_direction_is_only_allowed_when_enabled() -> No
 
     assert parsed.script_following_allowed is True
     assert parsed.script_direction == request["script_direction"]
+
+
+def test_lesson_suggestion_does_not_treat_teacher_entered_objectives_as_model_text() -> None:
+    request = _request()
+    request["objectives"] = ["观察蝴蝶"]
+
+    parsed = worker._parse_lesson_suggestion_content(
+        json.dumps(_content(), ensure_ascii=False), request
+    )
+
+    assert parsed["objectives"] == ["观察蝴蝶"]
+
+
+def test_lesson_suggestion_rejects_non_latin_model_text_from_run_evidence() -> None:
+    assert len(EVIDENCE_OBJECTIVE) == 180
+    content = _content()
+    content["activities"][0]["objective"] = EVIDENCE_OBJECTIVE
+
+    with pytest.raises(
+        RuntimeError, match="^MODAL_MODEL_OUTPUT_INVALID_NON_LATIN_SCRIPT"
+    ):
+        worker._parse_lesson_suggestion_content(
+            json.dumps(content, ensure_ascii=False), _request()
+        )
+
+
+def test_lesson_suggestion_normalizes_evidence_knowledge_notes_to_unumbered_lines() -> None:
+    content = _content()
+    content["subject_learning_notes"] = (
+        "1.\nBướm có 6 chân, 2 râu và 4 cánh.\n"
+        "2.\nCánh bướm phủ vảy nhỏ tạo màu sắc.\n"
+        "3.\nThân bướm chia làm ba phần: đầu, ngực, bụng.\n"
+        "4.\nBướm thường đậu trên hoa để hút mật bằng vòi dài."
+    )
+
+    parsed = worker._parse_lesson_suggestion_content(
+        json.dumps(content, ensure_ascii=False), _request()
+    )
+
+    assert parsed["subject_learning_notes"] == (
+        "Bướm có 6 chân, 2 râu và 4 cánh.\n"
+        "Cánh bướm phủ vảy nhỏ tạo màu sắc.\n"
+        "Thân bướm chia làm ba phần: đầu, ngực, bụng.\n"
+        "Bướm thường đậu trên hoa để hút mật bằng vòi dài."
+    )
+
+
+def test_lesson_suggestion_rejects_the_screenshot_knowledge_note_cutoff() -> None:
+    content = _content()
+    complete = "Người lớn hướng dẫn trẻ quan sát động vật ở khoảng cách phù hợp."
+    content["subject_learning_notes"] = (
+        f"{complete} " * 4
+        + "Trẻ cần quan sát một cách an toàn và tôn trọng khoảng cách cá nhân "
+        "của động vật, đồng thời ghi nhớ các"
+    )
+
+    result = worker._parse_lesson_suggestion_content(json.dumps(content, ensure_ascii=False), _request())
+
+    assert result["subject_learning_notes"].splitlines() == [complete] * 4
+
+
+def test_lesson_suggestion_keeps_normal_animal_counts_and_rejects_length_talk() -> None:
+    content = _content()
+    content["subject_learning_notes"] = "Bướm có 6 chân và hai cặp cánh."
+    parsed = worker._parse_lesson_suggestion_content(
+        json.dumps(content, ensure_ascii=False), _request()
+    )
+    assert parsed["subject_learning_notes"] == "Bướm có 6 chân và hai cặp cánh."
+
+    content["drawing_steps_text"] = (
+        "Vẽ hình tròn lớn làm đầu con chó nhé! (100 ký tự tối đa: 38 ký tự - OK)\n"
+        "Thêm hai tai dài.\nVẽ chiếc mũi nhỏ.\nThêm đôi mắt sáng."
+    )
+    with pytest.raises(RuntimeError, match="^MODAL_MODEL_OUTPUT_INVALID_LENGTH_META"):
+        worker._parse_lesson_suggestion_content(
+            json.dumps(content, ensure_ascii=False), _request()
+        )
+
+
+def test_lesson_suggestion_keeps_drawing_and_instruction_markers_with_their_text() -> None:
+    content = _content()
+    content["drawing_steps_text"] = (
+        "1.\nVẽ thân bướm.\n2.\nThêm cánh.\n3.\nVẽ râu.\n4.\nVẽ thêm chi tiết."
+    )
+    content["activities"][0]["instructions_text"] = (
+        "1.\nMời trẻ quan sát.\n2.\nĐể trẻ tự chọn màu."
+    )
+
+    parsed = worker._parse_lesson_suggestion_content(
+        json.dumps(content, ensure_ascii=False), _request()
+    )
+
+    assert parsed["drawing_steps_text"] == (
+        "1. Vẽ thân bướm.\n2. Thêm cánh.\n3. Vẽ râu.\n4. Vẽ thêm chi tiết."
+    )
+    assert parsed["activities"][0]["instructions_text"] == (
+        "1. Mời trẻ quan sát.\n2. Để trẻ tự chọn màu."
+    )
+    assert not worker._lesson_list_has_orphan_number(parsed["drawing_steps_text"])
+    assert not worker._lesson_list_has_orphan_number(
+        parsed["activities"][0]["instructions_text"]
+    )
+
+
+@pytest.mark.parametrize(
+    ("field", "bad_value"),
+    [
+        ("instructions_text", EVIDENCE_INSTRUCTIONS),
+        ("safety_notes", EVIDENCE_SAFETY),
+    ],
+)
+def test_lesson_suggestion_rejects_evidence_truncation(
+    field: str, bad_value: str
+) -> None:
+    content = _content()
+    content["activities"][0][field] = bad_value
+
+    result = worker._parse_lesson_suggestion_content(
+        json.dumps(content, ensure_ascii=False), _request()
+    )
+
+    kept = result["activities"][0][field]
+    assert kept and not kept.endswith((" Đ", "\n8"))
+    assert kept.rstrip().endswith((".", "!", "?"))
+
+
+@pytest.mark.parametrize(
+    ("field", "maximum"),
+    [
+        ("title", 160),
+        ("drawing_steps_text", 1_951),
+        ("subject_learning_notes", 1_951),
+        ("activity_title", 120),
+        ("objective", 200),
+        ("materials_text", 500),
+        ("preparation_text", 500),
+        ("instructions_text", 1_200),
+        ("observation_notes", 500),
+        ("safety_notes", 500),
+    ],
+)
+def test_lesson_suggestion_rejects_generated_text_over_each_grammar_limit(
+    field: str, maximum: int
+) -> None:
+    content = _content()
+    value = "x" * (maximum + 1)
+    if field == "title":
+        content["title"] = value
+    elif field in {"drawing_steps_text", "subject_learning_notes"}:
+        content[field] = value
+    else:
+        activity_field = "title" if field == "activity_title" else field
+        content["activities"][0][activity_field] = value
+    text = json.dumps(content, ensure_ascii=False)
+
+    if field == "observation_notes":  # optional: the unusable text is dropped
+        result = worker._parse_lesson_suggestion_content(text, _request())
+        assert result["activities"][0]["observation_notes"] == ""
+        return
+    with pytest.raises(RuntimeError, match="^MODAL_MODEL_OUTPUT_INVALID"):
+        worker._parse_lesson_suggestion_content(text, _request())
+
+
+@pytest.mark.parametrize(
+    ("field", "maximum"),
+    [
+        ("drawing_steps_text", 240),
+        ("subject_learning_notes", 240),
+        ("materials_text", 240),
+        ("preparation_text", 240),
+        ("instructions_text", 240),
+        ("safety_notes", 240),
+    ],
+)
+def test_lesson_suggestion_rejects_a_list_item_over_240_characters(
+    field: str, maximum: int
+) -> None:
+    content = _content()
+    too_long = "x" * (maximum + 1) + "."
+    if field in {"drawing_steps_text", "subject_learning_notes"}:
+        content[field] = f"{too_long}\nSecond complete sentence.\nThird sentence.\nFourth sentence."
+    else:
+        content["activities"][0][field] = too_long
+    text = json.dumps(content, ensure_ascii=False)
+
+    if field == "subject_learning_notes":  # the other notes remain usable
+        result = worker._parse_lesson_suggestion_content(text, _request())
+        assert len(result["subject_learning_notes"].splitlines()) == 3
+        return
+    with pytest.raises(RuntimeError, match="^MODAL_MODEL_OUTPUT_INVALID_INCOMPLETE_TEXT"):
+        worker._parse_lesson_suggestion_content(text, _request())
+
+
+def test_lesson_suggestion_rejects_more_than_eight_items_in_a_list() -> None:
+    content = _content()
+    content["subject_learning_notes"] = "\n".join(
+        f"Note number {index} is complete." for index in range(1, 10)
+    )
+
+    result = worker._parse_lesson_suggestion_content(json.dumps(content, ensure_ascii=False), _request())
+
+    assert len(result["subject_learning_notes"].splitlines()) == 8
+
+
+def test_lesson_suggestion_materials_can_continue_past_the_old_hard_cutoff() -> None:
+    content = _content()
+    content["activities"][0]["materials_text"] = f"{EVIDENCE_MATERIALS} sinh."
+
+    parsed = worker._parse_lesson_suggestion_content(
+        json.dumps(content, ensure_ascii=False), _request()
+    )
+
+    assert parsed["activities"][0]["materials_text"].endswith("găng vệ sinh.")
+
+
+def test_lesson_suggestion_rejects_objective_without_sentence_ending() -> None:
+    content = _content()
+    content["activities"][0]["objective"] = "Trẻ quan sát hình dáng và"
+
+    with pytest.raises(
+        RuntimeError, match="^MODAL_MODEL_OUTPUT_INVALID_INCOMPLETE_TEXT"
+    ):
+        worker._parse_lesson_suggestion_content(
+            json.dumps(content, ensure_ascii=False), _request()
+        )
+
+
+def test_lesson_suggestion_retries_the_evidence_truncation_with_qwen_wrapper() -> None:
+    first = _content()
+    first["activities"][0]["materials_text"] = EVIDENCE_MATERIALS
+    first["activities"][0]["instructions_text"] = EVIDENCE_INSTRUCTIONS
+    first["activities"][0]["safety_notes"] = EVIDENCE_SAFETY
+    outputs = [first, _content()]
+    attempts = 0
+
+    def handler(request: dict[str, Any]) -> dict[str, Any]:
+        nonlocal attempts
+        attempts += 1
+        return worker._parse_lesson_suggestion_content(
+            json.dumps(outputs.pop(0), ensure_ascii=False), request
+        )
+
+    result = qwen_vllm.run_with_quality_retries(handler, _request(), creative=False)
+
+    assert attempts == 1  # the cut tails are dropped; nothing needs a second GPU generation
+    assert result["activities"][0]["safety_notes"].endswith("dị ứng với côn trùng.")
 
 
 def test_lesson_suggestion_decoder_schema_matches_requested_activity_count_and_kind() -> None:
@@ -159,20 +434,157 @@ def test_lesson_suggestion_decoder_schema_matches_requested_activity_count_and_k
     assert activities["minItems"] == activities["maxItems"] == 4
     assert activities["items"]["properties"]["activity_kind"]["enum"] == ["indoor"]
     assert schema["properties"]["script_direction"]["type"] == "string"
-    assert schema["properties"]["drawing_steps_text"]["maxLength"] == 320
-    assert schema["properties"]["subject_learning_notes"]["maxLength"] == 450
-    assert activities["items"]["properties"]["instructions_text"]["maxLength"] == 450
+    assert schema["properties"]["drawing_steps_text"]["maxItems"] == 8
+    assert schema["properties"]["subject_learning_notes"]["items"]["maxLength"] == 240
+    assert activities["items"]["properties"]["title"]["maxLength"] == 120
+    assert activities["items"]["properties"]["objective"]["maxLength"] == 200
+    assert activities["items"]["properties"]["materials_text"]["maxItems"] == 3
+    assert activities["items"]["properties"]["instructions_text"]["maxItems"] == 6
+    assert activities["items"]["properties"]["safety_notes"]["items"]["maxLength"] == 240
+
+
+def test_lesson_suggestion_prompt_names_the_deck_limits_and_forbids_compliance_notes() -> None:
+    prompt = worker._lesson_suggestion_prompt(_request())
+
+    for limit in ("200", "240", "120", "500", "1,200", "8"):
+        assert limit in prompt
+    assert "do not mention character counts" in prompt.casefold()
+    assert "Never cut a sentence" in prompt
+
+
+def test_lesson_suggestion_accepts_complete_fields_exactly_at_api_limits() -> None:
+    def sentence(length: int) -> str:
+        return "a" * (length - 1) + "."
+
+    content = _content()
+    content["drawing_steps_text"] = "\n".join(sentence(240) for _ in range(4))
+    content["subject_learning_notes"] = sentence(240)
+    activity = content["activities"][0]
+    activity["title"] = sentence(120)
+    activity["objective"] = sentence(200)
+    activity["materials_text"] = "\n".join(
+        (sentence(240), sentence(240), sentence(18))
+    )
+    activity["preparation_text"] = activity["materials_text"]
+    activity["instructions_text"] = "\n".join(
+        (*[sentence(240) for _ in range(4)], sentence(236))
+    )
+    activity["observation_notes"] = sentence(500)
+    activity["safety_notes"] = activity["materials_text"]
+
+    parsed = worker._parse_lesson_suggestion_content(
+        json.dumps(content, ensure_ascii=False), _request()
+    )
+
+    assert len(parsed["subject_learning_notes"]) == 240
+    assert len(parsed["activities"][0]["objective"]) == 200
+    assert len(parsed["activities"][0]["materials_text"]) == 500
+    assert len(parsed["activities"][0]["instructions_text"]) == 1_200
+
+
+def test_lesson_suggestion_worker_request_rejects_objectives_over_the_deck_limit() -> None:
+    request = _request()
+    request["objectives"] = ["x" * 201]
+
+    with pytest.raises(worker.WorkerContractError, match="MODAL_INPUT_NOT_ALLOWED"):
+        worker._validate_lesson_suggestion_input(request)
 
 
 def test_lesson_suggestion_output_budget_scales_with_requested_activities() -> None:
-    assert worker._lesson_suggestion_max_output_tokens(1) == 3_200
-    assert worker._lesson_suggestion_max_output_tokens(6) == 8_200
+    one_activity_budget = worker._lesson_suggestion_max_output_tokens(1)
+    six_activity_budget = worker._lesson_suggestion_max_output_tokens(
+        6, script_following_allowed=True
+    )
+    assert one_activity_budget >= worker._lesson_suggestion_max_output_characters(1)
+    assert six_activity_budget >= worker._lesson_suggestion_max_output_characters(
+        6, script_following_allowed=True
+    )
+    assert six_activity_budget > one_activity_budget
+    assert six_activity_budget <= 31_744
 
 
 def test_teacher_deck_output_budget_scales_with_drawing_steps() -> None:
     assert worker._teacher_deck_max_output_tokens(4) == 1_792
-    with pytest.raises(ValueError, match="step_count"):
-        worker._teacher_deck_max_output_tokens(6)
+    assert worker._teacher_deck_max_output_tokens(8) == 3_072
+    for outside_the_srs_range in (3, 9):
+        with pytest.raises(ValueError, match="step_count"):
+            worker._teacher_deck_max_output_tokens(outside_the_srs_range)
+
+
+def test_teacher_deck_worker_accepts_a_request_at_all_api_and_worker_limits() -> None:
+    activities = []
+    for index in range(6):
+        activities.append(
+            {
+                "activity_ref": f"activity-{index}",
+                "title": "t" * 120,
+                "goal": ["g" * 200],
+                "materials": ["m" * 240, "m" * 240, "m" * 20],
+                "preparation": ["p" * 240, "p" * 240, "p" * 20],
+                "instructions": ["i" * 240 for _ in range(5)],
+                "safety_notes": ["s" * 240, "s" * 240, "s" * 20],
+            }
+        )
+    data: dict[str, Any] = {
+        "schema_version": "sketch2life.teacher-deck-input.v1",
+        "plan_revision_ref": "p" * 80,
+        "topic": "t" * 120,
+        "target_age_months": 120,
+        "drawing_subject": "s" * 160,
+        "objectives": ["o" * 200 for _ in range(4)],
+        "drawing_steps": [
+            {"step_index": index, "action": "a" * 240, "placement": "p" * 240}
+            for index in range(1, 9)
+        ],
+        "subject_knowledge": ["k" * 240 for _ in range(8)],
+        "activities": activities,
+    }
+    data["content_hash"] = hashlib.sha256(
+        json.dumps(data, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode(
+            "utf-8"
+        )
+    ).hexdigest()
+
+    worker._validate_teacher_deck_input(data)
+
+
+def test_teacher_deck_preserves_teacher_written_custom_activity_details() -> None:
+    data: dict[str, Any] = {
+        "schema_version": "sketch2life.teacher-deck-input.v1",
+        "plan_revision_ref": "plan-rev-1",
+        "topic": "Tree",
+        "target_age_months": 60,
+        "objectives": ["Notice parts of a tree."],
+        "drawing_steps": [
+            {"step_index": index, "action": f"Draw part {index}", "placement": f"Place part {index}"}
+            for index in range(1, 5)
+        ],
+        "subject_knowledge": ["Trees have trunks and leaves."],
+        "activities": [
+            {
+                "activity_ref": "custom-activity-1",
+                "title": "Observe a tree",
+                "description": "Look at the trunk and leaves, then describe what you notice.",
+            }
+        ],
+    }
+    data["content_hash"] = hashlib.sha256(
+        json.dumps(data, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode(
+            "utf-8"
+        )
+    ).hexdigest()
+
+    worker._validate_teacher_deck_input(data)
+    deck = worker._compose_teacher_deck(data, [])
+
+    assert deck["approved_activity_refs"] == ["custom-activity-1"]
+    assert deck["slides"][-1] == {
+        "slide_index": 4,
+        "kind": "approved_activity",
+        "title": "Observe a tree",
+        "activity_ref": "custom-activity-1",
+        "description": "Look at the trunk and leaves, then describe what you notice.",
+    }
 
 
 @pytest.mark.parametrize(
@@ -182,8 +594,8 @@ def test_teacher_deck_output_budget_scales_with_drawing_steps() -> None:
         lambda value: value.update(activities=[]),
         lambda value: value["activities"][0].update(safety_notes=""),
         lambda value: value["activities"][0].update(activity_kind="mixed"),
-        lambda value: value.update(title="x" * 101),
-        lambda value: value["activities"][0].update(instructions_text="x" * 901),
+        lambda value: value.update(title="x" * 161),
+        lambda value: value["activities"][0].update(instructions_text="x" * 1_201),
     ],
 )
 def test_lesson_suggestion_parser_rejects_invalid_or_unrequested_content(
@@ -407,7 +819,7 @@ def _install_triton_runtime_modules(
     c_package = types.ModuleType("triton._C")
     c_package.__path__ = []  # type: ignore[attr-defined]
     libtriton_module = types.ModuleType("triton._C.libtriton")
-    libtriton_module.get_cache_invalidating_env_vars = lambda: []  # type: ignore[attr-defined]
+    libtriton_module.get_cache_invalidating_env_vars = list  # type: ignore[attr-defined]
     c_package.libtriton = libtriton_module  # type: ignore[attr-defined]
     if autotuner_jit_function is not None:
         autotuner_module.JITFunction = autotuner_jit_function  # type: ignore[attr-defined]
@@ -597,7 +1009,8 @@ def test_every_text_model_generate_call_uses_validated_processor_inputs() -> Non
 
     # FEAT-087 M4 added the story staging pass (an 8th call, validated like the rest).
     # FEAT-093 added the video timeline pass (the 9th).
-    assert len(generate_calls) == 9
+    # Our Teacher slide SVG draft worker is the 10th.
+    assert len(generate_calls) == 10
     assert all(
         any(
             keyword.arg is None
@@ -664,7 +1077,7 @@ def test_qwen_prefix_decoder_measures_callback_latency_without_token_data(
             pass
 
     class FakeEnforcer:
-        prefix_states: dict[tuple[int, ...], Any] = {}
+        prefix_states: ClassVar[dict[tuple[int, ...], Any]] = {}
 
         def __init__(self, *_args: Any) -> None:
             pass
@@ -681,7 +1094,7 @@ def test_qwen_prefix_decoder_measures_callback_latency_without_token_data(
 
     class Tokenizer:
         eos_token_id = 0
-        all_special_ids = [0]
+        all_special_ids: ClassVar[list[int]] = [0]
 
         def __len__(self) -> int:
             return 3
@@ -766,8 +1179,8 @@ def test_parent_activity_decoder_filters_escapes_and_non_latin_only(
 
     class Tokenizer:
         eos_token_id = 0
-        all_special_ids = [0]
-        pieces = {
+        all_special_ids: ClassVar[list[int]] = [0]
+        pieces: ClassVar[dict[int, str]] = {
             0: "",
             1: "0",
             2: "a",
@@ -1044,7 +1457,7 @@ def test_drawing_decoder_uses_model_eos_set_for_constraints_and_generation(
             captured["vocab_size"] = vocab_size
 
     class FakeEnforcer:
-        prefix_states: dict[tuple[int, ...], Any] = {}
+        prefix_states: ClassVar[dict[tuple[int, ...], Any]] = {}
 
         def __init__(self, _data: Any, _parser: Any) -> None:
             pass
@@ -1061,8 +1474,10 @@ def test_drawing_decoder_uses_model_eos_set_for_constraints_and_generation(
 
     class Tokenizer:
         eos_token_id = 0
-        all_special_ids = [0]
-        tokens = ["<tokenizer-eos>", "0", "a", "b", "<model-eos-a>", "<model-eos-b>"]
+        all_special_ids: ClassVar[list[int]] = [0]
+        tokens: ClassVar[list[str]] = [
+            "<tokenizer-eos>", "0", "a", "b", "<model-eos-a>", "<model-eos-b>"
+        ]
 
         def __len__(self) -> int:
             return len(self.tokens)
@@ -1102,24 +1517,32 @@ def test_drawing_invalid_json_diagnostics_omit_generated_text() -> None:
 def test_teacher_deck_parser_requires_one_exact_json_object() -> None:
     data = {
         "drawing_steps": [
-            {"action": "Vẽ thân", "placement": "Ở giữa"},
-            {"action": "Thêm cánh", "placement": "Hai bên thân"},
+            {"action": "Draw the body.", "placement": "At the page center."},
+            {"action": "Add the wings.", "placement": "On both sides of the body."},
+            {"action": "Draw the head.", "placement": "Above the body."},
+            {"action": "Add the antennae.", "placement": "Above the head."},
         ]
     }
     valid = json.dumps(
         {
             "steps": [
-                {"step_index": 1, "instruction": "Vẽ thân", "placement": "Ở giữa"},
+                {
+                    "step_index": 1,
+                    "instruction": "Draw the body.",
+                    "placement": "At the page center.",
+                },
                 {
                     "step_index": 2,
-                    "instruction": "Thêm cánh",
-                    "placement": "Hai bên thân",
+                    "instruction": "Add the wings.",
+                    "placement": "On both sides of the body.",
                 },
+                {"step_index": 3, "instruction": "Draw the head.", "placement": "Above the body."},
+                {"step_index": 4, "instruction": "Add the antennae.", "placement": "Above the head."},
             ]
         },
         ensure_ascii=False,
     )
-    assert len(worker._parse_teacher_guide(valid, data)) == 2
+    assert len(worker._parse_teacher_guide(valid, data)) == 4
     for invalid in (
         "JSON: " + valid,
         valid + " trailing text",
@@ -1127,6 +1550,81 @@ def test_teacher_deck_parser_requires_one_exact_json_object() -> None:
     ):
         with pytest.raises(RuntimeError, match="MODAL_MODEL_OUTPUT_INVALID"):
             worker._parse_teacher_guide(invalid, data)
+
+
+def test_teacher_deck_rejects_the_screenshot_length_leak_and_retries() -> None:
+    data = {
+        "drawing_steps": [
+            {"action": f"Draw part {index}.", "placement": f"At position {index}."}
+            for index in range(1, 5)
+        ]
+    }
+    leaked_instruction = (
+        "Vẽ hình tròn lớn làm đầu con chó nhé! "
+        "(100 ký tự tối đa: 38 ký tự - OK)"
+    )
+    valid_steps = [
+        {"step_index": index, "instruction": f"Draw part {index}.", "placement": f"At position {index}."}
+        for index in range(1, 5)
+    ]
+    leaked_steps = [dict(step) for step in valid_steps]
+    leaked_steps[0]["instruction"] = leaked_instruction
+    outputs = [
+        json.dumps({"steps": leaked_steps}, ensure_ascii=False),
+        json.dumps({"steps": valid_steps}, ensure_ascii=False),
+    ]
+    attempts = 0
+
+    def handler(_payload: object) -> list[dict[str, Any]]:
+        nonlocal attempts
+        attempts += 1
+        return worker._parse_teacher_guide(outputs.pop(0), data)
+
+    result = qwen_vllm.run_with_quality_retries(handler, {}, creative=False)
+
+    assert attempts == 2
+    assert len(result) == 4
+    assert not worker._length_meta_pattern_matches("Bướm có 6 chân.")
+
+
+@pytest.mark.parametrize(
+    ("field", "bad_text", "reason"),
+    [
+        ("instruction", "画一个圆。", "MODAL_MODEL_OUTPUT_INVALID_NON_LATIN_SCRIPT"),
+        ("placement", "At the left side,", "MODAL_MODEL_OUTPUT_INVALID_INCOMPLETE_TEXT"),
+    ],
+)
+def test_teacher_deck_rejects_non_latin_or_cut_guide_text(
+    field: str, bad_text: str, reason: str
+) -> None:
+    data = {
+        "drawing_steps": [
+            {"action": f"Draw part {index}.", "placement": f"At position {index}."}
+            for index in range(1, 5)
+        ]
+    }
+    steps = [
+        {"step_index": index, "instruction": f"Draw part {index}.", "placement": f"At position {index}."}
+        for index in range(1, 5)
+    ]
+    steps[0][field] = bad_text
+
+    with pytest.raises(RuntimeError, match=f"^{reason}"):
+        worker._parse_teacher_guide(json.dumps({"steps": steps}, ensure_ascii=False), data)
+
+
+def test_teacher_deck_prompt_uses_qualitative_guidance_instead_of_length_examples() -> None:
+    prompt = worker._teacher_deck_prompt(
+        {
+            "topic": "Tree",
+            "target_age_months": 60,
+            "drawing_steps": [{"step_index": 1, "action": "Draw a trunk.", "placement": "Center."}],
+        }
+    )
+
+    assert "100 ký tự" not in prompt
+    assert "80 ký tự" not in prompt
+    assert "ghi chú tự đánh giá" in prompt
 
 
 def test_sam2_uses_ordered_modal_gpu_fallbacks() -> None:
@@ -1274,3 +1772,244 @@ def test_qwen35_fast_kernel_readiness_fails_closed_without_cuda_device() -> None
 
     with pytest.raises(RuntimeError, match="MODAL_GPU_UNAVAILABLE"):
         worker._qwen_fast_kernel_diagnostics(torch, require_cuda=True)
+
+
+def test_dev_lesson_parser_rejects_an_overlong_title_instead_of_trimming_it() -> None:
+    content = _content()
+    content["title"] = "x" * 161
+    with pytest.raises(RuntimeError, match="MODAL_MODEL_OUTPUT_INVALID"):
+        worker._parse_lesson_suggestion_content(json.dumps(content), _request())
+
+
+def test_dev_lesson_parser_rejects_an_overlong_drawing_guide() -> None:
+    content = _content()
+    content["drawing_steps_text"] = "x" * 1_952
+    with pytest.raises(RuntimeError, match="MODAL_MODEL_OUTPUT_INVALID"):
+        worker._parse_lesson_suggestion_content(json.dumps(content), _request())
+
+
+def test_dev_lesson_parser_rejects_overlong_subject_knowledge_notes() -> None:
+    content = _content()
+    content["subject_learning_notes"] = "x" * 1_952
+    with pytest.raises(RuntimeError, match="MODAL_MODEL_OUTPUT_INVALID"):
+        worker._parse_lesson_suggestion_content(json.dumps(content), _request())
+
+
+def test_dev_lesson_parser_rejects_overlong_enabled_script_direction() -> None:
+    request = _request()
+    request["script_following_allowed"] = True
+    request["script_direction"] = "approved direction"
+    content = _content()
+    content["script_direction"] = "x" * 2_001
+
+    result = worker._parse_lesson_suggestion_content(json.dumps(content), request)
+
+    assert result["script_direction"] == "approved direction"  # the model's echo is never used
+
+
+def test_dev_lesson_parser_rejects_overlong_activity_instructions() -> None:
+    content = _content()
+    content["activities"][0]["instructions_text"] = "x" * 1_201
+    with pytest.raises(RuntimeError, match="MODAL_MODEL_OUTPUT_INVALID"):
+        worker._parse_lesson_suggestion_content(json.dumps(content), _request())
+
+
+def test_dev_lesson_parser_rejects_overlong_activity_objective() -> None:
+    content = _content()
+    content["activities"][0]["objective"] = "x" * 201
+    with pytest.raises(RuntimeError, match="MODAL_MODEL_OUTPUT_INVALID"):
+        worker._parse_lesson_suggestion_content(json.dumps(content), _request())
+
+
+def test_dev_lesson_parser_rejects_an_empty_required_safety_note() -> None:
+    content = _content()
+    content["activities"][0]["safety_notes"] = "  "
+    with pytest.raises(RuntimeError, match="MODAL_MODEL_OUTPUT_INVALID"):
+        worker._parse_lesson_suggestion_content(json.dumps(content), _request())
+
+
+def test_dev_lesson_parser_rejects_an_activity_kind_different_from_the_request() -> None:
+    content = _content()
+    content["activities"][0]["activity_kind"] = "indoor"
+    with pytest.raises(RuntimeError, match="MODAL_MODEL_OUTPUT_INVALID"):
+        worker._parse_lesson_suggestion_content(json.dumps(content), _request())
+
+
+def test_dev_lesson_parser_rejects_a_missing_root_field() -> None:
+    content = _content()
+    content.pop("subject_learning_notes")
+    with pytest.raises(RuntimeError, match="MODAL_MODEL_OUTPUT_INVALID"):
+        worker._parse_lesson_suggestion_content(json.dumps(content), _request())
+
+
+def test_dev_lesson_parser_rejects_duplicate_root_keys() -> None:
+    content = json.dumps(_content(), ensure_ascii=False)
+    duplicated = content[:-1] + ', "title": "duplicate"}'
+    with pytest.raises(RuntimeError, match="MODAL_MODEL_OUTPUT_INVALID"):
+        worker._parse_lesson_suggestion_content(duplicated, _request())
+
+
+def test_dev_lesson_parser_rejects_duplicate_activity_keys() -> None:
+    content = json.dumps(_content(), ensure_ascii=False)
+    duplicated = content.replace(
+        '"activity_kind": "outdoor"',
+        '"title": "duplicate", "activity_kind": "outdoor"',
+        1,
+    )
+    with pytest.raises(RuntimeError, match="MODAL_MODEL_OUTPUT_INVALID"):
+        worker._parse_lesson_suggestion_content(duplicated, _request())
+
+
+def test_dev_lesson_parser_rejects_an_empty_title() -> None:
+    content = _content()
+    content["title"] = "  "
+    with pytest.raises(RuntimeError, match="MODAL_MODEL_OUTPUT_INVALID"):
+        worker._parse_lesson_suggestion_content(json.dumps(content), _request())
+
+
+def test_dev_lesson_parser_rejects_unknown_activity_fields() -> None:
+    content = _content()
+    content["activities"][0]["lesson_id"] = "must-not-leak"
+    with pytest.raises(RuntimeError, match="MODAL_MODEL_OUTPUT_INVALID"):
+        worker._parse_lesson_suggestion_content(json.dumps(content), _request())
+
+
+def test_shared_text_model_has_a_single_fixed_dev_pin() -> None:
+    assert worker.TEXT_MODEL_ID == "Qwen/Qwen3.8-27B-FP8"
+    assert worker.TEXT_MODEL_REVISION == "c3a462cc3d38cf351f3b26cbd763469eeb74ef81"
+    assert not hasattr(worker, "_text_model_pins")
+
+
+def test_dev_lesson_parser_strips_outer_whitespace_after_validation() -> None:
+    content = _content()
+    content["title"] = "  Observe a garden  "
+    parsed = worker._parse_lesson_suggestion_content(
+        json.dumps(content, ensure_ascii=False), _request()
+    )
+    assert parsed["title"] == "Observe a garden"
+
+
+@pytest.mark.parametrize("placement", ["trên trang vẽ", "ở giữa trang giấy", "phần trên", "bên trong đầu"])
+def test_teacher_deck_accepts_short_phrases_without_final_punctuation(placement: str) -> None:
+    data = {"drawing_steps": [{"action": "Vẽ đầu", "placement": placement} for _ in range(4)]}
+    steps = [
+        {"step_index": index, "instruction": "Vẽ một hình tròn làm đầu", "placement": placement}
+        for index in range(1, 5)
+    ]
+
+    result = worker._parse_teacher_guide(json.dumps({"steps": steps}, ensure_ascii=False), data)
+
+    assert [step["placement"] for step in result] == [placement] * 4
+
+
+@pytest.mark.parametrize(
+    ("value", "cap", "prose", "cut"),
+    [
+        ("Giấy A4, bút màu, bút chì", 500, False, False),
+        ("Trẻ nhận biết các bộ phận của con bướm", 200, True, False),
+        ("Rửa tay sau khi vẽ. Cất bút vào hộp", 500, True, False),
+        ("Vẽ hai tai ở phía trên", 100, True, False),
+        ("đồng thời ghi nhớ các", 240, True, True),
+        ("Kiểm tra trẻ không bị dị ứng. Đ", 500, True, True),
+        ("Giấy A4, bút màu,", 500, False, True),
+        ("g" * 80, 80, False, True),
+    ],
+)
+def test_only_real_truncation_is_rejected(value: str, cap: int, prose: bool, cut: bool) -> None:
+    assert worker._teacher_text_is_truncated(value, cap, prose=prose) is cut
+
+
+def test_inline_lesson_lists_are_split_into_items_without_cutting_sentences() -> None:
+    inline = "1. Vẽ thân bướm. 2. Vẽ cánh lớn. 3. Vẽ râu cong. 4. Tô màu cánh."
+    assert worker._split_lesson_list(inline, min_items=4).splitlines() == [
+        "1. Vẽ thân bướm.",
+        "2. Vẽ cánh lớn.",
+        "3. Vẽ râu cong.",
+        "4. Tô màu cánh.",
+    ]
+    sentences = "Vẽ thân bướm. Vẽ cánh lớn. Vẽ râu cong. Tô màu cánh."
+    assert len(worker._split_lesson_list(sentences, min_items=4).splitlines()) == 4
+    materials = ", ".join(["bút màu sáp nhiều màu"] * 15)
+    parts = worker._split_lesson_list(materials, by_comma=True).splitlines()
+    assert len(parts) == 2 and all(len(part) <= 240 for part in parts)
+    assert ", ".join(parts) == materials
+    assert worker._split_lesson_list("Giấy A4, bút màu", by_comma=True) == "Giấy A4, bút màu"
+
+
+_GOOD_NOTE = "Bướm có bốn cánh mỏng."
+
+
+@pytest.mark.parametrize(
+    ("notes", "expected"),
+    [
+        (" ".join([_GOOD_NOTE] * 12), [_GOOD_NOTE] * 8),  # one paragraph over 240 characters
+        ("\n".join([_GOOD_NOTE] * 11), [_GOOD_NOTE] * 8),  # more than eight lines
+        (f"{_GOOD_NOTE}\nTrẻ cần ghi nhớ các", [_GOOD_NOTE]),  # a cut last line
+        (f"1.\n{_GOOD_NOTE}\n2.\n{_GOOD_NOTE}", [_GOOD_NOTE] * 2),  # orphan numbers
+        ([f"1. {_GOOD_NOTE}", "x" * 240], [_GOOD_NOTE]),  # array output, one item cut at its cap
+        (f"{_GOOD_NOTE}\n画一只蝴蝶。", [_GOOD_NOTE]),  # one non-Latin line
+    ],
+)
+def test_lesson_suggestion_repairs_malformed_notes_instead_of_failing(
+    notes: str | list[str], expected: list[str]
+) -> None:
+    content = _content()
+    content["subject_learning_notes"] = notes
+
+    result = worker._parse_lesson_suggestion_content(json.dumps(content, ensure_ascii=False), _request())
+
+    assert result["subject_learning_notes"].splitlines() == expected
+
+
+def test_lesson_suggestion_rejection_log_has_sizes_but_no_text(capsys: pytest.CaptureFixture[str]) -> None:
+    content = _content()
+    content["subject_learning_notes"] = "Trẻ bí mật cần ghi nhớ các"
+
+    with pytest.raises(RuntimeError, match="^MODAL_MODEL_OUTPUT_INVALID_INCOMPLETE_TEXT:subject_learning_notes"):
+        worker._parse_lesson_suggestion_content(json.dumps(content, ensure_ascii=False), _request())
+
+    event = json.loads(capsys.readouterr().out.strip().splitlines()[-1])
+    assert event["field"] == "subject_learning_notes"
+    assert (event["chars"], event["lines"], event["usable"]) == (len(content["subject_learning_notes"]), 1, 0)
+    assert event["dropped"] == {"cut": 1}
+    assert "bí mật" not in json.dumps(event, ensure_ascii=False)
+
+
+def test_teacher_deck_uses_approved_wording_only_on_the_last_attempt(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("SKETCH2LIFE_QWEN_ENGINE", "vllm")
+    data = {"drawing_steps": [{"action": "Vẽ một nét.", "placement": "giữa trang"} for _ in range(4)]}
+    steps = [{"step_index": i, "instruction": "画。", "placement": "giữa trang,"} for i in range(1, 5)]
+    attempts = 0
+
+    def handler(_payload: object) -> list[dict[str, Any]]:
+        nonlocal attempts
+        attempts += 1
+        return worker._parse_teacher_guide(json.dumps({"steps": steps}, ensure_ascii=False), data)
+
+    result = qwen_vllm.run_with_quality_retries(handler, {}, creative=False)
+
+    assert attempts == qwen_vllm.MAX_ATTEMPTS
+    assert [(step["instruction"], step["placement"]) for step in result] == [("Vẽ một nét.", "giữa trang")] * 4
+
+
+def test_a_comma_list_cut_at_its_cap_loses_only_the_cut_entry() -> None:
+    entries = ["bút màu sáp"] * 30
+    content = _content()
+    content["activities"][0]["materials_text"] = ", ".join(entries)[:240]
+
+    result = worker._parse_lesson_suggestion_content(json.dumps(content, ensure_ascii=False), _request())
+
+    kept = result["activities"][0]["materials_text"].split(", ")
+    assert kept and set(kept) == {"bút màu sáp"}
+
+
+def test_lesson_prompt_forbids_inventing_details_about_a_named_subject() -> None:
+    request = {**_request(), "topic": "Con chó", "objectives": ["Quan sát đc con chó tên Héo3D"]}
+
+    prompt = worker._lesson_suggestion_prompt(request)
+
+    assert "Chỉ dùng điều giáo viên đã ghi" in prompt
+    assert "không thêm đặc điểm, màu sắc, thói quen, tuổi, câu chuyện hay tên gọi khác" in prompt
+    assert "không nói như sự thật về cá thể có tên đó" in prompt
+    assert "chép đúng từng chữ" in prompt
+    assert "Quan sát đc con chó tên Héo3D" in prompt  # the teacher's words reach the model unchanged

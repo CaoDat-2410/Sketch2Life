@@ -1,0 +1,46 @@
+meta {
+  name: 707 [DRAFT-V4C] [LOCAL / TEST ONLY] Reject Teacher remix when Idempotency-Key is reused with another valid source
+  type: http
+  seq: 707
+}
+
+post {
+  url: {{baseUrl}}/api/lesson-library/v1/organizations/{{organization_id}}/lessons/{{phase_c_remix_source_2_lesson_id}}/remixes
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{phase_c_remix_key}}
+}
+
+body:json {
+  {
+    "contract": "RemixLessonRequestV1",
+    "source_version_id": "{{phase_c_remix_source_2_version_id}}",
+    "source_content_sha256": "{{phase_c_remix_source_2_sha256}}"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("INVALID_IDEMPOTENCY_KEY");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase C code at f031fc70; not yet run against a live backend.
+  Role: Assigned Teacher - set bearerToken to seed-tch-a1 token
+  Needs: needs-fixture: run after 705 with a second valid approved PUBLIC REUSE lesson (phase_c_remix_source_2_*); hash check runs before receipt lookup so changing only hash on the first source would yield 409 STALE_SOURCE_VERSION instead of 400
+  Expected: 400 / INVALID_IDEMPOTENCY_KEY
+  Source: backend/src/sketch2life/infrastructure/lesson_library/service.py:885-903,1103-1115
+}

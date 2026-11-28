@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import os
 import subprocess
 import sys
@@ -101,7 +103,7 @@ def test_s12_module_twice_adds_zero_rows_and_matches_expected(seeded: SeededStat
     assert seeded["totals"] == EXPECTED
 
 
-def test_phase_a_run_shapes_selections_epochs_and_replayability(
+def test_phase_a_run_stays_ready_for_activity_review_and_other_story_states_replayable(
     seed_engine: Engine, seeded: SeededState
 ) -> None:
     del seeded
@@ -111,7 +113,7 @@ def test_phase_a_run_shapes_selections_epochs_and_replayability(
             .where(story_tables.activity_selections.c.run_id == s12_story_v4a_data.RUN_STARTED_ID)
             .order_by(story_tables.activity_selections.c.selection_no)
         ).scalars().all()
-        assert list(started_selections) == [1, 2]
+        assert list(started_selections) == []
 
         completed_epochs = connection.execute(
             select(story_tables.story_revision_reviews.c.review_epoch)
@@ -132,9 +134,7 @@ def test_phase_a_run_shapes_selections_epochs_and_replayability(
         started_view = repo.get_run(
             principal=p6_principal, run_id=s12_story_v4a_data.RUN_STARTED_ID
         )
-        assert started_view.run_state == "SCRIPT_GENERATING"
-        assert started_view.main_activity["state"] == "SELECTED"
-        assert started_view.main_activity["selected"]["activity_ref"]["activity_index"] == 1
+        assert started_view.run_state == "PREPARATION_REVIEW"
 
         sb_view = repo.get_run(
             principal=p7_principal, run_id=s12_story_v4a_data.RUN_SAFETY_BLOCKED_ID
@@ -154,3 +154,36 @@ def test_phase_a_run_shapes_selections_epochs_and_replayability(
             generation_id=s12_story_v4a_data.COMPLETED_VIDEO_READY_ID,
         )
         assert playback.status == PlaybackStatus.PLAYABLE
+
+
+def test_parent_activity_suggestions_are_catalog_backed_and_hash_bound(
+    seed_engine: Engine, seeded: SeededState
+) -> None:
+    del seeded
+    with seed_engine.connect() as connection:
+        suggestion = connection.execute(
+            select(story_tables.parent_activity_suggestion_sets).where(
+                story_tables.parent_activity_suggestion_sets.c.run_id
+                == s12_story_v4a_data.RUN_STARTED_ID
+            )
+        ).mappings().one()
+        activities = suggestion["activities_snapshot"]
+        expected_hash = hashlib.sha256(
+            json.dumps(
+                activities,
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode("utf-8")
+        ).hexdigest()
+        assert suggestion["selection_mode"] == "CATALOG_SELECTION"
+        assert suggestion["provider_call_id"] is None
+        assert suggestion["activities_snapshot_sha256"] == expected_hash
+        assert len(activities) == 1
+        assert all(item["source_lesson_title"] for item in activities)
+        assert connection.execute(
+            select(story_tables.parent_activity_selections.c.activity_selection_id).where(
+                story_tables.parent_activity_selections.c.run_id
+                == s12_story_v4a_data.RUN_STARTED_ID
+            )
+        ).first() is None

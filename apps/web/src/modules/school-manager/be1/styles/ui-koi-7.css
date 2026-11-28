@@ -1,0 +1,4 @@
+/* UI-KOI-7: school band and area rows */
+html[data-portal="school-be1"] .s2l-app-shell .manager-overview-school { padding: 32px 36px; }
+html[data-portal="school-be1"] .s2l-app-shell .manager-overview-school dd { font-weight: 800; }
+

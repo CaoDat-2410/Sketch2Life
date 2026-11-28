@@ -1,0 +1,68 @@
+meta {
+  name: 901 [DRAFT-V4E] [LOCAL / TEST ONLY] Assigned Teacher requests presentation SVG draft (fixture)
+  type: http
+  seq: 901
+}
+
+post {
+  url: {{baseUrl}}/v1/lesson-occurrences/{{phase_de_e1_occurrence_id}}/presentation/svg-drafts
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{phase_de_e1_svg_key}}
+}
+
+body:json {
+  {
+    "plan_activity_id": "{{phase_de_e1_plan_activity_id}}",
+    "subject_text": "butterfly"
+  }
+}
+
+script:pre-request {
+  bru.setVar("phase_de_e1_svg_key", "e1-svg-" + Date.now());
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (body && typeof body.svg_draft_id === "string") {
+    bru.setVar("phase_de_e1_svg_draft_id", body.svg_draft_id);
+  }
+  const etag = res.getHeader("ETag");
+  if (etag) {
+    bru.setVar("phase_de_e1_svg_draft_etag", etag);
+  }
+}
+
+tests {
+  test("assert SVG draft creation contract", function () {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("ETag")).to.equal('"1"');
+    expect(res.getHeader("Location")).to.include("/svg-drafts/");
+    expect(res.getHeader("Cache-Control")).to.equal("private, no-cache");
+    expect(res.getHeader("Vary")).to.include("Authorization");
+    const body = res.getBody();
+    expect(body.contract).to.equal("PresentationSvgDraftV1");
+    expect(body.state).to.equal("PENDING_REVIEW");
+    expect(body.revision).to.equal(1);
+    expect(body.license_id).to.equal("CC0-1.0");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against committed Phase E code at 98aa9837 (PHASE_E_FINAL_ROUTE_LIST_20261125.md / 784134fc); not yet run against a live backend.
+  Role: Assigned Teacher - set bearerToken to seed-tch-a1 token
+  Needs: needs-fixture: lesson occurrence phase_de_e1_occurrence_id, plan_activity_id in phase_de_e1_plan_activity_id, and presentation_svg_drafter fixture configured; saves phase_de_e1_svg_draft_id, phase_de_e1_svg_draft_etag
+  Expected: 201 / PresentationSvgDraftV1 (state: PENDING_REVIEW, ETag: "1")
+  Source: backend/src/sketch2life/interfaces/http/routers/lesson_presentations.py, backend/src/sketch2life/application/services/presentations.py:1111-1255
+}

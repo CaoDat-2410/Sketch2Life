@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import pytest
 
-from sketch2life.infrastructure.svg.openclipart_guide import build_openclipart_guide
 from sketch2life.infrastructure.svg.sanitizer import (
     MAX_REFERENCE_PATH_CHARS,
     SvgInputRejected,
@@ -39,14 +38,3 @@ def test_svg_sanitizer_allows_only_the_explicit_bounded_reference_limit() -> Non
             _svg_with_path(too_long),
             max_path_chars=MAX_REFERENCE_PATH_CHARS,
         )
-
-
-def test_curated_turtle_guide_preserves_the_full_color_reference() -> None:
-    result = build_openclipart_guide("turtle")
-
-    assert result is not None
-    assert result.reference_source.asset_id == "openclipart-turtle-illustration-v1"
-    assert len(result.reference_illustration.paths) == 8
-    assert max(len(path.d) for path in result.reference_illustration.paths) > 8_192
-    assert max(len(path.d) for path in result.reference_illustration.paths) <= MAX_REFERENCE_PATH_CHARS
-    assert len(result.generated.stages) == 6

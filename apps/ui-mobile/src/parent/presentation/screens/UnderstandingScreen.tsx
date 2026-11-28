@@ -27,6 +27,8 @@ type Props = {
 export function UnderstandingScreen(props: Props): React.JSX.Element {
   const confidence = Math.max(0, Math.min(100, Math.round(props.candidate.confidence * 100)));
   const others = (props.subjectRoles ?? []).filter((role) => role.role !== 'main');
+  // The drawing model gives no confidence value; the backend stores 0, so nothing is shown then.
+  const hasConfidence = confidence > 0;
   return (
     <ScreenFrame
       title="Nhận diện tranh"
@@ -44,15 +46,21 @@ export function UnderstandingScreen(props: Props): React.JSX.Element {
             <Text style={styles.eyebrow}>GỢI Ý TỪ BỨC TRANH</Text>
             <SectionTitle variant="creative">Chủ thể được nhận diện</SectionTitle>
           </View>
-          <View style={styles.confidenceBadge}>
-            <Text style={styles.confidenceValue}>{confidence}%</Text>
-          </View>
+          {hasConfidence ? (
+            <View style={styles.confidenceBadge}>
+              <Text style={styles.confidenceValue}>{confidence}%</Text>
+            </View>
+          ) : null}
         </View>
 
-        <View accessible accessibilityLabel={`Độ tin cậy gợi ý ${confidence} phần trăm`} style={styles.confidenceTrack}>
-          <View style={[styles.confidenceFill, { width: `${confidence}%` }]} />
-        </View>
-        <Text style={styles.confidenceCaption}>Độ tin cậy của gợi ý</Text>
+        {hasConfidence ? (
+          <>
+            <View accessible accessibilityLabel={`Độ tin cậy gợi ý ${confidence} phần trăm`} style={styles.confidenceTrack}>
+              <View style={[styles.confidenceFill, { width: `${confidence}%` }]} />
+            </View>
+            <Text style={styles.confidenceCaption}>Độ tin cậy của gợi ý</Text>
+          </>
+        ) : null}
 
         <Field
           variant="creative"

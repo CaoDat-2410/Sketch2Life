@@ -1,0 +1,43 @@
+meta {
+  name: 849 [DRAFT-V4D2] [LOCAL / TEST ONLY] Create activity suggestion set rejects missing Idempotency-Key
+  type: http
+  seq: 849
+}
+
+post {
+  url: {{baseUrl}}/api/parent/v1/ai/story-runs/{{phase_de_t2eb_run_id}}/activity-suggestions
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "expected_understanding_revision": 1
+  }
+}
+
+tests {
+  test("assert missing Idempotency-Key refusal", function () {
+    expect(res.getStatus()).to.equal(422);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().detail).to.equal("request contract invalid");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against committed Hybrid B code at 68c0fdf3; not yet run against a live backend.
+  Role: Owning Parent - set bearerToken to seed-parent-p1 token
+  Needs: needs-fixture: owned Parent story run phase_de_t2eb_run_id
+  Expected: 422 / request contract invalid
+  Source: backend/src/sketch2life/interfaces/http/routers/parent_ai.py, backend/src/sketch2life/interfaces/http/app.py
+}

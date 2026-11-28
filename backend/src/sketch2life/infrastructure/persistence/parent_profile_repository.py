@@ -14,10 +14,12 @@ from sqlalchemy import and_, or_, select, text
 from sqlalchemy.orm import Session
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
+from sketch2life.application.ports.parent_profile_context import ParentContextEntryPage
 from sketch2life.application.ports.parent_profiles import (
     ParentCommandResult,
     ParentProfileListResult,
 )
+from sketch2life.domain.parent_profile_context import ContextEntryDraft
 from sketch2life.domain.parent_profiles import (
     ParentProfileError,
     ProfileSnapshot,
@@ -27,6 +29,7 @@ from sketch2life.domain.parent_profiles import (
 from sketch2life.infrastructure.persistence.parent_models import (
     ParentChildProfileModel,
     ParentCommandReceiptModel,
+    ParentProfileContextEntryModel,
     ParentProfileRevisionModel,
 )
 
@@ -325,6 +328,7 @@ class SqlParentProfileRepository:
         *,
         lock: bool,
         include_pending: bool = False,
+        share: bool = False,
     ) -> ParentChildProfileModel:
         statement = select(ParentChildProfileModel).where(
             ParentChildProfileModel.parent_profile_id == profile_id,
@@ -338,6 +342,8 @@ class SqlParentProfileRepository:
             )
         if lock:
             statement = statement.with_for_update()
+        elif share:
+            statement = statement.with_for_update(read=True)
         profile = self._session.scalar(statement)
         if profile is None:
             raise ParentProfileError(404, "PROFILE_NOT_FOUND", "Profile was not found")
@@ -538,3 +544,198 @@ class SqlParentProfileRepository:
         if current_version is not None:
             body["current_version"] = current_version
         return body
+
+
+_ENTRY_CURSOR_KEYS = {"created_at", "context_entry_id", "profile_id", "v"}
+
+
+def _principal_reference(principal: VerifiedPrincipal) -> str:
+    """The hashed principal reference the Story tables use (never the raw subject)."""
+
+    claims = {"issuer": principal.issuer, "subject": principal.subject}
+    canonical = json.dumps(claims, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def _entry_view(entry: ParentProfileContextEntryModel) -> dict[str, object]:
+    """The public shape of an entry: ``source_ref`` and ``created_by`` are never returned."""
+
+    return {
+        "context_entry_id": str(entry.context_entry_id),
+        "entry_kind": entry.entry_kind,
+        "short_text": entry.short_text,
+        "source_kind": entry.source_kind,
+        "approximate_date": (
+            entry.approximate_date.isoformat() if entry.approximate_date is not None else None
+        ),
+        "created_at": entry.created_at.astimezone(UTC).isoformat(),
+    }
+
+
+class SqlParentProfileContextRepository(SqlParentProfileRepository):
+    """T-12a: the adult-entered context entries of a stable profile, append only.
+
+    Both operations act on an ACTIVE profile of the caller only (uniform 404 otherwise; a profile
+    in ``DELETE_PENDING`` is refused like an unknown one)."""
+
+    def list_context_entries(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        profile_id: UUID,
+        limit: int,
+        cursor: str | None,
+    ) -> ParentContextEntryPage:
+        if not 1 <= limit <= 100:
+            raise ParentProfileError(
+                400,
+                "INVALID_REQUEST",
+                "The request is invalid",
+                field_errors=[{"field": "limit", "code": "OUT_OF_RANGE"}],
+            )
+        self._owned_profile(principal, profile_id, lock=False)
+        position = self._decode_entry_cursor(cursor, profile_id) if cursor is not None else None
+        model = ParentProfileContextEntryModel
+        statement = select(model).where(model.parent_profile_id == profile_id)
+        if position is not None:
+            created_at, entry_id = position
+            statement = statement.where(
+                or_(
+                    model.created_at > created_at,
+                    and_(model.created_at == created_at, model.context_entry_id > entry_id),
+                )
+            )
+        rows = list(
+            self._session.scalars(
+                statement.order_by(model.created_at, model.context_entry_id).limit(limit + 1)
+            )
+        )
+        page = rows[:limit]
+        next_cursor = None
+        if len(rows) > limit and page:
+            last = page[-1]
+            next_cursor = self._encode_entry_cursor(
+                last.created_at, last.context_entry_id, profile_id
+            )
+        return ParentContextEntryPage(
+            items=[_entry_view(row) for row in page], next_cursor=next_cursor
+        )
+
+    def create_context_entry(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        profile_id: UUID,
+        entry: ContextEntryDraft,
+        idempotency_key: str,
+        request_id: str,
+    ) -> ParentCommandResult:
+        operation = "create_context_entry"
+        resource_scope = str(profile_id)
+        key_hash = hashlib.sha256(idempotency_key.encode("ascii")).digest()
+        fingerprint = request_fingerprint(
+            operation=operation,
+            resource_scope=resource_scope,
+            payload=entry.normalized_payload(),
+        )
+        with self._session.begin():
+            self._lock_scope(principal, operation, resource_scope, key_hash)
+            # A shared row lock keeps a concurrent deletion request from interleaving.
+            self._owned_profile(principal, profile_id, lock=False, share=True)
+            replay = self._find_receipt(principal, operation, resource_scope, key_hash)
+            if replay is not None:
+                stored = self._replay_or_reject(replay, fingerprint)
+                return self._rehydrate_created_entry(stored)
+
+            row = ParentProfileContextEntryModel(
+                context_entry_id=uuid4(),
+                parent_profile_id=profile_id,
+                entry_kind=entry.entry_kind,
+                short_text=entry.short_text,
+                source_kind=entry.source_kind,
+                source_ref=entry.source_ref,
+                approximate_date=entry.approximate_date,
+                created_by=_principal_reference(principal),
+            )
+            self._session.add(row)
+            self._session.flush()
+            self._session.refresh(row)
+            self._store_receipt(
+                principal,
+                operation,
+                resource_scope,
+                key_hash,
+                fingerprint,
+                201,
+                {"context_entry_id": str(row.context_entry_id)},
+            )
+            return ParentCommandResult(201, {"context_entry": _entry_view(row)})
+
+    def _rehydrate_created_entry(self, stored: ParentCommandResult) -> ParentCommandResult:
+        raw_id = stored.body.get("context_entry_id")
+        row = (
+            self._session.get(ParentProfileContextEntryModel, UUID(raw_id))
+            if isinstance(raw_id, str)
+            else None
+        )
+        if row is None:
+            raise ParentProfileError(
+                503, "PARENT_STORE_UNAVAILABLE", "The profile store is unavailable"
+            )
+        return ParentCommandResult(stored.status_code, {"context_entry": _entry_view(row)})
+
+    @staticmethod
+    def _encode_entry_cursor(created_at: datetime, entry_id: UUID, profile_id: UUID) -> str:
+        payload = json.dumps(
+            {
+                "created_at": created_at.astimezone(UTC).isoformat(),
+                "context_entry_id": str(entry_id),
+                "profile_id": str(profile_id),
+                "v": 1,
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+        return base64.urlsafe_b64encode(payload).decode("ascii").rstrip("=")
+
+    @staticmethod
+    def _decode_entry_cursor(cursor: str, profile_id: UUID) -> tuple[datetime, UUID]:
+        """A cursor is bound to its profile: another profile's cursor is a plain 400."""
+
+        try:
+            if not cursor or len(cursor) > 2048:
+                raise ValueError
+            encoded = cursor.encode("ascii")
+            payload = base64.b64decode(
+                encoded + b"=" * (-len(encoded) % 4), altchars=b"-_", validate=True
+            )
+            decoded = json.loads(payload)
+            if not isinstance(decoded, dict) or set(decoded) != _ENTRY_CURSOR_KEYS:
+                raise ValueError
+            if type(decoded["v"]) is not int or decoded["v"] != 1:
+                raise ValueError
+            raw_created_at = decoded["created_at"]
+            raw_entry_id = decoded["context_entry_id"]
+            raw_profile_id = decoded["profile_id"]
+            if not all(
+                isinstance(value, str) for value in (raw_created_at, raw_entry_id, raw_profile_id)
+            ):
+                raise ValueError
+            if UUID(raw_profile_id) != profile_id:
+                raise ValueError
+            created_at = datetime.fromisoformat(raw_created_at)
+            if created_at.tzinfo is None or created_at.utcoffset() is None:
+                raise ValueError
+            return created_at, UUID(raw_entry_id)
+        except (
+            binascii.Error,
+            json.JSONDecodeError,
+            UnicodeEncodeError,
+            ValueError,
+        ) as exc:
+            raise ParentProfileError(
+                400,
+                "INVALID_REQUEST",
+                "The request is invalid",
+                field_errors=[{"field": "cursor", "code": "INVALID_FORMAT"}],
+            ) from exc

@@ -272,10 +272,18 @@ def test_the_teacher_view_is_published_on_every_route_that_can_return_it(
 
 def test_no_teacher_schema_names_a_child_name_a_media_ref_or_a_seed(application: FastAPI) -> None:
     components = application.openapi()["components"]["schemas"]
+    # E2 T-TCH2: TeacherProfileV1 is the Teacher's own identity profile, never a child schema.
+    # The SchoolQuota* models label adult Teacher accounts for the School Manager.
+    adult_account_schemas = {
+        "TeacherProfileV1",
+        "SchoolQuotaTeacherV1",
+        "SchoolQuotaTeacherPageV1",
+        "SchoolQuotaAllocationV1",
+    }
     names = {
         field
         for name, schema in components.items()
-        if "Teacher" in name
+        if "Teacher" in name and name not in adult_account_schemas
         for field in schema.get("properties", {})
     }
     assert names, "no Teacher schema was found"

@@ -11,7 +11,10 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
-from sketch2life.application.services.svg_catalog import SvgCatalogApplicationService, SvgCatalogError
+from sketch2life.application.services.svg_catalog import (
+    SvgCatalogApplicationService,
+    SvgCatalogError,
+)
 from sketch2life.contracts.schemas.svg_engine import (
     CreateSvgGuideRevisionRequestV1,
     SvgCatalogAssetCreateRequestV1,
@@ -19,9 +22,9 @@ from sketch2life.contracts.schemas.svg_engine import (
     SvgCatalogPageV1,
     SvgCurationRequestV1,
     SvgGuideCatalogPageV1,
+    SvgGuideReviewRequestV1,
     SvgGuideRevisionPageV1,
     SvgGuideRevisionReceiptV1,
-    SvgGuideReviewRequestV1,
     SvgReviewReceiptV1,
     SvgSourceReviewRequestV1,
 )
@@ -48,7 +51,10 @@ def get_svg_catalog_service(
     if storage is None:
         raise HTTPException(
             status_code=503,
-            detail={"code": "DEPENDENCY_UNAVAILABLE", "message": "SVG object storage is not configured"},
+            detail={
+                "code": "DEPENDENCY_UNAVAILABLE",
+                "message": "SVG object storage is not configured",
+            },
         )
     repository = SqlSvgCatalogRepository(db, storage)
     return SvgCatalogApplicationService(catalog=repository, sanitizer=SqlSvgSanitizer())
@@ -72,7 +78,9 @@ def _identity(db: Session, principal: VerifiedPrincipal, role: str) -> AdultIden
         or identity.account_role != role
         or identity.issuer != principal.issuer
     ):
-        raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": f"{role} role is required"})
+        raise HTTPException(
+            status_code=403, detail={"code": "FORBIDDEN", "message": f"{role} role is required"}
+        )
     return identity
 
 
@@ -83,11 +91,13 @@ def _teacher(db: Session, principal: VerifiedPrincipal, organization_id: str) ->
 def _active_teacher_anywhere(db: Session, principal: VerifiedPrincipal) -> None:
     _identity(db, principal, "teacher")
     assigned = db.scalar(
-        select(OrganizationAssignmentModel.assignment_id).where(
+        select(OrganizationAssignmentModel.assignment_id)
+        .where(
             OrganizationAssignmentModel.subject == principal.subject,
             OrganizationAssignmentModel.active.is_(True),
             OrganizationAssignmentModel.role == "teacher",
-        ).limit(1)
+        )
+        .limit(1)
     )
     if assigned is None:
         raise HTTPException(status_code=403, detail={"code": "TEACHER_ASSIGNMENT_REQUIRED"})
@@ -99,7 +109,9 @@ def _platform_admin(db: Session, principal: VerifiedPrincipal) -> None:
 
 @router.get("/parent/guides", response_model=SvgGuideCatalogPageV1)
 def list_parent_guides(
-    topic_key: Annotated[str | None, Query(min_length=1, max_length=120, pattern=r"^[a-z0-9-]+$")] = None,
+    topic_key: Annotated[
+        str | None, Query(min_length=1, max_length=120, pattern=r"^[a-z0-9-]+$")
+    ] = None,
     limit: int = Query(default=50, ge=1, le=100),
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
@@ -121,6 +133,31 @@ def list_teacher_assets(
     return _call(lambda: service.list_teacher_assets(organization_id=organization_id, limit=limit))
 
 
+@router.get(
+    "/organizations/{organization_id}/assets/{catalog_entry_id}",
+    response_model=SvgCatalogAssetResponseV1,
+    responses={
+        404: {
+            "description": "Catalog asset does not exist or is not visible to this organization."
+        }
+    },
+)
+def get_teacher_asset(
+    organization_id: str,
+    catalog_entry_id: str,
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+    service: SvgCatalogApplicationService = Depends(get_svg_catalog_service),
+) -> dict[str, object]:
+    _teacher(db, principal, organization_id)
+    return _call(
+        lambda: service.get_asset_for_teacher(
+            organization_id=organization_id,
+            catalog_entry_id=catalog_entry_id,
+        )
+    )
+
+
 @router.post(
     "/organizations/{organization_id}/assets",
     response_model=SvgCatalogAssetResponseV1,
@@ -134,12 +171,14 @@ def create_organization_asset(
     service: SvgCatalogApplicationService = Depends(get_svg_catalog_service),
 ) -> dict[str, object]:
     _teacher(db, principal, organization_id)
-    return _call(lambda: service.create_asset(
-        scope_kind="ORGANIZATION",
-        organization_id=organization_id,
-        actor=principal.subject,
-        request=payload.model_dump(mode="json"),
-    ))
+    return _call(
+        lambda: service.create_asset(
+            scope_kind="ORGANIZATION",
+            organization_id=organization_id,
+            actor=principal.subject,
+            request=payload.model_dump(mode="json"),
+        )
+    )
 
 
 @router.post(
@@ -154,12 +193,14 @@ def create_platform_asset(
     service: SvgCatalogApplicationService = Depends(get_svg_catalog_service),
 ) -> dict[str, object]:
     _platform_admin(db, principal)
-    return _call(lambda: service.create_asset(
-        scope_kind="PLATFORM",
-        organization_id=None,
-        actor=principal.subject,
-        request=payload.model_dump(mode="json"),
-    ))
+    return _call(
+        lambda: service.create_asset(
+            scope_kind="PLATFORM",
+            organization_id=None,
+            actor=principal.subject,
+            request=payload.model_dump(mode="json"),
+        )
+    )
 
 
 @router.post(
@@ -176,16 +217,27 @@ def create_organization_guide_revision(
     service: SvgCatalogApplicationService = Depends(get_svg_catalog_service),
 ) -> dict[str, object]:
     _teacher(db, principal, organization_id)
-    asset = _call(lambda: service.catalog.get_asset_for_teacher(
-        organization_id=organization_id,
-        catalog_entry_id=catalog_entry_id,
-    ))
-    return _call(lambda: service.create_guide_revision(
-        asset=asset,
-        actor=principal.subject,
-        organization_id=organization_id,
-        guide=payload.guide.model_dump(mode="json"),
-    ))
+    asset_response = _call(
+        lambda: service.catalog.get_asset_for_teacher(
+            organization_id=organization_id,
+            catalog_entry_id=catalog_entry_id,
+        )
+    )
+    asset_record = _call(
+        lambda: service.catalog.get_asset_record_for_teacher(
+            organization_id=organization_id,
+            catalog_entry_id=catalog_entry_id,
+        )
+    )
+    return _call(
+        lambda: service.create_guide_revision(
+            asset_response=asset_response,
+            asset_record=asset_record,
+            actor=principal.subject,
+            organization_id=organization_id,
+            guide=payload.guide.model_dump(mode="json"),
+        )
+    )
 
 
 @router.get(
@@ -201,11 +253,13 @@ def list_organization_guide_revisions(
     service: SvgCatalogApplicationService = Depends(get_svg_catalog_service),
 ) -> dict[str, object]:
     _teacher(db, principal, organization_id)
-    return _call(lambda: service.list_guide_revisions(
-        organization_id=organization_id,
-        catalog_entry_id=catalog_entry_id,
-        limit=limit,
-    ))
+    return _call(
+        lambda: service.list_guide_revisions(
+            organization_id=organization_id,
+            catalog_entry_id=catalog_entry_id,
+            limit=limit,
+        )
+    )
 
 
 @router.post(
@@ -221,13 +275,21 @@ def create_platform_guide_revision(
     service: SvgCatalogApplicationService = Depends(get_svg_catalog_service),
 ) -> dict[str, object]:
     _platform_admin(db, principal)
-    asset = _call(lambda: service.catalog.get_asset_for_platform(catalog_entry_id=catalog_entry_id))
-    return _call(lambda: service.create_guide_revision(
-        asset=asset,
-        actor=principal.subject,
-        organization_id=None,
-        guide=payload.guide.model_dump(mode="json"),
-    ))
+    asset_response = _call(
+        lambda: service.catalog.get_asset_for_platform(catalog_entry_id=catalog_entry_id)
+    )
+    asset_record = _call(
+        lambda: service.catalog.get_asset_record_for_platform(catalog_entry_id=catalog_entry_id)
+    )
+    return _call(
+        lambda: service.create_guide_revision(
+            asset_response=asset_response,
+            asset_record=asset_record,
+            actor=principal.subject,
+            organization_id=None,
+            guide=payload.guide.model_dump(mode="json"),
+        )
+    )
 
 
 @router.post(
@@ -243,21 +305,29 @@ def review_organization_source(
     service: SvgCatalogApplicationService = Depends(get_svg_catalog_service),
 ) -> dict[str, object]:
     _teacher(db, principal, organization_id)
-    asset = _call(lambda: service.catalog.get_asset_for_teacher(organization_id=organization_id, catalog_entry_id=catalog_entry_id))
+    asset = _call(
+        lambda: service.catalog.get_asset_record_for_teacher(
+            organization_id=organization_id, catalog_entry_id=catalog_entry_id
+        )
+    )
     if asset["visibility_scope"] != "ORGANIZATION" or asset["created_by"] == principal.subject:
         raise HTTPException(status_code=403, detail={"code": "INDEPENDENT_REVIEW_REQUIRED"})
-    return _call(lambda: service.record_review(
-        asset=asset,
-        actor=principal.subject,
-        review_subject_kind="SOURCE_ASSET",
-        review_kind="EDUCATOR",
-        source_sha256=payload.source_sha256,
-        decision=payload.decision,
-        reason=payload.reason,
-    ))
+    return _call(
+        lambda: service.record_review(
+            asset=asset,
+            actor=principal.subject,
+            review_subject_kind="SOURCE_ASSET",
+            review_kind="EDUCATOR",
+            source_sha256=payload.source_sha256,
+            decision=payload.decision,
+            reason=payload.reason,
+        )
+    )
 
 
-@router.post("/platform/assets/{catalog_entry_id}/source-reviews", response_model=SvgReviewReceiptV1)
+@router.post(
+    "/platform/assets/{catalog_entry_id}/source-reviews", response_model=SvgReviewReceiptV1
+)
 def review_platform_source(
     catalog_entry_id: str,
     payload: SvgSourceReviewRequestV1,
@@ -266,18 +336,22 @@ def review_platform_source(
     service: SvgCatalogApplicationService = Depends(get_svg_catalog_service),
 ) -> dict[str, object]:
     _active_teacher_anywhere(db, principal)
-    asset = _call(lambda: service.catalog.get_asset_for_platform(catalog_entry_id=catalog_entry_id))
+    asset = _call(
+        lambda: service.catalog.get_asset_record_for_platform(catalog_entry_id=catalog_entry_id)
+    )
     if asset["created_by"] == principal.subject:
         raise HTTPException(status_code=403, detail={"code": "INDEPENDENT_REVIEW_REQUIRED"})
-    return _call(lambda: service.record_review(
-        asset=asset,
-        actor=principal.subject,
-        review_subject_kind="SOURCE_ASSET",
-        review_kind="EDUCATOR",
-        source_sha256=payload.source_sha256,
-        decision=payload.decision,
-        reason=payload.reason,
-    ))
+    return _call(
+        lambda: service.record_review(
+            asset=asset,
+            actor=principal.subject,
+            review_subject_kind="SOURCE_ASSET",
+            review_kind="EDUCATOR",
+            source_sha256=payload.source_sha256,
+            decision=payload.decision,
+            reason=payload.reason,
+        )
+    )
 
 
 @router.post(
@@ -294,21 +368,35 @@ def review_organization_guide(
     service: SvgCatalogApplicationService = Depends(get_svg_catalog_service),
 ) -> dict[str, object]:
     _teacher(db, principal, organization_id)
-    asset = _call(lambda: service.catalog.get_asset_for_teacher(organization_id=organization_id, catalog_entry_id=catalog_entry_id))
-    guide = _call(lambda: service.get_guide_revision(catalog_entry_id=catalog_entry_id, guide_revision_id=guide_revision_id))
-    if guide["visibility_scope"] != "ORGANIZATION" or guide["organization_id"] != organization_id or guide["authored_by"] == principal.subject:
+    asset = _call(
+        lambda: service.catalog.get_asset_record_for_teacher(
+            organization_id=organization_id, catalog_entry_id=catalog_entry_id
+        )
+    )
+    guide = _call(
+        lambda: service.get_guide_revision(
+            catalog_entry_id=catalog_entry_id, guide_revision_id=guide_revision_id
+        )
+    )
+    if (
+        guide["visibility_scope"] != "ORGANIZATION"
+        or guide["organization_id"] != organization_id
+        or guide["authored_by"] == principal.subject
+    ):
         raise HTTPException(status_code=403, detail={"code": "INDEPENDENT_REVIEW_REQUIRED"})
-    return _call(lambda: service.record_review(
-        asset=asset,
-        actor=principal.subject,
-        review_subject_kind="GUIDE",
-        review_kind="EDUCATOR",
-        source_sha256=payload.source_sha256,
-        guide_sha256=payload.guide_sha256,
-        guide_revision=guide,
-        decision=payload.decision,
-        reason=payload.reason,
-    ))
+    return _call(
+        lambda: service.record_review(
+            asset=asset,
+            actor=principal.subject,
+            review_subject_kind="GUIDE",
+            review_kind="EDUCATOR",
+            source_sha256=payload.source_sha256,
+            guide_sha256=payload.guide_sha256,
+            guide_revision=guide,
+            decision=payload.decision,
+            reason=payload.reason,
+        )
+    )
 
 
 @router.post(
@@ -324,21 +412,29 @@ def review_platform_guide(
     service: SvgCatalogApplicationService = Depends(get_svg_catalog_service),
 ) -> dict[str, object]:
     _active_teacher_anywhere(db, principal)
-    asset = _call(lambda: service.catalog.get_asset_for_platform(catalog_entry_id=catalog_entry_id))
-    guide = _call(lambda: service.get_guide_revision(catalog_entry_id=catalog_entry_id, guide_revision_id=guide_revision_id))
+    asset = _call(
+        lambda: service.catalog.get_asset_record_for_platform(catalog_entry_id=catalog_entry_id)
+    )
+    guide = _call(
+        lambda: service.get_guide_revision(
+            catalog_entry_id=catalog_entry_id, guide_revision_id=guide_revision_id
+        )
+    )
     if guide["visibility_scope"] != "PLATFORM" or guide["authored_by"] == principal.subject:
         raise HTTPException(status_code=403, detail={"code": "INDEPENDENT_REVIEW_REQUIRED"})
-    return _call(lambda: service.record_review(
-        asset=asset,
-        actor=principal.subject,
-        review_subject_kind="GUIDE",
-        review_kind="EDUCATOR",
-        source_sha256=payload.source_sha256,
-        guide_sha256=payload.guide_sha256,
-        guide_revision=guide,
-        decision=payload.decision,
-        reason=payload.reason,
-    ))
+    return _call(
+        lambda: service.record_review(
+            asset=asset,
+            actor=principal.subject,
+            review_subject_kind="GUIDE",
+            review_kind="EDUCATOR",
+            source_sha256=payload.source_sha256,
+            guide_sha256=payload.guide_sha256,
+            guide_revision=guide,
+            decision=payload.decision,
+            reason=payload.reason,
+        )
+    )
 
 
 @router.post("/platform/assets/{catalog_entry_id}/curation", response_model=SvgReviewReceiptV1)
@@ -350,19 +446,23 @@ def curate_platform_asset(
     service: SvgCatalogApplicationService = Depends(get_svg_catalog_service),
 ) -> dict[str, object]:
     _platform_admin(db, principal)
-    asset = _call(lambda: service.catalog.get_asset_for_platform(catalog_entry_id=catalog_entry_id))
+    asset = _call(
+        lambda: service.catalog.get_asset_record_for_platform(catalog_entry_id=catalog_entry_id)
+    )
     if asset["created_by"] == principal.subject:
         raise HTTPException(status_code=403, detail={"code": "INDEPENDENT_CURATION_REQUIRED"})
-    return _call(lambda: service.record_review(
-        asset=asset,
-        actor=principal.subject,
-        review_subject_kind="SOURCE_ASSET",
-        review_kind="CURATOR",
-        source_sha256=payload.source_sha256,
-        decision=payload.decision,
-        reason=payload.reason,
-        grouping_allowed=payload.grouping_allowed,
-    ))
+    return _call(
+        lambda: service.record_review(
+            asset=asset,
+            actor=principal.subject,
+            review_subject_kind="SOURCE_ASSET",
+            review_kind="CURATOR",
+            source_sha256=payload.source_sha256,
+            decision=payload.decision,
+            reason=payload.reason,
+            grouping_allowed=payload.grouping_allowed,
+        )
+    )
 
 
 __all__ = ["router"]

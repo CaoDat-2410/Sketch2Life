@@ -1,0 +1,50 @@
+.s2l-inbox .s2l-inbox-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  margin-bottom: 16px;
+}
+.s2l-inbox .s2l-inbox-heading { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 12px; min-width: 0; }
+.s2l-inbox .s2l-data-card .s2l-inbox-heading h2 { margin: 0; }
+.s2l-inbox .s2l-inbox-count, .s2l-inbox .s2l-data-card .s2l-inbox-count {
+  margin: 0;
+  color: var(--s2l-ui-ink-soft, #596660);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.s2l-inbox .s2l-inbox-list { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+.s2l-inbox .s2l-inbox-list > li { min-width: 0; border-top: 1px solid var(--s2l-ui-rule, #e1e6e2); }
+.s2l-inbox .s2l-inbox-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+  min-width: 0;
+  padding: 16px;
+  border-left: 3px solid transparent;
+}
+.s2l-inbox .s2l-inbox-row[data-unread="true"] {
+  border-left-color: var(--s2l-ui-primary, #267665);
+  background: var(--s2l-ui-primary-soft, #edf7f3);
+}
+.s2l-inbox .s2l-inbox-content { min-width: 0; flex: 1 1 auto; overflow-wrap: anywhere; }
+.s2l-inbox .s2l-inbox-content h3 { margin: 0; color: var(--s2l-ui-ink, #263b34); font-size: 15px; font-weight: 600; line-height: 1.4; }
+.s2l-inbox .s2l-inbox-row[data-unread="true"] h3 { font-weight: 750; }
+.s2l-inbox .s2l-data-card .s2l-inbox-content p { margin: 4px 0 0; color: var(--s2l-ui-ink-soft, #596660); font-size: 13px; line-height: 1.5; }
+.s2l-inbox .s2l-inbox-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; }
+.s2l-inbox .s2l-inbox-action { flex: 0 0 auto; }
+.s2l-inbox .s2l-inbox-more { margin-top: 16px; }
+.s2l-inbox button { min-height: 44px; max-width: 100%; }
+@media (max-width: 480px) {
+  .s2l-inbox .s2l-inbox-row { align-items: flex-start; flex-direction: column; }
+  .s2l-inbox .s2l-inbox-action { align-self: flex-start; }
+}
+.s2l-inbox button.s2l-ui-button {
+  border-color: var(--s2l-ui-rule, #d4ddd7);
+  background: var(--s2l-ui-paper, #fff);
+  color: var(--s2l-ui-ink, #263b34);
+}
+.s2l-inbox button.s2l-ui-button:hover:not(:disabled) { background: var(--s2l-ui-paper-muted, #f3f6f4); }
+.s2l-inbox button.s2l-ui-button:disabled { color: var(--s2l-ui-ink-soft, #596660); opacity: .65; }

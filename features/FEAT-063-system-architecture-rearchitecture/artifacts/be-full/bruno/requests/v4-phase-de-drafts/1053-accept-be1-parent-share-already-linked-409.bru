@@ -1,0 +1,48 @@
+meta {
+  name: 1053 [DRAFT-V4E] [LOCAL / TEST ONLY] Accept parent-share rejects duplicate active link on profile 409
+  type: http
+  seq: 1053
+}
+
+post {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/classes/{{class_id}}/profiles/{{phase_de_e3_child_id}}/parent-share/accept
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{phase_de_e3_dup_link_key}}
+}
+
+body:json {
+  {
+    "invitation_code": "{{phase_de_e3_second_invitation_code}}"
+  }
+}
+
+script:pre-request {
+  bru.setVar("phase_de_e3_dup_link_key", "e3-accept-dup-link-" + Date.now());
+}
+
+tests {
+  test("assert duplicate active link conflict", function () {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_CONFLICT");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against committed Phase E code at 98aa9837 (PHASE_E_FINAL_ROUTE_LIST_20261125.md / 784134fc); not yet run against a live backend.
+  Role: Assigned Teacher - set bearerToken to seed-tch-a1 token
+  Needs: needs-fixture: run after 969 when phase_de_e3_child_id already has an ACTIVE link, using a second valid INVITED code phase_de_e3_second_invitation_code and a fresh Idempotency-Key
+  Expected: 409 / RESOURCE_CONFLICT
+  Source: backend/src/sketch2life/interfaces/http/routers/be1_registry.py, backend/src/sketch2life/infrastructure/profile_sharing/service.py
+}

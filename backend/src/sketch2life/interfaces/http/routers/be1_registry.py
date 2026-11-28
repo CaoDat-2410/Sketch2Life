@@ -17,41 +17,112 @@ from typing import Annotated, Any, Literal, NoReturn
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, Response, status
-from sqlalchemy import Select, exists, func, select, tuple_
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+from sqlalchemy import Select, and_, exists, func, or_, select, tuple_
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.sql.selectable import Exists
 
 from sketch2life.application.ports.identity import (
     IdentityAccountProvisioner,
     IdentityAccountProvisioningUnavailable,
     VerifiedPrincipal,
 )
+from sketch2life.application.ports.support_needs import (
+    SupportNeedsCrypto,
+    SupportNeedsUnavailable,
+)
+from sketch2life.application.ports.teacher_assignment_transfer import (
+    TeacherAssignmentTransferCommand,
+    TeacherAssignmentTransferError,
+)
+from sketch2life.application.services.teacher_assignment_transfer import (
+    TeacherAssignmentTransferService,
+)
+from sketch2life.contracts.schemas.be1_capacity import (
+    Be1CapacityConfigureRequest,
+    Be1OrganizationCapacityV1,
+    Be1ScheduledCapacityChangeV1,
+)
 from sketch2life.contracts.schemas.be1_runtime import (
     Be1PilotProfileListResponse,
+    Be1ProfileEditResultV1,
+    Be1ProfileRevisionPageV1,
+    Be1ProfileRevisionV1,
+    Be1SupportNeedsPutV1,
+    Be1SupportNeedsV1,
+    Be1SupportNeedsWriteV1,
     CreateAssignmentRequest,
     CreateClassRequest,
     CreateProfileRequest,
+    EditProfileRequest,
     MoveProfileRequest,
     RecordConsentRequest,
 )
+from sketch2life.contracts.schemas.profile_sharing import (
+    AcceptParentShareRequestV1,
+    Be1ParentSharedProfileV1,
+    Be1ParentShareLinkV1,
+)
+from sketch2life.contracts.schemas.teacher_assignment_transfers import (
+    Be1TeacherAssignmentTransferAcceptedV1,
+    Be1TeacherAssignmentTransferStatusV1,
+)
+from sketch2life.domain.be1_profile_revisions import (
+    BAND_VERSION,
+    HASH_VERSION,
+    MAX_EDIT_AGE_MONTHS,
+    age_band,
+    revision_hash,
+)
 from sketch2life.domain.core_foundation import CoreRuleViolation, validate_age_months
 from sketch2life.domain.eligibility import PROOF_VERSION
-from sketch2life.infrastructure.config.settings import MIN_PROFILE_RECEIPT_KEY_BYTES
+from sketch2life.domain.platform_admin import AdminError
+from sketch2life.domain.support_needs import SupportNeedsPayload
+from sketch2life.domain.teacher_assignment_transfer import TransferAction
+from sketch2life.infrastructure.be1.capacity_adapter import (
+    Be1CapacityAdapter,
+    CapacityDependencyUnavailable,
+    effective_active_class_count,
+)
+from sketch2life.infrastructure.config.settings import MIN_PROFILE_RECEIPT_KEY_BYTES, Settings
+from sketch2life.infrastructure.identity.identity_labels import masked_email, safe_display_name
+from sketch2life.infrastructure.lesson_occurrences.class_transfer_guard import (
+    with_class_transfer_state,
+)
 from sketch2life.infrastructure.persistence.be1_models import (
     AdultIdentityModel,
     Be1CommandReceiptModel,
+    Be1TeacherAssignmentTransferModel,
     ClassroomModel,
     ClassroomSessionModel,
     ConsentRecordModel,
+    DataLifecycleRequestModel,
     EnrollmentModel,
     ManagedProfileModel,
     OrganizationAssignmentModel,
     OrganizationModel,
+    ProfileRevisionModel,
     SessionMembershipModel,
     SyntheticEligibilityProofModel,
 )
+from sketch2life.infrastructure.persistence.billing_models import SubscriptionModel
+from sketch2life.infrastructure.persistence.support_needs_repository import (
+    Be1SupportNeedsStore,
+    SupportNeedsStale,
+)
+from sketch2life.infrastructure.persistence.teacher_assignment_transfer_repository import (
+    SqlTeacherAssignmentTransferRepository,
+)
+from sketch2life.infrastructure.profile_sharing.service import (
+    accept_teacher_share,
+    read_teacher_shared_profile,
+)
+from sketch2life.infrastructure.story_teacher.teacher_owner_transfer_repository import (
+    SqlStoryTeacherOwnerTransferRepository,
+)
 from sketch2life.interfaces.http.api_conventions import (
     cursor_query,
+    decode_cursor,
     decode_time_cursor,
     encode_cursor,
     limit_query,
@@ -64,6 +135,9 @@ from sketch2life.interfaces.http.be1_runtime import (
     get_runtime,
     get_verified_adult,
 )
+from sketch2life.interfaces.http.profile_sharing_errors import (
+    call_profile_share_service as _share_call,
+)
 from sketch2life.interfaces.http.routers.be1_common import (
     BE1_ERROR_RESPONSES,
     audit,
@@ -75,8 +149,15 @@ from sketch2life.interfaces.http.routers.be1_common import (
     get_class,
     get_session,
     hide_archived_from_teacher,
+    project_due_capacity_suspensions,
     require_assignment,
     require_class_teacher_row,
+    require_no_pending_class_transfer,
+    settle_due_class_suspensions,
+)
+from sketch2life.interfaces.http.support_needs_runtime import (
+    SupportNeedsRuntime,
+    get_support_needs_runtime,
 )
 
 router = APIRouter(prefix="/api/be1/v1", tags=["BE1 registry"], responses=BE1_ERROR_RESPONSES)
@@ -90,6 +171,12 @@ def _scope_denied() -> HTTPException:
 # replayed across routes or organizations.
 _CLASS_CURSOR_SCOPE = "be1.classes:{organization_id}:{state}"
 _CONSENT_CURSOR_SCOPE = "be1.consents:{organization_id}:{class_id}"
+# T-7e (D-066-100): the Teacher class roster, one scope per route, organization and class.
+_ROSTER_CURSOR_SCOPE = "be1.profiles:{organization_id}:{class_id}"
+# O-PRIV: School Manager opaque profile references, scoped independently by organization/class.
+_PROFILE_REF_CURSOR_SCOPE = "be1.profile-refs:{organization_id}:{class_id}"
+# T-12b: the revision history of one profile, bound to route, organization, class and child.
+_REVISION_CURSOR_SCOPE = "be1.profile-revisions:{organization_id}:{class_id}:{child_id}"
 
 
 # --- FEAT-066 C6 M9-B: first Teacher assignment (plan Draft 3) ------------------------------
@@ -138,8 +225,9 @@ def class_lock_select(class_id: str) -> Select[Any]:
     race to a suspension sees ``suspended`` and answers 409, not a 404 (T-7b-DEC-8).
     """
     return (
-        select(ClassroomModel)
-        .where(ClassroomModel.class_id == class_id)
+        with_class_transfer_state(
+            select(ClassroomModel).where(ClassroomModel.class_id == class_id)
+        )
         .with_for_update()
         .execution_options(populate_existing=True)
     )
@@ -306,11 +394,19 @@ def list_teacher_candidates(
     request: Request,
     limit: int = limit_query(),
     cursor: str | None = Query(default=None, min_length=1, max_length=512),
+    class_id: str | None = Query(default=None, min_length=1, max_length=128),
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
 ) -> dict[str, object]:
     """FEAT-066 M9-B: same-organization Teacher candidates, minimum fields (O-3a, O-3b)."""
     _require_m2_assignment(db, principal, organization_id, roles={"school_admin"})
+    if class_id is not None and db.scalar(
+        select(ClassroomModel.class_id).where(
+            ClassroomModel.organization_id == organization_id,
+            ClassroomModel.class_id == class_id,
+        )
+    ) is None:
+        raise _scope_denied()
     statement = eligible_teachers_select(organization_id).order_by(AdultIdentityModel.account_id)
     if cursor is not None:
         after = _decode_candidate_cursor(cursor)
@@ -325,16 +421,33 @@ def list_teacher_candidates(
         raise failure(
             503, "IDENTITY_PROVIDER_UNAVAILABLE", "Identity service is temporarily unavailable"
         ) from None
+    current_subjects: set[str] = set()
+    if class_id is not None and rows:
+        current_subjects = set(
+            db.scalars(
+                select(OrganizationAssignmentModel.subject).where(
+                    OrganizationAssignmentModel.organization_id == organization_id,
+                    OrganizationAssignmentModel.class_id == class_id,
+                    OrganizationAssignmentModel.role == "teacher",
+                    OrganizationAssignmentModel.active.is_(True),
+                    OrganizationAssignmentModel.subject.in_([row.subject for row in rows]),
+                )
+            ).all()
+        )
     return {
         "contract": "Be1TeacherCandidatePageV1",
         "items": [
             {
                 "candidate_ref": row.account_id,
                 "display_name": (
-                    profile.display_name
+                    safe_display_name(profile.display_name, subject=profile.subject)
                     if (profile := profiles.get(row.subject)) is not None
                     else None
                 ),
+                "email_masked": masked_email(
+                    profiles[row.subject].email if row.subject in profiles else None
+                ),
+                "is_current": row.subject in current_subjects,
             }
             for row in rows
         ],
@@ -342,7 +455,10 @@ def list_teacher_candidates(
     }
 
 
-@router.post("/classes/{class_id}/assignments")
+@router.post(
+    "/classes/{class_id}/assignments",
+    responses={202: {"model": Be1TeacherAssignmentTransferAcceptedV1}},
+)
 def assign_class_teacher(
     class_id: str,
     payload: CreateAssignmentRequest,
@@ -354,8 +470,10 @@ def assign_class_teacher(
     if_match: Annotated[str | None, Header(alias="If-Match")] = None,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
+    runtime: Be1Runtime = Depends(get_runtime),
 ) -> dict[str, object]:
     """FEAT-066 M9-B: first Teacher of a class; 200 + assignment revision (SRS §21.2 line 1650)."""
+    response.headers["Cache-Control"] = "private, no-store"
     classroom = db.scalar(select(ClassroomModel).where(ClassroomModel.class_id == class_id))
     if classroom is None:
         raise _scope_denied()
@@ -367,6 +485,7 @@ def assign_class_teacher(
         roles={"school_admin"},
         class_id=class_id,
     )
+    settle_due_class_suspensions(db, organization_id, actor=principal.subject)
     # C-D5: 1-128 visible ASCII, one header; the parsed value replaces the declared one.
     idempotency_key = parse_idempotency_key(request)
     expected_revision = _strong_revision(if_match)
@@ -383,6 +502,27 @@ def assign_class_teacher(
     ).hexdigest()
     receipt = db.get(Be1CommandReceiptModel, (principal.subject, scope, idempotency_key))
     if receipt is not None:
+        if receipt.response_status == 202:
+            transfer_fingerprint = _transfer_fingerprint(
+                runtime,
+                principal,
+                class_id=class_id,
+                action=TransferAction.REASSIGN,
+                candidate_ref=payload.candidate_ref,
+                expected_revision=expected_revision,
+            )
+            db.rollback()
+            return _execute_transfer(
+                runtime,
+                response,
+                principal,
+                class_id=class_id,
+                action=TransferAction.REASSIGN,
+                candidate_ref=payload.candidate_ref,
+                expected_revision=expected_revision,
+                idempotency_key=idempotency_key,
+                request_fingerprint=transfer_fingerprint,
+            ).model_dump(mode="json")
         if receipt.request_fingerprint != fingerprint:
             raise failure(
                 400,
@@ -392,7 +532,39 @@ def assign_class_teacher(
         stored = dict(receipt.response_json)
         db.rollback()
         response.headers["ETag"] = f'"{stored["assignment_revision"]}"'
+        response.headers["Cache-Control"] = "private, no-store"
         return stored
+    existing_transfer = db.scalar(
+        select(Be1TeacherAssignmentTransferModel).where(
+            Be1TeacherAssignmentTransferModel.principal_ref == principal.subject,
+            Be1TeacherAssignmentTransferModel.operation_scope == scope,
+            Be1TeacherAssignmentTransferModel.idempotency_key == idempotency_key,
+        )
+    )
+    if existing_transfer is not None:
+        transfer_fingerprint = _transfer_fingerprint(
+            runtime,
+            principal,
+            class_id=class_id,
+            action=TransferAction.REASSIGN,
+            candidate_ref=payload.candidate_ref,
+            expected_revision=expected_revision,
+        )
+        db.rollback()
+        return _execute_transfer(
+            runtime,
+            response,
+            principal,
+            class_id=class_id,
+            action=TransferAction.REASSIGN,
+            candidate_ref=payload.candidate_ref,
+            expected_revision=expected_revision,
+            idempotency_key=idempotency_key,
+            request_fingerprint=transfer_fingerprint,
+        ).model_dump(mode="json")
+    if getattr(locked_class, "transfer_pending", False):
+        db.rollback()
+        raise failure(409, "RESOURCE_CONFLICT", "A class transfer is already pending")
     if locked_class.state != "active":
         # T-7b-DEC-7 (SRS l.593, l.1425): a suspended or archived class is read-only. The class is
         # known to this Manager, so the refusal is 409 (not the uniform 404), also when a
@@ -401,41 +573,79 @@ def assign_class_teacher(
         raise failure(
             409, "INVALID_STATE_TRANSITION", "The class is read-only in its current state"
         )
-    total_rows, active_rows = _teacher_counts(db, organization_id, [class_id]).get(
+    _total_rows, active_rows = _teacher_counts(db, organization_id, [class_id]).get(
         class_id, (0, 0)
     )
-    current_revision = class_assignment_revision(total_rows)
+    current_revision = locked_class.assignment_revision
     if current_revision != expected_revision:
         db.rollback()
         raise_stale_revision(current_version=current_revision, etag=str(current_revision))
     if active_rows:
-        raise failure(
-            409,
-            "CLASS_TEACHER_EXISTS",
-            "Class already has an active Teacher",
+        db.rollback()
+        transfer_fingerprint = _transfer_fingerprint(
+            runtime,
+            principal,
+            class_id=class_id,
+            action=TransferAction.REASSIGN,
+            candidate_ref=payload.candidate_ref,
+            expected_revision=expected_revision,
         )
+        return _execute_transfer(
+            runtime,
+            response,
+            principal,
+            class_id=class_id,
+            action=TransferAction.REASSIGN,
+            candidate_ref=payload.candidate_ref,
+            expected_revision=expected_revision,
+            idempotency_key=idempotency_key,
+            request_fingerprint=transfer_fingerprint,
+        ).model_dump(mode="json")
     candidate = db.scalar(candidate_lock_select(organization_id, payload.candidate_ref))
     if candidate is None:
         # M9B-7: unknown, inactive, non-Teacher or other-organization candidate.
         raise _scope_denied()
-    assignment_id = str(uuid4())
+    existing_assignment = db.scalar(
+        select(OrganizationAssignmentModel)
+        .where(
+            OrganizationAssignmentModel.organization_id == organization_id,
+            OrganizationAssignmentModel.subject == candidate.subject,
+            OrganizationAssignmentModel.class_id == class_id,
+            OrganizationAssignmentModel.role == "teacher",
+        )
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+    if existing_assignment is not None and existing_assignment.active:
+        db.rollback()
+        raise failure(409, "RESOURCE_CONFLICT", "The command conflicts with current records")
+    assignment_id = (
+        existing_assignment.assignment_id
+        if existing_assignment is not None
+        else str(uuid4())
+    )
     new_revision = current_revision + 1
     # TD-28: an assignment moves the class revision (the row is already locked FOR UPDATE).
     locked_class.revision += 1
+    locked_class.assignment_revision = new_revision
     try:
-        db.add(
-            OrganizationAssignmentModel(
-                assignment_id=assignment_id,
-                organization_id=organization_id,
-                subject=candidate.subject,
-                class_id=class_id,
-                role="teacher",
-                active=True,
+        if existing_assignment is not None:
+            existing_assignment.active = True
+            existing_assignment.pending_activation = False
+        else:
+            db.add(
+                OrganizationAssignmentModel(
+                    assignment_id=assignment_id,
+                    organization_id=organization_id,
+                    subject=candidate.subject,
+                    class_id=class_id,
+                    role="teacher",
+                    active=True,
+                )
             )
-        )
         db.flush()
     except IntegrityError:
-        # An earlier inactive row for this Teacher and class (reassignment is UC-12).
+        # A concurrent insert of the same Teacher/class row (an inactive row is re-activated above).
         db.rollback()
         raise failure(
             409, "RESOURCE_CONFLICT", "The command conflicts with current records"
@@ -472,11 +682,215 @@ def assign_class_teacher(
             organization_id=organization_id,
             request_fingerprint=fingerprint,
             response_json=body,
+            response_status=200,
         )
     )
     commit(db)
     response.headers["ETag"] = f'"{new_revision}"'
+    response.headers["Cache-Control"] = "private, no-store"
     return body
+
+
+async def _require_empty_offboard_body(request: Request) -> None:
+    if await request.body():
+        raise failure(400, "INVALID_REQUEST", "The offboard command has no request body")
+
+
+@router.delete(
+    "/classes/{class_id}/assignments/current",
+    status_code=status.HTTP_202_ACCEPTED,
+    response_model=Be1TeacherAssignmentTransferAcceptedV1,
+)
+def offboard_class_teacher(
+    class_id: str,
+    request: Request,
+    response: Response,
+    idempotency_key: Annotated[
+        str, Header(alias="Idempotency-Key", min_length=1, max_length=128)
+    ],
+    if_match: Annotated[str | None, Header(alias="If-Match")] = None,
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+    runtime: Be1Runtime = Depends(get_runtime),
+    _empty_body: None = Depends(_require_empty_offboard_body),
+) -> Be1TeacherAssignmentTransferAcceptedV1:
+    response.headers["Cache-Control"] = "private, no-store"
+    classroom = db.scalar(select(ClassroomModel).where(ClassroomModel.class_id == class_id))
+    if classroom is None:
+        raise _scope_denied()
+    _require_m2_assignment(
+        db,
+        principal,
+        classroom.organization_id,
+        roles={"school_admin"},
+        class_id=class_id,
+    )
+    key = parse_idempotency_key(request)
+    expected_revision = _strong_revision(if_match)
+    fingerprint = _transfer_fingerprint(
+        runtime,
+        principal,
+        class_id=class_id,
+        action=TransferAction.OFFBOARD,
+        candidate_ref=None,
+        expected_revision=expected_revision,
+    )
+    db.rollback()
+    return _execute_transfer(
+        runtime,
+        response,
+        principal,
+        class_id=class_id,
+        action=TransferAction.OFFBOARD,
+        candidate_ref=None,
+        expected_revision=expected_revision,
+        idempotency_key=key,
+        request_fingerprint=fingerprint,
+    )
+
+
+@router.get(
+    "/classes/{class_id}/assignment-transfers/{transfer_id}",
+    response_model=Be1TeacherAssignmentTransferStatusV1,
+)
+def get_class_teacher_assignment_transfer(
+    class_id: str,
+    transfer_id: str,
+    response: Response,
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+    runtime: Be1Runtime = Depends(get_runtime),
+) -> Be1TeacherAssignmentTransferStatusV1:
+    response.headers["Cache-Control"] = "private, no-store"
+    classroom = db.scalar(select(ClassroomModel).where(ClassroomModel.class_id == class_id))
+    if classroom is None:
+        raise _scope_denied()
+    _require_m2_assignment(
+        db,
+        principal,
+        classroom.organization_id,
+        roles={"school_admin"},
+        class_id=class_id,
+    )
+    repository = SqlTeacherAssignmentTransferRepository(
+        _session_factory(runtime), receipt_hmac_key=_receipt_hmac_key(runtime)
+    )
+    try:
+        record = repository.status(
+            organization_id=classroom.organization_id,
+            class_id=class_id,
+            transfer_id=transfer_id,
+        )
+    except TeacherAssignmentTransferError as exc:
+        _raise_transfer_error(exc, response)
+    if record is None:
+        raise failure(
+            404,
+            "RESOURCE_NOT_FOUND",
+            "The requested resource was not found",
+            headers={"Cache-Control": "private, no-store"},
+        )
+    return Be1TeacherAssignmentTransferStatusV1(
+        transfer_id=record.transfer_id,
+        class_id=record.class_id,
+        action=record.action.value,
+        state=record.state.value,
+        assignment_revision=record.assignment_revision,
+        created_at=record.created_at,
+        updated_at=record.updated_at,
+        last_failure_code=record.last_failure_code,
+        status_url=(
+            f"/api/be1/v1/classes/{record.class_id}/assignment-transfers/{record.transfer_id}"
+        ),
+    )
+
+
+def _execute_transfer(
+    runtime: Be1Runtime,
+    response: Response,
+    principal: VerifiedPrincipal,
+    *,
+    class_id: str,
+    action: TransferAction,
+    candidate_ref: str | None,
+    expected_revision: int,
+    idempotency_key: str,
+    request_fingerprint: str,
+) -> Be1TeacherAssignmentTransferAcceptedV1:
+    repository = SqlTeacherAssignmentTransferRepository(
+        _session_factory(runtime), receipt_hmac_key=_receipt_hmac_key(runtime)
+    )
+    service = TeacherAssignmentTransferService(
+        repository=repository,
+        story_transfer=SqlStoryTeacherOwnerTransferRepository(_session_factory(runtime)),
+    )
+    command = TeacherAssignmentTransferCommand(
+        principal_subject=principal.subject,
+        principal_issuer=principal.issuer,
+        class_id=class_id,
+        action=action,
+        candidate_ref=candidate_ref,
+        expected_revision=expected_revision,
+        idempotency_key=idempotency_key,
+        request_fingerprint=request_fingerprint,
+    )
+    try:
+        accepted = service.execute(command)
+    except TeacherAssignmentTransferError as exc:
+        _raise_transfer_error(exc, response)
+    response.status_code = status.HTTP_202_ACCEPTED
+    response.headers["ETag"] = f'"{accepted.assignment_revision}"'
+    response.headers["Location"] = accepted.status_url
+    response.headers["Cache-Control"] = "private, no-store"
+    return accepted
+
+
+def _transfer_fingerprint(
+    runtime: Be1Runtime,
+    principal: VerifiedPrincipal,
+    *,
+    class_id: str,
+    action: TransferAction,
+    candidate_ref: str | None,
+    expected_revision: int,
+) -> str:
+    payload = json.dumps(
+        {
+            "method": "DELETE" if action is TransferAction.OFFBOARD else "POST",
+            "class_id": class_id,
+            "action": action.value,
+            "candidate_ref": candidate_ref,
+            "expected_revision": expected_revision,
+            "principal": {"issuer": principal.issuer, "subject": principal.subject},
+        },
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    key = _receipt_hmac_key(runtime)
+    if key is None:
+        return hashlib.sha256(b"be1.teacher-assignment-transfer.v1\0" + payload).hexdigest()
+    return hmac.new(
+        key, b"be1.teacher-assignment-transfer.v1\0" + payload, hashlib.sha256
+    ).hexdigest()
+
+
+def _receipt_hmac_key(runtime: Be1Runtime) -> bytes | None:
+    configured = runtime.settings.profile_receipt_hmac_key
+    return configured.get_secret_value().encode("utf-8") if configured is not None else None
+
+
+def _session_factory(runtime: Be1Runtime) -> sessionmaker[Session]:
+    assert runtime.session_factory is not None
+    return runtime.session_factory
+
+
+def _raise_transfer_error(exc: TeacherAssignmentTransferError, response: Response) -> NoReturn:
+    if exc.current_version is not None:
+        response.headers["ETag"] = f'"{exc.current_version}"'
+    raise HTTPException(
+        status_code=exc.status_code,
+        detail={"code": exc.code, "current_version": exc.current_version},
+    ) from None
 
 
 ClassListState = Literal["active", "suspended", "archived", "all"]
@@ -506,6 +920,7 @@ def list_classes(
     db: Session = Depends(get_db),
 ) -> dict[str, object]:
     assignments = require_assignment(db, principal, organization_id)
+    settle_due_class_suspensions(db, organization_id, actor=principal.subject)
     allowed_class_ids = {row.class_id for row in assignments if row.class_id is not None}
     # T-7b-DEC-3 (closes T-7a Q-1): only an organization-wide School Manager row lists every
     # class. An organization-wide Teacher-family row is a membership marker and no longer does;
@@ -544,9 +959,7 @@ def list_classes(
                 "display_name": row.display_name,
                 "state": row.state,
                 "class_revision": row.revision,
-                "assignment_revision": class_assignment_revision(
-                    counts.get(row.class_id, (0, 0))[0]
-                ),
+                "assignment_revision": row.assignment_revision,
                 "has_active_teacher": counts.get(row.class_id, (0, 0))[1] > 0,
             }
             for row in rows
@@ -601,6 +1014,288 @@ def _stored_class_replay(
     )
 
 
+_CAPACITY_ADMIN_WIRE_ERRORS: dict[str, tuple[int, str]] = {
+    "CLASS_SELECTION_REQUIRED": (422, "CLASS_SELECTION_REQUIRED"),
+    "INVALID_CAPACITY_DOWNGRADE": (422, "INVALID_CAPACITY_DOWNGRADE"),
+    "SUBSCRIPTION_PERIOD_ENDED": (409, "SUBSCRIPTION_PERIOD_ENDED"),
+    "NOT_FOUND": (404, "RESOURCE_NOT_FOUND"),
+    "INVALID_IDEMPOTENCY_KEY": (400, "INVALID_IDEMPOTENCY_KEY"),
+    "STALE_REVISION": (409, "STALE_REVISION"),
+}
+
+
+def _raise_capacity_admin_error(exc: AdminError) -> NoReturn:
+    if exc.code == "BILLING_SANDBOX_DISABLED":
+        raise failure(
+            503,
+            "DEPENDENCY_UNAVAILABLE",
+            "Billing capacity is temporarily unavailable",
+        ) from None
+    wire_error = _CAPACITY_ADMIN_WIRE_ERRORS.get(exc.code)
+    if wire_error is not None:
+        status_code, code = wire_error
+        raise failure(status_code, code, "The capacity command could not be completed") from None
+    # Billing may add a code before BE1 has a stable public contract for it. Fail closed with
+    # the registered dependency error instead of leaking an unclassified internal code.
+    raise failure(
+        503,
+        "DEPENDENCY_UNAVAILABLE",
+        "Billing capacity is temporarily unavailable",
+    ) from None
+
+
+def _capacity_adapter(db: Session, actor: str, settings: Settings) -> Be1CapacityAdapter:
+    try:
+        return Be1CapacityAdapter(db, actor, settings)
+    except AdminError as exc:
+        _raise_capacity_admin_error(exc)
+
+
+def _active_class_refs(db: Session, organization_id: str) -> set[str]:
+    return set(
+        db.scalars(
+            select(ClassroomModel.class_id).where(
+                ClassroomModel.organization_id == organization_id,
+                ClassroomModel.state == "active",
+            )
+        )
+    )
+
+
+def _capacity_response(
+    db: Session,
+    adapter: Be1CapacityAdapter,
+    *,
+    organization_id: str,
+    row: SubscriptionModel | None,
+    view: dict[str, Any],
+) -> Be1OrganizationCapacityV1:
+    active_refs = _active_class_refs(db, organization_id)
+    due_refs = {str(class_ref) for class_ref in view.get("suspended_class_refs", [])}
+    active_count = effective_active_class_count(active_refs, due_refs)
+    scheduled = adapter.scheduled_change(row, view)
+    return Be1OrganizationCapacityV1(
+        organization_id=organization_id,
+        subscription_id=row.subscription_id if row is not None else None,
+        capacity=int(view["capacity"]),
+        active_class_count=active_count,
+        available_slots=max(0, int(view["capacity"]) - active_count),
+        subscription_state=str(view["state"]),
+        revision=int(view["revision"]),
+        period_start=view["period_start"],
+        period_end=view["period_end"],
+        scheduled_change=(
+            Be1ScheduledCapacityChangeV1.model_validate(scheduled) if scheduled else None
+        ),
+    )
+
+
+def _raise_capacity_unavailable(db: Session) -> NoReturn:
+    db.rollback()
+    raise failure(
+        503,
+        "DEPENDENCY_UNAVAILABLE",
+        "Billing capacity is temporarily unavailable",
+    ) from None
+
+
+def _capacity_config_fingerprint(
+    organization_id: str, payload: Be1CapacityConfigureRequest, expected_revision: int
+) -> str:
+    material = {
+        "organization_id": organization_id,
+        "action": payload.action,
+        "payload": payload.model_dump(mode="json", exclude_unset=True),
+        "expected_revision": expected_revision,
+    }
+    return hashlib.sha256(
+        json.dumps(material, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+
+
+def _capacity_receipt_replay(
+    receipt: Be1CommandReceiptModel,
+    *,
+    fingerprint: str,
+    response: Response,
+) -> Be1OrganizationCapacityV1:
+    if receipt.request_fingerprint != fingerprint:
+        raise failure(
+            400,
+            "INVALID_IDEMPOTENCY_KEY",
+            "Idempotency-Key was already used for another request",
+        )
+    stored = Be1OrganizationCapacityV1.model_validate(receipt.response_json)
+    response.headers["ETag"] = f'"{stored.revision}"'
+    response.headers["Cache-Control"] = "private, no-store"
+    return stored
+
+
+@router.get(
+    "/organizations/{organization_id}/capacity",
+    response_model=Be1OrganizationCapacityV1,
+)
+def read_organization_capacity(
+    organization_id: str,
+    request: Request,
+    response: Response,
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+) -> Be1OrganizationCapacityV1:
+    """Read only the authenticated Manager's Billing-derived effective capacity."""
+    try:
+        _require_m2_assignment(db, principal, organization_id, roles={"school_admin"})
+    except HTTPException as exc:
+        # Capacity is a sensitive Manager resource; do not reveal that an organization has a
+        # capacity record to an assigned non-Manager.
+        if exc.status_code in {403, 404}:
+            raise _scope_denied() from None
+        raise
+    try:
+        adapter = _capacity_adapter(
+            db, principal.subject, request.app.state.be1_runtime.settings
+        )
+        row, view = adapter.view_for_organization(organization_id, lock=False)
+        due_refs = {str(class_ref) for class_ref in view.get("suspended_class_refs", [])}
+        projected = project_due_capacity_suspensions(
+            db,
+            organization_id=organization_id,
+            actor=principal.subject,
+            class_refs=due_refs,
+        )
+        result = _capacity_response(
+            db,
+            adapter,
+            organization_id=organization_id,
+            row=row,
+            view=view,
+        )
+        if projected:
+            # Commit the read-time class state, revision, audit, and outbox together.
+            db.commit()
+    except CapacityDependencyUnavailable:
+        _raise_capacity_unavailable(db)
+    except AdminError as exc:
+        db.rollback()
+        _raise_capacity_admin_error(exc)
+    except SQLAlchemyError:
+        _raise_capacity_unavailable(db)
+    response.headers["ETag"] = f'"{result.revision}"'
+    response.headers["Cache-Control"] = "private, no-store"
+    return result
+
+
+@router.patch(
+    "/organizations/{organization_id}/capacity",
+    response_model=Be1OrganizationCapacityV1,
+)
+def configure_organization_capacity(
+    organization_id: str,
+    payload: Be1CapacityConfigureRequest,
+    request: Request,
+    response: Response,
+    idempotency_key: Annotated[
+        str, Header(alias="Idempotency-Key", min_length=1, max_length=128)
+    ],
+    if_match: Annotated[str, Header(alias="If-Match")],
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+) -> Be1OrganizationCapacityV1:
+    """Configure only this Manager's subscription through the Billing-owned rules."""
+    _require_m2_assignment(db, principal, organization_id, roles={"school_admin"})
+    idempotency_key = parse_idempotency_key(request)
+    expected_revision = _strong_revision(if_match)
+    scope = f"PATCH /organizations/{organization_id}/capacity"
+    fingerprint = _capacity_config_fingerprint(organization_id, payload, expected_revision)
+    receipt = db.get(Be1CommandReceiptModel, (principal.subject, scope, idempotency_key))
+    if receipt is not None:
+        result = _capacity_receipt_replay(receipt, fingerprint=fingerprint, response=response)
+        db.rollback()
+        return result
+
+    try:
+        adapter = _capacity_adapter(
+            db, principal.subject, request.app.state.be1_runtime.settings
+        )
+        # Constructing the command service checks Billing's local-test sandbox gate. Reads and
+        # class creation never construct it.
+        billing_capacity = adapter.command_service()
+        row, view = adapter.view_for_organization(organization_id, lock=True)
+        if row is None:
+            raise AdminError("NOT_FOUND", 404)
+        subscription_id = row.subscription_id
+        # The subscription row serializes same-organization PATCH requests. Recheck the BE1
+        # receipt after the lock so a concurrent first request replays before its stale check.
+        receipt = db.get(Be1CommandReceiptModel, (principal.subject, scope, idempotency_key))
+        if receipt is not None:
+            result = _capacity_receipt_replay(
+                receipt, fingerprint=fingerprint, response=response
+            )
+            db.rollback()
+            return result
+
+        if row.revision != expected_revision:
+            current_revision = row.revision
+            db.rollback()
+            raise_stale_revision(current_version=current_revision, etag=str(current_revision))
+
+        due_refs = {str(class_ref) for class_ref in view.get("suspended_class_refs", [])}
+        project_due_capacity_suspensions(
+            db,
+            organization_id=organization_id,
+            actor=principal.subject,
+            class_refs=due_refs,
+        )
+        config_payload = {
+            "action": payload.action,
+            "addon_slots": payload.addon_slots,
+            "suspend_class_refs": payload.suspend_class_refs or [],
+        }
+        configured = billing_capacity.configure(  # type: ignore[no-untyped-call]
+            subscription_id,
+            config_payload,
+            expected_revision,
+            idempotency_key,
+            _active_class_refs(db, organization_id),
+        )
+        result = _capacity_response(
+            db,
+            adapter,
+            organization_id=organization_id,
+            row=row,
+            view=configured,
+        )
+        audit(
+            db,
+            organization_id=organization_id,
+            actor=principal.subject,
+            action=f"subscription.{payload.action}",
+            resource_type="organization_subscription",
+            resource_id=subscription_id,
+        )
+        db.add(
+            Be1CommandReceiptModel(
+                principal_ref=principal.subject,
+                operation_scope=scope,
+                idempotency_key=idempotency_key,
+                organization_id=organization_id,
+                request_fingerprint=fingerprint,
+                response_json=result.model_dump(mode="json"),
+            )
+        )
+        db.commit()
+    except CapacityDependencyUnavailable:
+        _raise_capacity_unavailable(db)
+    except AdminError as exc:
+        db.rollback()
+        _raise_capacity_admin_error(exc)
+    except SQLAlchemyError:
+        _raise_capacity_unavailable(db)
+    response.headers["ETag"] = f'"{result.revision}"'
+    response.headers["Cache-Control"] = "private, no-store"
+    return result
+
+
 @router.post("/organizations/{organization_id}/classes", status_code=status.HTTP_201_CREATED)
 def create_class(
     organization_id: str,
@@ -624,6 +1319,53 @@ def create_class(
         )
         db.rollback()
         return replay
+
+    # The Billing subscription row is the organization serialization lock shared with
+    # subscription configuration and payment settlement. When there is no subscription row,
+    # the adapter locks the BE1 organization row before the active-class count. Capacity view,
+    # downgrade projection, class write, audit/outbox and receipt stay in this Session.
+    try:
+        adapter = _capacity_adapter(
+            db, principal.subject, request.app.state.be1_runtime.settings
+        )
+        _subscription, capacity_view = adapter.view_for_organization(organization_id, lock=True)
+    except CapacityDependencyUnavailable:
+        _raise_capacity_unavailable(db)
+    except AdminError as exc:
+        db.rollback()
+        _raise_capacity_admin_error(exc)
+    except SQLAlchemyError:
+        _raise_capacity_unavailable(db)
+
+    # A concurrent same-key create may have committed while this request waited for the
+    # subscription lock. Check again before the capacity refusal so successful retries replay.
+    receipt = db.get(Be1CommandReceiptModel, (principal.subject, scope, idempotency_key))
+    if receipt is not None:
+        replay = _stored_class_replay(
+            receipt, fingerprint=fingerprint, display_name=payload.display_name
+        )
+        db.rollback()
+        return replay
+
+    active_refs = _active_class_refs(db, organization_id)
+    due_suspensions = {
+        str(class_ref) for class_ref in capacity_view.get("suspended_class_refs", [])
+    }
+    active_count = effective_active_class_count(active_refs, due_suspensions)
+    if active_count >= int(capacity_view["capacity"]):
+        db.rollback()
+        raise failure(
+            409,
+            "CLASS_CAPACITY_REACHED",
+            "The organization has no available class slots",
+        )
+
+    project_due_capacity_suspensions(
+        db,
+        organization_id=organization_id,
+        actor=principal.subject,
+        class_refs=due_suspensions,
+    )
     class_id = str(uuid4())
     record = ClassroomModel(
         class_id=class_id,
@@ -754,6 +1496,7 @@ def _change_class_state(
     _require_m2_assignment(
         db, principal, organization_id, roles={"school_admin"}, class_id=class_id
     )
+    settle_due_class_suspensions(db, organization_id, actor=principal.subject)
     # (3) the key (1-128 visible ASCII) and the strong class revision.
     idempotency_key = parse_idempotency_key(request)
     expected_revision = _strong_revision(if_match)
@@ -769,6 +1512,9 @@ def _change_class_state(
         replay = _replayed_class_state(receipt, fingerprint=fingerprint, response=response)
         db.rollback()
         return replay
+    require_no_pending_class_transfer(
+        db, organization_id=organization_id, class_id=class_id, classroom=classroom
+    )
     # (6) the expected class revision (SRS l.1699): a stale request never writes.
     if classroom.revision != expected_revision:
         current = classroom.revision
@@ -865,20 +1611,10 @@ def archive_class(
     return _change_class_state("archive", class_id, request, response, if_match, principal, db)
 
 
-@router.get("/organizations/{organization_id}/classes/{class_id}/profiles")
-def list_profiles(
-    organization_id: str,
-    class_id: str,
-    principal: VerifiedPrincipal = Depends(get_verified_adult),
-    db: Session = Depends(get_db),
-) -> dict[str, object]:
-    assignments = require_assignment(db, principal, organization_id, class_id=class_id)
-    # T-7b-DEC-5: a read, so a suspended class is readable; an archived one only by a Manager.
-    hide_archived_from_teacher(get_class(db, organization_id, class_id, write=False), assignments)
-    # T-7a (SRS l.2586, D-066-75 CM-3, CM-5, CM-11): the School Manager gets a count only, with
-    # no consent gate and no audit row; profile fields go to a Teacher assigned to this class.
-    if _roster_audience(assignments, class_id) == "manager":
-        active_profiles = db.scalar(
+def _active_profile_count(db: Session, organization_id: str, class_id: str) -> int:
+    """Count every active profile of the class (the Manager summary and the Teacher total)."""
+    return int(
+        db.scalar(
             select(func.count())
             .select_from(ManagedProfileModel)
             .where(
@@ -887,43 +1623,83 @@ def list_profiles(
                 ManagedProfileModel.state == "active",
             )
         )
+        or 0
+    )
+
+
+def _roster_listed(organization_id: str, class_id: str) -> Select[tuple[ManagedProfileModel]]:
+    """Active profiles a Teacher may see: synthetic, or `REAL` with an effective consent.
+
+    The consent condition is the predicate of `consent_is_effective` (organization, class,
+    child and purpose match, state `effective`, non-null purpose) written as one `EXISTS`, so a
+    page is a single statement. `LEGACY_UNCLASSIFIED` profiles are never listed (SRS l.832).
+    """
+    consented = exists().where(
+        ConsentRecordModel.organization_id == ManagedProfileModel.organization_id,
+        ConsentRecordModel.class_id == ManagedProfileModel.class_id,
+        ConsentRecordModel.child_id == ManagedProfileModel.child_id,
+        ConsentRecordModel.purpose_ref == ManagedProfileModel.consent_purpose_ref,
+        ConsentRecordModel.state == "effective",
+    )
+    return select(ManagedProfileModel).where(
+        ManagedProfileModel.organization_id == organization_id,
+        ManagedProfileModel.class_id == class_id,
+        ManagedProfileModel.state == "active",
+        or_(
+            ManagedProfileModel.data_origin == "SYNTHETIC_DEV",
+            and_(
+                ManagedProfileModel.data_origin == "REAL",
+                ManagedProfileModel.consent_purpose_ref.is_not(None),
+                consented,
+            ),
+        ),
+    )
+
+
+@router.get("/organizations/{organization_id}/classes/{class_id}/profiles")
+def list_profiles(
+    organization_id: str,
+    class_id: str,
+    limit: int = limit_query(),
+    cursor: str | None = cursor_query(),
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+) -> dict[str, object]:
+    assignments = require_assignment(db, principal, organization_id, class_id=class_id)
+    # T-7b-DEC-5: a read, so a suspended class is readable; an archived one only by a Manager.
+    hide_archived_from_teacher(get_class(db, organization_id, class_id, write=False), assignments)
+    # T-7a (SRS l.2586, D-066-75 CM-3, CM-5, CM-11): the School Manager gets a count only, with
+    # no consent gate and no audit row; profile fields go to a Teacher assigned to this class.
+    # T-7e (D-066-100): `limit` and `cursor` are accepted and ignored for a Manager, who never
+    # decodes a cursor.
+    audience = _roster_audience(assignments, class_id)
+    active_profile_count = _active_profile_count(db, organization_id, class_id)
+    if audience == "manager":
         return {
             "contract": "Be1ClassRosterSummaryV1",
             "class_id": class_id,
-            "active_profile_count": int(active_profiles or 0),
+            "active_profile_count": active_profile_count,
         }
-    rows = db.scalars(
-        select(ManagedProfileModel)
-        .where(
-            ManagedProfileModel.organization_id == organization_id,
-            ManagedProfileModel.class_id == class_id,
-            ManagedProfileModel.state == "active",
+    # T-7e (D-066-100, SRS l.1640): a Teacher always gets 200 with the synthetic or consented
+    # profiles, keyset-paged by (created_at, child_id), plus the count of all active profiles.
+    # The cursor is decoded only after the scope checks above.
+    statement = _roster_listed(organization_id, class_id)
+    scope = _ROSTER_CURSOR_SCOPE.format(organization_id=organization_id, class_id=class_id)
+    if cursor is not None:
+        after_time, after_id = decode_time_cursor(cursor, scope=scope)
+        statement = statement.where(
+            tuple_(ManagedProfileModel.created_at, ManagedProfileModel.child_id)
+            > (after_time, after_id)
         )
-        .order_by(ManagedProfileModel.created_at)
-    ).all()
-    if any(
-        not consent_is_effective(
-            db,
-            organization_id=organization_id,
-            class_id=class_id,
-            child_id=row.child_id,
-            purpose_ref=row.consent_purpose_ref,
-        )
-        for row in rows
-    ):
-        audit(
-            db,
-            organization_id=organization_id,
-            actor=principal.subject,
-            action="profile.list",
-            resource_type="class",
-            resource_id=class_id,
-            decision="denied_consent_pending",
-        )
-        commit(db)
-        raise failure(
-            409, "CONSENT_NOT_EFFECTIVE", "Child profiles are blocked while consent is pending"
-        )
+    rows = list(
+        db.scalars(
+            statement.order_by(ManagedProfileModel.created_at, ManagedProfileModel.child_id).limit(
+                limit + 1
+            )
+        ).all()
+    )
+    has_more = len(rows) > limit
+    rows = rows[:limit]
     return {
         "contract": "Be1ManagedProfileListV1",
         "items": [
@@ -935,6 +1711,142 @@ def list_profiles(
             }
             for row in rows
         ],
+        "next_cursor": (
+            encode_cursor(
+                scope=scope, sort_key=rows[-1].created_at.isoformat(), item_id=rows[-1].child_id
+            )
+            if has_more and rows
+            else None
+        ),
+        "active_profile_count": active_profile_count,
+    }
+
+
+def _pending_profile_deletion() -> Exists:
+    return exists().where(
+        DataLifecycleRequestModel.request_type == "delete",
+        DataLifecycleRequestModel.state != "completed",
+        or_(
+            DataLifecycleRequestModel.target_ref == ManagedProfileModel.child_id,
+            DataLifecycleRequestModel.target_ref == ManagedProfileModel.class_id,
+            DataLifecycleRequestModel.target_ref == ManagedProfileModel.organization_id,
+        ),
+    )
+
+
+@router.get("/organizations/{organization_id}/unplaced-profile-refs")
+def list_unplaced_profile_refs(
+    organization_id: str,
+    limit: int = limit_query(),
+    cursor: str | None = cursor_query(),
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+) -> dict[str, object]:
+    _require_m2_assignment(db, principal, organization_id, roles={"school_admin"})
+    scope = f"be1.unplaced-profile-refs:{organization_id}"
+    active_enrollment = exists().where(
+        EnrollmentModel.organization_id == ManagedProfileModel.organization_id,
+        EnrollmentModel.child_id == ManagedProfileModel.child_id,
+        EnrollmentModel.state == "active",
+    )
+    statement = select(ManagedProfileModel.child_id, ManagedProfileModel.created_at).where(
+        ManagedProfileModel.organization_id == organization_id,
+        ManagedProfileModel.state == "active",
+        ~active_enrollment,
+        ~_pending_profile_deletion(),
+    )
+    if cursor is not None:
+        after_time, after_id = decode_time_cursor(cursor, scope=scope)
+        statement = statement.where(
+            tuple_(ManagedProfileModel.created_at, ManagedProfileModel.child_id)
+            > (after_time, after_id)
+        )
+    rows = list(
+        db.execute(
+            statement.order_by(ManagedProfileModel.created_at, ManagedProfileModel.child_id).limit(
+                limit + 1
+            )
+        ).all()
+    )
+    has_more = len(rows) > limit
+    rows = rows[:limit]
+    return {
+        "contract": "Be1UnplacedProfileRefListV1",
+        "items": [{"child_id": row.child_id} for row in rows],
+        "next_cursor": encode_cursor(
+            scope=scope, sort_key=rows[-1].created_at.isoformat(), item_id=rows[-1].child_id
+        )
+        if has_more and rows
+        else None,
+    }
+
+
+@router.get("/organizations/{organization_id}/classes/{class_id}/profile-refs")
+def list_profile_refs(
+    organization_id: str,
+    class_id: str,
+    limit: int = limit_query(),
+    cursor: str | None = cursor_query(),
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+) -> dict[str, object]:
+    """List only opaque references for an organization's School Manager roster."""
+    _require_m2_assignment(
+        db, principal, organization_id, roles={"school_admin"}, class_id=class_id
+    )
+    try:
+        get_class(db, organization_id, class_id, write=False)
+    except HTTPException as exc:
+        if exc.status_code == 404:
+            raise _scope_denied() from None
+        raise
+
+    scope = _PROFILE_REF_CURSOR_SCOPE.format(
+        organization_id=organization_id, class_id=class_id
+    )
+    statement = (
+        select(ManagedProfileModel.child_id, ManagedProfileModel.created_at)
+        .join(
+            EnrollmentModel,
+            and_(
+                EnrollmentModel.organization_id == ManagedProfileModel.organization_id,
+                EnrollmentModel.class_id == ManagedProfileModel.class_id,
+                EnrollmentModel.child_id == ManagedProfileModel.child_id,
+            ),
+        )
+        .where(
+            ManagedProfileModel.organization_id == organization_id,
+            ManagedProfileModel.class_id == class_id,
+            ManagedProfileModel.state == "active",
+            EnrollmentModel.state == "active",
+        )
+    )
+    if cursor is not None:
+        after_time, after_id = decode_time_cursor(cursor, scope=scope)
+        statement = statement.where(
+            tuple_(ManagedProfileModel.created_at, ManagedProfileModel.child_id)
+            > (after_time, after_id)
+        )
+    rows = list(
+        db.execute(
+            statement.order_by(ManagedProfileModel.created_at, ManagedProfileModel.child_id).limit(
+                limit + 1
+            )
+        ).all()
+    )
+    has_more = len(rows) > limit
+    rows = rows[:limit]
+    return {
+        "contract": "Be1ClassProfileRefListV1",
+        "class_id": class_id,
+        "items": [{"child_id": row.child_id} for row in rows],
+        "next_cursor": (
+            encode_cursor(
+                scope=scope, sort_key=rows[-1].created_at.isoformat(), item_id=rows[-1].child_id
+            )
+            if has_more and rows
+            else None
+        ),
     }
 
 
@@ -959,6 +1871,7 @@ def list_pilot_profiles(
     )
     # T-7a2-DEC-1: an org-wide `teacher` row covers the class but is not the assignment.
     require_class_teacher_row(assignments, session.class_id)
+    settle_due_class_suspensions(db, organization_id, actor=principal.subject)
     if (
         runtime.settings.env not in {"local", "test"}
         or not runtime.settings.synthetic_pilot_enabled
@@ -1279,6 +2192,7 @@ def create_profile(
     )
     if not any(row.class_id == class_id and row.role == "teacher" for row in assignments):
         raise _scope_denied()
+    settle_due_class_suspensions(db, organization_id, actor=principal.subject)
     idempotency_key = parse_idempotency_key(request)
     expected_revision = _strong_revision(if_match)
     classroom = db.scalar(class_lock_select(class_id))
@@ -1308,6 +2222,9 @@ def create_profile(
             raise
         db.rollback()
         return replay
+    require_no_pending_class_transfer(
+        db, organization_id=organization_id, class_id=class_id, classroom=classroom
+    )
     if classroom.revision != expected_revision:
         current = classroom.revision
         db.rollback()
@@ -1449,12 +2366,12 @@ def create_profile(
     return body
 
 
-# --- FEAT-066 goal v3 T-7d: enrollment move between two classes of one Teacher (FR-T-05) --------
+# --- FEAT-066 goal v3 T-7d: enrollment move within one organization (FR-T-05) ------------------
 # SRS l.544 (one active enrollment, the earlier one is closed and kept), l.830 and l.1093 (the
 # enrollment is the source of the current-class projection), l.1425 (capacity never blocks a
 # change in an existing class: no capacity, quota or billing code here), l.1651 and l.1699
-# (expected class revision, STALE_REVISION), l.1697 (keyed commands). The School Manager gets 403
-# and no cross-Teacher move exists (X-19, T-7d-DEC-2).
+# (expected class revision, STALE_REVISION), l.1697 (keyed commands). A School Manager may move
+# within the assigned organization; a Teacher still needs class-scoped rows on both classes.
 _MOVE_SESSION_STATES_OPEN = ("join_pending", "admitted")
 
 
@@ -1582,22 +2499,26 @@ def move_profile(
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
 ) -> dict[str, object]:
-    """T-7d: a Teacher of both classes moves a child; the old enrollment is closed and kept.
+    """T-7d: a Manager in the organization or Teacher of both classes moves a profile.
 
-    Order: source class in any state (404), Teacher row of the source class (404, or 403 for
-    another role), key, `If-Match`, same-class check (400), target class of the same organization
-    with a Teacher row of the Teacher (404), both class rows FOR UPDATE in ascending id order,
-    receipt replay, stale source then stale target (409), both classes active (409), the profile
-    and its active enrollment, the session guard (409), then one transaction.
+    Order: source class in any state (404), active Manager assignment or Teacher row of the source
+    class (404, or 403 for another role), key, `If-Match`, same-class check (400), target class of
+    the same organization and, for a Teacher, a Teacher row on the target (404), both class rows
+    FOR UPDATE in ascending id order, receipt replay, stale source then stale target (409), both
+    classes active (409), the profile and its active enrollment, the session guard (409), then one
+    transaction. Consent remains class-scoped; this command does not copy or create consent.
     """
     source_known = db.scalar(select(ClassroomModel).where(ClassroomModel.class_id == class_id))
     if source_known is None:
         raise _scope_denied()
     organization_id = source_known.organization_id
     assignments = _require_m2_assignment(
-        db, principal, organization_id, roles={"teacher"}, class_id=class_id
+        db, principal, organization_id, roles={"school_admin", "teacher"}, class_id=class_id
     )
-    if not any(row.class_id == class_id and row.role == "teacher" for row in assignments):
+    manager = any(row.role == "school_admin" for row in assignments)
+    if not manager and not any(
+        row.class_id == class_id and row.role == "teacher" for row in assignments
+    ):
         raise _scope_denied()
     idempotency_key = parse_idempotency_key(request)
     expected_revision = _strong_revision(if_match)
@@ -1610,18 +2531,19 @@ def move_profile(
                 "field_errors": [{"field": "target_class_id", "code": "INVALID_FORMAT"}],
             },
         )
-    # The target: the same organization and a Teacher row of this Teacher, else the uniform 404
-    # (X-19: a cross-Teacher move is not built, T-7d-DEC-2).
+    # The target must stay in the organization. Teachers still need their own class row there;
+    # the active School Manager assignment covers any target class in this organization.
     target_known = db.scalar(
         select(ClassroomModel.class_id).where(
             ClassroomModel.organization_id == organization_id,
             ClassroomModel.class_id == target_id,
         )
     )
-    if target_known is None or not _teacher_of_class(
-        db, organization_id, principal.subject, target_id
+    if target_known is None or (
+        not manager and not _teacher_of_class(db, organization_id, principal.subject, target_id)
     ):
         raise _scope_denied()
+    settle_due_class_suspensions(db, organization_id, actor=principal.subject)
     # Both class rows FOR UPDATE in ascending id order: A->B and B->A cannot deadlock.
     locked = {cid: db.scalar(class_lock_select(cid)) for cid in sorted((class_id, target_id))}
     source, target = locked[class_id], locked[target_id]
@@ -1636,6 +2558,12 @@ def move_profile(
         replay = _replayed_move(receipt, fingerprint=fingerprint)
         db.rollback()
         return replay
+    require_no_pending_class_transfer(
+        db, organization_id=organization_id, class_id=class_id, classroom=source
+    )
+    require_no_pending_class_transfer(
+        db, organization_id=organization_id, class_id=target_id, classroom=target
+    )
     if source.revision != expected_revision:
         current = source.revision
         db.rollback()
@@ -1751,6 +2679,1008 @@ def move_profile(
         db.rollback()
         return replay
     return body
+
+
+def _place_receipt_scope(class_id: str, child_id: str) -> str:
+    scope = f"POST /classes/{class_id}/profiles/{child_id}/place"
+    if len(scope) <= _RECEIPT_SCOPE_LIMIT:
+        return scope
+    digest = hashlib.sha256(f"{class_id}/{child_id}".encode()).hexdigest()
+    return f"POST /classes/profiles/place#{digest}"
+
+
+def _place_fingerprint(class_id: str, child_id: str, revision: int) -> str:
+    return hashlib.sha256(
+        json.dumps(
+            {
+                "v": 1,
+                "command": "profile.place",
+                "class_id": class_id,
+                "child_id": child_id,
+                "if_match": revision,
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode()
+    ).hexdigest()
+
+
+def _replayed_place(receipt: Be1CommandReceiptModel, fingerprint: str) -> dict[str, object]:
+    if receipt.request_fingerprint != fingerprint:
+        raise failure(
+            400, "INVALID_IDEMPOTENCY_KEY", "Idempotency-Key was already used for another request"
+        )
+    stored = receipt.response_json
+    return {
+        "contract": "Be1ProfilePlacementV1",
+        "child_id": stored["child_id"],
+        "class_id": stored["class_id"],
+        "enrollment_id": stored["enrollment_id"],
+        "class_revision": stored["class_revision"],
+    }
+
+
+@router.post("/classes/{class_id}/profiles/{child_id}/place")
+def place_profile(
+    class_id: str,
+    child_id: str,
+    request: Request,
+    idempotency_key: Annotated[str, Header(alias="Idempotency-Key", min_length=1, max_length=128)],
+    if_match: Annotated[str | None, Header(alias="If-Match")] = None,
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+) -> dict[str, object]:
+    known = db.scalar(select(ClassroomModel).where(ClassroomModel.class_id == class_id))
+    if known is None:
+        raise _scope_denied()
+    organization_id = known.organization_id
+    _require_m2_assignment(
+        db, principal, organization_id, roles={"school_admin"}, class_id=class_id
+    )
+    idempotency_key = parse_idempotency_key(request)
+    expected_revision = _strong_revision(if_match)
+    settle_due_class_suspensions(db, organization_id, actor=principal.subject)
+    classroom = db.scalar(class_lock_select(class_id))
+    if classroom is None:
+        raise _scope_denied()
+    scope = _place_receipt_scope(class_id, child_id)
+    fingerprint = _place_fingerprint(class_id, child_id, expected_revision)
+    receipt = db.get(Be1CommandReceiptModel, (principal.subject, scope, idempotency_key))
+    if receipt is not None:
+        replay = _replayed_place(receipt, fingerprint)
+        db.rollback()
+        return replay
+    require_no_pending_class_transfer(
+        db, organization_id=organization_id, class_id=class_id, classroom=classroom
+    )
+    if classroom.revision != expected_revision:
+        current = classroom.revision
+        db.rollback()
+        raise_stale_revision(current_version=current, etag=str(current))
+    if classroom.state != "active":
+        db.rollback()
+        raise failure(
+            409, "INVALID_STATE_TRANSITION", "The class is read-only in its current state"
+        )
+    profile = db.scalar(
+        select(ManagedProfileModel)
+        .where(
+            ManagedProfileModel.organization_id == organization_id,
+            ManagedProfileModel.child_id == child_id,
+            ManagedProfileModel.state == "active",
+        )
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+    if profile is None:
+        db.rollback()
+        raise failure(404, "PROFILE_NOT_FOUND", "Profile was not found")
+    enrollment = db.scalar(
+        select(EnrollmentModel)
+        .where(
+            EnrollmentModel.organization_id == organization_id,
+            EnrollmentModel.child_id == child_id,
+            EnrollmentModel.state == "active",
+        )
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+    if enrollment is not None:
+        db.rollback()
+        raise failure(
+            409, "INVALID_STATE_TRANSITION", "The profile already has an active enrollment"
+        )
+    pending = db.scalar(
+        select(
+            exists().where(
+                DataLifecycleRequestModel.request_type == "delete",
+                DataLifecycleRequestModel.state != "completed",
+                DataLifecycleRequestModel.target_ref.in_(
+                    (profile.child_id, profile.class_id, class_id, profile.organization_id)
+                ),
+            )
+        )
+    )
+    if pending:
+        db.rollback()
+        raise failure(409, "INVALID_STATE_TRANSITION", "The profile has a pending deletion")
+    enrollment = EnrollmentModel(
+        enrollment_id=str(uuid4()),
+        organization_id=organization_id,
+        class_id=class_id,
+        child_id=child_id,
+        created_by=principal.subject,
+    )
+    db.add(enrollment)
+    profile.class_id = class_id
+    classroom.revision += 1
+    audit(
+        db,
+        organization_id=organization_id,
+        actor=principal.subject,
+        action="profile.place",
+        resource_type="child_profile",
+        resource_id=child_id,
+    )
+    event(
+        db,
+        organization_id=organization_id,
+        aggregate_id=child_id,
+        event_type="be1.profile.placed.v1",
+        payload={"child_id": child_id, "class_id": class_id},
+    )
+    body = {
+        "contract": "Be1ProfilePlacementV1",
+        "child_id": child_id,
+        "class_id": class_id,
+        "enrollment_id": enrollment.enrollment_id,
+        "class_revision": classroom.revision,
+    }
+    db.add(
+        Be1CommandReceiptModel(
+            principal_ref=principal.subject,
+            operation_scope=scope,
+            idempotency_key=idempotency_key,
+            organization_id=organization_id,
+            request_fingerprint=fingerprint,
+            response_json=body,
+        )
+    )
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        winner = db.get(Be1CommandReceiptModel, (principal.subject, scope, idempotency_key))
+        if winner is None:
+            raise failure(
+                409, "RESOURCE_CONFLICT", "The command conflicts with current records"
+            ) from None
+        replay = _replayed_place(winner, fingerprint)
+        db.rollback()
+        return replay
+    return body
+
+
+# --- FEAT-066 goal v4 T-12b: Teacher profile revisions and edit ------------------------------
+# SRS l.496-499 (FR-C-04 to FR-C-07), l.829 (head and ownership), l.832 (consent covers real data
+# only), l.1651 and l.1697 (expected revision, keyed commands), l.864-865 (uniform 404), l.2586
+# (a Teacher reads only the fields granted once the class is assigned). One predicate for the
+# three routes, identical to the roster of D-066-100: an assigned class Teacher and a profile that
+# is `SYNTHETIC_DEV`, or `REAL` with an effective consent. Real-data writes stay blocked (owner
+# default C4: the purge of revisions and receipts is not reviewed yet), so a write to a `REAL`
+# profile also needs `real_profile_data_enabled`.
+_PROFILE_EDIT_FP_DOMAIN = "be1.profile.edit.receipt"
+_PROFILE_EDIT_FP_VERSION = 1
+
+
+def _edit_receipt_scope(organization_id: str, class_id: str, child_id: str) -> str:
+    """`PATCH /organizations/{org}/classes/{class}/profiles/{child}`, hashed only if too long."""
+    scope = f"PATCH /organizations/{organization_id}/classes/{class_id}/profiles/{child_id}"
+    if len(scope) <= _RECEIPT_SCOPE_LIMIT:
+        return scope
+    digest = hashlib.sha256(f"{organization_id}/{class_id}/{child_id}".encode()).hexdigest()
+    return f"PATCH /organizations/classes/profiles#{digest}"
+
+
+def _edit_fingerprint(
+    *,
+    key: bytes,
+    principal_ref: str,
+    scope: str,
+    expected_revision: int,
+    patch: dict[str, object],
+) -> str:
+    """Keyed HMAC-SHA-256 (hex, 64 characters) over actor, resource, revision and the patch.
+
+    The patch holds the child's new name, age or interests, so the value is derived child data
+    (FR-C-10): without the server key it cannot be confirmed by guessing, and it is never logged
+    or returned. Domain and version live inside the MAC input (the column is 64 characters wide).
+    """
+    message = json.dumps(
+        {
+            "domain": _PROFILE_EDIT_FP_DOMAIN,
+            "v": _PROFILE_EDIT_FP_VERSION,
+            "principal": principal_ref,
+            "scope": scope,
+            "expected_revision": expected_revision,
+            "patch": patch,
+        },
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hmac.new(key, message, hashlib.sha256).hexdigest()
+
+
+def _revision_view(row: ProfileRevisionModel) -> dict[str, object]:
+    """The answer for one revision; no author, no database key beyond the opaque ids."""
+    return {
+        "contract": "Be1ProfileRevisionV1",
+        "child_id": row.child_id,
+        "profile_revision_id": row.profile_revision_id,
+        "revision_no": row.revision_no,
+        "display_name": row.display_name,
+        "age_months": row.age_months,
+        "age_band": (
+            None
+            if row.age_band_code is None or row.age_band_version is None
+            else {"band_version": row.age_band_version, "band_code": row.age_band_code}
+        ),
+        "structured_interests": list(row.structured_interests),
+        "revision_hash": row.revision_hash,
+        "created_at": row.created_at,
+    }
+
+
+def _edit_result(row: ProfileRevisionModel) -> dict[str, object]:
+    return {
+        "contract": "Be1ProfileEditResultV1",
+        "child_id": row.child_id,
+        "profile_revision_id": row.profile_revision_id,
+        "revision_no": row.revision_no,
+        "revision_hash": row.revision_hash,
+    }
+
+
+def _require_profile_teacher(
+    db: Session, principal: VerifiedPrincipal, organization_id: str, class_id: str
+) -> None:
+    """The class exists (404), the caller is an active class-scoped Teacher (403 or 404).
+
+    As `create_profile`: a School Manager is 403, and an org-wide `teacher` row, a guide or an
+    observer is the uniform 404.
+    """
+    known = db.scalar(
+        select(ClassroomModel.class_id).where(
+            ClassroomModel.organization_id == organization_id,
+            ClassroomModel.class_id == class_id,
+        )
+    )
+    if known is None:
+        raise _scope_denied()
+    assignments = _require_m2_assignment(
+        db, principal, organization_id, roles={"teacher"}, class_id=class_id
+    )
+    if not any(row.class_id == class_id and row.role == "teacher" for row in assignments):
+        raise _scope_denied()
+
+
+def _profile_released(
+    db: Session, profile: ManagedProfileModel, *, for_write: bool, real_data_enabled: bool
+) -> bool:
+    """Option B of D-066-100: synthetic, or `REAL` with an effective consent (writes: flag too)."""
+    if profile.data_origin == "SYNTHETIC_DEV":
+        return True
+    if profile.data_origin == "REAL":
+        if for_write and not real_data_enabled:
+            return False
+        return consent_is_effective(
+            db,
+            organization_id=profile.organization_id,
+            class_id=profile.class_id,
+            child_id=profile.child_id,
+            purpose_ref=profile.consent_purpose_ref,
+        )
+    return False
+
+
+def _profile_withdrawn(db: Session, profile: ManagedProfileModel) -> bool:
+    """True when access was withdrawn: a deletion is pending, or a non-synthetic consent is revoked.
+
+    SRS l.867, AC-27, FR-C-10 and UC-09 (owner decision Q3, 2026-11-23): a Teacher whose access
+    to the profile ended learns nothing, so the caller answers the uniform 404 (no audit row).
+    A pending deletion is a ``delete`` lifecycle request that is not completed and whose
+    ``target_ref`` is the child, the class or the organization (the predicate of the candidate
+    selection; ``exception`` counts too, as there). A revoked consent matters only for a profile
+    that is not synthetic, and only when the newest record of its own purpose is the revoke.
+    """
+    pending_deletion = db.scalar(
+        select(
+            exists().where(
+                DataLifecycleRequestModel.request_type == "delete",
+                DataLifecycleRequestModel.state != "completed",
+                DataLifecycleRequestModel.target_ref.in_(
+                    (profile.child_id, profile.class_id, profile.organization_id)
+                ),
+            )
+        )
+    )
+    if pending_deletion:
+        return True
+    if profile.data_origin == "SYNTHETIC_DEV":
+        return False
+    if profile.consent_purpose_ref is None:
+        return False
+    # Only the newest record of the profile's own consent purpose counts: a revoke of another
+    # purpose, or one that a later record superseded, hides nothing.
+    latest = db.scalar(
+        select(ConsentRecordModel.state)
+        .where(
+            ConsentRecordModel.organization_id == profile.organization_id,
+            ConsentRecordModel.class_id == profile.class_id,
+            ConsentRecordModel.child_id == profile.child_id,
+            ConsentRecordModel.purpose_ref == profile.consent_purpose_ref,
+        )
+        .order_by(ConsentRecordModel.recorded_at.desc(), ConsentRecordModel.state.desc())
+        .limit(1)
+    )
+    return latest == "revoked"
+
+
+def _read_released_profile(
+    db: Session,
+    principal: VerifiedPrincipal,
+    organization_id: str,
+    class_id: str,
+    child_id: str,
+) -> ManagedProfileModel:
+    """Scope, class visibility, the active profile of this class, then the release predicate."""
+    _require_profile_teacher(db, principal, organization_id, class_id)
+    # An archived class is gone for a Teacher (T-7b-DEC-6); a suspended one is readable.
+    assignments = require_assignment(db, principal, organization_id, class_id=class_id)
+    hide_archived_from_teacher(get_class(db, organization_id, class_id, write=False), assignments)
+    profile = db.scalar(
+        select(ManagedProfileModel).where(
+            ManagedProfileModel.organization_id == organization_id,
+            ManagedProfileModel.class_id == class_id,
+            ManagedProfileModel.child_id == child_id,
+            ManagedProfileModel.state == "active",
+        )
+    )
+    if profile is None or _profile_withdrawn(db, profile):
+        db.rollback()
+        raise _scope_denied()
+    if not _profile_released(db, profile, for_write=False, real_data_enabled=False):
+        deny_pending_consent(
+            db,
+            organization_id=organization_id,
+            actor=principal.subject,
+            resource_type="child_profile",
+            resource_id=child_id,
+            action="profile.revisions.read",
+        )
+    return profile
+
+
+@router.get(
+    "/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}/revisions",
+    response_model=Be1ProfileRevisionPageV1,
+)
+def list_profile_revisions(
+    organization_id: str,
+    class_id: str,
+    child_id: str,
+    limit: int = limit_query(),
+    cursor: str | None = cursor_query(),
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+) -> dict[str, object]:
+    """T-12b: the immutable revisions of one profile, newest first, keyset-paged (SRS l.1640).
+
+    The first item is the head, so a client learns the revision number to send as
+    `expected_revision`. The cursor is decoded only after the scope checks.
+    """
+    _read_released_profile(db, principal, organization_id, class_id, child_id)
+    scope = _REVISION_CURSOR_SCOPE.format(
+        organization_id=organization_id, class_id=class_id, child_id=child_id
+    )
+    statement = select(ProfileRevisionModel).where(ProfileRevisionModel.child_id == child_id)
+    if cursor is not None:
+        sort_key, after_id = decode_cursor(cursor, scope=scope)
+        if not (sort_key.isascii() and sort_key.isdigit() and 1 <= int(sort_key) <= 2**31 - 1):
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "code": "INVALID_REQUEST",
+                    "field_errors": [{"field": "cursor", "code": "INVALID_FORMAT"}],
+                },
+            )
+        statement = statement.where(
+            tuple_(ProfileRevisionModel.revision_no, ProfileRevisionModel.profile_revision_id)
+            < (int(sort_key), after_id)
+        )
+    rows = list(
+        db.scalars(
+            statement.order_by(
+                ProfileRevisionModel.revision_no.desc(),
+                ProfileRevisionModel.profile_revision_id.desc(),
+            ).limit(limit + 1)
+        ).all()
+    )
+    has_more = len(rows) > limit
+    rows = rows[:limit]
+    return {
+        "contract": "Be1ProfileRevisionPageV1",
+        "items": [_revision_view(row) for row in rows],
+        "next_cursor": (
+            encode_cursor(
+                scope=scope,
+                sort_key=str(rows[-1].revision_no),
+                item_id=rows[-1].profile_revision_id,
+            )
+            if has_more and rows
+            else None
+        ),
+    }
+
+
+@router.get(
+    "/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}"
+    "/revisions/{profile_revision_id}",
+    response_model=Be1ProfileRevisionV1,
+)
+def get_profile_revision(
+    organization_id: str,
+    class_id: str,
+    child_id: str,
+    profile_revision_id: str,
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+) -> dict[str, object]:
+    """T-12b: one revision. The current scope and release predicate hold for a past revision too."""
+    _read_released_profile(db, principal, organization_id, class_id, child_id)
+    row = db.scalar(
+        select(ProfileRevisionModel).where(
+            ProfileRevisionModel.child_id == child_id,
+            ProfileRevisionModel.profile_revision_id == profile_revision_id,
+        )
+    )
+    if row is None:
+        raise _scope_denied()
+    return _revision_view(row)
+
+
+def _replayed_edit(
+    db: Session,
+    receipt: Be1CommandReceiptModel,
+    *,
+    fingerprint: str,
+    key_id: str,
+    child_id: str,
+    response: Response,
+) -> dict[str, object]:
+    """The stored first answer, rebuilt from the immutable revision the receipt names.
+
+    A receipt of another format version or key id, or with another fingerprint, never matches:
+    400 `INVALID_IDEMPOTENCY_KEY`. The receipt holds ids only; a revision that is gone (a future
+    purge) fails closed with the uniform 404.
+    """
+    stored = receipt.response_json
+    same_request = (
+        stored.get("fp_v") == _PROFILE_EDIT_FP_VERSION
+        and stored.get("fp_kid") == key_id
+        and hmac.compare_digest(
+            receipt.request_fingerprint.encode("ascii", "replace"), fingerprint.encode("ascii")
+        )
+    )
+    if not same_request:
+        raise failure(
+            400, "INVALID_IDEMPOTENCY_KEY", "Idempotency-Key was already used for another request"
+        )
+    revision = db.scalar(
+        select(ProfileRevisionModel).where(
+            ProfileRevisionModel.child_id == child_id,
+            ProfileRevisionModel.profile_revision_id == str(stored.get("profile_revision_id")),
+        )
+    )
+    if revision is None:
+        raise _scope_denied()
+    response.headers["ETag"] = f'"{revision.revision_no}"'
+    return _edit_result(revision)
+
+
+@router.patch(
+    "/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}",
+    response_model=Be1ProfileEditResultV1,
+)
+def edit_profile(
+    organization_id: str,
+    class_id: str,
+    child_id: str,
+    payload: EditProfileRequest,
+    request: Request,
+    response: Response,
+    idempotency_key: Annotated[
+        str, Header(alias="Idempotency-Key", min_length=1, max_length=128)
+    ],
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    runtime: Be1Runtime = Depends(get_runtime),
+    db: Session = Depends(get_db),
+) -> dict[str, object]:
+    """T-12b: a keyed Teacher edit that appends one immutable revision (SRS l.497, l.829, l.1697).
+
+    Order: class (404), class Teacher (403/404), key (400), class active (409), the profile row
+    FOR UPDATE (uniform 404, also when access is withdrawn: a pending deletion or a revoked
+    consent), the release predicate (409), the over-age quarantine (409), the
+    receipt key (503), receipt replay, stale `expected_revision` (409), then one transaction:
+    revision, projection and head, audit, receipt. Authorization and state are rechecked before a
+    replay, so a revoked assignment never replays.
+    """
+    _require_profile_teacher(db, principal, organization_id, class_id)
+    idempotency_key = parse_idempotency_key(request)
+    get_class(db, organization_id, class_id, write=True)  # FOR SHARE; 409 unless active
+    profile = db.scalar(
+        select(ManagedProfileModel)
+        .where(
+            ManagedProfileModel.organization_id == organization_id,
+            ManagedProfileModel.class_id == class_id,
+            ManagedProfileModel.child_id == child_id,
+            ManagedProfileModel.state == "active",
+        )
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+    if profile is None or _profile_withdrawn(db, profile):
+        db.rollback()
+        raise _scope_denied()
+    if not _profile_released(
+        db,
+        profile,
+        for_write=True,
+        real_data_enabled=runtime.settings.real_profile_data_enabled,
+    ):
+        deny_pending_consent(
+            db,
+            organization_id=organization_id,
+            actor=principal.subject,
+            resource_type="child_profile",
+            resource_id=child_id,
+            action="profile.edit",
+        )
+    if profile.age_months > MAX_EDIT_AGE_MONTHS:
+        # A legacy age above 120 months is kept as it is and read-only (AC-62, AC-66).
+        db.rollback()
+        raise failure(409, "INVALID_STATE_TRANSITION", "The profile is read-only")
+    try:
+        key = _profile_receipt_key(runtime)  # fail closed (503) before a write
+    except HTTPException:
+        db.rollback()
+        raise
+    patch: dict[str, object] = {
+        name: getattr(payload, name)
+        for name in ("display_name", "age_months", "structured_interests")
+        if name in payload.model_fields_set
+    }
+    scope = _edit_receipt_scope(organization_id, class_id, child_id)
+    fingerprint = _edit_fingerprint(
+        key=key,
+        principal_ref=principal.subject,
+        scope=scope,
+        expected_revision=payload.expected_revision,
+        patch=patch,
+    )
+    key_id = _profile_key_id(key)
+    receipt = db.get(Be1CommandReceiptModel, (principal.subject, scope, idempotency_key))
+    if receipt is not None:
+        try:
+            replay = _replayed_edit(
+                db, receipt, fingerprint=fingerprint, key_id=key_id, child_id=child_id,
+                response=response,
+            )
+        except HTTPException:
+            db.rollback()
+            raise
+        db.rollback()
+        return replay
+    head_no = profile.profile_revision_no
+    if payload.expected_revision != head_no:
+        db.rollback()
+        raise_stale_revision(current_version=head_no, etag=str(head_no))
+    head = db.scalar(
+        select(ProfileRevisionModel).where(
+            ProfileRevisionModel.child_id == child_id,
+            ProfileRevisionModel.profile_revision_id == profile.current_profile_revision_id,
+        )
+    )
+    if head is None:  # the database guarantees a head; fail closed rather than write
+        db.rollback()
+        raise failure(409, "RESOURCE_CONFLICT", "The command conflicts with current records")
+    new_name = payload.display_name if payload.display_name is not None else head.display_name
+    new_age = payload.age_months if payload.age_months is not None else head.age_months
+    new_interests = (
+        payload.structured_interests
+        if payload.structured_interests is not None
+        else list(head.structured_interests)
+    )
+    band = age_band(new_age)
+    revision_no = head_no + 1
+    revision = ProfileRevisionModel(
+        profile_revision_id=str(uuid4()),
+        child_id=child_id,
+        revision_no=revision_no,
+        display_name=new_name,
+        age_months=new_age,
+        age_band_version=None if band is None else BAND_VERSION,
+        age_band_code=None if band is None else band[1],
+        structured_interests=new_interests,
+        authored_by=principal.subject,
+        revision_hash_version=HASH_VERSION,
+        revision_hash=revision_hash(
+            child_id=child_id,
+            revision_no=revision_no,
+            display_name=new_name,
+            age_months=new_age,
+            structured_interests=new_interests,
+        ),
+    )
+    db.add(revision)
+    # The projection of the head, in the same transaction. `age_revision` moves in the same
+    # UPDATE whenever the age changes (the age invariant of FR-C-05).
+    profile.display_name = new_name
+    if new_age != profile.age_months:
+        profile.age_months = new_age
+        profile.age_revision = profile.age_revision + 1
+    profile.current_profile_revision_id = revision.profile_revision_id
+    profile.profile_revision_no = revision_no
+    audit(
+        db,
+        organization_id=organization_id,
+        actor=principal.subject,
+        action="profile.edit",
+        resource_type="child_profile",
+        resource_id=child_id,
+    )
+    body = _edit_result(revision)
+    # References only: no name, no age, no interests, no revision hash.
+    db.add(
+        Be1CommandReceiptModel(
+            principal_ref=principal.subject,
+            operation_scope=scope,
+            idempotency_key=idempotency_key,
+            organization_id=organization_id,
+            request_fingerprint=fingerprint,
+            response_json={
+                "profile_revision_id": revision.profile_revision_id,
+                "fp_v": _PROFILE_EDIT_FP_VERSION,
+                "fp_kid": key_id,
+            },
+        )
+    )
+    try:
+        db.commit()
+    except IntegrityError:
+        # A concurrent request with the same key committed first: its revision stands.
+        db.rollback()
+        winner = db.get(Be1CommandReceiptModel, (principal.subject, scope, idempotency_key))
+        if winner is None:
+            raise failure(
+                409, "RESOURCE_CONFLICT", "The command conflicts with current records"
+            ) from None
+        replay = _replayed_edit(
+            db, winner, fingerprint=fingerprint, key_id=key_id, child_id=child_id,
+            response=response,
+        )
+        db.rollback()
+        return replay
+    response.headers["ETag"] = f'"{revision_no}"'
+    return body
+
+
+# --- FEAT-066 goal v4 T-12c: encrypted support needs of a managed profile ---------------------
+# SRS l.264 BR-20, l.499 FR-C-07, l.932, l.1922, l.2338. The Teacher needs the class assignment,
+# an effective consent and a narrow permission, for every profile (synthetic ones included, owner
+# default C5); the roster rule of option B does not apply here. Both proofs are ports that deny by
+# default: `be1_consent_records` has no effective state and the permission store does not exist
+# (SRS section 31.10), so the production routes deny every Teacher and, without a key source
+# (gate O-SEED-KEY), answer 503. A School Manager is 403 and an org-wide `teacher` row, a guide or
+# an observer is the uniform 404. Nothing here logs, audits or echoes a value.
+_SUPPORT_FP_VERSION = 1
+
+
+class DefaultTeacherSupportNeedsGuard:
+    """Production default: the existing consent lookup, and a permission that nobody holds."""
+
+    def consent_effective(self, db: Session, profile: ManagedProfileModel) -> bool:
+        return consent_is_effective(
+            db,
+            organization_id=profile.organization_id,
+            class_id=profile.class_id,
+            child_id=profile.child_id,
+            purpose_ref=profile.consent_purpose_ref,
+        )
+
+    def permission_granted(
+        self, db: Session, principal: VerifiedPrincipal, profile: ManagedProfileModel
+    ) -> bool:
+        return False
+
+
+def _support_unavailable() -> HTTPException:
+    return failure(503, "SUPPORT_NEEDS_UNAVAILABLE", "Support needs are unavailable")
+
+
+def _support_receipt_scope(organization_id: str, class_id: str, child_id: str) -> str:
+    """`PUT .../support-needs`, hashed with the pattern of `_move_receipt_scope` if too long."""
+    scope = (
+        f"PUT /organizations/{organization_id}/classes/{class_id}/profiles/{child_id}"
+        "/support-needs"
+    )
+    if len(scope) <= _RECEIPT_SCOPE_LIMIT:
+        return scope
+    digest = hashlib.sha256(f"{organization_id}/{class_id}/{child_id}".encode()).hexdigest()
+    return f"PUT /organizations/classes/profiles/support-needs#{digest}"
+
+
+def _support_principal_ref(principal: VerifiedPrincipal) -> str:
+    return hashlib.sha256(f"{principal.issuer}\n{principal.subject}".encode()).hexdigest()
+
+
+def _authorized_support_profile(
+    db: Session,
+    principal: VerifiedPrincipal,
+    organization_id: str,
+    class_id: str,
+    child_id: str,
+    runtime: SupportNeedsRuntime,
+    *,
+    write: bool,
+) -> tuple[ManagedProfileModel, SupportNeedsCrypto]:
+    """Every proof, in order; a failure leaves nothing open. The profile row is locked on write."""
+    guard = runtime.teacher_guard or DefaultTeacherSupportNeedsGuard()
+    action = "profile.support_needs.write" if write else "profile.support_needs.read"
+    _require_profile_teacher(db, principal, organization_id, class_id)
+    assignments = require_assignment(db, principal, organization_id, class_id=class_id)
+    if write:
+        get_class(db, organization_id, class_id, write=True)  # FOR SHARE; 409 unless active
+    else:
+        hide_archived_from_teacher(
+            get_class(db, organization_id, class_id, write=False), assignments
+        )
+    statement = select(ManagedProfileModel).where(
+        ManagedProfileModel.organization_id == organization_id,
+        ManagedProfileModel.class_id == class_id,
+        ManagedProfileModel.child_id == child_id,
+        ManagedProfileModel.state == "active",
+    )
+    if write:
+        statement = statement.with_for_update().execution_options(populate_existing=True)
+    profile = db.scalar(statement)
+    if profile is None or _profile_withdrawn(db, profile):
+        db.rollback()
+        raise _scope_denied()
+    # Permission before consent: a Teacher without the narrow permission never learns the consent
+    # state and writes no audit row (T-12c review P3-3; owner decision Q3).
+    if not guard.permission_granted(db, principal, profile):
+        db.rollback()
+        raise _scope_denied()
+    if not guard.consent_effective(db, profile):
+        deny_pending_consent(
+            db,
+            organization_id=organization_id,
+            actor=principal.subject,
+            resource_type="child_profile",
+            resource_id=child_id,
+            action=action,
+        )
+    if runtime.crypto is None:
+        db.rollback()
+        raise _support_unavailable()
+    return profile, runtime.crypto
+
+
+@router.get(
+    "/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}/support-needs",
+    response_model=Be1SupportNeedsV1,
+)
+def get_profile_support_needs(
+    organization_id: str,
+    class_id: str,
+    child_id: str,
+    response: Response,
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    support_runtime: SupportNeedsRuntime = Depends(get_support_needs_runtime),
+    db: Session = Depends(get_db),
+) -> dict[str, object]:
+    """T-12c: the decrypted record of one profile (revision 0 and null values when none)."""
+    _profile, crypto = _authorized_support_profile(
+        db, principal, organization_id, class_id, child_id, support_runtime, write=False
+    )
+    try:
+        revision, payload = Be1SupportNeedsStore(db).read(
+            crypto=crypto, organization_id=organization_id, child_id=child_id
+        )
+    except SupportNeedsUnavailable:
+        db.rollback()
+        raise _support_unavailable() from None
+    response.headers["Cache-Control"] = "private, no-store"
+    return {
+        "contract": "Be1SupportNeedsV1",
+        "child_id": child_id,
+        "revision": revision,
+        "category": None if payload is None else payload.category,
+        "note": None if payload is None else payload.note,
+    }
+
+
+def _replayed_support_write(
+    receipt: Be1CommandReceiptModel,
+    *,
+    crypto: SupportNeedsCrypto,
+    organization_id: str,
+    child_id: str,
+    principal: VerifiedPrincipal,
+    payload: SupportNeedsPayload,
+    expected_revision: int,
+) -> dict[str, object]:
+    """The stored first answer (ids only), after the fingerprint of the stored key matches."""
+    stored = receipt.response_json
+    key_id = stored.get("fp_kid")
+    revision = stored.get("revision")
+    if (
+        stored.get("fp_v") != _SUPPORT_FP_VERSION
+        or not isinstance(key_id, str)
+        or type(revision) is not int
+    ):
+        raise failure(
+            400, "INVALID_IDEMPOTENCY_KEY", "Idempotency-Key was already used for another request"
+        )
+    try:
+        expected = crypto.fingerprint(
+            family="be1",
+            tenant=organization_id,
+            profile_id=child_id,
+            principal=_support_principal_ref(principal),
+            expected_revision=expected_revision,
+            payload=payload,
+            key_id=key_id,
+        ).hex()
+    except SupportNeedsUnavailable:
+        raise _support_unavailable() from None
+    if not hmac.compare_digest(
+        receipt.request_fingerprint.encode("ascii", "replace"), expected.encode("ascii")
+    ):
+        raise failure(
+            400, "INVALID_IDEMPOTENCY_KEY", "Idempotency-Key was already used for another request"
+        )
+    return {"contract": "Be1SupportNeedsWriteV1", "child_id": child_id, "revision": revision}
+
+
+@router.put(
+    "/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}/support-needs",
+    response_model=Be1SupportNeedsWriteV1,
+)
+def put_profile_support_needs(
+    organization_id: str,
+    class_id: str,
+    child_id: str,
+    payload: Be1SupportNeedsPutV1,
+    request: Request,
+    response: Response,
+    idempotency_key: Annotated[
+        str, Header(alias="Idempotency-Key", min_length=1, max_length=128)
+    ],
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    support_runtime: SupportNeedsRuntime = Depends(get_support_needs_runtime),
+    db: Session = Depends(get_db),
+) -> dict[str, object]:
+    """T-12c: replace the encrypted record of one profile, keyed and revision-checked.
+
+    Order: class (404), class Teacher (403/404), key (400), class active (409), the profile row
+    FOR UPDATE (uniform 404, also when access is withdrawn), permission (404, no audit), consent
+    (409, audited), key source (503), receipt replay,
+    stale `expected_revision` (409, not receipted), then one transaction: seal and upsert, audit
+    (no value), receipt, commit. Every proof is rechecked under the row lock before a replay.
+    """
+    _require_profile_teacher(db, principal, organization_id, class_id)
+    idempotency_key = parse_idempotency_key(request)
+    _profile, crypto = _authorized_support_profile(
+        db, principal, organization_id, class_id, child_id, support_runtime, write=True
+    )
+    value = SupportNeedsPayload(category=payload.category, note=payload.note)
+    scope = _support_receipt_scope(organization_id, class_id, child_id)
+    principal_ref = _support_principal_ref(principal)
+    try:
+        fingerprint = crypto.fingerprint(
+            family="be1",
+            tenant=organization_id,
+            profile_id=child_id,
+            principal=principal_ref,
+            expected_revision=payload.expected_revision,
+            payload=value,
+        ).hex()
+    except SupportNeedsUnavailable:
+        db.rollback()
+        raise _support_unavailable() from None
+    receipt = db.get(Be1CommandReceiptModel, (principal.subject, scope, idempotency_key))
+    if receipt is not None:
+        try:
+            replay = _replayed_support_write(
+                receipt,
+                crypto=crypto,
+                organization_id=organization_id,
+                child_id=child_id,
+                principal=principal,
+                payload=value,
+                expected_revision=payload.expected_revision,
+            )
+        finally:
+            db.rollback()
+        response.headers["Cache-Control"] = "private, no-store"
+        return replay
+    store = Be1SupportNeedsStore(db)
+    try:
+        revision = store.write(
+            crypto=crypto,
+            organization_id=organization_id,
+            child_id=child_id,
+            expected_revision=payload.expected_revision,
+            payload=value,
+        )
+    except SupportNeedsStale as stale:
+        db.rollback()
+        raise_stale_revision(current_version=stale.current_version)
+    except (SupportNeedsUnavailable, IntegrityError):
+        db.rollback()
+        raise _support_unavailable() from None
+    audit(
+        db,
+        organization_id=organization_id,
+        actor=principal.subject,
+        action="profile.support_needs.write",
+        resource_type="child_profile",
+        resource_id=child_id,
+    )
+    # References only: the new revision and the MAC key, never a name, a note or a digest of one.
+    db.add(
+        Be1CommandReceiptModel(
+            principal_ref=principal.subject,
+            operation_scope=scope,
+            idempotency_key=idempotency_key,
+            organization_id=organization_id,
+            request_fingerprint=fingerprint,
+            response_json={
+                "revision": revision,
+                "fp_v": _SUPPORT_FP_VERSION,
+                "fp_kid": crypto.fingerprint_key_id,
+            },
+        )
+    )
+    try:
+        db.commit()
+    except IntegrityError:
+        # A concurrent request with the same key committed first: its answer stands.
+        db.rollback()
+        winner = db.get(Be1CommandReceiptModel, (principal.subject, scope, idempotency_key))
+        if winner is None:
+            raise failure(
+                409, "RESOURCE_CONFLICT", "The command conflicts with current records"
+            ) from None
+        try:
+            replay = _replayed_support_write(
+                winner,
+                crypto=crypto,
+                organization_id=organization_id,
+                child_id=child_id,
+                principal=principal,
+                payload=value,
+                expected_revision=payload.expected_revision,
+            )
+        finally:
+            db.rollback()
+        response.headers["Cache-Control"] = "private, no-store"
+        return replay
+    response.headers["Cache-Control"] = "private, no-store"
+    return {"contract": "Be1SupportNeedsWriteV1", "child_id": child_id, "revision": revision}
 
 
 @router.post(
@@ -1902,6 +3832,7 @@ def revoke_consent(
             "state": "revoked",
             "effective": False,
         }
+    require_no_pending_class_transfer(db, organization_id=organization_id, class_id=class_id)
     row.state = "revoked"
     audit(
         db,
@@ -1925,6 +3856,105 @@ def revoke_consent(
         "state": "revoked",
         "effective": False,
     }
+
+
+@router.post(
+    "/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}/parent-share/accept",
+    response_model=Be1ParentShareLinkV1,
+    operation_id="be1AcceptParentShareV1",
+    openapi_extra={
+        "parameters": [
+            {
+                "name": "Idempotency-Key",
+                "in": "header",
+                "required": True,
+                "schema": {"type": "string", "minLength": 1, "maxLength": 128},
+            }
+        ]
+    },
+)
+def accept_parent_profile_share(
+    organization_id: str,
+    class_id: str,
+    child_id: str,
+    body: AcceptParentShareRequestV1,
+    request: Request,
+    response: Response,
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+) -> dict[str, object]:
+    _require_profile_teacher(db, principal, organization_id, class_id)
+    key = parse_idempotency_key(request)
+
+    def _released(profile: ManagedProfileModel) -> bool:
+        return _profile_released(
+            db, profile, for_write=False, real_data_enabled=False
+        )
+
+    result, etag = _share_call(
+        accept_teacher_share,
+        db,
+        principal,
+        organization_id=organization_id,
+        class_id=class_id,
+        child_id=child_id,
+        invitation_code=body.invitation_code,
+        idempotency_key=key,
+        authorize_teacher=lambda: _require_profile_teacher(
+            db, principal, organization_id, class_id
+        ),
+        profile_released=_released,
+        profile_withdrawn=lambda profile: _profile_withdrawn(db, profile),
+    )
+    response.headers["ETag"] = etag
+    response.headers["Vary"] = "Authorization"
+    return result
+
+
+@router.get(
+    "/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}/parent-share",
+    response_model=Be1ParentSharedProfileV1,
+    response_model_exclude_unset=True,
+    operation_id="be1GetParentSharedProfileV1",
+)
+def get_parent_shared_profile(
+    organization_id: str,
+    class_id: str,
+    child_id: str,
+    response: Response,
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+) -> dict[str, object]:
+    _require_profile_teacher(db, principal, organization_id, class_id)
+    assignments = require_assignment(db, principal, organization_id, class_id=class_id)
+    hide_archived_from_teacher(
+        get_class(db, organization_id, class_id, write=False), assignments
+    )
+    profile = db.scalar(
+        select(ManagedProfileModel).where(
+            ManagedProfileModel.organization_id == organization_id,
+            ManagedProfileModel.class_id == class_id,
+            ManagedProfileModel.child_id == child_id,
+            ManagedProfileModel.state == "active",
+        )
+    )
+    if profile is None or _profile_withdrawn(db, profile):
+        db.rollback()
+        raise _scope_denied()
+    if not _profile_released(db, profile, for_write=False, real_data_enabled=False):
+        raise _scope_denied()
+    result = _share_call(
+        read_teacher_shared_profile,
+        db,
+        principal,
+        organization_id=organization_id,
+        class_id=class_id,
+        child_id=child_id,
+        profile=profile,
+    )
+    response.headers["Cache-Control"] = "private, no-store"
+    response.headers["Vary"] = "Authorization"
+    return result
 
 
 __all__ = ["router"]

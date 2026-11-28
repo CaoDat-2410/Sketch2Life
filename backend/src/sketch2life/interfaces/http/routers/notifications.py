@@ -1,12 +1,9 @@
-"""Notification inbox routes (FEAT-066 goal v3, T-8a; SRS l.812, l.1681, l.1697; FR-B-09; UC-15).
+"""Notification inbox and endpoint routes (T-8a/T-8b; SRS l.812, l.1684-1685, l.1697).
 
-Literal paths under ``/v1/notifications``. The inbox is the source of truth; nothing here sends
-an e-mail or a push, and the push-endpoint routes (SRS l.1682-1683) are T-8b, deferred: they are
-not registered, so the framework answers 404. Every route is open to any active adult with a role
-and acts on the caller's own inbox only; another user's item, an unknown item and a caller without
-an identity row are the same 404 (SRS l.864-865). The two mark-read commands are keyed
-(``Idempotency-Key``, SRS l.1697) and answer 200; the page read answers 25 items by default and at
-most 100 with an opaque keyset cursor.
+Literal paths under ``/v1/notifications``. The inbox is the source of truth; this router never
+sends an e-mail or push. Registration and revoke are Parent-scoped, keyed commands. Registration
+fails closed unless proof and key adapters are injected; it does not imply provider delivery.
+Inbox reads and mark-read continue to act only on the caller's own items.
 
 Notes (T-8a implementation review): ``unread_count`` is a second statement without a shared
 snapshot, so a concurrent insert may count an item the page does not hold (a badge only); a replayed
@@ -19,22 +16,33 @@ id longer than 64 characters is a 400, one of 37-64 valid characters is a 404.
 
 from __future__ import annotations
 
+import re
 from typing import Annotated, Any, NoReturn
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Path, Request, Response
 from sqlalchemy.orm import Session
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
+from sketch2life.application.ports.push_endpoints import PushEndpointStoreUnavailable
 from sketch2life.application.services.notifications import utc_iso
+from sketch2life.application.services.push_endpoints import (
+    PushEndpointCommandService,
+    PushEndpointError,
+    PushEndpointRegistration,
+)
 from sketch2life.contracts.schemas.notifications import (
     NotificationPageV1,
     NotificationReadAllV1,
     NotificationV1,
+    PushEndpointRegistrationV1,
+    PushEndpointV1,
 )
 from sketch2life.infrastructure.notifications.inbox_repository import (
     NotificationError,
     NotificationInboxService,
 )
+from sketch2life.infrastructure.notifications.push_endpoint_repository import SqlPushEndpointStore
 from sketch2life.interfaces.http.api_conventions import (
     cursor_query,
     decode_time_cursor,
@@ -46,6 +54,7 @@ from sketch2life.interfaces.http.be1_runtime import get_db, get_verified_adult
 from sketch2life.interfaces.http.error_envelope import NOTIFICATIONS_BASE
 
 CURSOR_SCOPE = "notifications"
+_STRONG_ETAG = re.compile(r'^"([1-9][0-9]*)"$', re.ASCII)
 
 router = APIRouter(prefix=NOTIFICATIONS_BASE, tags=["Notifications"])
 
@@ -53,6 +62,13 @@ IdempotencyKeyHeader = Annotated[str, Header(alias="Idempotency-Key", min_length
 # A NUL byte can never be part of an id and PostgreSQL text cannot hold it: refuse it as a 400
 # before any query instead of a retryable 503.
 InboxItemId = Annotated[str, Path(min_length=1, max_length=64, pattern=r"^[A-Za-z0-9._:-]+$")]
+EndpointId = Annotated[
+    str,
+    Path(
+        pattern=r"^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$",
+        description="Opaque push endpoint UUID.",
+    ),
+]
 _READ_HEADERS = {"Cache-Control": "private, no-cache", "Vary": "Authorization"}
 
 
@@ -60,8 +76,30 @@ def get_notification_service(db: Session = Depends(get_db)) -> NotificationInbox
     return NotificationInboxService(db)
 
 
+def get_push_endpoint_service(db: Session = Depends(get_db)) -> PushEndpointCommandService:
+    # Production adapters remain unconfigured until proof and key sources receive security review.
+    return PushEndpointCommandService(store=SqlPushEndpointStore(db))
+
+
 def _raise(exc: NotificationError) -> NoReturn:
     raise HTTPException(status_code=exc.status_code, detail={"code": exc.code}) from None
+
+
+def _raise_push(exc: PushEndpointError) -> NoReturn:
+    detail: dict[str, object] = {"code": exc.code}
+    if exc.current_version is not None:
+        detail["current_version"] = exc.current_version
+    raise HTTPException(status_code=exc.status_code, detail=detail) from None
+
+
+def _strong_if_match(value: str | None, request: Request) -> int:
+    match = _STRONG_ETAG.fullmatch(value or "")
+    if match is None or len(request.headers.getlist("If-Match")) != 1:
+        raise HTTPException(status_code=400, detail={"code": "INVALID_REQUEST"}) from None
+    try:
+        return int(match.group(1))
+    except ValueError:
+        raise HTTPException(status_code=400, detail={"code": "INVALID_REQUEST"}) from None
 
 
 @router.get(
@@ -139,3 +177,101 @@ def mark_notification_read(
         )
     except NotificationError as exc:
         _raise(exc)
+
+
+@router.post(
+    "/push-endpoints",
+    response_model=PushEndpointV1,
+    status_code=201,
+    responses={
+        201: {
+            "headers": {
+                "ETag": {"description": "Strong endpoint version", "schema": {"type": "string"}},
+                "Cache-Control": {"schema": {"type": "string"}},
+            }
+        }
+    },
+    summary="Register the caller's verified web push endpoint",
+)
+def register_push_endpoint(
+    payload: PushEndpointRegistrationV1,
+    request: Request,
+    response: Response,
+    idempotency_key: IdempotencyKeyHeader,
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    service: PushEndpointCommandService = Depends(get_push_endpoint_service),
+) -> dict[str, object]:
+    # Authorize before parsing unsupported-platform or key details; the service rechecks scope
+    # inside the command transaction before reading or writing a receipt.
+    try:
+        service.authorize_parent(principal)
+        del idempotency_key
+        key = parse_idempotency_key(request)
+        result = service.register(
+            principal=principal,
+            command=PushEndpointRegistration(
+                contract=payload.contract,
+                platform_kind=payload.platform_kind,
+                provider_kind=payload.provider_kind,
+                encrypted_registration_proof=payload.encrypted_registration_proof,
+                app_version=payload.app_version,
+            ),
+            idempotency_key=key,
+        )
+    except PushEndpointError as exc:
+        _raise_push(exc)
+    except PushEndpointStoreUnavailable:
+        raise HTTPException(
+            status_code=503, detail={"code": "DEPENDENCY_UNAVAILABLE"}
+        ) from None
+    response.headers["ETag"] = f'"{result.version}"'
+    response.headers["Cache-Control"] = "no-store"
+    return {
+        "contract": "PushEndpointV1",
+        "endpoint_id": UUID(result.endpoint_id),
+        "version": result.version,
+    }
+
+
+@router.delete(
+    "/push-endpoints/{endpoint_id}",
+    status_code=204,
+    response_model=None,
+    responses={
+        204: {
+            "headers": {"Cache-Control": {"schema": {"type": "string"}}}
+        }
+    },
+    summary="Revoke the caller's push endpoint at the expected version",
+)
+def revoke_push_endpoint(
+    request: Request,
+    endpoint_id: EndpointId,
+    idempotency_key: IdempotencyKeyHeader,
+    if_match: Annotated[
+        str,
+        Header(alias="If-Match", description='Strong ETag in the form "<positive-version>".'),
+    ],
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    service: PushEndpointCommandService = Depends(get_push_endpoint_service),
+) -> Response:
+    try:
+        service.authorize_parent(principal)
+        if request.headers.get("content-length", "0").strip() not in {"", "0"}:
+            raise HTTPException(status_code=400, detail={"code": "INVALID_REQUEST"}) from None
+        del idempotency_key
+        key = parse_idempotency_key(request)
+        expected_version = _strong_if_match(if_match, request)
+        service.revoke(
+            principal=principal,
+            endpoint_id=endpoint_id,
+            expected_version=expected_version,
+            idempotency_key=key,
+        )
+    except PushEndpointError as exc:
+        _raise_push(exc)
+    except PushEndpointStoreUnavailable:
+        raise HTTPException(
+            status_code=503, detail={"code": "DEPENDENCY_UNAVAILABLE"}
+        ) from None
+    return Response(status_code=204, headers={"Cache-Control": "no-store"})

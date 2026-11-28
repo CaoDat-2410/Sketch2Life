@@ -24,7 +24,7 @@ export function PlatformAdminApp() {
   return (
     <WebAppShell
       portal="platform"
-      roleLabel="Platform Admin"
+      roleLabel="Quản trị nền tảng"
       roleSubtitle="Vận hành nền tảng · nội dung theo quyền"
       navigation={PLATFORM_ADMIN_NAVIGATION}
       loginHref="/login?role=admin"

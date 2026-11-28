@@ -1,0 +1,39 @@
+meta {
+  name: 754 [DRAFT-V4C] [LOCAL / TEST ONLY] Replay push endpoint revoke with same Idempotency-Key
+  type: http
+  seq: 754
+}
+
+delete {
+  url: {{baseUrl}}/v1/notifications/push-endpoints/{{phase_c_push_endpoint_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  If-Match: "{{phase_c_push_revoke_expected_version}}"
+  Idempotency-Key: {{phase_c_push_revoke_key}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(204);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("Cache-Control")).to.equal("no-store");
+    expect(res.getBody() || "").to.equal("");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase C code at f031fc70; not yet run against a live backend.
+  Role: Owning Parent - set bearerToken to seed-parent-p1 token
+  Needs: needs-fixture: run after 753 (reuses phase_c_push_revoke_key and original If-Match)
+  Expected: 204 No Content (replay after version incremented to 2)
+  Source: backend/src/sketch2life/application/services/push_endpoints.py:291-301,512-516
+}

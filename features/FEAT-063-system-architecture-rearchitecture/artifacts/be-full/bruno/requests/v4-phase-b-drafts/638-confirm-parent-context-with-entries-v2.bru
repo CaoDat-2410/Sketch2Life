@@ -1,0 +1,70 @@
+meta {
+  name: 638 [DRAFT-V4B] [LOCAL / TEST ONLY] Confirm Parent StoryRun context with selected entries (V2 snapshot)
+  type: http
+  seq: 638
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{parent_v2_context_run_id}}/context-confirmation
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{phase_b_confirm_context_key}}
+}
+
+body:json {
+  {
+    "expected_context_revision": {{phase_b_confirm_context_expected_revision}},
+    "context_snapshot_sha256": "{{phase_b_confirm_context_expected_hash}}",
+    "confirmed": true,
+    "selected_context_entry_ids": [
+      "{{phase_b_context_entry_id}}"
+    ]
+  }
+}
+
+script:pre-request {
+  const key = "confirm-ctx-v2-" + Date.now();
+  bru.setVar("phase_b_confirm_context_key", key);
+  bru.setVar("phase_b_confirm_context_expected_revision", bru.getVar("parent_v2_context_revision"));
+  bru.setVar("phase_b_confirm_context_expected_hash", bru.getVar("parent_v2_context_hash"));
+}
+
+script:post-response {
+  const story = res.getBody().story_run;
+  if (story) {
+    bru.setVar("parent_v2_context_revision_after", String(story.context_revision));
+    bru.setVar("parent_v2_context_hash_after", story.context_snapshot_sha256);
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const story = res.getBody().story_run;
+    expect(story.context_confirmed).to.equal(true);
+    expect(story.context_revision).to.equal(Number(bru.getVar("phase_b_confirm_context_expected_revision")) + 1);
+    expect(story.context_snapshot.schema_version).to.equal("sketch2life.parent-context.v2");
+    expect(story.context_snapshot.selected_entries).to.be.an("array");
+    expect(story.context_snapshot.selected_entries.length).to.equal(1);
+    expect(Object.keys(story.context_snapshot.selected_entries[0]).sort()).to.deep.equal(["kind", "text"]);
+  });
+}
+
+docs {
+  DRAFT: written from the Phase B code at 134561f4; not yet run against a live backend.
+  Role: Parent - set bearerToken to seed-parent-p1 token
+  Needs: needs-fixture: parent_v2_context_run_id (unconfirmed Parent StoryRun for parent_profile_id with parent_v2_context_revision and parent_v2_context_hash from GET /v1/story-runs/{id}) and phase_b_context_entry_id from 628
+  Expected: 200 / ParentStoryRunEnvelopeV1 (context_snapshot.schema_version sketch2life.parent-context.v2)
+  Source: backend/src/sketch2life/interfaces/http/routers/parent_story_runs.py:625-659, backend/src/sketch2life/infrastructure/persistence/parent_story_repository.py:1140-1300
+}

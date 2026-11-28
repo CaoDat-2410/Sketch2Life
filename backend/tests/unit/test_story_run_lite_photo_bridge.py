@@ -16,6 +16,8 @@ from sketch2life.infrastructure.ai import modal_function_client as client_module
 from sketch2life.infrastructure.ai.modal_function_client import (
     MODEL_ID,
     MODEL_REVISION,
+    QWEN35_MODEL_ID,
+    QWEN35_MODEL_REVISION,
     ModalDrawingFunctionClient,
     ModalFunctionDispatchRejected,
     ModalFunctionExecutionFailed,
@@ -23,6 +25,7 @@ from sketch2life.infrastructure.ai.modal_function_client import (
     ModalFunctionResult,
     prepare_drawing_input,
 )
+from sketch2life.infrastructure.config.settings import Settings
 from sketch2life.infrastructure.story_run_lite import photo_bridge as photo_bridge_module
 from sketch2life.infrastructure.story_run_lite.composition import (
     UnavailableLoopbackVision,
@@ -396,7 +399,7 @@ def test_modal_function_client_stages_once_invokes_once_and_cleans_attempt_prefi
         "generation_id": prepared.payload["generation_id"],
         "attempt_id": prepared.payload["attempt_id"],
         "input_sha256": prepared.drawing_sha256,
-        "model": {"id": MODEL_ID, "revision": MODEL_REVISION},
+        "model": {"id": QWEN35_MODEL_ID, "revision": QWEN35_MODEL_REVISION},
         "result": {
             "candidate_subject": "con bướm",
             "visible_features": ["hai cặp cánh", "thân dài"],
@@ -410,7 +413,11 @@ def test_modal_function_client_stages_once_invokes_once_and_cleans_attempt_prefi
     function = Mock()
     function.spawn.return_value = handle
     volume = Volume()
-    result = ModalDrawingFunctionClient(volume=volume, function=function).invoke(prepared)
+    result = ModalDrawingFunctionClient(
+        volume=volume,
+        function=function,
+        settings=Settings(_env_file=None),
+    ).invoke(prepared)
 
     function.spawn.assert_called_once_with(prepared.payload)
     handle.get.assert_called_once()
@@ -450,9 +457,12 @@ def test_modal_function_timeout_keeps_scratch_input_for_pending_worker():
     volume = Volume()
 
     with pytest.raises(ModalFunctionOutcomeUnknown) as error:
-        ModalDrawingFunctionClient(volume=volume, function=function, timeout_seconds=0.1).invoke(
-            prepared
-        )
+        ModalDrawingFunctionClient(
+            volume=volume,
+            function=function,
+            timeout_seconds=0.1,
+            settings=Settings(_env_file=None),
+        ).invoke(prepared)
 
     assert error.value.call_id == "fc-synthetic-pending"
     assert volume.removed is False

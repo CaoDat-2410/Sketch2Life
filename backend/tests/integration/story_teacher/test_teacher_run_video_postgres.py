@@ -29,7 +29,11 @@ from sqlalchemy import select, text, update
 from test_teacher_run_create_postgres import (  # type: ignore[import-not-found]
     ISSUER,
     NAME_PREFIX,
+    _assign,
+    _identity,
+    _seed_generation,
     counts,
+    headers,
     occurrence_row,
     post_create,
 )
@@ -68,6 +72,7 @@ from sketch2life.application.ports.identity import VerifiedPrincipal
 from sketch2life.application.ports.story_video import QuotaStatus, VideoRequestScope
 from sketch2life.infrastructure.lesson_occurrences.tables import CHILD_SELECTIONS, OCCURRENCES
 from sketch2life.infrastructure.persistence.be1_models import (
+    AdultIdentityModel,
     ClassroomModel,
     ManagedProfileModel,
     OrganizationAssignmentModel,
@@ -105,24 +110,69 @@ def set_class_state(e: Env, state: str) -> None:
         )
 
 
-def move_occurrence_to(e: Env, run_id: str, who: str) -> None:
-    occurrence = run_row(e, run_id)["occurrence_ref"]
-    with e.sessions().begin() as db:
-        db.execute(
-            update(OCCURRENCES)
-            .where(OCCURRENCES.c.occurrence_id == occurrence)
-            .values(responsible_teacher_ref=e.d.accounts[who])
-        )
+def complete_teacher_transfer(e: Env, run_id: str) -> str:
+    """Run the T-6b BE1/Story reassignment saga and return its new Teacher actor key."""
+    run = run_row(e, run_id)
+    organization_id = str(run["organization_ref"])
+    class_id = str(run["class_ref"])
+    old_owner = str(run["active_owner_teacher_id"])
+    manager_subject = e.d.subjects["manager"]
+    new_subject = f"synthetic-t6b-video-successor-{uuid4().hex}"
+    actor_key = f"successor-{uuid4().hex[:8]}"
+    idempotency_key = f"t6b-video-transfer-{uuid4()}"
 
-
-def unpin(e: Env, run_id: str) -> None:
-    """Turn a Teacher run into a T-4a1 style fixture row: no occurrence pin, no Teacher lock."""
     with e.sessions().begin() as db:
-        db.execute(
-            update(RUNS)
-            .where(RUNS.c.run_id == run_id)
-            .values(occurrence_ref=None, created_by_actor_ref=None, active_owner_teacher_id=None)
+        old_identity = db.scalar(
+            select(AdultIdentityModel).where(AdultIdentityModel.account_id == old_owner)
         )
+        assert old_identity is not None
+        # The older route fixture can contain a second active Teacher row. T-6b's saga requires
+        # exactly one current class assignment; keep the run owner and retire only the extra row.
+        db.execute(
+            update(OrganizationAssignmentModel)
+            .where(
+                OrganizationAssignmentModel.organization_id == organization_id,
+                OrganizationAssignmentModel.class_id == class_id,
+                OrganizationAssignmentModel.role == "teacher",
+                OrganizationAssignmentModel.active.is_(True),
+                OrganizationAssignmentModel.subject != old_identity.subject,
+            )
+            .values(active=False)
+        )
+        new_account = _identity(db, new_subject, "teacher")
+        _assign(db, organization_id, new_subject, "teacher", None)
+        classroom = db.scalar(
+            select(ClassroomModel).where(
+                ClassroomModel.organization_id == organization_id,
+                ClassroomModel.class_id == class_id,
+            )
+        )
+        assert classroom is not None
+        assignment_revision = int(classroom.assignment_revision)
+
+    accepted = e.d.client.post(
+        f"/api/be1/v1/classes/{class_id}/assignments",
+        json={"candidate_ref": new_account},
+        headers=headers(
+            manager_subject,
+            idempotency_key,
+            **{"If-Match": f'"{assignment_revision}"'},
+        ),
+    )
+    assert accepted.status_code == 202, accepted.text
+    completed = e.d.client.get(
+        accepted.json()["status_url"], headers=headers(manager_subject)
+    )
+    assert completed.status_code == 200, completed.text
+    assert completed.json()["state"] == "COMPLETED"
+
+    e.d.subjects[actor_key] = new_subject
+    e.d.accounts[actor_key] = new_account
+    transferred = run_row(e, run_id)
+    assert transferred["active_owner_teacher_id"] == new_account
+    assert transferred["created_by_actor_ref"] == old_owner
+    assert transferred["owner_epoch"] == int(run["owner_epoch"]) + 1
+    return actor_key
 
 
 # ======================================================================== the video request (D8)
@@ -146,9 +196,14 @@ def test_a_teacher_requests_a_video_with_the_organization_scope_and_no_billing_r
     assert row["compute_reservation_ref"] and row["billing_quota_usage_ref"]
     assert row["compute_reservation_ref"].startswith("lres_")
     assert row["billing_quota_usage_ref"].startswith("lusg_")
-    # the ports were asked in the scope of the ORGANIZATION that owns the occurrence (BR-38, l.282)
-    expected = VideoRequestScope("ORGANIZATION", e.d.organization)
-    assert v.reservation.scopes == [expected] and v.quota.scopes == [expected]
+    # Compute stays organization-scoped; Billing also receives the active account id and resolves
+    # it to the sign-in subject used by Manager allocation writes.
+    expected_compute = VideoRequestScope("ORGANIZATION", e.d.organization)
+    expected_quota = VideoRequestScope(
+        "ORGANIZATION", e.d.organization, e.d.accounts["t1"]
+    )
+    assert v.reservation.scopes == [expected_compute]
+    assert v.quota.scopes == [expected_quota]
     run = run_row(e, run_id)
     assert run["run_state"] == "VIDEO_QUEUED" and run["job_state"] == "QUEUED"
     assert run["actor_scope_kind"] == "ORGANIZATION" and run["actor_scope_ref"] == e.d.organization
@@ -188,13 +243,24 @@ def test_a_teacher_requests_a_video_with_the_organization_scope_and_no_billing_r
         assert word not in text_body
 
 
-def test_a_refused_admission_is_finalized_and_keeps_the_teacher_lock(v: VEnv) -> None:
+@pytest.mark.parametrize(
+    ("quota_status", "error_code"),
+    [
+        (QuotaStatus.QUOTA_EXCEEDED, "VIDEO_QUOTA_EXCEEDED"),
+        (QuotaStatus.QUOTA_ALLOCATION_NOT_FOUND, "QUOTA_ALLOCATION_NOT_FOUND"),
+        (QuotaStatus.TEACHER_QUOTA_INSUFFICIENT, "TEACHER_QUOTA_INSUFFICIENT"),
+        (QuotaStatus.SCHOOL_QUOTA_INSUFFICIENT, "SCHOOL_QUOTA_INSUFFICIENT"),
+    ],
+)
+def test_a_refused_admission_is_finalized_and_keeps_the_teacher_lock(
+    v: VEnv, quota_status: QuotaStatus, error_code: str
+) -> None:
     e = v.e
     run_id, digest = to_confirmed_script(e)
-    v.script.quotas.append(QuotaStatus.QUOTA_EXCEEDED)
+    v.script.quotas.append(quota_status)
     first_revision = run_revision(e, run_id)
     refused = request_video(e, "t1", run_id, digest, key="refused-1")
-    assert refused.status_code == 409 and refused.json()["code"] == "VIDEO_QUOTA_EXCEEDED"
+    assert refused.status_code == 409 and refused.json()["code"] == error_code
     (row,) = generations(e, run_id)
     assert row["state"] == "ADMISSION_REJECTED" and row["generation_no"] is None
     assert row["compute_released_at"] is not None  # the reservation was released
@@ -205,7 +271,7 @@ def test_a_refused_admission_is_finalized_and_keeps_the_teacher_lock(v: VEnv) ->
     assert run["active_owner_teacher_id"] == e.d.accounts["t1"]
     # the same key again replays the same refusal; a new key may try again and is accepted
     replayed = request_video(e, "t1", run_id, digest, key="refused-1", revision=first_revision)
-    assert replayed.status_code == 409 and replayed.json()["code"] == "VIDEO_QUOTA_EXCEEDED"
+    assert replayed.status_code == 409 and replayed.json()["code"] == error_code
     again = request_video(e, "t1", run_id, digest)
     assert again.status_code == 202, again.text
 
@@ -219,13 +285,17 @@ def test_the_successor_teacher_reusing_the_predecessors_key_gets_the_same_genera
     first = request_video(e, "t1", run_id, digest, key="shared-key")
     assert first.status_code == 202
     generation_id = first.json()["video_generation"]["generation_id"]
-    move_occurrence_to(e, run_id, "t4")
-    same = request_video(e, "t4", run_id, digest, key="shared-key", revision=first_revision)
-    # the video request replays by (run, key hash), not by actor: the generation is the same
+    successor = complete_teacher_transfer(e, run_id)
+    same = request_video(
+        e, successor, run_id, digest, key="shared-key", revision=first_revision
+    )
+    # After the completed saga, the successor is authorized and replays the run-scoped receipt.
     assert same.status_code == 202
     assert same.json()["video_generation"]["generation_id"] == generation_id
     assert len(generations(e, run_id)) == 1
-    other = request_video(e, "t4", run_id, "c" * 64, key="shared-key", revision=first_revision)
+    other = request_video(
+        e, successor, run_id, "c" * 64, key="shared-key", revision=first_revision
+    )
     assert other.status_code == 400 and other.json()["code"] == "INVALID_IDEMPOTENCY_KEY"
     # the predecessor lost the run: the uniform 404 whatever the key
     gone = request_video(e, "t1", run_id, digest, key="shared-key", revision=first_revision)
@@ -438,15 +508,14 @@ def test_the_token_names_one_teacher_and_the_current_assignment_decides_every_re
     # another Teacher, a Parent and a Manager with the stolen token: the same uniform 404
     for who in ("t2", "t4", "parent", "manager", "revoked", "inactive", "stranger"):
         assert wire(stream(e, who, run_id, token)) == unknown, who
-    # the occurrence moves: the creator is out at the next request, the new Teacher is in with
-    # its own token, and the predecessor's token is useless in the successor's hands
-    move_occurrence_to(e, run_id, "t4")
+    # A completed T-6b transfer fences the old owner and advances the token's owner epoch.
+    successor = complete_teacher_transfer(e, run_id)
     assert wire(stream(e, "t1", run_id, token)) == unknown
     assert wire(playback_token(e, "t1", run_id)) == unknown
-    assert wire(stream(e, "t4", run_id, token)) == unknown  # a token binds one actor digest
-    own = playback_token(e, "t4", run_id)
+    assert wire(stream(e, successor, run_id, token)) == unknown  # token is bound to the old actor
+    own = playback_token(e, successor, run_id)
     assert own.status_code == 200
-    assert stream(e, "t4", run_id, own.json()["playback"]["token"]).status_code == 200
+    assert stream(e, successor, run_id, own.json()["playback"]["token"]).status_code == 200
 
 
 def test_a_revoked_assignment_ends_the_stream_at_the_next_request(v: VEnv) -> None:
@@ -630,9 +699,13 @@ def test_the_twelve_actor_matrix_is_one_uniform_404_with_no_write(v: VEnv) -> No
 
 def test_a_run_without_an_occurrence_pin_is_the_uniform_404_on_every_video_route(v: VEnv) -> None:
     e = v.e
-    run_id, _digest, generation_id = to_ready(v)
-    token = str(playback_token(e, "t1", run_id).json()["playback"]["token"])
-    unpin(e, run_id)
+    run_id = _seed_generation(
+        e.d, None, run_state="VIDEO_READY", generation_state="READY", output=True
+    )
+    generation_id = str(generations(e, run_id)[0]["video_generation_id"])
+    # The unpinned legacy fixture cannot mint a Teacher playback token; malformed and unknown
+    # routes still share the uniform not-found envelope.
+    token = f"synthetic-token-{uuid4().hex}"
     unknown = {
         name: wire(response)
         for name, response in probes(e, str(uuid4()), "t1", token, generation_id).items()
@@ -642,19 +715,19 @@ def test_a_run_without_an_occurrence_pin_is_the_uniform_404_on_every_video_route
     assert generations(e, run_id)[0]["state"] == "READY"  # nothing moved
 
 
-def test_the_creating_teacher_after_a_move_is_out_and_the_new_teacher_acts(v: VEnv) -> None:
+def test_the_creating_teacher_is_fenced_until_the_transfer_saga_completes(v: VEnv) -> None:
     e = v.e
     run_id, digest = to_confirmed_script(e)
-    move_occurrence_to(e, run_id, "t4")
+    successor = complete_teacher_transfer(e, run_id)
     unknown = {n: wire(r) for n, r in probes(e, str(uuid4()), "t1", None, str(uuid4())).items()}
     for name, response in probes(e, run_id, "t1", None, str(uuid4())).items():
         assert wire(response) == unknown[name], name
-    fresh = request_video(e, "t4", run_id, digest)
+    fresh = request_video(e, successor, run_id, digest)
     assert fresh.status_code == 202, fresh.text
     (generation,) = generations(e, run_id)
     assert generation["state"] == "ACCEPTED"
     (receipt,) = [r for r in receipt_rows(e, run_id) if r["operation"] == VIDEO_OPERATION]
-    assert receipt["actor_scope_ref"] == digest_of(e, "t4")  # the command scope of the successor
+    assert receipt["actor_scope_ref"] == digest_of(e, successor)
 
 
 def test_a_parent_cannot_act_on_a_teacher_run(v: VEnv) -> None:

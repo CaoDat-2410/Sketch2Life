@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class StrictRequest(BaseModel):
@@ -156,10 +156,14 @@ class ParentActivitySuggestionResponseV2(StrictRequest):
         return self
 
 
+TeacherObjectiveTextV1 = Annotated[str, Field(min_length=1, max_length=200)]
+TeacherKnowledgeNoteV1 = Annotated[str, Field(min_length=1, max_length=240)]
+
+
 class TeacherLessonSuggestionRequestV1(StrictRequest):
     topic: str = Field(min_length=1, max_length=120)
     target_age_months: int = Field(ge=36, le=120)
-    objectives: list[str] = Field(min_length=1, max_length=4)
+    objectives: list[TeacherObjectiveTextV1] = Field(min_length=1, max_length=4)
     drawing_subject: str = Field(min_length=1, max_length=160)
     activity_count: int = Field(ge=1, le=6)
     activity_kind: Literal["outdoor", "indoor", "mixed"]
@@ -187,10 +191,24 @@ class TeacherReviewedPlanRequestV1(StrictRequest):
     plan_revision_ref: str = Field(pattern=r"^[A-Za-z0-9_-]{1,80}$")
     topic: str = Field(min_length=1, max_length=120)
     target_age_months: int = Field(ge=36, le=120)
-    objectives: list[str] = Field(min_length=1, max_length=4)
-    drawing_steps: list[TeacherDrawingStepV1] = Field(min_length=3, max_length=5)
-    subject_knowledge: list[str] = Field(min_length=1, max_length=8)
-    activities: list[TeacherActivityV1] = Field(min_length=1, max_length=6)
+    objectives: list[TeacherObjectiveTextV1] = Field(min_length=1, max_length=4)
+    drawing_steps: list[TeacherDrawingStepV1] = Field(min_length=4, max_length=8)
+    subject_knowledge: list[TeacherKnowledgeNoteV1] = Field(min_length=1, max_length=8)
+    activities: list[TeacherActivityV1] = Field(
+        min_length=1,
+        max_length=6,
+        description="Each activity_ref must be unique.",
+    )
+
+    @field_validator("activities")
+    @classmethod
+    def _require_unique_activity_refs(
+        cls, activities: list[TeacherActivityV1]
+    ) -> list[TeacherActivityV1]:
+        activity_refs = [activity.activity_ref for activity in activities]
+        if len(activity_refs) != len(set(activity_refs)):
+            raise ValueError("activity_ref values must be unique")
+        return activities
 
 
 __all__ = [
@@ -207,5 +225,7 @@ __all__ = [
     "ParentSketchGuideRequestV1",
     "ParentStoryRequestV1",
     "TeacherLessonSuggestionRequestV1",
+    "TeacherKnowledgeNoteV1",
+    "TeacherObjectiveTextV1",
     "TeacherReviewedPlanRequestV1",
 ]

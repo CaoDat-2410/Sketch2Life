@@ -36,6 +36,7 @@ from sketch2life.infrastructure.uploads.purposes import (
     MAX_IMAGE_BYTES,
     OCCURRENCE_DOCUMENT,
     POLICIES,
+    PRESENTATION_IMAGE,
     RUN_ARTWORK,
     RUN_AUDIO,
     document_media_type_for,
@@ -94,8 +95,18 @@ def test_run_audio_is_enabled_for_wav_and_mp4_up_to_20_megabytes() -> None:
     assert -(-policy.max_bytes // UPLOAD_PART_SIZE_BYTES) == 5 <= UPLOAD_MAX_PARTS
 
 
+def test_presentation_image_is_a_teacher_image_purpose_without_a_file_name() -> None:
+    policy = POLICIES[PRESENTATION_IMAGE]
+    assert policy.enabled and policy.account_role == "teacher" and not policy.needs_file_name
+    assert policy.media_types == frozenset({"image/jpeg", "image/png", "image/webp"})
+    assert policy.max_bytes == MAX_IMAGE_BYTES
+    assert (policy.too_large_code, policy.unsupported_code) == (
+        "MEDIA_TOO_LARGE", "UNSUPPORTED_MEDIA_TYPE",
+    )
+
+
 def test_lesson_source_and_profile_image_are_not_generic_purposes() -> None:
-    assert {RUN_ARTWORK, RUN_AUDIO, OCCURRENCE_DOCUMENT} == GENERIC_PURPOSES
+    assert {RUN_ARTWORK, RUN_AUDIO, OCCURRENCE_DOCUMENT, PRESENTATION_IMAGE} == GENERIC_PURPOSES
     assert "LESSON_SOURCE" not in GENERIC_PURPOSES and "PROFILE_IMAGE" not in GENERIC_PURPOSES
 
 
@@ -114,6 +125,7 @@ def test_every_signature_the_policies_accept_is_known_to_the_shared_table() -> N
         POLICIES[RUN_ARTWORK].media_types
         | POLICIES[RUN_AUDIO].media_types
         | POLICIES[OCCURRENCE_DOCUMENT].media_types
+        | POLICIES[PRESENTATION_IMAGE].media_types
     )
     assert set(samples) == accepted
     for media_type, sample in samples.items():
@@ -384,6 +396,7 @@ def test_orm_table_matches_ddl_f() -> None:
         if constraint.name == "ck_core_upload_purpose"
     )
     assert "'OCCURRENCE_DOCUMENT'" in str(purpose_check.sqltext)
+    assert "'PRESENTATION_IMAGE'" in str(purpose_check.sqltext)
     assert PARENT_ACCOUNT_SCOPE == "PARENT_ACCOUNT"
 
 

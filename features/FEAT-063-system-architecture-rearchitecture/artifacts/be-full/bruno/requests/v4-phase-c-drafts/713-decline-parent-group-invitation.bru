@@ -1,0 +1,58 @@
+meta {
+  name: 713 [DRAFT-V4C] [LOCAL / TEST ONLY] Parent declines parent-group invitation
+  type: http
+  seq: 713
+}
+
+post {
+  url: {{baseUrl}}/api/lesson-library/v1/me/parent-group-invitations/{{phase_c_decline_membership_id}}/decline
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Idempotency-Key: {{phase_c_decline_key}}
+}
+
+script:pre-request {
+  const key = "pg-decline-" + Date.now();
+  bru.setVar("phase_c_decline_key", key);
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (typeof body.revision === "number") {
+    bru.setVar("phase_c_declined_revision", String(body.revision));
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.contract).to.equal("ParentGroupMembershipV1");
+    expect(body.membership_id).to.equal(bru.getVar("phase_c_decline_membership_id"));
+    expect(body.parent_group_id).to.be.a("string");
+    expect(body.state).to.equal("DECLINED");
+    expect(body.accepted_at).to.equal(null);
+    expect(body.revision).to.be.at.least(2);
+    expect(res.getHeader("ETag")).to.equal('"' + String(body.revision) + '"');
+    expect(body).to.not.have.property("parent_principal_ref");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase C code at f031fc70; not yet run against a live backend.
+  Role: Invited Parent - set bearerToken to seed-parent-p1 token
+  Needs: needs-fixture: unexpired invited membership_id for seed-parent-p1 in phase_c_decline_membership_id (seed/data.py has no invited row); saves phase_c_decline_key and phase_c_declined_revision for 714
+  Expected: 200 / ParentGroupMembershipV1 (state DECLINED, ETag "<revision>")
+  Source: backend/src/sketch2life/interfaces/http/routers/lesson_library.py:829-853, backend/src/sketch2life/infrastructure/lesson_library/service.py:2516-2624
+  Decline authorization matches the invitation target to this active Parent subject or account-ID alias when unambiguous.
+}

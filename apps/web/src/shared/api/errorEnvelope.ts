@@ -25,6 +25,7 @@ const RETRYABLE_STATUSES = [429, 502, 503, 504];
 const MAX_SERVER_MESSAGE_LENGTH = 500;
 
 const CODE_MESSAGES: Record<string, string> = {
+  SUPPORT_NEEDS_UNAVAILABLE: "Mục này chưa khả dụng.",
   EMAIL_VERIFICATION_REQUIRED: "Vui lòng mở email thiết lập tài khoản và xác minh email trước khi đăng nhập.",
   CONTENT_PERMISSION_REQUIRED: "Bạn chưa được cấp quyền duyệt nội dung.",
   SELF_PERMISSION_CHANGE_DENIED: "Bạn không thể tự thay đổi quyền duyệt nội dung của mình.",
@@ -58,6 +59,17 @@ const CODE_MESSAGES: Record<string, string> = {
   UPLOAD_SESSION_STATE_CONFLICT: "Phiên tải lên không còn ở trạng thái cho phép thao tác này.",
   UPLOAD_SESSION_EXPIRED: "Phiên tải lên đã hết hạn. Vui lòng tải tệp lại từ đầu.",
   UPLOAD_INCOMPLETE: "Tệp chưa được tải lên đủ các phần.",
+  SVG_PROVENANCE_URL_INVALID: "Đường dẫn nguồn phải là địa chỉ HTTPS hợp lệ.",
+  SVG_COLOR_INVALID: "Màu SVG không hợp lệ. Chỉ dùng none hoặc mã hex 6 chữ số dạng #RRGGBB, ví dụ #A1B2C3.",
+  SVG_SOURCE_INVALID: "Tệp SVG không hợp lệ hoặc không được hỗ trợ.",
+  SVG_METADATA_INVALID: "Thông tin bản quyền hoặc mô tả SVG chưa hợp lệ.",
+  SVG_GUIDE_SOURCE_MISMATCH: "Hướng dẫn phải dùng đúng phiên bản và mã nguồn của SVG đã chọn.",
+  SVG_CATALOG_ITEM_NOT_FOUND: "Không tìm thấy mục SVG. Hãy kiểm tra mã mục đã nhập.",
+  SVG_REVIEW_CONFLICT: "Mục SVG đã được duyệt hoặc từ chối trước đó.",
+  SVG_REVIEW_SOURCE_STALE: "Nguồn SVG đã thay đổi. Hãy tải lại mã băm mới trước khi duyệt.",
+  SVG_REVIEW_GUIDE_STALE: "Hướng dẫn SVG đã thay đổi. Hãy dùng phiên bản mới nhất.",
+  SVG_GUIDE_REVISION_CONFLICT: "Phiên bản hướng dẫn đã thay đổi. Hãy gửi lại nội dung mới nhất.",
+  SVG_ASSET_UNAVAILABLE: "Mục SVG hiện không thể sử dụng.",
 };
 
 const STATUS_MESSAGES: Record<number, string> = {

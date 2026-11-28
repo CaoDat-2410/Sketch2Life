@@ -99,16 +99,7 @@ class VerifiedDeviceStatusContext:
 
 
 PilotVisionFactory = Callable[[Settings, Engine], object]
-
 _LOGGER = logging.getLogger(__name__)
-
-
-def _safe_sqlstate(error: BaseException | None) -> str | None:
-    """Return a DB driver's five-character SQLSTATE without exposing its message."""
-    value = getattr(error, "sqlstate", None) or getattr(error, "pgcode", None)
-    if isinstance(value, str) and len(value) == 5 and value.isalnum():
-        return value
-    return None
 
 
 def build_be1_runtime(
@@ -130,10 +121,15 @@ def build_be1_runtime(
     pilot_vision = None
     if (
         engine is not None
-        and pilot_vision_factory is not None
         and settings.env in {"local", "test"}
         and settings.synthetic_pilot_enabled is True
     ):
+        if pilot_vision_factory is None:
+            from sketch2life.infrastructure.vision_analysis.pilot_composition import (
+                build_default_pilot_vision,
+            )
+
+            pilot_vision_factory = build_default_pilot_vision
         pilot_vision = pilot_vision_factory(settings, engine)
     pilot_job_repository = _pilot_job_repository(pilot_vision)
     return Be1Runtime(
@@ -188,10 +184,7 @@ def get_runtime(request: Request) -> Be1Runtime:
     return runtime
 
 
-def get_db(
-    request: Request,
-    runtime: Be1Runtime = Depends(get_runtime),
-) -> Iterator[Session]:
+def get_db(runtime: Be1Runtime = Depends(get_runtime)) -> Iterator[Session]:
     assert runtime.session_factory is not None
     session = runtime.session_factory()
     try:
@@ -203,21 +196,14 @@ def get_db(
             session.rollback()
         except SQLAlchemyError as rollback_error:
             _LOGGER.error(
-                "be1_database_probe_rollback_failed request_id=%s error_type=%s error_module=%s",
-                getattr(request.state, "be1_request_id", "unknown"),
+                "code=%s error_type=%s",
+                "DATABASE_ROLLBACK_FAILED",
                 type(rollback_error).__name__,
-                type(rollback_error).__module__,
             )
-        original = getattr(exc, "orig", None)
         _LOGGER.error(
-            "be1_database_unavailable request_id=%s error_type=%s error_module=%s "
-            "driver_error_type=%s driver_error_module=%s sqlstate=%s",
-            getattr(request.state, "be1_request_id", "unknown"),
+            "code=%s error_type=%s",
+            "DATABASE_UNAVAILABLE",
             type(exc).__name__,
-            type(exc).__module__,
-            type(original).__name__ if original is not None else "unknown",
-            type(original).__module__ if original is not None else "unknown",
-            _safe_sqlstate(original),
         )
         raise HTTPException(status_code=503, detail={"code": "DATABASE_UNAVAILABLE"}) from None
     finally:

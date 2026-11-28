@@ -1,0 +1,51 @@
+meta {
+  name: 847 [DRAFT-V4D2] [LOCAL / TEST ONLY] Activity suggestion set fails closed when AI disabled and catalog empty
+  type: http
+  seq: 847
+}
+
+post {
+  url: {{baseUrl}}/api/parent/v1/ai/story-runs/{{phase_de_t2eb_empty_catalog_run_id}}/activity-suggestions
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{phase_de_t2eb_set_unavail_key}}
+}
+
+body:json {
+  {
+    "expected_understanding_revision": {{phase_de_t2eb_empty_catalog_understanding_rev}}
+  }
+}
+
+script:pre-request {
+  bru.setVar("phase_de_t2eb_set_unavail_key", "t2eb-unavail-" + Date.now());
+  if (!bru.getVar("phase_de_t2eb_empty_catalog_understanding_rev")) {
+    bru.setVar("phase_de_t2eb_empty_catalog_understanding_rev", "1");
+  }
+}
+
+tests {
+  test("assert provider unavailable refusal", function () {
+    expect(res.getStatus()).to.equal(503);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().detail.code).to.equal("MODAL_AI_NOT_ENABLED");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against committed Hybrid B code at 68c0fdf3; not yet run against a live backend.
+  Role: Owning Parent - set bearerToken to seed-parent-p1 token
+  Needs: needs-fixture: owned story run phase_de_t2eb_empty_catalog_run_id (understanding_revision in phase_de_t2eb_empty_catalog_understanding_rev) with empty activity catalog and parent_topic_subject_ai_enabled=false
+  Expected: 503 / MODAL_AI_NOT_ENABLED
+  Source: backend/src/sketch2life/interfaces/http/routers/parent_ai.py
+}

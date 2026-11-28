@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ResizeMode, Video } from 'expo-av';
-import type { ParentPlaybackSourceV1, ParentVideoReasonCodeV1 } from '../../domain/types';
+import type { ParentPlaybackSourceV1, ParentVideoQuota, ParentVideoReasonCodeV1 } from '../../domain/types';
 import { VIDEO_REASON_CODES, VIDEO_REASON_LABELS, type VideoPanel } from '../../application/parentPhaseB';
 import { captionAt, formatEta, videoProgressFraction, videoStageRows } from '../../application/videoWait';
 import {
@@ -12,6 +12,7 @@ import {
 } from '../../infrastructure/device/videoWaitStorage';
 import { WhileYouWaitSection } from '../components/WhileYouWaitSection';
 import { Card, Notice, PrimaryButton, ScreenFrame, SecondaryButton, SectionTitle, palette } from '../components/ui';
+import { ACTIVITY_COPY } from './ActivityScreen';
 
 type Props = {
   stepLabel: string;
@@ -19,6 +20,8 @@ type Props = {
   /** What the app is doing now: '', 'video-request', 'video-playback', 'video-unsuitable' or 'video-complete'. */
   busy: string;
   error: string;
+  quotaExceeded: boolean;
+  quotaSummary: ParentVideoQuota | null;
   playback: ParentPlaybackSourceV1 | null;
   /** The run id and the chosen activity, for the waiting-time checklist. */
   runId: string | null;
@@ -36,6 +39,7 @@ type Props = {
   onBackToStory: () => void;
   onOpenHistory: () => void;
   onRefresh: () => void;
+  onOpenQuota: () => void;
   onBack: () => void;
 };
 
@@ -64,6 +68,11 @@ export function VideoScreen(props: Props): React.JSX.Element {
     setOptions(next);
     void saveCaptionOptions(next);
   }
+  const remainingByGrantKind = props.quotaSummary?.grants.reduce((remaining, grant) => {
+    if (grant.kind === 'INCLUDED') remaining.included += grant.available;
+    if (grant.kind === 'TOP_UP') remaining.topUp += grant.available;
+    return remaining;
+  }, { included: 0, topUp: 0 }) ?? null;
   return (
     <ScreenFrame
       title="Video của bé"
@@ -78,6 +87,7 @@ export function VideoScreen(props: Props): React.JSX.Element {
       <Card variant="creative" style={styles.statusCard}>
         <Notice variant="creative" text={panel.headline} tone={panel.tone} />
         {panel.detail ? <Text style={styles.bodyText}>{panel.detail}</Text> : null}
+        {props.quotaSummary ? <Text style={styles.metaText}>Còn {props.quotaSummary.available_units} lượt tạo video trong tài khoản.</Text> : null}
         {panel.requestsRemaining !== null && !panel.closed && !panel.detail?.includes('lượt tạo video') ? (
           <Text style={styles.metaText}>Còn {panel.requestsRemaining} lượt tạo video cho buổi học này.</Text>
         ) : null}
@@ -106,6 +116,10 @@ export function VideoScreen(props: Props): React.JSX.Element {
           </View>
         ) : null}
         {panel.inFlight ? <SecondaryButton variant="creative" label="Kiểm tra lại" disabled={working} onPress={props.onRefresh} /> : null}
+        {props.quotaExceeded && remainingByGrantKind ? (
+          <Text style={styles.metaText}>Lượt tháng còn {remainingByGrantKind.included} · lượt mua thêm còn {remainingByGrantKind.topUp}.</Text>
+        ) : null}
+        {props.quotaExceeded ? <SecondaryButton variant="creative" label="Mua thêm lượt" disabled={working} onPress={props.onOpenQuota} /> : null}
       </Card>
 
       {panel.inFlight && props.runId ? <WhileYouWaitSection runId={props.runId} activity={props.activity} /> : null}
@@ -156,6 +170,12 @@ export function VideoScreen(props: Props): React.JSX.Element {
             <View key={activity.activity_ref ? `${activity.activity_ref.lesson_id}-${activity.activity_ref.version_id}-${activity.activity_ref.activity_index}` : `ai-draft-${index}`} style={styles.activityRow}>
               <Text style={styles.activityTitle}>{activity.is_main ? 'Hoạt động chính' : 'Hoạt động gợi ý'} · {activity.title}</Text>
               <Text style={styles.bodyText}>{activity.objective}</Text>
+              {activity.source === 'AI_DRAFT' ? (
+                <>
+                  <Text style={styles.metaText}>{ACTIVITY_COPY.aiSuggestionLabel}</Text>
+                  <Text style={styles.bodyText}>{ACTIVITY_COPY.aiReviewed}</Text>
+                </>
+              ) : null}
             </View>
           ))}
         </Card>

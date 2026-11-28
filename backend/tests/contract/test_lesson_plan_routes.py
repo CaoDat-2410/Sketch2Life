@@ -42,7 +42,10 @@ from sketch2life.interfaces.http.openapi_contract import (
     MOUNTED_OPERATIONS,
 )
 from sketch2life.interfaces.http.openapi_srs_v22 import SRS_V22_INCLUDED_OPERATIONS
-from sketch2life.interfaces.http.routers.lesson_occurrences import get_plan_service
+from sketch2life.interfaces.http.routers.lesson_occurrences import (
+    get_plan_service,
+    get_transfer_guards,
+)
 
 DATABASE_SENTINEL = "postgresql+psycopg://sentinel_user:sentinel_pw@localhost:9/sentinel_db"
 BASE = "/v1/lesson-occurrences/{occurrence_id}/plan-revisions"
@@ -55,10 +58,19 @@ HASH = "a" * 64
 STORAGE_WORDS = ("bucket", "object_key", "presigned", "amazonaws", "organization_ref", "scanner")
 
 
+class _NoOpTransferGuards:
+    def create(self, _principal: VerifiedPrincipal, _class_id: str) -> None:
+        pass
+
+    def occurrence_write(self, _principal: VerifiedPrincipal, _occurrence_id: str) -> None:
+        pass
+
+
 def plan_json(number: int = 3, state: str = "DRAFT") -> dict[str, Any]:
     return {
         "contract": "LessonPlanRevisionV1",
         "occurrence_id": "occ-1",
+        "plan_revision_id": "11111111-1111-4111-8111-111111111111",
         "revision_no": number,
         "state": state,
         "content_hash": HASH,
@@ -164,6 +176,7 @@ def served() -> Iterator[tuple[TestClient, FakeService]]:
 
     application.dependency_overrides[get_verified_adult] = verified
     application.dependency_overrides[get_plan_service] = lambda: service
+    application.dependency_overrides[get_transfer_guards] = lambda: _NoOpTransferGuards()
     with TestClient(application) as client:
         yield client, service
 
@@ -180,6 +193,7 @@ def served_real_rules() -> Iterator[TestClient]:
     application.dependency_overrides[get_plan_service] = lambda: PlanRevisionService(
         NoDatabase()  # type: ignore[arg-type]
     )
+    application.dependency_overrides[get_transfer_guards] = lambda: _NoOpTransferGuards()
     with TestClient(application) as client:
         yield client
 
@@ -548,6 +562,7 @@ def test_create_is_201_with_location_and_a_strong_etag_of_hash_and_state(
     assert response.headers["Cache-Control"] == "private, no-cache"
     body = response.json()
     assert body["state"] == "DRAFT" and body["content_hash"] == HASH
+    assert body["plan_revision_id"] == "11111111-1111-4111-8111-111111111111"
     assert body["activities"][0]["checklist_required"] is False
     assert body["approved_at"] is None and body["supersedes_revision_no"] is None
 
@@ -562,6 +577,7 @@ def test_confirm_is_200_with_the_approved_etag_and_names_the_superseded_revision
     assert response.headers["Content-Location"] == f"{URL}/3"
     body = response.json()
     assert body["state"] == "APPROVED" and body["supersedes_revision_no"] == 2
+    assert body["plan_revision_id"] == "11111111-1111-4111-8111-111111111111"
     ((name, kwargs),) = service.calls
     assert name == "confirm" and kwargs["revision_no"] == 3
     assert kwargs["payload"].expected_plan_hash == HASH and kwargs["idempotency_key"] == "k2"
@@ -830,6 +846,11 @@ def test_the_published_component_has_an_optional_36_character_plan_activity_id()
     prop = schema["properties"]["plan_activity_id"]
     assert {"type": "string", "maxLength": 36, "minLength": 1} in prop["anyOf"]
     assert "plan_activity_id" not in schema["required"]
+    revision = application.state.runtime_openapi_schema["components"]["schemas"][
+        "LessonPlanRevisionV1"
+    ]
+    assert revision["properties"]["plan_revision_id"]["type"] == "string"
+    assert "plan_revision_id" in revision["required"]
     summary = application.state.runtime_openapi_schema["components"]["schemas"][
         "LessonPlanRevisionSummaryV1"
     ]

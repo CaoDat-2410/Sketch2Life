@@ -13,7 +13,7 @@ from types import SimpleNamespace
 from typing import Any, cast
 
 import pytest
-from fastapi import HTTPException
+from fastapi import HTTPException, Response
 from sqlalchemy.orm import Session
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
@@ -58,6 +58,7 @@ class _FakeSession:
         self._classroom = classroom
         self._session = session
         self._profile = profile
+        self.added: list[Any] = []
 
     def get(self, _model: Any, _key: Any) -> Any:
         return self._identity
@@ -75,6 +76,15 @@ class _FakeSession:
         if "FROM be1_managed_profiles" in text:
             return self._profile
         return None
+
+    def add(self, row: Any) -> None:
+        self.added.append(row)
+
+    def commit(self) -> None:
+        pass
+
+    def rollback(self) -> None:
+        pass
 
 
 def _identity(*, state: str = "active", role: str = "teacher", issuer: str = ISSUER) -> Any:
@@ -239,7 +249,7 @@ def _roster(session: _FakeSession) -> Any:
 
 def _portfolio(session: _FakeSession) -> Any:
     return be1_records.read_portfolio(
-        ORG, CLASS, CHILD, principal=PRINCIPAL, db=cast(Session, session)
+        ORG, CLASS, CHILD, Response(), principal=PRINCIPAL, db=cast(Session, session)
     )
 
 
@@ -283,7 +293,19 @@ def test_assigned_teacher_passes_every_guard(case: Any) -> None:
     assert missing.status_code == 404
     assert isinstance(missing.detail, dict)
     assert missing.detail["code"] == "PROFILE_NOT_FOUND"
-    present = _error(_portfolio, _session_for(case, profile=SimpleNamespace(child_id=CHILD)))
+    present = _error(
+        _portfolio,
+        _session_for(
+            case,
+            profile=SimpleNamespace(
+                child_id=CHILD,
+                organization_id=ORG,
+                class_id=CLASS,
+                data_origin="LEGACY_UNCLASSIFIED",
+                consent_purpose_ref=None,
+            ),
+        ),
+    )
     assert present.status_code == 409
     assert isinstance(present.detail, dict)
     assert present.detail["code"] == "CONSENT_NOT_EFFECTIVE"

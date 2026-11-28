@@ -391,6 +391,7 @@ class LessonPlanRevisionV1(BaseModel):
 
     contract: Literal["LessonPlanRevisionV1"] = "LessonPlanRevisionV1"
     occurrence_id: str
+    plan_revision_id: str
     revision_no: int
     state: Literal["DRAFT", "APPROVED", "SUPERSEDED"]
     content_hash: str

@@ -9,6 +9,7 @@ from typing import Any
 import pytest
 
 from sketch2life.application.services.story_output import normalize_story_output
+from sketch2life.contracts.schemas.lesson_library import LessonContentInputV1
 from sketch2life.infrastructure.story_inputs.drawing import normalize_drawing
 from tools.seed import data as s1_data
 from tools.seed import s7b_story_states as stage
@@ -69,6 +70,29 @@ def test_stage_counts_use_simple_names_and_include_the_requested_tables() -> Non
     } <= data.EXPECTED.keys()
     assert data.EXPECTED["story_runs_s7b"] == 5
     assert data.EXPECTED["story_command_receipts_s7b"] == len(data.STORY_RECEIPT_CASES)
+
+
+def test_story_states_seed_the_parent_activity_gate_before_story_generation() -> None:
+    assert data.S7B_COMMAND_CASES["p3a_select_activity"] == "p3-a-select-activity-1"
+    assert data.S7B_COMMAND_CASES["p5_select_activity"] == "p5-select-activity-1"
+    assert data.EXPECTED["story_activity_selections_s7b"] == 2
+    assert data.EXPECTED["lesson_access_grants_s7b"] == 2
+    assert data.EXPECTED["lesson_command_receipts_s7b"] == len(
+        data.STORY_CATALOG_RECEIPT_CASES
+    )
+    assert any(
+        row["parent_group_id"] == s1_data.PARENT_GROUP_IDS[1]
+        and row["parent_principal_ref"] == s1_data.PARENT_SUBJECTS["p3"]
+        and row["state"] == "active"
+        for row in s1_data.parent_group_member_rows()
+    )
+
+
+def test_p5_activity_lesson_matches_the_seeded_child_age_and_lesson_contract() -> None:
+    content = LessonContentInputV1.model_validate(data.P5_ACTIVITY_LESSON_CONTENT)
+    assert s1_data.current_profile_revision("k5")["age_months"] == 96
+    assert content.target_age_band_ref == "age-72-107-months-v1"
+    assert len(content.activities) == 1
 
 
 def test_stage_main_delegates_guarding_to_run_stage_main(monkeypatch: pytest.MonkeyPatch) -> None:

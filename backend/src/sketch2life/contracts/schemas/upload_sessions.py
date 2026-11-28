@@ -15,7 +15,7 @@ from pydantic import AwareDatetime, BaseModel, ConfigDict, Field
 
 OpaqueRef = Annotated[str, Field(min_length=1, max_length=128, pattern=r"^[A-Za-z0-9._:-]+$")]
 Sha256Hex = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
-UploadPurpose = Literal["RUN_ARTWORK", "RUN_AUDIO", "OCCURRENCE_DOCUMENT"]
+UploadPurpose = Literal["RUN_ARTWORK", "RUN_AUDIO", "OCCURRENCE_DOCUMENT", "PRESENTATION_IMAGE"]
 UploadState = Literal["OPEN", "COMPLETED", "ABORTED", "EXPIRED", "FAILED"]
 # Sanity bound only: the per-purpose cap (413) is enforced by the service, not by validation.
 MAX_DECLARED_BYTES = 10_000_000_000

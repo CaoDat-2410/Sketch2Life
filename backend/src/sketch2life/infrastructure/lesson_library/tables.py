@@ -27,7 +27,9 @@ PARENT_GROUPS = sa.Table(
     sa.Column("display_name", sa.String(120), nullable=False),
     sa.Column("state", sa.String(24), nullable=False, server_default="active"),
     sa.Column("created_by", sa.String(256), nullable=False),
-    sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+    sa.Column(
+        "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+    ),
     sa.UniqueConstraint("organization_id", "display_name", name="uq_be1_parent_group_name"),
     sa.CheckConstraint("state IN ('active', 'archived')", name="ck_be1_parent_group_state"),
 )
@@ -51,11 +53,26 @@ PARENT_GROUP_MEMBERS = sa.Table(
     sa.Column("revision", sa.Integer(), nullable=False, server_default="1"),
     sa.UniqueConstraint("parent_group_id", "parent_principal_ref", name="uq_be1_parent_group_member"),
     sa.CheckConstraint(
-        "state IN ('invited', 'active', 'revoked', 'expired')",
+        "state IN ('invited', 'active', 'revoked', 'expired', 'declined')",
         name="ck_be1_parent_group_member_state",
     ),
     sa.CheckConstraint("revision > 0", name="ck_be1_parent_group_member_revision"),
     sa.Index("ix_be1_parent_member_invitations", "parent_principal_ref", "state", "invited_at"),
+)
+
+sa.Index(
+    "ix_be1_parent_member_owner_page",
+    PARENT_GROUP_MEMBERS.c.parent_principal_ref,
+    PARENT_GROUP_MEMBERS.c.state,
+    PARENT_GROUP_MEMBERS.c.invited_at.desc(),
+    PARENT_GROUP_MEMBERS.c.membership_id.desc(),
+)
+sa.Index(
+    "ix_be1_parent_member_group_page",
+    PARENT_GROUP_MEMBERS.c.parent_group_id,
+    PARENT_GROUP_MEMBERS.c.state,
+    PARENT_GROUP_MEMBERS.c.invited_at.desc(),
+    PARENT_GROUP_MEMBERS.c.membership_id.desc(),
 )
 
 UPLOAD_SESSIONS = sa.Table(
@@ -93,7 +110,7 @@ UPLOAD_SESSIONS = sa.Table(
     sa.Column("validated_at", sa.DateTime(timezone=True)),
     sa.CheckConstraint(
         "purpose IN ('PROFILE_IMAGE', 'RUN_ARTWORK', 'RUN_AUDIO', 'LESSON_SOURCE', "
-        "'OCCURRENCE_DOCUMENT')",
+        "'OCCURRENCE_DOCUMENT', 'PRESENTATION_IMAGE')",
         name="ck_core_upload_purpose",
     ),
     sa.CheckConstraint(OWNER_SCOPE_CHECK, name="ck_core_upload_owner_scope"),
@@ -190,6 +207,36 @@ LIBRARY_VERSIONS = sa.Table(
         name="ck_lesson_version_review_state",
     ),
     sa.Index("ix_lesson_versions_item", "lesson_id", "version_no"),
+)
+
+LIBRARY_VERSION_LINEAGE = sa.Table(
+    "library_version_lineage",
+    LESSON_METADATA,
+    sa.Column("derived_version_id", sa.String(36), nullable=False),
+    sa.Column("source_version_id", sa.String(36), nullable=False),
+    sa.Column("source_content_hash", sa.String(64), nullable=False),
+    sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+    sa.PrimaryKeyConstraint("derived_version_id", name="pk_lesson_version_lineage"),
+    sa.ForeignKeyConstraint(
+        ["derived_version_id"],
+        ["lesson.library_versions.version_id"],
+        name="fk_lesson_lineage_derived_version",
+        ondelete="RESTRICT",
+    ),
+    sa.ForeignKeyConstraint(
+        ["source_version_id"],
+        ["lesson.library_versions.version_id"],
+        name="fk_lesson_lineage_source_version",
+        ondelete="RESTRICT",
+    ),
+    sa.CheckConstraint(
+        "derived_version_id <> source_version_id", name="ck_lesson_lineage_not_self"
+    ),
+    sa.CheckConstraint(
+        "source_content_hash ~ '^[0-9a-f]{64}$'",
+        name="ck_lesson_lineage_source_content_hash",
+    ),
+    sa.Index("ix_lesson_lineage_source_version", "source_version_id"),
 )
 
 VERSION_ACTIVITIES = sa.Table(

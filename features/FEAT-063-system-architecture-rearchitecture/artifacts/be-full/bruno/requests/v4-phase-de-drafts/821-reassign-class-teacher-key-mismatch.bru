@@ -1,0 +1,45 @@
+meta {
+  name: 821 [DRAFT-V4D] [LOCAL / TEST ONLY] Reject reassignment key reused with different candidate
+  type: http
+  seq: 821
+}
+
+post {
+  url: {{baseUrl}}/api/be1/v1/classes/{{phase_de_transfer_class_id}}/assignments
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  If-Match: "{{phase_de_transfer_expected_rev}}"
+  Idempotency-Key: {{phase_de_reassign_key}}
+}
+
+body:json {
+  {
+    "candidate_ref": "{{phase_de_transfer_other_candidate_ref}}"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("INVALID_IDEMPOTENCY_KEY");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against the code in .worktrees/v4d at working tree on 9e439cee; not yet run against a live backend.
+  Role: Assigned School Manager - set bearerToken to seed-mgr-a token
+  Needs: needs-fixture: run after 819 with phase_de_transfer_other_candidate_ref
+  Expected: 400 / INVALID_IDEMPOTENCY_KEY
+  Source: backend/src/sketch2life/infrastructure/persistence/teacher_assignment_transfer_repository.py:71-88
+}

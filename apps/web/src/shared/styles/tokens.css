@@ -1,0 +1,396 @@
+/*
+ * Sketch2Life web design tokens.
+ *
+ * This is the only file that may hold raw colour, size, radius, shadow and motion values.
+ * Every other stylesheet reads these custom properties.
+ *
+ * Section 1 is the design system. Section 2 keeps older variable names alive for role
+ * stylesheets that have not been rebuilt yet; nothing new may read from section 2.
+ */
+
+/* ---------- 1. Design system ---------- */
+:root {
+  color-scheme: light;
+
+  /* Type */
+  --s2l-ui-font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --s2l-font-display: "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --s2l-font-mono: ui-monospace, SFMono-Regular, Consolas, monospace;
+  --s2l-text-2xs: 11px;  /* status chips and uppercase micro-labels only */
+  --s2l-text-xs: 12px;   /* captions, eyebrows, helper text: the smallest size for sentences */
+  --s2l-text-sm: 13px;   /* navigation, buttons, dense rows */
+  --s2l-text-md: 14px;   /* body */
+  --s2l-text-lg: 16px;   /* card titles */
+  --s2l-text-xl: 18px;   /* section titles */
+  --s2l-text-2xl: 22px;  /* dialog titles, key numbers */
+  --s2l-text-display: clamp(32px, 3.5vw, 44px); /* page titles */
+  --s2l-leading-tight: 1.2;
+  --s2l-leading-snug: 1.35;
+  --s2l-leading-body: 1.55;
+
+  /* Space: 4px grid */
+  --s2l-space-1: 4px;
+  --s2l-space-2: 8px;
+  --s2l-space-3: 12px;
+  --s2l-space-4: 16px;
+  --s2l-space-5: 20px;
+  --s2l-space-6: 24px;
+  --s2l-space-8: 32px;
+  --s2l-space-10: 40px;
+  --s2l-space-14: 56px;
+
+  /* Radius */
+  --s2l-radius-sm: 10px;    /* chips inside controls, small marks */
+  --s2l-radius-md: 14px;    /* buttons, inputs, nav rows */
+  --s2l-radius-lg: 22px;    /* cards, dialogs */
+  --s2l-radius-xl: 26px;    /* hero and full-page state cards */
+  --s2l-radius-pill: 999px;
+
+  /* Layout */
+  --s2l-sidebar-width: 264px;
+  --s2l-topbar-height: 64px;
+  --s2l-content-max: 1440px;
+  --s2l-gutter: clamp(22px, 3vw, 40px);
+  --s2l-control-height: 44px; /* minimum touch target for primary controls */
+
+  /* Motion */
+  --s2l-ease: cubic-bezier(.2, .7, .2, 1);
+  --s2l-duration-fast: 150ms;
+  --s2l-duration: 200ms;
+
+  /* Form rhythm */
+  --s2l-form-card-padding: 22px;
+  --s2l-form-field-gap: 16px;
+  --s2l-form-label-gap: 7px;
+  --s2l-form-helper-gap: 6px;
+  --s2l-form-helper-size: 12px;
+  --s2l-form-notice-gap: 16px;
+  --s2l-form-control-gap: 12px;
+  --s2l-form-action-gap: 20px;
+  --s2l-form-section-padding: 16px;
+  --s2l-form-section-gap: 12px;
+
+  /* Surfaces and text (violet / koi identity, shared with the parent app) */
+  --s2l-ui-cream: #FFFAF6;        /* page canvas */
+  --s2l-ui-paper: #FFFFFF;        /* cards, controls */
+  --s2l-ui-paper-muted: #F6F0FF;  /* quiet fills */
+  --s2l-ui-ink: #1B0F38;          /* primary text */
+  --s2l-ui-ink-soft: #5D5473;     /* secondary text, AA on paper and cream */
+  --s2l-ui-rule: #E3DCEF;         /* decorative dividers and card edges */
+  --s2l-ui-border-control: #8E84A3; /* edges of inputs and selects: 3:1 on paper */
+
+  /* Primary */
+  --s2l-ui-primary: #7435D5;
+  --s2l-ui-primary-soft: #F1E7FF;
+  --s2l-ui-primary-ink: #4A1AA6;
+  --s2l-ui-primary-hover: #54239A;
+  --s2l-ui-on-primary: #FFFFFF;
+  --s2l-ui-primary-gradient-start: #8A2FE8;
+  --s2l-ui-primary-gradient-end: #6818D2;
+  --s2l-ui-primary-gradient: linear-gradient(110deg, var(--s2l-ui-primary-gradient-start), var(--s2l-ui-primary-gradient-end));
+  --s2l-ui-primary-hover-gradient: linear-gradient(110deg, #6A2BD9, #54239A);
+  --s2l-ui-primary-disabled: #E9D9FF;
+  --s2l-ui-primary-disabled-ink: #51465D;
+  --s2l-ui-focus: #6A2BD9;
+  --s2l-ui-input-focus: #D8C5F8;
+  --s2l-ui-link: #6A24C5;
+
+  /* Shell and rows */
+  --s2l-ui-sidebar: #FBF7FF;
+  --s2l-ui-sidebar-edge: #EBDDF7;
+  --s2l-ui-active-nav: #EDE3FF;
+  --s2l-ui-section-header: #F3EBFF;
+  --s2l-ui-row-hover: #F8F3FF;
+  --s2l-ui-row-selected: #EDE3FF;
+  --s2l-ui-header-wash-start: #FBFAFD;
+  --s2l-ui-header-wash-end: #F3EBFF;
+  --s2l-ui-logo-chip: #FFFFFF;
+  --s2l-ui-logo-chip-border: #E3DCEF;
+  --s2l-ui-scrim: rgb(40 20 81 / 26%);
+  --s2l-ui-overlay: rgb(34 24 48 / 46%);
+  --s2l-ui-hero-wash: linear-gradient(118deg, #E6D8F8 0%, #F1E4F6 52%, #FBE9EC 100%);
+  --s2l-ui-stage: #170D2B;        /* presentation backdrop */
+  --s2l-ui-stage-ink: #3B1A78;    /* slide titles */
+
+  /* Charts */
+  --s2l-ui-chart-violet: #6A2BD9;
+  --s2l-ui-chart-coral: #B34D5B;
+  --s2l-ui-chart-butter: #8B7300;
+  --s2l-ui-chart-sky: #246D7C;
+  --s2l-ui-chart-mint: #4C7A51;
+
+  /* Accent families */
+  --s2l-ui-mint-soft: #DDF5E7;
+  --s2l-ui-mint: #85C891;
+  --s2l-ui-mint-ink: #234D2A;
+  --s2l-ui-butter-soft: #FFF0B8;
+  --s2l-ui-butter: #FFC83D;
+  --s2l-ui-butter-ink: #5A4100;
+  --s2l-ui-coral-soft: #F7D7CF;
+  --s2l-ui-coral: #FF6B4A;
+  --s2l-ui-coral-ink: #5B211A;
+  --s2l-ui-sky-soft: #DDEBFF;
+  --s2l-ui-sky: #315E87;
+  --s2l-ui-sky-ink: #315E87;
+
+  /* Status roles */
+  --s2l-ui-success-soft: var(--s2l-ui-mint-soft);
+  --s2l-ui-success-base: var(--s2l-ui-mint);
+  --s2l-ui-success-ink: var(--s2l-ui-mint-ink);
+  --s2l-ui-warn-soft: var(--s2l-ui-butter-soft);
+  --s2l-ui-warn-base: var(--s2l-ui-butter);
+  --s2l-ui-warn-ink: var(--s2l-ui-butter-ink);
+  --s2l-ui-danger-soft: var(--s2l-ui-coral-soft);
+  --s2l-ui-danger-base: var(--s2l-ui-coral-700);
+  --s2l-ui-danger-ink: var(--s2l-ui-coral-ink);
+  --s2l-ui-info-soft: var(--s2l-ui-sky-soft);
+  --s2l-ui-info-base: var(--s2l-ui-sky);
+  --s2l-ui-info-ink: var(--s2l-ui-sky-ink);
+  --s2l-ui-neutral-soft: #F5EFFF;
+  --s2l-ui-neutral-base: #5D5473;
+  --s2l-ui-neutral-ink: #51465D;
+
+  /* Elevation */
+  --s2l-ui-shadow-tint: #4B2A70;
+  --s2l-ui-shadow: 0 4px 16px rgb(75 42 112 / 6%), 0 1px 3px rgb(75 42 112 / 4%);          /* resting card */
+  --s2l-ui-shadow-hover: 0 9px 24px rgb(75 42 112 / 10%), 0 2px 6px rgb(75 42 112 / 5%);  /* raised card, popover, toast */
+  --s2l-ui-shadow-dialog: 0 24px 64px rgb(75 42 112 / 18%), 0 4px 12px rgb(75 42 112 / 6%);
+
+  /* Scales */
+  --s2l-ui-primary-50: #FCFAFF;
+  --s2l-ui-primary-100: #F6F0FF;
+  --s2l-ui-primary-200: #EFE7FF;
+  --s2l-ui-primary-300: #E9D9FF;
+  --s2l-ui-primary-400: #D8C5F8;
+  --s2l-ui-primary-500: #B795E8;
+  --s2l-ui-primary-600: #8B5BD0;
+  --s2l-ui-primary-700: #6A2BD9;
+  --s2l-ui-primary-800: #54239A;
+  --s2l-ui-primary-900: #1B0F38;
+  --s2l-ui-sky-50: #F5FBFF;
+  --s2l-ui-sky-100: #E5F4FF;
+  --s2l-ui-sky-200: #DDEBFF;
+  --s2l-ui-sky-300: #B9E3FA;
+  --s2l-ui-sky-400: #7CB9E2;
+  --s2l-ui-sky-500: #5697C0;
+  --s2l-ui-sky-600: #315E87;
+  --s2l-ui-sky-700: #254B69;
+  --s2l-ui-sky-800: #1C3850;
+  --s2l-ui-sky-900: #142638;
+  --s2l-ui-mint-50: #F7FCF5;
+  --s2l-ui-mint-100: #E6F4E1;
+  --s2l-ui-mint-200: #DDF5E7;
+  --s2l-ui-mint-300: #B8E2A7;
+  --s2l-ui-mint-400: #85C891;
+  --s2l-ui-mint-500: #4C7A51;
+  --s2l-ui-mint-600: #3C7043;
+  --s2l-ui-mint-700: #234D2A;
+  --s2l-ui-mint-800: #193B20;
+  --s2l-ui-mint-900: #102817;
+  --s2l-ui-butter-50: #FFFCF4;
+  --s2l-ui-butter-100: #FFF3D1;
+  --s2l-ui-butter-200: #FFF0B8;
+  --s2l-ui-butter-300: #FFE29A;
+  --s2l-ui-butter-400: #FFC83D;
+  --s2l-ui-butter-500: #D4A82A;
+  --s2l-ui-butter-600: #8B6410;
+  --s2l-ui-butter-700: #5A4100;
+  --s2l-ui-butter-800: #493500;
+  --s2l-ui-butter-900: #332400;
+  --s2l-ui-coral-50: #FFFAF8;
+  --s2l-ui-coral-100: #FCE8E2;
+  --s2l-ui-coral-200: #F7D7CF;
+  --s2l-ui-coral-300: #FFAA99;
+  --s2l-ui-coral-400: #FF6B4A;
+  --s2l-ui-coral-500: #C64B40;
+  --s2l-ui-coral-600: #8F332F;
+  --s2l-ui-coral-700: #5B211A;
+  --s2l-ui-coral-800: #451A15;
+  --s2l-ui-coral-900: #32110F;
+  --s2l-ui-neutral-50: #FFFEFF;
+  --s2l-ui-neutral-100: #F5EFF9;
+  --s2l-ui-neutral-200: #E3DCEF;
+  --s2l-ui-neutral-300: #D8C8E2;
+  --s2l-ui-neutral-400: #B7A8C5;
+  --s2l-ui-neutral-500: #8E84A3;
+  --s2l-ui-neutral-600: #5D5473;
+  --s2l-ui-neutral-700: #51465D;
+  --s2l-ui-neutral-800: #332342;
+  --s2l-ui-neutral-900: #24172D;
+}
+
+@media (min-width: 821px) and (max-width: 1100px) {
+  :root { --s2l-sidebar-width: 240px; }
+}
+
+/* ---------- 2. Older variable names (read-only bridge for role stylesheets) ---------- */
+/* Delete each group when the role stylesheet that reads it is rebuilt (phases 2 to 5). */
+html[data-cozy="1"] {
+  --s2l-canvas: var(--s2l-ui-cream);
+  --s2l-paper: var(--s2l-ui-paper);
+  --s2l-ink: var(--s2l-ui-ink);
+  --s2l-muted: var(--s2l-ui-ink-soft);
+  --s2l-line: var(--s2l-ui-rule);
+  --s2l-teal: var(--s2l-ui-primary);
+  --s2l-teal-dark: var(--s2l-ui-primary-hover);
+  --s2l-teal-soft: var(--s2l-ui-primary-soft);
+  --s2l-coral: var(--s2l-ui-coral-ink);
+  --s2l-amber: var(--s2l-ui-butter-ink);
+  --s2l-shadow: var(--s2l-ui-shadow);
+
+  --color-paper: var(--s2l-ui-cream);
+  --color-paper-2: var(--s2l-ui-paper-muted);
+  --color-paper-3: var(--s2l-ui-neutral-200);
+  --color-sheet: var(--s2l-ui-paper);
+  --color-ink: var(--s2l-ui-ink);
+  --color-ink-2: var(--s2l-ui-neutral-800);
+  --color-muted: var(--s2l-ui-ink-soft);
+  --color-rule: var(--s2l-ui-rule);
+  --color-rule-2: var(--s2l-ui-input-focus);
+  --color-accent: var(--s2l-ui-primary);
+  --color-accent-strong: var(--s2l-ui-primary-hover);
+  --color-accent-soft: var(--s2l-ui-primary-soft);
+  --color-accent-ink: var(--s2l-ui-on-primary);
+  --color-focus: var(--s2l-ui-focus);
+  --color-success: var(--s2l-ui-success-base);
+  --color-success-soft: var(--s2l-ui-success-soft);
+  --color-warn: var(--s2l-ui-warn-ink);
+  --color-warn-soft: var(--s2l-ui-warn-soft);
+  --color-danger: var(--s2l-ui-danger-ink);
+  --color-danger-soft: var(--s2l-ui-danger-soft);
+  --bg: var(--s2l-ui-cream);
+  --surface: var(--s2l-ui-paper);
+  --surface-2: var(--s2l-ui-paper-muted);
+  --line: var(--s2l-ui-rule);
+  --ink: var(--s2l-ui-ink);
+  --ink-2: var(--s2l-ui-neutral-800);
+  --ink-3: var(--s2l-ui-ink-soft);
+  --primary: var(--s2l-ui-primary);
+  --primary-2: var(--s2l-ui-primary);
+  --primary-fg: var(--s2l-ui-primary-hover);
+  --primary-dark: var(--s2l-ui-primary-hover);
+  --primary-600: var(--s2l-ui-primary);
+  --primary-50: var(--s2l-ui-primary-100);
+  --primary-100: var(--s2l-ui-primary-200);
+  --accent: var(--s2l-ui-butter);
+  --accent-dark: var(--s2l-ui-butter-600);
+  --accent-50: var(--s2l-ui-butter-soft);
+  --accent-ink: var(--s2l-ui-butter-ink);
+  --mint: var(--s2l-ui-mint);
+  --mint-dark: var(--s2l-ui-mint-600);
+  --mint-50: var(--s2l-ui-mint-soft);
+  --mint-ink: var(--s2l-ui-mint-ink);
+  --danger: var(--s2l-ui-danger-base);
+  --danger-dark: var(--s2l-ui-danger-base);
+  --danger-50: var(--s2l-ui-danger-soft);
+  --danger-ink: var(--s2l-ui-danger-ink);
+  --warn-50: var(--s2l-ui-warn-soft);
+  --warn-100: var(--s2l-ui-butter-200);
+  --warn-700: var(--s2l-ui-butter-ink);
+  --card-bg: var(--s2l-ui-paper);
+  --card-border: var(--s2l-ui-rule);
+  --tw-ink: var(--s2l-ui-ink);
+  --tw-ink-2: var(--s2l-ui-neutral-800);
+  --tw-sub-ink: var(--s2l-ui-ink-soft);
+  --tw-surface: var(--s2l-ui-paper);
+  --tw-surface-alt: var(--s2l-ui-paper-muted);
+  --tw-border: var(--s2l-ui-rule);
+  --tw-mint-ink: var(--s2l-ui-mint-ink);
+  --tw-amber-ink: var(--s2l-ui-butter-ink);
+  --tw-rose-ink: var(--s2l-ui-coral-ink);
+  --tw-sky-ink: var(--s2l-ui-sky-ink);
+
+  --teacher-paper: var(--s2l-ui-cream);
+  --teacher-board: var(--s2l-ui-paper-muted);
+  --teacher-sheet: var(--s2l-ui-paper);
+  --teacher-ink: var(--s2l-ui-ink);
+  --teacher-muted: var(--s2l-ui-ink-soft);
+  --teacher-rule: var(--s2l-ui-rule);
+  --teacher-rule-strong: var(--s2l-ui-input-focus);
+  --teacher-blue: var(--s2l-ui-primary);
+  --teacher-blue-deep: var(--s2l-ui-primary-hover);
+  --teacher-blue-soft: var(--s2l-ui-primary-soft);
+  --teacher-mint: var(--s2l-ui-mint-ink);
+  --teacher-mint-soft: var(--s2l-ui-mint-soft);
+  --teacher-danger: var(--s2l-ui-danger-ink);
+  --teacher-danger-soft: var(--s2l-ui-danger-soft);
+  --teacher-radius: var(--s2l-radius-lg);
+
+  --mg-canvas: var(--s2l-ui-cream);
+  --mg-surface: var(--s2l-ui-paper-muted);
+  --mg-raised: var(--s2l-ui-paper);
+  --mg-ink: var(--s2l-ui-ink);
+  --mg-muted: var(--s2l-ui-ink-soft);
+  --mg-subtle: var(--s2l-ui-ink-soft);
+  --mg-line: var(--s2l-ui-rule);
+  --mg-accent: var(--s2l-ui-primary);
+  --mg-accent-strong: var(--s2l-ui-primary-hover);
+  --mg-accent-soft: var(--s2l-ui-primary-soft);
+  --mg-on-accent: var(--s2l-ui-on-primary);
+  --mg-neutral-soft: var(--s2l-ui-neutral-soft);
+  --mg-focus: var(--s2l-ui-focus);
+
+  --manager-paper: var(--s2l-ui-cream);
+  --manager-board: var(--s2l-ui-paper-muted);
+  --manager-sheet: var(--s2l-ui-paper);
+  --manager-ink: var(--s2l-ui-ink);
+  --manager-muted: var(--s2l-ui-ink-soft);
+  --manager-soft-muted: var(--s2l-ui-neutral-700);
+  --manager-rule: var(--s2l-ui-rule);
+  --manager-rule-strong: var(--s2l-ui-input-focus);
+  --manager-blue: var(--s2l-ui-primary);
+  --manager-blue-deep: var(--s2l-ui-primary-hover);
+  --manager-blue-soft: var(--s2l-ui-primary-soft);
+  --manager-gold: var(--s2l-ui-butter-ink);
+  --manager-gold-soft: var(--s2l-ui-butter-soft);
+  --manager-green: var(--s2l-ui-mint-ink);
+  --manager-green-soft: var(--s2l-ui-mint-soft);
+  --manager-clay: var(--s2l-ui-coral-ink);
+  --manager-clay-soft: var(--s2l-ui-coral-soft);
+  --manager-danger: var(--s2l-ui-danger-ink);
+  --manager-focus: var(--s2l-ui-focus);
+  --manager-radius: var(--s2l-radius-lg);
+
+  --pa-radius-control: 18px;
+  --pa-radius-panel: var(--s2l-radius-lg);
+  --admin-radius: var(--s2l-radius-lg);
+}
+
+/* The two role blocks repeat their group at a higher specificity because the role
+   stylesheets redeclare these names with older values. */
+html[data-cozy="1"][data-portal="teacher"] {
+  --teacher-paper: var(--s2l-ui-cream);
+  --teacher-board: var(--s2l-ui-paper-muted);
+  --teacher-sheet: var(--s2l-ui-paper);
+  --teacher-ink: var(--s2l-ui-ink);
+  --teacher-muted: var(--s2l-ui-ink-soft);
+  --teacher-rule: var(--s2l-ui-rule);
+  --teacher-rule-strong: var(--s2l-ui-input-focus);
+  --teacher-blue: var(--s2l-ui-primary);
+  --teacher-blue-deep: var(--s2l-ui-primary-hover);
+  --teacher-blue-soft: var(--s2l-ui-primary-soft);
+  --teacher-radius: var(--s2l-radius-lg);
+}
+
+html[data-cozy="1"][data-portal="school-be1"] {
+  --manager-paper: var(--s2l-ui-cream);
+  --manager-board: var(--s2l-ui-paper-muted);
+  --manager-sheet: var(--s2l-ui-paper);
+  --manager-ink: var(--s2l-ui-ink);
+  --manager-muted: var(--s2l-ui-ink-soft);
+  --manager-soft-muted: var(--s2l-ui-neutral-700);
+  --manager-rule: var(--s2l-ui-rule);
+  --manager-rule-strong: var(--s2l-ui-input-focus);
+  --manager-blue: var(--s2l-ui-primary);
+  --manager-blue-deep: var(--s2l-ui-primary-hover);
+  --manager-blue-soft: var(--s2l-ui-primary-soft);
+  --manager-gold: var(--s2l-ui-butter-ink);
+  --manager-gold-soft: var(--s2l-ui-butter-soft);
+  --manager-green: var(--s2l-ui-mint-ink);
+  --manager-green-soft: var(--s2l-ui-mint-soft);
+  --manager-clay: var(--s2l-ui-coral-ink);
+  --manager-clay-soft: var(--s2l-ui-coral-soft);
+  --manager-danger: var(--s2l-ui-danger-ink);
+  --manager-focus: var(--s2l-ui-focus);
+  --manager-radius: var(--s2l-radius-lg);
+}

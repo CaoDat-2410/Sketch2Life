@@ -48,6 +48,41 @@ export function allowedClassCommands(state: string): ClassStateCommand[] {
 export interface Be1TeacherCandidate {
   candidate_ref: string
   display_name: string | null
+  /** Masked by the server (the full address is never returned); absent from older servers. */
+  email_masked?: string | null
+  /** Only meaningful when the list was asked with a class: this Teacher already holds that class. */
+  is_current?: boolean
+}
+
+/** One line that tells candidates apart: name and masked e-mail, whichever the account has. */
+export function teacherCandidateLabel(candidate: Be1TeacherCandidate): string {
+  const parts = [candidate.display_name, candidate.email_masked].filter(Boolean)
+  return parts.length > 0 ? parts.join(' · ') : 'Giáo viên chưa có tên hiển thị'
+}
+
+/** Adds a stable ordinal only when a visible label is shared by multiple candidates. */
+export function teacherCandidateLabels(candidates: readonly Be1TeacherCandidate[]): string[] {
+  const baseLabels = candidates.map(teacherCandidateLabel)
+  const totals = new Map<string, number>()
+  baseLabels.forEach((label) => totals.set(label, (totals.get(label) ?? 0) + 1))
+
+  const seen = new Map<string, number>()
+  let labels = baseLabels.map((label) => {
+    if (totals.get(label) === 1) return label
+    const ordinal = (seen.get(label) ?? 0) + 1
+    seen.set(label, ordinal)
+    return `${label} (${ordinal})`
+  })
+
+  // A naturally suffixed name can collide with an ordinal added above. Resolve any such
+  // collision with the stable list position, without exposing candidate references.
+  for (let attempt = 0; new Set(labels).size < labels.length && attempt < labels.length; attempt++) {
+    const counts = new Map<string, number>()
+    labels.forEach((label) => counts.set(label, (counts.get(label) ?? 0) + 1))
+    labels = labels.map((label, index) => counts.get(label) === 1 ? label : `${label} (${index + 1})`)
+  }
+
+  return labels
 }
 
 export interface Be1TeacherAssignment {
@@ -58,6 +93,82 @@ export interface Be1TeacherAssignment {
   class_id: string
   active: boolean
   assignment_revision: number
+}
+
+export type Be1TeacherAssignmentTransferAction = 'REASSIGN' | 'OFFBOARD'
+export type Be1TeacherAssignmentTransferState =
+  | 'TRANSFER_PENDING'
+  | 'RECONCILE_REQUIRED'
+  | 'COMPLETED'
+  | 'OFFBOARDED'
+  | 'COMPENSATED_CONFLICT'
+
+export interface Be1TeacherAssignmentTransferAcceptedV1 {
+  contract: 'Be1TeacherAssignmentTransferAcceptedV1'
+  transfer_id: string
+  class_id: string
+  action: Be1TeacherAssignmentTransferAction
+  state: 'TRANSFER_PENDING'
+  assignment_revision: number
+  status_url: string
+}
+
+function isTeacherAssignmentTransferAccepted<TAction extends Be1TeacherAssignmentTransferAction>(
+  value: unknown,
+  action: TAction,
+): value is Be1TeacherAssignmentTransferAcceptedV1 & { action: TAction } {
+  if (typeof value !== 'object' || value === null) return false
+  const result = value as Record<string, unknown>
+  return result.contract === 'Be1TeacherAssignmentTransferAcceptedV1' &&
+    result.transfer_id !== '' && typeof result.transfer_id === 'string' &&
+    typeof result.class_id === 'string' && result.class_id !== '' &&
+    result.action === action && result.state === 'TRANSFER_PENDING' &&
+    typeof result.assignment_revision === 'number' && Number.isInteger(result.assignment_revision) &&
+    typeof result.status_url === 'string' && result.status_url !== ''
+}
+
+async function requestTeacherAssignmentTransfer<TAction extends Be1TeacherAssignmentTransferAction>(
+  path: string,
+  init: RequestInit,
+  action: TAction,
+): Promise<(Be1TeacherAssignmentTransferAcceptedV1 & { action: TAction }) | null> {
+  let result: unknown
+  try {
+    result = await adminBe1Request<unknown>(path, init)
+  } catch (cause) {
+    if (cause instanceof Error && cause.message === 'BE1 returned an invalid response body.') return null
+    throw cause
+  }
+  return isTeacherAssignmentTransferAccepted(result, action) ? result : null
+}
+
+export interface Be1TeacherAssignmentTransferStatusV1 {
+  contract: 'Be1TeacherAssignmentTransferStatusV1'
+  transfer_id: string
+  class_id: string
+  action: Be1TeacherAssignmentTransferAction
+  state: Be1TeacherAssignmentTransferState
+  assignment_revision: number
+  created_at: string
+  updated_at: string
+  last_failure_code: string | null
+  status_url: string
+}
+
+export type Be1TeacherAssignmentResult =
+  | { kind: 'assigned'; assignment: Be1TeacherAssignment }
+  | { kind: 'transfer_accepted'; transfer: Be1TeacherAssignmentTransferAcceptedV1 }
+
+export const ASSIGNMENT_TRANSFER_STATE_LABELS: Record<Be1TeacherAssignmentTransferState, string> = {
+  TRANSFER_PENDING: 'Đang chuyển giáo viên phụ trách.',
+  RECONCILE_REQUIRED: 'Chuyển giáo viên cần được theo dõi thêm.',
+  COMPLETED: 'Đã đổi giáo viên phụ trách.',
+  OFFBOARDED: 'Đã gỡ giáo viên phụ trách.',
+  COMPENSATED_CONFLICT: 'Đã hoàn tác thay đổi do xung đột.',
+}
+
+export function assignmentTransferStateLabel(state: string): string {
+  return ASSIGNMENT_TRANSFER_STATE_LABELS[state as Be1TeacherAssignmentTransferState] ?? state
 }
 
 /** 201 body of create class; `state` and `assignment_revision` are additive. */
@@ -97,20 +208,41 @@ export const classService = {
       method: 'POST',
       headers: { 'If-Match': `"${classRevision}"`, 'Idempotency-Key': idempotencyKey },
     }),
-  listTeacherCandidates: async (cursor?: string) => {
+  listTeacherCandidates: async (cursor?: string, classId?: string) => {
     const organization = adminOrganizationId()
     const query = new URLSearchParams({ limit: '25' })
     if (cursor) query.set('cursor', cursor)
+    if (classId) query.set('class_id', classId)
     return adminBe1Request<{ contract: 'Be1TeacherCandidatePageV1'; items: Be1TeacherCandidate[]; next_cursor: string | null }>(
       `/organizations/${encodeURIComponent(organization)}/teacher-candidates?${query.toString()}`,
     )
   },
-  assignTeacher: async (classId: string, candidateRef: string, revision: number, idempotencyKey: string) =>
-    adminBe1Request<Be1TeacherAssignment>(`/classes/${encodeURIComponent(classId)}/assignments`, {
+  assignTeacher: async (classId: string, candidateRef: string, revision: number, idempotencyKey: string): Promise<Be1TeacherAssignmentResult> => {
+    const result = await adminBe1Request<Be1TeacherAssignment | Be1TeacherAssignmentTransferAcceptedV1>(`/classes/${encodeURIComponent(classId)}/assignments`, {
       method: 'POST',
       headers: { 'If-Match': `"${revision}"`, 'Idempotency-Key': idempotencyKey },
       body: JSON.stringify({ candidate_ref: candidateRef }),
-    }),
+    })
+    if (result.contract === 'Be1AdultAssignmentV1') return { kind: 'assigned', assignment: result }
+    if (result.contract === 'Be1TeacherAssignmentTransferAcceptedV1') return { kind: 'transfer_accepted', transfer: result }
+    throw new Error('BE1 returned an invalid assignment response.')
+  },
+  reassignTeacher: async (classId: string, candidateRef: string, revision: number, idempotencyKey: string) =>
+    requestTeacherAssignmentTransfer(`/classes/${encodeURIComponent(classId)}/assignments`, {
+      method: 'POST',
+      headers: { 'If-Match': `"${revision}"`, 'Idempotency-Key': idempotencyKey },
+      body: JSON.stringify({ candidate_ref: candidateRef }),
+    }, 'REASSIGN'),
+  offboardTeacher: async (classId: string, revision: number, idempotencyKey: string) =>
+    requestTeacherAssignmentTransfer(`/classes/${encodeURIComponent(classId)}/assignments/current`, {
+      method: 'DELETE',
+      headers: { 'If-Match': `"${revision}"`, 'Idempotency-Key': idempotencyKey },
+    }, 'OFFBOARD'),
+  getAssignmentTransfer: async (classId: string, transferId: string, signal?: AbortSignal) =>
+    adminBe1Request<Be1TeacherAssignmentTransferStatusV1>(
+      `/classes/${encodeURIComponent(classId)}/assignment-transfers/${encodeURIComponent(transferId)}`,
+      signal ? { signal } : {},
+    ),
   /** One Idempotency-Key per user action: the caller passes the same key when it retries that action. */
   createClass: async (displayName: string, idempotencyKey: string = createIdempotencyKey()) => {
     const organization = adminOrganizationId()
@@ -128,11 +260,14 @@ export const classService = {
 /** FEAT-066 M9-B: page message for a failed assignment and whether the page reloads. */
 export function assignmentOutcomeMessage(cause: unknown): { text: string; reload: boolean } {
   if (cause instanceof AdminBe1Error) {
-    if (cause.status === 409) return { text: 'Lớp đã thay đổi hoặc đã có Teacher; đã tải lại.', reload: true }
+    if (cause.code === 'TEACHER_ASSIGNMENT_REQUIRED') {
+      return { text: 'Lớp hiện không có Giáo viên phụ trách. Danh sách lớp đã được tải lại.', reload: true }
+    }
+    if (cause.status === 409) return { text: 'Lớp đã thay đổi hoặc đã có Giáo viên; đã tải lại.', reload: true }
     if (cause.status === 404) return { text: 'Không thể hoàn tất phân công; danh sách đã được tải lại.', reload: true }
     if (cause.status === 403) return { text: 'Tài khoản không có quyền phân công.', reload: false }
   }
-  return { text: cause instanceof Error ? cause.message : 'Không thể phân công Teacher lúc này.', reload: false }
+  return { text: cause instanceof Error ? cause.message : 'Không thể phân công Giáo viên lúc này.', reload: false }
 }
 
 const NOT_FOUND_OR_NO_ACCESS = 'Không tìm thấy lớp hoặc bạn không có quyền truy cập. Danh sách lớp đã được tải lại.'

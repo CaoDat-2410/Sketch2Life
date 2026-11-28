@@ -4,7 +4,7 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-packageExtensionsChecksum: sha256-8PO+7aGMf+9NnD6MxDjiRCWvmpat3i6Hgg2u4hIp6+Y=
+packageExtensionsChecksum: sha256-whyJZJxrdk23ETcjdbyyNWsdVkUBnczKJDTjnGKrynI=
 
 patchedDependencies:
   expo-av@15.0.2: f12278d8e7b0ec1fd8bef34b42d212c03047334a1ef0e2a7417ed2fbf08c4f4a
@@ -7045,13 +7045,8 @@ snapshots:
       glob: 10.5.0
       jsc-safe-url: 0.2.4
       lightningcss: 1.27.0
-      metro: 0.81.5(supports-color@8.1.1)
       metro-cache: 0.81.5
-      metro-cache-key: 0.81.5
       metro-config: 0.81.5(supports-color@8.1.1)
-      metro-source-map: 0.81.5(supports-color@8.1.1)
-      metro-transform-plugins: 0.81.5(supports-color@8.1.1)
-      metro-transform-worker: 0.81.5(supports-color@8.1.1)
       minimatch: 3.1.5
       postcss: 8.4.49
       resolve-from: 5.0.0

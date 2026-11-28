@@ -2198,6 +2198,7 @@ source = { editable = "." }
 dependencies = [
     { name = "alembic" },
     { name = "boto3" },
+    { name = "cryptography" },
     { name = "fastapi" },
     { name = "firebase-admin" },
     { name = "httpx2" },
@@ -2265,6 +2266,7 @@ requires-dist = [
     { name = "alembic", specifier = ">=1.16,<2" },
     { name = "av", marker = "extra == 'image-admission'", specifier = "==18.1.0" },
     { name = "boto3", specifier = ">=1.39,<2" },
+    { name = "cryptography", specifier = ">=46,<51" },
     { name = "ctranslate2", marker = "extra == 'asr-faster-whisper'", specifier = "==4.8.1" },
     { name = "diffusers", marker = "extra == 'story-video-image'", specifier = ">=0.30,<1" },
     { name = "edge-tts", marker = "extra == 'story-video-tts'", specifier = ">=7,<8" },

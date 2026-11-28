@@ -11,7 +11,9 @@ from uuid import uuid4
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import case, func, or_, select, text
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
+from sqlalchemy.sql.selectable import Exists
 
 from sketch2life.domain.billing_capacity import quota_month
 from sketch2life.domain.platform_admin import AdminError, require_revision
@@ -38,9 +40,17 @@ from sketch2life.infrastructure.persistence.billing_models import (
     BillingQuotaAllocationModel,
     BillingQuotaProductModel,
     BillingReceiptModel,
+    SubscriptionEventModel,
     VideoQuotaGrantModel,
     VideoQuotaUsageModel,
 )
+
+
+def capacity_invoice_filter() -> Exists:
+    return select(SubscriptionEventModel.event_id).where(
+        SubscriptionEventModel.invoice_id == BillingInvoiceModel.invoice_id,
+        SubscriptionEventModel.kind == "CAPACITY_QUOTED",
+    ).exists()
 
 
 class QuotaCommerceService:
@@ -306,6 +316,7 @@ class QuotaCommerceService:
                     BillingInvoiceModel.owner_kind == owner_kind,
                     BillingInvoiceModel.owner_ref == owner_ref,
                     BillingInvoiceModel.state == "PENDING",
+                    ~capacity_invoice_filter(),
                     BillingPaymentAttemptModel.state.in_(("REQUESTING", "OPEN", "UNKNOWN")),
                 )
                 .limit(1)
@@ -479,7 +490,12 @@ class QuotaCommerceService:
 
     def invoice(self, invoice_id: str) -> BillingInvoiceModel:
         row = self.db.get(BillingInvoiceModel, invoice_id)
-        if row is None:
+        if row is None or self.db.scalar(
+            select(SubscriptionEventModel.event_id).where(
+                SubscriptionEventModel.invoice_id == invoice_id,
+                SubscriptionEventModel.kind == "CAPACITY_QUOTED",
+            )
+        ):
             raise AdminError("INVOICE_NOT_FOUND", 404)
         return row
 
@@ -704,7 +720,7 @@ class QuotaCommerceService:
         state: str | None = None,
         limit: int = 100,
     ) -> dict[str, Any]:
-        query = select(BillingInvoiceModel)
+        query = select(BillingInvoiceModel).where(~capacity_invoice_filter())
         if owner_kind:
             query = query.where(BillingInvoiceModel.owner_kind == owner_kind)
         if owner_ref:
@@ -781,6 +797,7 @@ class QuotaCommerceService:
                 BillingInvoiceModel.invoice_id == invoice_id,
                 BillingInvoiceModel.owner_kind == owner_kind,
                 BillingInvoiceModel.owner_ref == owner_ref,
+                ~capacity_invoice_filter(),
             )
         )
         if row is None:
@@ -853,7 +870,16 @@ class QuotaCommerceService:
         attempt.state = "PAID" if paid else ("CANCELED" if was_canceled else "FAILED")
         attempt.revision += 1
         attempt.updated_at = self.clock()
-        if paid:
+        quote = None
+        if invoice.owner_kind == "ORGANIZATION":
+            quote = self.db.scalar(select(SubscriptionEventModel).where(
+                SubscriptionEventModel.invoice_id == invoice.invoice_id,
+                SubscriptionEventModel.kind == "CAPACITY_QUOTED",
+            ))
+        if paid and quote:
+            from sketch2life.infrastructure.billing.capacity_commerce import apply_capacity_payment
+            apply_capacity_payment(self, invoice, quote)
+        elif paid:
             offer = self.db.get(BillingOfferModel, invoice.offer_id)
             if offer is None:
                 raise AdminError("QUOTA_PRODUCT_OFFER_UNAVAILABLE", 409)
@@ -1140,87 +1166,482 @@ class QuotaCommerceService:
             "total": len(rows),
         }
 
-    def consume_teacher_quota(
-        self, organization_ref: str, teacher_ref: str, admission_ref: str
-    ) -> dict[str, Any]:
-        """Consume one school-owned unit from a Teacher's active allocation."""
-        self.lock("quota-scope:ORGANIZATION:" + organization_ref)
-        existing = self.db.scalar(
-            select(VideoQuotaUsageModel).where(
-                VideoQuotaUsageModel.owner_kind == "ORGANIZATION",
-                VideoQuotaUsageModel.owner_ref == organization_ref,
-                VideoQuotaUsageModel.admission_ref == admission_ref,
-            )
-        )
-        allocation = self.db.scalar(
-            select(BillingQuotaAllocationModel)
-            .where(
-                BillingQuotaAllocationModel.organization_ref == organization_ref,
-                BillingQuotaAllocationModel.teacher_ref == teacher_ref,
-                BillingQuotaAllocationModel.active.is_(True),
-            )
-            .with_for_update()
-        )
-        if allocation is None:
-            raise AdminError("QUOTA_ALLOCATION_NOT_FOUND", 409)
-        if existing is not None:
-            if existing.allocation_id != allocation.allocation_id:
-                raise AdminError("QUOTA_ADMISSION_CONFLICT", 409)
-            return {"consumed": True, "duplicate": True, "allocation_id": allocation.allocation_id}
-        available = self._allocation_net(allocation.allocation_id)
-        if available < 1:
-            raise AdminError("TEACHER_QUOTA_INSUFFICIENT", 409)
-        grant = next(
-            (
-                item
-                for item in self.available_grants("ORGANIZATION", organization_ref)
-                if self._usage_count(self.db, item.grant_id) < item.units
-            ),
-            None,
-        )
-        if grant is None:
-            raise AdminError("SCHOOL_QUOTA_INSUFFICIENT", 409)
-        use_key = "teacher-use:" + hashlib.sha256(admission_ref.encode()).hexdigest()
-        if self.db.scalar(
-            select(BillingQuotaAllocationEventModel).where(
-                BillingQuotaAllocationEventModel.allocation_id == allocation.allocation_id,
-                BillingQuotaAllocationEventModel.operation_key == use_key,
-            )
+    @staticmethod
+    def _video_owner_scope(owner_scope: tuple[str, str]) -> tuple[str, str]:
+        if (
+            not isinstance(owner_scope, tuple)
+            or len(owner_scope) != 2
+            or owner_scope[0] not in {"PARENT_ACCOUNT", "ORGANIZATION"}
+            or not isinstance(owner_scope[1], str)
+            or not owner_scope[1]
+            or len(owner_scope[1]) > 128
         ):
-            raise AdminError("QUOTA_ADMISSION_CONFLICT", 409)
-        self.db.add(
-            VideoQuotaUsageModel(
+            raise ValueError("invalid video quota owner scope")
+        return owner_scope
+
+    @staticmethod
+    def _video_month_expiry(month: str) -> datetime:
+        year_text, month_text = month.split("-", maxsplit=1)
+        year, month_number = int(year_text), int(month_text)
+        if len(year_text) != 4 or len(month_text) != 2 or not 1 <= month_number <= 12:
+            raise ValueError("month must be YYYY-MM")
+        next_year = year + (month_number == 12)
+        next_month = month_number % 12 + 1
+        month_end = datetime(
+            next_year,
+            next_month,
+            1,
+            tzinfo=ZoneInfo("Asia/Ho_Chi_Minh"),
+        )
+        return month_end.astimezone(UTC)
+
+    def ensure_monthly_included_grant(
+        self, owner_scope: tuple[str, str], month: str
+    ) -> dict[str, Any]:
+        """Ensure one configured included grant for an owner and Vietnam calendar month.
+
+        The amount comes from the owner-configured setting for the scope (never a sellable
+        product and never a constant); 0 means NOT_CONFIGURED and nothing is granted. This method
+        owns and commits its Billing transaction.
+        """
+
+        owner_kind, owner_ref = self._video_owner_scope(owner_scope)
+        expires_at = self._video_month_expiry(month)
+        self.lock("quota-scope:" + owner_kind + ":" + owner_ref)
+        try:
+            existing = self.db.scalar(
+                select(VideoQuotaGrantModel).where(
+                    VideoQuotaGrantModel.owner_kind == owner_kind,
+                    VideoQuotaGrantModel.owner_ref == owner_ref,
+                    VideoQuotaGrantModel.kind == "INCLUDED",
+                    VideoQuotaGrantModel.period == month,
+                )
+            )
+            if existing is not None:
+                result = {
+                    "status": "EXISTS",
+                    "grant_ref": existing.grant_id,
+                    "period": month,
+                    "units": existing.units,
+                }
+                self.db.commit()
+                return result
+
+            setting_name = (
+                "video_quota_included_units_parent"
+                if owner_kind == "PARENT_ACCOUNT"
+                else "video_quota_included_units_organization"
+            )
+            units = getattr(self.settings, setting_name, 0)
+            if not isinstance(units, int) or isinstance(units, bool) or units < 1:
+                self.db.commit()
+                return {"status": "NOT_CONFIGURED", "grant_ref": None, "period": month}
+
+            grant = VideoQuotaGrantModel(
+                grant_id=str(uuid4()),
+                owner_kind=owner_kind,
+                owner_ref=owner_ref,
+                kind="INCLUDED",
+                units=units,
+                period=month,
+                expires_at=expires_at,
+            )
+            self.db.add(grant)
+            self.db.commit()
+            return {
+                "status": "CREATED",
+                "grant_ref": grant.grant_id,
+                "period": month,
+                "units": grant.units,
+            }
+        except Exception:
+            self.db.rollback()
+            raise
+
+    @staticmethod
+    def _video_admission_error_status(error: AdminError) -> str:
+        # Preserve the BR-38 Teacher denial cause. Parent quota has one public exhausted code.
+        if error.code in {
+            "TEACHER_QUOTA_INSUFFICIENT",
+            "QUOTA_ALLOCATION_NOT_FOUND",
+            "SCHOOL_QUOTA_INSUFFICIENT",
+        }:
+            return error.code
+        if error.code == "QUOTA_EXCEEDED":
+            return "QUOTA_EXCEEDED"
+        if error.code == "SUBSCRIPTION_RESTRICTED":
+            return "SUBSCRIPTION_RESTRICTED"
+        if error.code in {"IDEMPOTENCY_CONFLICT", "QUOTA_ADMISSION_CONFLICT"}:
+            return "IDEMPOTENCY_MISMATCH"
+        return "UNAVAILABLE"
+
+    def consume_video_quota(
+        self,
+        owner_scope: tuple[str, str],
+        request_ref: str,
+        idempotency_key: str,
+        fingerprint: str,
+        contract_version: str,
+    ) -> dict[str, Any]:
+        """Consume one video unit with a Billing-owned idempotency receipt and transaction."""
+
+        try:
+            owner_kind, owner_ref = self._video_owner_scope(owner_scope)
+        except (TypeError, ValueError):
+            return {"status": "UNAVAILABLE", "usage_ref": None, "grant_ref": None}
+        if (
+            not isinstance(request_ref, str)
+            or not request_ref
+            or len(request_ref) > 128
+            or not isinstance(idempotency_key, str)
+            or not idempotency_key
+            or len(idempotency_key) > 128
+            or not isinstance(fingerprint, str)
+            or not fingerprint
+            or not isinstance(contract_version, str)
+            or not contract_version
+        ):
+            return {"status": "UNAVAILABLE", "usage_ref": None, "grant_ref": None}
+
+        receipt_actor = "story-video:" + hashlib.sha256(
+            (owner_kind + "\0" + owner_ref + "\0" + request_ref).encode()
+        ).hexdigest()
+        receipt_operation = "video.quota.admit.v1"
+        receipt_key = hashlib.sha256(idempotency_key.encode()).hexdigest()
+        receipt_fingerprint = hashlib.sha256(
+            (contract_version + "\0" + fingerprint).encode()
+        ).hexdigest()
+        scope_lock = "quota-scope:" + owner_kind + ":" + owner_ref
+
+        def save_receipt(result: dict[str, Any]) -> dict[str, Any]:
+            self.db.add(
+                BillingReceiptModel(
+                    actor_ref=receipt_actor,
+                    operation=receipt_operation,
+                    key=receipt_key,
+                    fingerprint=receipt_fingerprint,
+                    response_json=result,
+                )
+            )
+            self.db.commit()
+            return result
+
+        def prior_result() -> dict[str, Any] | None:
+            receipt = self.db.get(
+                BillingReceiptModel, (receipt_actor, receipt_operation, receipt_key)
+            )
+            if receipt is None:
+                return None
+            if receipt.fingerprint != receipt_fingerprint:
+                return {"status": "IDEMPOTENCY_MISMATCH", "usage_ref": None, "grant_ref": None}
+            result = dict(receipt.response_json)
+            result["duplicate"] = True
+            return result
+
+        try:
+            self.lock(scope_lock)
+            replay = prior_result()
+            if replay is not None:
+                self.db.commit()
+                return replay
+
+            now = self.clock()
+            current_month, _ = quota_month(now)  # type: ignore[no-untyped-call]
+            included = self.ensure_monthly_included_grant(owner_scope, current_month)
+
+            # ensure_monthly_included_grant commits its own grant transaction and releases the
+            # advisory lock; reacquire it before checking usage and writing the admission receipt.
+            self.lock(scope_lock)
+            replay = prior_result()
+            if replay is not None:
+                self.db.commit()
+                return replay
+
+            existing_usage = self.db.scalar(
+                select(VideoQuotaUsageModel).where(
+                    VideoQuotaUsageModel.owner_kind == owner_kind,
+                    VideoQuotaUsageModel.owner_ref == owner_ref,
+                    VideoQuotaUsageModel.admission_ref == request_ref,
+                )
+            )
+            if existing_usage is not None:
+                self.db.commit()
+                return {
+                    "status": "IDEMPOTENCY_MISMATCH",
+                    "usage_ref": None,
+                    "grant_ref": None,
+                    "duplicate": False,
+                }
+
+            grant = next(
+                (
+                    item
+                    for item in self.available_grants(owner_kind, owner_ref)
+                    if self._usage_count(self.db, item.grant_id) < item.units
+                ),
+                None,
+            )
+            if grant is None:
+                # A refusal is not stored: no usage row and no receipt, so a retry with the same
+                # key after a top-up is evaluated again.
+                self.db.commit()
+                return {
+                    "status": "QUOTA_EXCEEDED",
+                    "usage_ref": None,
+                    "grant_ref": None,
+                    "duplicate": False,
+                    "included_grant_state": included["status"],
+                    "contract_version": contract_version,
+                }
+
+            usage = VideoQuotaUsageModel(
                 usage_id=str(uuid4()),
                 grant_id=grant.grant_id,
-                owner_kind="ORGANIZATION",
-                owner_ref=organization_ref,
-                admission_ref=admission_ref,
-                allocation_id=allocation.allocation_id,
-                teacher_ref=teacher_ref,
+                owner_kind=owner_kind,
+                owner_ref=owner_ref,
+                admission_ref=request_ref,
             )
-        )
-        self.db.add(
-            BillingQuotaAllocationEventModel(
-                event_id=str(uuid4()),
-                allocation_id=allocation.allocation_id,
-                organization_ref=organization_ref,
-                teacher_ref=teacher_ref,
-                event_kind="CONSUMED",
-                units=1,
-                actor_ref=self.actor,
-                operation_key=use_key,
+            self.db.add(usage)
+            result = {
+                "status": "ACCEPTED",
+                "usage_ref": usage.usage_id,
+                "grant_ref": grant.grant_id,
+                "duplicate": False,
+                "included_grant_state": included["status"],
+                "contract_version": contract_version,
+            }
+            return save_receipt(result)
+        except AdminError as error:
+            self.db.rollback()
+            return {
+                "status": self._video_admission_error_status(error),
+                "usage_ref": None,
+                "grant_ref": None,
+                "duplicate": False,
+            }
+        except SQLAlchemyError:
+            self.db.rollback()
+            return {
+                "status": "UNAVAILABLE",
+                "usage_ref": None,
+                "grant_ref": None,
+                "duplicate": False,
+            }
+        except Exception:
+            self.db.rollback()
+            raise
+
+    def consume_teacher_quota(
+        self,
+        organization_ref: str,
+        teacher_account_id: str,
+        request_ref: str,
+        idempotency_key: str,
+        fingerprint: str,
+        contract_version: str,
+    ) -> dict[str, Any]:
+        """Consume one organization-owned unit within the Teacher's hard allocation cap.
+
+        Story stores the active Teacher account id, while Manager allocation commands use the
+        Teacher's sign-in subject. Resolve that existing identity before looking up the allocation.
+        The accepted usage and Billing receipt commit together; an accepted replay is answered from
+        that receipt before checking whether the Teacher or allocation is still active.
+        """
+
+        try:
+            owner_kind, owner_ref = self._video_owner_scope(("ORGANIZATION", organization_ref))
+        except (TypeError, ValueError):
+            return {"status": "UNAVAILABLE", "usage_ref": None, "grant_ref": None}
+        if (
+            owner_kind != "ORGANIZATION"
+            or not isinstance(teacher_account_id, str)
+            or not teacher_account_id
+            or len(teacher_account_id) > 36
+            or not isinstance(request_ref, str)
+            or not request_ref
+            or len(request_ref) > 128
+            or not isinstance(idempotency_key, str)
+            or not idempotency_key
+            or len(idempotency_key) > 128
+            or not isinstance(fingerprint, str)
+            or not fingerprint
+            or not isinstance(contract_version, str)
+            or not contract_version
+        ):
+            return {"status": "UNAVAILABLE", "usage_ref": None, "grant_ref": None}
+
+        receipt_actor = "story-video:" + hashlib.sha256(
+            (owner_kind + "\0" + owner_ref + "\0" + request_ref).encode()
+        ).hexdigest()
+        receipt_operation = "video.quota.admit.v1"
+        receipt_key = hashlib.sha256(idempotency_key.encode()).hexdigest()
+        receipt_fingerprint = hashlib.sha256(
+            (contract_version + "\0" + fingerprint).encode()
+        ).hexdigest()
+        scope_lock = "quota-scope:ORGANIZATION:" + owner_ref
+
+        def save_receipt(result: dict[str, Any]) -> dict[str, Any]:
+            self.db.add(
+                BillingReceiptModel(
+                    actor_ref=receipt_actor,
+                    operation=receipt_operation,
+                    key=receipt_key,
+                    fingerprint=receipt_fingerprint,
+                    response_json=result,
+                )
             )
-        )
-        allocation.revision += 1
-        allocation.updated_at = self.clock()
-        self.db.commit()
-        return {
-            "consumed": True,
-            "duplicate": False,
-            "allocation_id": allocation.allocation_id,
-            "available_units": available - 1,
-            "revision": allocation.revision,
-        }
+            self.db.commit()
+            return result
+
+        def prior_result() -> dict[str, Any] | None:
+            receipt = self.db.get(
+                BillingReceiptModel, (receipt_actor, receipt_operation, receipt_key)
+            )
+            if receipt is None:
+                return None
+            if receipt.fingerprint != receipt_fingerprint:
+                return {"status": "IDEMPOTENCY_MISMATCH", "usage_ref": None, "grant_ref": None}
+            result = dict(receipt.response_json)
+            result["duplicate"] = True
+            return result
+
+        try:
+            self.lock(scope_lock)
+            replay = prior_result()
+            if replay is not None:
+                self.db.commit()
+                return replay
+
+            current_month, _ = quota_month(self.clock())  # type: ignore[no-untyped-call]
+            included = self.ensure_monthly_included_grant(
+                (owner_kind, owner_ref), current_month
+            )
+
+            # Grant creation commits its own Billing transaction and releases the organization
+            # lock. Reacquire it and recheck the receipt before evaluating either hard cap.
+            self.lock(scope_lock)
+            replay = prior_result()
+            if replay is not None:
+                self.db.commit()
+                return replay
+
+            # This is the same sign-in subject accepted by Manager's allocation route. Story's
+            # active_owner_teacher_id is an account id, so never query teacher_ref with it.
+            teacher = self.db.scalar(
+                select(AdultIdentityModel).where(
+                    AdultIdentityModel.account_id == teacher_account_id,
+                    AdultIdentityModel.account_role == "teacher",
+                    AdultIdentityModel.state == "active",
+                )
+            )
+            if teacher is None:
+                raise AdminError("QUOTA_ALLOCATION_NOT_FOUND", 409)
+            teacher_ref = teacher.subject
+
+            existing_usage = self.db.scalar(
+                select(VideoQuotaUsageModel).where(
+                    VideoQuotaUsageModel.owner_kind == owner_kind,
+                    VideoQuotaUsageModel.owner_ref == owner_ref,
+                    VideoQuotaUsageModel.admission_ref == request_ref,
+                )
+            )
+            if existing_usage is not None:
+                self.db.commit()
+                return {
+                    "status": "IDEMPOTENCY_MISMATCH",
+                    "usage_ref": None,
+                    "grant_ref": None,
+                    "duplicate": False,
+                }
+
+            allocation = self.db.scalar(
+                select(BillingQuotaAllocationModel)
+                .where(
+                    BillingQuotaAllocationModel.organization_ref == owner_ref,
+                    BillingQuotaAllocationModel.teacher_ref == teacher_ref,
+                    BillingQuotaAllocationModel.active.is_(True),
+                )
+                .with_for_update()
+            )
+            if allocation is None:
+                raise AdminError("QUOTA_ALLOCATION_NOT_FOUND", 409)
+            available = self._allocation_net(allocation.allocation_id)
+            if available < 1:
+                raise AdminError("TEACHER_QUOTA_INSUFFICIENT", 409)
+
+            grant = next(
+                (
+                    item
+                    for item in self.available_grants(owner_kind, owner_ref)
+                    if self._usage_count(self.db, item.grant_id) < item.units
+                ),
+                None,
+            )
+            if grant is None:
+                raise AdminError("SCHOOL_QUOTA_INSUFFICIENT", 409)
+
+            use_key = "teacher-use:" + hashlib.sha256(request_ref.encode()).hexdigest()
+            if self.db.scalar(
+                select(BillingQuotaAllocationEventModel).where(
+                    BillingQuotaAllocationEventModel.allocation_id == allocation.allocation_id,
+                    BillingQuotaAllocationEventModel.operation_key == use_key,
+                )
+            ):
+                raise AdminError("QUOTA_ADMISSION_CONFLICT", 409)
+
+            usage_id = str(uuid4())
+            self.db.add(
+                VideoQuotaUsageModel(
+                    usage_id=usage_id,
+                    grant_id=grant.grant_id,
+                    owner_kind=owner_kind,
+                    owner_ref=owner_ref,
+                    admission_ref=request_ref,
+                    allocation_id=allocation.allocation_id,
+                    teacher_ref=teacher_ref,
+                )
+            )
+            self.db.add(
+                BillingQuotaAllocationEventModel(
+                    event_id=str(uuid4()),
+                    allocation_id=allocation.allocation_id,
+                    organization_ref=owner_ref,
+                    teacher_ref=teacher_ref,
+                    event_kind="CONSUMED",
+                    units=1,
+                    actor_ref=self.actor,
+                    operation_key=use_key,
+                )
+            )
+            allocation.revision += 1
+            allocation.updated_at = self.clock()
+            result = {
+                "status": "ACCEPTED",
+                "usage_ref": usage_id,
+                "grant_ref": grant.grant_id,
+                "allocation_id": allocation.allocation_id,
+                "teacher_ref": teacher_ref,
+                "duplicate": False,
+                "available_units": available - 1,
+                "revision": allocation.revision,
+                "included_grant_state": included["status"],
+                "contract_version": contract_version,
+            }
+            return save_receipt(result)
+        except AdminError as error:
+            self.db.rollback()
+            code = (
+                "IDEMPOTENCY_MISMATCH"
+                if error.code in {"IDEMPOTENCY_CONFLICT", "QUOTA_ADMISSION_CONFLICT"}
+                else error.code
+            )
+            return {"status": code, "usage_ref": None, "grant_ref": None, "duplicate": False}
+        except SQLAlchemyError:
+            self.db.rollback()
+            return {"status": "UNAVAILABLE", "usage_ref": None, "grant_ref": None}
+        except Exception:
+            self.db.rollback()
+            raise
 
     @classmethod
     def return_teacher_allocation(

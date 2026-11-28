@@ -1,0 +1,37 @@
+meta {
+  name: 1065 Review platform SVG guide
+  type: http
+  seq: 1065
+}
+
+post {
+  url: {{baseUrl}}/api/svg-catalog/v1/platform/assets/{{catalog_entry_id}}/guide-revisions/{{guide_revision_id}}/educator-reviews
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "contract": "SvgGuideReviewRequestV1",
+    "source_sha256": "{{svg_source_sha256}}",
+    "guide_sha256": "{{svg_guide_sha256}}",
+    "decision": "APPROVE"
+  }
+}
+
+docs {
+  Role: Active Teacher assigned to any organization, not the guide author.
+  Needs: catalog_entry_id, guide_revision_id, and current source_sha256/guide_sha256.
+  Expected: 200 OK / SvgReviewReceiptV1.
+  Source: backend/src/sketch2life/interfaces/http/routers/svg_catalog.py, backend/src/sketch2life/contracts/schemas/svg_engine.py
+}

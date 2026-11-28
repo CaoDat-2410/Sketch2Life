@@ -1,5 +1,5 @@
 meta {
-  name: 012 [MANAGER - READ ONLY] List Profiles
+  name: 012 [MANAGER - READ ONLY] Class Roster Count Summary
   type: http
   seq: 12
 }
@@ -16,5 +16,28 @@ auth:bearer {
 
 headers {
   Accept: application/json
-  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.contract).to.equal("Be1ClassRosterSummaryV1");
+    expect(body.class_id).to.equal(bru.getVar("class_id"));
+    expect(body.active_profile_count).to.be.a("number");
+    expect(body.active_profile_count).to.be.at.least(0);
+    expect(body).to.not.have.property("items");
+    expect(body).to.not.have.property("next_cursor");
+    expect(body).to.not.have.property("child_id");
+  });
+}
+
+docs {
+  FIXED after Phase B: checked against the code at 134561f4; not yet run against a live backend.
+  Role: School Manager - set bearerToken to seed-mgr-a token
+  Needs: organization_id=seed-org-a, class_id=seed-org-a-class-1 (or any active, suspended, or archived class in seed-org-a)
+  Expected: 200 / Be1ClassRosterSummaryV1 (count only: class_id and active_profile_count; no items, next_cursor, or child fields; limit and cursor query params are accepted and ignored)
+  Source: backend/src/sketch2life/interfaces/http/routers/be1_registry.py:902-915,947-970
 }

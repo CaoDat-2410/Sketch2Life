@@ -24,7 +24,10 @@ from uuid import uuid4
 
 import pytest
 from sqlalchemy import select, update
-from test_teacher_run_create_postgres import counts  # type: ignore[import-not-found]
+from test_teacher_run_create_postgres import (  # type: ignore[import-not-found]
+    _seed_generation,
+    counts,
+)
 from test_teacher_run_inputs_postgres import ACTORS  # type: ignore[import-not-found]
 from video_support import (  # type: ignore[import-not-found]
     RUNS,
@@ -107,16 +110,6 @@ def generation_row(e: Env, generation_id: str) -> Any:
         )
 
 
-def unpin(e: Env, run_id: str) -> None:
-    """Turn a Teacher run into a T-4a1 style fixture row: no occurrence pin, no Teacher lock."""
-    with e.sessions().begin() as db:
-        db.execute(
-            update(RUNS)
-            .where(RUNS.c.run_id == run_id)
-            .values(occurrence_ref=None, created_by_actor_ref=None, active_owner_teacher_id=None)
-        )
-
-
 # ====================================================================== the overdue sweep (D12)
 def test_a_teacher_generation_past_six_hours_fails_and_the_run_returns_to_review(v: VEnv) -> None:
     e = v.e
@@ -158,9 +151,11 @@ def test_the_overdue_sweep_leaves_a_fixture_row_without_the_teacher_lock_untouch
     v: VEnv,
 ) -> None:
     e = v.e
-    run_id, digest, generation_id = accepted_generation(v)
-    step_to(v, generation_id, "GENERATING")
-    unpin(e, run_id)  # an ORGANIZATION row with no pin and no lock: a T-4a1 fixture
+    # Seed the legacy unpinned shape directly. T-6b makes a persisted occurrence binding immutable.
+    run_id = _seed_generation(
+        e.d, None, run_state="VIDEO_GENERATING", generation_state="GENERATING"
+    )
+    generation_id = str(generations(e, run_id)[0]["video_generation_id"])
     started = accepted_at(e, generation_id)
     run_before = dict(run_row(e, run_id))
     generation_before = dict(generation_row(e, generation_id))
@@ -433,10 +428,10 @@ def test_the_conditional_read_is_decided_after_the_actor_was_authorised(v: VEnv)
 
 def test_a_purged_run_and_a_run_without_a_pin_have_no_readable_job(v: VEnv) -> None:
     e = v.e
-    run_id, digest, generation_id = accepted_generation(v)
+    run_id = _seed_generation(e.d, None, run_state="SCRIPT_REVIEW", generation_state="ACCEPTED")
+    generation_id = str(generations(e, run_id)[0]["video_generation_id"])
     job_id = job_id_of(e, generation_id)
     unknown = wire(job_get(e, "t1", "vjob_" + "7" * 32))
-    unpin(e, run_id)
     assert wire(job_get(e, "t1", job_id)) == unknown  # a fixture row is never read
     # a second run: cancelled, so DELETE_PENDING, so the job is gone
     with e.sessions().begin() as db:

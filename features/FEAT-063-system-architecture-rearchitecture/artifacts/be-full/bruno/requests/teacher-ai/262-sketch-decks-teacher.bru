@@ -30,7 +30,8 @@ body:json {
     "drawing_steps": [
       {"action": "Draw a small circle", "placement": "Near the center"},
       {"action": "Add two upper wings", "placement": "On each side"},
-      {"action": "Add two lower wings", "placement": "Below the upper wings"}
+      {"action": "Add two lower wings", "placement": "Below the upper wings"},
+      {"action": "Draw a small body", "placement": "Between the wings"}
     ],
     "subject_knowledge": ["Butterflies have two pairs of wings"],
     "activities": [{
@@ -54,3 +55,7 @@ tests {
   });
 }
 
+
+docs {
+  Request verified against TeacherReviewedPlanRequestV1: drawing_steps contains 4 items (allowed range 4-8).
+}

@@ -9,7 +9,7 @@ vi.mock('../src/parent/infrastructure/config', () => ({
 }));
 
 const componentSource = readFileSync(new URL('../src/parent/presentation/components/ProgressiveSvgGuide.tsx', import.meta.url), 'utf8');
-const screenSource = readFileSync(new URL('../src/parent/presentation/screens/SketchGuideScreen.tsx', import.meta.url), 'utf8');
+const screenSource = readFileSync(new URL('../src/parent/presentation/screens/LegacySketchGuideScreen.tsx', import.meta.url), 'utf8');
 
 describe('FEAT-097 where the pencil starts and which way it goes', () => {
   it('starts at the first point and points along a straight line', () => {

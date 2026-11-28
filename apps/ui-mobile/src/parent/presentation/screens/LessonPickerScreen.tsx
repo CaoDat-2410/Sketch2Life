@@ -1,5 +1,5 @@
-import React from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { LessonSummary } from '../../domain/types';
 import { Card, Notice, ScreenFrame, SectionTitle, palette } from '../components/ui';
@@ -10,13 +10,21 @@ type Props = {
   loading: boolean;
   loadingId: string;
   error: string;
+  searchQuery: string;
+  searchTopic: string;
+  hasMore: boolean;
+  onSearch: (query: string, topic: string) => void;
+  onLoadMore: () => void;
   onSelect: (lessonId: string) => void;
   onClear: () => void;
   onBack: () => void;
 };
 
 export function LessonPickerScreen(props: Props): React.JSX.Element {
+  const [searchQuery, setSearchQuery] = useState(props.searchQuery);
+  const [searchTopic, setSearchTopic] = useState(props.searchTopic);
   const selection = props.lessons.find((lesson) => lesson.lesson_id === props.selectedId);
+  const submitSearch = () => props.onSearch(searchQuery, searchTopic);
 
   return (
     <ScreenFrame
@@ -44,6 +52,34 @@ export function LessonPickerScreen(props: Props): React.JSX.Element {
           <Ionicons name="library-outline" size={15} color={colors.purple} accessible={false} />
           <Text style={styles.countText}>{props.lessons.length} bài học có thể chọn</Text>
         </View> : null}
+      </Card>
+
+      <Card style={styles.searchCard}>
+        <TextInput
+          accessibilityLabel="Tìm bài học"
+          autoCapitalize="none"
+          maxLength={100}
+          onChangeText={setSearchQuery}
+          onSubmitEditing={submitSearch}
+          placeholder="Tìm bài học"
+          returnKeyType="search"
+          style={styles.searchInput}
+          value={searchQuery}
+        />
+        <TextInput
+          accessibilityLabel="Chủ đề tùy chọn"
+          maxLength={120}
+          onChangeText={setSearchTopic}
+          onSubmitEditing={submitSearch}
+          placeholder="Chủ đề (không bắt buộc)"
+          returnKeyType="search"
+          style={styles.searchInput}
+          value={searchTopic}
+        />
+        <Pressable accessibilityRole="button" disabled={props.loading} onPress={submitSearch} style={styles.searchButton}>
+          <Ionicons name="search" size={17} color="#FFFFFF" accessible={false} />
+          <Text style={styles.searchButtonText}>Tìm kiếm</Text>
+        </Pressable>
       </Card>
 
       {props.loading && props.lessons.length === 0 ? (
@@ -104,6 +140,13 @@ export function LessonPickerScreen(props: Props): React.JSX.Element {
           </Pressable>
         );
       })}
+
+      {props.hasMore ? (
+        <Pressable accessibilityRole="button" accessibilityState={{ busy: props.loading, disabled: props.loading }} disabled={props.loading} onPress={props.onLoadMore} style={styles.loadMoreButton}>
+          {props.loading ? <ActivityIndicator size="small" color={colors.purple} /> : null}
+          <Text style={styles.loadMoreText}>{props.loading ? 'Đang tải…' : 'Xem thêm bài học'}</Text>
+        </Pressable>
+      ) : null}
     </ScreenFrame>
   );
 }
@@ -133,6 +176,12 @@ const styles = StyleSheet.create({
   introText: { color: palette.muted, fontSize: 13, lineHeight: 18, minWidth: 0, flexShrink: 1 },
   countPill: { alignSelf: 'flex-start', alignItems: 'center', backgroundColor: colors.softLavender, borderRadius: 999, flexDirection: 'row', gap: 6, minHeight: 30, paddingHorizontal: 11 },
   countText: { color: colors.deepPurple, fontSize: 11, fontWeight: '700', lineHeight: 15 },
+  searchCard: { backgroundColor: '#FFFEFC', borderColor: colors.border, borderRadius: 20, borderWidth: 1, gap: 9, padding: 13 },
+  searchInput: { minHeight: 46, borderColor: colors.border, borderRadius: 13, borderWidth: 1, color: colors.deepPurple, fontSize: 14, paddingHorizontal: 12 },
+  searchButton: { minHeight: 44, alignItems: 'center', alignSelf: 'flex-start', backgroundColor: colors.purple, borderRadius: 13, flexDirection: 'row', gap: 7, justifyContent: 'center', paddingHorizontal: 14 },
+  searchButtonText: { color: '#FFFFFF', fontSize: 13, fontWeight: '800' },
+  loadMoreButton: { minHeight: 48, alignItems: 'center', backgroundColor: colors.lavender, borderRadius: 15, flexDirection: 'row', gap: 8, justifyContent: 'center' },
+  loadMoreText: { color: colors.deepPurple, fontSize: 13, fontWeight: '800' },
   stateCard: { alignItems: 'center', backgroundColor: '#FFFEFC', borderColor: colors.border, borderRadius: 20, flexDirection: 'row', gap: 11, minWidth: 0 },
   stateText: { color: palette.muted, fontSize: 13, lineHeight: 19, flexShrink: 1, textAlign: 'center' },
   emptyCard: { alignItems: 'center', backgroundColor: '#FFFEFC', borderColor: colors.border, borderRadius: 22, gap: 9, padding: 22, minWidth: 0 },

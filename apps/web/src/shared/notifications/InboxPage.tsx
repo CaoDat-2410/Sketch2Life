@@ -2,13 +2,8 @@ import { PageHeading } from "../components/FeatureAvailability";
 import { NOTIFICATION_NOT_FOUND_MESSAGE } from "../api/notificationsApi";
 import { resolveNotificationText } from "./notificationTemplates";
 import { useInbox } from "./useInbox";
-
-const dateTime = new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium", timeStyle: "short" });
-
-function formatTime(value: string): string {
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "—" : dateTime.format(date);
-}
+import { Button, formatDateTimeDdMmYyyy } from "../ui";
+import "./InboxPage.css";
 
 function unreadLabel(count: number): string {
   return count === 100 ? "99+" : String(count);
@@ -19,7 +14,7 @@ export function InboxPage() {
   const hasItems = inbox.items.length > 0;
 
   return (
-    <div className="s2l-page tw-page">
+    <div className="s2l-page tw-page s2l-inbox">
       <PageHeading eyebrow="Thông báo" title="Hộp thư" description="Thông báo trong ứng dụng của tài khoản hiện tại." />
 
       {inbox.status === "loading" && (
@@ -43,60 +38,63 @@ export function InboxPage() {
         </section>
       )}
 
-      {(inbox.status === "ready" || hasItems) && (
-        <p className="s2l-empty-copy tw-meta" aria-label={`Thông báo chưa đọc: ${unreadLabel(inbox.unreadCount)}`}>
+      {!hasItems && inbox.status === "ready" && inbox.unreadCount > 0 && (
+        <p className="s2l-inbox-count" aria-label={`Thông báo chưa đọc: ${unreadLabel(inbox.unreadCount)}`}>
           Chưa đọc: <strong>{unreadLabel(inbox.unreadCount)}</strong>
         </p>
       )}
 
-      <p className={inbox.messageIsError ? "s2l-alert" : "s2l-empty-copy"} aria-live="polite">
-        {inbox.message}
-      </p>
+      {inbox.message ? (
+        <p className={inbox.messageIsError ? "s2l-alert" : "s2l-empty-copy"} aria-live="polite">
+          {inbox.message}
+        </p>
+      ) : null}
 
       {inbox.status === "ready" && !hasItems && (
-        <section className="s2l-data-card" aria-label="Hộp thư trống">
-          <p className="s2l-empty-copy">Hộp thư hiện đang trống.</p>
-        </section>
+        <p className="s2l-empty-copy">Hộp thư hiện đang trống.</p>
       )}
 
       {hasItems && (
         <section className="s2l-data-card" aria-label="Danh sách thông báo" aria-busy={inbox.status === "loading" || inbox.loadingMore}>
-          <div className="tw-row tw-between tw-wrap">
-            <h2 className="tw-h2">Thông báo</h2>
-            <button
-              type="button"
-              className="s2l-button tw-btn"
-              disabled={inbox.busy || inbox.status !== "ready" || inbox.unreadCount === 0}
-              onClick={() => void inbox.markAllRead()}
-            >
+          <div className="s2l-inbox-header">
+            <div className="s2l-inbox-heading">
+              <h2>Thông báo</h2>
+              {inbox.unreadCount > 0 && (
+                <p className="s2l-inbox-count" aria-label={`Thông báo chưa đọc: ${unreadLabel(inbox.unreadCount)}`}>
+                  Chưa đọc: <strong>{unreadLabel(inbox.unreadCount)}</strong>
+                </p>
+              )}
+            </div>
+            <Button variant="secondary" disabled={inbox.busy || inbox.status !== "ready" || inbox.unreadCount === 0} onClick={() => void inbox.markAllRead()}>
               Đánh dấu tất cả đã đọc
-            </button>
+            </Button>
           </div>
-          <ul className="s2l-record-list" aria-label="Thông báo trong hộp thư">
+          <ul className="s2l-inbox-list" aria-label="Thông báo trong hộp thư">
             {inbox.items.map((item) => {
               const text = resolveNotificationText(item.notification_type, item.template_version);
               const unread = item.read_at === null;
               return (
                 <li key={item.inbox_item_id}>
-                  <article className="tw-row tw-between tw-wrap" data-unread={unread ? "true" : undefined}>
-                    <div>
-                      <h3 className="tw-h2">{text.title}</h3>
+                  <article className="s2l-inbox-row" data-unread={unread ? "true" : undefined}>
+                    <div className="s2l-inbox-content">
+                      <h3>{text.title}</h3>
                       {text.body && <p>{text.body}</p>}
-                      {unread
-                        ? <p className="tw-chip">Chưa đọc</p>
-                        : <p className="s2l-empty-copy">Đã đọc <time dateTime={item.read_at!}>{formatTime(item.read_at!)}</time></p>}
-                      <p className="s2l-empty-copy"><time dateTime={item.created_at}>{formatTime(item.created_at)}</time></p>
+                      <p className="s2l-inbox-meta">
+                        {unread ? <span>Chưa đọc</span> : <span>Đã đọc <time dateTime={item.read_at!}>{formatDateTimeDdMmYyyy(item.read_at!, "—")}</time></span>}
+                        <span aria-hidden="true">·</span>
+                        <time dateTime={item.created_at}>{formatDateTimeDdMmYyyy(item.created_at, "—")}</time>
+                      </p>
                     </div>
                     {unread && (
-                      <button
-                        type="button"
-                        className="s2l-button tw-btn"
+                      <Button
+                        variant="secondary"
+                        className="s2l-inbox-action"
                         disabled={inbox.busy || inbox.status !== "ready"}
                         aria-label={`${text.title}: đánh dấu đã đọc`}
                         onClick={() => void inbox.markRead(item.inbox_item_id)}
                       >
                         Đánh dấu đã đọc
-                      </button>
+                      </Button>
                     )}
                   </article>
                 </li>
@@ -104,14 +102,14 @@ export function InboxPage() {
             })}
           </ul>
           {inbox.nextCursor && (
-            <button
-              type="button"
-              className="s2l-button tw-btn"
+            <Button
+              variant="secondary"
+              className="s2l-inbox-more"
               disabled={inbox.status !== "ready" || inbox.loadingMore || inbox.busy}
               onClick={() => void inbox.loadMore()}
             >
               {inbox.loadingMore ? "Đang tải thêm…" : "Tải thêm"}
-            </button>
+            </Button>
           )}
         </section>
       )}

@@ -17,12 +17,12 @@ from sketch2life.application.ports.identity import VerifiedPrincipal
 from sketch2life.interfaces.http.admin_contract import ADMIN_OPERATIONS
 from sketch2life.interfaces.http.app import create_app
 from sketch2life.interfaces.http.be1_runtime import get_db, get_verified_adult
-from sketch2life.interfaces.http.quota_contract import QUOTA_OPERATIONS
-from sketch2life.interfaces.http.error_envelope import MESSAGES
+from sketch2life.interfaces.http.error_envelope import MESSAGES, map_code, message_for
 from sketch2life.interfaces.http.openapi_contract_amendments import (
     BE1_KEPT_422_OPERATIONS,
     LESSON_LIBRARY_KEPT_422_OPERATIONS,
 )
+from sketch2life.interfaces.http.quota_contract import QUOTA_OPERATIONS
 from sketch2life.interfaces.http.routers.lesson_library import get_lesson_library_service
 
 SIX_FIELDS = {
@@ -99,6 +99,11 @@ def test_unknown_conv1_route_is_uniform_404(client: TestClient) -> None:
     _assert_envelope(response, 404, "RESOURCE_NOT_FOUND")
 
 
+def test_parent_not_found_keeps_its_fixed_404_code_and_message() -> None:
+    assert map_code(404, "PARENT_NOT_FOUND") == "PARENT_NOT_FOUND"
+    assert message_for(404, "PARENT_NOT_FOUND") == "Không tìm thấy tài khoản phụ huynh."
+
+
 def test_unhandled_error_is_500_envelope_with_header(app: FastAPI, client: TestClient) -> None:
     def _broken_db() -> Iterator[Any]:
         raise RuntimeError("synthetic failure with a local path C:/secret")
@@ -151,7 +156,8 @@ def test_openapi_shows_400_envelope_for_catalogued_families(client: TestClient) 
         for method, operation in path_item.items():
             responses = operation.get("responses", {})
             if (method, path) in ADMIN_OPERATIONS or (method, path) in QUOTA_OPERATIONS:
-                # FEAT-072 Admin and quota commerce additions are runtime-only and published as implemented.
+                # FEAT-072 Admin and quota commerce additions are runtime-only and published as
+                # implemented.
                 continue
             if (method, path) not in kept:
                 assert "422" not in responses, (method, path)

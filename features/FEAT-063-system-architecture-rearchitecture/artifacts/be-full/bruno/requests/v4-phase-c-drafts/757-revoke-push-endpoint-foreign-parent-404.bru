@@ -1,0 +1,38 @@
+meta {
+  name: 757 [DRAFT-V4C] [LOCAL / TEST ONLY] Hide push endpoint revoke from another Parent with uniform 404
+  type: http
+  seq: 757
+}
+
+delete {
+  url: {{baseUrl}}/v1/notifications/push-endpoints/{{phase_c_push_endpoint_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  If-Match: "1"
+  Idempotency-Key: {{$guid}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_NOT_FOUND");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase C code at f031fc70; not yet run against a live backend.
+  Role: Other Parent - set bearerToken to seed-parent-p2 token
+  Needs: needs-fixture: run after 746 creates phase_c_push_endpoint_id owned by seed-parent-p1
+  Expected: 404 / RESOURCE_NOT_FOUND
+  Source: backend/src/sketch2life/application/services/push_endpoints.py:280-287
+}

@@ -1,0 +1,62 @@
+meta {
+  name: 782 [DRAFT-V4C] [LOCAL / TEST ONLY] Parent lists notification inbox page one
+  type: http
+  seq: 782
+}
+
+get {
+  url: {{baseUrl}}/v1/notifications?limit=1
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (body && typeof body.next_cursor === "string") {
+    bru.setVar("phase_c_notifications_cursor", body.next_cursor);
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("Cache-Control")).to.equal("private, no-cache");
+    expect(res.getHeader("Vary")).to.equal("Authorization");
+    const body = res.getBody();
+    expect(body.contract).to.equal("NotificationPageV1");
+    expect(body.items).to.be.an("array");
+    expect(body.items.length).to.be.at.most(1);
+    expect(body.unread_count).to.be.a("number");
+    expect(body.unread_count).to.be.at.least(0);
+    expect(body.unread_count).to.be.at.most(100);
+    if (body.items.length > 0) {
+      const item = body.items[0];
+      expect(item.contract).to.equal("NotificationV1");
+      expect(item.inbox_item_id).to.be.a("string");
+      expect(item.notification_type).to.be.a("string");
+      expect(item.template_version).to.be.at.least(1);
+      expect(item.safe_parameters).to.be.an("object");
+      expect(item).to.not.have.property("recipient_account_id");
+      expect(item).to.not.have.property("trigger_id");
+      expect(item).to.not.have.property("child_name");
+    }
+  });
+}
+
+docs {
+  DRAFT after Phase C: checked against the code at 0f6e7683; not yet run against a live backend.
+  Role: Active adult recipient (Parent/Teacher/Manager/Admin) - set bearerToken to seed-parent-p1 token
+  Needs: none on seed data (returns empty page if no inbox items exist yet; saves phase_c_notifications_cursor when >= 2 items exist)
+  Expected: 200 / NotificationPageV1 (Cache-Control: private, no-cache; Vary: Authorization)
+  Source: backend/src/sketch2life/interfaces/http/routers/notifications.py:105-136, backend/src/sketch2life/contracts/schemas/notifications.py:19-53, backend/tests/contract/test_notifications_routes.py:362-391
+}

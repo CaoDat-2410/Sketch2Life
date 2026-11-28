@@ -81,16 +81,29 @@ def test_revision_is_a_short_unlabelled_single_child_of_the_class_revision_migra
     while children.get(node):
         # FEAT-072: the Platform Admin chain (20261119_admin_foundation onward) branches from
         # 20261110_ar_0001 as its own branch; it is not part of the lesson_library chain.
-        next_nodes = {child for child in children[node] if "_admin_" not in child}
+        # T-6b adds a separate transfer branch from 20261125_nt_0003.
+        next_nodes = {
+            child
+            for child in children[node]
+            if "_admin_" not in child and child != "20261122_t6b_0001"
+        }
         assert len(next_nodes) == 1, node
         (node,) = next_nodes
         chain.append(node)
-    # FEAT-066 T-8a: 20261120_nt_0001 (the notification inbox) now follows this revision, and
-    # FEAT-066 T-4b1: 20261120_sel_0001 (the child-selection table) follows that one.
-    assert chain[-1] == "20261120_sel_0001"
-    assert chain[-2] == "20261120_nt_0001"
+    # T-SLD1 and the Teacher Sketch Deck migration extend the lesson chain.
+    assert chain[-9:] == [
+        "20261120_nt_0001",
+        "20261120_sel_0001",
+        "20261121_ll_0001",
+        "20261121_pg_0001",
+        "20261121_nt_0002",
+        "20261125_nt_0003",
+        "20261126_sl_0001",
+        "20261126_sh_0001",
+        "20261126_dc_0001",
+    ]
     assert chain.index(_PARENT) + 1 == chain.index(_REVISION)
-    assert chain.index(_REVISION) + 3 == len(chain)
+    assert chain.index(_REVISION) + 10 == len(chain)
 
 
 def test_orm_has_no_full_unique_constraint_and_the_two_indexes_of_the_migration() -> None:

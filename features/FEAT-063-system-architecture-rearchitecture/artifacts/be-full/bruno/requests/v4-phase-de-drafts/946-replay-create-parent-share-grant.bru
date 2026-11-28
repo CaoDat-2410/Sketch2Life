@@ -1,0 +1,55 @@
+meta {
+  name: 946 [DRAFT-V4E] [LOCAL / TEST ONLY] Parent replays profile share grant creation (null code)
+  type: http
+  seq: 946
+}
+
+post {
+  url: {{baseUrl}}/v1/parent/share-grants
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{phase_de_e3_grant_key}}
+}
+
+body:json {
+  {
+    "profile_id": "{{phase_de_e3_profile_id}}",
+    "granted_fields": [
+      "DISPLAY_NAME",
+      "AGE_BAND"
+    ]
+  }
+}
+
+tests {
+  test("assert idempotent replay clears invitation_code", function () {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("ETag")).to.equal('"1"');
+    expect(res.getHeader("Location")).to.include("/share-grants/");
+    expect(res.getHeader("Vary")).to.include("Authorization");
+    const body = res.getBody();
+    expect(body.contract).to.equal("ParentShareGrantV1");
+    expect(body.share_grant_id).to.equal(bru.getVar("phase_de_e3_share_grant_id"));
+    expect(body.invitation_code).to.equal(null);
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against committed Phase E code at 98aa9837 (PHASE_E_FINAL_ROUTE_LIST_20261125.md / 784134fc); not yet run against a live backend.
+  Role: Owning Parent - set bearerToken to seed-parent-p1 token
+  Needs: needs-fixture: run immediately after 945 reusing phase_de_e3_grant_key and phase_de_e3_profile_id
+  Expected: 201 / ParentShareGrantV1 (ETag: "1", Location, Vary: Authorization, invitation_code == null; ParentShareGrantCreatedV1 inherits contract="ParentShareGrantV1" in profile_sharing.py at 98aa9837)
+  UNVERIFIED: Idempotency-Replayed header is not returned by E3 handlers at 98aa9837; omitted from assertions.
+  Source: backend/src/sketch2life/interfaces/http/routers/parent_share_grants.py, backend/src/sketch2life/contracts/schemas/profile_sharing.py, backend/src/sketch2life/infrastructure/profile_sharing/service.py
+}

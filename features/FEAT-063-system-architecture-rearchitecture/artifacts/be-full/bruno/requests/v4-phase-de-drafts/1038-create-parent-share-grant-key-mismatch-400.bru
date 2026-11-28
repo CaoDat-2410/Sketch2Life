@@ -1,0 +1,49 @@
+meta {
+  name: 1038 [DRAFT-V4E] [LOCAL / TEST ONLY] Create share grant rejects Idempotency-Key payload mismatch 400
+  type: http
+  seq: 1038
+}
+
+post {
+  url: {{baseUrl}}/v1/parent/share-grants
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{phase_de_e3_grant_key}}
+}
+
+body:json {
+  {
+    "profile_id": "{{phase_de_e3_profile_id}}",
+    "granted_fields": [
+      "DISPLAY_NAME",
+      "AGE_BAND",
+      "INTERESTS_SUMMARY"
+    ]
+  }
+}
+
+tests {
+  test("assert idempotency key payload mismatch refusal", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("INVALID_IDEMPOTENCY_KEY");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against committed Phase E code at 98aa9837 (PHASE_E_FINAL_ROUTE_LIST_20261125.md / 784134fc); not yet run against a live backend.
+  Role: Owning Parent - set bearerToken to seed-parent-p1 token
+  Needs: needs-fixture: run after 945 reusing phase_de_e3_grant_key with different granted_fields
+  Expected: 400 / INVALID_IDEMPOTENCY_KEY
+  Source: backend/src/sketch2life/interfaces/http/routers/parent_share_grants.py
+}

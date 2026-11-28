@@ -1,0 +1,34 @@
+meta {
+  name: 836 [DRAFT-V4D] [LOCAL / TEST ONLY] Reject anonymous class Teacher offboarding
+  type: http
+  seq: 836
+}
+
+delete {
+  url: {{baseUrl}}/api/be1/v1/classes/seed-org-a-class-1/assignments/current
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  If-Match: "1"
+  Idempotency-Key: {{$guid}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(401);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("AUTH_REQUIRED");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against the code in .worktrees/v4d at working tree on 9e439cee; not yet run against a live backend.
+  Role: Anonymous (no bearer token)
+  Needs: seed-org-a-class-1
+  Expected: 401 / AUTH_REQUIRED
+  Source: backend/tests/contract/test_teacher_assignment_transfer_routes.py:224-243
+}

@@ -39,6 +39,25 @@ MAX_PLAN_CONFIRM_BODY_BYTES = 256 * 1024
 _PLAN_CREATE_PATH = re.compile(r"^/v1/lesson-occurrences/[^/]+/plan-revisions/?$")
 _PLAN_CONFIRM_PATH = re.compile(r"^/v1/lesson-occurrences/[^/]+/plan-revisions/[^/]+/confirm/?$")
 
+# T-SLD1: bounded presentation JSON requests. The slide array has a database-backed 1 MiB cap;
+# the smaller create/decision bodies contain only enums and identifiers.
+MAX_PRESENTATION_CREATE_BODY_BYTES = 4 * 1024
+MAX_PRESENTATION_REVISION_BODY_BYTES = 1024 * 1024
+MAX_PRESENTATION_READY_BODY_BYTES = 1024
+MAX_PRESENTATION_SVG_DRAFT_BODY_BYTES = 4 * 1024
+MAX_PRESENTATION_SVG_DECISION_BODY_BYTES = 1024
+_PRESENTATION_CREATE_PATH = re.compile(r"^/v1/lesson-occurrences/[^/]+/presentation/?$")
+_PRESENTATION_REVISION_PATH = re.compile(r"^/v1/lesson-occurrences/[^/]+/presentation/revisions/?$")
+_PRESENTATION_READY_PATH = re.compile(
+    r"^/v1/lesson-occurrences/[^/]+/presentation/revisions/[^/]+/ready/?$"
+)
+_PRESENTATION_SVG_DRAFT_PATH = re.compile(
+    r"^/v1/lesson-occurrences/[^/]+/presentation/svg-drafts/?$"
+)
+_PRESENTATION_SVG_DECISION_PATH = re.compile(
+    r"^/v1/lesson-occurrences/[^/]+/presentation/svg-drafts/[^/]+/decision/?$"
+)
+
 # (method, anchored path, limit in bytes, safe message): every entry is bounded by Content-Length
 # and by the streamed byte count before FastAPI reads, parses or validates the body.
 _BOUNDED_JSON_ROUTES: tuple[tuple[str, re.Pattern[str], int, str], ...] = (
@@ -59,6 +78,36 @@ _BOUNDED_JSON_ROUTES: tuple[tuple[str, re.Pattern[str], int, str], ...] = (
         _PLAN_CONFIRM_PATH,
         MAX_PLAN_CONFIRM_BODY_BYTES,
         "The plan confirmation exceeds the request size limit.",
+    ),
+    (
+        "POST",
+        _PRESENTATION_CREATE_PATH,
+        MAX_PRESENTATION_CREATE_BODY_BYTES,
+        "The presentation create request exceeds the request size limit.",
+    ),
+    (
+        "POST",
+        _PRESENTATION_REVISION_PATH,
+        MAX_PRESENTATION_REVISION_BODY_BYTES,
+        "The presentation revision exceeds the request size limit.",
+    ),
+    (
+        "POST",
+        _PRESENTATION_READY_PATH,
+        MAX_PRESENTATION_READY_BODY_BYTES,
+        "The presentation ready request exceeds the request size limit.",
+    ),
+    (
+        "POST",
+        _PRESENTATION_SVG_DRAFT_PATH,
+        MAX_PRESENTATION_SVG_DRAFT_BODY_BYTES,
+        "The presentation SVG draft request exceeds the request size limit.",
+    ),
+    (
+        "POST",
+        _PRESENTATION_SVG_DECISION_PATH,
+        MAX_PRESENTATION_SVG_DECISION_BODY_BYTES,
+        "The presentation SVG decision exceeds the request size limit.",
     ),
 )
 

@@ -1,0 +1,45 @@
+meta {
+  name: 903 [DRAFT-V4E] [LOCAL / TEST ONLY] School Manager receives 404 creating presentation SVG draft
+  type: http
+  seq: 903
+}
+
+post {
+  url: {{baseUrl}}/v1/lesson-occurrences/{{phase_de_e1_occurrence_id}}/presentation/svg-drafts
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: e1-svg-wrong-role-key
+}
+
+body:json {
+  {
+    "plan_activity_id": "any-activity",
+    "subject_text": "butterfly"
+  }
+}
+
+tests {
+  test("assert manager role uniform 404 refusal", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_NOT_FOUND");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against committed Phase E code at 98aa9837 (PHASE_E_FINAL_ROUTE_LIST_20261125.md / 784134fc); not yet run against a live backend.
+  Role: Wrong Role (School Manager) - set bearerToken to seed-mgr-a token
+  Needs: needs-fixture: lesson occurrence phase_de_e1_occurrence_id
+  Expected: 404 / RESOURCE_NOT_FOUND
+  Source: backend/src/sketch2life/interfaces/http/routers/lesson_presentations.py
+}

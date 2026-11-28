@@ -1,0 +1,40 @@
+meta {
+  name: 892 [DRAFT-V4E] [LOCAL / TEST ONLY] Mark presentation revision ready rejects missing If-Match
+  type: http
+  seq: 892
+}
+
+post {
+  url: {{baseUrl}}/v1/lesson-occurrences/{{phase_de_e1_occurrence_id}}/presentation/revisions/1/ready
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Idempotency-Key: e1-ready-missing-if-match
+}
+
+tests {
+  test("assert missing If-Match refusal", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.code).to.equal("INVALID_REQUEST");
+    expect(body.field_errors[0].field).to.equal("If-Match");
+    expect(body.field_errors[0].code).to.equal("REQUIRED");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against committed Phase E code at 98aa9837 (PHASE_E_FINAL_ROUTE_LIST_20261125.md / 784134fc); not yet run against a live backend.
+  Role: Assigned Teacher - set bearerToken to seed-tch-a1 token
+  Needs: needs-fixture: lesson occurrence phase_de_e1_occurrence_id
+  Expected: 400 / INVALID_REQUEST
+  Source: backend/src/sketch2life/interfaces/http/routers/lesson_presentations.py
+}

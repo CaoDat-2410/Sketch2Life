@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { PageHeading } from "../../../../shared/components/FeatureAvailability";
+import { feedbackAuthorLabel } from "../../../../shared/api/feedbackLabels";
 import { Alert, Button, FormField } from "../../../../shared/ui";
 import { AdminBe1Error } from "../services/be1Client";
 import { managerBusinessService, type FeedbackSummary, type FeedbackThread } from "../services/managerBusinessService";
@@ -98,14 +99,14 @@ export function FeedbackPage() {
   };
 
   return <div className="s2l-page manager-business-page">
-    <PageHeading eyebrow="School Manager" title="Phản hồi trong trường" description="Xem và trả lời phản hồi về giáo án trong trường." />
+    <PageHeading eyebrow="Quản lý trường" title="Phản hồi trong trường" description="Xem và trả lời phản hồi về giáo án trong trường." />
     <p>Đây là luồng phản hồi về giáo án, không phải chat; không có đánh dấu hoàn thành hay tải ảnh.</p>
     <section className="manager-business-card">
       <h2>Danh sách phản hồi</h2>
       {listError && <p role="alert" className="manager-business-alert">{listError} <button className="manager-business-button" onClick={() => void loadList()}>Tải lại</button></p>}
       {listLoading && <p role="status">Đang tải phản hồi…</p>}
       {!listLoading && !listError && threads.length === 0 && <p>Chưa có phản hồi nào trong trường.</p>}
-      <ul className="manager-feedback-threads">{threads.map((item) => <li key={item.thread_id}><button type="button" className="manager-business-button" aria-pressed={selected === item.thread_id} onClick={() => select(item.thread_id)}>Giáo án {item.lesson_id} · Phiên bản {item.version_id} · {Number.isNaN(Date.parse(item.created_at)) ? "Không rõ ngày" : new Date(item.created_at).toLocaleDateString("vi-VN")}</button></li>)}</ul>
+      <ul className="manager-feedback-threads">{threads.map((item) => <li key={item.thread_id}><button type="button" className="manager-business-button" style={{ width: "100%", justifyContent: "flex-start", textAlign: "left" }} aria-pressed={selected === item.thread_id} onClick={() => select(item.thread_id)}>Giáo án {item.lesson_title?.trim() || "Chưa rõ tiêu đề"}{item.version_no ? ` · Phiên bản ${item.version_no}` : ""} · {Number.isNaN(Date.parse(item.created_at)) ? "Không rõ ngày" : new Date(item.created_at).toLocaleDateString("vi-VN")}</button></li>)}</ul>
       {next && <button className="manager-business-button" disabled={listLoading} onClick={() => void loadList(next)}>Tải thêm</button>}
     </section>
     {selected && <section className="manager-business-card cozy-form-card cozy-form-card--wide cozy-form-stack">
@@ -114,7 +115,8 @@ export function FeedbackPage() {
       {threadError && <p role="alert" className="manager-business-alert">{threadError} <button className="manager-business-button" onClick={() => void loadThread(selected)}>Tải lại</button></p>}
       {thread && <div className="cozy-form-grid">
         <div className="cozy-span-3 cozy-form-stack">
-          <ol className="manager-feedback-list">{thread.items.map((item) => <li key={item.message_id}><strong>{item.from_you ? "Bạn" : "Phụ huynh hoặc nhân sự trường"}</strong><p>{item.body}</p></li>)}</ol>
+          <p>Giáo án {thread.lesson_title?.trim() || "Chưa rõ tiêu đề"}{thread.version_no ? ` · Phiên bản ${thread.version_no}` : ""}</p>
+          <ol className="manager-feedback-list">{thread.items.map((item) => <li key={item.message_id}><strong>{feedbackAuthorLabel(item.author_role, item.author_display_name, item.from_you)}</strong><p>{item.body}</p></li>)}</ol>
           {thread.next_cursor && <div><button className="manager-business-button" disabled={threadLoading || busy} onClick={() => void loadThread(selected, thread.next_cursor ?? undefined)}>Tải thêm tin nhắn</button></div>}
         </div>
         <form className="manager-feedback-form cozy-form-stack cozy-span-3" style={{ marginTop: 0 }} onSubmit={(event) => void submit(event)}>

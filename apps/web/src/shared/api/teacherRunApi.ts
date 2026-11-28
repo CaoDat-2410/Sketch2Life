@@ -10,11 +10,13 @@ export interface ChildSelection {
   plan: { revision_no: number; plan_hash: string } | null;
   child: { profile_id: string; display_name: string; age_months: number } | null;
 }
+export interface SubjectRole { entity_id: string; label: string; role: "main" | "secondary" | "excluded" }
+export interface SubjectEntity { entity_id: string; label: string; suggested_role: "main" | "secondary"; suggested_included?: boolean }
 export interface TeacherRun {
   run_id: string; occurrence_id: string | null; run_state: string; run_revision: number;
   context_revision: number; context_snapshot_sha256: string | null; context_confirmed: boolean;
   context_snapshot: { age_months: number; objectives?: string[]; teacher_direction?: string; activity_title?: string | null } | null;
-  understanding_revision: number | null; candidate: { candidate_subject: string | null; visible_features: string[] } | null;
+  understanding_revision: number | null; candidate: { candidate_subject: string | null; visible_features: string[]; entities?: SubjectEntity[]; subject_roles?: SubjectRole[] | null } | null;
   story_revision_no: number | null; story_status: string | null; story_sha256: string | null;
   story: { title: string; story: { opening: string; middle: string; ending: string }; scenes: Array<{ title: string; action?: string; narration?: string; scene_index?: number; start_ms?: number; duration_ms?: number }> } | null; job_state: string | null;
   quota?: { state: "UNAVAILABLE"; granted: number | null; used: number | null; available: number | null; month: string | null };
@@ -54,13 +56,14 @@ export const teacherRunApi = {
   active: () => request<ActiveResponse>("/v1/story-runs/active/current").then(data),
   create: (input: TeacherCreateInput, key: string) => write<RunResponse>("/v1/story-runs", "POST", key, input),
   get: (id: string, etag?: string, signal?: AbortSignal) => request<RunResponse>(run(id), { headers: ifNoneMatch(etag), signal }, true),
+  delete: (id: string, key: string) => write<LifecycleEnvelope>(run(id), "DELETE", key),
   cancel: (id: string, revision: number, key: string) => write<RunResponse>(`${run(id)}/cancel`, "POST", key, { expected_revision: revision }),
   attachArtwork: (id: string, asset: string, revision: number, key: string) => write<{ request_id: string; story_run_id: string; input_revision: number; run_revision: number; run_state: string; analysis_state: string; asset_ref: string; asset_kind: "DRAWING"; asset_state: "READY" } | LifecycleEnvelope>(`${run(id)}/assets`, "POST", key, { asset_ref: asset, expected_run_revision: revision }),
   idea: (id: string, input: IdeaInput, key: string) => submitIdea(id, input, key, () => write<{ request_id: string; story_run_id: string; input_revision: number; run_revision: number; run_state: string; idea_source: "TEXT" | "VOICE" | "TEXT_AND_VOICE" | null; transcript: { transcript_revision: number; state: string } | null } | LifecycleEnvelope>(`${run(id)}/idea`, "POST", key, input)),
   transcript: (id: string, signal?: AbortSignal) => request<Transcript>(`${run(id)}/transcript`, { signal }).then(data),
   confirmTranscript: (id: string, revision: number, hash: string, key: string) => write<{ request_id: string; story_run_id: string; transcript_revision: number; run_revision: number; run_state: string; state: "CONFIRMED" } | LifecycleEnvelope>(`${run(id)}/transcript-confirmation`, "POST", key, { expected_transcript_revision: revision, transcript_sha256: hash, confirmed: true }),
   confirmContext: (id: string, revision: number, hash: string, key: string) => write<RunResponse>(`${run(id)}/context-confirmation`, "POST", key, { expected_context_revision: revision, context_snapshot_sha256: hash, confirmed: true }),
-  confirmSubject: (id: string, revision: number, subject: string, key: string) => write<{ request_id: string; decision: "CONFIRMED" | "RERUN_REQUESTED"; understanding_revision: number; run_revision: number } | LifecycleEnvelope>(`${run(id)}/subject-confirmation`, "POST", key, { expected_understanding_revision: revision, confirmed_subject: subject }),
+  confirmSubject: (id: string, revision: number, subject: string, key: string, roles?: SubjectRole[]) => write<{ request_id: string; decision: "CONFIRMED" | "RERUN_REQUESTED"; understanding_revision: number; run_revision: number } | LifecycleEnvelope>(`${run(id)}/subject-confirmation`, "POST", key, { expected_understanding_revision: revision, confirmed_subject: subject, ...(roles ? { subject_roles: roles } : {}) }),
   rewrite: (id: string, revision: number, hash: string | undefined, hint: string | undefined, key: string) => write<{ request_id: string; story_run_id: string; story_revision_no: number; run_revision: number; run_state: "SCRIPT_GENERATING" } | LifecycleEnvelope>(`${run(id)}/story-rewrites`, "POST", key, { expected_story_revision: revision, ...(hash ? { expected_story_sha256: hash } : {}), ...(hint ? { hint } : {}) }),
   confirmStory: (id: string, revision: number, hash: string, key: string) => write<RunResponse>(`${run(id)}/script-confirmation`, "POST", key, { expected_revision: revision, story_sha256: hash }),
   generateVideo: (id: string, revision: number, hash: string, reason: string | undefined, key: string) => write<{ request_id: string; video_generation: { generation_id: string; state: string; generation_no: number | null; kind: "INITIAL" | "QUALITY_REGEN"; job_id: string | null; run_state: string; run_revision: number } } | LifecycleEnvelope>(`${run(id)}/video-generations`, "POST", key, { expected_revision: revision, story_sha256: hash, ...(reason ? { quality_reason_code: reason } : {}) }),

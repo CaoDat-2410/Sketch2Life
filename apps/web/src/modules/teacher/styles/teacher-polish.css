@@ -1,0 +1,884 @@
+/* Teacher layout polish (FEAT-066): spacing, wrapping and readable rows. Presentation only. */
+html[data-cozy="1"][data-portal="teacher"] {
+  --tp-gap: 12px;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-muted { color: var(--s2l-ui-ink-soft); }
+html[data-cozy="1"][data-portal="teacher"] .tp-chip-row { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+html[data-cozy="1"][data-portal="teacher"] .tp-value-chip {
+  display: inline-flex; max-width: 100%; min-height: 24px; align-items: center; padding: 2px 10px;
+  border: 1px solid var(--s2l-ui-rule); border-radius: 999px; background: var(--s2l-ui-paper-muted);
+  color: var(--s2l-ui-ink); font-size: 11px; font-weight: 650; overflow-wrap: anywhere;
+}
+
+/* Labelled blocks (activities, shared profile) */
+html[data-cozy="1"][data-portal="teacher"] .tp-field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; margin-top: 12px; }
+html[data-cozy="1"][data-portal="teacher"] .tp-field { display: grid; min-width: 0; gap: 2px; margin: 0; font-size: 13px; line-height: 1.5; }
+html[data-cozy="1"][data-portal="teacher"] .tp-field > strong { color: var(--s2l-ui-ink-soft); font-size: 11px; font-weight: 750; letter-spacing: .04em; text-transform: uppercase; }
+html[data-cozy="1"][data-portal="teacher"] .tp-field > span { overflow-wrap: anywhere; color: var(--s2l-ui-ink); }
+
+/* 1. Class detail: child row panels span the full row */
+html[data-cozy="1"][data-portal="teacher"] .tp-roster > li { grid-template-columns: 40px minmax(0, 1fr) auto; row-gap: 12px; padding: 16px; }
+html[data-cozy="1"][data-portal="teacher"] .tp-roster > li > .tp-chip-row { justify-content: flex-end; }
+html[data-cozy="1"][data-portal="teacher"] .tp-roster > li > :is(.teacher-profile-panels, .teacher-roster-move, section, .s2l-data-card) { grid-column: 1 / -1; min-width: 0; width: 100%; box-sizing: border-box; }
+html[data-cozy="1"][data-portal="teacher"] .tp-roster > li > .s2l-button { grid-column: 3; }
+html[data-cozy="1"][data-portal="teacher"] .tp-roster .tp-share { border-radius: 16px; background: var(--s2l-ui-paper-muted); box-shadow: none; }
+html[data-cozy="1"][data-portal="teacher"] .tp-share h3 { margin: 0 0 2px; font-size: 14px; }
+html[data-cozy="1"][data-portal="teacher"] .tp-share .s2l-section-heading p { margin: 0; }
+html[data-cozy="1"][data-portal="teacher"] .tp-share-body { display: grid; gap: 8px; margin-top: 12px; }
+html[data-cozy="1"][data-portal="teacher"] .tp-share-body > p { margin: 0; }
+html[data-cozy="1"][data-portal="teacher"] .tp-share-form { display: grid; max-width: 480px; gap: 8px; margin-top: 12px; }
+html[data-cozy="1"][data-portal="teacher"] .tp-share-form > label { font-size: 12px; font-weight: 700; }
+html[data-cozy="1"][data-portal="teacher"] .tp-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 4px; }
+html[data-cozy="1"][data-portal="teacher"] .tp-actions > div[role="group"] { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+html[data-cozy="1"][data-portal="teacher"] .tp-actions p { flex-basis: 100%; margin: 0; }
+
+html[data-cozy="1"][data-portal="teacher"] .tp-consent-list li { display: grid; grid-template-columns: minmax(120px, 1fr) minmax(0, 1.2fr) auto auto; gap: 8px 12px; align-items: center; }
+html[data-cozy="1"][data-portal="teacher"] .tp-consent-child { overflow-wrap: anywhere; font-size: 13px; }
+html[data-cozy="1"][data-portal="teacher"] .tp-consent-list .teacher-consent-confirm { display: flex; grid-column: 1 / -1; flex-wrap: wrap; align-items: center; gap: 8px; }
+html[data-cozy="1"][data-portal="teacher"] .tp-consent-record { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--s2l-ui-rule); }
+html[data-cozy="1"][data-portal="teacher"] .tp-consent-record h3 { margin: 0 0 6px; font-size: 15px; }
+
+/* 2. Activities */
+html[data-cozy="1"][data-portal="teacher"] .tp-activity-list { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
+html[data-cozy="1"][data-portal="teacher"] .tp-activity { display: block; }
+html[data-cozy="1"][data-portal="teacher"] .tp-activity-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 8px 12px; }
+html[data-cozy="1"][data-portal="teacher"] .tp-activity-title { min-width: min(100%, 240px); flex: 1 1 260px; }
+html[data-cozy="1"][data-portal="teacher"] .tp-activity-title h2 { display: flex; align-items: flex-start; gap: 8px; margin: 0 0 4px; overflow-wrap: anywhere; font-size: 16px; }
+html[data-cozy="1"][data-portal="teacher"] .tp-activity-title h2 svg { flex: 0 0 auto; margin-top: 3px; }
+html[data-cozy="1"][data-portal="teacher"] .tp-activity-title p { margin: 0; }
+html[data-cozy="1"][data-portal="teacher"] .tp-activity-head .s2l-status-tag { flex: 0 0 auto; }
+
+/* 3. Feedback list */
+html[data-cozy="1"][data-portal="teacher"] .tp-thread-list { display: grid; gap: 8px; margin: 12px 0 0; padding: 0; list-style: none; }
+html[data-cozy="1"][data-portal="teacher"] .tp-thread-row {
+  display: flex; width: 100%; min-height: 56px; align-items: center; justify-content: space-between; gap: 12px; box-sizing: border-box;
+  padding: 10px 14px; border: 1px solid var(--s2l-ui-rule); border-radius: 14px; background: var(--s2l-ui-paper);
+  color: var(--s2l-ui-ink); text-align: left; cursor: pointer; transition: border-color .18s ease, background-color .18s ease;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-thread-row:hover { border-color: var(--s2l-ui-primary-400); background: var(--s2l-ui-row-hover); }
+html[data-cozy="1"][data-portal="teacher"] .tp-thread-row.is-selected { border-color: var(--s2l-ui-primary); background: var(--s2l-ui-primary-soft); }
+html[data-cozy="1"][data-portal="teacher"] .tp-thread-main { display: grid; min-width: 0; gap: 6px; }
+html[data-cozy="1"][data-portal="teacher"] .tp-thread-main strong { overflow-wrap: anywhere; font-size: 14px; }
+html[data-cozy="1"][data-portal="teacher"] .tp-thread-open { flex: 0 0 auto; color: var(--s2l-ui-link); font-size: 12px; font-weight: 750; white-space: nowrap; }
+
+/* 4. History */
+html[data-cozy="1"][data-portal="teacher"] .tp-history-list { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+html[data-cozy="1"][data-portal="teacher"] .tp-history-row {
+  display: flex; min-width: 0; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px;
+  padding: 14px 16px; border: 1px solid var(--s2l-ui-rule); border-radius: 16px; background: var(--s2l-ui-paper);
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-history-copy { display: grid; min-width: min(100%, 220px); flex: 1 1 260px; gap: 6px; }
+html[data-cozy="1"][data-portal="teacher"] .tp-history-copy strong { overflow-wrap: anywhere; font-size: 14px; }
+html[data-cozy="1"][data-portal="teacher"] .tp-history-copy small { font-size: 12px; }
+html[data-cozy="1"][data-portal="teacher"] .tp-compact { display: inline-flex; min-height: 40px; flex: 0 0 auto; align-items: center; white-space: nowrap; }
+
+@media (max-width: 640px) {
+  html[data-cozy="1"][data-portal="teacher"] .tp-field-grid { grid-template-columns: minmax(0, 1fr); }
+  html[data-cozy="1"][data-portal="teacher"] .tp-roster > li { grid-template-columns: 38px minmax(0, 1fr); }
+  html[data-cozy="1"][data-portal="teacher"] .tp-roster > li > .tp-chip-row { grid-column: 1 / -1; justify-content: flex-start; }
+  html[data-cozy="1"][data-portal="teacher"] .tp-roster > li > .s2l-button { grid-column: 1 / -1; }
+  html[data-cozy="1"][data-portal="teacher"] .tp-consent-list li { grid-template-columns: minmax(0, 1fr); }
+  html[data-cozy="1"][data-portal="teacher"] .tp-history-row .tp-compact { width: 100%; justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-cozy="1"][data-portal="teacher"] .tp-thread-row { transition: none; }
+}
+
+/* 6. Profile */
+html[data-cozy="1"][data-portal="teacher"] .tp-profile-head { display: flex; flex-wrap: nowrap; align-items: center; gap: 14px; margin-bottom: 16px; }
+html[data-cozy="1"][data-portal="teacher"] .tp-profile-avatar { display: grid; width: 52px; height: 52px; flex: 0 0 auto; place-items: center; border: 1px solid var(--s2l-ui-primary-300); border-radius: 18px; background: var(--s2l-ui-primary-soft); color: var(--s2l-ui-primary-hover); font-size: 20px; font-weight: 800; }
+html[data-cozy="1"][data-portal="teacher"] .tp-profile-name { display: flex; min-width: 0; flex: 1 1 auto; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; }
+html[data-cozy="1"][data-portal="teacher"] .tp-profile-heading { display: inline-flex; align-items: center; gap: 8px; margin: 0; font-size: 18px; overflow-wrap: anywhere; }
+html[data-cozy="1"][data-portal="teacher"] .tp-profile-name strong { overflow-wrap: anywhere; font-size: 18px; }
+
+/* Feedback stacked messages */
+html[data-cozy="1"][data-portal="teacher"] .tp-feedback-messages { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+html[data-cozy="1"][data-portal="teacher"] .tp-feedback-message { padding: 12px 14px; border: 1px solid var(--s2l-ui-rule); border-radius: 14px; background: var(--s2l-ui-paper-muted); font-size: 14px; line-height: 1.55; }
+html[data-cozy="1"][data-portal="teacher"] .tp-feedback-message strong { display: block; margin-bottom: 4px; font-size: 13px; color: var(--s2l-ui-ink); }
+html[data-cozy="1"][data-portal="teacher"] .tp-feedback-message p { margin: 0; font-size: 14px; color: var(--s2l-ui-ink); white-space: pre-wrap; overflow-wrap: anywhere; }
+html[data-cozy="1"][data-portal="teacher"] .tp-profile-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 0; }
+html[data-cozy="1"][data-portal="teacher"] .tp-profile-list > div { min-width: 0; padding: 12px 14px; border: 1px solid var(--s2l-ui-rule); border-radius: 14px; background: var(--s2l-ui-paper-muted); }
+html[data-cozy="1"][data-portal="teacher"] .tp-profile-list dt { color: var(--s2l-ui-ink-soft); font-size: 11px; font-weight: 750; letter-spacing: .04em; text-transform: uppercase; }
+html[data-cozy="1"][data-portal="teacher"] .tp-profile-list dd { margin: 4px 0 0; overflow-wrap: anywhere; font-size: 14px; }
+
+/* Consent rows and panel action buttons */
+html[data-cozy="1"][data-portal="teacher"] .tp-consent-list .tp-value-chip { justify-self: start; width: fit-content; }
+html[data-cozy="1"][data-portal="teacher"] .tp-consent-record .cozy-form-hint { margin: 0 0 16px !important; }
+html[data-cozy="1"][data-portal="teacher"] .tp-roster .teacher-profile-panel-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* 7. Sample run, projection, and slides polish */
+html[data-cozy="1"][data-portal="teacher"] .cozy-form-section.cozy-form-stack > :first-child { margin-bottom: 0; }
+html[data-cozy="1"][data-portal="teacher"] .tp-run-section { background: var(--s2l-ui-paper-muted); }
+html[data-cozy="1"][data-portal="teacher"] .tp-story-copy { color: var(--s2l-ui-ink); font-size: 14px; line-height: 1.65; }
+html[data-cozy="1"][data-portal="teacher"] .tp-scene-list { display: grid; gap: 12px; }
+html[data-cozy="1"][data-portal="teacher"] .tp-scene-card { display: grid; min-width: 0; gap: 6px; padding: 14px; border: 1px solid var(--s2l-ui-rule); border-radius: 14px; background: var(--s2l-ui-paper); }
+html[data-cozy="1"][data-portal="teacher"] .tp-scene-card h3 { margin: 0; color: var(--s2l-ui-ink); font-size: 14px; font-weight: 750; }
+html[data-cozy="1"][data-portal="teacher"] .tp-scene-card p { color: var(--s2l-ui-ink-soft); font-size: 13px; line-height: 1.55; }
+html[data-cozy="1"][data-portal="teacher"] .tp-run-video { display: block; width: 100%; max-width: 100%; border: 1px solid var(--s2l-ui-rule); border-radius: 14px; background: #000; }
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-list { display: grid; gap: var(--s2l-form-field-gap); margin: 0; padding: 0; list-style: none; }
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-list > li { min-width: 0; }
+html[data-cozy="1"][data-portal="teacher"] .tp-actions > .s2l-button,
+html[data-cozy="1"][data-portal="teacher"] .cozy-form-actions > .s2l-button { min-height: 44px; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-file-picker { width: 100%; max-width: 100%; box-sizing: border-box; }
+html[data-cozy="1"][data-portal="teacher"] .tp-run-camera { display: grid; gap: 10px; min-width: 0; }
+html[data-cozy="1"][data-portal="teacher"] .tp-run-camera-preview { display: block; width: 100%; max-height: 60vh; object-fit: contain; border-radius: 12px; background: var(--s2l-ui-ink); }
+html[data-cozy="1"][data-portal="teacher"] .tp-run-camera-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+@media (max-width: 620px) {
+  html[data-cozy="1"][data-portal="teacher"] .tp-actions { flex-direction: column; align-items: stretch; }
+  html[data-cozy="1"][data-portal="teacher"] .tp-actions > :is(.s2l-button, button, a) { width: 100%; box-sizing: border-box; justify-content: center; }
+  html[data-cozy="1"][data-portal="teacher"] .cozy-form-section.tp-run-section { padding: 14px; }
+  html[data-cozy="1"][data-portal="teacher"] .tp-run-camera-actions > .s2l-button { flex: 1 1 100%; }
+}
+
+/* 8. Teacher shared form pattern (JOB-ux-teacher-forms): scoped strictly to Teacher portal. */
+html[data-cozy="1"][data-portal="teacher"] .tp-form-column {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  gap: 24px;
+  align-content: start;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-form-column .cozy-form-section {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-form-section-intro {
+  display: grid;
+  gap: 4px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--s2l-ui-rule);
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-form-section-intro h3,
+html[data-cozy="1"][data-portal="teacher"] .tp-form-section-intro h4 {
+  margin: 0;
+  color: var(--s2l-ui-ink);
+  font-size: 15px;
+  font-weight: 750;
+  line-height: 1.35;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-form-section-intro p {
+  margin: 0;
+  color: var(--s2l-ui-ink-soft);
+  font-size: 12px;
+  line-height: 1.45;
+}
+html[data-cozy="1"][data-portal="teacher"] .cozy-form-field { gap: 6px; }
+html[data-cozy="1"][data-portal="teacher"] .cozy-form-field > .cozy-form-hint,
+html[data-cozy="1"][data-portal="teacher"] .cozy-form-field > .cozy-form-error { margin-top: -2px; }
+html[data-cozy="1"][data-portal="teacher"] .cozy-textarea { min-height: 96px; }
+html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-form .cozy-textarea[rows="2"] { min-height: 96px; }
+
+/* Quiet danger button (outline/text coral, never solid dark red) */
+html[data-cozy="1"][data-portal="teacher"] :is(.s2l-ui-button, .tw-btn, .s2l-button).tp-quiet-danger {
+  border: 1px solid var(--s2l-ui-coral-300) !important;
+  background: transparent !important;
+  color: var(--s2l-ui-danger-ink) !important;
+  box-shadow: none !important;
+}
+html[data-cozy="1"][data-portal="teacher"] :is(.s2l-ui-button, .tw-btn, .s2l-button).tp-quiet-danger:hover:not(:disabled) {
+  border-color: var(--s2l-ui-danger-ink) !important;
+  background: var(--s2l-ui-danger-soft) !important;
+  color: var(--s2l-ui-danger-ink) !important;
+}
+html[data-cozy="1"][data-portal="teacher"] :is(.s2l-ui-button, .tw-btn, .s2l-button).tp-quiet-danger:disabled {
+  border-color: var(--s2l-ui-rule) !important;
+  background: transparent !important;
+  color: var(--s2l-ui-ink-soft) !important;
+}
+
+/* Form action bar */
+html[data-cozy="1"][data-portal="teacher"] .tp-form-action-bar {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--s2l-ui-rule);
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-form-action-bar-lead {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 220px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-form-action-danger {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-form-action-hint {
+  margin: 0;
+  color: var(--s2l-ui-ink-soft);
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: left;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-form-action-bar-buttons {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-left: auto;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-inline-note {
+  margin: 0;
+  color: var(--s2l-ui-ink-soft);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* Collapsible secondary form card (e.g. test-profile form in class detail) */
+html[data-cozy="1"][data-portal="teacher"] .tp-collapsible {
+  padding: 0;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-collapsible-summary {
+  display: flex;
+  min-height: 52px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px;
+  color: var(--s2l-ui-ink);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-collapsible-summary::-webkit-details-marker {
+  display: none;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-collapsible-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-collapsible[open] .tp-collapsible-summary svg:last-child {
+  transform: rotate(180deg);
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-collapsible-summary svg:last-child {
+  transition: transform 150ms ease;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-collapsible-body {
+  padding: 0 20px 20px;
+}
+
+/* Sessions top grid: avoid stretching create form card to sidebar height */
+html[data-cozy="1"][data-portal="teacher"] .teacher-occurrence-top {
+  align-items: start;
+}
+
+/* Slide preview canvas and pager */
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-preview-canvas {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  aspect-ratio: 16 / 9;
+  min-height: max-content;
+  width: 100%;
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: clamp(20px, 4vw, 44px);
+  border: 1px solid var(--s2l-ui-rule);
+  border-radius: 18px;
+  background: var(--s2l-ui-paper);
+  box-sizing: border-box;
+  overflow: visible;
+  text-align: center;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-preview-canvas.has-media {
+  gap: clamp(8px, 1.2vw, 12px);
+  padding: clamp(12px, 2.5vw, 24px);
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-preview-canvas.has-media > :not(.tp-slide-video-preview) {
+  flex-shrink: 0;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-preview-title {
+  margin: 0;
+  max-width: 28ch;
+  color: var(--s2l-ui-ink);
+  font-size: clamp(22px, 2.5vw, 34px);
+  font-weight: 800;
+  line-height: 1.2;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-preview-canvas.has-media .tp-slide-preview-title {
+  font-size: clamp(16px, 2vw, 26px);
+  line-height: 1.12;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-preview-body {
+  margin: 0;
+  max-width: 54ch;
+  color: var(--s2l-ui-ink);
+  font-size: clamp(15px, 1.4vw, 19px);
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-preview-canvas.has-media .tp-slide-preview-body {
+  font-size: clamp(12px, 1.15vw, 16px);
+  line-height: 1.35;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-media-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-media-preview--left {
+  justify-content: flex-start;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-media-preview--right {
+  justify-content: flex-end;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-media-preview-inner {
+  width: 100%;
+  max-width: 100%;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-media-preview--left:not(.tp-slide-video-preview) .tp-slide-media-preview-inner,
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-media-preview--right:not(.tp-slide-video-preview) .tp-slide-media-preview-inner {
+  width: 62%;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-media-actions .tp-form-action-bar-buttons {
+  justify-content: flex-start;
+  margin-left: 0;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-media-actions :is(.s2l-ui-button, .s2l-button):disabled {
+  pointer-events: auto !important;
+  border-color: var(--s2l-ui-rule) !important;
+  background: var(--s2l-ui-paper-muted) !important;
+  color: var(--s2l-ui-ink-soft) !important;
+  box-shadow: none !important;
+  cursor: not-allowed !important;
+  opacity: 1;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-media-actions .tp-slide-media-status {
+  flex: 1 1 16rem;
+  min-width: min(100%, 16rem);
+  margin: 0;
+  color: var(--s2l-ui-ink-soft);
+  font-size: 12px;
+  line-height: 1.5;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-video-preview {
+  flex: 1 1 0;
+  align-self: stretch;
+  min-width: 0;
+  min-height: 0;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-video-preview .tp-slide-media-preview-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 1 auto;
+  width: auto;
+  height: 100%;
+  max-height: 100%;
+  min-height: 10rem;
+  aspect-ratio: 16 / 9;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-video-preview.tp-slide-media-preview--left .tp-slide-media-preview-inner,
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-video-preview.tp-slide-media-preview--right .tp-slide-media-preview-inner {
+  max-width: 62%;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-video-frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--s2l-ui-rule);
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-presenter-root {
+  display: contents;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-presenter-root.is-open {
+  position: fixed;
+  inset: 0;
+  z-index: 15000;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+  background: #10151c;
+  color: #fff;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-presenter-content {
+  display: contents;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-presenter-heading,
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-presenter-pager {
+  display: none !important;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-presenter-canvas {
+  grid-column: 1;
+  grid-row: 2;
+  justify-self: center;
+  align-self: center;
+  width: auto;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  min-width: 0;
+  min-height: 0;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  box-sizing: border-box;
+  container-type: size;
+  gap: clamp(4px, 2cqi, 36px);
+  padding: clamp(8px, 4cqi, 80px);
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-presenter-canvas .tp-slide-preview-title {
+  max-width: 100%;
+  font-size: clamp(12px, 4.6cqi, 88px);
+  line-height: 1.12;
+  overflow-wrap: anywhere;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-presenter-canvas.has-media .tp-slide-preview-title {
+  font-size: clamp(10px, 3.5cqi, 68px);
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-presenter-canvas .tp-slide-preview-body {
+  max-width: 100%;
+  font-size: clamp(9px, 2.6cqi, 50px);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-presenter-canvas.has-media .tp-slide-preview-body {
+  font-size: clamp(8px, 2.1cqi, 40px);
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-presenter-canvas.has-media > :not(.tp-slide-video-preview) {
+  flex-shrink: 1;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-presenter-canvas .s2l-status-badge {
+  min-height: 0;
+  gap: .6cqi;
+  padding: .4cqi 1.4cqi;
+  font-size: clamp(7px, 2.8cqi, 12px);
+  line-height: 1.1;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-presenter-canvas .tp-slide-media-preview {
+  flex: 0 1 auto;
+  min-width: 0;
+  min-height: 0;
+  max-width: 100%;
+  max-height: 35cqh;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-presenter-canvas .tp-slide-media-preview-inner {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  max-width: 100%;
+  max-height: 35cqh;
+  place-items: center;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-presenter-canvas .tp-slide-media-preview-inner > img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  max-height: 35cqh !important;
+  object-fit: contain;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-presenter-canvas .tp-slide-video-preview {
+  align-self: stretch;
+  width: 100%;
+  max-height: 35cqh;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-presenter-canvas .tp-slide-video-preview .tp-slide-media-preview-inner {
+  display: block;
+  width: min(100%, 62.222cqh);
+  height: auto;
+  max-width: 100%;
+  max-height: 35cqh;
+  aspect-ratio: 16 / 9;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-presenter-canvas .tp-slide-video-frame {
+  width: 100%;
+  height: 100%;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-presenter-topbar,
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-presenter-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  border: 1px solid rgb(255 255 255 / 24%);
+  border-radius: 12px;
+  background: rgb(16 21 28 / 84%);
+  color: #fff;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-presenter-topbar {
+  grid-column: 1;
+  grid-row: 1;
+  margin: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 0 max(12px, env(safe-area-inset-left));
+  justify-content: space-between;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-presenter-topbar h2 {
+  min-width: 0;
+  flex: 1 1 auto;
+  margin: 0;
+  color: #fff;
+  font-size: clamp(14px, 1.4vw, 20px);
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-presenter-controls {
+  grid-column: 1;
+  grid-row: 3;
+  justify-self: center;
+  flex-wrap: nowrap;
+  max-width: calc(100% - 24px);
+  margin: 0 max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  justify-content: center;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-presenter-topbar .s2l-button,
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-presenter-controls .s2l-button {
+  border-color: rgb(255 255 255 / 36%);
+  background: rgb(255 255 255 / 12%);
+  color: #fff;
+  white-space: nowrap;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-slide-presenter-controls [aria-live="polite"] {
+  min-width: 5.5rem;
+  white-space: nowrap;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 620px) {
+  html[data-cozy="1"][data-portal="teacher"] .tp-slide-media-actions .tp-form-action-bar-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  html[data-cozy="1"][data-portal="teacher"] .tp-slide-preview-canvas {
+    aspect-ratio: auto;
+  }
+  html[data-cozy="1"][data-portal="teacher"] .tp-slide-presenter-canvas {
+    aspect-ratio: 16 / 9;
+  }
+  html[data-cozy="1"][data-portal="teacher"] .tp-slide-video-preview {
+    flex: 0 0 auto;
+  }
+  html[data-cozy="1"][data-portal="teacher"] .tp-slide-video-preview .tp-slide-media-preview-inner {
+    width: 100%;
+    height: auto;
+    max-height: none;
+    min-height: 0;
+    aspect-ratio: auto;
+  }
+  html[data-cozy="1"][data-portal="teacher"] .tp-slide-video-preview.tp-slide-media-preview--left .tp-slide-media-preview-inner,
+  html[data-cozy="1"][data-portal="teacher"] .tp-slide-video-preview.tp-slide-media-preview--right .tp-slide-media-preview-inner {
+    width: min(100%, 17.8rem);
+    max-width: 100%;
+  }
+  html[data-cozy="1"][data-portal="teacher"] .tp-slide-video-frame {
+    height: auto;
+    aspect-ratio: 16 / 9;
+  }
+  html[data-cozy="1"][data-portal="teacher"] .tp-slide-pager {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  html[data-cozy="1"][data-portal="teacher"] .tp-slide-pager > * {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (min-width: 720px) {
+  html[data-cozy="1"][data-portal="teacher"] .cozy-form-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  html[data-cozy="1"][data-portal="teacher"] .cozy-form-grid > * {
+    grid-column: span 6;
+  }
+  html[data-cozy="1"][data-portal="teacher"] .cozy-form-grid > .cozy-span-4 {
+    grid-column: span 4;
+  }
+  html[data-cozy="1"][data-portal="teacher"] .cozy-form-grid > .cozy-span-3 {
+    grid-column: span 3;
+  }
+  html[data-cozy="1"][data-portal="teacher"] .cozy-form-grid > .cozy-span-2 {
+    grid-column: span 2;
+  }
+}
+
+@media (min-width: 641px) {
+  html[data-cozy="1"][data-portal="teacher"] .tp-history-filter {
+    max-width: 320px;
+  }
+}
+
+@media (max-width: 620px) {
+  html[data-cozy="1"][data-portal="teacher"] .tp-form-action-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  html[data-cozy="1"][data-portal="teacher"] .tp-form-action-bar-buttons {
+    order: 1;
+    flex-direction: column-reverse;
+    align-items: stretch;
+    margin-left: 0;
+  }
+  html[data-cozy="1"][data-portal="teacher"] .tp-form-action-bar-buttons > * {
+    width: 100%;
+    box-sizing: border-box;
+    justify-content: center;
+  }
+  html[data-cozy="1"][data-portal="teacher"] .tp-form-action-bar-lead {
+    order: 2;
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  html[data-cozy="1"][data-portal="teacher"] .tp-form-action-hint {
+    order: 1;
+  }
+  html[data-cozy="1"][data-portal="teacher"] .tp-form-action-danger {
+    order: 2;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  html[data-cozy="1"][data-portal="teacher"] .tp-form-action-danger > * {
+    width: 100%;
+    box-sizing: border-box;
+    justify-content: center;
+  }
+  html[data-cozy="1"][data-portal="teacher"] .s2l-empty-state {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  html[data-cozy="1"][data-portal="teacher"] .s2l-empty-state > div {
+    width: 100%;
+  }
+  html[data-cozy="1"][data-portal="teacher"] .s2l-empty-state > div > :is(button, a) {
+    width: 100%;
+    justify-content: center;
+  }
+  html[data-cozy="1"][data-portal="teacher"] .s2l-topbar-breadcrumb > a:first-child,
+  html[data-cozy="1"][data-portal="teacher"] .s2l-topbar-breadcrumb > svg:first-of-type {
+    display: none;
+  }
+  html[data-cozy="1"][data-portal="teacher"] .s2l-topbar-breadcrumb > span[aria-current="page"] {
+    max-width: min(56vw, 220px);
+  }
+  html[data-cozy="1"][data-portal="teacher"] .s2l-page-heading-action {
+    width: 100%;
+    justify-content: stretch;
+  }
+  html[data-cozy="1"][data-portal="teacher"] .s2l-page-heading-action > :is(button, a) {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* 9. Teacher lesson authoring layout (JOB-ux-t02): aligned columns, tabs, sticky save bar, flatter sections. */
+html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-layout {
+  align-items: start;
+}
+html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-list-card {
+  margin-top: 0;
+}
+@media (min-width: 901px) {
+  html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-list-card {
+    position: sticky;
+    top: 90px;
+    max-height: calc(100dvh - 108px);
+    overflow-y: auto;
+  }
+}
+
+html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-card {
+  --s2l-lesson-card-pad: var(--s2l-form-card-padding, 22px);
+  margin-top: 0;
+  padding: var(--s2l-lesson-card-pad);
+  background: var(--s2l-ui-paper);
+}
+html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-tabpanel {
+  min-width: 0;
+}
+html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-tabpanel[hidden] {
+  display: none !important;
+}
+
+/* Fewer nested borders: keep one outer card, separate sections by heading and spacing. */
+html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-card .cozy-form-section,
+html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-card .teacher-lesson-tabpanel > section.tw-card {
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-form .cozy-form-section + .cozy-form-section {
+  padding-top: 20px !important;
+  border-top: 1px solid var(--s2l-ui-rule) !important;
+}
+html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-activities {
+  gap: 20px;
+}
+html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-activities .teacher-lesson-activity-item + .teacher-lesson-activity-item {
+  padding-top: 18px !important;
+  border-top: 1px dashed var(--s2l-ui-rule) !important;
+}
+html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-activities .cozy-form-section-head {
+  padding-bottom: 6px;
+  border-bottom: 0;
+}
+html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-activities h4 {
+  margin: 0;
+  color: var(--s2l-ui-ink);
+  font-size: 14px;
+  font-weight: 750;
+}
+
+/* Disclosures: copy from public lesson & optional activity details */
+html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-search-disclosure {
+  border-top: 1px solid var(--s2l-ui-rule);
+  border-bottom: 1px solid var(--s2l-ui-rule);
+  background: var(--s2l-ui-paper-muted);
+  border-radius: 14px;
+}
+html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-search-disclosure > .tp-collapsible-summary {
+  padding: 12px 16px;
+  min-height: 46px;
+  font-size: 14px;
+}
+html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-search-disclosure > .tp-collapsible-body {
+  padding: 4px 16px 16px;
+}
+html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-search-disclosure section.tw-card {
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html[data-cozy="1"][data-portal="teacher"] .teacher-activity-details {
+  border-top: 1px solid var(--s2l-ui-rule);
+  padding-top: 8px;
+}
+html[data-cozy="1"][data-portal="teacher"] .teacher-activity-details-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 4px 2px;
+  color: var(--s2l-ui-primary-hover);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+html[data-cozy="1"][data-portal="teacher"] .teacher-activity-details-summary::-webkit-details-marker {
+  display: none;
+}
+html[data-cozy="1"][data-portal="teacher"] .teacher-activity-details[open] .teacher-activity-details-summary svg {
+  transform: rotate(180deg);
+}
+html[data-cozy="1"][data-portal="teacher"] .teacher-activity-details-summary svg {
+  transition: transform 150ms ease;
+}
+html[data-cozy="1"][data-portal="teacher"] .teacher-activity-details-body {
+  padding-top: 12px;
+}
+
+/* Sticky save bar */
+html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-sticky-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 15;
+  margin-inline: calc(-1 * var(--s2l-lesson-card-pad));
+  margin-bottom: calc(-1 * var(--s2l-lesson-card-pad));
+  padding: 14px var(--s2l-lesson-card-pad) var(--s2l-lesson-card-pad);
+  border-top: 1px solid var(--s2l-ui-rule);
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+  background: var(--s2l-ui-paper);
+  box-shadow: 0 -6px 18px color-mix(in srgb, var(--s2l-ui-shadow-tint) 6%, transparent);
+}
+
+@media (max-width: 620px) {
+  html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-card {
+    --s2l-lesson-card-pad: 16px;
+    padding: 16px;
+  }
+  html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-sticky-bar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px var(--s2l-lesson-card-pad) 12px;
+  }
+  html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-sticky-bar .tp-form-action-hint {
+    display: none;
+  }
+  html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-sticky-bar .tp-form-action-bar-lead {
+    order: 1;
+    flex: 0 1 auto;
+    flex-direction: row;
+    align-items: center;
+  }
+  html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-sticky-bar .tp-form-action-danger {
+    order: 0;
+    flex-direction: row;
+  }
+  html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-sticky-bar .tp-form-action-danger > * {
+    width: auto;
+    min-height: 38px;
+    padding-inline: 10px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-sticky-bar .tp-form-action-bar-buttons {
+    order: 2;
+    flex: 0 1 auto;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-left: auto;
+  }
+  html[data-cozy="1"][data-portal="teacher"] .teacher-lesson-sticky-bar .tp-form-action-bar-buttons > * {
+    width: auto;
+    flex: 0 1 auto;
+    min-height: 40px;
+    padding-inline: 11px;
+    font-size: 12.5px;
+    white-space: nowrap;
+  }
+}
+
+/* Class detail: shorter child rows. The closed "Hồ sơ nổi bật" is a pill, not an empty card,
+   and "Chuyển lớp" shares the name row on wide screens. Presentation only. */
+html[data-cozy="1"][data-portal="teacher"] .tp-roster.s2l-roster-list > li > .teacher-portfolio-card:not(.is-open) {
+  width: auto; justify-self: start; border: 0 !important; border-radius: 0; background: transparent !important;
+  padding: 0 !important; box-shadow: none !important; min-height: 0;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-roster.s2l-roster-list > li > .teacher-portfolio-card:not(.is-open) > button {
+  display: inline-flex; min-height: 40px; align-items: center; border: 1px solid var(--s2l-ui-rule); border-radius: 999px;
+  background: var(--s2l-ui-paper); padding: 6px 16px; font-size: 13px; text-decoration: none; cursor: pointer;
+}
+html[data-cozy="1"][data-portal="teacher"] .tp-roster.s2l-roster-list > li > .teacher-portfolio-card:not(.is-open) > button:hover { border-color: var(--s2l-ui-primary); }
+@media (min-width: 641px) {
+  html[data-cozy="1"][data-portal="teacher"] .tp-roster.s2l-roster-list > li { grid-template-columns: 40px minmax(0, 1fr) auto auto; row-gap: 10px; }
+  html[data-cozy="1"][data-portal="teacher"] .tp-roster.s2l-roster-list > li > .s2l-button { grid-column: 4; grid-row: 1; align-self: center; }
+}

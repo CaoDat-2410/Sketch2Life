@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, BookOpen, School, Users } from "lucide-react";
+import { ArrowRight, BookOpen, GraduationCap, School, Users } from "lucide-react";
 import { PageHeading } from "../../../../shared/components/FeatureAvailability";
 import {
   managerBusinessService,
@@ -10,35 +10,35 @@ import {
 const SUMMARY_CARDS = [
   {
     title: "Lớp học",
-    description: "Đọc các lớp trong organization đã được BE1 xác minh.",
+    description: "Xem và quản lý các lớp học trong phạm vi nhà trường.",
     href: "/school/classes",
     action: "Mở lớp học",
     icon: School,
-    state: "BE1",
+    state: "Quản lý lớp",
   },
   {
     title: "Duyệt học liệu",
-    description: "Rà soát yêu cầu công khai theo version hiện hành.",
+    description: "Rà soát yêu cầu công khai học liệu theo phiên bản hiện hành.",
     href: "/school/review-content",
     action: "Mở yêu cầu",
     icon: BookOpen,
-    state: "API review",
+    state: "Phê duyệt",
   },
   {
-    title: "Roster & consent",
-    description: "Đọc roster tối thiểu và trạng thái consent theo lớp.",
+    title: "Danh sách lớp & đồng ý",
+    description: "Theo dõi sĩ số học sinh và trạng thái xác nhận của phụ huynh theo lớp.",
     href: "/school/teachers",
     action: "Xem theo lớp",
     icon: Users,
-    state: "BE1",
+    state: "Sĩ số & Xác nhận",
   },
   {
     title: "Nhóm phụ huynh",
-    description: "Xem và tạo nhóm trong phạm vi organization của trường.",
+    description: "Tạo nhóm và quản lý lời mời phụ huynh trong trường.",
     href: "/school/parent-groups",
     action: "Mở nhóm",
     icon: Users,
-    state: "Lesson Library",
+    state: "Phụ huynh",
   },
 ];
 
@@ -60,7 +60,7 @@ export function SchoolOverviewPage() {
         if (!controller.signal.aborted) {
           setOrganization(null);
           setOrganizationError(
-            cause instanceof Error ? cause.message : "Không tải được organization từ BE1.",
+            cause instanceof Error ? cause.message : "Không tải được thông tin trường học.",
           );
         }
       })
@@ -71,23 +71,23 @@ export function SchoolOverviewPage() {
   }, []);
 
   return (
-    <div className="s2l-page manager-business-page">
+    <div className="s2l-page manager-business-page manager-overview">
       <PageHeading
-        eyebrow="School Manager"
+        eyebrow="Quản lý trường"
         title="Tổng quan nhà trường"
-        description="Dữ liệu và thao tác chỉ mở trong organization được BE1 xác minh."
+        description="Dữ liệu và thao tác chỉ mở trong phạm vi nhà trường đã được xác minh."
       />
 
-      <section className="manager-business-card" aria-labelledby="school-organization-title">
+      <section className="manager-business-card manager-overview-school" aria-labelledby="school-organization-title">
         <div className="manager-business-card-heading">
           <div>
             <p className="manager-business-eyebrow">Phạm vi hiện tại</p>
-            <h2 id="school-organization-title">Organization nhà trường</h2>
+            <h2 id="school-organization-title">Thông tin trường học</h2>
           </div>
-          <span className="manager-business-chip">GET · BE1</span>
+          <span className="manager-business-chip">Đã xác minh</span>
         </div>
         {organizationLoading ? (
-          <p className="manager-business-state" role="status">Đang tải thông tin organization…</p>
+          <p className="manager-business-state" role="status">Đang tải thông tin nhà trường…</p>
         ) : organizationError ? (
           <p className="manager-business-alert" role="alert">{organizationError}</p>
         ) : organization ? (
@@ -96,13 +96,9 @@ export function SchoolOverviewPage() {
               <dt>Tên trường</dt>
               <dd>{organization.display_name}</dd>
             </div>
-            <div>
-              <dt>Mã organization</dt>
-              <dd className="manager-business-code">{organization.organization_id}</dd>
-            </div>
           </dl>
         ) : (
-          <p className="manager-business-state">BE1 chưa trả thông tin organization.</p>
+          <p className="manager-business-state">Chưa có thông tin trường học.</p>
         )}
       </section>
 
@@ -111,11 +107,11 @@ export function SchoolOverviewPage() {
           const Icon = card.icon;
           return (
             <article className="manager-business-card manager-business-summary" key={card.href}>
+              <span className="manager-business-icon"><Icon size={19} aria-hidden="true" /></span>
               <div className="manager-business-card-heading">
-                <span className="manager-business-icon"><Icon size={19} aria-hidden="true" /></span>
+                <h2>{card.title}</h2>
                 <span className="manager-business-chip">{card.state}</span>
               </div>
-              <h2>{card.title}</h2>
               <p>{card.description}</p>
               <Link to={card.href}>{card.action}<ArrowRight size={16} aria-hidden="true" /></Link>
             </article>
@@ -124,15 +120,15 @@ export function SchoolOverviewPage() {
       </section>
 
       <section className="manager-business-card manager-business-limitation">
+        <span className="manager-business-icon"><GraduationCap size={19} aria-hidden="true" /></span>
         <div>
-          <p className="manager-business-eyebrow">Backend còn thiếu contract</p>
+          <p className="manager-business-eyebrow">Phạm vi vận hành</p>
           <h2>Sức chứa và phân công giáo viên</h2>
-          <p>
-            Tạo lớp đang tạm khóa vì API hiện chưa kiểm tra capacity theo FR-T-03.
-            Phân công Teacher lần đầu đã có ở màn Roster &amp; consent; đổi Teacher của lớp chưa được hỗ trợ.
-          </p>
         </div>
-        <span className="manager-business-chip is-pending">Chờ API</span>
+          <p>
+            Tạo lớp, mời giáo viên, phân công, đổi và gỡ giáo viên phụ trách theo lớp.
+          </p>
+        <span className="manager-business-chip">Sẵn sàng</span>
       </section>
     </div>
   );

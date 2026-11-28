@@ -56,14 +56,17 @@ describe("notifications API", () => {
     const fetcher = setup([
       response(200, { contract: "NotificationPageV1", items: [], next_cursor: null, unread_count: 0 }),
       response(200, { contract: "NotificationPageV1", items: [], next_cursor: null, unread_count: 100 }),
+      response(200, { contract: "NotificationPageV1", items: [], next_cursor: null, unread_count: 1 }),
     ]);
 
     await listNotifications();
     await listNotifications({ limit: 100 });
+    await listNotifications({ limit: 1 });
 
     expect(NOTIFICATIONS_PAGE_LIMIT).toBe(25);
     expect(new URL(call(fetcher, 0).url).searchParams.get("limit")).toBe("25");
     expect(new URL(call(fetcher, 1).url).searchParams.get("limit")).toBe("100");
+    expect(new URL(call(fetcher, 2).url).searchParams.get("limit")).toBe("1");
   });
 
   it("passes an opaque cursor unchanged and sends Accept and X-Request-ID", async () => {

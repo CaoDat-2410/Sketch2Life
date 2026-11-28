@@ -35,14 +35,13 @@ tests {
     expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
     const body = res.getBody();
     expect(body.code).to.equal("STALE_REVISION");
-    expect(body.current_version).to.equal(Number(bru.getVar("teacher_context_revision")));
   });
 }
 
 docs {
-  DRAFT: checked against the final Phase A code at 930da61e; not yet run against a live backend.
+  FIXED after Phase B: checked against the code at 134561f4; not yet run against a live backend.
   Role: Teacher - set bearerToken to seed-tch-a1 token (also works for Parent with parent_story_run_id)
-  Needs: teacher_run_id, teacher_context_revision, and teacher_context_hash from 560
-  Expected: 409 / STALE_REVISION (with current_version)
-  Source: backend/src/sketch2life/infrastructure/persistence/parent_story_repository.py:1300-1340
+  Needs: teacher_run_id and teacher_context_hash from 560
+  Expected: 409 / STALE_REVISION (no current_version: confirm_context raises ParentStoryRunError(409, "STALE_REVISION") without current_version)
+  Source: backend/src/sketch2life/infrastructure/persistence/parent_story_repository.py:1208-1215, backend/src/sketch2life/interfaces/http/routers/parent_story_runs.py:190-199,625-659
 }

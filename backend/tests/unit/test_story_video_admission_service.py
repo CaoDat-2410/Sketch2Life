@@ -160,6 +160,7 @@ class Ports:
     release_results: list[AckStatus] = field(default_factory=list)
     settle_results: list[AckStatus] = field(default_factory=list)
     open_during_call: list[bool] = field(default_factory=list)
+    quota_scopes: list[VideoRequestScope] = field(default_factory=list)
     calls: list[str] = field(default_factory=list)
     delay: float = 0.0
 
@@ -191,6 +192,7 @@ class Ports:
         self.open_during_call.append(self.repo.in_transaction)
         assert kwargs["contract_version"] == "video-quota-port-v1"
         assert isinstance(kwargs["scope"], VideoRequestScope)
+        self.quota_scopes.append(kwargs["scope"])
         item = self.quota_results.pop(0) if self.quota_results else None
         return item or QuotaResult(QuotaStatus.ACCEPTED, "usage-1", "grant-1")
 
@@ -230,12 +232,33 @@ def test_both_receipts_clear_accepts_after_the_intent_and_with_no_transaction_op
     assert repo.available_seen == [True]
     assert repo.record.compute_reservation_ref == "res-1"
     assert repo.record.billing_quota_usage_ref == "usage-1"
+    assert ports.quota_scopes == [VideoRequestScope("PARENT_ACCOUNT", "s" * 64)]
+
+
+def test_teacher_quota_scope_carries_the_active_teacher_account_id() -> None:
+    repo = FakeRepo(
+        record=_record(
+            scope_kind="ORGANIZATION",
+            scope_ref="organization-1",
+            teacher_account_id="teacher-account-1",
+        )
+    )
+    ports = Ports(repo)
+
+    _request(_service(repo, ports))
+
+    assert ports.quota_scopes == [
+        VideoRequestScope("ORGANIZATION", "organization-1", "teacher-account-1")
+    ]
 
 
 @pytest.mark.parametrize(
     ("quota", "code", "status"),
     [
         (QuotaStatus.QUOTA_EXCEEDED, "VIDEO_QUOTA_EXCEEDED", 409),
+        (QuotaStatus.QUOTA_ALLOCATION_NOT_FOUND, "QUOTA_ALLOCATION_NOT_FOUND", 409),
+        (QuotaStatus.TEACHER_QUOTA_INSUFFICIENT, "TEACHER_QUOTA_INSUFFICIENT", 409),
+        (QuotaStatus.SCHOOL_QUOTA_INSUFFICIENT, "SCHOOL_QUOTA_INSUFFICIENT", 409),
         (QuotaStatus.SUBSCRIPTION_RESTRICTED, "SUBSCRIPTION_RESTRICTED", 409),
     ],
 )

@@ -6,8 +6,8 @@ import { managerBusinessService } from "../services/managerBusinessService";
 import { classService } from "../services/classService";
 import { AdminBe1Error } from "../services/be1Client";
 
-const summary = { thread_id: "thread-1", lesson_id: "lesson-1", version_id: "v1", revision: 3, created_at: "2026-11-21T00:00:00Z" };
-const detail = { thread_id: "thread-1", revision: 3, next_cursor: null, items: [{ message_id: "m1", body: "Xin chào", from_you: false, created_at: "2026-11-21T00:00:00Z" }, { message_id: "m2", body: "Đã xem", from_you: true, created_at: "2026-11-21T00:01:00Z" }] };
+const summary = { thread_id: "thread-1", lesson_id: "lesson-1", version_id: "v1", lesson_title: "Toán vui", version_no: 2, revision: 3, created_at: "2026-11-21T00:00:00Z" };
+const detail = { thread_id: "thread-1", lesson_title: "Toán vui", version_no: 2, revision: 3, next_cursor: null, items: [{ message_id: "m1", body: "Xin chào", from_you: false, author_role: "parent" as const, author_display_name: "Phụ huynh An", created_at: "2026-11-21T00:00:00Z" }, { message_id: "m2", body: "Đã xem", from_you: true, author_role: "school_manager" as const, author_display_name: "Cô Mai", created_at: "2026-11-21T00:01:00Z" }] };
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 beforeEach(() => {
   vi.spyOn(managerBusinessService, "feedbackThreads").mockResolvedValue({ items: [summary], next_cursor: null });
@@ -18,9 +18,9 @@ describe("Manager feedback", () => {
   it("shows messages in order and clears the reply after confirmation", async () => {
     const reply = vi.spyOn(managerBusinessService, "replyFeedback").mockResolvedValue({ thread_id: "thread-1", revision: 4 });
     render(<FeedbackPage />);
-    fireEvent.click(await screen.findByRole("button", { name: /Giáo án lesson-1/ }));
-    expect(await screen.findByText("Phụ huynh hoặc nhân sự trường")).toBeTruthy();
-    expect(screen.getByText("Bạn")).toBeTruthy();
+    fireEvent.click(await screen.findByRole("button", { name: /Giáo án Toán vui/ }));
+    expect(await screen.findByText("Phụ huynh An · Phụ huynh")).toBeTruthy();
+    expect(screen.getByText("Bạn · Quản lý trường")).toBeTruthy();
     const input = screen.getByLabelText("Nội dung phản hồi") as HTMLTextAreaElement;
     fireEvent.change(input, { target: { value: "  Cảm ơn  " } });
     fireEvent.click(screen.getByRole("button", { name: "Gửi phản hồi" }));
@@ -34,7 +34,7 @@ describe("Manager feedback", () => {
   it("keeps text and reuses a key after an uncertain failure", async () => {
     const reply = vi.spyOn(managerBusinessService, "replyFeedback").mockRejectedValue(new Error("private server error"));
     render(<FeedbackPage />);
-    fireEvent.click(await screen.findByRole("button", { name: /Giáo án lesson-1/ }));
+    fireEvent.click(await screen.findByRole("button", { name: /Giáo án Toán vui/ }));
     const input = await screen.findByLabelText("Nội dung phản hồi") as HTMLTextAreaElement;
     fireEvent.change(input, { target: { value: "Kiểm tra" } });
     fireEvent.click(screen.getByRole("button", { name: "Gửi phản hồi" }));
@@ -54,7 +54,7 @@ describe("Manager feedback", () => {
   it("reloads a stale thread while retaining the draft", async () => {
     vi.spyOn(managerBusinessService, "replyFeedback").mockRejectedValue(new AdminBe1Error("unsafe", 409, "STALE_REVISION"));
     render(<FeedbackPage />);
-    fireEvent.click(await screen.findByRole("button", { name: /Giáo án lesson-1/ }));
+    fireEvent.click(await screen.findByRole("button", { name: /Giáo án Toán vui/ }));
     const input = await screen.findByLabelText("Nội dung phản hồi") as HTMLTextAreaElement;
     fireEvent.change(input, { target: { value: "Bản nháp" } });
     fireEvent.click(screen.getByRole("button", { name: "Gửi phản hồi" }));
@@ -66,7 +66,7 @@ describe("Manager feedback", () => {
   it.each([[404, "Không tìm thấy"], [403, "không có quyền"], [422, "không hợp lệ"], [500, "Chưa rõ kết quả"]])("reports a safe %i reply failure and preserves the draft", async (status, message) => {
     vi.spyOn(managerBusinessService, "replyFeedback").mockRejectedValue(new AdminBe1Error("secret", status, "error"));
     render(<FeedbackPage />);
-    fireEvent.click(await screen.findByRole("button", { name: /Giáo án lesson-1/ }));
+    fireEvent.click(await screen.findByRole("button", { name: /Giáo án Toán vui/ }));
     const input = await screen.findByLabelText("Nội dung phản hồi") as HTMLTextAreaElement;
     fireEvent.change(input, { target: { value: "Bản nháp" } });
     fireEvent.click(screen.getByRole("button", { name: "Gửi phản hồi" }));
@@ -76,20 +76,20 @@ describe("Manager feedback", () => {
   });
 
   it("deduplicates later pages of threads", async () => {
-    vi.mocked(managerBusinessService.feedbackThreads).mockResolvedValueOnce({ items: [summary], next_cursor: "next" }).mockResolvedValueOnce({ items: [summary, { ...summary, thread_id: "thread-2", lesson_id: "lesson-2" }], next_cursor: null });
+    vi.mocked(managerBusinessService.feedbackThreads).mockResolvedValueOnce({ items: [summary], next_cursor: "next" }).mockResolvedValueOnce({ items: [summary, { ...summary, thread_id: "thread-2", lesson_id: "lesson-2", lesson_title: "Khoa học" }], next_cursor: null });
     render(<FeedbackPage />);
     fireEvent.click(await screen.findByRole("button", { name: "Tải thêm" }));
-    expect(await screen.findByRole("button", { name: /Giáo án lesson-2/ })).toBeTruthy();
-    expect(screen.getAllByRole("button", { name: /Giáo án lesson-1/ })).toHaveLength(1);
+    expect(await screen.findByRole("button", { name: /Giáo án Khoa học/ })).toBeTruthy();
+    expect(screen.getAllByRole("button", { name: /Giáo án Toán vui/ })).toHaveLength(1);
   });
 
   it("ignores a late response from a previously selected thread", async () => {
     let resolveFirst!: (value: typeof detail) => void;
-    vi.mocked(managerBusinessService.feedbackThreads).mockResolvedValue({ items: [summary, { ...summary, thread_id: "thread-2", lesson_id: "lesson-2" }], next_cursor: null });
+    vi.mocked(managerBusinessService.feedbackThreads).mockResolvedValue({ items: [summary, { ...summary, thread_id: "thread-2", lesson_id: "lesson-2", lesson_title: "Khoa học" }], next_cursor: null });
     vi.mocked(managerBusinessService.feedbackThread).mockImplementation((id) => id === "thread-1" ? new Promise((resolve) => { resolveFirst = resolve; }) : Promise.resolve({ ...detail, thread_id: "thread-2", items: [{ ...detail.items[0], body: "Tin thứ hai" }] }));
     render(<FeedbackPage />);
-    fireEvent.click(await screen.findByRole("button", { name: /Giáo án lesson-1/ }));
-    fireEvent.click(screen.getByRole("button", { name: /Giáo án lesson-2/ }));
+    fireEvent.click(await screen.findByRole("button", { name: /Giáo án Toán vui/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Giáo án Khoa học/ }));
     expect(await screen.findByText("Tin thứ hai")).toBeTruthy();
     await act(async () => { resolveFirst(detail); });
     expect(screen.queryByText("Xin chào")).toBeNull();
@@ -105,7 +105,7 @@ describe("Manager feedback", () => {
       .mockResolvedValueOnce({ ...detail, revision: 4 })
       .mockResolvedValue({ ...detail, revision: 5 });
     render(<FeedbackPage />);
-    fireEvent.click(await screen.findByRole("button", { name: /Giáo án lesson-1/ }));
+    fireEvent.click(await screen.findByRole("button", { name: /Giáo án Toán vui/ }));
     const input = await screen.findByLabelText("Nội dung phản hồi") as HTMLTextAreaElement;
     fireEvent.change(input, { target: { value: "Cùng nội dung" } });
     fireEvent.click(screen.getByRole("button", { name: "Gửi phản hồi" }));
@@ -126,7 +126,7 @@ describe("Manager feedback", () => {
 
   it("offers no attachment or completion control", async () => {
     render(<FeedbackPage />);
-    fireEvent.click(await screen.findByRole("button", { name: /Giáo án lesson-1/ }));
+    fireEvent.click(await screen.findByRole("button", { name: /Giáo án Toán vui/ }));
     await screen.findByLabelText("Nội dung phản hồi");
     expect(document.querySelector("input[type=file], input[type=checkbox]")).toBeNull();
     expect(screen.queryByRole("button", { name: /hoàn thành|chat/i })).toBeNull();
@@ -142,13 +142,13 @@ it("lists class status and assignment status without exposing candidate identifi
   expect(row.textContent).toContain("Lớp Lá");
   expect(row.textContent).toContain("Tạm ngưng");
   expect(row.textContent).toContain("Chưa có giáo viên phụ trách");
-  expect(screen.getByText(/không thể phân công Teacher/)).toBeTruthy();
+  expect(screen.getByText(/không thể thay đổi giáo viên phụ trách/)).toBeTruthy();
 });
 
 it("offers a retry when the class list fails", async () => {
   vi.spyOn(classService, "listClasses").mockRejectedValueOnce(new Error("private")).mockResolvedValueOnce([]);
   render(<TeacherAssignmentsPage />);
-  expect(await screen.findByRole("alert")).toBeTruthy();
+  expect(await screen.findByText("Không tải được danh sách lớp.")).toBeTruthy();
   fireEvent.click(screen.getByRole("button", { name: "Tải lại" }));
   expect(await screen.findByText("Chưa có lớp nào trong trường.")).toBeTruthy();
 });

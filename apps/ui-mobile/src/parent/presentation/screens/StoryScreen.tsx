@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { learningNote } from '../../domain/storyDraft';
 import type { StoryDraft, StoryLearning } from '../../domain/types';
 import { Card, Field, Notice, PrimaryButton, SecondaryButton, ScreenFrame, SectionTitle, palette } from '../components/ui';
+import { STORY_RECOVERY_COPY } from '../navigation/parentFlowV1';
 
 type Props = {
   stepLabel: string;
@@ -21,6 +22,13 @@ type Props = {
   rewriting: boolean;
   /** Calm notice after a failed or slow rewrite (the previous story is intact). */
   rewriteNotice: string;
+  recovery?: {
+    available: boolean;
+    busy: boolean;
+    hint: string;
+    onHint: (value: string) => void;
+    onRecover: () => void;
+  };
   /** After a video was marked unsuitable (or failed) on the confirmed script, a rewrite is the way on (T-1b). */
   rewriteAfterVideo: boolean;
   confirmationRequired: boolean;
@@ -49,33 +57,67 @@ export function StoryScreen(props: Props): React.JSX.Element {
       onBack={props.onBack}
       visualTone="creative"
     >
-      {!props.storyReady ? (
+      {!props.storyReady && !props.recovery?.available ? (
         <Notice variant="creative" text={props.blockedReason} tone="warning" />
       ) : null}
       {props.error ? <Notice variant="creative" text={props.error} tone="error" /> : null}
-      {props.rewriting ? <Notice variant="creative" text="Đang viết lại câu chuyện. Câu chuyện hiện tại vẫn được giữ cho đến khi bản mới sẵn sàng." tone="info" /> : null}
+      {props.recovery?.available && props.recovery.busy
+        ? <Notice variant="creative" text={STORY_RECOVERY_COPY.inFlight} tone="info" />
+        : null}
+      {props.rewriting && !props.recovery?.busy
+        ? <Notice variant="creative" text="Đang viết lại câu chuyện. Câu chuyện hiện tại vẫn được giữ cho đến khi bản mới sẵn sàng." tone="info" />
+        : null}
       {props.rewriteNotice ? <Notice variant="creative" text={props.rewriteNotice} tone="warning" /> : null}
 
-      {!props.story && props.generating ? (
-        <Card variant="creative" style={styles.generationCard}>
-          <ActivityIndicator color={palette.creativePrimary} />
-          <View style={styles.generationCopy}>
-            <Text style={styles.eyebrow}>TỪ BỨC TRANH CỦA BÉ</Text>
-            <SectionTitle variant="creative">Đang viết câu chuyện</SectionTitle>
-            <Text style={styles.bodyText}>Câu chuyện sẽ hiện ra ngay tại đây, thường trong khoảng một phút.</Text>
-          </View>
-        </Card>
-      ) : !props.story ? (
-        <Card variant="creative" style={styles.generationCard}>
-          <View style={styles.generationCopy}>
-            <Text style={styles.eyebrow}>TỪ BỨC TRANH CỦA BÉ</Text>
-            <SectionTitle variant="creative">Chưa có câu chuyện để xem</SectionTitle>
-            <Text style={styles.bodyText}>Kiểm tra trạng thái buổi học hoặc mở lịch sử. Không gửi lại yêu cầu tạo câu chuyện.</Text>
-          </View>
-          {props.attempted ? <Notice variant="creative" text="Không gửi lại yêu cầu tạo câu chuyện. Hãy kiểm tra trạng thái buổi học." tone="warning" /> : null}
-          <SecondaryButton variant="creative" label="Kiểm tra trạng thái" disabled={props.busy} onPress={props.onRefresh} />
-          <SecondaryButton variant="creative" label="Mở lịch sử buổi học" disabled={props.busy} onPress={props.onOpenHistory} />
-        </Card>
+      {!props.story ? (
+        props.recovery?.available ? (
+          <Card variant="creative" style={styles.generationCard}>
+            <View style={styles.generationCopy}>
+              <Text style={styles.eyebrow}>TỪ BỨC TRANH CỦA BÉ</Text>
+              <SectionTitle variant="creative">{STORY_RECOVERY_COPY.title}</SectionTitle>
+              <Text style={styles.bodyText}>{STORY_RECOVERY_COPY.body}</Text>
+            </View>
+            <Field
+              variant="creative"
+              label={STORY_RECOVERY_COPY.hintLabel}
+              value={props.recovery.hint}
+              onChangeText={props.recovery.onHint}
+              maxLength={400}
+            />
+            <Text style={styles.bodyText}>{STORY_RECOVERY_COPY.hintHelper}</Text>
+            <PrimaryButton
+              variant="creative"
+              label={STORY_RECOVERY_COPY.button}
+              busy={props.recovery.busy}
+              disabled={props.recovery.busy || props.busy}
+              onPress={props.recovery.onRecover}
+            />
+            <SecondaryButton variant="creative" label="Kiểm tra trạng thái" disabled={props.busy} onPress={props.onRefresh} />
+            <SecondaryButton variant="creative" label="Mở lịch sử buổi học" disabled={props.busy} onPress={props.onOpenHistory} />
+          </Card>
+        ) : (
+          props.generating ? (
+            <Card variant="creative" style={styles.generationCard}>
+              <ActivityIndicator color={palette.creativePrimary} />
+              <View style={styles.generationCopy}>
+                <Text style={styles.eyebrow}>TỪ BỨC TRANH CỦA BÉ</Text>
+                <SectionTitle variant="creative">Đang viết câu chuyện</SectionTitle>
+                <Text style={styles.bodyText}>Câu chuyện sẽ hiện ra ngay tại đây, thường trong khoảng một phút.</Text>
+              </View>
+            </Card>
+          ) : (
+            <Card variant="creative" style={styles.generationCard}>
+              <View style={styles.generationCopy}>
+                <Text style={styles.eyebrow}>TỪ BỨC TRANH CỦA BÉ</Text>
+                <SectionTitle variant="creative">Chưa có câu chuyện để xem</SectionTitle>
+                <Text style={styles.bodyText}>Kiểm tra trạng thái buổi học hoặc mở lịch sử. Không gửi lại yêu cầu tạo câu chuyện.</Text>
+              </View>
+              {props.attempted ? <Notice variant="creative" text="Không gửi lại yêu cầu tạo câu chuyện. Hãy kiểm tra trạng thái buổi học." tone="warning" /> : null}
+              <SecondaryButton variant="creative" label="Kiểm tra trạng thái" disabled={props.busy} onPress={props.onRefresh} />
+              <SecondaryButton variant="creative" label="Mở lịch sử buổi học" disabled={props.busy} onPress={props.onOpenHistory} />
+            </Card>
+          )
+        )
       ) : (
         <>
           <Card variant="creative" style={styles.storyCard}>
@@ -113,14 +155,12 @@ export function StoryScreen(props: Props): React.JSX.Element {
               onPress={() => setDetailsVisible((visible) => !visible)}
               style={styles.detailsToggle}
             >
-              <Text style={styles.detailsLabel}>Thông tin bản nội dung</Text>
+              <Text style={styles.detailsLabel}>Phiên bản câu chuyện</Text>
               <Ionicons name={detailsVisible ? 'chevron-up' : 'chevron-down'} size={16} color={palette.creativePrimary} />
             </TouchableOpacity>
             {detailsVisible ? (
               <View style={styles.metadata}>
-                <Text style={styles.metadataText}>Phiên bản {props.story.revisionNo ?? 'chưa có'}</Text>
-                <Text style={styles.metadataText}>Mã bản: {props.story.revisionId ?? 'chưa có'}</Text>
-                <Text selectable style={styles.metadataText}>SHA-256: {props.story.sha256 ?? 'chưa có'}</Text>
+                <Text style={styles.metadataText}>Bản số {props.story.revisionNo ?? 'chưa có'}</Text>
               </View>
             ) : null}
           </Card>

@@ -1,0 +1,46 @@
+meta {
+  name: 769 [DRAFT-V4C] [LOCAL / TEST ONLY] Refuse same-org Teacher on capacity PATCH with 403
+  type: http
+  seq: 769
+}
+
+patch {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/capacity
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  If-Match: "1"
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "action": "cancel_renewal"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(403);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("ACTION_NOT_ALLOWED");
+  });
+}
+
+docs {
+  DRAFT after Phase C: checked against the code at 0f6e7683; not yet run against a live backend.
+  owner: Billing/Capacity
+  Role: Same-org Teacher (not a School Manager) - set bearerToken to seed-tch-a1 token
+  Needs: organization_id=seed-org-a (_require_m2_assignment allows 403 ACTION_NOT_ALLOWED to pass through for an assigned non-Manager)
+  Expected: 403 / ACTION_NOT_ALLOWED
+  Source: backend/src/sketch2life/interfaces/http/routers/be1_registry.py:283-305,842, backend/src/sketch2life/interfaces/http/routers/be1_common.py:152-155
+}

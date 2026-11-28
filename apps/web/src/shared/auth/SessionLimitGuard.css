@@ -1,0 +1,103 @@
+/* Session warning and expiry dialog. Values come from shared/styles/tokens.css. */
+.s2l-dialog-content.s2l-session-limit-dialog,
+html[data-portal] .s2l-dialog-content.s2l-session-limit-dialog {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(100% - 32px, 420px);
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  padding: var(--s2l-space-8);
+  border: 1px solid var(--s2l-ui-rule);
+  border-radius: var(--s2l-radius-xl);
+  background: var(--s2l-ui-paper);
+  box-shadow: var(--s2l-ui-shadow-dialog);
+  color: var(--s2l-ui-ink);
+  text-align: center;
+}
+
+html[data-portal] .s2l-dialog-overlay:has(+ .s2l-session-limit-dialog) {
+  background: var(--s2l-ui-overlay);
+  backdrop-filter: blur(4px);
+}
+
+html[data-portal] .s2l-dialog-content.s2l-session-limit-dialog > .s2l-dialog-title,
+.s2l-dialog-content.s2l-session-limit-dialog > .s2l-dialog-title {
+  order: 1;
+  width: 100%;
+  margin: 18px 0 0;
+  padding: 0;
+  color: var(--s2l-ui-ink);
+  font-family: var(--s2l-font-display);
+  font-size: var(--s2l-text-2xl);
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+html[data-portal] .s2l-dialog-content.s2l-session-limit-dialog > .s2l-dialog-description,
+.s2l-dialog-content.s2l-session-limit-dialog > .s2l-dialog-description {
+  order: 2;
+  margin: 10px 0 0;
+  color: var(--s2l-ui-ink-soft);
+  font-size: var(--s2l-text-md);
+  line-height: var(--s2l-leading-body);
+}
+
+.s2l-session-limit-icon {
+  display: grid;
+  width: 60px;
+  height: 60px;
+  flex: 0 0 60px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--s2l-ui-primary-soft);
+  color: var(--s2l-ui-primary-hover);
+}
+
+.s2l-session-limit-countdown {
+  order: 3;
+  width: 100%;
+  margin-top: 22px;
+  color: var(--s2l-ui-primary-hover);
+  font-family: var(--s2l-font-display);
+  font-size: 36px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.s2l-session-limit-track { height: 6px; margin-top: 14px; overflow: hidden; border-radius: var(--s2l-radius-pill); background: var(--s2l-ui-primary-soft); }
+.s2l-session-limit-progress { height: 100%; border-radius: inherit; background: var(--s2l-ui-primary); transition: width 1s linear; }
+.s2l-session-limit-actions { order: 4; display: flex; width: 100%; gap: 10px; margin-top: 26px; }
+html[data-portal] .s2l-session-limit-dialog .s2l-session-limit-actions button,
+.s2l-session-limit-dialog .s2l-session-limit-actions button {
+  display: inline-flex;
+  min-height: var(--s2l-control-height);
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  border: 1px solid transparent;
+  border-radius: var(--s2l-radius-md);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--s2l-text-md);
+  font-weight: 700;
+  line-height: 1.25;
+}
+html[data-portal] .s2l-session-limit-dialog .s2l-session-limit-actions .s2l-session-limit-continue,
+.s2l-session-limit-dialog .s2l-session-limit-actions .s2l-session-limit-continue { flex: 1; background: var(--s2l-ui-primary); color: var(--s2l-ui-on-primary); }
+html[data-portal] .s2l-session-limit-dialog .s2l-session-limit-actions .s2l-session-limit-continue:hover,
+.s2l-session-limit-dialog .s2l-session-limit-actions .s2l-session-limit-continue:hover { background: var(--s2l-ui-primary-hover); }
+html[data-portal] .s2l-session-limit-dialog .s2l-session-limit-actions .s2l-session-limit-logout,
+.s2l-session-limit-dialog .s2l-session-limit-actions .s2l-session-limit-logout { background: var(--s2l-ui-primary-soft); color: var(--s2l-ui-primary-hover); }
+.s2l-session-limit-actions button:focus-visible { outline: 3px solid var(--s2l-ui-focus); outline-offset: 3px; }
+@media (max-width: 380px) {
+  html[data-portal] .s2l-dialog-content.s2l-session-limit-dialog, .s2l-dialog-content.s2l-session-limit-dialog { padding: var(--s2l-space-6); }
+  .s2l-session-limit-actions { flex-direction: column; }
+  .s2l-session-limit-actions button { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-portal] .s2l-dialog-overlay:has(+ .s2l-session-limit-dialog),
+  html[data-portal] .s2l-dialog-content.s2l-session-limit-dialog { animation: none; }
+  .s2l-session-limit-progress { transition: none; }
+}

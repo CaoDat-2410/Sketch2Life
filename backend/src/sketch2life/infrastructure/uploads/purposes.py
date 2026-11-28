@@ -22,6 +22,7 @@ from sketch2life.application.ports.upload_validation import DOCX_MEDIA_TYPE, PPT
 RUN_ARTWORK: Final = "RUN_ARTWORK"
 RUN_AUDIO: Final = "RUN_AUDIO"
 OCCURRENCE_DOCUMENT: Final = "OCCURRENCE_DOCUMENT"
+PRESENTATION_IMAGE: Final = "PRESENTATION_IMAGE"
 
 MAX_IMAGE_BYTES: Final = 20 * 1024 * 1024
 MAX_DOCUMENT_BYTES: Final = 25_000_000
@@ -81,6 +82,16 @@ POLICIES: Final[dict[str, UploadPurposePolicy]] = {
         needs_file_name=True,
         enabled=True,
     ),
+    PRESENTATION_IMAGE: UploadPurposePolicy(
+        purpose=PRESENTATION_IMAGE,
+        account_role="teacher",
+        media_types=frozenset(IMAGE_EXTENSIONS),
+        max_bytes=MAX_IMAGE_BYTES,
+        too_large_code="MEDIA_TOO_LARGE",
+        unsupported_code="UNSUPPORTED_MEDIA_TYPE",
+        needs_file_name=False,
+        enabled=True,
+    ),
     RUN_AUDIO: UploadPurposePolicy(
         purpose=RUN_AUDIO,
         account_role="parent",
@@ -117,6 +128,7 @@ __all__ = [
     "MAX_IMAGE_BYTES",
     "OCCURRENCE_DOCUMENT",
     "POLICIES",
+    "PRESENTATION_IMAGE",
     "RUN_ARTWORK",
     "RUN_AUDIO",
     "UploadPurposePolicy",

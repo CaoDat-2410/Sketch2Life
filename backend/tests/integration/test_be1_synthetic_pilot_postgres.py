@@ -69,6 +69,7 @@ from sqlalchemy import (
     func,
     inspect,
     select,
+    text,
     update,
 )
 from sqlalchemy.engine import make_url
@@ -521,7 +522,25 @@ def _delete_test_organization_rows(
     deleted_jobs = 0
     if created_ai_jobs and (jobs is None or attempts is None or completion_receipts is None):
         raise AssertionError("AI job cleanup tables are unavailable")
+    profiles = tables.get(("public", "be1_managed_profiles"))
+    revisions = tables.get(("public", "be1_profile_revisions"))
     with engine.begin() as connection:
+        if profiles is not None and revisions is not None:
+            # T-12b: a profile and its revisions point at each other (a RESTRICT foreign key and a
+            # deferred head key) and the revision rows carry no organization column, so the
+            # reflected table order cannot clean them. In this disposable-database teardown,
+            # `session_replication_role = replica` (this transaction only) switches the foreign
+            # keys and the append-only trigger off, and the org's revision rows go first.
+            connection.execute(text("SET LOCAL session_replication_role = replica"))
+            connection.execute(
+                delete(revisions).where(
+                    revisions.c.child_id.in_(
+                        select(profiles.c.child_id).where(
+                            profiles.c.organization_id == organization_id
+                        )
+                    )
+                )
+            )
         for job_id, attempt_ids in created_ai_jobs:
             assert attempts is not None
             assert completion_receipts is not None
@@ -1611,17 +1630,31 @@ def test_t011_school_manager_gets_the_count_summary_on_class_profile_list(
     assert unknown_org.json()["code"] == "RESOURCE_NOT_FOUND"
 
 
-def test_t011_teacher_class_profile_list_is_unchanged(pilot_harness: PilotHarness) -> None:
+def test_t011_teacher_class_profile_list_counts_a_pending_real_profile_without_listing_it(
+    pilot_harness: PilotHarness,
+) -> None:
     harness = pilot_harness
     with _acting_as_teacher(harness):
         empty = harness.client.get(_class_profiles_path(harness))
         assert empty.status_code == 200, empty.text
-        assert empty.json() == {"contract": "Be1ManagedProfileListV1", "items": []}
+        assert empty.json() == {
+            "contract": "Be1ManagedProfileListV1",
+            "items": [],
+            "next_cursor": None,
+            "active_profile_count": 0,
+        }
         _add_pending_consent_profile(harness)
+        # T-7e (D-066-100): a REAL profile with a pending consent is not released. The Teacher
+        # gets 200, no item and the aggregate count (it was 409 CONSENT_NOT_EFFECTIVE).
         pending = harness.client.get(_class_profiles_path(harness))
-        assert pending.status_code == 409, pending.text
-        assert pending.json()["code"] == "CONSENT_NOT_EFFECTIVE"
-        assert "items" not in pending.json()
+        assert pending.status_code == 200, pending.text
+        assert pending.json() == {
+            "contract": "Be1ManagedProfileListV1",
+            "items": [],
+            "next_cursor": None,
+            "active_profile_count": 1,
+        }
+        assert "Synthetic Roster Guard Profile" not in pending.text
     with _acting_as_teacher(harness):
         # The Teacher is assigned to the harness class only; any other class id is out of scope.
         unknown_class = harness.client.get(_class_profiles_path(harness, _synthetic_id()))

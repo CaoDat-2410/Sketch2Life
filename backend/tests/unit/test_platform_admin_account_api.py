@@ -410,8 +410,8 @@ def test_recovery_is_neutral_and_email_worker_does_not_persist_action_links(acco
             db, SimpleNamespace(smtp_from="test@example.test"), provider, delivered.append
         )
         assert result == {"sent": 2, "failed": 0}
-        assert all("synthetic-secret" in m.get_content() for m in delivered)
-        assert all("/verify?" in m.get_content() for m in delivered)
+        assert all("synthetic-secret" in m.get_body(("plain",)).get_content() for m in delivered)
+        assert all("/verify?" in m.get_body(("plain",)).get_content() for m in delivered)
         assert {m["Subject"] for m in delivered} == {
             "Thiết lập mật khẩu Sketch2Life", "Đặt lại mật khẩu Sketch2Life"
         }

@@ -1,0 +1,45 @@
+meta {
+  name: 825 [DRAFT-V4D] [LOCAL / TEST ONLY] Reject Teacher assignment with stale If-Match
+  type: http
+  seq: 825
+}
+
+post {
+  url: {{baseUrl}}/api/be1/v1/classes/seed-org-a-class-1/assignments
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  If-Match: "999999"
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "candidate_ref": "seed-tch-a3"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("STALE_REVISION");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against the code in .worktrees/v4d at working tree on 9e439cee; not yet run against a live backend.
+  Role: Assigned School Manager - set bearerToken to seed-mgr-a token
+  Needs: seed-org-a-class-1
+  Expected: 409 / STALE_REVISION
+  Source: backend/src/sketch2life/interfaces/http/routers/be1_registry.py:523-526
+}

@@ -1,0 +1,50 @@
+meta {
+  name: 741 [DRAFT-V4C] [LOCAL / TEST ONLY] Parent WEB_PUSH registration returns 503 default without adapters
+  type: http
+  seq: 741
+}
+
+post {
+  url: {{baseUrl}}/v1/notifications/push-endpoints
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "contract": "PushEndpointRegistrationV1",
+    "platform_kind": "WEB",
+    "provider_kind": "WEB_PUSH",
+    "encrypted_registration_proof": "synthetic:default-fail-closed-probe",
+    "app_version": "1.0.0"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(503);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.code).to.equal("PUSH_REGISTRATION_UNAVAILABLE");
+    expect(body.retryable).to.equal(true);
+  });
+}
+
+docs {
+  DRAFT: written from the Phase C code at f031fc70; not yet run against a live backend.
+  Role: Active Parent - set bearerToken to seed-parent-p1 token
+  Needs: production/default wiring (get_push_endpoint_service injects no proof or key adapters, failing closed with 503)
+  Expected: 503 / PUSH_REGISTRATION_UNAVAILABLE (retryable true)
+  Source: backend/src/sketch2life/interfaces/http/routers/notifications.py:79-81,182-233, backend/src/sketch2life/application/services/push_endpoints.py:164-183,388-413
+}

@@ -5,12 +5,9 @@ import {
   ArrowUpRight,
   Building2,
   Check,
-  Mail,
   Users,
   Activity,
-  BookOpen,
   ShieldCheck,
-  ArrowRight,
   Plus,
   MessageSquareText,
   CircleCheck,
@@ -27,7 +24,11 @@ import {
   TriangleAlert,
   ListFilter,
 } from "lucide-react";
-import { backendApi } from "../../../shared/api/backendApi";
+import { backendApi, createIdempotencyKey } from "../../../shared/api/backendApi";
+import { useSessionScopedDraft, type SessionDraftAuth } from "../../../shared/hooks/useSessionScopedDraft";
+import { authService } from "../../school-manager/be1/services/authService";
+import { feedbackAuthorLabel } from "../../../shared/api/feedbackLabels";
+import { eventLabel, events } from "../components/dashboard/adminEventLabels";
 import {
   read,
   readAllPages,
@@ -43,7 +44,6 @@ import {
   type Lifecycle,
   type Inbox,
   type Settings,
-  type Preferences,
   type AdminSession,
   type Grant,
   type Feedback as FeedbackItem,
@@ -93,257 +93,46 @@ async function readApiHealth(): Promise<ApiHealth> {
     if (health.status !== "ok") throw new Error("Health probe failed");
     return health;
   } catch {
-    throw new Error("Không thể xác nhận trạng thái API.");
+    throw new Error("Không thể xác nhận trạng thái dịch vụ.");
   }
 }
 
-export function OverviewPage() {
-  const [currentDate] = useState(() =>
-    new Intl.DateTimeFormat("vi-VN", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-      timeZone: "Asia/Ho_Chi_Minh",
-    }).format(new Date()),
-  );
-  const schools = useAdminQuery(
-    () => read<Page<Organization>>("/organizations?limit=5"),
-    "overview-schools",
-  );
-  const accounts = useAdminQuery(
-    () => backendApi.listPlatformAccounts({ limit: 1 }),
-    "overview-accounts",
-  );
-  const operations = useAdminQuery(
-    () => read<Operations>("/operations"),
-    "overview-operations",
-  );
-  const inbox = useAdminQuery(
-    () => read<Page<Inbox>>("/inbox?limit=3"),
-    "overview-inbox",
-  );
-  const pendingLessons = useAdminQuery(() => read<Page<unknown>>("/lessons?state=PENDING_REVIEW&limit=1"), "overview-pending-lessons");
-  const reload = () => {
-    pendingLessons.reload();
-    schools.reload();
-    accounts.reload();
-    operations.reload();
-    inbox.reload();
-  };
-  const shortcuts = [
-    {
-      title: "Quản lý trường học",
-      icon: Building2,
-      to: "?panel=orgs",
-    },
-    {
-      title: "Tài khoản & vai trò",
-      icon: Users,
-      to: "/platform/accounts",
-    },
-    {
-      title: "Thư viện học liệu",
-      icon: BookOpen,
-      to: "/platform/a01-content-moderation",
-    },
-    {
-      title: "Phân quyền duyệt",
-      icon: ShieldCheck,
-      to: "?panel=permissions",
-    },
-  ];
-  return (
-    <div className="pa-page pa-dashboard pa-dashboard-v2">
-      <Heading
-        title="Tổng quan"
-      >
-        <span className="pa-current-date">{currentDate}</span>
-        <Refresh
-          onClick={reload}
-          disabled={schools.loading || accounts.loading || operations.loading || inbox.loading}
-        />
-      </Heading>
-      <section className="pa-metrics" aria-label="Số liệu tổng quan">
-        <Link to="?panel=orgs">
-          <span className="pa-metric-icon">
-            <Building2 size={19} />
-          </span>
-          <span>Trường học</span>
-          <strong>{schools.loading ? "…" : schools.error ? "—" : schools.data?.total ?? "—"}</strong>
-          {schools.error && <small>Không tải được số liệu</small>}
-          <ArrowUpRight size={16} />
-        </Link>
-        <Link to="/platform/accounts" aria-label="Tài khoản · Quản lý tài khoản">
-          <span className="pa-metric-icon">
-            <Users size={19} />
-          </span>
-          <span>Tài khoản</span>
-          <strong>{accounts.loading ? "…" : accounts.error ? "—" : accounts.data?.total ?? "—"}</strong>
-          {accounts.error && <small>Không tải được số liệu</small>}
-          <ArrowUpRight size={16} />
-        </Link>
-        <Link to="/platform/a01-content-moderation?state=PENDING_REVIEW">
-          <span className="pa-metric-icon"><ListFilter size={19} /></span>
-          <span>Học liệu chờ duyệt</span>
-          <strong>{pendingLessons.loading ? "…" : pendingLessons.error ? "—" : pendingLessons.data?.total ?? "—"}</strong>
-          {pendingLessons.error && <small>Không tải được số liệu</small>}
-          <ArrowUpRight size={16} />
-        </Link>
-        <Link to="?panel=inbox">
-          <span className="pa-metric-icon">
-            <Mail size={19} />
-          </span>
-          <span>Chưa đọc</span>
-          <strong>{inbox.loading ? "…" : inbox.error ? "—" : inbox.data?.unread_count ?? "—"}</strong>
-          {inbox.error && <small>Không tải được số liệu</small>}
-          <ArrowUpRight size={16} />
-        </Link>
-      </section>
-      <div className="pa-dashboard-grid">
-                <section className="pa-panel pa-schools-preview">
-                  <div className="pa-section-heading">
-                    <div><h2>Trường học trên nền tảng</h2><p>{schools.data ? `Hiển thị ${schools.data.items.length} trên ${schools.data.total ?? "—"} trường` : "Danh sách trường được cấp phép trên nền tảng"}</p></div>
-                    <Link to="?panel=orgs">Xem tất cả <ArrowUpRight size={14} /></Link>
-                  </div>
-                  <LoadBoundary {...schools}>
-                    {schools.data && <Table
-                      items={schools.data.items}
-                      rowKey={(school) => school.organization_id}
-                      emptyText="Chưa có trường học"
-                      emptyDetail="Tạo trường học để bắt đầu."
-                      columns={[
-                        { title: "Trường học", render: (school) => (
-                          <div className="pa-school-cell"><span aria-hidden="true">{school.display_name.replace(/^\[TEST\]\s*/, "").split(/\s+/).slice(0, 2).map((word) => word[0]).join("").toUpperCase()}</span><strong>{school.display_name}</strong></div>
-                        ) },
-                        { title: "Trạng thái", render: (school) => <Status value={school.state} /> },
-                        { title: "Thao tác", render: (school) => <Link className="pa-school-open"
-                          aria-label={"Mở " + school.display_name}
-                          to={"?panel=orgs&search=" + encodeURIComponent(school.display_name)}
-                        >Mở <ArrowUpRight size={15} aria-hidden="true" /></Link> },
-                      ]}
-                    />}
-                  </LoadBoundary>
-                </section>
-              <section className="pa-panel pa-inbox-preview">
-                <div className="pa-section-heading">
-                  <div>
-                    <h2>Thông báo gần đây</h2>
-                  </div>
-                  <span className="pa-notification-count" aria-label="Số thông báo chưa đọc">
-                    {inbox.loading ? "…" : inbox.error ? "—" : inbox.data?.unread_count ?? "—"}
-                  </span>
-                </div>
-                <LoadBoundary {...inbox}>
-                {inbox.data?.items.length ? (
-                  <div className="pa-notification-feed">
-                    {inbox.data.items.slice(0, 3).map((n) => (
-                      <Link
-                        to="?panel=inbox"
-                        className={
-                          "pa-notification" + (n.is_read ? " is-read" : "")
-                        }
-                        key={n.item_id}
-                      >
-                        <span className="pa-notification-icon">
-                          <Mail size={16} />
-                        </span>
-                        <div>
-                          <strong>{eventLabel(n.kind)}</strong>
-                          <small>{date(n.created_at)}</small>
-                        </div>
-                        {!n.is_read && (
-                          <span className="pa-dot" aria-label="Chưa đọc" />
-                        )}
-                        <ArrowUpRight className="pa-notification-arrow" size={15} aria-hidden="true" />
-                      </Link>
-                    ))}
-                  </div>
-                ) : (
-                  <Empty
-                    text="Chưa có thông báo mới"
-                  />
-                )}
-                </LoadBoundary>
-                <Link className="pa-inbox-more" to="?panel=inbox">
-                  Xem tất cả thông báo <ArrowRight size={16} />
-                </Link>
-              </section>
-                      <section className="pa-panel pa-activity-panel">
-                  <div className="pa-section-heading">
-                    <div>
-                      <h2>Phân bố bản ghi xử lý</h2>
-                    </div>
-                    <Link to="?panel=queues">
-                      Xem chi tiết <ArrowUpRight size={14} />
-                    </Link>
-                  </div>
-                  <LoadBoundary {...operations}>
-                    {operations.data && <ProcessingDistribution operations={operations.data} />}
-                  </LoadBoundary>
-                </section>
-                <section className="pa-panel pa-quick-panel">
-                  <div className="pa-section-heading">
-                    <div>
-                      <h2>Truy cập nhanh</h2>
-                    </div>
-                  </div>
-                  <div className="pa-shortcuts">
-                    {shortcuts.map((item) => (
-                      <Link
-                        className="pa-shortcut"
-                        key={item.title}
-                        to={item.to}
-                      >
-                        <span className="pa-shortcut-icon">
-                          <item.icon size={20} />
-                        </span>
-                        <strong>{item.title}</strong>
-                        <ArrowRight size={17} />
-                      </Link>
-                    ))}
-                  </div>
-                </section>
-      </div>
-    </div>
-  );
+function apiServiceLabel(service?: string): string {
+  if (!service) return "Dịch vụ Sketch2Life";
+  if (/sketch2life/i.test(service) && /\bapi\b/i.test(service)) return "Dịch vụ Sketch2Life";
+  if (/^api$/i.test(service.trim())) return "Dịch vụ nền tảng";
+  return service;
 }
-function ProcessingDistribution({ operations }: { operations: Operations }) {
-  const groups = [
-    { key: "jobs", title: "Công việc AI", color: "var(--pa-chart-ai)", rows: operations.jobs },
-    { key: "email", title: "Email", color: "var(--pa-chart-email)", rows: operations.email },
-    { key: "core_outbox", title: "Sự kiện", color: "var(--pa-chart-event)", rows: operations.core_outbox },
-    { key: "lifecycle", title: "Vòng đời dữ liệu", color: "var(--pa-chart-lifecycle)", rows: operations.lifecycle },
-  ].map((group) => ({ ...group, count: group.rows.reduce((sum, row) => sum + row.count, 0) }));
-  const total = groups.reduce((sum, group) => sum + group.count, 0);
-  let end = 0;
-  const segments = groups.map((group) => {
-    const start = end;
-    end += total ? group.count / total * 100 : 0;
-    return group.color + " " + start + "% " + end + "%";
-  });
-  return <div className="pa-donut-layout">
-    <div className="pa-donut" role="img" aria-label={total ? `Phân bố ${total} bản ghi; chi tiết trong bảng bên cạnh` : "Chưa có bản ghi xử lý"}
-      style={{ background: total ? `conic-gradient(${segments.join(",")})` : "var(--pa-border)" }}>
-      <div><strong>{total.toLocaleString("vi-VN")}</strong><span>{total ? "Tổng bản ghi" : "Chưa có dữ liệu"}</span></div>
-    </div>
-    <table className="pa-donut-legend" aria-label="Số bản ghi theo nhóm">
-      <thead><tr><th scope="col">Nhóm</th><th scope="col">Số lượng</th><th scope="col">Tỷ trọng</th></tr></thead>
-      <tbody>{groups.map((group) => <tr key={group.key}>
-        <th scope="row"><span style={{ background: group.color }} aria-hidden="true" />{group.title}</th>
-        <td>{group.count.toLocaleString("vi-VN")}</td>
-        <td>{total ? (group.count / total * 100).toLocaleString("vi-VN", { maximumFractionDigits: 1 }) + "%" : "—"}</td>
-      </tr>)}</tbody>
-    </table>
-  </div>;
+
+function lowercaseTitleKeepingAcronyms(title: string): string {
+  return title.replace(/\S+/gu, (word) => /^[\p{Lu}\p{N}]+$/u.test(word) ? word : word.toLocaleLowerCase("vi-VN"));
 }
+
+export { DashboardOverviewPage as OverviewPage } from "../components/dashboard/DashboardOverviewPage";
+
+type OrganizationCreateDraft = {
+  open: boolean;
+  name: string;
+  actionKeys: Record<string, string>;
+};
+
+const EMPTY_ORGANIZATION_CREATE_DRAFT: OrganizationCreateDraft = { open: false, name: "", actionKeys: {} };
+const draftAuth: SessionDraftAuth = {
+  getCurrentUser: () => authService.getCurrentUser(),
+  observe: (callback) => authService.observe((user) => callback(user)),
+};
 
 export function OrganizationsPage() {
   const [params, setParams] = useSearchParams();
   const search = params.get("search") ?? "";
   const state = params.get("state") ?? "";
   const pagination = useAdminCursor(JSON.stringify([search, state]));
-  const [name, setName] = useState("");
-  const [creating, setCreating] = useState(false);
+  const [createDraft, setCreateDraft, clearCreateDraft] = useSessionScopedDraft(
+    "platform-admin:organization-create",
+    EMPTY_ORGANIZATION_CREATE_DRAFT,
+    draftAuth,
+  );
+  const { name, open: creating, actionKeys } = createDraft;
   const [editing, setEditing] = useState<Organization | null>(null);
   const [editName, setEditName] = useState("");
   const [editState, setEditState] = useState("");
@@ -362,7 +151,7 @@ export function OrganizationsPage() {
   return (
     <div className="pa-page pa-organizations">
       <Heading title="Trường học">
-        <Button primary disabled={creating} onClick={() => setCreating(true)}>
+        <Button primary disabled={creating} onClick={() => setCreateDraft((current) => ({ ...current, open: true }))}>
           <Plus size={18} aria-hidden="true" />Thêm trường học
         </Button>
         <Refresh onClick={reload} disabled={q.loading || stats.loading} />
@@ -376,21 +165,26 @@ export function OrganizationsPage() {
           </div>
           <Form onSubmit={() => {
             if (cmd.busy || !name.trim()) return;
+            const submittedName = name.trim();
+            const idempotencyKey = actionKeys[submittedName] ?? createIdempotencyKey();
+            if (!actionKeys[submittedName]) {
+              setCreateDraft((current) => ({ ...current, actionKeys: { ...current.actionKeys, [submittedName]: idempotencyKey } }));
+            }
             void cmd.run(
-              () => cmd.send("/organizations", { display_name: name.trim() }),
-              () => { setName(""); setCreating(false); pagination.reset(); reload(); },
+              () => cmd.send("/organizations", { display_name: submittedName }, undefined, "POST", idempotencyKey),
+              () => { clearCreateDraft(); pagination.reset(); reload(); },
             );
           }}>
             <Field label="Tên trường học">
               <input autoFocus required maxLength={200} value={name}
                 placeholder="Ví dụ: Trường Mầm non Hoa Mai" disabled={cmd.busy}
-                onChange={(e) => setName(e.target.value)} />
+                onChange={(e) => setCreateDraft((current) => ({ ...current, name: e.target.value }))} />
             </Field>
             <div className="pa-actions">
               <Button primary type="submit" disabled={cmd.busy || !name.trim()}>
                 {cmd.busy ? "Đang tạo…" : "Tạo trường học"}
               </Button>
-              <Button disabled={cmd.busy} onClick={() => { setCreating(false); setName(""); }}>Hủy</Button>
+              <Button disabled={cmd.busy} onClick={clearCreateDraft}>Hủy</Button>
             </div>
           </Form>
         </section>
@@ -513,7 +307,7 @@ export function OrganizationsPage() {
               </div> },
             ]} /> : <Empty text={search || state ? "Không tìm thấy trường phù hợp" : "Chưa có trường học"}
               detail={search || state ? "Thử từ khóa, trạng thái khác hoặc xóa bộ lọc để xem toàn bộ danh sách." : "Thêm trường học đầu tiên để bắt đầu quản lý."}
-              action={<Button onClick={() => { if (search || state) clearFilter(); else setCreating(true); }}>{search || state ? "Xóa bộ lọc" : "Thêm trường học"}</Button>} />}
+              action={<Button onClick={() => { if (search || state) clearFilter(); else setCreateDraft((current) => ({ ...current, open: true })); }}>{search || state ? "Xóa bộ lọc" : "Thêm trường học"}</Button>} />}
           <CursorPager page={pagination.page} count={q.data?.items.length ?? 0} total={q.data?.total}
             nextCursor={q.data?.next_cursor} onNext={pagination.next} onPrevious={pagination.back} disabled={q.loading} />
         </section>
@@ -594,10 +388,10 @@ export function OperationsPage() {
           : "idle";
   const healthCards = [
     {
-      title: "API nền tảng",
+      title: "Dịch vụ nền tảng",
       status: apiState,
-      detail: apiHealth.loading ? "Đang kiểm tra phản hồi" : apiHealth.error || "API phản hồi bình thường",
-      value: apiHealth.data?.service ?? "Sketch2Life API",
+      detail: apiHealth.loading ? "Đang kiểm tra phản hồi" : apiHealth.error || "Dịch vụ phản hồi bình thường",
+      value: apiServiceLabel(apiHealth.data?.service),
       icon: Activity,
     },
     {
@@ -608,16 +402,16 @@ export function OperationsPage() {
       icon: Database,
     },
     {
-      title: "Redis / hàng đợi",
+      title: "Bộ nhớ đệm / hàng đợi",
       status: broker?.status ?? (q.loading ? "loading" : "unavailable"),
       detail: broker?.status === "not_configured" ? "Chưa cấu hình kết nối" : broker?.response_ms == null ? "Chưa có số đo mới" : `Phản hồi ${broker.response_ms} ms`,
       value: broker?.status === "healthy" ? `${broker.queue_count ?? 0} hàng đợi · ${broker.transport_pending_count ?? 0} tác vụ chờ` : "Chưa xác nhận",
       icon: Server,
     },
     {
-      title: "Worker đang hoạt động",
+      title: "Tiến trình xử lý đang hoạt động",
       status: workerStatus,
-      detail: broker?.active_workers == null ? "Số worker chưa khả dụng" : `${broker.active_workers} worker có heartbeat còn hạn`,
+      detail: broker?.active_workers == null ? "Số tiến trình xử lý chưa khả dụng" : `${broker.active_workers} tiến trình xử lý có tín hiệu hoạt động còn hạn`,
       value: broker?.active_workers == null ? "—" : String(broker.active_workers),
       icon: Users,
     },
@@ -628,13 +422,14 @@ export function OperationsPage() {
     error: "Không thể xác nhận",
     unavailable: "Không khả dụng",
     not_configured: "Chưa cấu hình",
-    idle: "Chưa có worker",
+    idle: "Chưa có tiến trình xử lý",
   })[value as "healthy" | "loading" | "error" | "unavailable" | "not_configured" | "idle"] ?? "Chưa rõ trạng thái";
-  const tables: Array<{ title: string; rows: Operation[] }> = q.data ? [
-    { title: "Công việc AI", rows: q.data.jobs },
-    { title: "Sự kiện chờ xử lý", rows: q.data.core_outbox },
-    { title: "Gửi email", rows: q.data.email },
-    { title: "Vòng đời dữ liệu", rows: q.data.lifecycle },
+  // typeLabel is shown in the "Loại" column when a row carries no job type of its own.
+  const tables: Array<{ title: string; typeLabel: string; rows: Operation[] }> = q.data ? [
+    { title: "Công việc AI", typeLabel: "Công việc AI", rows: q.data.jobs },
+    { title: "Sự kiện chờ xử lý", typeLabel: "Hàng đợi sự kiện", rows: q.data.core_outbox },
+    { title: "Gửi email", typeLabel: "Email hệ thống", rows: q.data.email },
+    { title: "Vòng đời dữ liệu", typeLabel: "Vòng đời dữ liệu", rows: q.data.lifecycle },
   ] : [];
 
   return (
@@ -643,7 +438,7 @@ export function OperationsPage() {
         <CozyButton className="max-[620px]:w-full" onClick={refresh} disabled={q.loading || apiHealth.loading} iconLeft={<RefreshCw size={16} aria-hidden="true" />}>Tải lại</CozyButton>
       </Heading>
       <Section title="Tình trạng hệ thống" variant="plain">
-        <div aria-live="polite" className="grid min-w-0 grid-cols-1 gap-3 p-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div aria-live="polite" className="pa-ops-grid grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {healthCards.map(({ title, status, detail, value, icon: Icon }) => (
             <StatCard
               key={title}
@@ -658,7 +453,7 @@ export function OperationsPage() {
         </div>
       </Section>
       <LoadBoundary {...q}>
-        {q.data?.queue && <div aria-label="Tóm tắt hàng đợi" className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {q.data?.queue && <div aria-label="Tóm tắt hàng đợi" className="pa-ops-grid grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard
             label="Tác vụ đang chờ"
             value={q.data.queue.queued_jobs.toLocaleString("vi-VN")}
@@ -680,15 +475,15 @@ export function OperationsPage() {
             helperText="Thất bại có thể thử lại, thất bại cuối hoặc bị chặn"
           />
           <StatCard
-            label="Tác vụ trên Redis"
+            label="Tác vụ trên bộ nhớ đệm"
             value={q.data.broker?.transport_pending_count?.toLocaleString("vi-VN") ?? "—"}
             icon={<Server size={19} aria-hidden="true" />}
             accent="butter"
             helperText={q.data.queue.last_dispatched_at ? `Gửi gần nhất ${date(q.data.queue.last_dispatched_at)}` : "Chưa ghi nhận lần gửi gần đây"}
           />
         </div>}
-        {q.data && <div className="grid min-w-0 grid-cols-1 items-start gap-4 xl:grid-cols-2">
-          {tables.map(({ title, rows }) => (
+        {q.data && <div className="grid min-w-0 grid-cols-1 items-stretch gap-4 xl:grid-cols-2">
+          {tables.map(({ title, typeLabel, rows }) => (
             <Section title={title} key={title}>
               <DataTable
                 caption={title}
@@ -701,10 +496,10 @@ export function OperationsPage() {
                     header: "Trạng thái",
                     render: (row) => <StatusBadge tone={operationTone(row.state)} size="sm">{label(row.state)}</StatusBadge>,
                   },
-                  { key: "type", header: "Loại", render: (row) => row.job_type ?? "—" },
+                  { key: "type", header: "Loại", render: (row) => row.job_type ?? typeLabel },
                   { key: "count", header: "Số lượng", numeric: true, render: (row) => row.count },
                 ]}
-                emptyState={<EmptyState title={`Chưa có bản ghi ${title.toLocaleLowerCase("vi-VN")}`} />}
+                emptyState={<EmptyState title={`Chưa có bản ghi ${lowercaseTitleKeepingAcronyms(title)}`} />}
               />
             </Section>
           ))}
@@ -745,7 +540,7 @@ export function LifecyclePage() {
                 title: "Yêu cầu",
                 render: (r) => (
                   <>
-                    <strong>{r.request_type}</strong>
+                    <Status value={r.request_type} />
                     <small>{short(r.request_id)}</small>
                   </>
                 ),
@@ -772,32 +567,50 @@ export function LifecyclePage() {
     </div>
   );
 }
-const events: Record<string, string> = {
-  ORGANIZATION_CREATED: "Thêm trường học",
-  ORGANIZATION_UPDATED: "Cập nhật trường học",
-  ACCOUNT_CREATED: "Tạo tài khoản",
-  ACCOUNT_STATE_CHANGED: "Đổi trạng thái tài khoản",
-  ACCOUNT_ROLE_CHANGED: "Đổi vai trò",
-  CONTENT_PERMISSION_GRANTED: "Cấp quyền duyệt nội dung",
-  CONTENT_PERMISSION_REVOKED: "Thu hồi quyền duyệt nội dung",
-  PERMISSION_CHANGED: "Quyền truy cập đã thay đổi",
-  LESSON_REVIEWED: "Học liệu đã được rà soát",
-  CATALOG_REVIEWED: "Hoạt động đã được rà soát",
-  LESSON_FEEDBACK_CREATED: "Có phản hồi học liệu mới",
-  LESSON_FEEDBACK_REPLIED: "Phản hồi học liệu đã được trả lời",
-  ACCOUNT_SETUP_EMAIL_REQUESTED: "Yêu cầu email thiết lập tài khoản",
-  PLATFORM_LESSON_SUBMIT: "Gửi học liệu duyệt",
-  PLATFORM_LESSON_PUBLISH: "Xuất bản học liệu",
-  PLATFORM_LESSON_APPROVE: "Duyệt học liệu",
-  PLATFORM_LESSON_VERSION_CREATED: "Tạo phiên bản học liệu",
-  CATALOG_VERSION_CREATED: "Tạo phiên bản hoạt động",
-  CATALOG_PUBLISH: "Xuất bản hoạt động",
-  ACCOUNT_PREFERENCES_CHANGED: "Đổi tùy chọn thông báo",
-  AUDIT_RETENTION_POLICY_CHANGED: "Đổi chính sách lưu audit",
-  AUDIT_RETENTION_PURGED: "Dọn audit hết hạn",
+const resourceTypeLabels: Record<string, string> = {
+  lesson_feedback: "Phản hồi học liệu",
+  adult_account: "Tài khoản nhân sự",
+  adult_assignment: "Phân công nhân sự",
+  platform_lesson: "Học liệu nền tảng",
+  story_run: "Lượt kể chuyện",
+  lesson_occurrence: "Buổi dạy",
+  child_profile: "Hồ sơ trẻ",
+  lesson_presentation_revision: "Phiên bản trình chiếu",
+  consent: "Xác nhận phụ huynh",
+  organization: "Trường học",
+  parent_group: "Nhóm phụ huynh",
+  parent_group_membership: "Thành viên nhóm phụ huynh",
+  teacher_assignment_transfer: "Chuyển giao phân công giáo viên",
+  lesson: "Bài học",
+  lesson_access_grant: "Quyền truy cập bài học",
+  lesson_source_document: "Tài liệu nguồn bài học",
+  lesson_document_revision: "Phiên bản tài liệu buổi dạy",
+  lesson_plan_revision: "Phiên bản kế hoạch buổi dạy",
+  lesson_presentation: "Bài trình chiếu",
+  lesson_presentation_svg_draft: "Bản nháp SVG cho bài trình chiếu",
+  class: "Lớp học",
+  data_request: "Yêu cầu dữ liệu",
+  audit_policy: "Chính sách lưu kiểm toán",
+  catalog: "Danh mục hoạt động",
+  organization_subscription: "Gói dịch vụ tổ chức",
+  quota_invoice: "Hóa đơn hạn mức",
+  gallery: "Bộ sưu tập",
+  observation: "Ghi nhận học tập",
+  artifact: "Tệp nội dung",
+  canvas: "Bảng vẽ",
+  canvas_checkpoint: "Bản chụp bảng vẽ",
+  session: "Buổi học",
+  device_grant: "Quyền truy cập thiết bị",
+  synthetic_eligibility_proof: "Bằng chứng đủ điều kiện thử nghiệm",
+  group: "Nhóm học",
+  membership: "Thành viên nhóm",
+  child_turn: "Lượt hoạt động của trẻ",
+  profile_share_grant: "Quyền chia sẻ hồ sơ",
+  upload_session: "Phiên tải tệp lên",
+  core_resource: "Tài nguyên hệ thống",
 };
-const eventLabel = (value: string) =>
-  events[value] ?? value.toLowerCase().replaceAll("_", " ");
+const resourceTypeLabel = (value: string) =>
+  resourceTypeLabels[value.toLowerCase().replaceAll(" ", "_")] ?? "Tài nguyên khác";
 export function AuditPage() {
   const [action, setAction] = useState("");
   const [draftDays, setDraftDays] = useState<{ revision: number; value: number | null } | null>(null);
@@ -895,7 +708,7 @@ export function AuditPage() {
               {
                 title: "Tài nguyên",
                 render: (r) => <span className="pa-audit-resource-cell" title={r.resource_id}>
-                  <strong>{r.resource_type.replaceAll("_", " ")}</strong>
+                  <strong>{resourceTypeLabel(r.resource_type)}</strong>
                   {r.resource_id && <small>{short(r.resource_id)}</small>}
                 </span>,
               },
@@ -920,7 +733,7 @@ export function AuditPage() {
         <summary>Chính sách lưu nhật ký{retention.data && (retention.data.retention_days == null ? " · Vô thời hạn" : " · " + retention.data.retention_days + " ngày")}</summary>
         <div className="pa-audit-retention-heading">
           <span className="pa-audit-retention-icon"><ShieldCheck size={19} aria-hidden="true" /></span>
-          <div><h2 id="pa-audit-retention-title">Chính sách lưu audit</h2>
+          <div><h2 id="pa-audit-retention-title">Chính sách lưu nhật ký</h2>
             {retention.data && <p>{retention.data.retention_days == null
               ? "Chưa đặt hạn: giữ vô thời hạn, không tự động xóa."
               : `Giữ ${retention.data.retention_days} ngày; chỉ dọn khi được xác nhận thủ công.`}</p>}</div>
@@ -932,7 +745,7 @@ export function AuditPage() {
           </div>
         </div>
         <div className="pa-audit-retention-body">
-          {retention.loading ? <p className="pa-audit-retention-state" role="status">Đang tải chính sách lưu audit…</p>
+          {retention.loading ? <p className="pa-audit-retention-state" role="status">Đang tải chính sách lưu nhật ký…</p>
             : retention.error ? <div className="pa-audit-retention-state is-error" role="alert">{retention.error}
               <Button onClick={retention.reload}>Tải lại chính sách</Button></div>
               : <>
@@ -954,8 +767,8 @@ export function AuditPage() {
                     <Save size={16} aria-hidden="true" />{retentionCommand.busy ? "Đang lưu…" : "Lưu chính sách"}
                   </Button>
                 </div>
-                <div className="pa-audit-retention-facts" aria-live="polite" aria-label="Tổng quan lưu trữ audit">
-                  <div><span>Tổng audit</span><strong>{retention.data?.total_entries?.toLocaleString("vi-VN") ?? "—"}</strong></div>
+                <div className="pa-audit-retention-facts" aria-live="polite" aria-label="Tổng quan lưu trữ nhật ký">
+                  <div><span>Tổng nhật ký</span><strong>{retention.data?.total_entries?.toLocaleString("vi-VN") ?? "—"}</strong></div>
                   <div><span>Đến hạn theo chính sách</span><strong>{retention.data?.eligible_count?.toLocaleString("vi-VN") ?? "—"}</strong></div>
                   <div><span>Bản ghi lâu đời nhất</span><strong>{date(retention.data?.oldest_entry_at)}</strong></div>
                   <div><span>Lần dọn gần nhất</span><strong>{retention.data?.last_purged_at ? `${date(retention.data.last_purged_at)} · ${retention.data.last_purged_count} bản ghi` : "Chưa từng dọn"}</strong></div>
@@ -970,21 +783,21 @@ export function AuditPage() {
                 {previewError && <p className="pa-audit-preview-error" role="alert">{previewError}</p>}
                 {preview && <div className="pa-audit-preview" aria-live="polite">
                   <div className="pa-audit-preview-copy">
-                    <strong>{preview.candidate_count ? `${preview.candidate_count.toLocaleString("vi-VN")} bản ghi đã quá hạn` : "Chưa có audit đến hạn"}</strong>
-                    <span>{preview.cutoff ? `Mốc chính sách: trước ${date(preview.cutoff)}.` : "Chính sách hiện giữ audit vô thời hạn."}
+                    <strong>{preview.candidate_count ? `${preview.candidate_count.toLocaleString("vi-VN")} bản ghi đã quá hạn` : "Chưa có nhật ký đến hạn"}</strong>
+                    <span>{preview.cutoff ? `Mốc chính sách: trước ${date(preview.cutoff)}.` : "Chính sách hiện giữ nhật ký vô thời hạn."}
                       {preview.batch_count > 0 ? ` Lô tiếp theo tối đa ${preview.batch_count} bản ghi cũ nhất.` : " Không có gì cần dọn."}</span>
                     {preview.candidate_count > preview.batch_limit && <small>Còn nhiều hơn một lô; các lô tiếp theo cần xem trước riêng.</small>}
                   </div>
                   {preview.batch_count > 0 && <div className="pa-audit-purge-confirm">
                     <label><input type="checkbox" checked={purgeConfirmed} onChange={(event) => setPurgeConfirmed(event.target.checked)} />
-                      Tôi xác nhận dọn lô gồm tối đa {preview.batch_count} audit đã quá hạn.</label>
+                      Tôi xác nhận dọn lô gồm tối đa {preview.batch_count} nhật ký đã quá hạn.</label>
                     <Button onClick={purgeBatch} disabled={!purgeConfirmed || retentionCommand.busy}>
                       <Trash2 size={16} aria-hidden="true" />{retentionCommand.busy ? "Đang dọn…" : `Dọn ${preview.batch_count} bản ghi`}
                     </Button>
                   </div>}
                 </div>}
                 {retention.data && <p className="pa-audit-policy-footnote"><TriangleAlert size={15} aria-hidden="true" />
-                  Đổi thời hạn chỉ áp dụng cho các lần dọn thủ công tiếp theo; audit cũ không bị xóa khi lưu chính sách.</p>}
+                  Đổi thời hạn chỉ áp dụng cho các lần dọn thủ công tiếp theo; nhật ký cũ không bị xóa khi lưu chính sách.</p>}
               </>}
         </div>
       </details>
@@ -1166,63 +979,8 @@ export function InboxPage() {
     </div>
   );
 }
-function PreferenceForm({
-  value,
-  onSaved,
-}: {
-  value: Preferences;
-  onSaved: () => void;
-}) {
-  const [enabled, setEnabled] = useState(value.email_notifications),
-    cmd = useAdminCommand();
-  return (
-    <>
-      <Feedback {...cmd} />
-      <Form
-        onSubmit={() =>
-          cmd.run(
-            () =>
-              cmd.send(
-                "/preferences",
-                {
-                  ...value,
-                  email_notifications: enabled,
-                  expected_revision: value.revision,
-                  revision: undefined,
-                },
-                undefined,
-                "PUT",
-              ),
-            onSaved,
-          )
-        }
-      >
-        <Field label="Thông báo qua email">
-          <AdminSelect
-            value={String(enabled)}
-            onChange={(e) => setEnabled(e.target.value === "true")}
-          >
-            <option value="true">Nhận thông báo</option>
-            <option value="false">Tắt thông báo tùy chọn</option>
-          </AdminSelect>
-        </Field>
-        <p className="pa-muted">
-          Email bảo mật và thiết lập tài khoản vẫn được gửi.
-        </p>
-        <Button
-          primary
-          type="submit"
-          disabled={cmd.busy || enabled === value.email_notifications}
-        >
-          Lưu tùy chọn
-        </Button>
-      </Form>
-    </>
-  );
-}
 export function SettingsPage() {
   const q = useAdminQuery(() => read<Settings>("/settings"), "settings"),
-    [preferenceSaved, setPreferenceSaved] = useState(false),
     [deliveryState, setDeliveryState] = useState(""),
     pagination = useAdminCursor(deliveryState),
     deliveries = useAdminQuery(
@@ -1235,7 +993,7 @@ export function SettingsPage() {
   return (
     <div className="pa-page">
       <Heading
-        title="Cài đặt & email"
+        title="Email hệ thống"
       >
         <Refresh
           onClick={() => {
@@ -1244,39 +1002,25 @@ export function SettingsPage() {
           }}
         />
       </Heading>
-      <Feedback notice={preferenceSaved ? "Đã lưu thay đổi." : undefined} />
       <LoadBoundary {...q}>
         {q.data && (
-          <div className="pa-two-column">
-            <section className="pa-panel pa-padded">
-              <h2>Thông báo cá nhân</h2>
-              <PreferenceForm
-                key={q.data.preferences.revision}
-                value={q.data.preferences}
-                onSaved={() => {
-                  setPreferenceSaved(true);
-                  q.reload();
-                }}
-              />
-            </section>
-            <section className="pa-panel pa-padded">
-              <h2>Môi trường hiện tại</h2>
-              <dl className="pa-facts">
-                <dt>Môi trường</dt>
-                <dd>{q.data.environment}</dd>
-                <dt>Thanh toán thật</dt>
-                <dd>{q.data.real_payments_enabled ? "Đang bật" : "Đã tắt"}</dd>
-                <dt>Thanh toán test</dt>
-                <dd>
-                  {q.data.billing_sandbox_enabled ? "Đang bật" : "Đã tắt"}
-                </dd>
-                <dt>Dịch vụ email</dt>
-                <dd>
-                  {q.data.smtp_configured ? "Đã cấu hình" : "Chưa cấu hình"}
-                </dd>
-              </dl>
-            </section>
-          </div>
+          <section className="pa-panel pa-padded">
+            <h2>Môi trường hiện tại</h2>
+            <dl className="pa-facts">
+              <dt>Môi trường</dt>
+              <dd>{q.data.environment === "local" ? "nội bộ" : q.data.environment}</dd>
+              <dt>Thanh toán thật</dt>
+              <dd>{q.data.real_payments_enabled ? "Đang bật" : "Đã tắt"}</dd>
+              <dt>Thanh toán thử nghiệm</dt>
+              <dd>
+                {q.data.billing_sandbox_enabled ? "Đang bật" : "Đã tắt"}
+              </dd>
+              <dt>Dịch vụ email</dt>
+              <dd>
+                {q.data.smtp_configured ? "Đã cấu hình" : "Chưa cấu hình"}
+              </dd>
+            </dl>
+          </section>
         )}
       </LoadBoundary>
       <section className="pa-panel">
@@ -1314,7 +1058,7 @@ export function SettingsPage() {
                 title: "Kết quả",
                 render: (r) => r.state === "failed"
                   ? "Không gửi được. Kiểm tra SMTP, sau đó gửi lại từ Tài khoản & vai trò."
-                  : r.state === "sent" ? "Đã chuyển đến máy chủ email" : r.state === "sending" ? "Worker đang gửi" : "Chờ worker xử lý",
+                  : r.state === "sent" ? "Đã chuyển đến máy chủ email" : r.state === "sending" ? "Tiến trình xử lý đang gửi" : "Chờ tiến trình xử lý",
               },
               { title: "Thời gian", render: (r) => date(r.created_at) },
             ]}
@@ -1419,7 +1163,7 @@ export function FeedbackPage({
                           setBody("");
                         }}
                       >
-                        Phản hồi {short(r.thread_id)}
+                        Giáo án {r.lesson_title?.trim() || "Chưa rõ tiêu đề"}{r.version_no ? ` · Phiên bản ${r.version_no}` : ""}
                       </Button>
                     ),
                   },
@@ -1441,7 +1185,7 @@ export function FeedbackPage({
               <LoadBoundary {...thread}>
                 {thread.data && (
                   <>
-                    <h2>Nội dung trao đổi</h2>
+                    <h2>{thread.data.lesson_title?.trim() || "Nội dung trao đổi"}{thread.data.version_no ? ` · Phiên bản ${thread.data.version_no}` : ""}</h2>
                     <div className="pa-messages">
                       {thread.data.items.map((m) => (
                         <article
@@ -1450,7 +1194,7 @@ export function FeedbackPage({
                           }
                           key={m.message_id}
                         >
-                          <strong>{m.from_you ? "Bạn" : "Người gửi"}</strong>
+                          <strong>{feedbackAuthorLabel(m.author_role, m.author_display_name, m.from_you)}</strong>
                           <p>{m.body}</p>
                           <small>{date(m.created_at)}</small>
                         </article>

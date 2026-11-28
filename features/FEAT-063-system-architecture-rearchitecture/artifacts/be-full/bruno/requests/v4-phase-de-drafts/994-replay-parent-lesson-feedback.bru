@@ -1,0 +1,49 @@
+meta {
+  name: 994 [DRAFT-V4E] [LOCAL / TEST ONLY] Parent replays lesson feedback submission
+  type: http
+  seq: 994
+}
+
+post {
+  url: {{baseUrl}}/api/lesson-library/v1/me/lessons/{{phase_de_e6_lesson_id}}/feedback
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{phase_de_e6_feedback_key}}
+}
+
+body:json {
+  {
+    "feedback_text": "Synthetic test feedback on pacing and visuals."
+  }
+}
+
+tests {
+  test("assert idempotent replay contract", function () {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("Cache-Control")).to.equal("private, no-store");
+    const body = res.getBody();
+    expect(body.contract).to.equal("ParentLessonFeedbackV1");
+    expect(body.lesson_id).to.equal(bru.getVar("phase_de_e6_lesson_id"));
+    expect(body.feedback_id).to.equal(bru.getVar("phase_de_e6_feedback_id"));
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against committed Phase E code at 98aa9837 (PHASE_E_FINAL_ROUTE_LIST_20261125.md / 784134fc); not yet run against a live backend.
+  Role: Owning Parent - set bearerToken to seed-parent-p1 token
+  Needs: needs-fixture: run immediately after 993 reusing phase_de_e6_lesson_id and phase_de_e6_feedback_key
+  Expected: 201 / ParentLessonFeedbackV1 (Cache-Control: private, no-store, matching lesson_id and feedback_id)
+  UNVERIFIED: Idempotency-Replayed header is not returned by E6 handlers at 98aa9837; omitted from assertions.
+  Source: backend/src/sketch2life/interfaces/http/routers/lesson_feedback.py
+}

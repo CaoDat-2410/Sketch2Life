@@ -1,0 +1,51 @@
+meta {
+  name: 629 [DRAFT-V4B] [LOCAL / TEST ONLY] Replay create Parent profile context entry
+  type: http
+  seq: 629
+}
+
+post {
+  url: {{baseUrl}}/v1/parent/profiles/{{parent_profile_id}}/context-entries
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{phase_b_context_entry_key}}
+}
+
+body:json {
+  {
+    "entry_kind": "OBSERVATION",
+    "short_text": "Likes drawing dinosaurs and stars",
+    "source_kind": "PARENT_NOTE",
+    "source_ref": "parent-journal-1",
+    "approximate_date": "2026-11-20"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getHeader("Cache-Control")).to.equal("private, no-store");
+    const entry = res.getBody().context_entry;
+    expect(entry.context_entry_id).to.equal(bru.getVar("phase_b_context_entry_id"));
+    expect(entry.short_text).to.equal("Likes drawing dinosaurs and stars");
+    expect(entry).to.not.have.property("source_ref");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase B code at 134561f4; not yet run against a live backend.
+  Role: Parent - set bearerToken to seed-parent-p1 token
+  Needs: run after 628 (uses phase_b_context_entry_key and phase_b_context_entry_id)
+  Expected: 201 / ParentContextEntryEnvelope (idempotent replay returns stored entry; note X-Request-ID may reflect the stored first request_id if non-empty, or the current request_id)
+  Source: backend/src/sketch2life/interfaces/http/routers/parent_profiles.py:530-537, backend/src/sketch2life/infrastructure/persistence/parent_profile_repository.py:645-649,674-685
+}

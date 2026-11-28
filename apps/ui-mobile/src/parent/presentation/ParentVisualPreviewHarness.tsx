@@ -3,26 +3,39 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 import type {
   Activity,
+  ParentContextEntryListView,
   LessonDetail,
   LessonInvitation,
   LessonSummary,
   ParentRunTranscriptV1,
   ParentDrawingCandidateV1,
   ParentGroupInvitation,
+  ParentGroupMembershipV1,
   ParentNotification,
   ParentProfileViewV1,
   ParentStoryRunV1,
+  ParentActivityListV1,
+  ParentConsentPolicyV1,
+  ParentLessonFeedbackReplyPageV1,
+  ParentLessonFeedbackStateV1,
+  ParentLessonFeedbackV1,
+  ParentShareDeliveryPageV1,
+  ParentShareField,
+  ParentShareGrantCreatedV1,
+  ParentShareGrantV1,
   ParentActivitySuggestionSetV1,
   ParentTopicCardV1,
   ParentUser,
   StoryDraft,
 } from '../domain/types';
+import { ParentApplicationError } from '../application/ParentApplicationError';
 import type { ParentCapabilityState } from '../application/ports/ParentCapabilityPorts';
 import { createUnavailableParentConsentState } from './navigation/workflowTypes';
 import { Card, Notice, PrimaryButton, ScreenFrame, ScreenScrollView, SecondaryButton, palette } from './components/ui';
 import { AccountScreen } from './screens/AccountScreen';
 import { ActivityScreen } from './screens/ActivityScreen';
 import { AuthScreen } from './screens/AuthScreen';
+import { ConsentPolicyScreen } from './screens/ConsentPolicyScreen';
 import { ContextScreen } from './screens/ContextScreen';
 import { DrawingGuideScreen } from './screens/DrawingGuideScreen';
 import { HandoffScreen } from './screens/HandoffScreen';
@@ -34,12 +47,13 @@ import { LessonPickerScreen } from './screens/LessonPickerScreen';
 import { NotificationsScreen } from './screens/NotificationsScreen';
 import { ProfileFormScreen } from './screens/ProfileFormScreen';
 import { ProfileScreen } from './screens/ProfileScreen';
-import { ProfileSharingScreen } from './screens/ProfileSharingScreen';
+import { ProfileShareScreen } from './screens/ProfileShareScreen';
 import { ParentBottomBar } from './screens/ParentBottomBar';
 import { QuotaScreen } from './screens/QuotaScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import { StoryHistoryScreen } from './screens/StoryHistoryScreen';
 import { StoryScreen } from './screens/StoryScreen';
+import { SupportNeedsScreen } from './screens/SupportNeedsScreen';
 import { TopicScreen } from './screens/TopicScreen';
 import { TranscriptReviewScreen } from './screens/TranscriptReviewScreen';
 import { UnderstandingScreen } from './screens/UnderstandingScreen';
@@ -61,7 +75,9 @@ const previewTabs = [
   { id: 'family-unselected', label: 'Gia đình · chưa chọn' },
   { id: 'profile-create', label: 'Tạo hồ sơ' },
   { id: 'profile-edit', label: 'Sửa hồ sơ' },
+  { id: 'support-needs', label: 'Nhu cầu hỗ trợ · chưa khả dụng' },
   { id: 'sharing', label: 'Chia sẻ' },
+  { id: 'consent-policy', label: 'Chính sách đồng ý' },
   { id: 'gallery', label: 'Thư viện' },
   { id: 'picker', label: 'Chọn bài' },
   { id: 'topic', label: 'Chủ đề' },
@@ -204,6 +220,19 @@ const previewGroupInvitations: ParentGroupInvitation[] = [
   },
 ];
 
+const previewGroupMemberships: ParentGroupMembershipV1[] = [{
+  contract: 'ParentGroupMembershipV1',
+  membership_id: 'preview-membership-active-01',
+  parent_group_id: 'preview-group-01',
+  organization_id: 'preview-organization-01',
+  state: 'ACTIVE',
+  invited_at: '2026-11-14T00:00:00.000Z',
+  expires_at: null,
+  accepted_at: '2026-11-15T00:00:00.000Z',
+  revision: 2,
+  revision_source: 'PARENT_ACCEPTED',
+}];
+
 const previewProfile: ParentProfileViewV1 = {
   profile_id: 'preview-profile-01',
   revision_no: 1,
@@ -215,6 +244,80 @@ const previewProfile: ParentProfileViewV1 = {
   age_band_version: null,
   interests_summary: 'Mô phỏng · cây cối và màu sắc.',
   data_origin: 'PREVIEW',
+};
+
+const previewShareProfile: ParentProfileViewV1 = { ...previewProfile, data_origin: 'SYNTHETIC_DEV' };
+
+const previewShareGrant: ParentShareGrantV1 = {
+  contract: 'ParentShareGrantV1',
+  share_grant_id: 'preview-share-grant-01',
+  profile_id: previewShareProfile.profile_id,
+  state: 'ACTIVE',
+  granted_fields: ['DISPLAY_NAME', 'AGE_BAND'],
+  created_at: '2026-11-20T00:00:00Z',
+  invitation_expires_at: '2027-02-18T00:00:00Z',
+  accepted_at: '2026-11-21T00:00:00Z',
+  expires_at: '2027-02-19T00:00:00Z',
+  revoked_at: null,
+  revision: 2,
+};
+
+const previewCreatedShare: ParentShareGrantCreatedV1 = {
+  ...previewShareGrant,
+  state: 'INVITED',
+  accepted_at: null,
+  expires_at: null,
+  invitation_code: 'preview-code-only',
+};
+
+const previewShareDeliveries: ParentShareDeliveryPageV1 = {
+  contract: 'ParentShareDeliveryListV1',
+  share_grant_id: previewShareGrant.share_grant_id,
+  content_access: 'AVAILABLE',
+  items: [{ delivered_at: '2026-11-24T00:00:00Z', title: 'Mô phỏng · bài học đã gửi' }],
+  next_cursor: null,
+};
+
+const previewConsentPolicy: ParentConsentPolicyV1 = {
+  contract: 'ParentConsentPolicyV1',
+  request_id: 'preview-only',
+  policy: {
+    purpose_code: 'SYNTHETIC_TEST_ONLY',
+    policy_version: 'parent-consent-placeholder-v0',
+    consent_text: 'Mô phỏng · nội dung chính sách được tải từ API.',
+    consent_text_sha256: 'a'.repeat(64),
+    policy_state: 'PLACEHOLDER_NOT_APPROVED',
+    data_origin_scope: 'SYNTHETIC_TEST',
+    effective_from: null,
+    purposes: [{ purpose_code: 'SYNTHETIC_TEST_ONLY', text_key: 'parent.consent.placeholder.synthetic_test_only' }],
+    links: [],
+    acceptance_recording: 'NOT_AVAILABLE',
+  },
+};
+
+const previewFeedback: ParentLessonFeedbackV1 = {
+  contract: 'ParentLessonFeedbackV1',
+  feedback_id: 'preview-feedback-01',
+  lesson_id: previewLesson.lesson_id,
+  version_id: previewLesson.version_id,
+  revision: 1,
+  feedback_text: 'Mô phỏng · bé thích hoạt động quan sát chiếc lá.',
+  created_at: '2026-11-24T00:00:00Z',
+  updated_at: '2026-11-24T00:00:00Z',
+  reply_count: 1,
+};
+
+const previewFeedbackState: ParentLessonFeedbackStateV1 = {
+  contract: 'ParentLessonFeedbackStateV1',
+  lesson_id: previewLesson.lesson_id,
+  feedback: previewFeedback,
+};
+
+const previewFeedbackReplies: ParentLessonFeedbackReplyPageV1 = {
+  contract: 'ParentLessonFeedbackReplyPageV1',
+  feedback_id: previewFeedback.feedback_id,
+  items: [{ reply_id: 'preview-reply-01', reply_text: 'Mô phỏng · cảm ơn gia đình đã chia sẻ.', created_at: '2026-11-24T01:00:00Z' }],
+  next_cursor: null,
 };
 
 const previewUser: ParentUser = {
@@ -284,6 +387,33 @@ const previewContextRun: ParentStoryRunV1 = {
   updated_at: '2026-11-19T00:00:00.000Z',
 };
 
+const previewEntryPage: ParentContextEntryListView = {
+  context_entries: [{
+    context_entry_id: 'preview-context-entry-01',
+    entry_kind: 'OBSERVATION',
+    short_text: 'Mô phỏng · quan sát chiếc lá khi đi dạo.',
+    source_kind: 'PARENT_ENTERED',
+    approximate_date: '2026-11-20',
+    created_at: '2026-11-20T00:00:00Z',
+  }],
+  next_cursor: null,
+  limit: 25,
+};
+
+const previewConfirmedContextRun: ParentStoryRunV1 = {
+  ...previewContextRun,
+  context_confirmed: true,
+  context_snapshot: {
+    schema_version: 'sketch2life.parent-context.v2',
+    profile_revision_ref: 'preview-profile-revision-01',
+    age_months: previewProfile.age_months,
+    interests_summary: previewProfile.interests_summary ?? '',
+    topic: 'Mô phỏng · khu vườn nhỏ',
+    adult_confirmed_idea: 'Mô phỏng · quan sát lá và bướm.',
+    selected_entries: [{ kind: 'OBSERVATION', text: 'Mô phỏng · quan sát chiếc lá khi đi dạo.' }],
+  },
+};
+
 const previewStory: StoryDraft = {
   schema_version: 'sketch2life.story-revision.v1',
   language: 'vi',
@@ -326,7 +456,7 @@ const previewNotifications: ParentNotification[] = [
   {
     contract: 'NotificationV1',
     inbox_item_id: 'preview-notification-02',
-    notification_type: 'LESSON_REPLY',
+    notification_type: 'RUN_WAIT_REMINDER',
     template_version: 1,
     safe_parameters: {},
     created_at: previewNotificationDate(0, 9),
@@ -503,6 +633,7 @@ export function ParentVisualPreviewHarness(): React.JSX.Element {
       onRequestDeletion={ignoreAction}
       onRefreshPendingDeletion={ignoreAction}
       onContinue={ignoreAction}
+      onOpenConsentPolicy={ignoreAction}
       onResumeRun={ignoreAction}
       onBackHome={ignoreAction}
     />,
@@ -526,32 +657,53 @@ export function ParentVisualPreviewHarness(): React.JSX.Element {
     />,
     'profile-create': <ProfileFormScreen mode="create" profile={null} busy={false} error="" fieldErrors={{}} onCreate={pendingPreviewProfile} onUpdate={pendingPreviewProfile} onBack={ignoreAction} />,
     'profile-edit': <ProfileFormScreen mode="edit" profile={previewProfile} busy={false} error="" fieldErrors={{}} onCreate={pendingPreviewProfile} onUpdate={pendingPreviewProfile} onBack={ignoreAction} />,
-    sharing: <ProfileSharingScreen
-      profile={previewProfile}
-      grants={[]}
+    sharing: <ProfileShareScreen
+      profile={previewShareProfile}
+      grants={[previewShareGrant]}
+      nextCursor={null}
       loading={false}
       error=""
-      capability={unavailable('profile-sharing')}
-      inviteState={{ state: 'unavailable', reason: 'route-not-in-be-handoff' }}
-      revokeState={{ state: 'unavailable', reason: 'route-not-in-be-handoff' }}
-      onInvite={async () => ({ state: 'unavailable', reason: 'route-not-in-be-handoff' })}
-      onRevoke={() => ({ state: 'unavailable', reason: 'route-not-in-be-handoff' })}
+      capability={available('profile-sharing')}
+      onLoad={async () => undefined}
+      onCreate={async (_profileId, _fields, _key) => previewCreatedShare}
+      onGetGrant={async () => previewShareGrant}
+      onRevoke={async () => ({ ...previewShareGrant, state: 'REVOKED', revoked_at: '2026-11-25T00:00:00Z', revision: 3 })}
+      onListDeliveries={async () => previewShareDeliveries}
+      onOpenConsentPolicy={ignoreAction}
       onBack={ignoreAction}
     />,
+    'consent-policy': <ConsentPolicyScreen onLoad={async () => previewConsentPolicy} onBack={ignoreAction} />,
     gallery: <LessonGalleryScreen
       lessons={previewLessons}
       selectedLesson={previewLesson}
       selectedPresetVersionId={null}
       lessonInvitations={previewLessonInvitations}
       groupInvitations={previewGroupInvitations}
+      groupMemberships={previewGroupMemberships}
+      searchQuery=""
+      searchTopic=""
+      hasMoreLessons
+      hasMoreGroupMemberships={false}
+      groupMembershipsLoading={false}
       loading={false}
       loadingId=""
       error=""
+      lessonExportLoadingId=""
+      lessonExportError=""
       onOpenLesson={ignoreAction}
       onUseLesson={ignoreAction}
+      onDownloadLesson={ignoreAction}
+      onLoadFeedback={async () => previewFeedbackState}
+      onLoadFeedbackReplies={async () => previewFeedbackReplies}
+      onSubmitFeedback={async (_lessonId, text) => ({ ...previewFeedback, feedback_text: text })}
       onAcceptLessonInvitation={ignoreAction}
       onDeclineLessonInvitation={ignoreAction}
       onAcceptGroupInvitation={ignoreAction}
+      onDeclineGroupInvitation={ignoreAction}
+      onLeaveGroup={ignoreAction}
+      onSearchLessons={ignoreAction}
+      onLoadMoreLessons={ignoreAction}
+      onLoadMoreGroupMemberships={ignoreAction}
       onBack={ignoreAction}
     />,
     picker: <LessonPickerScreen
@@ -560,6 +712,11 @@ export function ParentVisualPreviewHarness(): React.JSX.Element {
       loading={false}
       loadingId=""
       error=""
+      searchQuery=""
+      searchTopic=""
+      hasMore
+      onSearch={ignoreAction}
+      onLoadMore={ignoreAction}
       onSelect={ignoreAction}
       onClear={ignoreAction}
       onBack={ignoreAction}
@@ -599,14 +756,29 @@ export function ParentVisualPreviewHarness(): React.JSX.Element {
       onContinue={ignoreAction}
       onBack={ignoreAction}
     />,
-    guide: <DrawingGuideScreen lesson={previewLesson} stepLabel="3 / 8" currentIndex={1} onIndexChange={ignoreAction} onContinue={ignoreAction} onBack={ignoreAction} />,
+    guide: <DrawingGuideScreen lesson={previewLesson} stepLabel="3 / 8" currentIndex={1} onIndexChange={ignoreAction} onBrowseCatalog={ignoreAction} onContinue={ignoreAction} onBack={ignoreAction} />,
     capture: <CapturePreviewScreen state="empty" />,
     'capture-denied': <CapturePreviewScreen state="camera-denied" />,
     'capture-selected': <CapturePreviewScreen state="photo-selected" />,
     transcript: <TranscriptReviewScreen stepLabel="5 / 8" transcript={previewTranscript} waiting={false} text="" edited={false} busy={false} error="" onText={ignoreAction} onConfirm={ignoreAction} onRefresh={ignoreAction} onBack={ignoreAction} />,
     understanding: <UnderstandingPreview />,
-    'context-before': <ContextScreen profile={previewProfile} contextRun={null} stepLabel="6 / 8" busy={false} confirmed={false} error="" onRetryCreate={ignoreAction} onConfirm={ignoreAction} onContinue={ignoreAction} onBack={ignoreAction} />,
-    'context-after': <ContextScreen profile={previewProfile} contextRun={previewContextRun} stepLabel="6 / 8" busy={false} confirmed={false} error="" onRetryCreate={ignoreAction} onConfirm={ignoreAction} onContinue={ignoreAction} onBack={ignoreAction} />,
+    'context-before': <ContextScreen
+      profile={previewProfile} contextRun={null} stepLabel="6 / 8" busy={false} confirmed={false} error=""
+      onRetryCreate={ignoreAction} onConfirm={async () => 'failed'}
+      onListContextEntries={async () => previewEntryPage} onContinue={ignoreAction} onBack={ignoreAction}
+    />,
+    'context-after': <ContextScreen
+      profile={previewProfile} contextRun={previewConfirmedContextRun} stepLabel="6 / 8" busy={false} confirmed
+      error="" onRetryCreate={ignoreAction} onConfirm={async () => 'confirmed'}
+      onListContextEntries={async () => previewEntryPage} onContinue={ignoreAction} onBack={ignoreAction}
+    />,
+    'support-needs': <SupportNeedsScreen
+      profileId={previewProfile.profile_id}
+      newActionIdentity={() => 'preview-action'}
+      onLoad={async () => { throw new ParentApplicationError('SUPPORT_NEEDS_UNAVAILABLE', 'preview', undefined, 503); }}
+      onSave={async () => { throw new ParentApplicationError('SUPPORT_NEEDS_UNAVAILABLE', 'preview', undefined, 503); }}
+      onBack={ignoreAction}
+    />,
     activity: <ActivityScreen stepLabel="7 / 8" topic="Khu vườn" subject="Một chú bướm" activities={previewActivityList} selectedIndex={0} loading={false} saving={false} attempted={false} error="" onRetry={ignoreAction} onSelect={ignoreAction} onContinue={ignoreAction} onCancel={ignoreAction} onBack={ignoreAction} />,
     story: <StoryScreen
       stepLabel="8 / 8"
@@ -637,10 +809,29 @@ export function ParentVisualPreviewHarness(): React.JSX.Element {
     handoff: <HandoffScreen storyTitle="Mô phỏng · kịch bản đã xác nhận" events={[]} videoCapability={unavailable('video')} jobStage={{ state: 'unavailable', stage: 'unavailable' }} onResumeActiveRun={ignoreAction} />,
     history: <StoryHistoryScreen capability={unavailable('run-history')} runs={[]} loading={false} error="" hasMore={false} onLoad={ignoreAction} onLoadMore={ignoreAction} onCancel={ignoreAction} onDelete={ignoreAction} onWatch={ignoreAction} onBack={ignoreAction} />,
     'lesson-history': <LessonHistoryScreen capability={unavailable('lesson-history')} deliveries={[]} loading={false} error="" hasMore={false} onLoad={ignoreAction} onLoadMore={ignoreAction} onSubmitFeedback={pendingPreviewAsync} onBack={ignoreAction} />,
-    quota: <QuotaScreen capability={unavailable('quota')} quota={null} loading={false} error="" onLoad={ignoreAction} onBack={ignoreAction} />,
-    notifications: <NotificationsScreen capability={unavailable('notifications')} items={[]} unreadCount={null} loading={false} error="" hasMore={false} onLoad={ignoreAction} onLoadMore={ignoreAction} onMarkRead={ignoreAction} onMarkAllRead={ignoreAction} onBack={ignoreAction} />,
-    'notifications-empty': <NotificationsScreen capability={available('notifications')} items={[]} unreadCount={0} loading={false} error="" hasMore={false} onLoad={ignoreAction} onLoadMore={ignoreAction} onMarkRead={ignoreAction} onMarkAllRead={ignoreAction} onBack={ignoreAction} />,
-    'notifications-list': <NotificationsScreen capability={available('notifications')} items={previewNotifications} unreadCount={2} loading={false} error="" hasMore onLoad={ignoreAction} onLoadMore={ignoreAction} onMarkRead={ignoreAction} onMarkAllRead={ignoreAction} onBack={ignoreAction} />,
+    quota: <QuotaScreen
+      capability={unavailable('quota')}
+      quota={null}
+      products={[]}
+      invoices={[]}
+      paymentSettings={null}
+      loading={false}
+      checkoutBusy={false}
+      actionInvoiceId=""
+      error=""
+      paymentStatus={null}
+      now={Date.now()}
+      reconcileSecondsRemaining={() => 0}
+      onLoad={ignoreAction}
+      onCheckout={ignoreAction}
+      onResumePayment={ignoreAction}
+      onReconcile={ignoreAction}
+      onCancel={ignoreAction}
+      onBack={ignoreAction}
+    />,
+    notifications: <NotificationsScreen capability={unavailable('notifications')} items={[]} unreadCount={null} loading={false} error="" hasMore={false} onLoad={ignoreAction} onLoadMore={ignoreAction} onMarkRead={ignoreAction} onMarkAllRead={ignoreAction} onOpenStoryHistory={ignoreAction} onBack={ignoreAction} />,
+    'notifications-empty': <NotificationsScreen capability={available('notifications')} items={[]} unreadCount={0} loading={false} error="" hasMore={false} onLoad={ignoreAction} onLoadMore={ignoreAction} onMarkRead={ignoreAction} onMarkAllRead={ignoreAction} onOpenStoryHistory={ignoreAction} onBack={ignoreAction} />,
+    'notifications-list': <NotificationsScreen capability={available('notifications')} items={previewNotifications} unreadCount={2} loading={false} error="" hasMore onLoad={ignoreAction} onLoadMore={ignoreAction} onMarkRead={ignoreAction} onMarkAllRead={ignoreAction} onOpenStoryHistory={ignoreAction} onBack={ignoreAction} />,
     'bottom-bar': <View style={styles.bottomBarPreview}><ParentBottomBar activeTab="home" onNavigate={ignoreAction} onStart={ignoreAction} startLabel="Bắt đầu" /></View>,
   };
 

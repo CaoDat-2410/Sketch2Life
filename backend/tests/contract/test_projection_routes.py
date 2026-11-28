@@ -43,7 +43,10 @@ from sketch2life.interfaces.http.openapi_contract import (
 )
 from sketch2life.interfaces.http.openapi_srs_v22 import SRS_V22_INCLUDED_OPERATIONS
 from sketch2life.interfaces.http.routers import story_run_video
-from sketch2life.interfaces.http.routers.lesson_occurrences import get_projection_service
+from sketch2life.interfaces.http.routers.lesson_occurrences import (
+    get_projection_service,
+    get_transfer_guards,
+)
 
 DATABASE_SENTINEL = "postgresql+psycopg://sentinel_user:sentinel_pw@localhost:9/sentinel_db"
 CONFIRMATION = "/v1/lesson-occurrences/{occurrence_id}/projection-confirmation"
@@ -56,6 +59,14 @@ GRANT_URL = f"/v1/lesson-occurrences/{OCCURRENCE}/projection-playback-token"
 NOW = datetime(2026, 11, 22, 3, 0, tzinfo=UTC)
 HASH = "a" * 64
 BODY = {"run_id": RUN, "generation_id": GENERATION, "audience": "CLASS", "use": "CLASS_PROJECTION"}
+
+
+class _NoOpTransferGuards:
+    def create(self, _principal: VerifiedPrincipal, _class_id: str) -> None:
+        pass
+
+    def occurrence_write(self, _principal: VerifiedPrincipal, _occurrence_id: str) -> None:
+        pass
 
 
 def receipt(revision: int = 4) -> dict[str, Any]:
@@ -137,6 +148,7 @@ def served() -> Iterator[tuple[TestClient, FakeService, PlaybackTokenCodec]]:
 
     application.dependency_overrides[get_verified_adult] = verified
     application.dependency_overrides[get_projection_service] = lambda: service
+    application.dependency_overrides[get_transfer_guards] = lambda: _NoOpTransferGuards()
     with TestClient(application) as client:
         yield client, service, codec
 

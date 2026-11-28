@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { PortalSessionProvider } from '../../../../shared/auth/PortalSessionContext'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -6,13 +6,9 @@ import type { User } from 'firebase/auth'
 import App from '../App'
 import { authService } from '../services/authService'
 import { classService } from '../services/classService'
+import { managerBusinessService } from '../services/managerBusinessService'
+import { capacityService } from '../services/capacityService'
 import { SCHOOL_MANAGER_NAVIGATION } from '../../../../shared/navigation/WebAppShell'
-import { getPreferences } from '../../../../shared/api/accountPreferencesApi'
-
-vi.mock('../../../../shared/api/accountPreferencesApi', () => ({
-  getPreferences: vi.fn(),
-  updatePreferences: vi.fn(),
-}))
 
 vi.mock('../pages/SchoolOverviewPage', () => ({ SchoolOverviewPage: () => <h1>Tổng quan</h1> }))
 
@@ -23,11 +19,11 @@ afterEach(() => {
 
 describe('School Manager BE1 organization gate', () => {
   let signedIn = false
-  const user = { uid: 'manager-test' } as User
+  let user = { uid: 'manager-test', displayName: 'Nguyễn An', email: 'manager@example.com' } as User
 
   beforeEach(() => {
     signedIn = false
-    vi.mocked(getPreferences).mockResolvedValue({ locale: 'vi-VN', email_notifications: true, revision: 1 })
+    user = { uid: 'manager-test', displayName: 'Nguyễn An', email: 'manager@example.com' } as User
     vi.spyOn(authService, 'observe').mockImplementation((callback) => {
       callback(signedIn ? user : null)
       return () => undefined
@@ -48,18 +44,38 @@ describe('School Manager BE1 organization gate', () => {
     expect(classService.listClasses).toHaveBeenCalledOnce()
   })
 
-  it('renders shared settings behind the school assignment gate with a live navigation link', async () => {
+  it('replaces the legacy settings route with read-only account details', async () => {
     signedIn = true
     render(<PortalSessionProvider><MemoryRouter initialEntries={['/school/settings']}><App /></MemoryRouter></PortalSessionProvider>)
 
-    expect(await screen.findByRole('heading', { name: 'Cài đặt' })).toBeTruthy()
-    expect(screen.getByText('Thông báo cá nhân')).toBeTruthy()
-    const settingsLink = screen.getByRole('link', { name: /^Cài đặt$/ })
-    expect(settingsLink.getAttribute('href')).toBe('/school/settings')
-    expect(settingsLink.getAttribute('aria-current')).toBe('page')
-    expect(settingsLink.textContent).not.toContain('Chờ API')
-    expect(SCHOOL_MANAGER_NAVIGATION.flatMap((group) => group.items).find((item) => item.href === '/school/settings')?.state).toBe('available')
+    expect(await screen.findByRole('heading', { name: 'Thông tin tài khoản' })).toBeTruthy()
+    const accountLink = screen.getByRole('link', { name: 'Thông tin tài khoản' })
+    expect(accountLink.getAttribute('href')).toBe('/school/account')
+    expect(accountLink.getAttribute('aria-current')).toBe('page')
+    expect(screen.queryByRole('link', { name: 'Cài đặt' })).toBeNull()
+    const accountInfo = screen.getByRole('region', { name: 'Thông tin tài khoản' })
+    expect(within(accountInfo).getByText('Tên hiển thị')).toBeTruthy()
+    expect(within(accountInfo).getByText('Nguyễn An')).toBeTruthy()
+    expect(within(accountInfo).getByText('Thư điện tử')).toBeTruthy()
+    expect(within(accountInfo).getByText('manager@example.com')).toBeTruthy()
+    expect(within(accountInfo).getByText('Vai trò')).toBeTruthy()
+    expect(within(accountInfo).getByText('Quản lý trường')).toBeTruthy()
+    expect(screen.queryByRole('textbox')).toBeNull()
+    expect(screen.queryByRole('button', { name: /Lưu/ })).toBeNull()
+    expect(SCHOOL_MANAGER_NAVIGATION.flatMap((group) => group.items).find((item) => item.href === '/school/account')).toMatchObject({ label: 'Thông tin tài khoản', state: 'available' })
     expect(classService.currentAssignments).toHaveBeenCalledOnce()
+  })
+
+  it('uses the required account fallbacks when identity fields are empty', async () => {
+    signedIn = true
+    user = { uid: 'manager-test' } as User
+    render(<PortalSessionProvider><MemoryRouter initialEntries={['/school/account']}><App /></MemoryRouter></PortalSessionProvider>)
+
+    expect(await screen.findByRole('heading', { name: 'Thông tin tài khoản' })).toBeTruthy()
+    const accountInfo = screen.getByRole('region', { name: 'Thông tin tài khoản' })
+    expect(within(accountInfo).getByText('Chưa có tên hiển thị')).toBeTruthy()
+    expect(within(accountInfo).getByText('Chưa có thông tin')).toBeTruthy()
+    expect(within(accountInfo).getByText('Quản lý trường')).toBeTruthy()
   })
 
   it('denies a class-scoped assignment from the school-wide Manager portal', async () => {
@@ -82,10 +98,48 @@ describe('School Manager BE1 organization gate', () => {
     expect(screen.queryByRole('heading', { name: 'Người dùng & vai trò' })).toBeNull()
   })
 
-  it.each(['capacity'])('keeps %s unavailable', async (route) => {
+  it('routes capacity to the live page and marks its navigation item available', async () => {
     signedIn = true
-    render(<PortalSessionProvider><MemoryRouter initialEntries={[`/school/${route}`]}><App /></MemoryRouter></PortalSessionProvider>)
-    expect((await screen.findAllByText('Chưa khả dụng')).length).toBeGreaterThan(0)
+    vi.spyOn(managerBusinessService, 'organization').mockResolvedValue({
+      contract: 'Be1OrganizationV1',
+      organization_id: 'org-test',
+      display_name: 'Trường kiểm thử',
+    })
+    vi.spyOn(capacityService, 'getCapacity').mockResolvedValue({
+      data: {
+        contract: 'Be1OrganizationCapacityV1',
+        organization_id: 'org-test',
+        subscription_id: null,
+        capacity: 10,
+        active_class_count: 1,
+        available_slots: 9,
+        subscription_state: 'NONE',
+        revision: 0,
+        period_start: null,
+        period_end: null,
+        scheduled_change: null,
+      },
+      etag: '"0"',
+      revision: 0,
+    })
+    render(<PortalSessionProvider><MemoryRouter initialEntries={['/school/capacity']}><App /></MemoryRouter></PortalSessionProvider>)
+
+    expect(await screen.findByRole('heading', { name: 'Sức chứa lớp' })).toBeTruthy()
+    expect(await screen.findByText('Trường chưa có gói sức chứa. Sức chứa mặc định gồm 10 lớp.')).toBeTruthy()
+    const capacityLink = screen.getByRole('link', { name: /^Sức chứa$/ })
+    expect(capacityLink.getAttribute('href')).toBe('/school/capacity')
+    expect(capacityLink.getAttribute('aria-current')).toBe('page')
+    expect(capacityLink.textContent).not.toContain('Chờ dịch vụ')
+    expect(SCHOOL_MANAGER_NAVIGATION.flatMap((group) => group.items).find((item) => item.href === '/school/capacity')?.state).toBe('available')
+  })
+
+  it('routes organization data requests to the new page', async () => {
+    signedIn = true
+    render(<PortalSessionProvider><MemoryRouter initialEntries={['/school/data-requests']}><App /></MemoryRouter></PortalSessionProvider>)
+
+    expect(await screen.findByRole('heading', { name: 'Yêu cầu dữ liệu' })).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Yêu cầu dữ liệu' }).getAttribute('href')).toBe('/school/data-requests')
+    expect(classService.currentAssignments).toHaveBeenCalledOnce()
   })
 
   it('redirects the removed teacher groups route and updates the navigation', async () => {

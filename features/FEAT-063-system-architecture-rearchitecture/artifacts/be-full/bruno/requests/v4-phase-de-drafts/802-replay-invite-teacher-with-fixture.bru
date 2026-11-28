@@ -1,0 +1,46 @@
+meta {
+  name: 802 [DRAFT-V4D] [LOCAL / TEST ONLY] Replay Manager Teacher invitation with same key
+  type: http
+  seq: 802
+}
+
+post {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/teacher-invitations
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{phase_de_invite_key}}
+}
+
+body:json {
+  {
+    "email": "{{phase_de_invite_email}}"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(202);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("Cache-Control")).to.equal("private, no-store");
+    expect(res.getBody().account_ref).to.equal(bru.getVar("phase_de_invited_account_ref"));
+    expect(res.getBody().status).to.equal("PENDING_VERIFICATION");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against the code in .worktrees/v4d at 9e439cee; not yet run against a live backend.
+  Role: Assigned School Manager - set bearerToken to seed-mgr-a token
+  Needs: needs-fixture: run after 801 with same phase_de_invite_key and phase_de_invite_email
+  Expected: 202 / TeacherInvitationResponse (replay)
+  Source: backend/src/sketch2life/interfaces/http/routers/teacher_invitations.py:81-180, backend/src/sketch2life/application/services/teacher_invitations.py:51-344
+}

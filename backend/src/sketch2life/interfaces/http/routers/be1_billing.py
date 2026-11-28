@@ -1,5 +1,6 @@
 """Scoped quota commerce endpoints for Parents and School Managers."""
 
+from datetime import UTC, datetime
 from typing import Any
 
 # FastAPI dependency declarations intentionally use Depends in defaults.
@@ -9,10 +10,30 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
+from sketch2life.contracts.schemas.be1_capacity import (
+    Be1CapacityCheckoutRequest,
+    Be1CapacityCheckoutV1,
+    Be1CapacityPurchaseActionV1,
+    Be1CapacityPurchasesV1,
+    Be1CapacityQuoteV1,
+)
 from sketch2life.contracts.schemas.platform_admin import QuotaAllocationInput, QuotaCheckoutInput
+from sketch2life.contracts.schemas.video_quota import (
+    SchoolQuotaAllocationPageV1,
+    SchoolQuotaTeacherPageV1,
+)
 from sketch2life.domain.platform_admin import AdminError
+from sketch2life.infrastructure.billing.capacity_commerce import (
+    CapacityCommerceService,
+    capacity_quote,
+)
 from sketch2life.infrastructure.billing.quota_commerce import QuotaCommerceService, scope_for_be1
 from sketch2life.infrastructure.config.settings import get_settings
+from sketch2life.infrastructure.identity.identity_labels import (
+    account_profiles,
+    teacher_identity_fields,
+    teacher_identity_label,
+)
 from sketch2life.infrastructure.persistence.be1_models import (
     AdultIdentityModel,
     OrganizationAssignmentModel,
@@ -202,36 +223,51 @@ def school_payment_settings(
     return _run(execute)
 
 
-@router.get("/api/be1/v1/organizations/{organization_id}/video-quota/teachers", tags=["BE1 quota"])
+@router.get(
+    "/api/be1/v1/organizations/{organization_id}/video-quota/teachers",
+    tags=["BE1 quota"],
+    response_model=SchoolQuotaTeacherPageV1,
+)
 def school_quota_teachers(
     organization_id: str,
+    request: Request,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
 ) -> Any:
     def execute() -> Any:
         require_assignment(db, principal, organization_id, roles={"school_admin"})
-        subjects = db.scalars(
-            select(OrganizationAssignmentModel.subject)
-            .join(
-                AdultIdentityModel,
-                AdultIdentityModel.subject == OrganizationAssignmentModel.subject,
+        subjects = list(
+            db.scalars(
+                select(OrganizationAssignmentModel.subject)
+                .join(
+                    AdultIdentityModel,
+                    AdultIdentityModel.subject == OrganizationAssignmentModel.subject,
+                )
+                .where(
+                    OrganizationAssignmentModel.organization_id == organization_id,
+                    OrganizationAssignmentModel.role == "teacher",
+                    OrganizationAssignmentModel.active.is_(True),
+                    AdultIdentityModel.account_role == "teacher",
+                    AdultIdentityModel.state == "active",
+                )
+                .distinct()
+                .order_by(OrganizationAssignmentModel.subject)
             )
-            .where(
-                OrganizationAssignmentModel.organization_id == organization_id,
-                OrganizationAssignmentModel.role == "teacher",
-                OrganizationAssignmentModel.active.is_(True),
-                AdultIdentityModel.account_role == "teacher",
-                AdultIdentityModel.state == "active",
-            )
-            .distinct()
-            .order_by(OrganizationAssignmentModel.subject)
         )
-        return {
-            "items": [
-                {"teacher_ref": subject, "label": "Giáo viên · " + subject[-6:]}
-                for subject in subjects
-            ]
-        }
+        profiles = account_profiles(
+            getattr(request.app.state, "identity_account_provisioner", None), subjects
+        )
+        items = []
+        for subject in subjects:
+            fields = teacher_identity_fields(profiles.get(subject))
+            items.append(
+                {
+                    "teacher_ref": subject,
+                    "label": teacher_identity_label(fields),
+                    **fields,
+                }
+            )
+        return {"items": items}
 
     return _run(execute)
 
@@ -321,17 +357,31 @@ def school_checkout(
 
 
 @router.get(
-    "/api/be1/v1/organizations/{organization_id}/video-quota/allocations", tags=["BE1 quota"]
+    "/api/be1/v1/organizations/{organization_id}/video-quota/allocations",
+    tags=["BE1 quota"],
+    response_model=SchoolQuotaAllocationPageV1,
 )
 def school_allocations(
     organization_id: str,
+    request: Request,
     include_inactive: bool = False,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
 ) -> Any:
     def execute() -> Any:
         require_assignment(db, principal, organization_id, roles={"school_admin"})
-        return _commerce(db, principal).allocations(organization_id, include_inactive)
+        result = _commerce(db, principal).allocations(organization_id, include_inactive)
+        subjects = [item["teacher_ref"] for item in result["items"]]
+        profiles = account_profiles(
+            getattr(request.app.state, "identity_account_provisioner", None), subjects
+        )
+        return {
+            **result,
+            "items": [
+                {**item, **teacher_identity_fields(profiles.get(item["teacher_ref"]))}
+                for item in result["items"]
+            ],
+        }
 
     return _run(execute)
 
@@ -408,3 +458,117 @@ def teacher_quota_allocation(
         return {"allocation": own, "organization_quota_owner": "ORGANIZATION"}
 
     return _run(execute)
+
+
+@router.get(
+    "/api/be1/v1/organizations/{organization_id}/capacity/quote",
+    tags=["BE1 capacity"],
+    response_model=Be1CapacityQuoteV1,
+)
+def capacity_purchase_quote(
+    organization_id: str,
+    addon_slots: int = Query(ge=1, le=1000),
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+) -> Any:
+    def execute() -> Any:
+        require_assignment(db, principal, organization_id, roles={"school_admin"})
+        return capacity_quote(db, organization_id, addon_slots, datetime.now(UTC), get_settings())
+
+    return _run(execute)
+
+
+@router.post(
+    "/api/be1/v1/organizations/{organization_id}/capacity/checkout",
+    tags=["BE1 capacity"],
+    status_code=201,
+    response_model=Be1CapacityCheckoutV1,
+)
+def capacity_purchase_checkout(
+    organization_id: str,
+    payload: Be1CapacityCheckoutRequest,
+    request: Request,
+    idempotency_key: str = Header(alias="Idempotency-Key", min_length=1, max_length=128),
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+) -> Any:
+    def execute() -> Any:
+        require_assignment(db, principal, organization_id, roles={"school_admin"})
+        return CapacityCommerceService(db, principal.subject, get_settings()).checkout_slots(
+            organization_id,
+            payload.addon_slots,
+            payload.provider,
+            idempotency_key,
+            expected_amount_vnd=payload.expected_amount_vnd,
+            price_id=payload.price_id,
+            period_end=payload.period_end,
+            quoted_at=payload.quoted_at,
+            client_ip=request.client.host if request.client else "127.0.0.1",
+        )
+
+    return _run(execute)
+
+
+@router.get(
+    "/api/be1/v1/organizations/{organization_id}/capacity/purchases",
+    tags=["BE1 capacity"],
+    response_model=Be1CapacityPurchasesV1,
+)
+def capacity_purchases(
+    organization_id: str,
+    limit: int = Query(50, ge=1, le=100),
+    invoice_id: str | None = Query(None, min_length=1, max_length=36),
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+) -> Any:
+    def execute() -> Any:
+        require_assignment(db, principal, organization_id, roles={"school_admin"})
+        return CapacityCommerceService(db, principal.subject, get_settings()).purchases(
+            organization_id, limit, invoice_id
+        )
+
+    return _run(execute)
+
+
+def _capacity_purchase_action(
+    organization_id: str, invoice_id: str, principal: VerifiedPrincipal, db: Session, cancel: bool
+) -> Any:
+    def execute() -> Any:
+        require_assignment(db, principal, organization_id, roles={"school_admin"})
+        service = CapacityCommerceService(db, principal.subject, get_settings())
+        service.scoped_purchase(organization_id, invoice_id)
+        return (
+            service.cancel_expired_vnpay_invoice(invoice_id)
+            if cancel
+            else service.reconcile_invoice(invoice_id)
+        )
+
+    return _run(execute)
+
+
+@router.post(
+    "/api/be1/v1/organizations/{organization_id}/capacity/purchases/{invoice_id}/reconcile",
+    tags=["BE1 capacity"],
+    response_model=Be1CapacityPurchaseActionV1,
+)
+def reconcile_capacity_purchase(
+    organization_id: str,
+    invoice_id: str,
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+) -> Any:
+    return _capacity_purchase_action(organization_id, invoice_id, principal, db, False)
+
+
+@router.post(
+    "/api/be1/v1/organizations/{organization_id}/capacity/purchases/{invoice_id}/cancel",
+    tags=["BE1 capacity"],
+    response_model=Be1CapacityPurchaseActionV1,
+)
+def cancel_capacity_purchase(
+    organization_id: str,
+    invoice_id: str,
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+) -> Any:
+    return _capacity_purchase_action(organization_id, invoice_id, principal, db, True)

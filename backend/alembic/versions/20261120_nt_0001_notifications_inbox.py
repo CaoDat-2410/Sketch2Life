@@ -75,6 +75,28 @@ $nt_downgrade_guard$;
 
 def upgrade() -> None:
     op.execute(sa.schema.CreateSchema(SCHEMA, if_not_exists=True))
+    # Preserve rows from the earlier Parent platform inbox before creating the richer T-8a inbox.
+    op.execute(
+        sa.text(
+            """
+            DO $legacy_platform_inbox$
+            BEGIN
+                IF to_regclass('notifications.platform_inbox_items') IS NULL
+                   AND to_regclass('notifications.inbox_items') IS NOT NULL
+                   AND EXISTS (
+                       SELECT 1 FROM information_schema.columns
+                       WHERE table_schema = 'notifications'
+                         AND table_name = 'inbox_items'
+                         AND column_name = 'notification_id'
+                   ) THEN
+                    ALTER TABLE notifications.inbox_items
+                        RENAME TO platform_inbox_items;
+                END IF;
+            END;
+            $legacy_platform_inbox$;
+            """
+        )
+    )
     op.create_table(
         TABLE,
         sa.Column("inbox_item_id", sa.String(36), primary_key=True),

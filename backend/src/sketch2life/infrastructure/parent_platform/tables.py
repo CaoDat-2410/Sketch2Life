@@ -14,6 +14,7 @@ from sqlalchemy import (
     UniqueConstraint,
     text,
 )
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 
 PARENT_METADATA = MetaData(schema="parent")
 LESSON_METADATA = MetaData(schema="lesson")
@@ -21,11 +22,11 @@ NOTIFICATION_METADATA = MetaData(schema="notifications")
 BILLING_METADATA = MetaData(schema="billing")
 
 PROFILE_SHARE_GRANTS = Table(
-    "profile_share_grants",
+    "platform_profile_share_grants",
     PARENT_METADATA,
     Column("grant_id", String(36), primary_key=True),
     Column(
-        "parent_profile_id", String(36),
+        "parent_profile_id", PG_UUID(as_uuid=False),
         nullable=False,
     ),
     Column("owner_subject", String(256), nullable=False),
@@ -113,7 +114,7 @@ DELIVERY_FEEDBACK = Table(
     LESSON_METADATA,
     Column("feedback_id", String(36), primary_key=True),
     Column("occurrence_id", String(36), nullable=False),
-    Column("parent_profile_id", String(36), nullable=False),
+    Column("parent_profile_id", PG_UUID(as_uuid=False), nullable=False),
     Column("parent_subject", String(256), nullable=False),
     Column("feedback_text", String(1200), nullable=False),
     Column("created_at", DateTime(timezone=True), nullable=False),
@@ -136,7 +137,7 @@ FEEDBACK_REPLIES = Table(
 Index("ix_lesson_feedback_reply_feedback_time", FEEDBACK_REPLIES.c.feedback_id, FEEDBACK_REPLIES.c.created_at)
 
 INBOX_ITEMS = Table(
-    "inbox_items",
+    "platform_inbox_items",
     NOTIFICATION_METADATA,
     Column("notification_id", String(36), primary_key=True),
     Column("recipient_subject", String(256), nullable=False),
@@ -152,7 +153,7 @@ INBOX_ITEMS = Table(
 Index("ix_notification_inbox_recipient_time", INBOX_ITEMS.c.recipient_subject, INBOX_ITEMS.c.created_at)
 
 VIDEO_QUOTA_GRANTS = Table(
-    "video_quota_grants",
+    "parent_video_quota_grants",
     BILLING_METADATA,
     Column("grant_id", String(36), primary_key=True),
     Column("owner_scope_kind", String(24), nullable=False),
@@ -165,14 +166,14 @@ VIDEO_QUOTA_GRANTS = Table(
 )
 
 VIDEO_QUOTA_USAGE = Table(
-    "video_quota_usage",
+    "parent_video_quota_usage",
     BILLING_METADATA,
     Column("usage_id", String(36), primary_key=True),
     Column("owner_scope_kind", String(24), nullable=False),
     Column("owner_scope_ref", String(128), nullable=False),
     Column("accepted_request_ref", String(128), nullable=False),
     Column("used_at", DateTime(timezone=True), nullable=False),
-    UniqueConstraint("owner_scope_kind", "owner_scope_ref", "accepted_request_ref", name="uq_billing_quota_usage_request"),
+    UniqueConstraint("owner_scope_kind", "owner_scope_ref", "accepted_request_ref", name="uq_parent_quota_usage_request"),
 )
 
 __all__ = [

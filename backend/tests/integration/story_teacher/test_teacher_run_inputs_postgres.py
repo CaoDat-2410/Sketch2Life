@@ -273,17 +273,24 @@ def test_the_first_story_starts_by_itself_and_three_rewrites_then_the_limit(env:
     assert len(e.generator.inputs) == 4
     # the worker input of a Teacher run: role, bounded direction, no child name
     first = e.generator.inputs[0]
-    assert first["schema_version"] == "sketch2life.story-generation-input.v2"
-    assert first["role"] == "TEACHER" and first["activity"] is None
-    direction = first["lesson_direction"]
-    assert set(direction) == {"teacher_direction", "objectives", "activity_title"}
-    assert direction["teacher_direction"] == "Câu chuyện về chú mèo đi tìm bạn"
-    assert direction["activity_title"] == "Vẽ bằng ngón tay"
-    assert direction["objectives"] == ["Nhận biết hình tròn", "Kể chuyện chú mèo"]
+    assert first["schema_version"] == "sketch2life.story-generation-input.v3"
+    assert first["role"] == "TEACHER" and first["topic"] == "Vẽ bằng ngón tay"
+    assert first["primary_activity"]["title"] == "Vẽ bằng ngón tay"
+    assert first["primary_activity"]["objective"] == "Nhận biết hình tròn; Kể chuyện chú mèo"
+    assert isinstance(first["lesson_direction"], str)
+    assert "Câu chuyện về chú mèo đi tìm bạn" in first["lesson_direction"]
+    assert "Nhận biết hình tròn" in first["lesson_direction"]
     assert first["confirmed_subject"] == SUBJECT and first["child_age_months"] == 60
+    assert "learning" not in first and first["lesson_subject_learning_notes"] is None
     assert_no_child_name(e, str(e.generator.inputs) + all_story_text(e, run_id))
-    # the rewrite input is the rewrite schema, the first story the generation schema
-    assert e.generator.inputs[1]["schema_version"] == "sketch2life.story-rewrite-input.v1"
+    # First story and rewrites share the strict v3 worker envelope.
+    rewrite_input = e.generator.inputs[1]
+    assert rewrite_input["schema_version"] == "sketch2life.story-generation-input.v3"
+    assert rewrite_input["role"] == "TEACHER"
+    assert rewrite_input["primary_activity"] == first["primary_activity"]
+    assert rewrite_input["primary_activity_sha256"] == first["primary_activity_sha256"]
+    assert rewrite_input["rewrite_instruction"] and len(rewrite_input["rewrite_instruction"]) <= 400
+    assert "adult_rewrite_hint" not in rewrite_input
     # the receipts of the rewrites carry the organization command scope (the first story has none)
     rewrites = [r for r in receipt_rows(e, run_id) if r["operation"] == "GENERATE_STORY_REVISION"]
     assert len(rewrites) == 3

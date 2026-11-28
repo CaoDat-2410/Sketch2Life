@@ -76,22 +76,6 @@ html[data-portal="platform"] .s2l-password-form input:focus {
   border-color: var(--s2l-ui-primary);
   outline: 3px solid color-mix(in srgb, var(--s2l-ui-primary) 16%, transparent);
 }
-html[data-portal="platform"] .s2l-password-form button {
-  border-color: var(--s2l-ui-primary);
-  border-radius: var(--pa-radius-control);
-  background: var(--s2l-ui-primary);
-  color: var(--s2l-ui-on-primary);
-}
-html[data-portal="platform"] .s2l-password-form button:hover:not(:disabled) {
-  border-color: var(--s2l-ui-primary-hover);
-  background: var(--s2l-ui-primary-hover);
-}
-html[data-portal="platform"] .s2l-password-form button:disabled {
-  border-color: var(--s2l-ui-primary-hover);
-  background: var(--s2l-ui-primary-hover);
-  color: var(--s2l-ui-on-primary);
-  opacity: 1;
-}
 html[data-portal="platform"] .pa-page :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea),
 html[data-portal="platform"] .platform-accounts :is(input,select,textarea) {
   min-height: var(--pa-control-height);

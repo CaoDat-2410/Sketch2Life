@@ -10,7 +10,7 @@ import re
 from datetime import UTC, datetime, timedelta
 from io import BytesIO
 from tempfile import SpooledTemporaryFile
-from typing import Any, Callable
+from typing import Any, Callable, NoReturn
 from uuid import NAMESPACE_URL, uuid4, uuid5
 
 from sqlalchemy import and_, func, or_, select, update
@@ -31,7 +31,12 @@ from sketch2life.domain.lesson_library.model import (
     can_read_as_parent,
     canonical_content_hash,
     next_version_number,
+    remix_request_fingerprint,
     validate_content,
+    verify_remix_source_content,
+)
+from sketch2life.domain.lesson_library.model import (
+    decline_parent_group_invitation as decline_parent_group_invitation_state,
 )
 from sketch2life.infrastructure.lesson_library.receipt_compat import (
     ReceiptCompatibilityError,
@@ -43,6 +48,7 @@ from sketch2life.infrastructure.lesson_library.tables import (
     COMMAND_RECEIPTS,
     DOCUMENT_REVISIONS,
     LIBRARY_ITEMS,
+    LIBRARY_VERSION_LINEAGE,
     LIBRARY_VERSIONS,
     PARENT_GROUP_MEMBERS,
     PARENT_GROUPS,
@@ -53,6 +59,7 @@ from sketch2life.infrastructure.lesson_library.tables import (
 )
 from sketch2life.infrastructure.persistence.be1_models import (
     AdultIdentityModel,
+    Be1CommandReceiptModel,
     OrganizationAssignmentModel,
 )
 from sketch2life.infrastructure.persistence.core_models import (
@@ -67,6 +74,15 @@ MAX_SOURCE_BYTES = 25_000_000
 UPLOAD_TTL = timedelta(hours=24)
 INVITATION_TTL = timedelta(days=30)
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
+_OPAQUE_ID = re.compile(r"^[A-Za-z0-9._:-]{1,256}$")
+_SCOPED_CURSOR = re.compile(r"^[A-Za-z0-9_-]+$")
+_SCOPED_CURSOR_MAX_BYTES = 1024
+_REMIX_OPERATION_SCOPE = "POST /lesson-library/remixes"
+_REMIX_RECEIPT_PK = "pk_be1_command_receipts"
+_PARENT_GROUP_DECLINE_SCOPE = "POST /lesson-library/v1/me/parent-group-invitations/decline"
+_PARENT_GROUP_REVOKE_SCOPE = "DELETE /lesson-library/v1/organizations/parent-groups/members"
+_PARENT_INVITATION_NOT_FOUND_MESSAGE = "Parent account not found"
+_REMIX_SERIALIZATION_RETRIES = 3
 _ALLOWED_UPLOADS = {
     ".pdf": "application/pdf",
     ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -75,10 +91,14 @@ _ALLOWED_UPLOADS = {
 
 
 class LessonLibraryError(RuntimeError):
-    def __init__(self, status_code: int, code: str, message: str) -> None:
+    def __init__(
+        self, status_code: int, code: str, message: str,
+        field_errors: list[dict[str, str]] | None = None,
+    ) -> None:
         self.status_code = status_code
         self.code = code
         self.message = message
+        self.field_errors = field_errors or []
         super().__init__(code)
 
 
@@ -90,8 +110,225 @@ class LessonLibraryStaleRevision(LessonLibraryError):
         self.current_revision = current_revision
 
 
-def fail(status_code: int, code: str, message: str) -> None:
-    raise LessonLibraryError(status_code, code, message)
+def fail(
+    status_code: int,
+    code: str,
+    message: str,
+    *,
+    field_errors: list[dict[str, str]] | None = None,
+) -> NoReturn:
+    raise LessonLibraryError(status_code, code, message, field_errors)
+
+
+def _normalize_search_filters(
+    *,
+    q: str | None,
+    topic: str | None,
+    target_age_band_ref: str | None,
+    target_age_band_version: int | None,
+) -> dict[str, Any]:
+    normalized_q = None if q is None else q.strip()
+    normalized_topic = None if topic is None else topic.strip()
+    for field_name, value in (("q", normalized_q), ("topic", normalized_topic)):
+        if value is not None and any(ord(char) < 32 or ord(char) == 127 for char in value):
+            fail(
+                400,
+                "INVALID_REQUEST",
+                f"{field_name} must not contain control characters",
+                field_errors=[{"field": field_name, "code": "INVALID_FORMAT"}],
+            )
+    if normalized_q == "":
+        fail(
+            400,
+            "INVALID_REQUEST",
+            "q must not be empty",
+            field_errors=[{"field": "q", "code": "EMPTY"}],
+        )
+    if normalized_q is not None and len(normalized_q) > 100:
+        fail(
+            400,
+            "INVALID_REQUEST",
+            "q must contain at most 100 code points",
+            field_errors=[{"field": "q", "code": "TOO_LONG"}],
+        )
+    if normalized_topic == "":
+        fail(
+            400,
+            "INVALID_REQUEST",
+            "topic must not be empty",
+            field_errors=[{"field": "topic", "code": "EMPTY"}],
+        )
+    if normalized_topic is not None and len(normalized_topic) > 120:
+        fail(
+            400,
+            "INVALID_REQUEST",
+            "topic must contain at most 120 code points",
+            field_errors=[{"field": "topic", "code": "TOO_LONG"}],
+        )
+    if (target_age_band_ref is None) != (target_age_band_version is None):
+        missing_field = (
+            "target_age_band_ref" if target_age_band_ref is None else "target_age_band_version"
+        )
+        fail(
+            400,
+            "INVALID_REQUEST",
+            "target age band reference and version must be provided together",
+            field_errors=[{"field": missing_field, "code": "REQUIRED"}],
+        )
+    if target_age_band_ref is not None and not _OPAQUE_ID.fullmatch(target_age_band_ref):
+        fail(
+            400,
+            "INVALID_REQUEST",
+            "target age band reference is invalid",
+            field_errors=[{"field": "target_age_band_ref", "code": "INVALID_FORMAT"}],
+        )
+    if target_age_band_version is not None and target_age_band_version < 1:
+        fail(
+            400,
+            "INVALID_REQUEST",
+            "target age band version must be positive",
+            field_errors=[{"field": "target_age_band_version", "code": "OUT_OF_RANGE"}],
+        )
+    return {
+        "q": normalized_q,
+        "topic": normalized_topic,
+        "target_age_band_ref": target_age_band_ref,
+        "target_age_band_version": target_age_band_version,
+    }
+
+
+def _escape_like_literal(value: str) -> str:
+    return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
+def _cursor_scope_digest(scope: dict[str, Any]) -> str:
+    encoded_scope = json.dumps(
+        scope, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")
+    return hashlib.sha256(encoded_scope).hexdigest()
+
+
+def _invalid_scoped_cursor() -> NoReturn:
+    raise LessonLibraryError(
+        400,
+        "INVALID_REQUEST",
+        "Pagination cursor is invalid for this request",
+        [{"field": "cursor", "code": "INVALID_FORMAT"}],
+    )
+
+
+def _encode_scoped_cursor(
+    *, scope: dict[str, Any], sort_value: datetime | int, row_id: str, value_kind: str,
+) -> str:
+    if value_kind == "datetime" and isinstance(sort_value, datetime):
+        encoded_value: str | int = sort_value.isoformat()
+    elif value_kind == "integer" and type(sort_value) is int:
+        encoded_value = sort_value
+    else:
+        _invalid_scoped_cursor()
+    payload = {
+        "v": 1,
+        "scope": _cursor_scope_digest(scope),
+        "kind": value_kind,
+        "key": [encoded_value, row_id],
+    }
+    cursor = base64.urlsafe_b64encode(
+        json.dumps(
+            payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        ).encode("utf-8")
+    ).decode("ascii").rstrip("=")
+    if len(cursor.encode("ascii")) > _SCOPED_CURSOR_MAX_BYTES:
+        _invalid_scoped_cursor()
+    return cursor
+
+
+def _decode_scoped_cursor(
+    *, cursor: str, scope: dict[str, Any], value_kind: str,
+) -> tuple[datetime | int, str]:
+    try:
+        encoded = cursor.encode("ascii")
+        if (
+            not encoded
+            or len(encoded) > _SCOPED_CURSOR_MAX_BYTES
+            or not _SCOPED_CURSOR.fullmatch(cursor)
+        ):
+            raise ValueError
+        raw = base64.b64decode(
+            encoded + b"=" * (-len(encoded) % 4), altchars=b"-_", validate=True
+        )
+        payload = json.loads(raw.decode("utf-8"))
+        if (
+            not isinstance(payload, dict)
+            or set(payload) != {"v", "scope", "kind", "key"}
+            or payload["v"] != 1
+            or payload["scope"] != _cursor_scope_digest(scope)
+            or payload["kind"] != value_kind
+            or not isinstance(payload["key"], list)
+            or len(payload["key"]) != 2
+        ):
+            raise ValueError
+        raw_sort_value, row_id = payload["key"]
+        if not isinstance(row_id, str) or not row_id or len(row_id) > 256:
+            raise ValueError
+        if value_kind == "datetime":
+            if not isinstance(raw_sort_value, str):
+                raise ValueError
+            parsed_value = datetime.fromisoformat(raw_sort_value)
+            if parsed_value.tzinfo is None:
+                raise ValueError
+            sort_value: datetime | int = parsed_value
+        elif value_kind == "integer":
+            if type(raw_sort_value) is not int or raw_sort_value < 1:
+                raise ValueError
+            sort_value = raw_sort_value
+        else:
+            raise ValueError
+        return sort_value, row_id
+    except (ValueError, UnicodeError, json.JSONDecodeError):
+        _invalid_scoped_cursor()
+
+
+def _scoped_cursor_filter(
+    stmt: Any,
+    cursor: str | None,
+    *,
+    scope: dict[str, Any],
+    sort_col: Any,
+    id_col: Any,
+    value_kind: str,
+) -> Any:
+    if cursor is None:
+        return stmt
+    sort_value, row_id = _decode_scoped_cursor(
+        cursor=cursor, scope=scope, value_kind=value_kind
+    )
+    return stmt.where(
+        or_(sort_col < sort_value, and_(sort_col == sort_value, id_col < row_id))
+    )
+
+
+def _apply_lesson_search_filters(stmt: Any, filters: dict[str, Any] | None) -> Any:
+    if filters is None:
+        return stmt
+    title_col = LIBRARY_VERSIONS.c.content_json["title"].astext
+    topic_col = LIBRARY_VERSIONS.c.content_json["topic"].astext
+    if filters["q"] is not None:
+        pattern = f"%{_escape_like_literal(filters['q'])}%"
+        stmt = stmt.where(
+            or_(title_col.ilike(pattern, escape="\\"), topic_col.ilike(pattern, escape="\\"))
+        )
+    if filters["topic"] is not None:
+        stmt = stmt.where(
+            topic_col.ilike(_escape_like_literal(filters["topic"]), escape="\\")
+        )
+    if filters["target_age_band_ref"] is not None:
+        stmt = stmt.where(
+            LIBRARY_VERSIONS.c.content_json["target_age_band_ref"].astext
+            == filters["target_age_band_ref"],
+            LIBRARY_VERSIONS.c.content_json["target_age_band_version"].astext
+            == str(filters["target_age_band_version"]),
+        )
+    return stmt
 
 
 def upload_session_revision(state: str, part_count: int) -> int:
@@ -190,7 +427,12 @@ class LessonLibraryService:
                 LIBRARY_VERSIONS,
                 LIBRARY_VERSIONS.c.version_id == LIBRARY_ITEMS.c.current_version_id,
             )
-        ).where(LIBRARY_ITEMS.c.organization_id == organization_id)
+        ).where(
+            LIBRARY_ITEMS.c.organization_id == organization_id,
+            # Organization lesson lists are used for discovery and selection. Keep
+            # archived lessons out of every staff list, including explicit state filters.
+            LIBRARY_ITEMS.c.state == "ACTIVE",
+        )
         if not manager:
             stmt = stmt.where(
                 or_(
@@ -452,6 +694,22 @@ class LessonLibraryService:
             fail(404, "LESSON_NOT_FOUND", "Lesson was not found")
         return row
 
+    def _load_lesson_for_version_read(
+        self, organization_id: str, lesson_id: str, actor: str,
+    ) -> Any:
+        row = self.db.execute(
+            select(LIBRARY_ITEMS).where(
+                LIBRARY_ITEMS.c.organization_id == organization_id,
+                LIBRARY_ITEMS.c.lesson_id == lesson_id,
+            )
+        ).mappings().one_or_none()
+        if row is None:
+            fail(404, "RESOURCE_NOT_FOUND", "Lesson version was not found")
+        assert row is not None
+        if row["visibility"] == "PRIVATE" and row["created_by"] != actor:
+            fail(404, "RESOURCE_NOT_FOUND", "Lesson version was not found")
+        return row
+
     def _load_version(self, version_id: str) -> Any:
         row = self.db.execute(
             select(LIBRARY_VERSIONS).where(LIBRARY_VERSIONS.c.version_id == version_id)
@@ -508,6 +766,373 @@ class LessonLibraryService:
             "created_at": item["created_at"],
             "updated_at": item["updated_at"],
         }
+
+    def list_lesson_versions(
+        self, *, organization_id: str, lesson_id: str, actor: str,
+        limit: int, cursor: str | None,
+    ) -> dict[str, Any]:
+        if not 1 <= limit <= 100:
+            fail(400, "INVALID_REQUEST", "limit must be between 1 and 100")
+        self._load_lesson_for_version_read(organization_id, lesson_id, actor)
+        scope = {
+            "actor": actor,
+            "route": f"GET /organizations/{organization_id}/lessons/{lesson_id}/versions",
+            "source": "OWNING_ORGANIZATION",
+            "filters": {},
+            "order": "version_no:desc,version_id:desc",
+        }
+        stmt = select(LIBRARY_VERSIONS).where(LIBRARY_VERSIONS.c.lesson_id == lesson_id)
+        stmt = _scoped_cursor_filter(
+            stmt,
+            cursor,
+            scope=scope,
+            sort_col=LIBRARY_VERSIONS.c.version_no,
+            id_col=LIBRARY_VERSIONS.c.version_id,
+            value_kind="integer",
+        )
+        rows = self.db.execute(
+            stmt.order_by(
+                LIBRARY_VERSIONS.c.version_no.desc(), LIBRARY_VERSIONS.c.version_id.desc()
+            )
+            .limit(limit + 1)
+        ).mappings().all()
+        next_cursor = None
+        if len(rows) > limit:
+            rows = rows[:limit]
+            last = rows[-1]
+            next_cursor = _encode_scoped_cursor(
+                scope=scope,
+                sort_value=int(last["version_no"]),
+                row_id=last["version_id"],
+                value_kind="integer",
+            )
+        return {
+            "contract": "LessonVersionPageV1",
+            "lesson_id": lesson_id,
+            "items": [
+                {
+                    "contract": "LessonVersionSummaryV1",
+                    "version_id": row["version_id"],
+                    "version_no": row["version_no"],
+                    "review_state": row["review_state"],
+                    "structured_content_hash": row["structured_content_hash"],
+                    "source_document_revision_id": row["source_document_revision_id"],
+                    "authored_principal_ref": row["authored_by"],
+                    "created_at": row["created_at"],
+                }
+                for row in rows
+            ],
+            "next_cursor": next_cursor,
+        }
+
+    def get_lesson_version(
+        self, *, organization_id: str, lesson_id: str, version_id: str, actor: str,
+    ) -> dict[str, Any]:
+        self._load_lesson_for_version_read(organization_id, lesson_id, actor)
+        version = self.db.execute(
+            select(LIBRARY_VERSIONS).where(
+                LIBRARY_VERSIONS.c.lesson_id == lesson_id,
+                LIBRARY_VERSIONS.c.version_id == version_id,
+            )
+        ).mappings().one_or_none()
+        if version is None:
+            fail(404, "RESOURCE_NOT_FOUND", "Lesson version was not found")
+        return self._version_response(version, with_content=True)
+
+    def remix_public_lesson(
+        self, *, organization_id: str, lesson_id: str, actor: str, actor_issuer: str,
+        source_version_id: str, source_content_sha256: str, idempotency_key: str,
+    ) -> dict[str, Any]:
+        fingerprint = remix_request_fingerprint(
+            destination_organization_id=organization_id,
+            lesson_id=lesson_id,
+            source_version_id=source_version_id,
+            source_content_sha256=source_content_sha256,
+        )
+        for attempt in range(_REMIX_SERIALIZATION_RETRIES):
+            try:
+                return self._attempt_public_remix(
+                    organization_id=organization_id,
+                    lesson_id=lesson_id,
+                    actor=actor,
+                    actor_issuer=actor_issuer,
+                    source_version_id=source_version_id,
+                    source_content_sha256=source_content_sha256,
+                    idempotency_key=idempotency_key,
+                    fingerprint=fingerprint,
+                )
+            except IntegrityError as exc:
+                self.db.rollback()
+                if self._is_remix_receipt_conflict(exc):
+                    return self._replay_public_remix_after_race(
+                        organization_id=organization_id,
+                        lesson_id=lesson_id,
+                        actor=actor,
+                        actor_issuer=actor_issuer,
+                        source_version_id=source_version_id,
+                        source_content_sha256=source_content_sha256,
+                        idempotency_key=idempotency_key,
+                        fingerprint=fingerprint,
+                    )
+                fail(409, "RESOURCE_CONFLICT", "The request conflicts with existing records")
+            except SQLAlchemyError as exc:
+                self.db.rollback()
+                last_attempt = attempt + 1 >= _REMIX_SERIALIZATION_RETRIES
+                if self._is_retryable_database_error(exc) and not last_attempt:
+                    continue
+                fail(503, "DEPENDENCY_UNAVAILABLE", "Database is temporarily unavailable")
+        fail(503, "DEPENDENCY_UNAVAILABLE", "Database is temporarily unavailable")
+
+    def _attempt_public_remix(
+        self, *, organization_id: str, lesson_id: str, actor: str, actor_issuer: str,
+        source_version_id: str, source_content_sha256: str, idempotency_key: str,
+        fingerprint: str,
+    ) -> dict[str, Any]:
+        self._require_remix_teacher(organization_id, actor, actor_issuer)
+        _source_item, source_version = self._load_public_remix_source(
+            lesson_id=lesson_id, source_version_id=source_version_id
+        )
+        source_content = self._full_content(source_version)
+        verified_hash = self._verified_remix_hash(
+            source_content,
+            stored_hash=source_version["structured_content_hash"],
+            requested_hash=source_content_sha256,
+        )
+        receipt = self._find_remix_receipt(actor, idempotency_key)
+        if receipt is not None:
+            replay = self._remix_receipt_response(
+                receipt,
+                organization_id=organization_id,
+                fingerprint=fingerprint,
+            )
+            self.db.commit()
+            return replay
+
+        now = datetime.now(UTC)
+        derived_lesson_id = str(uuid4())
+        derived_version_id = str(uuid4())
+        self.db.execute(
+            LIBRARY_ITEMS.insert().values(
+                lesson_id=derived_lesson_id,
+                organization_id=organization_id,
+                owner_kind="ORGANIZATION",
+                created_by=actor,
+                state="ACTIVE",
+                visibility="PRIVATE",
+                internal_visibility="PRIVATE",
+                moderation_state="VISIBLE",
+                current_version_id=derived_version_id,
+                revision=1,
+                created_at=now,
+                updated_at=now,
+            )
+        )
+        self._insert_version(
+            lesson_id=derived_lesson_id,
+            version_id=derived_version_id,
+            version_no=1,
+            content=source_content,
+            actor=actor,
+            source_revision_id=None,
+            review_state="DRAFT",
+            created_at=now,
+        )
+        self.db.execute(
+            LIBRARY_VERSION_LINEAGE.insert().values(
+                derived_version_id=derived_version_id,
+                source_version_id=source_version_id,
+                source_content_hash=verified_hash,
+                created_at=now,
+            )
+        )
+        self._audit(
+            organization_id, actor, "lesson.remix.create", "lesson", derived_lesson_id
+        )
+        derived_item = self._load_lesson(organization_id, derived_lesson_id)
+        response = {
+            "contract": "RemixLessonResponseV1",
+            "lesson": self._detail_from_row(derived_item),
+            "source": {
+                "lesson_id": lesson_id,
+                "version_id": source_version_id,
+                "content_sha256": verified_hash,
+            },
+        }
+        self.db.add(
+            Be1CommandReceiptModel(
+                principal_ref=actor,
+                operation_scope=_REMIX_OPERATION_SCOPE,
+                idempotency_key=idempotency_key,
+                organization_id=organization_id,
+                request_fingerprint=fingerprint,
+                response_json=self._json_safe(response),
+            )
+        )
+        self.db.commit()
+        return response
+
+    def _replay_public_remix_after_race(
+        self, *, organization_id: str, lesson_id: str, actor: str, actor_issuer: str,
+        source_version_id: str, source_content_sha256: str, idempotency_key: str,
+        fingerprint: str,
+    ) -> dict[str, Any]:
+        try:
+            self._require_remix_teacher(organization_id, actor, actor_issuer)
+            _source_item, source_version = self._load_public_remix_source(
+                lesson_id=lesson_id, source_version_id=source_version_id
+            )
+            source_content = self._full_content(source_version)
+            self._verified_remix_hash(
+                source_content,
+                stored_hash=source_version["structured_content_hash"],
+                requested_hash=source_content_sha256,
+            )
+            receipt = self._find_remix_receipt(actor, idempotency_key)
+            if receipt is None:
+                fail(503, "DEPENDENCY_UNAVAILABLE", "The concurrent receipt is unavailable")
+            response = self._remix_receipt_response(
+                receipt,
+                organization_id=organization_id,
+                fingerprint=fingerprint,
+            )
+            self.db.commit()
+            return response
+        except SQLAlchemyError:
+            self.db.rollback()
+            fail(503, "DEPENDENCY_UNAVAILABLE", "Database is temporarily unavailable")
+
+    def _require_remix_teacher(
+        self, organization_id: str, actor: str, actor_issuer: str,
+    ) -> None:
+        identity = self.db.scalar(
+            select(AdultIdentityModel)
+            .where(AdultIdentityModel.subject == actor)
+            .with_for_update(read=True)
+        )
+        if (
+            identity is None
+            or identity.state != "active"
+            or identity.account_role != "teacher"
+            or identity.issuer != actor_issuer
+        ):
+            fail(404, "RESOURCE_NOT_FOUND", "The requested resource was not found")
+        assignments = self.db.execute(
+            select(OrganizationAssignmentModel)
+            .where(
+                OrganizationAssignmentModel.organization_id == organization_id,
+                OrganizationAssignmentModel.subject == actor,
+                OrganizationAssignmentModel.role == "teacher",
+                OrganizationAssignmentModel.active.is_(True),
+            )
+            .with_for_update(read=True)
+        ).scalars().all()
+        if not assignments:
+            fail(404, "RESOURCE_NOT_FOUND", "The requested resource was not found")
+
+    def _load_public_remix_source(
+        self, *, lesson_id: str, source_version_id: str,
+    ) -> tuple[Any, Any]:
+        item = self.db.execute(
+            select(LIBRARY_ITEMS)
+            .where(LIBRARY_ITEMS.c.lesson_id == lesson_id)
+            .with_for_update()
+        ).mappings().one_or_none()
+        if (
+            item is None
+            or item["state"] != "ACTIVE"
+            or item["visibility"] != "PUBLIC"
+            or item["moderation_state"] != "VISIBLE"
+        ):
+            fail(404, "RESOURCE_NOT_FOUND", "The requested resource was not found")
+
+        stmt = (
+            select(LIBRARY_VERSIONS)
+            .select_from(
+                LIBRARY_VERSIONS.join(
+                    ACCESS_GRANTS,
+                    and_(
+                        ACCESS_GRANTS.c.lesson_id == LIBRARY_VERSIONS.c.lesson_id,
+                        ACCESS_GRANTS.c.version_id == LIBRARY_VERSIONS.c.version_id,
+                    ),
+                )
+            )
+            .where(
+                LIBRARY_VERSIONS.c.lesson_id == lesson_id,
+                LIBRARY_VERSIONS.c.version_id == source_version_id,
+                LIBRARY_VERSIONS.c.review_state == "APPROVED",
+                ACCESS_GRANTS.c.audience_kind == "PUBLIC",
+                ACCESS_GRANTS.c.audience_ref.is_(None),
+                ACCESS_GRANTS.c.capability == "REUSE",
+                ACCESS_GRANTS.c.state == "ACTIVE",
+                ACCESS_GRANTS.c.approved_by.is_not(None),
+                ACCESS_GRANTS.c.approved_at.is_not(None),
+                or_(
+                    ACCESS_GRANTS.c.expires_at.is_(None),
+                    ACCESS_GRANTS.c.expires_at > func.clock_timestamp(),
+                ),
+            )
+            .order_by(ACCESS_GRANTS.c.access_grant_id)
+            .with_for_update(of=ACCESS_GRANTS)
+        )
+        versions = self.db.execute(stmt).mappings().all()
+        if not versions:
+            fail(404, "RESOURCE_NOT_FOUND", "The requested resource was not found")
+        return item, versions[0]
+
+    @staticmethod
+    def _verified_remix_hash(
+        source_content: dict[str, Any], *, stored_hash: str, requested_hash: str,
+    ) -> str:
+        try:
+            return verify_remix_source_content(
+                source_content,
+                stored_hash=stored_hash,
+                requested_hash=requested_hash,
+            )
+        except LessonLibraryRuleError:
+            fail(409, "STALE_SOURCE_VERSION", "The source version hash is stale")
+
+    def _find_remix_receipt(
+        self, actor: str, idempotency_key: str,
+    ) -> Be1CommandReceiptModel | None:
+        return self.db.execute(
+            select(Be1CommandReceiptModel)
+            .where(
+                Be1CommandReceiptModel.principal_ref == actor,
+                Be1CommandReceiptModel.operation_scope == _REMIX_OPERATION_SCOPE,
+                Be1CommandReceiptModel.idempotency_key == idempotency_key,
+            )
+            .with_for_update()
+        ).scalar_one_or_none()
+
+    @staticmethod
+    def _remix_receipt_response(
+        receipt: Be1CommandReceiptModel, *, organization_id: str, fingerprint: str,
+    ) -> dict[str, Any]:
+        if (
+            receipt.organization_id != organization_id
+            or receipt.request_fingerprint != fingerprint
+        ):
+            fail(
+                400,
+                "INVALID_IDEMPOTENCY_KEY",
+                "Idempotency-Key was already used for another request",
+            )
+        return dict(receipt.response_json)
+
+    @staticmethod
+    def _is_remix_receipt_conflict(exc: IntegrityError) -> bool:
+        original = exc.orig
+        sqlstate = getattr(original, "sqlstate", None) or getattr(original, "pgcode", None)
+        diagnostic = getattr(original, "diag", None)
+        constraint = getattr(diagnostic, "constraint_name", None)
+        return sqlstate == "23505" and constraint == _REMIX_RECEIPT_PK
+
+    @staticmethod
+    def _is_retryable_database_error(exc: SQLAlchemyError) -> bool:
+        original = getattr(exc, "orig", None)
+        sqlstate = getattr(original, "sqlstate", None) or getattr(original, "pgcode", None)
+        return sqlstate in {"40001", "40P01"}
 
     def _summary(self, row: Any) -> dict[str, Any]:
         activity_count = self.db.scalar(
@@ -571,6 +1196,23 @@ class LessonLibraryService:
             fail(400, "INVALID_IDEMPOTENCY_KEY", "Idempotency-Key was already used for another request")
         stored_response = previous["response_json"]
         try:
+            if (
+                isinstance(stored_response, dict)
+                and stored_response.get("contract")
+                in {"ParentGroupInvitationV1", "ParentGroupMembershipV1"}
+            ):
+                response_organization_id = stored_response.get("organization_id")
+                if (
+                    response_organization_id is not None
+                    and response_organization_id != organization_id
+                ):
+                    raise ReceiptCompatibilityError(
+                        "receipt organization does not match operation scope"
+                    )
+                stored_response = {
+                    **stored_response,
+                    "organization_id": organization_id,
+                }
             lookup = parent_group_membership_lookup(
                 organization_id=organization_id,
                 principal_ref=actor,
@@ -602,8 +1244,9 @@ class LessonLibraryService:
                 )
                 if lookup.parent_principal_ref is not None:
                     stmt = stmt.where(
-                        PARENT_GROUP_MEMBERS.c.parent_principal_ref
-                        == lookup.parent_principal_ref
+                        PARENT_GROUP_MEMBERS.c.parent_principal_ref.in_(
+                            self._parent_audience_refs(lookup.parent_principal_ref)
+                        )
                     )
                 membership_row = self.db.execute(stmt).mappings().one_or_none()
                 if membership_row is None:
@@ -616,7 +1259,13 @@ class LessonLibraryService:
                 response=stored_response,
                 membership_row=membership_data,
                 organization_id=organization_id,
-                principal_ref=actor,
+                principal_ref=(
+                    membership_data["parent_principal_ref"]
+                    if lookup is not None
+                    and lookup.parent_principal_ref is not None
+                    and membership_data is not None
+                    else actor
+                ),
             )
         except ReceiptCompatibilityError as exc:
             raise LessonLibraryError(
@@ -680,6 +1329,46 @@ class LessonLibraryService:
     @staticmethod
     def _encode_cursor(created_at: datetime, row_id: str) -> str:
         value = f"{created_at.isoformat()}|{row_id}".encode("utf-8")
+        return base64.urlsafe_b64encode(value).decode("ascii").rstrip("=")
+
+    @staticmethod
+    def _teacher_activity_cursor_filter(
+        stmt: Any,
+        cursor: str | None,
+        *,
+        time_col: Any,
+        activity_order_col: Any,
+        id_col: Any,
+    ) -> Any:
+        if cursor is None:
+            return stmt
+        try:
+            decoded = base64.urlsafe_b64decode(cursor + "=" * (-len(cursor) % 4)).decode("utf-8")
+            timestamp, raw_order, row_id = decoded.split("|", 2)
+            created_at = datetime.fromisoformat(timestamp)
+            activity_order = int(raw_order)
+            if created_at.tzinfo is None or activity_order < 1 or not row_id:
+                raise ValueError
+        except (ValueError, UnicodeError):
+            fail(422, "INVALID_REQUEST", "Pagination cursor is invalid")
+        return stmt.where(
+            or_(
+                time_col < created_at,
+                and_(
+                    time_col == created_at,
+                    or_(
+                        activity_order_col > activity_order,
+                        and_(activity_order_col == activity_order, id_col > row_id),
+                    ),
+                ),
+            )
+        )
+
+    @staticmethod
+    def _encode_teacher_activity_cursor(
+        created_at: datetime, activity_order: int, row_id: str
+    ) -> str:
+        value = f"{created_at.isoformat()}|{activity_order}|{row_id}".encode()
         return base64.urlsafe_b64encode(value).decode("ascii").rstrip("=")
 
     @staticmethod
@@ -1169,7 +1858,8 @@ class LessonLibraryService:
         version_id: str, audience_kind: str, audience_ref: str | None,
         capability: str, expires_at: datetime | None, idempotency_key: str,
     ) -> dict[str, Any]:
-        item = self._load_lesson(organization_id, lesson_id)
+        # T-10b takes the item before public-grant rows; keep publication writers in that order.
+        item = self._load_lesson(organization_id, lesson_id, for_update=True)
         if item["created_by"] != actor or item["state"] != "ACTIVE":
             fail(404, "LESSON_NOT_FOUND", "Lesson was not found")
         version = self.db.execute(
@@ -1257,7 +1947,23 @@ class LessonLibraryService:
         self, *, organization_id: str, audience_kind: str | None,
         state: str | None, lesson_id: str | None, limit: int, cursor: str | None,
     ) -> dict[str, Any]:
-        stmt = select(ACCESS_GRANTS).where(ACCESS_GRANTS.c.organization_id == organization_id)
+        stmt = (
+            select(
+                ACCESS_GRANTS,
+                LIBRARY_VERSIONS.c.content_json.label("lesson_content_json"),
+                LIBRARY_VERSIONS.c.version_no.label("lesson_version_no"),
+            )
+            .select_from(
+                ACCESS_GRANTS.outerjoin(
+                    LIBRARY_VERSIONS,
+                    and_(
+                        LIBRARY_VERSIONS.c.version_id == ACCESS_GRANTS.c.version_id,
+                        LIBRARY_VERSIONS.c.lesson_id == ACCESS_GRANTS.c.lesson_id,
+                    ),
+                )
+            )
+            .where(ACCESS_GRANTS.c.organization_id == organization_id)
+        )
         if audience_kind is not None:
             stmt = stmt.where(ACCESS_GRANTS.c.audience_kind == audience_kind)
         if state is not None:
@@ -1292,11 +1998,20 @@ class LessonLibraryService:
         )
         if replay is not None:
             return replay
+        grant_hint = self._load_grant(grant_id, organization_id)
+        item = self.db.execute(
+            select(LIBRARY_ITEMS)
+            .where(LIBRARY_ITEMS.c.lesson_id == grant_hint["lesson_id"])
+            .with_for_update()
+        ).mappings().one_or_none()
+        if item is None:
+            fail(404, "RESOURCE_NOT_FOUND", "Access grant was not found")
         grant = self._load_grant(grant_id, organization_id, for_update=True)
+        if grant["lesson_id"] != item["lesson_id"]:
+            fail(404, "RESOURCE_NOT_FOUND", "Access grant was not found")
         self._require_revision(grant["revision"], expected_revision)
         if grant["audience_kind"] != "PUBLIC" or grant["state"] != "PENDING_REVIEW":
             fail(409, "INVALID_TRANSITION", "Only pending Public grants can be decided")
-        item = self._load_lesson(organization_id, grant["lesson_id"])
         if item["created_by"] == actor:
             fail(403, "FORBIDDEN", "A lesson author cannot approve their own Public request")
         def execute() -> dict[str, Any]:
@@ -1345,7 +2060,17 @@ class LessonLibraryService:
         self, *, organization_id: str, lesson_id: str, grant_id: str,
         actor: str, manager: bool, expected_revision: int, idempotency_key: str,
     ) -> dict[str, Any]:
+        grant_hint = self._load_grant(grant_id, organization_id)
+        item = self.db.execute(
+            select(LIBRARY_ITEMS)
+            .where(LIBRARY_ITEMS.c.lesson_id == grant_hint["lesson_id"])
+            .with_for_update()
+        ).mappings().one_or_none()
+        if item is None:
+            fail(404, "RESOURCE_NOT_FOUND", "Access grant was not found")
         grant = self._load_grant(grant_id, organization_id, for_update=True)
+        if grant["lesson_id"] != item["lesson_id"]:
+            fail(404, "RESOURCE_NOT_FOUND", "Access grant was not found")
         scope = (
             f"DELETE /organizations/{organization_id}/lessons/{lesson_id}"
             f"/access-grants/{grant_id}"
@@ -1431,12 +2156,23 @@ class LessonLibraryService:
         )
 
     @staticmethod
+    def _lesson_title(content: Any) -> str | None:
+        if not isinstance(content, dict):
+            return None
+        title = content.get("title")
+        return title.strip() if isinstance(title, str) and title.strip() else None
+
+    @staticmethod
     def _grant_response(row: Any) -> dict[str, Any]:
         return {
             "contract": "LessonAccessGrantV1",
             "access_grant_id": row["access_grant_id"],
             "lesson_id": row["lesson_id"],
+            "lesson_title": LessonLibraryService._lesson_title(
+                row.get("lesson_content_json")
+            ),
             "version_id": row["version_id"],
+            "version_no": row.get("lesson_version_no"),
             "audience_kind": row["audience_kind"],
             "audience_ref": row["audience_ref"],
             "capability": row["capability"],
@@ -1521,15 +2257,29 @@ class LessonLibraryService:
             fail(422, "INVALID_REQUEST", "Staff accounts cannot be used as Parent audience principals")
 
         def execute() -> dict[str, Any]:
-            prior = self.db.execute(
+            duplicate_refs = self._parent_invitation_duplicate_refs(parent_principal_ref)
+            prior_rows = self.db.execute(
                 select(PARENT_GROUP_MEMBERS).where(
                     PARENT_GROUP_MEMBERS.c.parent_group_id == group_id,
-                    PARENT_GROUP_MEMBERS.c.parent_principal_ref == parent_principal_ref,
-                ).with_for_update()
-            ).mappings().one_or_none()
-            now = datetime.now(UTC)
-            if prior is not None and prior["state"] in {"invited", "active"}:
+                    PARENT_GROUP_MEMBERS.c.parent_principal_ref.in_(duplicate_refs),
+                )
+                .order_by(
+                    PARENT_GROUP_MEMBERS.c.invited_at.desc(),
+                    PARENT_GROUP_MEMBERS.c.membership_id.desc(),
+                )
+                .with_for_update()
+            ).mappings().all()
+            if any(row["state"] in {"invited", "active"} for row in prior_rows):
                 fail(409, "INVITATION_EXISTS", "Parent already has an active group invitation or membership")
+            prior = next(
+                (
+                    row
+                    for row in prior_rows
+                    if row["parent_principal_ref"] == parent_principal_ref
+                ),
+                None,
+            )
+            now = datetime.now(UTC)
             if prior is None:
                 membership_id = str(uuid4())
                 membership_revision = 1
@@ -1568,6 +2318,7 @@ class LessonLibraryService:
                 "contract": "ParentGroupInvitationV1",
                 "membership_id": membership_id,
                 "parent_group_id": group_id,
+                "organization_id": organization_id,
                 "state": "INVITED",
                 "invited_at": now,
                 "expires_at": now + INVITATION_TTL,
@@ -1617,15 +2368,23 @@ class LessonLibraryService:
             )
         )
 
-    def _load_group(self, group_id: str, organization_id: str) -> Any:
-        row = self.db.execute(
-            select(PARENT_GROUPS).where(
-                PARENT_GROUPS.c.parent_group_id == group_id,
-                PARENT_GROUPS.c.organization_id == organization_id,
-            )
-        ).mappings().one_or_none()
+    def _load_group(
+        self,
+        group_id: str,
+        organization_id: str,
+        *,
+        for_update: bool = False,
+        not_found_message: str = "Parent group was not found",
+    ) -> Any:
+        stmt = select(PARENT_GROUPS).where(
+            PARENT_GROUPS.c.parent_group_id == group_id,
+            PARENT_GROUPS.c.organization_id == organization_id,
+        )
+        if for_update:
+            stmt = stmt.with_for_update()
+        row = self.db.execute(stmt).mappings().one_or_none()
         if row is None:
-            fail(404, "RESOURCE_NOT_FOUND", "Parent group was not found")
+            fail(404, "RESOURCE_NOT_FOUND", not_found_message)
         return row
 
     @staticmethod
@@ -1639,12 +2398,117 @@ class LessonLibraryService:
             "created_at": row["created_at"],
         }
 
+    def list_parent_group_members(
+        self,
+        *,
+        organization_id: str,
+        group_id: str,
+        manager_principal_ref: str,
+        state: str | None,
+        limit: int,
+        cursor: str | None,
+    ) -> dict[str, Any]:
+        self._load_group(group_id, organization_id)
+        if state is None:
+            state_filter = None
+        elif state == "ACCEPTED":
+            state_filter = "active"
+        else:
+            state_filter = state.lower()
+        scope = {
+            "operation": (
+                "GET /organizations/{organization_id}/parent-groups/{parent_group_id}/members"
+            ),
+            "organization_id": organization_id,
+            "parent_group_id": group_id,
+            "manager_principal_ref": manager_principal_ref,
+            "state": state_filter,
+        }
+        # READ COMMITTED gives this count and the following page query separate snapshots.
+        # A concurrent membership change can therefore make these two parts briefly disagree.
+        count_rows = self.db.execute(
+            select(
+                PARENT_GROUP_MEMBERS.c.state.label("state"),
+                func.count().label("member_count"),
+            )
+            .where(PARENT_GROUP_MEMBERS.c.parent_group_id == group_id)
+            .group_by(PARENT_GROUP_MEMBERS.c.state)
+        ).mappings().all()
+        counts = {
+            "invited": 0,
+            "accepted": 0,
+            "declined": 0,
+            "revoked": 0,
+            "expired": 0,
+        }
+        state_count_keys = {
+            "invited": "invited",
+            "active": "accepted",
+            "declined": "declined",
+            "revoked": "revoked",
+            "expired": "expired",
+        }
+        counts.update({
+            state_count_keys[row["state"]]: int(row["member_count"])
+            for row in count_rows
+        })
+        counts["total"] = sum(counts.values())
+
+        stmt = select(PARENT_GROUP_MEMBERS).where(
+            PARENT_GROUP_MEMBERS.c.parent_group_id == group_id
+        )
+        if state_filter is not None:
+            stmt = stmt.where(PARENT_GROUP_MEMBERS.c.state == state_filter)
+        stmt = _scoped_cursor_filter(
+            stmt,
+            cursor,
+            scope=scope,
+            sort_col=PARENT_GROUP_MEMBERS.c.invited_at,
+            id_col=PARENT_GROUP_MEMBERS.c.membership_id,
+            value_kind="datetime",
+        )
+        rows = self.db.execute(
+            stmt.order_by(
+                PARENT_GROUP_MEMBERS.c.invited_at.desc(),
+                PARENT_GROUP_MEMBERS.c.membership_id.desc(),
+            ).limit(limit + 1)
+        ).mappings().all()
+        next_cursor = None
+        if len(rows) > limit:
+            rows = rows[:limit]
+            next_cursor = _encode_scoped_cursor(
+                scope=scope,
+                sort_value=rows[-1]["invited_at"],
+                row_id=rows[-1]["membership_id"],
+                value_kind="datetime",
+            )
+        return {
+            "contract": "ParentGroupMemberPageV1",
+            "items": [self._parent_group_member_summary_response(row) for row in rows],
+            "counts": counts,
+            "next_cursor": next_cursor,
+        }
+
+    @staticmethod
+    def _parent_group_member_summary_response(row: Any) -> dict[str, Any]:
+        stored_state = row["state"]
+        return {
+            "membership_id": row["membership_id"],
+            "parent_group_id": row["parent_group_id"],
+            "state": "ACCEPTED" if stored_state == "active" else stored_state.upper(),
+            "invited_at": row["invited_at"],
+            "expires_at": row["expires_at"],
+            "accepted_at": row["accepted_at"],
+            "revision": row["revision"],
+        }
+
     def list_parent_group_invitations(
         self, *, parent_principal_ref: str, limit: int, cursor: str | None,
     ) -> dict[str, Any]:
+        audience_refs = self._parent_audience_refs(parent_principal_ref)
         now = datetime.now(UTC)
-        stmt = select(PARENT_GROUP_MEMBERS).where(
-            PARENT_GROUP_MEMBERS.c.parent_principal_ref == parent_principal_ref,
+        stmt = self._membership_with_organization_stmt().where(
+            PARENT_GROUP_MEMBERS.c.parent_principal_ref.in_(audience_refs),
             PARENT_GROUP_MEMBERS.c.state == "invited",
             PARENT_GROUP_MEMBERS.c.expires_at > now,
         )
@@ -1667,11 +2531,53 @@ class LessonLibraryService:
             "next_cursor": next_cursor,
         }
 
+    def list_parent_group_memberships(
+        self, *, parent_principal_ref: str, limit: int, cursor: str | None,
+    ) -> dict[str, Any]:
+        audience_refs = self._parent_audience_refs(parent_principal_ref)
+        scope = {
+            "operation": "GET /me/parent-group-memberships",
+            "parent_principal_ref": parent_principal_ref,
+            "state": "active",
+        }
+        stmt = self._membership_with_organization_stmt().where(
+            PARENT_GROUP_MEMBERS.c.parent_principal_ref.in_(audience_refs),
+            PARENT_GROUP_MEMBERS.c.state == "active",
+        )
+        stmt = _scoped_cursor_filter(
+            stmt,
+            cursor,
+            scope=scope,
+            sort_col=PARENT_GROUP_MEMBERS.c.invited_at,
+            id_col=PARENT_GROUP_MEMBERS.c.membership_id,
+            value_kind="datetime",
+        )
+        rows = self.db.execute(
+            stmt.order_by(
+                PARENT_GROUP_MEMBERS.c.invited_at.desc(),
+                PARENT_GROUP_MEMBERS.c.membership_id.desc(),
+            ).limit(limit + 1)
+        ).mappings().all()
+        next_cursor = None
+        if len(rows) > limit:
+            rows = rows[:limit]
+            next_cursor = _encode_scoped_cursor(
+                scope=scope,
+                sort_value=rows[-1]["invited_at"],
+                row_id=rows[-1]["membership_id"],
+                value_kind="datetime",
+            )
+        return {
+            "contract": "ParentGroupMembershipPageV1",
+            "items": [self._membership_response(row) for row in rows],
+            "next_cursor": next_cursor,
+        }
+
     def accept_parent_group_invitation(
         self, *, membership_id: str, actor: str, idempotency_key: str,
     ) -> dict[str, Any]:
         membership = self._load_membership(membership_id, for_update=True)
-        if membership["parent_principal_ref"] != actor:
+        if membership["parent_principal_ref"] not in self._parent_audience_refs(actor):
             fail(404, "RESOURCE_NOT_FOUND", "Invitation was not found")
         group = self.db.execute(
             select(PARENT_GROUPS).where(PARENT_GROUPS.c.parent_group_id == membership["parent_group_id"])
@@ -1705,6 +2611,7 @@ class LessonLibraryService:
                 "contract": "ParentGroupMembershipV1",
                 "membership_id": membership_id,
                 "parent_group_id": current["parent_group_id"],
+                "organization_id": org_id,
                 "state": "ACTIVE",
                 "invited_at": current["invited_at"],
                 "expires_at": current["expires_at"],
@@ -1721,42 +2628,468 @@ class LessonLibraryService:
             execute=execute,
         )
 
-    def revoke_parent_group_membership(
-        self, *, organization_id: str, group_id: str, membership_id: str,
-        actor: str, manager: bool, expected_revision: int,
+    def decline_parent_group_invitation(
+        self, *, membership_id: str, actor: str, actor_issuer: str,
+        idempotency_key: str,
     ) -> dict[str, Any]:
-        group = self._load_group(group_id, organization_id)
-        membership = self._load_membership(membership_id, for_update=True)
-        if membership["parent_group_id"] != group_id:
-            fail(404, "RESOURCE_NOT_FOUND", "Group membership was not found")
-        if not manager and membership["parent_principal_ref"] != actor:
-            fail(404, "RESOURCE_NOT_FOUND", "Group membership was not found")
-        self._require_revision(membership["revision"], expected_revision)
-        if membership["state"] == "revoked":
-            return self._membership_response(membership)
+        # Lock order is parent group then membership for both decline and revoke. This first
+        # unlocked read only discovers the immutable group id needed to take that order.
+        observed = self._load_membership(
+            membership_id, not_found_message="Invitation was not found"
+        )
+        group = self.db.execute(
+            select(PARENT_GROUPS)
+            .where(PARENT_GROUPS.c.parent_group_id == observed["parent_group_id"])
+            .with_for_update()
+        ).mappings().one_or_none()
+        if group is None:
+            fail(404, "RESOURCE_NOT_FOUND", "Invitation was not found")
+        current = self._load_membership(
+            membership_id,
+            for_update=True,
+            not_found_message="Invitation was not found",
+        )
+        if current["parent_group_id"] != group["parent_group_id"]:
+            fail(404, "RESOURCE_NOT_FOUND", "Invitation was not found")
+        self._authorize_parent_group_decline(
+            actor=actor,
+            actor_issuer=actor_issuer,
+            membership=current,
+        )
+        org_id = group["organization_id"]
+        operation_scope = self._parent_group_operation_scope(
+            _PARENT_GROUP_DECLINE_SCOPE, org_id, group["parent_group_id"], membership_id
+        )
+        fingerprint = self._parent_group_command_fingerprint(
+            method="POST",
+            organization_id=org_id,
+            group_id=group["parent_group_id"],
+            membership_id=membership_id,
+        )
+        receipt = self._find_parent_group_receipt(actor, operation_scope, idempotency_key)
+        if receipt is not None:
+            return self._replay_parent_group_receipt(
+                receipt, organization_id=org_id, fingerprint=fingerprint
+            )
+
+        now = datetime.now(UTC)
+        try:
+            next_state = decline_parent_group_invitation_state(
+                current["state"], invitation_expired=current["expires_at"] <= now
+            )
+        except LessonLibraryRuleError as exc:
+            if exc.code == "INVITATION_EXPIRED":
+                fail(409, "INVITATION_EXPIRED", "Invitation has expired")
+            fail(409, "INVALID_STATE_TRANSITION", "Invitation is no longer active")
         self.db.execute(
             PARENT_GROUP_MEMBERS.update()
-            .where(PARENT_GROUP_MEMBERS.c.membership_id == membership_id)
+            .where(
+                PARENT_GROUP_MEMBERS.c.membership_id == membership_id,
+                PARENT_GROUP_MEMBERS.c.revision == current["revision"],
+            )
+            .values(state=next_state, revision=current["revision"] + 1)
+        )
+        self._audit(
+            org_id,
+            actor,
+            "parent_group.invitation.decline",
+            "parent_group_membership",
+            membership_id,
+        )
+        response = self._membership_response(self._load_membership(membership_id))
+
+        def replay_after_race() -> dict[str, Any]:
+            locked_group = self.db.execute(
+                select(PARENT_GROUPS)
+                .where(PARENT_GROUPS.c.parent_group_id == group["parent_group_id"])
+                .with_for_update()
+            ).mappings().one_or_none()
+            locked_membership = self._load_membership(
+                membership_id,
+                for_update=True,
+                not_found_message="Invitation was not found",
+            )
+            if (
+                locked_group is None
+                or locked_group["organization_id"] != org_id
+                or locked_membership["parent_group_id"] != group["parent_group_id"]
+            ):
+                fail(404, "RESOURCE_NOT_FOUND", "Invitation was not found")
+            self._authorize_parent_group_decline(
+                actor=actor,
+                actor_issuer=actor_issuer,
+                membership=locked_membership,
+            )
+            return self._reload_parent_group_receipt(
+                actor=actor,
+                operation_scope=operation_scope,
+                idempotency_key=idempotency_key,
+                organization_id=org_id,
+                fingerprint=fingerprint,
+            )
+
+        return self._commit_parent_group_receipt(
+            actor=actor,
+            operation_scope=operation_scope,
+            idempotency_key=idempotency_key,
+            organization_id=org_id,
+            fingerprint=fingerprint,
+            response=response,
+            replay_after_race=replay_after_race,
+        )
+
+    def revoke_parent_group_membership(
+        self, *, organization_id: str, group_id: str, membership_id: str,
+        actor: str, actor_issuer: str, manager: bool, expected_revision: int,
+        idempotency_key: str,
+    ) -> dict[str, Any]:
+        self._load_group(
+            group_id,
+            organization_id,
+            for_update=True,
+            not_found_message="Group membership was not found",
+        )
+        current = self._load_membership(membership_id, for_update=True)
+        if current["parent_group_id"] != group_id:
+            fail(404, "RESOURCE_NOT_FOUND", "Group membership was not found")
+        self._authorize_parent_group_revoke(
+            organization_id=organization_id,
+            actor=actor,
+            actor_issuer=actor_issuer,
+            manager=manager,
+            membership=current,
+        )
+        operation_scope = self._parent_group_operation_scope(
+            _PARENT_GROUP_REVOKE_SCOPE, organization_id, group_id, membership_id
+        )
+        fingerprint = self._parent_group_command_fingerprint(
+            method="DELETE",
+            organization_id=organization_id,
+            group_id=group_id,
+            membership_id=membership_id,
+            expected_revision=expected_revision,
+        )
+        receipt = self._find_parent_group_receipt(actor, operation_scope, idempotency_key)
+        if receipt is not None:
+            return self._replay_parent_group_receipt(
+                receipt,
+                organization_id=organization_id,
+                fingerprint=fingerprint,
+            )
+
+        self._require_revision(current["revision"], expected_revision)
+        if current["state"] == "revoked":
+            fail(409, "INVALID_STATE_TRANSITION", "Membership is already revoked")
+        self.db.execute(
+            PARENT_GROUP_MEMBERS.update()
+            .where(
+                PARENT_GROUP_MEMBERS.c.membership_id == membership_id,
+                PARENT_GROUP_MEMBERS.c.revision == expected_revision,
+            )
             .values(state="revoked", revision=expected_revision + 1)
         )
         self._audit(
-            organization_id, actor, "parent_group.membership.revoke",
-            "parent_group_membership", membership_id,
+            organization_id,
+            actor,
+            "parent_group.membership.revoke",
+            "parent_group_membership",
+            membership_id,
         )
-        self._commit()
-        row = self._load_membership(membership_id)
-        return self._membership_response(row)
+        response = self._membership_response(self._load_membership(membership_id))
 
-    def _load_membership(self, membership_id: str, *, for_update: bool = False) -> Any:
-        stmt = select(PARENT_GROUP_MEMBERS).where(
+        def replay_after_race() -> dict[str, Any]:
+            self._load_group(
+                group_id,
+                organization_id,
+                for_update=True,
+                not_found_message="Group membership was not found",
+            )
+            locked_membership = self._load_membership(membership_id, for_update=True)
+            if locked_membership["parent_group_id"] != group_id:
+                fail(404, "RESOURCE_NOT_FOUND", "Group membership was not found")
+            self._authorize_parent_group_revoke(
+                organization_id=organization_id,
+                actor=actor,
+                actor_issuer=actor_issuer,
+                manager=manager,
+                membership=locked_membership,
+            )
+            return self._reload_parent_group_receipt(
+                actor=actor,
+                operation_scope=operation_scope,
+                idempotency_key=idempotency_key,
+                organization_id=organization_id,
+                fingerprint=fingerprint,
+            )
+
+        return self._commit_parent_group_receipt(
+            actor=actor,
+            operation_scope=operation_scope,
+            idempotency_key=idempotency_key,
+            organization_id=organization_id,
+            fingerprint=fingerprint,
+            response=response,
+            replay_after_race=replay_after_race,
+        )
+
+    def _authorize_parent_group_revoke(
+        self,
+        *,
+        organization_id: str,
+        actor: str,
+        actor_issuer: str,
+        manager: bool,
+        membership: Any,
+    ) -> None:
+        if manager:
+            assignments = self.db.execute(
+                select(OrganizationAssignmentModel)
+                .where(
+                    OrganizationAssignmentModel.organization_id == organization_id,
+                    OrganizationAssignmentModel.subject == actor,
+                    OrganizationAssignmentModel.role == "school_admin",
+                    OrganizationAssignmentModel.active.is_(True),
+                )
+                .with_for_update(read=True)
+            ).scalars().all()
+            identity = self.db.execute(
+                select(AdultIdentityModel)
+                .where(AdultIdentityModel.subject == actor)
+                .with_for_update(read=True)
+            ).scalar_one_or_none()
+            if (
+                not assignments
+                or identity is None
+                or identity.state != "active"
+                or identity.account_role != "school_manager"
+                or identity.issuer != actor_issuer
+            ):
+                fail(404, "RESOURCE_NOT_FOUND", "Group membership was not found")
+            return
+
+        identity = self.db.execute(
+            select(AdultIdentityModel)
+            .where(AdultIdentityModel.subject == actor)
+            .with_for_update(read=True)
+        ).scalar_one_or_none()
+        if (
+            identity is None
+            or identity.state != "active"
+            or identity.account_role != "parent"
+            or identity.issuer != actor_issuer
+            or membership["parent_principal_ref"] not in self._parent_audience_refs(actor)
+        ):
+            fail(404, "RESOURCE_NOT_FOUND", "Group membership was not found")
+
+    def _authorize_parent_group_decline(
+        self, *, actor: str, actor_issuer: str, membership: Any,
+    ) -> None:
+        identity = self.db.execute(
+            select(AdultIdentityModel)
+            .where(AdultIdentityModel.subject == actor)
+            .with_for_update(read=True)
+        ).scalar_one_or_none()
+        if (
+            identity is None
+            or identity.state != "active"
+            or identity.account_role != "parent"
+            or identity.issuer != actor_issuer
+            or membership["parent_principal_ref"] not in self._parent_audience_refs(actor)
+        ):
+            fail(404, "RESOURCE_NOT_FOUND", "Invitation was not found")
+
+    def _find_parent_group_receipt(
+        self, actor: str, operation_scope: str, idempotency_key: str,
+    ) -> Be1CommandReceiptModel | None:
+        return self.db.execute(
+            select(Be1CommandReceiptModel)
+            .where(
+                Be1CommandReceiptModel.principal_ref == actor,
+                Be1CommandReceiptModel.operation_scope == operation_scope,
+                Be1CommandReceiptModel.idempotency_key == idempotency_key,
+            )
+            .with_for_update()
+        ).scalar_one_or_none()
+
+    def _parent_group_operation_scope(
+        self, route_scope: str, organization_id: str, group_id: str, membership_id: str,
+    ) -> str:
+        resource_hash = self._fingerprint({
+            "organization_id": organization_id,
+            "parent_group_id": group_id,
+            "membership_id": membership_id,
+        })
+        return f"{route_scope}:{resource_hash}"
+
+    @staticmethod
+    def _parent_group_command_fingerprint(
+        *,
+        method: str,
+        organization_id: str,
+        group_id: str,
+        membership_id: str,
+        expected_revision: int | None = None,
+    ) -> str:
+        payload: dict[str, Any] = {
+            "method": method,
+            "organization_id": organization_id,
+            "parent_group_id": group_id,
+            "membership_id": membership_id,
+        }
+        if expected_revision is not None:
+            payload["expected_revision"] = expected_revision
+        return LessonLibraryService._fingerprint(payload)
+
+    @staticmethod
+    def _is_parent_group_receipt_conflict(exc: IntegrityError) -> bool:
+        original = exc.orig
+        sqlstate = getattr(original, "sqlstate", None) or getattr(original, "pgcode", None)
+        diagnostic = getattr(original, "diag", None)
+        constraint = getattr(diagnostic, "constraint_name", None)
+        return sqlstate == "23505" and constraint == _REMIX_RECEIPT_PK
+
+    def _parent_group_receipt_response(
+        self,
+        receipt: Be1CommandReceiptModel,
+        *,
+        organization_id: str,
+        fingerprint: str,
+    ) -> dict[str, Any]:
+        if (
+            receipt.organization_id != organization_id
+            or receipt.request_fingerprint != fingerprint
+        ):
+            fail(
+                400,
+                "INVALID_IDEMPOTENCY_KEY",
+                "Idempotency-Key was already used for another request",
+            )
+        stored = receipt.response_json
+        if not isinstance(stored, dict) or set(stored) != {"body", "etag"}:
+            fail(503, "DEPENDENCY_UNAVAILABLE", "Stored command receipt is incompatible")
+        body = stored["body"]
+        if (
+            not isinstance(body, dict)
+            or not isinstance(body.get("revision"), int)
+            or stored["etag"] != f'"{body["revision"]}"'
+        ):
+            fail(503, "DEPENDENCY_UNAVAILABLE", "Stored command receipt is incompatible")
+        response = dict(body)
+        if response.get("contract") == "ParentGroupMembershipV1":
+            response_organization_id = response.get("organization_id")
+            if (
+                response_organization_id is not None
+                and response_organization_id != organization_id
+            ):
+                fail(503, "DEPENDENCY_UNAVAILABLE", "Stored command receipt is incompatible")
+            response["organization_id"] = organization_id
+        return response
+
+    def _replay_parent_group_receipt(
+        self,
+        receipt: Be1CommandReceiptModel,
+        *,
+        organization_id: str,
+        fingerprint: str,
+    ) -> dict[str, Any]:
+        response = self._parent_group_receipt_response(
+            receipt,
+            organization_id=organization_id,
+            fingerprint=fingerprint,
+        )
+        try:
+            self.db.commit()
+        except SQLAlchemyError:
+            self.db.rollback()
+            fail(503, "DEPENDENCY_UNAVAILABLE", "Database is temporarily unavailable")
+        return response
+
+    def _reload_parent_group_receipt(
+        self,
+        *,
+        actor: str,
+        operation_scope: str,
+        idempotency_key: str,
+        organization_id: str,
+        fingerprint: str,
+    ) -> dict[str, Any]:
+        receipt = self._find_parent_group_receipt(actor, operation_scope, idempotency_key)
+        if receipt is None:
+            fail(503, "DEPENDENCY_UNAVAILABLE", "The concurrent command receipt is unavailable")
+        return self._replay_parent_group_receipt(
+            receipt,
+            organization_id=organization_id,
+            fingerprint=fingerprint,
+        )
+
+    def _commit_parent_group_receipt(
+        self,
+        *,
+        actor: str,
+        operation_scope: str,
+        idempotency_key: str,
+        organization_id: str,
+        fingerprint: str,
+        response: dict[str, Any],
+        replay_after_race: Callable[[], dict[str, Any]],
+    ) -> dict[str, Any]:
+        self.db.add(
+            Be1CommandReceiptModel(
+                principal_ref=actor,
+                operation_scope=operation_scope,
+                idempotency_key=idempotency_key,
+                organization_id=organization_id,
+                request_fingerprint=fingerprint,
+                response_json={
+                    "body": self._json_safe(response),
+                    "etag": f'"{response["revision"]}"',
+                },
+            )
+        )
+        try:
+            self.db.commit()
+        except IntegrityError as exc:
+            self.db.rollback()
+            if self._is_parent_group_receipt_conflict(exc):
+                try:
+                    return replay_after_race()
+                except SQLAlchemyError:
+                    self.db.rollback()
+                    fail(503, "DEPENDENCY_UNAVAILABLE", "Database is temporarily unavailable")
+            fail(409, "RESOURCE_CONFLICT", "The request conflicts with existing records")
+        except SQLAlchemyError:
+            self.db.rollback()
+            fail(503, "DEPENDENCY_UNAVAILABLE", "Database is temporarily unavailable")
+        return response
+
+    def _load_membership(
+        self,
+        membership_id: str,
+        *,
+        for_update: bool = False,
+        not_found_message: str = "Group membership was not found",
+    ) -> Any:
+        stmt = self._membership_with_organization_stmt().where(
             PARENT_GROUP_MEMBERS.c.membership_id == membership_id
         )
         if for_update:
-            stmt = stmt.with_for_update()
+            stmt = stmt.with_for_update(of=PARENT_GROUP_MEMBERS)
         row = self.db.execute(stmt).mappings().one_or_none()
         if row is None:
-            fail(404, "RESOURCE_NOT_FOUND", "Group membership was not found")
+            fail(404, "RESOURCE_NOT_FOUND", not_found_message)
         return row
+
+    @staticmethod
+    def _membership_with_organization_stmt() -> Any:
+        return select(
+            PARENT_GROUP_MEMBERS,
+            PARENT_GROUPS.c.organization_id.label("organization_id"),
+        ).select_from(
+            PARENT_GROUP_MEMBERS.join(
+                PARENT_GROUPS,
+                PARENT_GROUPS.c.parent_group_id == PARENT_GROUP_MEMBERS.c.parent_group_id,
+            )
+        )
 
     @staticmethod
     def _membership_response(row: Any) -> dict[str, Any]:
@@ -1764,6 +3097,7 @@ class LessonLibraryService:
             "contract": "ParentGroupMembershipV1",
             "membership_id": row["membership_id"],
             "parent_group_id": row["parent_group_id"],
+            "organization_id": row["organization_id"],
             "state": row["state"].upper(),
             "invited_at": row["invited_at"],
             "expires_at": row["expires_at"],
@@ -1774,9 +3108,10 @@ class LessonLibraryService:
     def list_lesson_invitations(
         self, *, parent_principal_ref: str, limit: int, cursor: str | None,
     ) -> dict[str, Any]:
+        audience_refs = self._parent_audience_refs(parent_principal_ref)
         stmt = select(ACCESS_GRANTS).where(
             ACCESS_GRANTS.c.audience_kind == "PRINCIPAL",
-            ACCESS_GRANTS.c.audience_ref == parent_principal_ref,
+            ACCESS_GRANTS.c.audience_ref.in_(audience_refs),
             ACCESS_GRANTS.c.state == "INVITED",
             or_(ACCESS_GRANTS.c.expires_at.is_(None), ACCESS_GRANTS.c.expires_at > datetime.now(UTC)),
         )
@@ -1799,11 +3134,12 @@ class LessonLibraryService:
         self, *, access_grant_id: str, actor: str, accept: bool,
         idempotency_key: str,
     ) -> dict[str, Any]:
+        audience_refs = self._parent_audience_refs(actor)
         grant = self.db.execute(
             select(ACCESS_GRANTS).where(
                 ACCESS_GRANTS.c.access_grant_id == access_grant_id,
                 ACCESS_GRANTS.c.audience_kind == "PRINCIPAL",
-                ACCESS_GRANTS.c.audience_ref == actor,
+                ACCESS_GRANTS.c.audience_ref.in_(audience_refs),
             ).with_for_update()
         ).mappings().one_or_none()
         if grant is None:
@@ -1854,9 +3190,61 @@ class LessonLibraryService:
             execute=execute,
         )
 
+    def _parent_audience_refs(self, parent_principal_ref: str) -> tuple[str, ...]:
+        """Return this active Parent's unambiguous subject and account id aliases."""
+
+        identity = self.db.get(AdultIdentityModel, parent_principal_ref)
+        if (
+            identity is None
+            or identity.state != "active"
+            or identity.account_role != "parent"
+        ):
+            return ()
+        refs: list[str] = []
+        for candidate in (identity.subject, identity.account_id):
+            if candidate in refs:
+                continue
+            other_identity = self.db.scalar(
+                select(AdultIdentityModel.subject)
+                .where(
+                    AdultIdentityModel.subject != parent_principal_ref,
+                    or_(
+                        AdultIdentityModel.subject == candidate,
+                        AdultIdentityModel.account_id == candidate,
+                    ),
+                )
+                .limit(1)
+            )
+            if other_identity is None:
+                refs.append(candidate)
+        return tuple(refs)
+
+    def _parent_invitation_duplicate_refs(
+        self, parent_principal_ref: str,
+    ) -> tuple[str, ...]:
+        """Resolve a Manager-supplied Parent reference for duplicate detection only."""
+
+        identities = self.db.execute(
+            select(AdultIdentityModel).where(
+                or_(
+                    AdultIdentityModel.subject == parent_principal_ref,
+                    AdultIdentityModel.account_id == parent_principal_ref,
+                )
+            ).with_for_update()
+        ).scalars().all()
+        if len(identities) != 1:
+            fail(404, "PARENT_NOT_FOUND", _PARENT_INVITATION_NOT_FOUND_MESSAGE)
+        identity = identities[0]
+        if identity.state != "active" or identity.account_role != "parent":
+            fail(404, "PARENT_NOT_FOUND", _PARENT_INVITATION_NOT_FOUND_MESSAGE)
+        return self._parent_audience_refs(identity.subject) or (parent_principal_ref,)
+
     def _parent_access_rows(
         self, *, parent_principal_ref: str, capability: str,
         source_kind: str | None = None, limit: int = 501, cursor: str | None = None,
+        search_filters: dict[str, Any] | None = None,
+        cursor_scope: dict[str, Any] | None = None,
+        sort_by: str = "created_at",
     ) -> list[dict[str, Any]]:
         now = datetime.now(UTC)
         base_from = ACCESS_GRANTS.join(
@@ -1871,9 +3259,14 @@ class LessonLibraryService:
             LIBRARY_ITEMS.c.state.label("lesson_state"),
             LIBRARY_ITEMS.c.moderation_state.label("moderation_state"),
             LIBRARY_ITEMS.c.created_at.label("lesson_created_at"),
+            LIBRARY_ITEMS.c.updated_at.label("lesson_updated_at"),
             LIBRARY_VERSIONS.c.version_id.label("version_id"),
             LIBRARY_VERSIONS.c.version_no.label("version_no"),
             LIBRARY_VERSIONS.c.content_json.label("content_json"),
+            LIBRARY_VERSIONS.c.structured_content_hash.label("structured_content_hash"),
+        )
+        sort_col = (
+            LIBRARY_ITEMS.c.updated_at if sort_by == "updated_at" else LIBRARY_ITEMS.c.created_at
         )
         allowed_capabilities = ("VIEW", "REUSE") if capability == "VIEW" else (capability,)
         stmt = select(*selected).select_from(base_from).where(
@@ -1883,6 +3276,20 @@ class LessonLibraryService:
             LIBRARY_ITEMS.c.state == "ACTIVE",
             LIBRARY_ITEMS.c.moderation_state == "VISIBLE",
         )
+        stmt = _apply_lesson_search_filters(stmt, search_filters)
+
+        def with_cursor(query: Any) -> Any:
+            if cursor_scope is not None:
+                return _scoped_cursor_filter(
+                    query,
+                    cursor,
+                    scope=cursor_scope,
+                    sort_col=sort_col,
+                    id_col=LIBRARY_ITEMS.c.lesson_id,
+                    value_kind="datetime",
+                )
+            return self._cursor_filter(query, cursor, sort_col, LIBRARY_ITEMS.c.lesson_id)
+
         if source_kind == "PUBLIC":
             kinds = ("PUBLIC",)
         elif source_kind == "SHARED":
@@ -1898,25 +3305,24 @@ class LessonLibraryService:
                 ACCESS_GRANTS.c.audience_kind == "PUBLIC",
                 LIBRARY_VERSIONS.c.review_state == "APPROVED",
             )
-            public_stmt = self._cursor_filter(
-                public_stmt, cursor, LIBRARY_ITEMS.c.created_at, LIBRARY_ITEMS.c.lesson_id
-            )
-            scoped.extend(self._rows_as_parent_access(public_stmt, limit))
+            public_stmt = with_cursor(public_stmt)
+            scoped.extend(self._rows_as_parent_access(public_stmt, limit, sort_col=sort_col))
         if "PRINCIPAL" in kinds:
             direct_stmt = stmt.where(
                 ACCESS_GRANTS.c.audience_kind == "PRINCIPAL",
-                ACCESS_GRANTS.c.audience_ref == parent_principal_ref,
+                ACCESS_GRANTS.c.audience_ref.in_(
+                    self._parent_audience_refs(parent_principal_ref)
+                ),
             )
-            direct_stmt = self._cursor_filter(
-                direct_stmt, cursor, LIBRARY_ITEMS.c.created_at, LIBRARY_ITEMS.c.lesson_id
-            )
-            scoped.extend(self._rows_as_parent_access(direct_stmt, limit))
+            direct_stmt = with_cursor(direct_stmt)
+            scoped.extend(self._rows_as_parent_access(direct_stmt, limit, sort_col=sort_col))
         if "PARENT_GROUP" in kinds:
+            audience_refs = self._parent_audience_refs(parent_principal_ref)
             group_from = base_from.join(
                 PARENT_GROUP_MEMBERS,
                 and_(
                     PARENT_GROUP_MEMBERS.c.parent_group_id == ACCESS_GRANTS.c.audience_ref,
-                    PARENT_GROUP_MEMBERS.c.parent_principal_ref == parent_principal_ref,
+                    PARENT_GROUP_MEMBERS.c.parent_principal_ref.in_(audience_refs),
                     PARENT_GROUP_MEMBERS.c.state == "active",
                 ),
             ).join(
@@ -1934,10 +3340,9 @@ class LessonLibraryService:
                 LIBRARY_ITEMS.c.state == "ACTIVE",
                 LIBRARY_ITEMS.c.moderation_state == "VISIBLE",
             )
-            group_stmt = self._cursor_filter(
-                group_stmt, cursor, LIBRARY_ITEMS.c.created_at, LIBRARY_ITEMS.c.lesson_id
-            )
-            scoped.extend(self._rows_as_parent_access(group_stmt, limit))
+            group_stmt = _apply_lesson_search_filters(group_stmt, search_filters)
+            group_stmt = with_cursor(group_stmt)
+            scoped.extend(self._rows_as_parent_access(group_stmt, limit, sort_col=sort_col))
 
         best: dict[tuple[str, str], dict[str, Any]] = {}
         for candidate in scoped:
@@ -1952,13 +3357,15 @@ class LessonLibraryService:
                 latest[candidate["lesson_id"]] = candidate
         return sorted(
             latest.values(),
-            key=lambda row: (row["created_at"], row["lesson_id"]),
+            key=lambda row: (row[sort_by], row["lesson_id"]),
             reverse=True,
         )
 
-    def _rows_as_parent_access(self, stmt: Any, limit: int) -> list[dict[str, Any]]:
+    def _rows_as_parent_access(
+        self, stmt: Any, limit: int, *, sort_col: Any
+    ) -> list[dict[str, Any]]:
         rows = self.db.execute(
-            stmt.order_by(LIBRARY_ITEMS.c.created_at.desc(), LIBRARY_ITEMS.c.lesson_id.desc())
+            stmt.order_by(sort_col.desc(), LIBRARY_ITEMS.c.lesson_id.desc())
             .limit(max(limit, 1))
         ).mappings().all()
         result: list[dict[str, Any]] = []
@@ -1972,6 +3379,8 @@ class LessonLibraryService:
                     "lesson_state": row["lesson_state"],
                     "moderation_state": row["moderation_state"],
                     "created_at": row["lesson_created_at"],
+                    "updated_at": row["lesson_updated_at"],
+                    "structured_content_hash": row["structured_content_hash"],
                     "access_source": "PUBLIC" if row["grant_audience_kind"] == "PUBLIC" else "SHARED",
                     "access_expires_at": row["access_expires_at"],
                     "grant_id": row["grant_id"],
@@ -1982,8 +3391,25 @@ class LessonLibraryService:
 
     def list_parent_lessons(
         self, *, parent_principal_ref: str, source: str,
-        limit: int, cursor: str | None,
+        limit: int, cursor: str | None, q: str | None = None, topic: str | None = None,
+        target_age_band_ref: str | None = None,
+        target_age_band_version: int | None = None,
     ) -> dict[str, Any]:
+        if not 1 <= limit <= 100:
+            fail(400, "INVALID_REQUEST", "limit must be between 1 and 100")
+        filters = _normalize_search_filters(
+            q=q,
+            topic=topic,
+            target_age_band_ref=target_age_band_ref,
+            target_age_band_version=target_age_band_version,
+        )
+        scope = {
+            "actor": parent_principal_ref,
+            "route": "GET /me/lessons",
+            "source": source,
+            "filters": filters,
+            "order": "created_at:desc,lesson_id:desc",
+        }
         kind = None if source == "ALL" else source
         rows = self._parent_access_rows(
             parent_principal_ref=parent_principal_ref,
@@ -1991,10 +3417,17 @@ class LessonLibraryService:
             source_kind=kind,
             limit=max(200, limit * 5 + 1),
             cursor=cursor,
+            search_filters=filters,
+            cursor_scope=scope,
         )
         if len(rows) > limit:
             rows = rows[:limit]
-            next_cursor = self._encode_cursor(rows[-1]["created_at"], rows[-1]["lesson_id"])
+            next_cursor = _encode_scoped_cursor(
+                scope=scope,
+                sort_value=rows[-1]["created_at"],
+                row_id=rows[-1]["lesson_id"],
+                value_kind="datetime",
+            )
         else:
             next_cursor = None
         items: list[dict[str, Any]] = []
@@ -2014,6 +3447,65 @@ class LessonLibraryService:
                 }
             )
         return {"contract": "ParentLessonPageV1", "items": items, "next_cursor": next_cursor}
+
+    def search_public_lessons(
+        self, *, organization_id: str, actor: str, q: str | None, topic: str | None,
+        target_age_band_ref: str | None, target_age_band_version: int | None,
+        limit: int, cursor: str | None,
+    ) -> dict[str, Any]:
+        if not 1 <= limit <= 100:
+            fail(400, "INVALID_REQUEST", "limit must be between 1 and 100")
+        filters = _normalize_search_filters(
+            q=q,
+            topic=topic,
+            target_age_band_ref=target_age_band_ref,
+            target_age_band_version=target_age_band_version,
+        )
+        scope = {
+            "actor": actor,
+            "route": f"GET /organizations/{organization_id}/public-lessons",
+            "source": "PUBLIC",
+            "filters": filters,
+            "order": "updated_at:desc,lesson_id:desc",
+        }
+        rows = self._parent_access_rows(
+            parent_principal_ref=actor,
+            capability="VIEW",
+            source_kind="PUBLIC",
+            limit=max(200, limit * 5 + 1),
+            cursor=cursor,
+            search_filters=filters,
+            cursor_scope=scope,
+            sort_by="updated_at",
+        )
+        if len(rows) > limit:
+            rows = rows[:limit]
+            next_cursor = _encode_scoped_cursor(
+                scope=scope,
+                sort_value=rows[-1]["updated_at"],
+                row_id=rows[-1]["lesson_id"],
+                value_kind="datetime",
+            )
+        else:
+            next_cursor = None
+        items: list[dict[str, Any]] = []
+        for row in rows:
+            full = self._full_content_from_access(row)
+            items.append(
+                {
+                    "contract": "PublicLessonSummaryV1",
+                    "lesson_id": row["lesson_id"],
+                    "version_id": row["version_id"],
+                    "structured_content_hash": row["structured_content_hash"],
+                    "title": full["title"],
+                    "topic": full["topic"],
+                    "target_age_band_ref": full["target_age_band_ref"],
+                    "target_age_band_version": full["target_age_band_version"],
+                    "activity_count": len(full["activities"]),
+                    "updated_at": row["updated_at"],
+                }
+            )
+        return {"contract": "PublicLessonPageV1", "items": items, "next_cursor": next_cursor}
 
     def list_parent_activity_catalog(
         self, *, parent_principal_ref: str, limit: int = 500,
@@ -2190,5 +3682,123 @@ class LessonLibraryService:
             "activities": activity_items,
             "access_source": row["access_source"],
             "access_expires_at": row["access_expires_at"],
+        }
+
+    def list_teacher_activities(
+        self,
+        *,
+        organization_id: str,
+        actor: str,
+        manager: bool,
+        limit: int,
+        cursor: str | None,
+    ) -> dict[str, Any]:
+        """List activities from current approved versions the caller may read."""
+        statement = select(
+            LIBRARY_ITEMS.c.lesson_id.label("lesson_id"),
+            LIBRARY_ITEMS.c.created_by.label("created_by"),
+            LIBRARY_ITEMS.c.visibility.label("visibility"),
+            LIBRARY_ITEMS.c.updated_at.label("updated_at"),
+            LIBRARY_VERSIONS.c.version_id.label("version_id"),
+            LIBRARY_VERSIONS.c.version_no.label("version_no"),
+            LIBRARY_VERSIONS.c.structured_content_hash.label("content_sha256"),
+            LIBRARY_VERSIONS.c.content_json.label("content_json"),
+            VERSION_ACTIVITIES.c.activity_id.label("lesson_activity_id"),
+            VERSION_ACTIVITIES.c.activity_order.label("activity_order"),
+            VERSION_ACTIVITIES.c.activity_json.label("activity_json"),
+        ).select_from(
+            LIBRARY_ITEMS.join(
+                LIBRARY_VERSIONS,
+                LIBRARY_VERSIONS.c.version_id == LIBRARY_ITEMS.c.current_version_id,
+            ).join(
+                VERSION_ACTIVITIES,
+                VERSION_ACTIVITIES.c.version_id == LIBRARY_VERSIONS.c.version_id,
+            )
+        ).where(
+            LIBRARY_ITEMS.c.organization_id == organization_id,
+            LIBRARY_ITEMS.c.state == "ACTIVE",
+            LIBRARY_ITEMS.c.moderation_state == "VISIBLE",
+            LIBRARY_VERSIONS.c.review_state == "APPROVED",
+        )
+        if not manager:
+            statement = statement.where(
+                or_(
+                    LIBRARY_ITEMS.c.created_by == actor,
+                    LIBRARY_ITEMS.c.visibility != "PRIVATE",
+                )
+            )
+        statement = self._teacher_activity_cursor_filter(
+            statement,
+            cursor,
+            time_col=LIBRARY_ITEMS.c.updated_at,
+            activity_order_col=VERSION_ACTIVITIES.c.activity_order,
+            id_col=VERSION_ACTIVITIES.c.activity_id,
+        )
+        rows = self.db.execute(
+            statement.order_by(
+                LIBRARY_ITEMS.c.updated_at.desc(),
+                VERSION_ACTIVITIES.c.activity_order.asc(),
+                VERSION_ACTIVITIES.c.activity_id.asc(),
+            ).limit(limit + 1)
+        ).mappings().all()
+        next_cursor = None
+        if len(rows) > limit:
+            rows = rows[:limit]
+            last_row = rows[-1]
+            next_cursor = self._encode_teacher_activity_cursor(
+                last_row["updated_at"],
+                last_row["activity_order"],
+                last_row["lesson_activity_id"],
+            )
+        items: list[dict[str, object]] = []
+        for row in rows:
+            lesson = row.get("content_json")
+            activity = row.get("activity_json")
+            if not isinstance(lesson, dict) or not isinstance(activity, dict):
+                continue
+            lesson_title = lesson.get("title")
+            lesson_topic = lesson.get("topic")
+            activity_fields = {
+                key: activity.get(key)
+                for key in (
+                    "title",
+                    "objective",
+                    "activity_kind",
+                    "materials_text",
+                    "preparation_text",
+                    "instructions_text",
+                    "observation_notes",
+                    "safety_notes",
+                )
+            }
+            if (
+                not isinstance(lesson_title, str)
+                or not isinstance(lesson_topic, str)
+                or not isinstance(activity_fields["activity_kind"], str)
+                or activity_fields["activity_kind"] not in {"outdoor", "indoor", "mixed"}
+                or any(
+                    not isinstance(value, str)
+                    for key, value in activity_fields.items()
+                    if key != "activity_kind"
+                )
+            ):
+                continue
+            items.append(
+                {
+                    "lesson_id": row["lesson_id"],
+                    "version_id": row["version_id"],
+                    "version_no": row["version_no"],
+                    "content_sha256": row["content_sha256"],
+                    "lesson_title": lesson_title,
+                    "lesson_topic": lesson_topic,
+                    "lesson_activity_id": row["lesson_activity_id"],
+                    "activity_order": row["activity_order"],
+                    **activity_fields,
+                }
+            )
+        return {
+            "contract": "TeacherActivityPageV1",
+            "items": items,
+            "next_cursor": next_cursor,
         }
 

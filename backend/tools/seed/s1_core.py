@@ -32,6 +32,7 @@ from sketch2life.infrastructure.persistence.be1_models import (
     ManagedProfileModel,
     OrganizationAssignmentModel,
     OrganizationModel,
+    ProfileRevisionModel,
 )
 from sketch2life.infrastructure.persistence.parent_models import (
     ParentChildProfileModel,
@@ -65,6 +66,11 @@ SEED_STEPS: tuple[SeedStep, ...] = (
         "be1_organization_assignments", _table(OrganizationAssignmentModel), data.assignment_rows
     ),
     SeedStep("be1_managed_profiles", _table(ManagedProfileModel), data.managed_profile_rows),
+    # T-12b: revision 1 of each profile. The profile's head foreign key is deferred, so both rows
+    # are written in this one transaction.
+    SeedStep(
+        "be1_profile_revisions", _table(ProfileRevisionModel), data.be1_profile_revision_rows
+    ),
     SeedStep("be1_enrollments", _table(EnrollmentModel), data.enrollment_rows),
     SeedStep("be1_parent_groups", PARENT_GROUPS, data.parent_group_rows),
     SeedStep("be1_parent_group_members", PARENT_GROUP_MEMBERS, data.parent_group_member_rows),

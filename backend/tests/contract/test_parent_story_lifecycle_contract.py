@@ -13,6 +13,7 @@ from collections.abc import Iterator
 from datetime import UTC, datetime
 from types import SimpleNamespace
 from typing import Any, NoReturn
+from unittest.mock import create_autospec
 from uuid import UUID
 
 import pytest
@@ -30,11 +31,15 @@ from sketch2life.application.ports.parent_story_runs import (
     ParentStoryRunRecord,
 )
 from sketch2life.application.ports.story_run_lifecycle import lifecycle_request_id
+from sketch2life.application.services.parent_story_runs import ParentStoryRunService
 from sketch2life.infrastructure.config.settings import (
     CoreDatabaseSettings,
     Settings,
     get_core_database_settings,
     get_settings,
+)
+from sketch2life.infrastructure.persistence.parent_story_repository import (
+    SqlParentStoryRunRepository,
 )
 from sketch2life.interfaces.http.be1_runtime import get_db, get_verified_adult
 
@@ -326,6 +331,27 @@ def test_story_revision_replay_of_a_purged_run_returns_the_lifecycle_envelope(
     assert response.headers["Idempotency-Replayed"] == "true"
     reserve_call = next(call for call in service.calls if call[0] == "reserve_story_revision")
     assert reserve_call[1]["account_id"] == "account-1"
+
+
+def test_story_revision_route_matches_the_real_repository_signature(
+    harness: tuple[TestClient, _Service], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The real service over a signature-checked repository: a missing or unknown argument on the
+    way from the route to SQL is a TypeError, which a fake service cannot show."""
+
+    client, fake = harness
+    repository = create_autospec(SqlParentStoryRunRepository, instance=True)
+    repository.reserve_story_revision.return_value = fake.reserve_story_revision()
+    monkeypatch.setattr(
+        parent_ai, "_story_service", lambda _db: ParentStoryRunService(repository, object())
+    )
+    response = client.post(
+        f"/api/parent/v1/ai/story-runs/{_RUN_ID}/story-revisions",
+        json={"expected_understanding_revision": 1},
+        headers={"Idempotency-Key": "story-signature"},
+    )
+    _assert_lifecycle(response, 200, "DELETED")
+    assert repository.reserve_story_revision.call_args.kwargs["account_id"] == "account-1"
 
 
 @pytest.mark.parametrize(

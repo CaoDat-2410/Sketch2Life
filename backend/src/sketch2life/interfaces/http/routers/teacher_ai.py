@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import json
 from uuid import uuid4
@@ -17,6 +18,7 @@ from sketch2life.contracts.schemas.modal_ai import (
     TeacherLessonSuggestionRequestV1,
     TeacherReviewedPlanRequestV1,
 )
+from sketch2life.domain.age_bands import age_band_for_months
 from sketch2life.infrastructure.ai.modal_function_client import (
     QWEN_TEXT_MODEL_ID,
     QWEN_TEXT_MODEL_REVISION,
@@ -27,6 +29,19 @@ from sketch2life.infrastructure.ai.modal_function_client import (
 from sketch2life.infrastructure.config.settings import get_settings
 from sketch2life.interfaces.http.be1_runtime import get_db, get_verified_adult
 from sketch2life.interfaces.http.routers.be1_common import require_assignment
+
+MODEL_ID = QWEN_TEXT_MODEL_ID
+MODEL_REVISION = QWEN_TEXT_MODEL_REVISION
+_LESSON_VISUAL_MODEL_PROVENANCE = {
+    "image_generator": {
+        "id": "black-forest-labs/flux-3-image-klein",
+        "revision": "09561231f44e41381c461caf53d5452005a60ac9",
+    },
+    "prompt_upsampler": {
+        "id": "black-forest-labs/flux-3-image-klein-pup",
+        "revision": "a57899549f8f6f64c6c4d88db30827d496ff76d0",
+    },
+}
 
 router = APIRouter(
     prefix="/api/teacher/v1/organizations/{organization_id}/ai",
@@ -91,6 +106,40 @@ def _provider_error(exc: Exception, *, request_id: str, workload: str) -> HTTPEx
     return HTTPException(status_code=502, detail={"code": code, "request_id": request_id})
 
 
+def invoke_teacher_sketch_deck_worker(
+    worker_input: dict[str, object], *, request_id: str
+) -> dict[str, object]:
+    """Invoke the existing allowlisted deck workload; logs contain metadata only."""
+    try:
+        result = ModalJsonFunctionClient().invoke("teacher.sketch-deck.generate", worker_input)
+    except (ModalFunctionOutcomeUnknown, ModalFunctionExecutionFailed) as exc:
+        raise _provider_error(
+            exc, request_id=request_id, workload="teacher.sketch-deck.generate"
+        ) from None
+    deck = result.output.get("result")
+    if (
+        result.output.get("model")
+        != {"id": QWEN_TEXT_MODEL_ID, "revision": QWEN_TEXT_MODEL_REVISION}
+        or not isinstance(deck, dict)
+        or deck.get("review_required") is not True
+    ):
+        raise HTTPException(status_code=502, detail={"code": "MODAL_OUTPUT_CONTRACT_INVALID"})
+    _LOGGER.info(
+        "teacher_modal_request_completed",
+        request_id=request_id,
+        modal_call_id=result.call_id,
+        workload="teacher.sketch-deck.generate",
+        elapsed_seconds=result.elapsed_seconds,
+    )
+    return {
+        "request_id": request_id,
+        "modal_call_id": result.call_id,
+        "model": {"id": QWEN_TEXT_MODEL_ID, "revision": QWEN_TEXT_MODEL_REVISION},
+        "deck": deck,
+        "elapsed_seconds": result.elapsed_seconds,
+    }
+
+
 @router.post("/lesson-plan-suggestions", summary="Suggest a structured lesson-plan draft")
 def suggest_lesson_plan(
     organization_id: str,
@@ -101,10 +150,13 @@ def suggest_lesson_plan(
     require_assignment(db, principal, organization_id, roles={"teacher"})
     _require_modal_dev()
     request_id = str(uuid4())
+    age_band = age_band_for_months(payload.target_age_months)
+    if age_band is None:
+        raise HTTPException(status_code=422, detail={"code": "INVALID_REQUEST"})
     worker_input = {
         "schema_version": "sketch2life.lesson-plan-suggest-input.v1",
         "topic": payload.topic,
-        "target_age_band_ref": "age-36-120-months-v1",
+        "target_age_band_ref": age_band[1],
         "target_age_band_version": 1,
         "target_age_months": payload.target_age_months,
         "objectives": payload.objectives,
@@ -117,9 +169,7 @@ def suggest_lesson_plan(
     try:
         result = ModalJsonFunctionClient().invoke("lesson.plan.suggest", worker_input)
     except (ModalFunctionOutcomeUnknown, ModalFunctionExecutionFailed) as exc:
-        raise _provider_error(
-            exc, request_id=request_id, workload="lesson.plan.suggest"
-        ) from None
+        raise _provider_error(exc, request_id=request_id, workload="lesson.plan.suggest") from None
     output = result.output
     if output.get("model") != {
         "id": QWEN_TEXT_MODEL_ID,
@@ -273,7 +323,7 @@ def generate_lesson_visual(
             exc, request_id=request_id, workload="lesson.visual.generate"
         ) from None
     output = result.output
-    if output.get("model") != FLUX_MODEL_PROVENANCE:
+    if output.get("model") != _LESSON_VISUAL_MODEL_PROVENANCE:
         raise HTTPException(status_code=502, detail={"code": "MODAL_MODEL_REVISION_MISMATCH"})
     asset = output.get("asset")
     if not isinstance(asset, dict) or not isinstance(asset.get("bytes"), bytes):

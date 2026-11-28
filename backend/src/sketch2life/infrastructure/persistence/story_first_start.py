@@ -8,14 +8,14 @@ its run row lock, after its own writes and before its commit. It never commits: 
 whole command back.
 
 V4-A OPEN-A D1-D3: a Teacher run starts through the same class (predicate P_T on the pin made at
-create instead of a selection row; the worker input carries the Teacher direction, no activity),
-triggered by ``context-confirmation`` and ``subject-confirmation``.
+create instead of a selection row; the worker input carries the pinned activity and Teacher
+direction), triggered by ``context-confirmation`` and ``subject-confirmation``.
 
 The start is modelled on ``reserve_story_rewrite``: story revision 1 ``GENERATING``, run
 ``SCRIPT_GENERATING`` with ``job_state QUEUED``, no receipt of its own (the command's receipt is the
 only one), so the existing runner, the reaper and the completion path apply unchanged. The worker
-input is ``sketch2life.story-generation-input.v2``: the rewrite input without the rewrite fields and
-with the selected main activity.
+input is ``sketch2life.story-generation-input.v3``: Parent carries its selected activity and
+``context_entries``; Teacher carries its pinned plan activity and plain-text lesson direction.
 """
 
 from __future__ import annotations
@@ -30,21 +30,30 @@ from sqlalchemy.engine import RowMapping
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from sketch2life.application.parent_subject_roles import approved_subjects
 from sketch2life.application.ports.identity import VerifiedPrincipal
 from sketch2life.application.ports.parent_story_runs import (
     ParentStoryRevisionReservation,
     ParentStoryRunError,
 )
-from sketch2life.domain.story_teacher import teacher_lesson_direction, teacher_pin_ready
+from sketch2life.domain.story_teacher import teacher_pin_ready
+from sketch2life.infrastructure.ai.modal_function_client import (
+    STORY_MODEL_ID,
+    STORY_MODEL_REVISION,
+)
 from sketch2life.infrastructure.config.settings import get_settings
 from sketch2life.infrastructure.knowledge.learning_request import build_learning_request
 from sketch2life.infrastructure.story_run_lite import tables as story_tables
+from sketch2life.infrastructure.story_teacher.story_activity import (
+    pinned_story_activity,
+    teacher_lesson_direction_text,
+)
 
-FIRST_STORY_INPUT_SCHEMA = "sketch2life.story-generation-input.v2"
+FIRST_STORY_INPUT_SCHEMA = "sketch2life.story-generation-input.v3"
 # The first story reuses the rewrite identifiers until the generator reports its own (DEV-2); a unit
 # test pins them equal to ``story_inputs.story_generation`` (importing it here would be circular).
-FIRST_STORY_MODEL_ID = "story-generator-port"
-FIRST_STORY_MODEL_REVISION = "unassigned"
+FIRST_STORY_MODEL_ID = STORY_MODEL_ID
+FIRST_STORY_MODEL_REVISION = STORY_MODEL_REVISION
 FIRST_STORY_PROMPT_VERSION = "parent-story-rewrite.v1"
 # The activity fields the worker receives (title, objective, instructions, safety notes, kind,
 # source, lesson id, version id, content hash).
@@ -83,13 +92,16 @@ def latest_selection_row(
 
 
 def worker_activity(selection: Mapping[Any, Any]) -> dict[str, Any]:
-    """The bounded activity object of the v2 worker input, taken from the stored snapshot."""
+    """The bounded activity object of the v3 first-story input, taken from the stored snapshot."""
 
     snapshot = selection["activity_snapshot"]
     activity = {name: snapshot[name] for name in _WORKER_ACTIVITY_FIELDS}
+    source = snapshot["source"]
+    if source == "AI_GENERATED_DRAFT":
+        source = "AI_DRAFT"
     return {
         **activity,
-        "source": snapshot["source"],
+        "source": source,
         "lesson_id": selection["lesson_id"],
         "version_id": selection["version_id"],
         "content_sha256": selection["content_sha256"],
@@ -100,8 +112,8 @@ class FirstStoryStarter:
     """Reserve story revision 1 inside the caller's transaction when every gate is met.
 
     A Parent run needs its chosen main activity (predicate P, T-2e-a). A Teacher run (V4-A OPEN-A
-    D1-D3) has no selection: it needs the complete pin made at create (predicate P_T) and the
-    worker input carries the Teacher direction instead of an activity. ``enabled`` is off for the
+    D1-D3) has no selection: it needs the complete pin made at create (predicate P_T), and its
+    worker input carries that activity with the Teacher direction. ``enabled`` is off for the
     job-side repository only.
     """
 
@@ -172,7 +184,7 @@ class FirstStoryStarter:
         basis = self._probe(principal, run, understanding_revision)
         if basis is None:
             return None
-        _, input_row, idea_text, visible_features = basis
+        understanding, input_row, idea_text, visible_features = basis
         if self._teacher and not teacher_pin_ready(
             input_row["lesson_pin_snapshot"], run["occurrence_ref"]
         ):
@@ -188,11 +200,40 @@ class FirstStoryStarter:
                 understanding_revision=understanding_revision,
                 selection=selection,
             )
+            snapshot = (
+                understanding.get("result_snapshot")
+                if isinstance(understanding, Mapping)
+                else None
+            )
+            candidate = snapshot.get("result") if isinstance(snapshot, dict) else None
+            _main_subject, approved_secondaries = (
+                approved_subjects(candidate) if isinstance(candidate, dict) else ({}, [])
+            )
+            if approved_secondaries:
+                worker_input["secondary_subjects"] = [
+                    {
+                        "entity_id": item["entity_id"],
+                        "label": item["label"],
+                        "visible_features": list(item.get("visible_features") or []),
+                    }
+                    for item in approved_secondaries
+                ]
         else:
+            if not isinstance(context, Mapping):
+                return None
+            primary_activity = pinned_story_activity(
+                self._session,
+                input_row,
+                occurrence_id=str(run["occurrence_ref"]),
+                organization_id=str(run["actor_scope_ref"]),
+            )
+            if primary_activity is None:
+                return None
             worker_input = {
                 "schema_version": FIRST_STORY_INPUT_SCHEMA,
                 "role": "TEACHER",
                 "language": "vi",
+                "topic": primary_activity["title"][:120],
                 "confirmed_subject": str(run["subject_label"] or "").strip(),
                 "understanding_revision": understanding_revision,
                 "drawing_sha256": str(input_row["original_sha256"]),
@@ -200,9 +241,39 @@ class FirstStoryStarter:
                 "child_age_months": int(context["age_months"]),
                 "context_revision": int(input_row["context_revision"]),
                 "adult_confirmed_idea": idea_text,
-                "activity": None,
-                "lesson_direction": teacher_lesson_direction(context),
+                "rewrite_instruction": None,
+                "lesson_subject_learning_notes": None,
+                "lesson_direction": teacher_lesson_direction_text(context),
+                "primary_activity": primary_activity,
+                "primary_activity_sha256": self._sha256_json(primary_activity),
             }
+            learning_request = build_learning_request(
+                context=context,
+                subject=str(run["subject_label"] or "").strip(),
+                visible_features=visible_features,
+                lesson_notes=None,
+                enabled=get_settings().story_learning,
+            )
+            if learning_request is not None:
+                worker_input["learning"] = learning_request
+            snapshot = (
+                understanding.get("result_snapshot")
+                if isinstance(understanding, Mapping)
+                else None
+            )
+            candidate = snapshot.get("result") if isinstance(snapshot, dict) else None
+            _main_subject, approved_secondaries = (
+                approved_subjects(candidate) if isinstance(candidate, dict) else ({}, [])
+            )
+            if approved_secondaries:
+                worker_input["secondary_subjects"] = [
+                    {
+                        "entity_id": item["entity_id"],
+                        "label": item["label"],
+                        "visible_features": list(item.get("visible_features") or []),
+                    }
+                    for item in approved_secondaries
+                ]
         request_hash = self._sha256_json(worker_input)
         story_revision_id = str(uuid4())
         new_version = int(run["version"]) + 1

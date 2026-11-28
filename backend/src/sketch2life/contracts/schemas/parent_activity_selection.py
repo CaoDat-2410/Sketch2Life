@@ -1,4 +1,4 @@
-"""Versioned contracts for Parent activity suggestion and persisted selection."""
+"""Versioned contracts for Parent activity suggestion sets and selection receipts."""
 
 from __future__ import annotations
 
@@ -36,12 +36,17 @@ class ParentActivitySuggestionSetV1(BaseModel):
     activities: list[ParentSuggestedActivityV2] = Field(min_length=1, max_length=24)
 
 
-class ParentActivitySelectionRequestV1(BaseModel):
+class ParentActivitySetSelectionRequestV1(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
 
     suggestion_set_id: UUID = Field(strict=False)
     expected_understanding_revision: int = Field(ge=1)
     activity_index: int = Field(ge=0, le=23)
+
+
+# Keep the request contract's import name while giving its OpenAPI component a unique name beside
+# the older Phase A ParentActivitySelectionRequestV1, whose body has a different shape.
+ParentActivitySelectionRequestV1 = ParentActivitySetSelectionRequestV1
 
 
 class ParentActivitySelectionReceiptV1(BaseModel):
@@ -56,12 +61,14 @@ class ParentActivitySelectionReceiptV1(BaseModel):
     understanding_revision: int = Field(ge=1)
     activity_index: int = Field(ge=0, le=23)
     activity_snapshot_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
-    persisted_at: datetime
+    # The stored receipt body is JSON, so the timestamp arrives as an ISO 8601 string.
+    persisted_at: datetime = Field(strict=False)
 
 
 __all__ = [
     "ParentActivitySelectionReceiptV1",
     "ParentActivitySelectionRequestV1",
+    "ParentActivitySetSelectionRequestV1",
     "ParentActivitySuggestionsRequestV1",
     "ParentActivitySuggestionSetV1",
 ]

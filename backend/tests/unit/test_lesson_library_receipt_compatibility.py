@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from types import SimpleNamespace
 from typing import Any, cast
 
 import pytest
@@ -9,6 +10,7 @@ from sketch2life.infrastructure.lesson_library.service import (
     LessonLibraryError,
     LessonLibraryService,
 )
+from sketch2life.infrastructure.persistence.be1_models import AdultIdentityModel
 
 ORG_ID = "synthetic-org-01"
 GROUP_ID = "synthetic-group-01"
@@ -67,7 +69,12 @@ class FakeReceiptDb:
 
     def execute(self, statement: Any) -> FakeResult:
         self.statements.append(statement)
-        compiled_values = set(statement.compile().params.values())
+        compiled_values: set[Any] = set()
+        for value in statement.compile().params.values():
+            if isinstance(value, (list, tuple, set, frozenset)):
+                compiled_values.update(value)
+            else:
+                compiled_values.add(value)
         identity_values = {
             self.receipt["organization_id"],
             self.receipt["principal_ref"],
@@ -82,6 +89,19 @@ class FakeReceiptDb:
         if "be1_parent_group_members" in sql:
             return FakeResult(self.membership)
         raise AssertionError(f"unexpected statement in offline replay test: {sql}")
+
+    def get(self, model: type[Any], identity: str) -> Any:
+        if model is AdultIdentityModel and identity == PARENT_ID:
+            return SimpleNamespace(
+                subject=PARENT_ID,
+                account_id="synthetic-parent-account-01",
+                state="active",
+                account_role="parent",
+            )
+        return None
+
+    def scalar(self, _statement: Any) -> None:
+        return None
 
     def add(self, _value: object) -> None:
         self.add_calls += 1
@@ -136,7 +156,7 @@ def test_current_receipt_is_returned_unchanged_without_inferred_provenance() -> 
         upgrade_parent_group_receipt,
     )
 
-    current = {**LEGACY_INVITATION, "revision": 4}
+    current = {**LEGACY_INVITATION, "organization_id": ORG_ID, "revision": 4}
 
     result = upgrade_parent_group_receipt(
         operation_scope=INVITE_SCOPE,
@@ -185,12 +205,30 @@ def test_legacy_receipt_replay_reconstructs_revision_without_writes(
     assert result is not None
     assert result["contract"] == expected_contract
     assert result["revision"] == 7
+    assert result["organization_id"] == ORG_ID
     assert result["revision_source"] == "reconstructed_from_current_row"
     model = ParentGroupInvitationV1 if scope == INVITE_SCOPE else ParentGroupMembershipV1
     assert model.model_validate(result).revision_source == "reconstructed_from_current_row"
     assert len(db.statements) == 2
     assert all(statement.is_select for statement in db.statements)
     assert (db.add_calls, db.flush_calls, db.commit_calls) == (0, 0, 0)
+
+
+def test_direct_upgrade_backfills_organization_id_for_pre_field_receipts() -> None:
+    from sketch2life.infrastructure.lesson_library.receipt_compat import (
+        upgrade_parent_group_receipt,
+    )
+
+    result = upgrade_parent_group_receipt(
+        operation_scope=ACCEPT_SCOPE,
+        response=LEGACY_ACCEPTANCE,
+        membership_row=_membership(),
+        organization_id=ORG_ID,
+        principal_ref=PARENT_ID,
+    )
+
+    assert result["organization_id"] == ORG_ID
+    assert result["revision"] == 7
 
 
 def test_legacy_receipt_without_current_membership_is_typed_failure() -> None:

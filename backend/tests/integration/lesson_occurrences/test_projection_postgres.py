@@ -331,6 +331,11 @@ def test_the_token_needs_a_confirmation_then_streams_whole_and_by_range(v: VEnv)
     assert set(grant) == {"contract", "token", "expires_at", "stream_path", "media_type"}
     assert grant["stream_path"] == f"/v1/story-runs/{run_id}/playback"
     assert grant["media_type"] == "video/mp4"
+    codec = e.d.app.state.story_playback_tokens
+    owner_scope = (
+        f"{principal_digest(e, 't1')}:story-owner-epoch:{run_row(e, run_id)['owner_epoch']}"
+    )
+    assert codec.verify(grant["token"]).actor_digest == codec.actor_binding(owner_scope)
     assert not any(word in response.text.lower() for word in STORAGE_WORDS)
     assert streams(stream(e, "t1", run_id, grant["token"]))
     part = stream(e, "t1", run_id, grant["token"], byte_range="bytes=0-3")

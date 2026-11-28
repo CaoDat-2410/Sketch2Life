@@ -30,7 +30,9 @@ from sketch2life.infrastructure.story_run_lite.photo_bridge import (
     PhotoVisionBridge,
 )
 from sketch2life.infrastructure.story_run_lite.quarantine import QuarantineStore
-from sketch2life.infrastructure.story_run_lite.repository import SqlStoryRunLiteRepository
+from sketch2life.infrastructure.story_run_lite.repository import (
+    SqlStoryRunLiteRepository,
+)
 
 _LOOPBACK_HOSTS = {"127.0.0.1", "::1"}
 

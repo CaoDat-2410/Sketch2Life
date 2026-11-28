@@ -8,7 +8,7 @@ import hashlib
 import json
 from datetime import UTC, datetime, timedelta
 from typing import Any
-from uuid import uuid4
+from uuid import UUID, uuid4
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import and_, func, insert, or_, select, update
@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session
 
 from sketch2life.application.ports.parent_platform import ParentPlatformError
 from sketch2life.infrastructure.lesson_library.tables import LIBRARY_ITEMS, LIBRARY_VERSIONS
+from sketch2life.infrastructure.parent_platform import tables
 from sketch2life.infrastructure.persistence.be1_models import (
     AdultIdentityModel,
     EnrollmentModel,
@@ -27,7 +28,6 @@ from sketch2life.infrastructure.persistence.parent_models import (
     ParentChildProfileModel,
     ParentDataAuthorizationModel,
 )
-from sketch2life.infrastructure.parent_platform import tables
 
 _HISTORY_DAYS = 30
 _SHARE_TERM_DAYS = 90
@@ -44,7 +44,7 @@ class SqlParentPlatformRepository:
     ) -> dict[str, Any]:
         profile = self._session.scalar(
             select(ParentChildProfileModel).where(
-                ParentChildProfileModel.parent_profile_id == parent_profile_id,
+                ParentChildProfileModel.parent_profile_id == UUID(parent_profile_id),
                 ParentChildProfileModel.owner_subject == owner_subject,
                 ParentChildProfileModel.state == "ACTIVE",
             )
@@ -53,7 +53,7 @@ class SqlParentPlatformRepository:
             raise ParentPlatformError(404, "PARENT_PROFILE_NOT_FOUND")
         if self._session.scalar(
             select(ParentDataAuthorizationModel.authorization_id).where(
-                ParentDataAuthorizationModel.parent_profile_id == parent_profile_id,
+                ParentDataAuthorizationModel.parent_profile_id == UUID(parent_profile_id),
                 ParentDataAuthorizationModel.policy_version == policy_version,
                 ParentDataAuthorizationModel.state == "GRANTED",
             ).limit(1)

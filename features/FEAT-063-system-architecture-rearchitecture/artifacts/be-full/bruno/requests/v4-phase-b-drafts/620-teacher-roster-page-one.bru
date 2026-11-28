@@ -1,0 +1,53 @@
+meta {
+  name: 620 [DRAFT-V4B] [LOCAL / TEST ONLY] Teacher lists class roster page one with limit 2
+  type: http
+  seq: 620
+}
+
+get {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/classes/{{class_id}}/profiles?limit=2
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (typeof body.next_cursor === "string") {
+    bru.setVar("phase_b_roster_cursor", body.next_cursor);
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.contract).to.equal("Be1ManagedProfileListV1");
+    expect(body.items).to.be.an("array");
+    expect(body.items.length).to.equal(2);
+    expect(body.items[0].child_id).to.be.a("string");
+    expect(body.items[0].class_id).to.equal(bru.getVar("class_id"));
+    expect(body.items[0].display_name).to.be.a("string");
+    expect(body.items[0].age_months).to.be.a("number");
+    expect(body.next_cursor).to.be.a("string");
+    expect(body.active_profile_count).to.be.a("number");
+    expect(body.active_profile_count).to.be.at.least(5);
+  });
+}
+
+docs {
+  DRAFT: written from the Phase B code at 134561f4; not yet run against a live backend.
+  Role: Assigned Teacher - set bearerToken to seed-tch-a1 token
+  Needs: organization_id=seed-org-a, class_id=seed-org-a-class-1 (5 seeded synthetic profiles); saves phase_b_roster_cursor for 621, 625, 627
+  Expected: 200 / Be1ManagedProfileListV1 (limit=2, next_cursor non-null, active_profile_count >= 5)
+  Source: backend/src/sketch2life/interfaces/http/routers/be1_registry.py:947-1010, backend/tools/seed/data.py:99,384-393
+}

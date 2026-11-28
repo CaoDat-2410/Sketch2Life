@@ -1,0 +1,42 @@
+meta {
+  name: 733 [DRAFT-V4C] [LOCAL / TEST ONLY] Parent self-revokes own parent-group membership
+  type: http
+  seq: 733
+}
+
+delete {
+  url: {{baseUrl}}/api/lesson-library/v1/organizations/{{organization_id}}/parent-groups/{{phase_c_self_revoke_group_id}}/members/{{phase_c_self_revoke_membership_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  If-Match: "{{phase_c_self_revoke_revision}}"
+  Idempotency-Key: {{$guid}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.contract).to.equal("ParentGroupMembershipV1");
+    expect(body.membership_id).to.equal(bru.getVar("phase_c_self_revoke_membership_id"));
+    expect(body.state).to.equal("REVOKED");
+    expect(res.getHeader("ETag")).to.equal('"' + String(body.revision) + '"');
+  });
+}
+
+docs {
+  DRAFT: written from the Phase C code at f031fc70; not yet run against a live backend.
+  Role: Member Parent - set bearerToken to seed-parent-p1 token
+  Needs: needs-fixture: disposable membership owned by seed-parent-p1 (phase_c_self_revoke_group_id, phase_c_self_revoke_membership_id, phase_c_self_revoke_revision)
+  Expected: 200 / ParentGroupMembershipV1 (state REVOKED, ETag "<revision>")
+  Source: backend/src/sketch2life/interfaces/http/routers/lesson_library.py:922-943, backend/src/sketch2life/infrastructure/lesson_library/service.py:2755-2767
+}

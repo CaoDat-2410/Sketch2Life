@@ -1,0 +1,69 @@
+meta {
+  name: 628 [DRAFT-V4B] [LOCAL / TEST ONLY] Create Parent profile context entry
+  type: http
+  seq: 628
+}
+
+post {
+  url: {{baseUrl}}/v1/parent/profiles/{{parent_profile_id}}/context-entries
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{phase_b_context_entry_key}}
+}
+
+body:json {
+  {
+    "entry_kind": "OBSERVATION",
+    "short_text": "Likes drawing dinosaurs and stars",
+    "source_kind": "PARENT_NOTE",
+    "source_ref": "parent-journal-1",
+    "approximate_date": "2026-11-20"
+  }
+}
+
+script:pre-request {
+  const key = "ctx-entry-" + Date.now();
+  bru.setVar("phase_b_context_entry_key", key);
+}
+
+script:post-response {
+  const entry = res.getBody().context_entry;
+  if (entry && entry.context_entry_id) {
+    bru.setVar("phase_b_context_entry_id", entry.context_entry_id);
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("Cache-Control")).to.equal("private, no-store");
+    const entry = res.getBody().context_entry;
+    expect(entry.context_entry_id).to.be.a("string");
+    expect(entry.entry_kind).to.equal("OBSERVATION");
+    expect(entry.short_text).to.equal("Likes drawing dinosaurs and stars");
+    expect(entry.source_kind).to.equal("PARENT_NOTE");
+    expect(entry.approximate_date).to.equal("2026-11-20");
+    expect(entry.created_at).to.be.a("string");
+    expect(entry).to.not.have.property("source_ref");
+    expect(entry).to.not.have.property("created_by");
+  });
+}
+
+docs {
+  DRAFT: written from the Phase B code at 134561f4; not yet run against a live backend.
+  Role: Parent - set bearerToken to seed-parent-p1 token
+  Needs: parent_profile_id (owned ACTIVE profile, e.g. seed k1); saves phase_b_context_entry_key and phase_b_context_entry_id for 629, 630, 638, 639, 640, 643, 644
+  Expected: 201 / ParentContextEntryEnvelope (Cache-Control: private, no-store; source_ref and created_by omitted)
+  Source: backend/src/sketch2life/interfaces/http/routers/parent_profiles.py:472-537, backend/src/sketch2life/contracts/schemas/parent_profiles.py:70-111,186-199
+}

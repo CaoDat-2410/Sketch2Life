@@ -11,7 +11,9 @@ COPY backend/alembic ./backend/alembic
 COPY backend/src ./backend/src
 COPY data/activity-catalog ./data/activity-catalog
 COPY features/FEAT-028-pixi-topic-asset-library/assets/generated ./features/FEAT-028-pixi-topic-asset-library/assets/generated
-COPY packages/art-renderer/dist-demo ./packages/art-renderer/dist-demo
+# package.json is always present, so the COPY works on a fresh clone; dist-demo (a git-ignored build
+# output) is copied only when it exists. Without it the API simply does not mount /renderer.
+COPY packages/art-renderer ./packages/art-renderer
 RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg fonts-dejavu-core && rm -rf /var/lib/apt/lists/*
 RUN pip install --no-cache-dir '/app/backend[image-admission,modal]'
 

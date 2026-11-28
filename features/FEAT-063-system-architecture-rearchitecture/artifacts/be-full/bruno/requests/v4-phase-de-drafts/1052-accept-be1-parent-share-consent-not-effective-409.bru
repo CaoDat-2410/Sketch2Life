@@ -1,0 +1,48 @@
+meta {
+  name: 1052 [DRAFT-V4E] [LOCAL / TEST ONLY] Accept parent-share returns 409 CONSENT_NOT_EFFECTIVE for unreleased profile
+  type: http
+  seq: 1052
+}
+
+post {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/classes/{{class_id}}/profiles/{{phase_de_e2_real_child_id}}/parent-share/accept
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{phase_de_e3_consent_409_key}}
+}
+
+body:json {
+  {
+    "invitation_code": "{{phase_de_e3_invitation_code}}"
+  }
+}
+
+script:pre-request {
+  bru.setVar("phase_de_e3_consent_409_key", "e3-accept-consent-409-" + Date.now());
+}
+
+tests {
+  test("assert consent not effective refusal", function () {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("CONSENT_NOT_EFFECTIVE");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against committed Phase E code at 98aa9837 (PHASE_E_FINAL_ROUTE_LIST_20261125.md / 784134fc); not yet run against a live backend.
+  Role: Assigned Teacher - set bearerToken to seed-tch-a1 token
+  Needs: needs-fixture: unreleased/REAL child profile phase_de_e2_real_child_id in class_id and valid INVITED phase_de_e3_invitation_code
+  Expected: 409 / CONSENT_NOT_EFFECTIVE
+  Source: backend/src/sketch2life/interfaces/http/routers/be1_registry.py, backend/src/sketch2life/infrastructure/profile_sharing/service.py
+}

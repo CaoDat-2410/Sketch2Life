@@ -1,0 +1,38 @@
+meta {
+  name: 919 [DRAFT-V4E] [LOCAL / TEST ONLY] Assigned Teacher fetches next page of org lesson activities
+  type: http
+  seq: 919
+}
+
+get {
+  url: {{baseUrl}}/api/lesson-library/v1/organizations/{{organization_id}}/activities?limit=1&cursor={{phase_de_e2_activities_cursor}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert next page contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("Cache-Control")).to.equal("private, no-cache");
+    expect(res.getHeader("Vary")).to.include("Authorization");
+    expect(res.getBody().contract).to.equal("TeacherActivityPageV1");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against committed Phase E code at 98aa9837 (PHASE_E_FINAL_ROUTE_LIST_20261125.md / 784134fc); not yet run against a live backend.
+  Role: Assigned Teacher - set bearerToken to seed-tch-a1 token
+  Needs: needs-fixture: run after 918 when >=2 org activities exist so phase_de_e2_activities_cursor is populated
+  Expected: 200 / TeacherActivityPageV1
+  Source: backend/src/sketch2life/interfaces/http/routers/lesson_library.py:264-290
+}

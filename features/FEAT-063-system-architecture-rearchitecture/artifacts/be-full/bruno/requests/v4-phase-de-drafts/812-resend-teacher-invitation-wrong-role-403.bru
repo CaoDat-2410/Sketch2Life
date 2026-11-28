@@ -1,0 +1,37 @@
+meta {
+  name: 812 [DRAFT-V4D] [LOCAL / TEST ONLY] Refuse in-scope Teacher calling invitation resend
+  type: http
+  seq: 812
+}
+
+post {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/teacher-invitations/00000000-0000-4000-8000-000000000000/resend
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Idempotency-Key: {{$guid}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(403);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("ACTION_NOT_ALLOWED");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against the code in .worktrees/v4d at 9e439cee; not yet run against a live backend.
+  Role: Same-org Teacher - set bearerToken to seed-tch-a1 token
+  Needs: organization_id=seed-org-a
+  Expected: 403 / ACTION_NOT_ALLOWED
+  Source: backend/src/sketch2life/interfaces/http/routers/teacher_invitations.py:50-67,137
+}

@@ -6,6 +6,8 @@ from typing import Annotated, Literal
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validator
 
+from sketch2life.contracts.schemas.lesson_occurrences import LessonVersionRefV1
+
 OpaqueId = Annotated[str, Field(min_length=1, max_length=256, pattern=r"^[A-Za-z0-9._:-]+$")]
 Sha256Hex = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
 ShortText = Annotated[str, Field(min_length=1, max_length=4000)]
@@ -66,6 +68,20 @@ class CreateLessonVersionRequestV1(StrictLessonModel):
     contract: Literal["CreateLessonVersionRequestV1"] = "CreateLessonVersionRequestV1"
     source_document_revision_id: OpaqueId
     content: LessonContentInputV1
+
+
+RemixVersionId = Annotated[
+    str,
+    Field(min_length=1, max_length=36, pattern=r"^[A-Za-z0-9._:-]+$"),
+]
+
+
+class RemixLessonRequestV1(StrictLessonModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=False)
+
+    contract: Literal["RemixLessonRequestV1"] = "RemixLessonRequestV1"
+    source_version_id: RemixVersionId
+    source_content_sha256: Sha256Hex
 
 
 class CreateLessonUploadSessionRequestV1(StrictLessonModel):
@@ -136,6 +152,24 @@ class LessonVersionV1(StrictLessonModel):
     content: LessonContentInputV1 | None = None
 
 
+class LessonVersionSummaryV1(StrictLessonModel):
+    contract: Literal["LessonVersionSummaryV1"] = "LessonVersionSummaryV1"
+    version_id: OpaqueId
+    version_no: int = Field(ge=1)
+    review_state: Literal["DRAFT", "PENDING_REVIEW", "CHANGES_REQUESTED", "APPROVED"]
+    structured_content_hash: Sha256Hex
+    source_document_revision_id: OpaqueId | None = None
+    authored_principal_ref: OpaqueId
+    created_at: AwareDatetime
+
+
+class LessonVersionPageV1(StrictLessonModel):
+    contract: Literal["LessonVersionPageV1"] = "LessonVersionPageV1"
+    lesson_id: OpaqueId
+    items: list[LessonVersionSummaryV1]
+    next_cursor: str | None
+
+
 class LessonDetailV1(StrictLessonModel):
     contract: Literal["LessonDetailV1"] = "LessonDetailV1"
     lesson_id: OpaqueId
@@ -149,6 +183,12 @@ class LessonDetailV1(StrictLessonModel):
     revision: int = Field(ge=1)
     created_at: AwareDatetime
     updated_at: AwareDatetime
+
+
+class RemixLessonResponseV1(StrictLessonModel):
+    contract: Literal["RemixLessonResponseV1"] = "RemixLessonResponseV1"
+    lesson: LessonDetailV1
+    source: LessonVersionRefV1
 
 
 class LessonSummaryV1(StrictLessonModel):
@@ -173,7 +213,9 @@ class LessonAccessGrantV1(StrictLessonModel):
     contract: Literal["LessonAccessGrantV1"] = "LessonAccessGrantV1"
     access_grant_id: OpaqueId
     lesson_id: OpaqueId
+    lesson_title: str | None = None
     version_id: OpaqueId
+    version_no: int | None = Field(default=None, ge=1)
     audience_kind: str
     audience_ref: OpaqueId | None = None
     capability: str
@@ -262,7 +304,8 @@ class ParentGroupMembershipV1(StrictLessonModel):
     contract: Literal["ParentGroupMembershipV1"] = "ParentGroupMembershipV1"
     membership_id: OpaqueId
     parent_group_id: OpaqueId
-    state: Literal["INVITED", "ACTIVE", "REVOKED", "EXPIRED"]
+    organization_id: str
+    state: Literal["INVITED", "ACTIVE", "REVOKED", "EXPIRED", "DECLINED"]
     invited_at: AwareDatetime
     expires_at: AwareDatetime | None = None
     accepted_at: AwareDatetime | None = None
@@ -273,6 +316,38 @@ class ParentGroupMembershipV1(StrictLessonModel):
 class ParentGroupInvitationPageV1(StrictLessonModel):
     contract: Literal["ParentGroupInvitationPageV1"] = "ParentGroupInvitationPageV1"
     items: list[ParentGroupMembershipV1]
+    next_cursor: str | None
+
+
+class ParentGroupMembershipPageV1(StrictLessonModel):
+    contract: Literal["ParentGroupMembershipPageV1"] = "ParentGroupMembershipPageV1"
+    items: list[ParentGroupMembershipV1]
+    next_cursor: str | None
+
+
+class ParentGroupMemberCountsV1(StrictLessonModel):
+    invited: int = Field(ge=0)
+    accepted: int = Field(ge=0)
+    declined: int = Field(ge=0)
+    revoked: int = Field(ge=0)
+    expired: int = Field(ge=0)
+    total: int = Field(ge=0)
+
+
+class ParentGroupMemberSummaryV1(StrictLessonModel):
+    membership_id: OpaqueId
+    parent_group_id: OpaqueId
+    state: Literal["INVITED", "ACCEPTED", "DECLINED", "REVOKED", "EXPIRED"]
+    invited_at: AwareDatetime
+    expires_at: AwareDatetime | None = None
+    accepted_at: AwareDatetime | None = None
+    revision: int = Field(ge=1)
+
+
+class ParentGroupMemberPageV1(StrictLessonModel):
+    contract: Literal["ParentGroupMemberPageV1"] = "ParentGroupMemberPageV1"
+    items: list[ParentGroupMemberSummaryV1]
+    counts: ParentGroupMemberCountsV1
     next_cursor: str | None
 
 
@@ -301,6 +376,25 @@ class ParentLessonSummaryV1(StrictLessonModel):
 class ParentLessonPageV1(StrictLessonModel):
     contract: Literal["ParentLessonPageV1"] = "ParentLessonPageV1"
     items: list[ParentLessonSummaryV1]
+    next_cursor: str | None
+
+
+class PublicLessonSummaryV1(StrictLessonModel):
+    contract: Literal["PublicLessonSummaryV1"] = "PublicLessonSummaryV1"
+    lesson_id: OpaqueId
+    version_id: OpaqueId
+    structured_content_hash: Sha256Hex
+    title: str
+    topic: str
+    target_age_band_ref: OpaqueId
+    target_age_band_version: int = Field(ge=1)
+    activity_count: int = Field(ge=1)
+    updated_at: AwareDatetime
+
+
+class PublicLessonPageV1(StrictLessonModel):
+    contract: Literal["PublicLessonPageV1"] = "PublicLessonPageV1"
+    items: list[PublicLessonSummaryV1]
     next_cursor: str | None
 
 

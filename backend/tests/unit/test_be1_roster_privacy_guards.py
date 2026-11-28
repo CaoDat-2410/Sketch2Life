@@ -23,6 +23,7 @@ PRINCIPAL = VerifiedPrincipal(subject="adult-1", issuer=ISSUER, roles=frozenset(
 ORG = "org-1"
 CLASS = "class-a"
 CONSENT_SCOPE = f"be1.consents:{ORG}:{CLASS}"
+ROSTER_SCOPE = f"be1.profiles:{ORG}:{CLASS}"
 BASE_TIME = datetime(2026, 11, 19, 8, 0, 0, tzinfo=UTC)
 
 
@@ -60,10 +61,11 @@ class _RosterSession:
         text = str(statement)
         if "be1_organization_assignments" in text:
             return _Scalars(self._assignments)
-        if "be1_consent_records" in text:
-            return _Scalars(self._consents)
+        # T-7e: the roster page names `be1_consent_records` in its EXISTS, so it is matched first.
         if "be1_managed_profiles" in text:
             return _Scalars(self._profiles)
+        if "be1_consent_records" in text:
+            return _Scalars(self._consents)
         return _Scalars([])
 
     def scalar(self, statement: Any) -> Any:
@@ -109,9 +111,30 @@ def _teacher_side(role: str, class_id: str | None, **kwargs: Any) -> _RosterSess
     return _RosterSession(_identity(), [_row(role, class_id)], classroom=classroom, **kwargs)
 
 
-def _profiles(session: _RosterSession, class_id: str = CLASS) -> Any:
+def _profiles(
+    session: _RosterSession,
+    class_id: str = CLASS,
+    *,
+    limit: int = 25,
+    cursor: str | None = None,
+) -> Any:
     return be1_registry.list_profiles(
-        ORG, class_id, principal=PRINCIPAL, db=cast(Session, session)
+        ORG,
+        class_id,
+        limit=limit,
+        cursor=cursor,
+        principal=PRINCIPAL,
+        db=cast(Session, session),
+    )
+
+
+def _profile_row(index: int) -> Any:
+    return SimpleNamespace(
+        child_id=f"child-{index:03d}",
+        class_id=CLASS,
+        display_name=f"Synthetic Learner {index}",
+        age_months=60,
+        created_at=BASE_TIME + timedelta(minutes=index),
     )
 
 
@@ -170,10 +193,32 @@ def test_a09_manager_summary_of_an_empty_class_is_zero_and_writes_nothing() -> N
     assert session.added == []
 
 
-def test_a09_class_scoped_teacher_keeps_the_full_list_shape() -> None:
+def test_a09_class_scoped_teacher_empty_class_has_the_new_empty_body() -> None:
+    # T-7e (D-066-100): next_cursor and active_profile_count are additive fields (SRS l.1635).
     body = _profiles(_teacher_side("teacher", CLASS))
-    assert body == {"contract": "Be1ManagedProfileListV1", "items": []}
-    assert "next_cursor" not in body
+    assert body == {
+        "contract": "Be1ManagedProfileListV1",
+        "items": [],
+        "next_cursor": None,
+        "active_profile_count": 0,
+    }
+
+
+def test_a09_class_scoped_teacher_gets_items_and_the_total_count() -> None:
+    session = _teacher_side("teacher", CLASS, profiles=[_profile_row(1)], active_count=3)
+    body = _profiles(session)
+    assert body["items"] == [
+        {
+            "child_id": "child-001",
+            "class_id": CLASS,
+            "display_name": "Synthetic Learner 1",
+            "age_months": 60,
+        }
+    ]
+    # The count covers every active profile, listed or not; the fake answers it with 3.
+    assert body["active_profile_count"] == 3
+    assert body["next_cursor"] is None
+    assert session.added == []
 
 
 @pytest.mark.parametrize(

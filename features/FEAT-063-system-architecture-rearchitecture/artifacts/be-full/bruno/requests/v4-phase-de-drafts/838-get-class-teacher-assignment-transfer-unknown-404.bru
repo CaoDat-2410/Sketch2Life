@@ -1,0 +1,37 @@
+meta {
+  name: 838 [DRAFT-V4D] [LOCAL / TEST ONLY] Return uniform 404 for unknown Teacher assignment transfer
+  type: http
+  seq: 838
+}
+
+get {
+  url: {{baseUrl}}/api/be1/v1/classes/seed-org-a-class-1/assignment-transfers/00000000-0000-4000-8000-000000000000
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("Cache-Control")).to.equal("private, no-store");
+    expect(res.getBody().code).to.equal("RESOURCE_NOT_FOUND");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against the code in .worktrees/v4d at working tree on 9e439cee; not yet run against a live backend.
+  Role: Assigned School Manager - set bearerToken to seed-mgr-a token
+  Needs: seed-org-a-class-1
+  Expected: 404 / RESOURCE_NOT_FOUND
+  Source: backend/tests/contract/test_teacher_assignment_transfer_routes.py:271-299
+}

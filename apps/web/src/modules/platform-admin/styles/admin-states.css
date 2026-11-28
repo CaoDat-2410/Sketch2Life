@@ -63,6 +63,11 @@ html[data-portal='platform'] .s2l-app-shell .pa-ops-queue-summary article > stro
 html[data-portal='platform'] .s2l-app-shell .pa-ops-queue-summary article > small { color: var(--pa-muted-strong); font-size: 11px; line-height: 1.45; }
 html[data-portal='platform'] .s2l-app-shell .pa-operations-page .pa-two-column { align-items: start; gap: 18px; }
 html[data-portal='platform'] .s2l-app-shell .pa-operations-page .pa-two-column > .pa-panel { min-width: 0; overflow: hidden; }
+@media (min-width: 721px) {
+  html[data-portal='platform'] .s2l-app-shell .s2l-ops-page .s2l-admin-table { min-width: 0; table-layout: fixed; }
+  html[data-portal='platform'] .s2l-app-shell .s2l-ops-page .s2l-admin-table th,
+  html[data-portal='platform'] .s2l-app-shell .s2l-ops-page .s2l-admin-table td { white-space: normal; overflow-wrap: anywhere; }
+}
 html[data-portal='platform'] .s2l-app-shell .pa-operations-page .pa-two-column .pa-section-heading { padding: 17px 20px 12px; color: var(--pa-ink-strong); font-size: 15px; font-weight: 700; }
 
 /* Audit retention and event history: compact controls, clear scan path, restrained violet emphasis. */
@@ -190,3 +195,6 @@ html[data-portal='platform'] .s2l-app-shell .pa-audit-log .pa-data-state { margi
 @media (prefers-reduced-motion: reduce) {
   html[data-portal='platform'] .s2l-app-shell .pa-org-edit-button { transition: none; }
 }
+
+html[data-portal='platform'] .s2l-app-shell .s2l-ops-page .pa-ops-grid > .pa-stat-card { height: 100%; min-height: 190px; }
+html[data-portal='platform'] .s2l-app-shell .s2l-ops-page .pa-ops-grid .pa-stat-value { font-size: 1rem; line-height: 1.4; overflow-wrap: anywhere; }

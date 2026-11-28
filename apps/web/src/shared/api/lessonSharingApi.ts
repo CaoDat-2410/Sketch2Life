@@ -1,5 +1,6 @@
-import { BackendApiError, backendRequest } from "./backendApi";
+import { BackendApiError, apiBaseUrl, backendRequest, createIdempotencyKey } from "./backendApi";
 import type { AccessGrant } from "./backendApi";
+import { parseApiError } from "./errorEnvelope";
 
 export type PrivateShareAudience = "ORGANIZATION" | "PRINCIPAL" | "PARENT_GROUP";
 export type PrivateShareCapability = "VIEW" | "DOWNLOAD" | "REUSE";
@@ -17,8 +18,20 @@ export interface PrivateShareInput {
 export const PRIVATE_SHARE_NOT_FOUND_MESSAGE = "Không tìm thấy giáo án hoặc bạn không có quyền chia sẻ giáo án này.";
 export const PRIVATE_SHARE_GROUP_STATE_MESSAGE = "Nhóm phụ huynh hiện không thể nhận lượt chia sẻ này.";
 export const PRIVATE_SHARE_VALIDATION_MESSAGE = "Yêu cầu chia sẻ chưa đáp ứng điều kiện.";
+export const PRIVATE_SHARE_REVOKE_REQUEST_MESSAGE = "Không thể thu hồi lượt chia sẻ này. Hãy kiểm tra lại và thử lại.";
+export const PRIVATE_SHARE_REVOKE_STALE_MESSAGE = "Lượt chia sẻ đã thay đổi. Hãy xác nhận thu hồi lại với phiên bản mới.";
+export const PRIVATE_SHARE_REVOKE_ERROR_MESSAGE = "Chưa thể thu hồi lượt chia sẻ lúc này. Vui lòng thử lại.";
 
 const visibleAscii = /^[\x21-\x7E]{1,128}$/;
+
+export class StaleAccessGrantRevisionError extends BackendApiError {
+  readonly currentVersion?: number;
+
+  constructor(requestId?: string, currentVersion?: number) {
+    super(PRIVATE_SHARE_REVOKE_STALE_MESSAGE, "STALE_REVISION", 409, requestId);
+    this.currentVersion = currentVersion;
+  }
+}
 
 export async function createPrivateShare(
   organizationId: string,
@@ -63,5 +76,75 @@ export async function createPrivateShare(
       throw new BackendApiError(PRIVATE_SHARE_VALIDATION_MESSAGE, cause.code, cause.status, cause.requestId);
     }
     throw cause;
+  }
+}
+
+export async function revokeAccessGrant(
+  organizationId: string,
+  lessonId: string,
+  grantId: string,
+  revision: number,
+  idempotencyKey: string,
+): Promise<AccessGrant> {
+  if (!Number.isInteger(revision) || revision < 1) {
+    throw new BackendApiError(PRIVATE_SHARE_REVOKE_REQUEST_MESSAGE, "INVALID_IF_MATCH", 400);
+  }
+  if (!visibleAscii.test(idempotencyKey)) {
+    throw new BackendApiError("Khóa yêu cầu không hợp lệ.", "INVALID_IDEMPOTENCY_KEY", 400);
+  }
+
+  const token = await window.sketch2lifeAuth?.getIdToken().catch(() => null);
+  if (!token) {
+    throw new BackendApiError("Chưa có phiên đăng nhập để tiếp tục.", "AUTHENTICATION_REQUIRED", 401);
+  }
+
+  const requestId = createIdempotencyKey();
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 15000);
+  try {
+    const response = await fetch(
+      `${apiBaseUrl()}/api/lesson-library/v1/organizations/${encodeURIComponent(organizationId)}/lessons/${encodeURIComponent(lessonId)}/access-grants/${encodeURIComponent(grantId)}`,
+      {
+        method: "DELETE",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+          "If-Match": `"${revision}"`,
+          "Idempotency-Key": idempotencyKey,
+          "X-Request-ID": requestId,
+        },
+        signal: controller.signal,
+      },
+    );
+    const text = await response.text();
+    let body: unknown = null;
+    if (text) {
+      try {
+        body = JSON.parse(text) as unknown;
+      } catch {
+        throw new BackendApiError("Máy chủ trả về dữ liệu không đúng định dạng.", "INVALID_RESPONSE", response.status, response.headers.get("X-Request-ID") ?? requestId);
+      }
+    }
+    if (response.ok) return body as AccessGrant;
+
+    const parsed = parseApiError(body, response.status, response.headers.get("X-Request-ID"));
+    if (response.status === 404 || parsed.code === "RESOURCE_NOT_FOUND") {
+      throw new BackendApiError(PRIVATE_SHARE_NOT_FOUND_MESSAGE, parsed.code, response.status, parsed.requestId);
+    }
+    if (response.status === 400) {
+      throw new BackendApiError(PRIVATE_SHARE_REVOKE_REQUEST_MESSAGE, parsed.code, response.status, parsed.requestId, parsed.fieldErrors);
+    }
+    if (response.status === 409 && parsed.code === "STALE_REVISION") {
+      throw new StaleAccessGrantRevisionError(parsed.requestId, parsed.currentVersion);
+    }
+    throw new BackendApiError(PRIVATE_SHARE_REVOKE_ERROR_MESSAGE, parsed.code, response.status, parsed.requestId, parsed.fieldErrors);
+  } catch (cause) {
+    if (cause instanceof BackendApiError) throw cause;
+    if (cause instanceof Error && cause.name === "AbortError") {
+      throw new BackendApiError("Yêu cầu quá thời gian chờ. Hãy thử lại.", "REQUEST_TIMEOUT", 408, requestId);
+    }
+    throw new BackendApiError(PRIVATE_SHARE_REVOKE_ERROR_MESSAGE, "NETWORK_ERROR", 0, requestId);
+  } finally {
+    window.clearTimeout(timeout);
   }
 }

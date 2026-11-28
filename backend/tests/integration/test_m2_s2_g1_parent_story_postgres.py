@@ -91,16 +91,17 @@ _EXPECTED_VERSION_ROWS = frozenset(
         "20261019_ae_0001",
         "20261019_pa_0001",
         "20261019_vf_0001",
-        "20261109_m2_parent_profiles",
+        # FEAT-066 goal v4 T-12a: the DDL-D context-entry revision follows the Parent profile
+        # revision and replaces its row (this gate test runs only on the fixed gate databases).
+        # T-SHARE1 depends on the Parent support-needs revision and replaces its version row.
         # FEAT-066 C5: the BE1 command-receipt revision follows ar_0001 and replaces its row.
         # FEAT-066 T-2a: the DDL-F upload-scope revision follows ar_0002 and replaces its row.
         # FEAT-066 T-3a: the DDL-A occurrence revision follows uf_0001 and replaces its row.
         # FEAT-066 T-7b: the DDL-H class-revision revision follows oc_0001 and replaces its row.
         # FEAT-066 T-7d: the DDL-H enrollment-index revision follows cls_0001 and replaces its row.
-        # FEAT-066 T-8a: the DDL-C part 1 notification-inbox revision follows cls_0002 and
-        # replaces its row.
+        # FEAT-066 T-8a/T-8b/T-NTF1 and T-SLD1 extend this notification/lesson migration chain.
         # FEAT-066 T-4b1: the DDL-A child-selection revision follows nt_0001 and replaces its row.
-        "20261120_sel_0001",
+        "20261126_dc_0001",
         # FR-C-08: the lifecycle revision depends on the Story head and replaces its row.
         # FEAT-066 T-2c: the DDL-B1 voice-idea revision follows the lifecycle revision and
         # replaces its row (this gate test runs only on the fixed gate databases).
@@ -112,7 +113,12 @@ _EXPECTED_VERSION_ROWS = frozenset(
         # revision and replaces its row.
         # FEAT-066 goal v4 T-1b-fix: the DDL-B1c review-epoch revision follows the DDL-B3 revision
         # and replaces its row.
-        "20261123_rv_0001",
+        # FEAT-066 goal v4 T-12b: the DDL-D profile-revision revision follows the DDL-B1c revision
+        # and replaces its row.
+        # FEAT-066 goal v4 T-12c: the DDL-D BE1 support-needs revision follows it and
+        # replaces its row.
+        # FEAT-066 goal v4 T-12b-fix: the DDL-D purge revision follows it and replaces its row.
+        "20261125_as_0002",
     }
 )
 _MUST_START_EMPTY = (

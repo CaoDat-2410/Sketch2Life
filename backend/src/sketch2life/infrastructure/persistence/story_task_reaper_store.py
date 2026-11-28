@@ -304,7 +304,24 @@ class SqlStoryTaskReaperStore:
         if revision is None or revision[2] != row_status:
             return ReapOutcome.SKIPPED
         revision_id, revision_no = str(revision[0]), int(revision[1])
-        is_rewrite = revision_no >= 2 and self._is_rewrite_route(run, revision_id)
+        previous_story_status = (
+            self._session.scalar(
+                select(_REVISIONS.c.status).where(
+                    _REVISIONS.c.run_id == run["run_id"],
+                    _REVISIONS.c.revision_no == 1,
+                )
+            )
+            if revision_no == 2
+            else None
+        )
+        is_failed_first_story_recovery = (
+            revision_no == 2 and previous_story_status == "FAILED"
+        )
+        is_rewrite = (
+            not is_failed_first_story_recovery
+            and revision_no >= 2
+            and self._is_rewrite_route(run, revision_id)
+        )
         try:
             if is_rewrite:
                 SqlParentStoryRunRepository(self._session).recover_failed_rewrite(
@@ -345,7 +362,7 @@ class SqlStoryTaskReaperStore:
     def _fail_story_terminally(
         self, run: RowMapping, revision_id: str, row_status: str, now: datetime
     ) -> None:
-        """A first story or a legacy-route story: the run ends ``FAILED`` as in D1 (l.1413)."""
+        """A first story, a legacy-route story or a failed-first-story recovery ends FAILED."""
 
         failed_row = cast(
             CursorResult[Any],

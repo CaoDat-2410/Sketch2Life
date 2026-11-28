@@ -2215,9 +2215,9 @@ html[data-portal="platform"] .s2l-app-shell {
 html[data-portal="platform"] .s2l-app-shell .s2l-main {
   box-sizing: border-box;
   width: 100%;
-  max-width: none;
+  max-width: var(--s2l-content-max, 1440px);
   min-width: 0;
-  margin-inline: 0;
+  margin-inline: auto;
   padding: 24px var(--pa-page-gutter) 40px;
 }
 html[data-portal="platform"] .s2l-app-shell .s2l-topbar {

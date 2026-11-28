@@ -1,3 +1,6 @@
+/* Admin-only rules moved out of the shared theme files in phase 1. */
+@import "./admin-shared-carryover.css";
+
 /* Shared reset, typography, controls and legacy fallback tokens. */
 @import "./tokens.css";
 
@@ -17,6 +20,18 @@
 @import "./admin-accounts.css";
 @import "./admin-states.css";
 @import "./admin-search.css";
-@import "../../../shared/styles/tailwind-utilities.css";
 @import "./accounts-page.css";
 @import "./admin-cozy.css";
+@import "./koi-admin.css";
+
+/* Account role shares use their own list, independent of the column charts. */
+html[data-portal="platform"] .pa-role-bars { display: grid; margin: 0; padding: 0; list-style: none; }
+html[data-portal="platform"] .pa-role-bars li { display: grid; grid-template-columns: minmax(100px, 150px) minmax(0, 1fr) auto 58px; align-items: center; gap: 14px; min-height: 50px; border-bottom: 1px solid var(--s2l-ui-rule); }
+html[data-portal="platform"] .pa-role-bars-track { height: 12px; border-radius: 4px; background: var(--s2l-ui-primary-soft); }
+html[data-portal="platform"] .pa-role-bars-track i { display: block; height: 100%; border-radius: inherit; background: var(--s2l-ui-primary); }
+html[data-portal="platform"] .pa-role-bars :is(strong, small) { font-variant-numeric: tabular-nums; text-align: right; }
+html[data-portal="platform"] .pa-role-bars small { color: var(--s2l-ui-ink-soft); }
+@media (max-width: 600px) {
+  html[data-portal="platform"] .pa-role-bars li { grid-template-columns: minmax(0, 1fr) auto 58px; gap: 4px 12px; padding: 10px 0; }
+  html[data-portal="platform"] .pa-role-bars-track { grid-column: 1 / -1; grid-row: 2; }
+}

@@ -1,0 +1,47 @@
+meta {
+  name: 768 [DRAFT-V4C] [LOCAL / TEST ONLY] Reject capacity downgrade missing suspend_class_refs
+  type: http
+  seq: 768
+}
+
+patch {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/capacity
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  If-Match: "1"
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "action": "downgrade",
+    "addon_slots": 0
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("INVALID_REQUEST");
+  });
+}
+
+docs {
+  DRAFT after Phase C: checked against the code at 0f6e7683; not yet run against a live backend.
+  owner: Billing/Capacity
+  Role: Assigned School Manager - set bearerToken to seed-mgr-a token
+  Needs: organization_id=seed-org-a (downgrade requires both addon_slots and suspend_class_refs)
+  Expected: 400 / INVALID_REQUEST
+  Source: backend/src/sketch2life/contracts/schemas/be1_capacity.py:20-28, backend/tests/integration/test_be1_capacity_postgres.py:359-366
+}

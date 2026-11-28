@@ -315,10 +315,48 @@ def test_a_rewrite_is_accepted_with_the_202_shape(client: TestClient) -> None:
     assert response.headers["Content-Location"] == f"/v1/story-runs/{RUN_ID}"
     call = _Repository.calls[0]
     assert call["run_id"] == RUN_ID and call["idempotency_key"] == "t2d-key-1"
+    assert call["account_id"] == "account-1"
     assert call["expected_story_revision"] == 1 and call["expected_story_sha256"] is None
     assert call["hint"] == HINT  # trimmed
     assert call["instruction"].startswith("Hãy viết lại câu chuyện theo một cách khác")
     assert call["instruction_version"] == "rewrite-neutral.v1"
+
+
+def test_failed_first_story_recovery_uses_the_existing_202_contract_and_fresh_key(
+    client: TestClient,
+) -> None:
+    response = _rewrite(
+        client,
+        {"expected_story_revision": 1},
+        key="rev73-recovery-key",
+    )
+
+    status, body = _wire(response)
+    assert status == 202
+    assert body == {
+        "story_run_id": RUN_ID,
+        "story_revision_no": 2,
+        "run_revision": 9,
+        "run_state": "SCRIPT_GENERATING",
+    }
+    assert _Repository.calls[0]["idempotency_key"] == "rev73-recovery-key"
+    assert _Repository.calls[0]["account_id"] == "account-1"
+
+
+def test_a_recovery_receipt_replay_does_not_schedule_generation_twice(
+    client: TestClient,
+) -> None:
+    _compose(
+        client,
+        story_generator=object(),
+        be1_runtime=SimpleNamespace(session_factory=lambda: None),
+    )
+    key = "rev73-recovery-key"
+    assert _rewrite(client, {"expected_story_revision": 1}, key=key).status_code == 202
+    _Repository.result = _accepted(replayed=True, reservation=None)
+
+    assert _rewrite(client, {"expected_story_revision": 1}, key=key).status_code == 202
+    assert len(_Runner.scheduled) == 1
 
 
 def test_a_rewrite_without_a_hint_sends_no_hint_and_the_constant_instruction(
@@ -437,12 +475,18 @@ def test_a_hint_of_400_characters_is_accepted_and_the_text_is_never_echoed(
     ("error", "status", "code"),
     [
         (ParentStoryRunError(409, "INVALID_STATE_TRANSITION"), 409, "INVALID_STATE_TRANSITION"),
+        (ParentStoryRunError(409, "ACTIVE_RUN_EXISTS"), 409, "ACTIVE_RUN_EXISTS"),
         (
             ParentStoryRunError(409, "STORY_REWRITE_LIMIT_REACHED"),
             409,
             "STORY_REWRITE_LIMIT_REACHED",
         ),
         (ParentStoryRunError(422, "SUBJECT_NOT_CONFIRMED"), 422, "SUBJECT_NOT_CONFIRMED"),
+        (
+            ParentStoryRunError(422, "PARENT_REWRITE_INSTRUCTION_INVALID"),
+            422,
+            "PARENT_REWRITE_INSTRUCTION_INVALID",
+        ),
         (
             ParentStoryRunError(422, "PROFILE_CONTEXT_NOT_CONFIRMED"),
             422,
@@ -612,7 +656,9 @@ def test_the_rerun_needs_an_analyzer_and_the_switch(client: TestClient) -> None:
     assert _SubjectService.calls[-1]["rerun_on_edit"] is True
 
 
-def test_the_defaults_are_no_story_generator_and_the_rerun_switch_on(client: TestClient) -> None:
+def test_disabled_provider_leaves_story_generator_uncomposed_and_keeps_rerun_switch_on(
+    client: TestClient,
+) -> None:
     state = client.app.state  # type: ignore[attr-defined]
     assert state.story_generator is None
     assert state.subject_edit_reruns_vlm is True

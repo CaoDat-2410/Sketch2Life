@@ -1,0 +1,49 @@
+meta {
+  name: 687 [DRAFT-V4C] [LOCAL / TEST ONLY] Teacher reads exact non-current lesson version
+  type: http
+  seq: 687
+}
+
+get {
+  url: {{baseUrl}}/api/lesson-library/v1/organizations/{{organization_id}}/lessons/seed-lesson-l1/versions/seed-lv-l1-1
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("Cache-Control")).to.equal("private, no-store");
+    const body = res.getBody();
+    expect(body.contract).to.equal("LessonVersionV1");
+    expect(body.lesson_id).to.equal("seed-lesson-l1");
+    expect(body.version_id).to.equal("seed-lv-l1-1");
+    expect(body.version_no).to.equal(1);
+    expect(body.review_state).to.equal("APPROVED");
+    expect(body.structured_content_hash).to.match(/^[0-9a-f]{64}$/);
+    expect(body.authored_principal_ref).to.equal("seed-tch-a1");
+    expect(body.created_at).to.be.a("string");
+    expect(body.content).to.be.an("object");
+    expect(body.content.title).to.equal("Vẽ chú mèo con");
+    expect(body.content.activities).to.be.an("array");
+    expect(body.content.activities.length).to.be.at.least(1);
+  });
+}
+
+docs {
+  DRAFT: written from the Phase C code at f031fc70; not yet run against a live backend.
+  Role: Assigned Teacher - set bearerToken to seed-tch-a1 token
+  Needs: organization_id=seed-org-a; seed-lesson-l1 current_version is v2 (seed-lv-l1-2), so reading seed-lv-l1-1 proves exact lookup without fallback
+  Expected: 200 / LessonVersionV1 (version_no=1, exact v1 title, Cache-Control: private, no-store)
+  Source: backend/src/sketch2life/interfaces/http/routers/lesson_library.py:528-549, backend/src/sketch2life/infrastructure/lesson_library/service.py:822-834, backend/tools/seed/data.py:652-725
+}

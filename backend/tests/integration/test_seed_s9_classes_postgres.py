@@ -11,10 +11,12 @@ from sqlalchemy import Engine, select
 from sqlalchemy.orm import Session
 
 from sketch2life.infrastructure.persistence.be1_models import (
+    Be1CommandReceiptModel,
     ClassroomModel,
     EnrollmentModel,
     ManagedProfileModel,
     OrganizationAssignmentModel,
+    ProfileRevisionModel,
 )
 from sketch2life.infrastructure.persistence.core_models import (
     CoreAggregateRevisionModel,
@@ -35,9 +37,12 @@ from tools.seed.s9_classes_data import (
     audit_id,
     class_assignment_event_id,
     class_state_event_id,
+    keyed_profile_rows,
     lifecycle_profile_rows,
     move_enrollment_id,
     move_event_id,
+    profile_create_key,
+    profile_create_scope,
     profile_event_id,
     stage_enrollment_id,
 )
@@ -188,6 +193,49 @@ def test_lifecycle_rosters_assignment_and_move_match_route_results(
         ):
             aggregate = session.get(CoreAggregateRevisionModel, aggregate_id)
             assert aggregate is not None and aggregate.revision == expected_revision
+    finally:
+        session.rollback()
+        session.close()
+
+
+def test_keyed_profile_creates_keep_revision_heads_and_receipts(seed_engine: Engine) -> None:
+    session = Session(seed_engine)
+    try:
+        for fixture in keyed_profile_rows():
+            child_id = str(fixture["child_id"])
+            profile = session.get(ManagedProfileModel, child_id)
+            assert profile is not None
+            assert profile.display_name == fixture["display_name"]
+            assert profile.age_months == fixture["age_months"]
+            assert profile.data_origin == "SYNTHETIC_DEV"
+            assert profile.current_profile_revision_id == fixture["current_profile_revision_id"]
+            assert profile.profile_revision_no == 1
+
+            revision = session.get(ProfileRevisionModel, profile.current_profile_revision_id)
+            expected_revision = data.baseline_revision_row(fixture)
+            assert revision is not None
+            assert revision.child_id == child_id
+            assert revision.revision_no == 1
+            assert revision.display_name == fixture["display_name"]
+            assert revision.age_months == fixture["age_months"]
+            assert revision.structured_interests == []
+            assert revision.revision_hash == expected_revision["revision_hash"]
+
+            enrollment = session.get(EnrollmentModel, stage_enrollment_id(child_id))
+            assert enrollment is not None
+            receipt = session.get(
+                Be1CommandReceiptModel,
+                (
+                    data.ORG_A_TEACHERS[0],
+                    profile_create_scope(),
+                    profile_create_key(child_id),
+                ),
+            )
+            assert receipt is not None
+            assert len(receipt.request_fingerprint) == 64
+            assert receipt.response_json["child_id"] == child_id
+            assert receipt.response_json["enrollment_id"] == enrollment.enrollment_id
+            assert receipt.response_json["fp_v"] == 2
     finally:
         session.rollback()
         session.close()

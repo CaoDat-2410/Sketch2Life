@@ -1,0 +1,56 @@
+/* Maps Tailwind utility names used by shared/ui onto the design tokens in tokens.css. */
+@theme inline {
+  --color-cream: var(--s2l-ui-cream);
+  --color-paper: var(--s2l-ui-paper);
+  --color-paper-muted: var(--s2l-ui-paper-muted);
+  --color-ink: var(--s2l-ui-ink);
+  --color-ink-soft: var(--s2l-ui-ink-soft);
+  --color-rule: var(--s2l-ui-rule);
+  --color-primary: var(--s2l-ui-primary);
+  --color-primary-soft: var(--s2l-ui-primary-soft);
+  --color-primary-ink: var(--s2l-ui-primary-ink);
+  --color-primary-hover: var(--s2l-ui-primary-hover);
+  --color-on-primary: var(--s2l-ui-on-primary);
+  --color-success-soft: var(--s2l-ui-success-soft);
+  --color-success-base: var(--s2l-ui-success-base);
+  --color-success-ink: var(--s2l-ui-success-ink);
+  --color-mint-soft: var(--s2l-ui-mint-soft);
+  --color-mint: var(--s2l-ui-mint);
+  --color-mint-ink: var(--s2l-ui-mint-ink);
+  --color-warn-soft: var(--s2l-ui-warn-soft);
+  --color-warn-base: var(--s2l-ui-warn-base);
+  --color-warn-ink: var(--s2l-ui-warn-ink);
+  --color-butter-soft: var(--s2l-ui-butter-soft);
+  --color-butter: var(--s2l-ui-butter);
+  --color-butter-ink: var(--s2l-ui-butter-ink);
+  --color-danger-soft: var(--s2l-ui-danger-soft);
+  --color-danger-base: var(--s2l-ui-danger-base);
+  --color-danger-ink: var(--s2l-ui-danger-ink);
+  --color-coral-soft: var(--s2l-ui-coral-soft);
+  --color-coral: var(--s2l-ui-coral);
+  --color-coral-ink: var(--s2l-ui-coral-ink);
+  --color-info-soft: var(--s2l-ui-info-soft);
+  --color-info-base: var(--s2l-ui-info-base);
+  --color-info-ink: var(--s2l-ui-info-ink);
+  --color-sky-soft: var(--s2l-ui-sky-soft);
+  --color-sky: var(--s2l-ui-sky);
+  --color-sky-ink: var(--s2l-ui-sky-ink);
+  --color-neutral-soft: var(--s2l-ui-neutral-soft);
+  --color-neutral-base: var(--s2l-ui-neutral-base);
+  --color-neutral-ink: var(--s2l-ui-neutral-ink);
+
+  --radius-cozy-sm: var(--s2l-radius-md);
+  --radius-cozy: var(--s2l-radius-lg);
+  --radius-cozy-lg: var(--s2l-radius-xl);
+  --radius-control: var(--s2l-radius-md);
+  --radius-cozy-pill: var(--s2l-radius-pill);
+  --shadow-cozy: var(--s2l-ui-shadow);
+  --shadow-cozy-hover: var(--s2l-ui-shadow-hover);
+  --font-ui: var(--s2l-ui-font);
+
+  --spacing-cozy-xs: 0.5rem;
+  --spacing-cozy-sm: 0.75rem;
+  --spacing-cozy-md: 1rem;
+  --spacing-cozy-lg: 1.5rem;
+  --spacing-cozy-xl: 2rem;
+}

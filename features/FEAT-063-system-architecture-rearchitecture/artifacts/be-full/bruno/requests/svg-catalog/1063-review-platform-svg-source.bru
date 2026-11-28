@@ -1,0 +1,36 @@
+meta {
+  name: 1063 Review platform SVG source
+  type: http
+  seq: 1063
+}
+
+post {
+  url: {{baseUrl}}/api/svg-catalog/v1/platform/assets/{{catalog_entry_id}}/source-reviews
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "contract": "SvgSourceReviewRequestV1",
+    "source_sha256": "{{svg_source_sha256}}",
+    "decision": "APPROVE"
+  }
+}
+
+docs {
+  Role: Active Teacher assigned to any organization, not the source author.
+  Needs: catalog_entry_id and source_sha256 from the current platform asset.
+  Expected: 200 OK / SvgReviewReceiptV1.
+  Source: backend/src/sketch2life/interfaces/http/routers/svg_catalog.py, backend/src/sketch2life/contracts/schemas/svg_engine.py
+}

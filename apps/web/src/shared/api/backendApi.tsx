@@ -48,17 +48,26 @@ export interface ApiErrorBody {
   request_id?: string;
 }
 
+export interface ApiFieldError {
+  field: string;
+  code: string;
+}
+
 export class BackendApiError extends Error {
   readonly code: string;
   readonly status: number;
   readonly requestId?: string;
+  readonly fieldErrors: ApiFieldError[];
 
-  constructor(message: string, code: string, status: number, requestId?: string) {
+  constructor(message: string, code: string, status: number, requestId?: string, fieldErrors: ApiFieldError[] = []) {
     super(message);
     this.name = "BackendApiError";
     this.code = code;
     this.status = status;
     this.requestId = requestId;
+    this.fieldErrors = fieldErrors.filter((item) =>
+      /^[A-Za-z0-9_.[\]-]{1,80}$/.test(item.field) && /^[A-Z][A-Z0-9_]{0,63}$/.test(item.code),
+    ).slice(0, 20);
   }
 }
 
@@ -141,7 +150,9 @@ export interface AccessGrant {
   contract: "LessonAccessGrantV1";
   access_grant_id: string;
   lesson_id: string;
+  lesson_title?: string | null;
   version_id: string;
+  version_no?: number | null;
   audience_kind: string;
   audience_ref: string | null;
   capability: string;
@@ -234,11 +245,15 @@ export interface UploadPartReceipt {
 
 export interface LessonVersion {
   contract: "LessonVersionV1";
+  lesson_id: string;
   version_id: string;
   version_no: number;
-  review_state: string;
+  review_state: "DRAFT" | "PENDING_REVIEW" | "CHANGES_REQUESTED" | "APPROVED";
+  structured_content_hash: string;
   source_document_revision_id: string | null;
-  content?: LessonContent | null;
+  authored_principal_ref: string;
+  created_at: string;
+  content: LessonContent | null;
 }
 
 export interface LessonSourceDocumentStatus {
@@ -313,7 +328,7 @@ export function createIdempotencyKey(): string {
 
 function errorFromResponse(body: unknown, status: number, headerRequestId: string | null): BackendApiError {
   const error = parseApiError(body, status, headerRequestId);
-  return new BackendApiError(error.message, error.code, status, error.requestId);
+  return new BackendApiError(error.message, error.code, status, error.requestId, error.fieldErrors);
 }
 
 export async function backendRequest<T>(
@@ -330,7 +345,7 @@ export async function backendRequest<T>(
   if (needsAuth) {
     const token = await window.sketch2lifeAuth?.getIdToken().catch(() => null);
     if (!token) {
-      throw new BackendApiError("Chưa có phiên Firebase Authentication để gọi API.", "AUTHENTICATION_REQUIRED", 401);
+      throw new BackendApiError("Chưa có phiên Firebase Authentication để gọi dịch vụ.", "AUTHENTICATION_REQUIRED", 401);
     }
     headers.set("Authorization", `Bearer ${token}`);
   }
@@ -356,7 +371,7 @@ export async function backendRequest<T>(
     if (error instanceof Error && error.name === "AbortError") {
       throw new BackendApiError("Yêu cầu quá thời gian chờ. Hãy tải lại dữ liệu trước khi gửi lại thao tác.", "REQUEST_TIMEOUT", 408, requestId);
     }
-    throw new BackendApiError("Không kết nối được backend. Kiểm tra địa chỉ API và trạng thái máy chủ.", "NETWORK_ERROR", 0, requestId);
+    throw new BackendApiError("Không kết nối được backend. Kiểm tra địa chỉ dịch vụ và trạng thái máy chủ.", "NETWORK_ERROR", 0, requestId);
   } finally {
     window.clearTimeout(timeout);
   }
@@ -584,7 +599,15 @@ export async function signInAndResolveRole(
     if (!organizationId) {
       throw new BackendApiError("Chưa cấu hình organization_id để kiểm tra role qua /organizations/{id}/me.", "ORGANIZATION_NOT_CONFIGURED", 503);
     }
-    const result = await backendApi.assignments(organizationId);
+    let result: Be1Assignments;
+    try {
+      result = await backendApi.assignments(organizationId);
+    } catch (error) {
+      if (error instanceof BackendApiError && error.status === 404) {
+        throw new BackendApiError("Tài khoản này chưa được phân công cho trường này.", "ORGANIZATION_ASSIGNMENT_NOT_FOUND", 404);
+      }
+      throw error;
+    }
     const expectedAssignment = expectedRole === "school_manager" ? "school_admin" : "teacher";
     if (!result.assignments.some((assignment) => assignment.role === expectedAssignment)) {
       throw new BackendApiError("Tài khoản đã đăng nhập nhưng role không khớp với cổng này.", "ROLE_MISMATCH", 403);
@@ -622,7 +645,7 @@ export function BackendModeNotice({ roleLabel }: { roleLabel: string }) {
   if (!hasFirebaseAuthBridge()) {
     return (
       <BackendNotice title="Chưa có phiên Firebase Authentication" tone="error">
-        Backend yêu cầu Firebase ID token. Giao diện sẽ không dùng dữ liệu mẫu để giả lập kết quả API.
+        Backend yêu cầu Firebase ID token. Giao diện sẽ không dùng dữ liệu mẫu để giả lập kết quả dịch vụ.
       </BackendNotice>
     );
   }
@@ -648,7 +671,7 @@ export function ApiUnavailableView({
       <section aria-labelledby="unavailable-title" style={{ padding: 24, border: "1px solid #dbe3ef", borderRadius: 14, background: "#fff", color: "#0B0C0E" }}>
         <h1 id="unavailable-title" style={{ margin: "0 0 8px", fontSize: 24 }}>Màn hình này chưa sẵn sàng</h1>
         <p style={{ margin: "0 0 16px", lineHeight: 1.55, color: "#46536a" }}>
-          Chức năng này chưa được kết nối trong phiên hiện tại. Thử quay lại màn trước hoặc xem yêu cầu API.
+          Chức năng này chưa được kết nối trong phiên hiện tại. Thử quay lại màn trước hoặc xem yêu cầu dịch vụ.
         </p>
         <button type="button" onClick={() => window.history.back()} style={{ minHeight: 44, padding: "0 16px", border: 0, borderRadius: 9, background: "#1F2DE6", color: "#fff", font: "inherit", fontWeight: 650, cursor: "pointer" }}>
           Quay lại

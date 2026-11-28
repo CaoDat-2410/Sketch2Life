@@ -66,7 +66,9 @@ def _graph() -> dict[str, tuple[str, ...]]:
     return graph
 
 
-_ADMIN_BRANCH_ROOTS = frozenset({"20261119_admin_foundation"})
+_NON_LIBRARY_BRANCH_ROOTS = frozenset(
+    {"20261119_admin_foundation", "20261122_t6b_0001"}
+)
 
 
 def test_revision_is_a_short_unlabelled_child_on_the_lesson_library_chain() -> None:
@@ -90,7 +92,7 @@ def test_revision_is_a_short_unlabelled_child_on_the_lesson_library_chain() -> N
     while children.get(node):
         # FEAT-072: the Platform Admin chain is an independent forward-only branch from the
         # same account-role revision; it is not part of the lesson_library chain.
-        library_children = children[node] - _ADMIN_BRANCH_ROOTS
+        library_children = children[node] - _NON_LIBRARY_BRANCH_ROOTS
         assert len(library_children) == 1, node
         (node,) = library_children
         chain.append(node)

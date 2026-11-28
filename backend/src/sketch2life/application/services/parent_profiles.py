@@ -13,6 +13,7 @@ from sketch2life.application.ports.parent_profiles import (
 from sketch2life.domain.parent_profiles import (
     ParentProfileError,
     ProfileSnapshot,
+    validate_idempotency_key,
     validate_snapshot,
 )
 
@@ -107,12 +108,4 @@ class ParentProfileService:
 
     @staticmethod
     def _validate_key(value: str) -> None:
-        if not 1 <= len(value) <= 128 or any(
-            ord(char) < 33 or ord(char) > 126 for char in value
-        ):
-            raise ParentProfileError(
-                400,
-                "INVALID_REQUEST",
-                "The idempotency key is invalid",
-                field_errors=[{"field": "Idempotency-Key", "code": "INVALID_FORMAT"}],
-            )
+        validate_idempotency_key(value)

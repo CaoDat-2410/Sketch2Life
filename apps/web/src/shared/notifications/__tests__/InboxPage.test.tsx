@@ -49,7 +49,11 @@ describe("InboxPage", () => {
 
     render(<InboxPage />);
 
-    expect(await screen.findByText("Hộp thư hiện đang trống.")).toBeTruthy();
+    const emptyMessage = await screen.findByText("Hộp thư hiện đang trống.");
+    expect(emptyMessage.tagName).toBe("P");
+    expect(emptyMessage.className).toContain("s2l-empty-copy");
+    expect(emptyMessage.closest("section")).toBeNull();
+    expect(screen.queryByText("Chưa đọc: 0")).toBeNull();
   });
 
   it("shows a mapped error and retries a failed first-page request", async () => {
@@ -74,7 +78,18 @@ describe("InboxPage", () => {
     const { container } = render(<InboxPage />);
     const markOne = await screen.findByRole("button", { name: "Thông báo mới: đánh dấu đã đọc" });
     expect(screen.getAllByText("Chưa đọc").length).toBeGreaterThan(0);
-    expect(container.querySelector('time[datetime="2026-11-20T11:00:00Z"]')).toBeTruthy();
+    const readTime = container.querySelector('time[datetime="2026-11-20T11:00:00Z"]');
+    const createdTime = container.querySelector('time[datetime="2026-11-20T10:00:00Z"]');
+    const localFormat = (value: string) => {
+      const date = new Date(value);
+      const pad = (part: number) => String(part).padStart(2, "0");
+      return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    };
+    expect(readTime?.textContent).toBe(localFormat(read.read_at!));
+    expect(createdTime?.textContent).toBe(localFormat(unread.created_at));
+    expect(container.querySelectorAll('article[data-unread="true"]')).toHaveLength(1);
+    expect(screen.getByText("Chưa đọc").closest("article")?.getAttribute("data-unread")).toBe("true");
+    expect(readTime?.closest("article")?.hasAttribute("data-unread")).toBe(false);
     expect(container.textContent).not.toContain("DO_NOT_RENDER_RAW");
     expect(container.querySelector('[aria-label="Thông báo chưa đọc: 2"]')).toBeTruthy();
 

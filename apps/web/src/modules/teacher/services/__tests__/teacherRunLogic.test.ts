@@ -24,6 +24,7 @@ describe("Teacher sample run logic", () => {
   for (const state of states) {
    expect(stateLabel(state)).not.toBe("Đang cập nhật");
    expect(availableActions({ ...r, run_state: state }).cancel).toBe(!terminal.has(state));
+   expect(availableActions({ ...r, run_state: state }).delete).toBe(["COMPLETED", "FAILED", "ABANDONED"].includes(state));
   }
   for (const job_state of ["QUEUED", "RUNNING", "AWAITING_RECONCILIATION"]) expect(shouldPoll({ ...r, job_state })).toBe(true);
   for (const job_state of ["SUCCEEDED", "FAILED", "FUTURE"]) expect(shouldPoll({ ...r, job_state })).toBe(false);

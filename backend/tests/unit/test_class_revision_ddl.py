@@ -79,7 +79,12 @@ def test_revision_is_a_short_unlabelled_child_on_the_lesson_library_chain() -> N
     while children.get(node):
         # FEAT-072: the Platform Admin chain (20261119_admin_foundation onward) branches from
         # 20261110_ar_0001 as its own branch; it is not part of the lesson_library chain.
-        next_nodes = {child for child in children[node] if "_admin_" not in child}
+        # T-6b adds a separate transfer branch from 20261125_nt_0003.
+        next_nodes = {
+            child
+            for child in children[node]
+            if "_admin_" not in child and child != "20261122_t6b_0001"
+        }
         assert len(next_nodes) == 1, node
         (node,) = next_nodes
         chain.append(node)
@@ -94,7 +99,10 @@ def test_the_check_text_equals_the_orm_check() -> None:
         for constraint in cast(Table, ClassroomModel.__table__).constraints
         if isinstance(constraint, CheckConstraint)
     }
-    assert orm_checks == {module.CHECK_NAME: module.CHECK_TEXT}
+    assert orm_checks == {
+        module.CHECK_NAME: module.CHECK_TEXT,
+        "ck_be1_class_assignment_revision": "assignment_revision >= 1",
+    }
     assert module.CHECK_NAME == "ck_be1_class_revision"
     assert module.CHECK_TEXT == "revision > 0"
 

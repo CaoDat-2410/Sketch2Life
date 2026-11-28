@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
+
 from alembic import op
 
 revision = "20261111_parent_platform_support"
@@ -16,9 +18,9 @@ def upgrade() -> None:
     op.execute("CREATE SCHEMA IF NOT EXISTS billing")
 
     op.create_table(
-        "profile_share_grants",
+        "platform_profile_share_grants",
         sa.Column("grant_id", sa.String(36), primary_key=True),
-        sa.Column("parent_profile_id", sa.String(36), nullable=False),
+        sa.Column("parent_profile_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("owner_subject", sa.String(256), nullable=False),
         sa.Column("teacher_subject", sa.String(256), nullable=False),
         sa.Column("managed_profile_ref", sa.String(128)),
@@ -59,19 +61,19 @@ def upgrade() -> None:
     )
     op.create_index(
         "ix_parent_profile_share_owner_state",
-        "profile_share_grants",
+        "platform_profile_share_grants",
         ["owner_subject", "parent_profile_id", "state", "created_at"],
         schema="parent",
     )
     op.create_index(
         "ix_parent_profile_share_teacher_state",
-        "profile_share_grants",
+        "platform_profile_share_grants",
         ["teacher_subject", "state", "expires_at"],
         schema="parent",
     )
     op.create_index(
         "uq_parent_profile_share_active_managed_ref",
-        "profile_share_grants",
+        "platform_profile_share_grants",
         ["organization_id", "managed_profile_ref"],
         unique=True,
         schema="parent",
@@ -127,7 +129,7 @@ def upgrade() -> None:
         "delivery_feedback",
         sa.Column("feedback_id", sa.String(36), primary_key=True),
         sa.Column("occurrence_id", sa.String(36), nullable=False),
-        sa.Column("parent_profile_id", sa.String(36), nullable=False),
+        sa.Column("parent_profile_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("parent_subject", sa.String(256), nullable=False),
         sa.Column("feedback_text", sa.String(1200), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
@@ -169,7 +171,7 @@ def upgrade() -> None:
     )
 
     op.create_table(
-        "inbox_items",
+        "platform_inbox_items",
         sa.Column("notification_id", sa.String(36), primary_key=True),
         sa.Column("recipient_subject", sa.String(256), nullable=False),
         sa.Column("notice_kind", sa.String(48), nullable=False),
@@ -189,13 +191,13 @@ def upgrade() -> None:
     )
     op.create_index(
         "ix_notification_inbox_recipient_time",
-        "inbox_items",
+        "platform_inbox_items",
         ["recipient_subject", "created_at"],
         schema="notifications",
     )
 
     op.create_table(
-        "video_quota_grants",
+        "parent_video_quota_grants",
         sa.Column("grant_id", sa.String(36), primary_key=True),
         sa.Column("owner_scope_kind", sa.String(24), nullable=False),
         sa.Column("owner_scope_ref", sa.String(128), nullable=False),
@@ -211,32 +213,48 @@ def upgrade() -> None:
         schema="billing",
     )
     op.create_table(
-        "video_quota_usage",
+        "parent_video_quota_usage",
         sa.Column("usage_id", sa.String(36), primary_key=True),
         sa.Column("owner_scope_kind", sa.String(24), nullable=False),
         sa.Column("owner_scope_ref", sa.String(128), nullable=False),
         sa.Column("accepted_request_ref", sa.String(128), nullable=False),
         sa.Column("used_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
-        sa.UniqueConstraint("owner_scope_kind", "owner_scope_ref", "accepted_request_ref", name="uq_billing_quota_usage_request"),
+        sa.UniqueConstraint("owner_scope_kind", "owner_scope_ref", "accepted_request_ref", name="uq_parent_quota_usage_request"),
         sa.CheckConstraint("owner_scope_kind IN ('PARENT_ACCOUNT','ORGANIZATION')", name="ck_billing_usage_owner_kind"),
         schema="billing",
     )
 
 
 def downgrade() -> None:
-    op.drop_table("video_quota_usage", schema="billing")
-    op.drop_table("video_quota_grants", schema="billing")
-    op.drop_index("ix_notification_inbox_recipient_time", table_name="inbox_items", schema="notifications")
-    op.drop_table("inbox_items", schema="notifications")
+    op.drop_table("parent_video_quota_usage", schema="billing")
+    op.drop_table("parent_video_quota_grants", schema="billing")
+    op.drop_index(
+        "ix_notification_inbox_recipient_time",
+        table_name="platform_inbox_items",
+        schema="notifications",
+    )
+    op.drop_table("platform_inbox_items", schema="notifications")
     op.drop_index("ix_lesson_feedback_reply_feedback_time", table_name="feedback_replies", schema="lesson")
     op.drop_table("feedback_replies", schema="lesson")
     op.drop_table("delivery_feedback", schema="lesson")
     op.drop_index("ix_lesson_delivery_org_time", table_name="delivery_occurrences", schema="lesson")
     op.drop_index("ix_lesson_delivery_profile_time", table_name="delivery_occurrences", schema="lesson")
     op.drop_table("delivery_occurrences", schema="lesson")
-    op.drop_index("ix_parent_profile_share_teacher_state", table_name="profile_share_grants", schema="parent")
-    op.drop_index("ix_parent_profile_share_owner_state", table_name="profile_share_grants", schema="parent")
-    op.drop_index("uq_parent_profile_share_active_managed_ref", table_name="profile_share_grants", schema="parent")
-    op.drop_table("profile_share_grants", schema="parent")
+    op.drop_index(
+        "ix_parent_profile_share_teacher_state",
+        table_name="platform_profile_share_grants",
+        schema="parent",
+    )
+    op.drop_index(
+        "ix_parent_profile_share_owner_state",
+        table_name="platform_profile_share_grants",
+        schema="parent",
+    )
+    op.drop_index(
+        "uq_parent_profile_share_active_managed_ref",
+        table_name="platform_profile_share_grants",
+        schema="parent",
+    )
+    op.drop_table("platform_profile_share_grants", schema="parent")
     op.execute("DROP SCHEMA IF EXISTS billing")
     op.execute("DROP SCHEMA IF EXISTS notifications")

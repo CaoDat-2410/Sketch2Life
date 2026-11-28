@@ -1,0 +1,56 @@
+meta {
+  name: 960 [DRAFT-V4E] [LOCAL / TEST ONLY] Owning Parent revokes share grant
+  type: http
+  seq: 960
+}
+
+post {
+  url: {{baseUrl}}/v1/parent/share-grants/{{phase_de_e3_share_grant_id}}/revoke
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  If-Match: {{phase_de_e3_grant_etag}}
+  Idempotency-Key: {{phase_de_e3_revoke_key}}
+}
+
+script:pre-request {
+  bru.setVar("phase_de_e3_revoke_key", "e3-revoke-" + Date.now());
+  if (!bru.getVar("phase_de_e3_grant_etag")) {
+    bru.setVar("phase_de_e3_grant_etag", '"1"');
+  }
+}
+
+script:post-response {
+  const etag = res.getHeader("ETag");
+  if (etag) {
+    bru.setVar("phase_de_e3_grant_etag", etag);
+  }
+}
+
+tests {
+  test("assert revoke response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("ETag")).to.be.a("string");
+    expect(res.getHeader("Vary")).to.include("Authorization");
+    const body = res.getBody();
+    expect(body.contract).to.equal("ParentShareGrantV1");
+    expect(body.state).to.equal("REVOKED");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against committed Phase E code at 98aa9837 (PHASE_E_FINAL_ROUTE_LIST_20261125.md / 784134fc); not yet run against a live backend.
+  Role: Owning Parent - set bearerToken to seed-parent-p1 token
+  Needs: needs-fixture: run after 945 (and after 969 if testing accept flow first) using phase_de_e3_share_grant_id and phase_de_e3_grant_etag; refreshes phase_de_e3_grant_etag
+  Expected: 200 / ParentShareGrantV1 (state: REVOKED, ETag, Vary: Authorization; note: revoke_parent_share_grant in parent_share_grants.py at 98aa9837 does not set Cache-Control)
+  Source: backend/src/sketch2life/interfaces/http/routers/parent_share_grants.py
+}

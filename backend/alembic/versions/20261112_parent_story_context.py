@@ -12,6 +12,21 @@ down_revision = "20261104_story_revisions"
 branch_labels = None
 depends_on = None
 
+FINAL_RUN_STATES = (
+    "'DRAFT','INPUT_PROCESSING','INPUT_REVIEW','SUBJECT_REVIEW','PREPARATION_REVIEW',"
+    "'STORY_GENERATING','SCRIPT_REVIEW','VIDEO_ADMISSION_PENDING','VIDEO_QUEUED',"
+    "'VIDEO_GENERATING','VIDEO_SAFETY_VALIDATING','VIDEO_READY','SAFETY_BLOCKED',"
+    "'COMPLETED','FAILED','ABANDONED','DELETE_PENDING','DELETED','SCRIPT_GENERATING',"
+    "'SCRIPT_GENERATION_UNKNOWN'"
+)
+FINAL_RECEIPT_OPERATIONS = (
+    "'CREATE_RUN','ATTACH_ASSET','CONFIRM_SUBJECT','CONFIRM_CONTEXT','CANCEL_RUN',"
+    "'GENERATE_STORY_REVISION','CONFIRM_STORY_REVISION','DELETE_RUN','SUBMIT_IDEA',"
+    "'CONFIRM_TRANSCRIPT','CREATE_VIDEO_GENERATION','MARK_VIDEO_UNSUITABLE',"
+    "'COMPLETE_RUN','SELECT_ACTIVITY','GENERATE_ACTIVITY_SET','TRANSFER_TEACHER_OWNER',"
+    "'FORCE_CLOSE_RUN'"
+)
+
 
 _ASSET_COLUMNS = (
     ("original_asset_ref", sa.String(256)),
@@ -58,9 +73,7 @@ def upgrade() -> None:
     op.create_check_constraint(
         "ck_story_run_state",
         "runs",
-        "run_state IN ('INPUT_PROCESSING','SUBJECT_REVIEW','PREPARATION_REVIEW',"
-        "'SCRIPT_GENERATING','SCRIPT_GENERATION_UNKNOWN','SCRIPT_REVIEW',"
-        "'VIDEO_ADMISSION_PENDING','DELETE_PENDING','FAILED','COMPLETED')",
+        f"run_state IN ({FINAL_RUN_STATES})",
         schema="story",
     )
 
@@ -198,8 +211,7 @@ def upgrade() -> None:
     op.create_check_constraint(
         "ck_story_receipt_operation",
         "command_receipts",
-        "operation IN ('CREATE_RUN','ATTACH_ASSET','CONFIRM_SUBJECT','CONFIRM_CONTEXT',"
-        "'CANCEL_RUN','GENERATE_STORY_REVISION','CONFIRM_STORY_REVISION')",
+        f"operation IN ({FINAL_RECEIPT_OPERATIONS})",
         schema="story",
     )
 

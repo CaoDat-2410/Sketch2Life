@@ -15,6 +15,7 @@ from structlog import get_logger
 
 from sketch2life.application.story_staging import secondary_subjects_are_valid
 from sketch2life.domain.ai_jobs.completion import canonical_json
+from sketch2life.infrastructure.config.settings import read_teacher_ai_engine_for_invoke
 
 # One Modal app and one warm Qwen3.8 container serve every interactive workload; the worker routes
 # by the payload's ``workload``. (The former ``...-drawing-vlm-dev`` app is retired.)
@@ -1442,8 +1443,8 @@ _JSON_WORKERS: dict[str, tuple[str, str, int]] = {
         1_800,
     ),
     "lesson.plan.suggest": (
-        "sketch2life-srs23-language-audio-dev",
-        "suggest-lesson-plan",
+        APP_NAME,
+        FUNCTION_NAME,
         1_800,
     ),
     "parent.activity.suggest": (
@@ -1457,11 +1458,39 @@ _JSON_WORKERS: dict[str, tuple[str, str, int]] = {
         1_800,
     ),
     "teacher.sketch-deck.generate": (
-        "sketch2life-srs23-language-audio-dev",
-        "generate-teacher-sketch-deck",
+        APP_NAME,
+        FUNCTION_NAME,
+        1_800,
+    ),
+    "presentation.svg-draft.generate": (
+        APP_NAME,
+        FUNCTION_NAME,
         1_800,
     ),
 }
+
+_TRANSFORMERS_JSON_WORKERS: dict[str, tuple[str, str, int]] = {
+    "lesson.plan.suggest": (APP_NAME, "suggest-lesson-plan", 1_800),
+    "teacher.sketch-deck.generate": (
+        APP_NAME,
+        "generate-teacher-sketch-deck",
+        1_800,
+    ),
+    "presentation.svg-draft.generate": (
+        APP_NAME,
+        "generate-presentation-svg-draft",
+        1_800,
+    ),
+}
+
+
+def _json_worker_for_invoke(workload: str) -> tuple[str, str, int] | None:
+    worker = _JSON_WORKERS.get(workload)
+    if worker is None or workload not in _TRANSFORMERS_JSON_WORKERS:
+        return worker
+    if read_teacher_ai_engine_for_invoke() == "transformers":
+        return _TRANSFORMERS_JSON_WORKERS[workload]
+    return worker
 
 
 class ModalJsonFunctionClient:
@@ -1479,7 +1508,7 @@ class ModalJsonFunctionClient:
         self._timeout = timeout_seconds
 
     def invoke(self, workload: str, request_data: dict[str, Any]) -> ModalJsonFunctionResult:
-        worker = _JSON_WORKERS.get(workload)
+        worker = _json_worker_for_invoke(workload)
         if worker is None:
             raise ValueError("Modal workload is not enabled for this API")
         app_name, function_name, worker_timeout = worker

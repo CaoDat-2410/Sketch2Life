@@ -45,4 +45,5 @@ docs {
   Needs: teacher_run_id and teacher_run_revision from 508
   Expected: 202
   Source: backend/tests/integration/story_teacher/test_teacher_run_inputs_postgres.py
+  For audio_ref, a background Modal transcriber runs only with storage configured and ai_provider=modal_dev in local/test; otherwise the transcript remains PENDING. WAV/MP4, at most 20,000,000 bytes and 120 seconds, are accepted by that adapter.
 }

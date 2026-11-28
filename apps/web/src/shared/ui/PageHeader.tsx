@@ -22,13 +22,13 @@ export function PageHeader({
   actionClassName?: string;
 }) {
   return (
-    <header className={cn("box-border flex min-w-0 flex-wrap items-center justify-between gap-4", className)}>
+    <header className={cn("s2l-page-header box-border flex min-w-0 flex-wrap items-center justify-between gap-4", className)}>
       <div className="min-w-0">
-        {eyebrow && <p className={cn("mb-1 font-ui text-xs font-bold tracking-wide text-primary-ink", eyebrowClassName)}>{eyebrow}</p>}
-        <h1 className="m-0 font-ui text-2xl font-bold leading-tight tracking-tight text-ink sm:text-3xl">{title}</h1>
-        {description && <p className={cn("mb-0 mt-2 max-w-3xl font-ui text-sm leading-6 text-ink-soft", descriptionClassName)}>{description}</p>}
+        {eyebrow && <p className={cn("s2l-page-header-eyebrow mb-1 font-ui text-xs font-bold tracking-wide text-primary-ink", eyebrowClassName)}>{eyebrow}</p>}
+        <h1 className="s2l-page-header-title m-0 font-ui text-2xl font-bold leading-tight tracking-tight text-ink sm:text-3xl">{title}</h1>
+        {description && <p className={cn("s2l-page-header-description mb-0 mt-2 max-w-3xl font-ui text-sm leading-6 text-ink-soft", descriptionClassName)}>{description}</p>}
       </div>
-      {actions && <div className={cn("flex min-w-0 shrink-0 items-center gap-2 max-[620px]:w-full max-[620px]:justify-end", actionClassName)}>{actions}</div>}
+      {actions && <div className={cn("s2l-page-header-actions flex min-w-0 shrink-0 items-center gap-2 max-[620px]:w-full max-[620px]:justify-end", actionClassName)}>{actions}</div>}
     </header>
   );
 }

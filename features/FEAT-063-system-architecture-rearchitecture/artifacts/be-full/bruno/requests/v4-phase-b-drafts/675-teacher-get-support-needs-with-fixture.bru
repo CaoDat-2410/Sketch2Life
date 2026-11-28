@@ -1,0 +1,54 @@
+meta {
+  name: 675 [DRAFT-V4B] [LOCAL / TEST ONLY] Teacher GET support needs with guard and key fixture
+  type: http
+  seq: 675
+}
+
+get {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/classes/{{class_id}}/profiles/seed-ch-a-1-1/support-needs
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (typeof body.revision === "number") {
+    bru.setVar("phase_b_be1_sn_revision", String(body.revision));
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("Cache-Control")).to.equal("private, no-store");
+    const body = res.getBody();
+    expect(body.contract).to.equal("Be1SupportNeedsV1");
+    expect(body.child_id).to.equal("seed-ch-a-1-1");
+    expect(body.revision).to.be.a("number");
+    expect(body.revision).to.be.at.least(0);
+    expect(body).to.have.property("category");
+    expect(body).to.have.property("note");
+    if (body.revision === 0) {
+      expect(body.category).to.equal(null);
+      expect(body.note).to.equal(null);
+    }
+  });
+}
+
+docs {
+  DRAFT: written from the Phase B code at 134561f4; not yet run against a live backend.
+  Role: Assigned Teacher - set bearerToken to seed-tch-a1 token
+  Needs: needs-fixture: test SupportNeedsRuntime configured with crypto and teacher_guard granting permission and effective consent for seed-ch-a-1-1; saves phase_b_be1_sn_revision for 676
+  Expected: 200 / Be1SupportNeedsV1 (Cache-Control: private, no-store)
+  Source: backend/src/sketch2life/interfaces/http/routers/be1_registry.py:2445-2476, backend/src/sketch2life/contracts/schemas/be1_runtime.py:585-593
+}

@@ -2,6 +2,7 @@ import {
   backendRequest,
   createIdempotencyKey,
 } from "../../../shared/api/backendApi";
+import type { FeedbackAuthorRole } from "../../../shared/api/feedbackLabels";
 
 export const ADMIN = "/api/platform-admin/v1";
 export type Page<T> = {
@@ -31,11 +32,6 @@ export type Grant = {
   revision: number;
 };
 export type AdminSession = { account_id: string; items: Grant[] };
-export type Preferences = {
-  locale: "vi-VN" | "en-US";
-  email_notifications: boolean;
-  revision: number;
-};
 export type Settings = {
   environment: string;
   real_payments_enabled: boolean;
@@ -46,7 +42,6 @@ export type Settings = {
   monthly_auto_renew_enabled?: boolean;
   billing_sandbox_enabled: boolean;
   smtp_configured: boolean;
-  preferences: Preferences;
 };
 export type Operation = { state: string; count: number; job_type?: string };
 export type DependencyHealth = { status: "healthy" | "unavailable" | "not_configured"; response_ms: number | null };
@@ -206,6 +201,15 @@ export type QuotaProduct = {
   revision: number;
   updated_at: string | null;
 };
+export type QuotaProductEvent = {
+  event_id: string;
+  product_id: string;
+  offer_id: string;
+  actor_ref: string;
+  action: string;
+  snapshot: Record<string, unknown>;
+  created_at: string;
+};
 export type Quota = {
   available_units: number;
   granted_units?: number;
@@ -240,19 +244,28 @@ export type Subscription = {
 export type Feedback = {
   thread_id: string;
   lesson_id: string;
+  version_id?: string;
+  lesson_title?: string | null;
+  version_no?: number | null;
   revision: number;
   created_at: string;
 };
 export type Thread = {
   thread_id: string;
   revision: number;
+  organization_id?: string;
   limit?: number;
   next_cursor?: string | null;
   lesson_id: string;
+  version_id?: string;
+  lesson_title?: string | null;
+  version_no?: number | null;
   items: {
     message_id: string;
     body: string;
     from_you: boolean;
+    author_role?: FeedbackAuthorRole;
+    author_display_name?: string | null;
     created_at: string;
   }[];
 };
@@ -290,9 +303,10 @@ export function commandClient() {
     body: unknown = {},
     revision?: number,
     method = "POST",
+    suppliedKey?: string,
   ) => {
     const signature = JSON.stringify([path, body, revision, method]);
-    const key = keys.get(signature) ?? createIdempotencyKey();
+    const key = suppliedKey ?? keys.get(signature) ?? createIdempotencyKey();
     keys.set(signature, key);
     const result = await backendRequest<T>(ADMIN + path, {
       method,

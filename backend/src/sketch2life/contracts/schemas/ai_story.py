@@ -4,9 +4,30 @@ from __future__ import annotations
 
 import re
 import unicodedata
-from typing import Literal
+from typing import Final, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+VI_SENTENCE_COMPLETE_V1 = "vi-sentence-complete.v1"
+STORY_SENTENCE_COMPLETENESS_FALSE_POSITIVE_THRESHOLD_V1: Final[float] = 0.0
+_SENTENCE_TERMINALS_V1 = frozenset(".!?…")
+_SENTENCE_CLOSERS_V1 = frozenset("\"'”’»)]}")
+_VI_DANGLING_ENDINGS_V1 = frozenset(
+    {
+        "và",
+        "hoặc",
+        "nhưng",
+        "vì",
+        "nếu",
+        "để",
+        "khi",
+        "rằng",
+        "của",
+        "trong",
+        "trên",
+        "dưới",
+    }
+)
 
 
 class StrictAiModel(BaseModel):
@@ -70,6 +91,43 @@ class StoryRevisionDraftV1(StrictAiModel):
         if total != self.duration_ms or not 30_000 <= total <= 90_000:
             raise ValueError("scene timing must sum to duration_ms within 30–90 seconds")
         return self
+
+
+def validate_story_sentence_completeness_v1(story: StoryRevisionDraftV1) -> None:
+    """Reject incomplete child-facing sentences with diagnostics that contain no story text."""
+
+    fields = [
+        (f"story.{section}", story.story[section])
+        for section in ("opening", "middle", "ending")
+    ]
+    fields.extend(
+        (f"scenes[{index}].{field}", getattr(scene, field))
+        for index, scene in enumerate(story.scenes, start=1)
+        for field in ("narration",)
+    )
+    for field_path, text in fields:
+        reason = _story_sentence_completeness_reason_v1(text)
+        if reason is not None:
+            raise ValueError(f"{field_path}:{reason}")
+
+
+def _story_sentence_completeness_reason_v1(value: str) -> str | None:
+    text = unicodedata.normalize("NFC", value).strip()
+    while text and text[-1] in _SENTENCE_CLOSERS_V1:
+        text = text[:-1].rstrip()
+    if not text or text[-1] not in _SENTENCE_TERMINALS_V1:
+        return "MISSING_TERMINAL_PUNCTUATION"
+
+    sentence_body = re.sub(r"[.!?…]+$", "", text).rstrip()
+    final_sentence = re.split(
+        r"(?<!\d)\.(?!\d)|[!?…]+", sentence_body
+    )[-1].strip()
+    words = re.findall(r"[^\W\d_]+", final_sentence, flags=re.UNICODE)
+    if not words:
+        return "EMPTY_SENTENCE"
+    if words[-1].casefold() in _VI_DANGLING_ENDINGS_V1:
+        return "DANGLING_VI_ENDING"
+    return None
 
 
 class ConfirmStoryRevisionRequest(StrictAiModel):

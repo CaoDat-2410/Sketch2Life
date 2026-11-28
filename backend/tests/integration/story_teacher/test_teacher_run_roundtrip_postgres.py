@@ -30,7 +30,9 @@ _REVISION = "20261120_b2_0001"
 _PARENT = "20261120_vb_0002"
 # FEAT-066 goal v4 T-2e-a: DDL-B3 follows this revision; V4-A T-1b-fix: DDL-B1c follows that and is
 # the head of the branch now; the downgrade to ``_PARENT`` runs their (guarded) downgrades first.
-_HEAD = "20261123_rv_0001"
+# V4-B T-12b: 20261121_bpr_0001 follows 20261123_rv_0001; T-12c: 20261121_psn_0002 follows
+# it and is the live head now.
+_HEAD = "20261125_as_0002"
 _REFUSED = "T-4b2 downgrade refused"
 _COLUMNS = {"active_owner_teacher_id", "occurrence_ref", "created_by_actor_ref"}
 _CHECKS = {

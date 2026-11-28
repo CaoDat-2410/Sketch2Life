@@ -1,0 +1,48 @@
+meta {
+  name: 798 [DRAFT-V4C] [LOCAL / TEST ONLY] Replay refused Parent video generation returns stored 409 VIDEO_QUOTA_EXCEEDED
+  type: http
+  seq: 798
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{phase_c_qc_parent_run_id}}/video-generations
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{phase_c_qc_parent_key}}
+}
+
+body:json {
+  {
+    "expected_revision": {{phase_c_qc_parent_run_revision}},
+    "story_sha256": "{{phase_c_qc_parent_story_sha256}}",
+    "quality_reason_code": null
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    const body = res.getBody();
+    expect(body.code).to.equal("VIDEO_QUOTA_EXCEEDED");
+    expect(body.retryable).to.equal(false);
+  });
+}
+
+docs {
+  DRAFT after Phase C: checked against the code at 0f6e7683; not yet run against a live backend.
+  Role: Owning Parent - set bearerToken to seed-parent-p1 token
+  Needs: needs-fixture: run immediately after 797 with the same phase_c_qc_parent_key and payload (Story receipt replays the 409 refusal without calling Billing)
+  Expected: 409 / VIDEO_QUOTA_EXCEEDED
+  Source: backend/tests/integration/story_video/test_video_generations_postgres.py:804-827
+}

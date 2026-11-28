@@ -229,10 +229,18 @@ def _candidates(api: M9bApi, query: str = "", subject: str | None = None) -> Any
 def test_m9b_candidates_are_same_org_active_teachers_listed_once(m9b_api: M9bApi) -> None:
     api = m9b_api
     home = _class(api, "home")
-    _, twice = _identity(
+    twice_subject, twice = _identity(
         api, "twice", rows=((api.organization_id, None), (api.organization_id, home))
     )
-    _, nameless = _identity(api, "nameless", rows=((api.organization_id, None),), display_name=None)
+    api.provisioner.profiles[twice_subject] = IdentityAccountProfile(
+        twice_subject, "teacher.one@example.test", "Synthetic teacher"
+    )
+    nameless_subject, nameless = _identity(
+        api, "nameless", rows=((api.organization_id, None),), display_name=None
+    )
+    api.provisioner.profiles[nameless_subject] = IdentityAccountProfile(
+        nameless_subject, "x@one.test", None
+    )
     _, foreign = _identity(api, "foreign", rows=((api.other_organization_id, None),))
     _, parent = _identity(api, "parent", role="parent", rows=((api.organization_id, None),))
     _, disabled = _identity(api, "disabled", state="disabled", rows=((api.organization_id, None),))
@@ -246,8 +254,27 @@ def test_m9b_candidates_are_same_org_active_teachers_listed_once(m9b_api: M9bApi
     assert {foreign, parent, disabled, rowless}.isdisjoint(refs)
     names = {item["candidate_ref"]: item["display_name"] for item in page.json()["items"]}
     assert names[nameless] is None
-    assert set(page.json()["items"][0]) == {"candidate_ref", "display_name"}
+    assert set(page.json()["items"][0]) == {
+        "candidate_ref",
+        "display_name",
+        "email_masked",
+        "is_current",
+    }
+    candidate_items = {item["candidate_ref"]: item for item in page.json()["items"]}
+    assert candidate_items[twice]["email_masked"] == "te***@example.test"
+    assert candidate_items[nameless]["email_masked"] == "x***@one.test"
+    assert all(item["is_current"] is False for item in page.json()["items"])
     assert page.json()["contract"] == "Be1TeacherCandidatePageV1"
+
+    current_page = _candidates(api, f"?class_id={home}")
+    assert current_page.status_code == 200, current_page.text
+    current_items = {item["candidate_ref"]: item for item in current_page.json()["items"]}
+    assert current_items[twice]["is_current"] is True
+    assert current_items[nameless]["is_current"] is False
+    foreign_class = _class(api, "candidate-foreign", api.other_organization_id)
+    foreign_page = _candidates(api, f"?class_id={foreign_class}")
+    assert foreign_page.status_code == 404
+    assert foreign_page.json()["code"] == "RESOURCE_NOT_FOUND"
 
     walked: list[str] = []
     cursor: str | None = None
@@ -339,8 +366,18 @@ def test_m9b_assignment_headers_revision_replay_and_conflicts(m9b_api: M9bApi) -
     assert other.status_code == 400
     assert other.json()["code"] == "INVALID_IDEMPOTENCY_KEY"
     taken = _assign(api, class_id, second, 2, f"m9b-{uuid4()}")
-    assert taken.status_code == 409
-    assert taken.json()["code"] == "CLASS_TEACHER_EXISTS"
+    assert taken.status_code == 202, taken.text
+    accepted = taken.json()
+    assert accepted["contract"] == "Be1TeacherAssignmentTransferAcceptedV1"
+    assert accepted["state"] == "TRANSFER_PENDING" and accepted["action"] == "REASSIGN"
+    assert accepted["assignment_revision"] == 3
+    assert taken.headers["Location"] == accepted["status_url"]
+    assert taken.headers["Cache-Control"] == "private, no-store"
+    assert not {"subject", "email", "candidate_ref", "teacher_ref"} & set(accepted)
+    status = api.client.get(accepted["status_url"], headers=_h(api.manager))
+    assert status.status_code == 200, status.text
+    assert status.json()["state"] == "COMPLETED"
+    assert not {"subject", "email", "candidate_ref", "teacher_ref"} & set(status.json())
     with api.session()() as db:
         rows = db.scalar(
             select(func.count())
@@ -350,30 +387,12 @@ def test_m9b_assignment_headers_revision_replay_and_conflicts(m9b_api: M9bApi) -
                 OrganizationAssignmentModel.role == "teacher",
             )
         )
-    assert rows == 1
-
-    # Deactivation (for example by a Platform Admin role change) leaves the revision unchanged.
-    with api.session().begin() as db:
-        row = db.scalar(
-            select(OrganizationAssignmentModel).where(
-                OrganizationAssignmentModel.class_id == class_id,
-                OrganizationAssignmentModel.role == "teacher",
-            )
-        )
-        assert row is not None
-        row.active = False
+    assert rows == 2
     listing = api.client.get(
         f"/api/be1/v1/organizations/{api.organization_id}/classes", headers=_h(api.manager)
     )
     item = next(row for row in listing.json()["items"] if row["class_id"] == class_id)
-    assert item["assignment_revision"] == 2 and item["has_active_teacher"] is False
-    # The same Teacher again: the earlier inactive row makes it a conflict (reassignment is UC-12).
-    again = _assign(api, class_id, first, 2, f"m9b-{uuid4()}")
-    assert again.status_code == 409, again.text
-    assert again.json()["code"] == "RESOURCE_CONFLICT"
-    fresh = _assign(api, class_id, second, 2, f"m9b-{uuid4()}")
-    assert fresh.status_code == 200, fresh.text
-    assert fresh.json()["assignment_revision"] == 3
+    assert item["assignment_revision"] == 4 and item["has_active_teacher"] is True
 
 
 def test_m9b_ineligible_candidates_are_404_and_create_nothing(m9b_api: M9bApi) -> None:
@@ -401,6 +420,53 @@ def test_m9b_ineligible_candidates_are_404_and_create_nothing(m9b_api: M9bApi) -
     other_class = _class(api, "elsewhere", api.other_organization_id)
     _, mine = _identity(api, "mine", rows=((api.organization_id, None),))
     assert _assign(api, other_class, mine, 1, f"m9b-{uuid4()}").status_code == 404
+
+
+@pytest.mark.integration
+def test_m9b_first_assignment_reactivates_offboarded_row_and_replays(
+    m9b_api: M9bApi,
+) -> None:
+    api = m9b_api
+    class_id = _class(api, "reactivate")
+    subject, candidate_ref = _identity(
+        api, "reactivate-teacher", rows=((api.organization_id, None),)
+    )
+    assignment_id = str(uuid4())
+    with api.session().begin() as db:
+        db.add(
+            OrganizationAssignmentModel(
+                assignment_id=assignment_id,
+                organization_id=api.organization_id,
+                subject=subject,
+                class_id=class_id,
+                role="teacher",
+                active=False,
+                pending_activation=True,
+            )
+        )
+
+    key = f"m9b-reactivate-{uuid4()}"
+    response = _assign(api, class_id, candidate_ref, 1, key)
+    assert response.status_code == 200, response.text
+    assert response.json()["assignment_id"] == assignment_id
+    assert response.json()["assignment_revision"] == 2
+
+    with api.session()() as db:
+        row = db.get(OrganizationAssignmentModel, assignment_id)
+        classroom = db.get(ClassroomModel, class_id)
+        assert row is not None and row.active is True and row.pending_activation is False
+        assert classroom is not None
+        assert classroom.revision == 2
+        assert classroom.assignment_revision == 2
+
+    replay = _assign(api, class_id, candidate_ref, 1, key)
+    assert replay.status_code == 200, replay.text
+    assert replay.json() == response.json()
+    with api.session()() as db:
+        classroom = db.get(ClassroomModel, class_id)
+        assert classroom is not None
+        assert classroom.revision == 2
+        assert classroom.assignment_revision == 2
 
 
 def test_m9b_two_concurrent_commands_give_one_assignment(m9b_api: M9bApi) -> None:

@@ -1,11 +1,21 @@
 """HTTP router groups for classroom runtime and local/demo capabilities."""
 
-from fastapi import APIRouter, FastAPI
+from collections.abc import Callable
 
+from fastapi import APIRouter, FastAPI
+from sqlalchemy.orm import Session
+
+from sketch2life.application.services.teacher_invitations import TeacherInvitationService
+from sketch2life.infrastructure.lesson_occurrences.presentation_svg_modal import (
+    build_presentation_svg_drafter,
+)
 from sketch2life.infrastructure.lesson_occurrences.upload_target import (
     OccurrenceUploadTargetResolver,
 )
-from sketch2life.infrastructure.uploads.purposes import OCCURRENCE_DOCUMENT
+from sketch2life.infrastructure.persistence.be1_teacher_invitations import (
+    SqlTeacherInvitationRepository,
+)
+from sketch2life.infrastructure.uploads.purposes import OCCURRENCE_DOCUMENT, PRESENTATION_IMAGE
 from sketch2life.interfaces.http.routers.auth_registration import (
     router as auth_registration_router,
 )
@@ -21,9 +31,21 @@ from sketch2life.interfaces.http.routers.lesson_library import router as lesson_
 from sketch2life.interfaces.http.routers.lesson_occurrences import (
     router as lesson_occurrences_router,
 )
+from sketch2life.interfaces.http.routers.lesson_presentations import (
+    router as lesson_presentations_router,
+)
+from sketch2life.interfaces.http.routers.manager_story_run_force_close import (
+    router as manager_story_run_force_close_router,
+)
 from sketch2life.interfaces.http.routers.notifications import router as notifications_router
 from sketch2life.interfaces.http.routers.parent_ai import router as parent_ai_router
+from sketch2life.interfaces.http.routers.parent_consent_policy import (
+    router as parent_consent_policy_router,
+)
 from sketch2life.interfaces.http.routers.parent_profiles import router as parent_profiles_router
+from sketch2life.interfaces.http.routers.parent_share_grants import (
+    router as parent_share_grants_router,
+)
 from sketch2life.interfaces.http.routers.parent_story_activities import (
     activities_router as parent_activities_router,
 )
@@ -51,7 +73,12 @@ from sketch2life.interfaces.http.routers.supervised_flow import renderer_source_
 from sketch2life.interfaces.http.routers.supervised_flow import (
     router as supervised_flow_router,
 )
+from sketch2life.interfaces.http.routers.svg_catalog import router as svg_catalog_router
 from sketch2life.interfaces.http.routers.teacher_ai import router as teacher_ai_router
+from sketch2life.interfaces.http.routers.teacher_invitations import (
+    router as teacher_invitations_router,
+)
+from sketch2life.interfaces.http.routers.teacher_workspace import router as teacher_workspace_router
 from sketch2life.interfaces.http.routers.upload_sessions import router as upload_sessions_router
 from sketch2life.interfaces.http.routers.whiteboard_storyboard import (
     router as whiteboard_storyboard_router,
@@ -79,10 +106,33 @@ def story_demo_replaced_routers() -> tuple[APIRouter, ...]:
     )
 
 
-def mount_classroom_routers(
-    application: FastAPI, *, include_pilot_assistance: bool = True
-) -> None:
+def _teacher_invitation_service_factory(
+    application: FastAPI,
+) -> Callable[[Session], TeacherInvitationService]:
+    def create(db: Session) -> TeacherInvitationService:
+        runtime = application.state.be1_runtime
+        configured_key = runtime.settings.profile_receipt_hmac_key
+        key = (
+            configured_key.get_secret_value().encode("utf-8")
+            if configured_key is not None
+            else None
+        )
+        return TeacherInvitationService(
+            repository=SqlTeacherInvitationRepository(db),
+            identity_provisioner=getattr(
+                application.state, "identity_account_provisioner", None
+            ),
+            receipt_hmac_key=key,
+        )
+
+    return create
+
+
+def mount_classroom_routers(application: FastAPI, *, include_pilot_assistance: bool = True) -> None:
     """Mount durable identity, classroom health, and BE1 runtime route groups."""
+    application.state.teacher_invitation_service_factory = _teacher_invitation_service_factory(
+        application
+    )
     application.include_router(auth_registration_router)
     application.include_router(platform_admin_accounts_router)
     application.include_router(platform_admin_router)
@@ -90,6 +140,8 @@ def mount_classroom_routers(
     application.include_router(password_recovery_router)
     application.include_router(health_router)
     application.include_router(be1_runtime_router)
+    application.include_router(teacher_invitations_router)
+    application.include_router(manager_story_run_force_close_router)
     application.include_router(parent_profiles_router)
     # FEAT-066 T0.4: mounted here once; mount_all_routers reaches it through this function.
     application.include_router(jobs_router)
@@ -117,6 +169,7 @@ def mount_all_routers(
 ) -> None:
     """Preserve the original compatibility app's router registration order."""
     settings = application.state.be1_runtime.settings
+    application.state.presentation_svg_drafter = build_presentation_svg_drafter(settings)
     include_pilot_assistance = settings.env == "test" or (
         settings.env == "local" and settings.synthetic_pilot_enabled is True
     )
@@ -129,6 +182,7 @@ def mount_all_routers(
     application.include_router(lesson_feedback_router)
     application.include_router(parent_ai_router)
     application.include_router(parent_topic_suggestions_router)
+    application.include_router(svg_catalog_router)
     if include_parent_story_runs:
         application.include_router(parent_story_runs_router)
         application.include_router(parent_story_inputs_router)
@@ -142,12 +196,19 @@ def mount_all_routers(
     if include_upload_sessions:
         application.include_router(upload_sessions_router)
     application.include_router(teacher_ai_router)
+    application.include_router(teacher_workspace_router)
     # FEAT-066 T-3a: /v1/lesson-occurrences has no demo collision, so it mounts unconditionally.
     application.include_router(lesson_occurrences_router)
+    application.include_router(lesson_presentations_router)
     # FEAT-066 T-8a: /v1/notifications (the inbox) has no demo collision: mounted unconditionally.
     application.include_router(notifications_router)
+    # T-CONSENT1: standalone Parent policy path; it does not overlap the frozen profile family.
+    application.include_router(parent_consent_policy_router)
+    # T-SHARE1: Parent grant and delivery history routes remain outside the frozen profile family.
+    application.include_router(parent_share_grants_router)
     # T-2a left OCCURRENCE_DOCUMENT without a resolver (it answers 404); T-3a registers it. A
     # factory a caller put on app.state first (a test double) is kept.
     factories = dict(getattr(application.state, "upload_target_resolver_factories", None) or {})
     factories.setdefault(OCCURRENCE_DOCUMENT, OccurrenceUploadTargetResolver)
+    factories.setdefault(PRESENTATION_IMAGE, OccurrenceUploadTargetResolver)
     application.state.upload_target_resolver_factories = factories

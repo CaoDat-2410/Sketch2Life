@@ -1,9 +1,13 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render as testRender, screen, waitFor } from "@testing-library/react";
+import type { ReactNode } from "react";
+import { MemoryRouter } from "react-router-dom";
 import { TeacherOccurrencePage } from "../TeacherOccurrencePage";
 import { backendApi } from "../../../../shared/api/backendApi";
 import { teacherOccurrenceApi } from "../../../../shared/api/teacherOccurrenceApi";
 import { authService } from "../../../school-manager/be1/services/authService";
+
+function render(ui: ReactNode) { return testRender(<MemoryRouter>{ui}</MemoryRouter>); }
 
 beforeEach(() => { window.sketch2lifeConfig={organizationId:"org-test"}; window.sketch2lifeAuth={getIdToken:vi.fn(async()=>"token")} as never; vi.spyOn(authService,"observe").mockImplementation(cb=>{cb({uid:"teacher"} as never); return () => undefined;}); });
 afterEach(() => {cleanup();vi.restoreAllMocks();window.sketch2lifeAuth=undefined;window.sketch2lifeConfig=undefined;});

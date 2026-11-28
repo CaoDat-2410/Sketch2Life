@@ -1,0 +1,40 @@
+meta {
+  name: 934 [DRAFT-V4E] [LOCAL / TEST ONLY] Assigned Teacher gets paged BE1 child portfolio
+  type: http
+  seq: 934
+}
+
+get {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/classes/{{class_id}}/profiles/{{phase_de_e2_child_id}}/portfolio?limit=1
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert paged portfolio response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getHeader("Cache-Control")).to.equal("private, no-store");
+    expect(res.getHeader("Vary")).to.include("Authorization");
+    const body = res.getBody();
+    expect(body.contract).to.equal("Be1PortfolioPageV1");
+    expect(body.items).to.be.an("array");
+  });
+}
+
+docs {
+  DRAFT after Phase D/E: checked against committed Phase E code at 98aa9837 (PHASE_E_FINAL_ROUTE_LIST_20261125.md / 784134fc); not yet run against a live backend.
+  Role: Assigned Teacher - set bearerToken to seed-tch-a1 token
+  Needs: needs-fixture: organization_id=seed-org-a, class_id=seed-org-a-class-1, synthetic child profile phase_de_e2_child_id in class
+  Expected: 200 / Be1PortfolioPageV1 (Cache-Control: private, no-store, Vary: Authorization)
+  Source: backend/src/sketch2life/interfaces/http/routers/be1_records.py:400-515
+}
