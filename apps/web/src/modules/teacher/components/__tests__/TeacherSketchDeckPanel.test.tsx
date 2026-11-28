@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { BackendApiError } from "../../../../shared/api/backendApi";
 import { TeacherSketchDeckPanel } from "../TeacherSketchDeckPanel";
 import { teacherOccurrenceApi, type CurrentSketchDeck, type PlanRevision, type SketchDeckRevision, type SketchDeckStep } from "../../../../shared/api/teacherOccurrenceApi";
@@ -87,6 +87,8 @@ function setup(deck: CurrentSketchDeck) {
 
 async function fillAndSubmit(teacherAgeBandRef: string | null = "age-36-71-months-v1") {
   await screen.findByLabelText("Chủ đề");
+  // Loading the plan resets the confirmations in an effect; let it run before filling the form.
+  await act(async () => {});
   const ageBandField = screen.queryByRole("combobox", { name: /Nhóm tuổi mục tiêu/ });
   if (ageBandField && teacherAgeBandRef) {
     // The shared Select keeps a hidden native control; changing it is what picking an option does.
