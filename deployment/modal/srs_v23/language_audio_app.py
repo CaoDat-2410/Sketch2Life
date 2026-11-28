@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import os
 import re
 import sys
@@ -20,21 +21,21 @@ _MODULE_DIR = Path(__file__).resolve().parent
 if str(_MODULE_DIR) not in sys.path:
     sys.path.insert(0, str(_MODULE_DIR))
 
-from contracts import (  # noqa: E402
+import drawing_vlm_app as _drawing_worker
+import story_staging_worker
+import video_timeline as _timeline
+from contracts import (
     WORKER_OUTPUT_SCHEMA,
     ModalWorkerInputV1,
     WorkerContractError,
     parse_worker_input,
 )
-import story_staging_worker  # noqa: E402
-import video_timeline as _timeline
-import drawing_vlm_app as _drawing_worker  # noqa: E402
-from worker_observability import (  # noqa: E402
+from worker_observability import (
     GenerationProgress,
     observed_worker,
     refresh_worker_volume,
-    worker_runtime_verified,
     worker_phase,
+    worker_runtime_verified,
     worker_stage,
 )
 
@@ -316,6 +317,7 @@ scratch_volume = modal.Volume.from_name(
 
 _contracts_file = _MODULE_DIR / "contracts.py"
 _observability_file = _MODULE_DIR / "worker_observability.py"
+_workloads_file = _MODULE_DIR / "workloads.json"
 _download_image = (
     modal.Image.debian_slim(python_version="3.11")
     .add_local_file(str(_contracts_file), "/root/contracts.py", copy=True)
@@ -390,10 +392,12 @@ _learning_story_file = _MODULE_DIR / "learning_story.py"
 _story_text_image = _story_text_image.add_local_file(str(_learning_story_file), "/root/learning_story.py")
 _scene_check_file = _MODULE_DIR / "scene_check.py"
 _story_text_image = _story_text_image.add_local_file(str(_scene_check_file), "/root/scene_check.py")
+_story_text_image = _story_text_image.add_local_file(str(_workloads_file), "/root/workloads.json")
 # FEAT-093 Amendment C / ADR-0025: the shared Qwen worker serves the same checkpoint with vLLM.
 _qwen_vllm_image = (
     modal.Image.debian_slim(python_version="3.11")
     .add_local_file(str(_contracts_file), "/root/contracts.py", copy=True)
+    .add_local_file(str(_workloads_file), "/root/workloads.json", copy=True)
     .add_local_file(str(_MODULE_DIR / "drawing_vlm_app.py"), "/root/drawing_vlm_app.py", copy=True)
     .add_local_file(str(_observability_file), "/root/worker_observability.py", copy=True)
     .add_local_file(str(_MODULE_DIR / "story_staging_worker.py"), "/root/story_staging_worker.py", copy=True)
@@ -1195,6 +1199,7 @@ def generate_teacher_sketch_deck(payload: dict[str, Any]) -> dict[str, Any]:
     )
     with worker_phase("approved_activity_mapping"):
         deck = _compose_teacher_deck(data, guide)
+    _maybe_add_teacher_svg_draft(deck, data, processor, model)
     return {
         "schema_version": WORKER_OUTPUT_SCHEMA,
         "workload": request.workload,
@@ -1257,7 +1262,8 @@ def suggest_lesson_plan(payload: dict[str, Any]) -> dict[str, Any]:
                 "không tạo khẳng định "
                 "kiến thức thiếu căn cứ. Nội dung phải có vật liệu, chuẩn bị, từng bước "
                 "thực hiện, quan sát "
-                "và lưu ý an toàn cho từng hoạt động."
+                "và lưu ý an toàn cho từng hoạt động. "
+                "Chỉ dùng chi tiết giáo viên đã ghi; không bịa đặc điểm, thói quen hay tên."
             ),
         },
         {"role": "user", "content": _lesson_suggestion_prompt(data)},
@@ -1272,7 +1278,10 @@ def suggest_lesson_plan(payload: dict[str, Any]) -> dict[str, Any]:
             return_dict=True,
         ).to(model.device)
     input_ids = encoded["input_ids"]
-    max_new_tokens = _lesson_suggestion_max_output_tokens(data["activity_count"])
+    max_new_tokens = _lesson_suggestion_max_output_tokens(
+        data["activity_count"],
+        script_following_allowed=data["script_following_allowed"],
+    )
     with worker_phase("constrained_decoder_setup"):
         prefix_allowed_tokens_fn = _build_json_prefix_allowed_tokens_fn(
             tokenizer,
@@ -2436,7 +2445,7 @@ def _parse_parent_activity_suggestions(
         maximum: int,
     ) -> str:
         if not isinstance(raw, str):
-            raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID_ACTIVITY_FIELD")
+            raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID_ACTIVITY_FIELD")  # noqa: TRY004
         normalized = " ".join(raw.split())
         if not minimum <= len(normalized) <= maximum:
             raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID_ACTIVITY_FIELD")
@@ -2613,6 +2622,61 @@ def _parent_activity_step_signature(value: str) -> str:
     }
     words = re.findall(r"[a-z0-9]+", _fold_vi(value))
     return " ".join(word for word in words if word not in stop_words)
+_LESSON_SUGGESTION_MAX_DRAWING_STEPS = 8
+_LESSON_SUGGESTION_MIN_DRAWING_STEPS = 4
+_LESSON_SUGGESTION_MAX_DRAWING_STEP_TEXT = 240
+_LESSON_SUGGESTION_MAX_KNOWLEDGE_NOTES = 8
+_LESSON_SUGGESTION_MAX_KNOWLEDGE_NOTE_TEXT = 240
+_LESSON_SUGGESTION_ROOT_FIELD_LIMITS = {
+    "title": 160,
+    # Eight 240-character deck actions, one-digit list markers, and line breaks.
+    "drawing_steps_text": 8 * (240 + 3) + 7,
+    # Eight 240-character notes plus the same possible numbered-list overhead.
+    "subject_learning_notes": 8 * (240 + 3) + 7,
+    "script_direction": 2_000,
+}
+_LESSON_SUGGESTION_ACTIVITY_FIELD_LIMITS = {
+    # The deck request has tighter caps than the lesson-library save contract.
+    "title": 120,
+    "objective": 200,
+    "materials_text": 500,
+    "preparation_text": 500,
+    "instructions_text": 1_200,
+    # Optional and not sent to Sketch Deck; keep this draft field bounded for six activities.
+    "observation_notes": 500,
+    "safety_notes": 500,
+}
+_LESSON_SUGGESTION_SENTENCE_FIELDS = frozenset(
+    {
+        "objective",
+        "preparation_text",
+        "instructions_text",
+        "observation_notes",
+        "safety_notes",
+    }
+)
+_LESSON_SUGGESTION_LIST_FIELDS = frozenset(
+    {
+        "drawing_steps_text",
+        "subject_learning_notes",
+        "materials_text",
+        "preparation_text",
+        "instructions_text",
+        "safety_notes",
+    }
+)
+_LESSON_SUGGESTION_ACTIVITY_LIST_FIELDS = frozenset(
+    {"materials_text", "preparation_text", "instructions_text", "safety_notes"}
+)
+_LESSON_SUGGESTION_OUTPUT_BUDGET_CAP = 31_744  # 32,768 total context minus a 1,024-token prompt reserve.
+_LENGTH_META_PATTERN = re.compile(
+    r"(?:\b\d+\s*(?:ký\s*tự|characters?|chars?)\b|"
+    r"(?:ký\s*tự|characters?|chars?)\s*(?:tối\s*đa|max(?:imum)?|limit)\b|"
+    r"\b(?:self[- ]?check|self[- ]?evaluation)\b|tự\s*(?:kiểm\s*tra|rà\s*soát))",
+    re.IGNORECASE,
+)
+
+
 def _validate_lesson_suggestion_input(data: dict[str, Any]) -> None:
     expected = {
         "schema_version",
@@ -2646,7 +2710,7 @@ def _validate_lesson_suggestion_input(data: dict[str, Any]) -> None:
         or not isinstance(data.get("objectives"), list)
         or not 1 <= len(data["objectives"]) <= 4
         or any(
-            not isinstance(value, str) or not value.strip() or len(value) > 1000
+            not isinstance(value, str) or not value.strip() or len(value) > 200
             for value in data["objectives"]
         )
         or isinstance(data.get("activity_count"), bool)
@@ -2668,12 +2732,27 @@ def _validate_lesson_suggestion_input(data: dict[str, Any]) -> None:
 
 def _lesson_suggestion_prompt(data: dict[str, Any]) -> str:
     return (
-        "Keep every field concise and concrete. Limits: title 80 characters; drawing steps 320; "
-        "learning notes 450; script direction 240; activity title 80; objective 180; materials "
-        "and preparation 160 each; instructions 450; observation and safety notes 180 each. "
-        "Use 3-5 short drawing steps, 2-4 factual learning notes, and 3-5 practical activity "
-        "steps. Materials, preparation, observation, and safety should be brief. Do not repeat "
-        "information. Return only the requested JSON. "
+        "Keep every field concise and concrete. Hard limits: the lesson title is 160 characters; "
+        "return 4-8 drawing steps, each action line at most 240 characters; return at most 8 "
+        "complete knowledge-note sentences, each at most 240 characters; teacher-entered "
+        "objectives are at most 200 characters each and must be echoed unchanged. A drawing "
+        "placement supplied later for a deck is also limited to 240 characters; this suggestion "
+        "does not generate placements. The script direction is at most 2,000 characters. Each "
+        "activity title is at most 120 characters and each activity objective/goal is at most "
+        "200. Materials, preparation and safety are each at most 500 characters total; "
+        "instructions are at most 1,200 total. For materials, preparation, instructions and "
+        "safety, and for drawing_steps_text and subject_learning_notes, return a JSON array of "
+        "strings, one complete item per element, at most 8 elements and every element at most "
+        "240 characters. If a list item is too long, rewrite it as more short, complete items "
+        "when the 8-item limit allows. Never cut a sentence to fit. Keep every generated sentence "
+        "complete and punctuated. Observation notes are at most 500 characters. Do not mention "
+        "character counts, limits, output rules, validation, or self-checks in lesson content; "
+        "do not add parenthetical compliance notes. Materials list items need no sentence ending, "
+        "but must not end with a comma or an open bracket. Put one idea on each knowledge-note "
+        "line and do not number those lines. Keep drawing and instruction markers on the same line "
+        "as their text. Use Vietnamese Latin script for generated fields. Do not repeat information. "
+        "Echo the teacher-entered script direction exactly when it is enabled. Return only the "
+        "requested JSON. "
         "Trả về đúng một JSON object có đúng các trường: title, drawing_steps_text, "
         "subject_learning_notes, script_direction, activities. activities phải có đúng "
         f"{data['activity_count']} phần tử; mỗi phần tử có title, objective, materials_text, "
@@ -2685,6 +2764,11 @@ def _lesson_suggestion_prompt(data: dict[str, Any]) -> str:
         "chủ thể vẽ, mục tiêu, độ tuổi hoặc script_following_allowed. Viết bằng tiếng Việt. "
         "Nếu không thể đưa ra safety_notes cụ thể, hãy nêu rủi ro cần người lớn kiểm tra "
         "thay vì bỏ trống. "
+        "Chỉ dùng điều giáo viên đã ghi. Nếu mục tiêu nhắc một con vật, đồ vật hoặc người có tên "
+        "riêng thì chỉ gọi đúng tên đó: không thêm đặc điểm, màu sắc, thói quen, tuổi, câu chuyện "
+        "hay tên gọi khác mà giáo viên không ghi. Ghi chú kiến thức nói về loài hoặc loại nói chung, "
+        "không nói như sự thật về cá thể có tên đó. Không đặt trong ngoặc kép một câu như lời của "
+        "giáo viên hay của trẻ; nếu nhắc lại chữ giáo viên đã ghi thì chép đúng từng chữ. "
         f"Chủ đề: {data['topic']}. Chủ thể vẽ: {data['drawing_subject']}. "
         f"Tuổi mục tiêu: {data['target_age_months']} tháng. Mục tiêu đã nhập: "
         f"{json.dumps(data['objectives'], ensure_ascii=False)}. "
@@ -2694,37 +2778,85 @@ def _lesson_suggestion_prompt(data: dict[str, Any]) -> str:
     )
 
 
-def _lesson_suggestion_max_output_tokens(activity_count: int) -> int:
+def _lesson_suggestion_max_output_tokens(
+    activity_count: int, *, script_following_allowed: bool = False
+) -> int:
     if isinstance(activity_count, bool) or not 1 <= activity_count <= 6:
         raise ValueError("activity_count must be between one and six")
-    return 3_200 + (activity_count - 1) * 1_000
+    return min(
+        _LESSON_SUGGESTION_OUTPUT_BUDGET_CAP,
+        _lesson_suggestion_max_output_characters(
+            activity_count, script_following_allowed=script_following_allowed
+        )
+        + 1_024,
+    )
+
+
+def _lesson_suggestion_max_output_characters(
+    activity_count: int, *, script_following_allowed: bool = False
+) -> int:
+    if isinstance(activity_count, bool) or not 1 <= activity_count <= 6:
+        raise ValueError("activity_count must be between one and six")
+    root_fields = (
+        _LESSON_SUGGESTION_ROOT_FIELD_LIMITS["title"]
+        + _LESSON_SUGGESTION_ROOT_FIELD_LIMITS["drawing_steps_text"]
+        + _LESSON_SUGGESTION_ROOT_FIELD_LIMITS["subject_learning_notes"]
+        + (
+            _LESSON_SUGGESTION_ROOT_FIELD_LIMITS["script_direction"]
+            if script_following_allowed
+            else 4
+        )  # Four characters for the null script_direction value.
+    )
+    per_activity = sum(_LESSON_SUGGESTION_ACTIVITY_FIELD_LIMITS.values())
+    json_structure_reserve = 256 + 128 * activity_count
+    return root_fields + per_activity * activity_count + json_structure_reserve
+
+
+def _lesson_list_schema(min_items: int, max_items: int) -> dict[str, Any]:
+    return {
+        "type": "array",
+        "minItems": min_items,
+        "maxItems": max_items,
+        "items": {"type": "string", "minLength": 1, "maxLength": _LESSON_SUGGESTION_MAX_KNOWLEDGE_NOTE_TEXT},
+    }
 
 
 def _lesson_suggestion_json_schema(request: dict[str, Any]) -> dict[str, Any]:
     activity_count = request["activity_count"]
     activity_kind = request["activity_kind"]
     activity = {
-        "title": {"type": "string", "minLength": 1, "maxLength": 80},
-        "objective": {"type": "string", "minLength": 1, "maxLength": 180},
-        "materials_text": {"type": "string", "maxLength": 160},
-        "preparation_text": {"type": "string", "maxLength": 160},
-        "instructions_text": {"type": "string", "minLength": 1, "maxLength": 450},
-        "observation_notes": {"type": "string", "maxLength": 180},
-        "safety_notes": {"type": "string", "minLength": 1, "maxLength": 180},
-        "activity_kind": {"type": "string", "enum": [activity_kind]},
+        field: {
+            "type": "string",
+            **(
+                {"minLength": 1}
+                if field != "observation_notes"
+                else {}
+            ),
+            "maxLength": maximum,
+        }
+        for field, maximum in _LESSON_SUGGESTION_ACTIVITY_FIELD_LIMITS.items()
+    }
+    for field in _LESSON_SUGGESTION_ACTIVITY_LIST_FIELDS:
+        activity[field] = _lesson_list_schema(1, 6 if field == "instructions_text" else 3)
+    activity["activity_kind"] = {
+        "type": "string",
+        "enum": [activity_kind],
     }
     return {
         "type": "object",
         "properties": {
-            "title": {"type": "string", "minLength": 1, "maxLength": 80},
-            "drawing_steps_text": {"type": "string", "minLength": 1, "maxLength": 320},
-            "subject_learning_notes": {
+            "title": {
                 "type": "string",
                 "minLength": 1,
-                "maxLength": 450,
+                "maxLength": _LESSON_SUGGESTION_ROOT_FIELD_LIMITS["title"],
             },
+            "drawing_steps_text": _lesson_list_schema(_LESSON_SUGGESTION_MIN_DRAWING_STEPS, 8),
+            "subject_learning_notes": _lesson_list_schema(1, _LESSON_SUGGESTION_MAX_KNOWLEDGE_NOTES),
             "script_direction": (
-                {"type": "string", "maxLength": 240}
+                {
+                    "type": "string",
+                    "maxLength": _LESSON_SUGGESTION_ROOT_FIELD_LIMITS["script_direction"],
+                }
                 if request["script_following_allowed"]
                 else {"type": "null"}
             ),
@@ -2766,81 +2898,325 @@ def _parse_lesson_suggestion_content(
         "activities",
     }:
         raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID")
-    for field, maximum in (
-        ("title", 80),
-        ("drawing_steps_text", 320),
-        ("subject_learning_notes", 450),
-    ):
-        item = value[field]
-        if not isinstance(item, str) or not item.strip() or len(item.strip()) > maximum:
-            raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID")
-    script_direction = value["script_direction"]
-    if (
-        request["script_following_allowed"]
-        and (
-            not isinstance(script_direction, str)
-            or not script_direction.strip()
-            or len(script_direction.strip()) > 240
+    value["drawing_steps_text"] = _split_lesson_list(
+        value["drawing_steps_text"], min_items=_LESSON_SUGGESTION_MIN_DRAWING_STEPS
+    )
+    title = _lesson_title("title", value["title"], _LESSON_SUGGESTION_ROOT_FIELD_LIMITS["title"])
+    drawing_steps_text = "\n".join(
+        _usable_lesson_items(
+            "drawing_steps_text",
+            value["drawing_steps_text"],
+            max_items=_LESSON_SUGGESTION_MAX_DRAWING_STEPS,
+            total=_LESSON_SUGGESTION_ROOT_FIELD_LIMITS["drawing_steps_text"],
+            min_items=_LESSON_SUGGESTION_MIN_DRAWING_STEPS,
         )
-    ) or (not request["script_following_allowed"] and script_direction is not None):
-        raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID")
+    )
+    subject_learning_notes = "\n".join(
+        _usable_lesson_items(
+            "subject_learning_notes",
+            value["subject_learning_notes"],
+            max_items=_LESSON_SUGGESTION_MAX_KNOWLEDGE_NOTES,
+            total=_LESSON_SUGGESTION_ROOT_FIELD_LIMITS["subject_learning_notes"],
+            by_sentence=True,
+        )
+    )
+    # The direction is the Teacher's own text: the response always carries the request's value.
+    script_direction = value["script_direction"]
+    if (request["script_following_allowed"] and not isinstance(script_direction, str)) or (
+        not request["script_following_allowed"] and script_direction is not None
+    ):
+        _reject_lesson_field("script_direction", "MODAL_MODEL_OUTPUT_INVALID", script_direction)
     activities = value["activities"]
     if not isinstance(activities, list) or len(activities) != request["activity_count"]:
         raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID")
-    activity_fields = {
-        "title": 80,
-        "objective": 180,
-        "materials_text": 160,
-        "preparation_text": 160,
-        "instructions_text": 450,
-        "observation_notes": 180,
-        "safety_notes": 180,
-    }
     checked_activities: list[dict[str, Any]] = []
     for activity in activities:
         if not isinstance(activity, dict) or set(activity) != {
-            *activity_fields,
+            *_LESSON_SUGGESTION_ACTIVITY_FIELD_LIMITS,
             "activity_kind",
         }:
             raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID")
-        for field, maximum in activity_fields.items():
-            item = activity[field]
-            required = field in {
-                "title",
-                "objective",
-                "instructions_text",
-                "safety_notes",
-            }
-            if (
-                not isinstance(item, str)
-                or len(item.strip()) > maximum
-                or (required and not item.strip())
-            ):
-                raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID")
+        activity = dict(activity)
+        for field, maximum in _LESSON_SUGGESTION_ACTIVITY_FIELD_LIMITS.items():
+            if field == "title":
+                activity[field] = _lesson_title(field, activity[field], maximum)
+            elif field in _LESSON_SUGGESTION_ACTIVITY_LIST_FIELDS:
+                activity[field] = "\n".join(
+                    _usable_lesson_items(
+                        field,
+                        activity[field],
+                        max_items=8,
+                        total=maximum,
+                        by_comma=field == "materials_text",
+                        prose=field != "materials_text",
+                    )
+                )
+            else:  # objective and observation notes: whole sentences joined on one line
+                activity[field] = " ".join(
+                    _usable_lesson_items(
+                        field,
+                        activity[field],
+                        max_items=8,
+                        total=maximum,
+                        min_items=0 if field == "observation_notes" else 1,
+                        by_sentence=True,
+                    )
+                )
+        if not isinstance(activity["activity_kind"], str):
+            # Keep malformed model data in the retryable worker protocol.
+            raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID")  # noqa: TRY004
+        if _story_text_has_non_latin_letter(activity["activity_kind"]):
+            raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID_NON_LATIN_SCRIPT")
+        if _length_meta_pattern_matches(activity["activity_kind"]):
+            raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID_LENGTH_META:activity_kind")
         if activity["activity_kind"] != request["activity_kind"]:
             raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID")
         checked_activities.append(
             {
-                **{field: activity[field].strip() for field in activity_fields},
+                **{
+                    field: activity[field].strip()
+                    for field in _LESSON_SUGGESTION_ACTIVITY_FIELD_LIMITS
+                },
                 "activity_kind": activity["activity_kind"],
             }
         )
     return {
         "locale": "vi-VN",
-        "title": value["title"].strip(),
+        "title": title,
         "topic": request["topic"].strip(),
         "target_age_band_ref": request["target_age_band_ref"],
         "target_age_band_version": request["target_age_band_version"],
         "objectives": [item.strip() for item in request["objectives"]],
         "drawing_subject": request["drawing_subject"].strip(),
-        "drawing_steps_text": value["drawing_steps_text"].strip(),
-        "subject_learning_notes": value["subject_learning_notes"].strip(),
+        "drawing_steps_text": drawing_steps_text,
+        "subject_learning_notes": subject_learning_notes,
         "script_direction": (
-            script_direction.strip() if isinstance(script_direction, str) else None
+            request["script_direction"].strip()
+            if request["script_following_allowed"]
+            and isinstance(request["script_direction"], str)
+            else None
         ),
         "script_following_allowed": request["script_following_allowed"],
         "activities": checked_activities,
     }
+
+
+# Words a Vietnamese phrase cannot end on. Position words ("phía trên") and "được" are left out on purpose.
+_TEACHER_DANGLING_VI_ENDINGS = frozenset(
+    {"và", "hoặc", "nếu", "khi", "vì", "để", "với", "của", "bằng", "là", "mà", "nhưng", "rằng", "các", "những"}
+)
+
+
+def _teacher_text_is_truncated(value: str, cap: int, *, prose: bool) -> bool:
+    """True only for a real cut: filled the cap without ending, or stops on a dangling mark or word."""
+
+    stripped = unicodedata.normalize("NFC", value).strip()
+    if not stripped:
+        return False
+    if re.search(r"[,，;:]$|[([{]$", stripped):
+        return True
+    if _story_sentence_is_complete(stripped):
+        return False
+    if len(value) >= cap:
+        return True
+    if prose and re.search(r"[.!?…]\s+[^\W\d_]$", stripped):
+        return True  # a finished sentence followed by one stray letter
+    words = re.findall(r"[^\W\d_]+", stripped.casefold())
+    return prose and bool(words) and words[-1] in _TEACHER_DANGLING_VI_ENDINGS
+
+
+def _reject_lesson_field(field: str, code: str, value: Any, **counts: Any) -> None:
+    """Log why a field was refused using sizes and counts only, never the text, then raise."""
+
+    text = "\n".join(str(item) for item in value) if isinstance(value, list) else value
+    print(
+        json.dumps(
+            {
+                "event": "lesson_suggestion_field_rejected",
+                "field": field,
+                "code": code,
+                "chars": len(text) if isinstance(text, str) else None,
+                "lines": len(text.splitlines()) if isinstance(text, str) else None,
+                **counts,
+            },
+            sort_keys=True,
+        ),
+        flush=True,
+    )
+    raise RuntimeError(f"{code}:{field}" if code != "MODAL_MODEL_OUTPUT_INVALID" else code)
+
+
+def _lesson_title(field: str, value: Any, maximum: int) -> str:
+    if not isinstance(value, str):
+        _reject_lesson_field(field, "MODAL_MODEL_OUTPUT_INVALID", value)
+    title = " ".join(value.split()).rstrip(" ,;:([{")
+    if _story_text_has_non_latin_letter(title):
+        code = "MODAL_MODEL_OUTPUT_INVALID_NON_LATIN_SCRIPT"
+    elif _length_meta_pattern_matches(title):
+        code = "MODAL_MODEL_OUTPUT_INVALID_LENGTH_META"
+    elif not title or len(title) > maximum:
+        code = "MODAL_MODEL_OUTPUT_INVALID"
+    else:
+        return title
+    _reject_lesson_field(field, code, value)
+    raise AssertionError("unreachable")
+
+
+def _usable_lesson_items(
+    field: str,
+    value: Any,
+    *,
+    max_items: int,
+    total: int,
+    min_items: int = 1,
+    by_sentence: bool = False,
+    by_comma: bool = False,
+    prose: bool = True,
+) -> list[str]:
+    """The complete, clean items of one model-written field; a defective item is dropped, never cut."""
+
+    if isinstance(value, list) and all(isinstance(item, str) for item in value):
+        value = "\n".join(value)
+    if not isinstance(value, str):
+        _reject_lesson_field(field, "MODAL_MODEL_OUTPUT_INVALID", value)
+    limit = _LESSON_SUGGESTION_MAX_KNOWLEDGE_NOTE_TEXT
+    if by_sentence:
+        lines = _normalize_lesson_knowledge_notes(value).splitlines()
+    else:
+        split = _split_lesson_list(
+            _normalize_ordered_lesson_list(value), min_items=min_items, by_comma=by_comma
+        )
+        lines = []
+        for line in split.splitlines():
+            if by_comma and len(line) >= limit and not _story_sentence_is_complete(line) and ", " in line:
+                line = line.rsplit(", ", 1)[0]  # the grammar cut the last entry of a comma list
+            # A line that ends in a cut tail keeps its finished sentences.
+            if _teacher_text_is_truncated(line, limit, prose=prose):
+                *finished, tail = re.split(r"(?<=[^\d\s][.!?…])[ \t]+", line)
+                lines += finished
+                # The unfinished tail after a finished sentence is the cut part.
+                if not finished or _story_sentence_is_complete(tail):
+                    lines.append(tail)
+            else:
+                lines.append(line)
+    kept: list[str] = []
+    dropped: dict[str, int] = {}
+    for line in lines:
+        line = line.strip()
+        text = re.sub(r"^\s*(?:\d{1,2}[.)]\s*|[-•]\s*)", "", line)
+        if not text or re.fullmatch(r"\d+[.)]?|[-•]", text):
+            reason = "empty"
+        elif _story_text_has_non_latin_letter(text):
+            reason = "non_latin"
+        elif _length_meta_pattern_matches(text):
+            reason = "length_meta"
+        elif len(text) > limit:
+            reason = "too_long"
+        elif _teacher_text_is_truncated(text, limit, prose=prose):
+            reason = "cut"
+        elif len(kept) >= max_items or len("\n".join([*kept, line])) > total:
+            reason = "over_count_or_total"
+        else:
+            kept.append(line)
+            continue
+        dropped[reason] = dropped.get(reason, 0) + 1
+    if len(kept) < min_items:
+        code = "MODAL_MODEL_OUTPUT_INVALID_INCOMPLETE_TEXT"
+        if dropped and set(dropped) == {"non_latin"}:
+            code = "MODAL_MODEL_OUTPUT_INVALID_NON_LATIN_SCRIPT"
+        elif dropped and set(dropped) == {"length_meta"}:
+            code = "MODAL_MODEL_OUTPUT_INVALID_LENGTH_META"
+        _reject_lesson_field(field, code, value, usable=len(kept), dropped=dropped)
+    if dropped:
+        print(
+            json.dumps(
+                {
+                    "event": "lesson_suggestion_field_trimmed",
+                    "field": field,
+                    "kept": len(kept),
+                    "dropped": dropped,
+                },
+                sort_keys=True,
+            ),
+            flush=True,
+        )
+    return kept
+
+
+def _length_meta_pattern_matches(value: str) -> bool:
+    return _LENGTH_META_PATTERN.search(unicodedata.normalize("NFC", value)) is not None
+
+
+def _lesson_list_has_incomplete_tail(value: str) -> bool:
+    final_line = next((line.strip() for line in reversed(value.splitlines()) if line.strip()), "")
+    return bool(
+        re.fullmatch(r"\d+[.)]?", final_line)
+        or re.search(r"[,，]\s*$|[([{]\s*$", final_line)
+    )
+
+
+def _lesson_list_has_orphan_number(value: str) -> bool:
+    return any(re.fullmatch(r"\d+[.)]?", line.strip()) for line in value.splitlines())
+
+
+def _normalize_ordered_lesson_list(value: str) -> str:
+    lines: list[str] = []
+    pending_marker: str | None = None
+    for raw_line in value.splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        marker = re.fullmatch(r"(\d+[.)]?|[-•])", line)
+        if marker:
+            if pending_marker is not None:
+                lines.append(pending_marker)
+            pending_marker = marker.group(1)
+            continue
+        if pending_marker is not None:
+            lines.append(f"{pending_marker} {line}")
+            pending_marker = None
+        else:
+            lines.append(line)
+    if pending_marker is not None:
+        lines.append(pending_marker)
+    return "\n".join(lines)
+
+
+def _split_lesson_list(value: Any, *, min_items: int = 1, by_comma: bool = False) -> Any:
+    """Break a list the model wrote on one line into items, never inside a sentence."""
+
+    if not isinstance(value, str):
+        return value  # the field check rejects it
+    limit = _LESSON_SUGGESTION_MAX_KNOWLEDGE_NOTE_TEXT
+    # Inline numbering: "1. Vẽ thân. 2. Vẽ cánh."
+    text = re.sub(r"(?<=\S)[ \t]+(?=\d{1,2}[.)][ \t]+\S)", "\n", value)
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    too_few = len(lines) < min_items
+    split: list[str] = []
+    for line in lines:
+        if not too_few and len(line) <= limit:
+            split.append(line)
+            continue
+        for sentence in re.split(r"(?<=[^\d\s][.!?…])[ \t]+", line):
+            while by_comma and len(sentence) > limit and (cut := sentence.rfind(", ", 0, limit)) > 0:
+                split.append(sentence[:cut])
+                sentence = sentence[cut + 2 :]
+            split.append(sentence)
+    return "\n".join(split)
+
+
+def _normalize_lesson_knowledge_notes(value: str) -> str:
+    notes: list[str] = []
+    for raw_line in value.splitlines():
+        line = raw_line.strip()
+        if not line or re.fullmatch(r"\d+[.)]?", line):
+            continue
+        line = re.sub(r"^(?:\d+[.)]\s*|[-•]\s*)", "", line)
+        for note in re.split(r"(?<=[.!?…])\s+", line):
+            note = re.sub(r"^(?:\d+[.)]\s*|[-•]\s*)", "", note.strip())
+            if note:
+                notes.append(note)
+    return "\n".join(notes)
 
 
 def _validate_teacher_deck_input(data: dict[str, Any]) -> None:
@@ -2855,8 +3231,15 @@ def _validate_teacher_deck_input(data: dict[str, Any]) -> None:
         "subject_knowledge",
         "activities",
     }
-    if not isinstance(data, dict) or set(data) != expected:
+    # The occurrence deck also names the reviewed drawing subject; the direct route omits it.
+    optional_fields = {"drawing_subject", "drawing_source_available"}
+    if not isinstance(data, dict) or set(data) - optional_fields != expected:
         raise WorkerContractError("MODAL_INPUT_MANIFEST_INVALID")
+    drawing_subject = data.get("drawing_subject", "-")
+    if not isinstance(drawing_subject, str) or not 1 <= len(drawing_subject.strip()) <= 160:
+        raise WorkerContractError("MODAL_INPUT_NOT_ALLOWED")
+    if "drawing_source_available" in data and type(data["drawing_source_available"]) is not bool:
+        raise WorkerContractError("MODAL_INPUT_NOT_ALLOWED")
     if (
         data.get("schema_version") != "sketch2life.teacher-deck-input.v1"
         or not isinstance(data.get("plan_revision_ref"), str)
@@ -2872,7 +3255,7 @@ def _validate_teacher_deck_input(data: dict[str, Any]) -> None:
         or not isinstance(data.get("objectives"), list)
         or not 1 <= len(data["objectives"]) <= 4
         or not isinstance(data.get("drawing_steps"), list)
-        or not 3 <= len(data["drawing_steps"]) <= 5
+        or not 4 <= len(data["drawing_steps"]) <= 8
         or not isinstance(data.get("subject_knowledge"), list)
         or not 1 <= len(data["subject_knowledge"]) <= 8
         or not isinstance(data.get("activities"), list)
@@ -2907,25 +3290,29 @@ def _validate_teacher_deck_input(data: dict[str, Any]) -> None:
             raise WorkerContractError("MODAL_INPUT_NOT_ALLOWED")
     activity_ids: set[str] = set()
     for activity in data["activities"]:
+        if not isinstance(activity, dict):
+            raise WorkerContractError("MODAL_INPUT_NOT_ALLOWED")
+        activity_id = activity.get("activity_ref")
+        title = activity.get("title")
         if (
-            not isinstance(activity, dict)
-            or set(activity)
-            != {
-                "activity_ref",
-                "title",
-                "goal",
-                "materials",
-                "preparation",
-                "instructions",
-                "safety_notes",
-            }
-            or not isinstance(activity.get("activity_ref"), str)
-            or not re.fullmatch(r"[A-Za-z0-9_-]{1,80}", activity["activity_ref"])
-            or activity["activity_ref"] in activity_ids
-            or not isinstance(activity.get("title"), str)
-            or not activity["title"].strip()
-            or len(activity["title"]) > 120
-            or any(
+            not isinstance(activity_id, str)
+            or not re.fullmatch(r"[A-Za-z0-9_-]{1,80}", activity_id)
+            or activity_id in activity_ids
+            or not isinstance(title, str)
+            or not title.strip()
+        ):
+            raise WorkerContractError("MODAL_INPUT_NOT_ALLOWED")
+        lesson_fields = {
+            "activity_ref",
+            "title",
+            "goal",
+            "materials",
+            "preparation",
+            "instructions",
+            "safety_notes",
+        }
+        if set(activity) == lesson_fields:
+            if len(title) > 120 or any(
                 not isinstance(activity.get(field), list)
                 or not 1 <= len(activity[field]) <= 8
                 or any(
@@ -2939,18 +3326,24 @@ def _validate_teacher_deck_input(data: dict[str, Any]) -> None:
                     "instructions",
                     "safety_notes",
                 )
-            )
-        ):
+            ):
+                raise WorkerContractError("MODAL_INPUT_NOT_ALLOWED")
+        elif set(activity) == {"activity_ref", "title", "description"}:
+            description = activity.get("description")
+            if len(title) > 160 or not isinstance(description, str) or not description.strip() or len(description) > 4000:
+                raise WorkerContractError("MODAL_INPUT_NOT_ALLOWED")
+        else:
             raise WorkerContractError("MODAL_INPUT_NOT_ALLOWED")
-        activity_ids.add(activity["activity_ref"])
+        activity_ids.add(activity_id)
 
 
 def _teacher_deck_prompt(data: dict[str, Any]) -> str:
     return (
         "Tạo DUY NHẤT JSON object "
         '{"steps":[{"step_index":1,"instruction":"...","placement":"..."}]}. '
-        "Viết tiếng Việt thật ngắn: instruction tối đa 100 ký tự, placement tối đa 80 ký tự. "
-        "Mỗi instruction là một lời mời quan sát hoặc vẽ phù hợp tuổi; giữ nguyên thứ tự, "
+        "Viết tiếng Việt ngắn gọn bằng câu hoàn chỉnh. Không nhắc đến số ký tự, độ dài, giới hạn, "
+        "quy tắc định dạng, việc kiểm tra hay ghi chú tự đánh giá trong nội dung; không thêm "
+        "chú thích tuân thủ trong ngoặc. Mỗi instruction là một lời mời quan sát hoặc vẽ phù hợp tuổi; giữ nguyên thứ tự, "
         "hành động "
         "và vị trí đã duyệt. Không thêm chủ thể, vật liệu, mục tiêu, kiến thức hay activity. "
         "Không nhắc roster, không tạo PowerPoint, không markdown. "
@@ -2987,9 +3380,17 @@ def _teacher_deck_json_schema(step_count: int) -> dict[str, Any]:
 
 
 def _teacher_deck_max_output_tokens(step_count: int) -> int:
-    if isinstance(step_count, bool) or not 3 <= step_count <= 5:
-        raise ValueError("step_count must be between three and five")
+    if isinstance(step_count, bool) or not 4 <= step_count <= 8:
+        raise ValueError("step_count must be between four and eight")
     return 512 + step_count * 320
+
+
+def _qwen_last_attempt() -> bool:
+    if not _qwen_engine_is_vllm():
+        return False
+    import qwen_vllm
+
+    return qwen_vllm.current_attempt().number >= qwen_vllm.MAX_ATTEMPTS
 
 
 def _parse_teacher_guide(text: str, data: dict[str, Any]) -> list[dict[str, Any]]:
@@ -3020,6 +3421,38 @@ def _parse_teacher_guide(text: str, data: dict[str, Any]) -> list[dict[str, Any]
             )
         ):
             raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID")
+        candidate = dict(candidate)
+        for field in ("instruction", "placement"):
+            output_text = candidate[field].strip()
+            # Placement is a location phrase and instructions may be short phrases: reject only a cut text.
+            cap = 100 if field == "instruction" else 80
+            if _length_meta_pattern_matches(output_text):
+                code = "MODAL_MODEL_OUTPUT_INVALID_LENGTH_META"
+            elif _story_text_has_non_latin_letter(output_text):
+                code = "MODAL_MODEL_OUTPUT_INVALID_NON_LATIN_SCRIPT"
+            elif _teacher_text_is_truncated(candidate[field], cap, prose=field == "instruction"):
+                code = "MODAL_MODEL_OUTPUT_INVALID_INCOMPLETE_TEXT"
+            else:
+                continue
+            approved = str(source["action" if field == "instruction" else "placement"]).strip()
+            last_attempt = _qwen_last_attempt()
+            print(
+                json.dumps(
+                    {
+                        "event": "teacher_deck_field_rejected",
+                        "field": field,
+                        "step_index": index,
+                        "code": code,
+                        "chars": len(output_text),
+                        "used_approved_text": last_attempt and len(approved) <= cap,
+                    },
+                    sort_keys=True,
+                ),
+                flush=True,
+            )
+            if not (last_attempt and approved and len(approved) <= cap):
+                raise RuntimeError(f"{code}:{field}")
+            candidate[field] = approved
         checked.append(
             {
                 "step_index": index,
@@ -3059,19 +3492,25 @@ def _compose_teacher_deck(
         },
     ]
     for activity in data["activities"]:
-        slides.append(
-            {
-                "slide_index": len(slides) + 1,
-                "kind": "approved_activity",
-                "title": activity["title"],
-                "activity_ref": activity["activity_ref"],
-                "goal": activity["goal"],
-                "materials": activity["materials"],
-                "preparation": activity["preparation"],
-                "instructions": activity["instructions"],
-                "safety_notes": activity["safety_notes"],
-            }
-        )
+        slide = {
+            "slide_index": len(slides) + 1,
+            "kind": "approved_activity",
+            "title": activity["title"],
+            "activity_ref": activity["activity_ref"],
+        }
+        if "description" in activity:
+            slide["description"] = activity["description"]
+        else:
+            slide.update(
+                {
+                    "goal": activity["goal"],
+                    "materials": activity["materials"],
+                    "preparation": activity["preparation"],
+                    "instructions": activity["instructions"],
+                    "safety_notes": activity["safety_notes"],
+                }
+            )
+        slides.append(slide)
     return {
         "schema_version": "sketch2life.teacher-sketch-deck.v1",
         "status": "DRAFT",
@@ -4471,15 +4910,15 @@ def check_qwen38_decoder_readiness() -> dict[str, str]:
     """Verify the pinned Qwen3.8/FP8 runtime imports without loading weights or GPU."""
 
     import importlib.metadata
+
     import torch
     import torchvision
-    import triton
-
     import transformers
-    from triton.tools.tensor_descriptor import TensorDescriptor
+    import triton
     from lmformatenforcer import JsonSchemaParser
     from lmformatenforcer.tokenenforcer import TokenEnforcer, TokenEnforcerTokenizerData
     from transformers import AutoModelForMultimodalLM, AutoProcessor
+    from triton.tools.tensor_descriptor import TensorDescriptor
 
     runtime_versions = {
         "torch_version": torch.__version__.split("+", maxsplit=1)[0],
@@ -4979,7 +5418,7 @@ def _text_quantization_metadata(path: Path) -> dict[str, Any]:
     except (OSError, UnicodeDecodeError, json.JSONDecodeError):
         raise RuntimeError("MODAL_MODEL_CHECKPOINT_INCOMPLETE") from None
     if not isinstance(config, dict):
-        raise RuntimeError("MODAL_MODEL_CHECKPOINT_INCOMPLETE")
+        raise RuntimeError("MODAL_MODEL_CHECKPOINT_INCOMPLETE")  # noqa: TRY004
     quantization = config.get("quantization_config")
     if (
         not isinstance(quantization, dict)
@@ -5048,7 +5487,7 @@ def _qwen_fast_kernel_diagnostics(torch: Any, *, require_cuda: bool) -> dict[str
         raise RuntimeError("MODAL_GPU_UNAVAILABLE")
     try:
         from causal_conv1d import causal_conv1d_fn, causal_conv1d_update
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         failure = _QwenKernelImportFailure("MODAL_CAUSAL_CONV1D_IMPORT_FAILED", exc)
         log_import_failure("causal_conv1d", failure)
         raise failure from None
@@ -5060,7 +5499,7 @@ def _qwen_fast_kernel_diagnostics(torch: Any, *, require_cuda: bool) -> dict[str
                 chunk_gated_delta_rule,
                 fused_recurrent_gated_delta_rule,
             )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             failure = _QwenKernelImportFailure("MODAL_FLA_KERNEL_IMPORT_FAILED", exc)
             log_import_failure("fla.ops.gated_delta_rule", failure)
             raise failure from None
@@ -5120,11 +5559,10 @@ def _load_vllm_text_model() -> tuple[Any, Any]:
     """FEAT-093 Amendment C / ADR-0025: the same pinned checkpoint served by vLLM inside the shared worker."""
 
     global _CACHED_TEXT_MODEL, _CACHED_TEXT_PREPROCESSOR
+    import qwen_vllm
     import torch
     from transformers import AutoProcessor, GenerationConfig
     from vllm import LLM
-
-    import qwen_vllm
 
     quantization = _text_quantization_metadata(Path(TEXT_MODEL_DIR))
     started = time.perf_counter()
@@ -5219,7 +5657,7 @@ def _preload_allowlisted_fp8_kernel() -> None:
 
     cache = getattr(hub_kernels, "_KERNEL_MODULE_MAPPING", None)
     if not isinstance(cache, dict):
-        raise RuntimeError("MODAL_FP8_KERNEL_LOADER_UNSUPPORTED")
+        raise RuntimeError("MODAL_FP8_KERNEL_LOADER_UNSUPPORTED")  # noqa: TRY004
     if isinstance(cache.get("finegrained-fp8"), type(sys)):
         return
 
@@ -5268,7 +5706,7 @@ def _ensure_fp8_triton_import_compatibility() -> None:
     except ImportError as error:
         raise RuntimeError("MODAL_FP8_TRITON_TENSOR_DESCRIPTOR_UNSUPPORTED") from error
     if not callable(TensorDescriptor):
-        raise RuntimeError("MODAL_FP8_TRITON_TENSOR_DESCRIPTOR_UNSUPPORTED")
+        raise RuntimeError("MODAL_FP8_TRITON_TENSOR_DESCRIPTOR_UNSUPPORTED")  # noqa: TRY004
 
     knobs = getattr(triton, "knobs", None)
     if knobs is None:
@@ -5469,10 +5907,12 @@ def _shared_qwen_routes() -> dict[str, Any]:
         "drawing.analyze": _drawing_worker.analyze_drawing.local,
         "story.generate": generate_story_and_storyboard.local,
         "parent.activity.suggest": suggest_parent_activities.local,
-        "parent.topic-subjects.suggest": suggest_parent_topic_subjects.local,
         "parent.topic-subjects.validate": validate_parent_topic_subject.local,
         "video.timeline.generate": generate_video_timeline.local,
         "video.scene.validate": check_video_scene.local,
+        "lesson.plan.suggest": suggest_lesson_plan.local,
+        "teacher.sketch-deck.generate": generate_teacher_sketch_deck.local,
+        "presentation.svg-draft.generate": generate_presentation_svg_draft.local,
     }
 
 
@@ -5509,3 +5949,473 @@ def qwen_worker(payload: dict[str, Any]) -> dict[str, Any]:
     import qwen_vllm
 
     return qwen_vllm.run_with_quality_retries(handler, payload, creative=workload in qwen_vllm.CREATIVE_WORKLOADS)
+
+
+def _presentation_svg_draft_json_schema() -> dict[str, Any]:
+    coordinate = {"type": "number", "minimum": 0, "maximum": 100}
+    shape_fields: dict[str, Any] = {
+        "kind": {
+            "type": "string",
+            "enum": ["circle", "rect", "line", "polyline", "ellipse"],
+        },
+        "stroke": {
+            "type": "string",
+            "enum": ["#1f2937", "#2563eb", "#16a34a", "#dc2626", "#d97706"],
+        },
+        "stroke_width": {"type": "integer", "minimum": 1, "maximum": 6},
+        "cx": coordinate,
+        "cy": coordinate,
+        "r": {"type": "number", "minimum": 1, "maximum": 50},
+        "x": coordinate,
+        "y": coordinate,
+        "w": coordinate,
+        "h": coordinate,
+        "x1": coordinate,
+        "y1": coordinate,
+        "x2": coordinate,
+        "y2": coordinate,
+        "rx": {"type": "number", "minimum": 1, "maximum": 50},
+        "ry": {"type": "number", "minimum": 1, "maximum": 50},
+        "points": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 16,
+            "items": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": coordinate,
+            },
+        },
+    }
+    return {
+        "type": "object",
+        "properties": {
+            "schema_version": {
+                "type": "string",
+                "enum": ["sketch2life.presentation-svg-draft.v1"],
+            },
+            # `review_required` is a server constant added after parsing: the constrained decoder writes a
+            # boolean enum as Python `True`, which is not JSON.
+            # `viewbox` is a server constant too: an enum per item let the model write a wrong box.
+            "shapes": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 12,
+                "items": {
+                    "type": "object",
+                    "properties": shape_fields,
+                    "required": ["kind", "stroke", "stroke_width"],
+                    "additionalProperties": False,
+                },
+            },
+        },
+        "required": ["schema_version", "shapes"],
+        "additionalProperties": False,
+    }
+
+
+def _validate_presentation_svg_input(data: dict[str, Any]) -> None:
+    fields = {"schema_version", "activity_title", "subject_text", "content_hash"}
+    if not isinstance(data, dict) or set(data) != fields:
+        raise WorkerContractError("PRESENTATION_SVG_INPUT_INVALID")
+    if data.get("schema_version") != "sketch2life.presentation-svg-input.v1":
+        raise WorkerContractError("PRESENTATION_SVG_INPUT_INVALID")
+    title = data.get("activity_title")
+    subject = data.get("subject_text")
+    if not isinstance(title, str) or not 1 <= len(title) <= 160:
+        raise WorkerContractError("PRESENTATION_SVG_INPUT_INVALID")
+    if (
+        not isinstance(subject, str)
+        or not 1 <= len(subject) <= 80
+        or not all(char.isalpha() or char.isdigit() or char in " -" for char in subject)
+    ):
+        raise WorkerContractError("PRESENTATION_SVG_INPUT_INVALID")
+    supplied_hash = data.get("content_hash")
+    if not isinstance(supplied_hash, str) or _SHA256.fullmatch(supplied_hash) is None:
+        raise WorkerContractError("PRESENTATION_SVG_INPUT_INVALID")
+    unhashed = {key: data[key] for key in ("schema_version", "activity_title", "subject_text")}
+    expected_hash = hashlib.sha256(
+        json.dumps(
+            unhashed, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        ).encode("utf-8")
+    ).hexdigest()
+    if supplied_hash != expected_hash:
+        raise WorkerContractError("PRESENTATION_SVG_INPUT_HASH_MISMATCH")
+
+
+def _presentation_svg_prompt(data: dict[str, Any]) -> str:
+    return (
+        "Draw simple outline shapes that illustrate this activity subject. Use a balanced "
+        "composition and only the closed shape/color choices in the JSON schema. Parts that "
+        "come in pairs (eyes, ears, whiskers, arms, legs, wings, wheels) must be drawn on both "
+        "sides, mirrored around the vertical centre line x=50, with the same number on each "
+        "side; if both sides do not fit, leave that detail out. Input:\n"
+        + json.dumps(
+            {
+                "activity_title": data["activity_title"],
+                "subject_text": data["subject_text"],
+            },
+            ensure_ascii=False,
+            sort_keys=True,
+        )
+    )
+
+
+def _presentation_svg_input_for_subject(subject: str) -> dict[str, Any]:
+    """Build the existing draft request from the drawing subject alone."""
+
+    unhashed = {
+        "schema_version": "sketch2life.presentation-svg-input.v1",
+        "activity_title": subject,
+        "subject_text": subject,
+    }
+    digest = hashlib.sha256(
+        json.dumps(unhashed, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode(
+            "utf-8"
+        )
+    ).hexdigest()
+    return {**unhashed, "content_hash": digest}
+
+
+def _presentation_svg_draft_enabled() -> bool:
+    """Read the shipped workload registry and fail closed when the flag is unavailable."""
+
+    candidates = (Path(__file__).with_name("workloads.json"), Path("/root/workloads.json"))
+    for path in candidates:
+        try:
+            registry = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        workloads = registry.get("workloads") if isinstance(registry, dict) else None
+        if not isinstance(workloads, list):
+            continue
+        return any(
+            isinstance(item, dict)
+            and item.get("id") == "presentation.svg-draft.generate"
+            and item.get("enabled") is True
+            for item in workloads
+        )
+    return False
+
+
+def _parse_presentation_svg_draft(text: str) -> dict[str, Any]:
+    try:
+        value = json.loads(text, object_pairs_hook=_reject_duplicate_story_keys)
+    except (ValueError, json.JSONDecodeError) as exc:
+        raise RuntimeError("PRESENTATION_SVG_DRAFT_INVALID") from exc
+    if isinstance(value, dict):
+        value.setdefault("review_required", True)
+        value["viewbox"] = [0, 0, 100, 100]
+    try:
+        if isinstance(value, dict) and isinstance(value.get("shapes"), list):
+            value["shapes"] = _repair_presentation_svg_shapes(value["shapes"])
+        _validate_presentation_svg_draft(value)
+    except (KeyError, TypeError, ValueError, OverflowError) as exc:
+        raise RuntimeError("PRESENTATION_SVG_DRAFT_INVALID") from exc
+    return value
+
+
+_PRESENTATION_SVG_GEOMETRY = {
+    "circle": ("cx", "cy", "r"),
+    "ellipse": ("cx", "cy", "rx", "ry"),
+    "rect": ("x", "y", "w", "h"),
+    "line": ("x1", "y1", "x2", "y2"),
+    "polyline": ("points",),
+}
+
+
+def _repair_presentation_svg_shapes(shapes: list[Any]) -> list[Any]:
+    """Undo what the constrained decoder cannot forbid, without loosening the validator.
+
+    The flat shape schema lets a shape carry geometry of another kind, miss its own, or leave the
+    grid. Foreign geometry keys are removed; incomplete or off-grid shapes are dropped. Every other
+    key, kind, colour or number is left for the strict validator to reject.
+    """
+
+    all_geometry = {name for names in _PRESENTATION_SVG_GEOMETRY.values() for name in names}
+    repaired: list[Any] = []
+    for shape in shapes:
+        kind = shape.get("kind") if isinstance(shape, dict) else None
+        if not isinstance(kind, str) or kind not in _PRESENTATION_SVG_GEOMETRY:
+            repaired.append(shape)
+            continue
+        own = _PRESENTATION_SVG_GEOMETRY[kind]
+        shape = {
+            key: item for key, item in shape.items() if key in own or key not in all_geometry
+        }
+        if any(name not in shape for name in own) or _presentation_svg_off_grid(shape, kind):
+            continue
+        repaired.append(shape)
+    return repaired
+
+
+def _presentation_svg_off_grid(shape: dict[str, Any], kind: str) -> bool:
+    """True only for in-range numbers that still leave the grid or draw nothing."""
+
+    if kind == "polyline":
+        points = shape["points"]
+        return isinstance(points, list) and len({json.dumps(point) for point in points}) < 2
+    values = [shape[name] for name in _PRESENTATION_SVG_GEOMETRY[kind]]
+    if any(
+        isinstance(item, bool) or not isinstance(item, (int, float)) or not 0 <= item <= 100
+        for item in values
+    ):
+        return False
+    if kind == "line":
+        return values[0] == values[2] and values[1] == values[3]
+    if kind == "rect":
+        x, y, width, height = values
+        return width <= 0 or height <= 0 or x + width > 100 or y + height > 100
+    cx, cy = values[0], values[1]
+    rx, ry = (values[2], values[2]) if kind == "circle" else (values[2], values[3])
+    return cx - rx < 0 or cy - ry < 0 or cx + rx > 100 or cy + ry > 100
+
+
+def _validate_presentation_svg_draft(value: object) -> None:
+    if not isinstance(value, dict) or set(value) != {
+        "schema_version",
+        "review_required",
+        "viewbox",
+        "shapes",
+    }:
+        raise ValueError("draft fields invalid")
+    if (
+        value["schema_version"] != "sketch2life.presentation-svg-draft.v1"
+        or value["review_required"] is not True
+    ):
+        raise ValueError("draft metadata invalid")
+    viewbox = value["viewbox"]
+    if (
+        not isinstance(viewbox, list)
+        or len(viewbox) != 4
+        or any(
+            isinstance(item, bool) or not isinstance(item, int) for item in viewbox
+        )
+        or viewbox != [0, 0, 100, 100]
+    ):
+        raise ValueError("draft viewbox invalid")
+    shapes = value["shapes"]
+    if not isinstance(shapes, list) or not 4 <= len(shapes) <= 12:
+        raise ValueError("draft shape count invalid")
+    fields_by_kind = {
+        "circle": {"kind", "cx", "cy", "r", "stroke", "stroke_width"},
+        "rect": {"kind", "x", "y", "w", "h", "stroke", "stroke_width"},
+        "line": {"kind", "x1", "y1", "x2", "y2", "stroke", "stroke_width"},
+        "polyline": {"kind", "points", "stroke", "stroke_width"},
+        "ellipse": {"kind", "cx", "cy", "rx", "ry", "stroke", "stroke_width"},
+    }
+    palette = {"#1f2937", "#2563eb", "#16a34a", "#dc2626", "#d97706"}
+    for shape in shapes:
+        if not isinstance(shape, dict):
+            raise TypeError("shape must be an object")
+        kind = shape.get("kind")
+        expected_fields = fields_by_kind.get(kind) if isinstance(kind, str) else None
+        if expected_fields is None or set(shape) != expected_fields:
+            raise ValueError("shape fields invalid")
+        if (
+            not isinstance(shape["stroke"], str)
+            or shape["stroke"] not in palette
+            or isinstance(shape["stroke_width"], bool)
+            or not isinstance(shape["stroke_width"], int)
+            or not 1 <= shape["stroke_width"] <= 6
+        ):
+            raise ValueError("shape style invalid")
+        if kind == "circle":
+            cx = _presentation_svg_number(shape["cx"])
+            cy = _presentation_svg_number(shape["cy"])
+            radius = _presentation_svg_number(shape["r"], minimum=1, maximum=50)
+            _presentation_svg_bounds(cx - radius, cy - radius, cx + radius, cy + radius)
+        elif kind == "ellipse":
+            cx = _presentation_svg_number(shape["cx"])
+            cy = _presentation_svg_number(shape["cy"])
+            rx = _presentation_svg_number(shape["rx"], minimum=1, maximum=50)
+            ry = _presentation_svg_number(shape["ry"], minimum=1, maximum=50)
+            _presentation_svg_bounds(cx - rx, cy - ry, cx + rx, cy + ry)
+        elif kind == "rect":
+            x = _presentation_svg_number(shape["x"])
+            y = _presentation_svg_number(shape["y"])
+            width = _presentation_svg_number(shape["w"])
+            height = _presentation_svg_number(shape["h"])
+            if width <= 0 or height <= 0:
+                raise ValueError("rectangle size invalid")
+            _presentation_svg_bounds(x, y, x + width, y + height)
+        elif kind == "line":
+            coords = [
+                _presentation_svg_number(shape[key])
+                for key in ("x1", "y1", "x2", "y2")
+            ]
+            if coords[0] == coords[2] and coords[1] == coords[3]:
+                raise ValueError("line is degenerate")
+        else:
+            points = shape["points"]
+            if not isinstance(points, list) or not 2 <= len(points) <= 16:
+                raise ValueError("polyline point count invalid")
+            checked_points: list[tuple[float, float]] = []
+            for point in points:
+                if not isinstance(point, list) or len(point) != 2:
+                    raise ValueError("polyline point invalid")
+                checked_points.append(
+                    (
+                        _presentation_svg_number(point[0]),
+                        _presentation_svg_number(point[1]),
+                    )
+                )
+            if len(set(checked_points)) < 2:
+                raise ValueError("polyline is degenerate")
+
+
+def _presentation_svg_number(
+    value: object, *, minimum: float = 0, maximum: float = 100
+) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise TypeError("coordinate invalid")
+    number = float(value)
+    if not math.isfinite(number) or not minimum <= number <= maximum:
+        raise ValueError("coordinate outside grid")
+    return number
+
+
+def _presentation_svg_bounds(left: float, top: float, right: float, bottom: float) -> None:
+    if left < 0 or top < 0 or right > 100 or bottom > 100:
+        raise ValueError("shape outside grid")
+
+
+def _infer_presentation_svg_draft(
+    data: dict[str, Any], processor: Any, model: Any
+) -> dict[str, Any]:
+    """Run one generation with the shared presentation-SVG prompt, schema and validator."""
+
+    tokenizer = processor.tokenizer
+    prompt = _presentation_svg_prompt(data)
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "Create simple, child-friendly outline geometry for the supplied activity. "
+                "Use only the supplied title and subject. Return 4 to 12 shapes, set "
+                "review_required to true and viewbox to [0, 0, 100, 100], and return the "
+                "required structured JSON with unfilled vector shapes. Each shape must use "
+                "only the exact fields for its kind: circle (cx, cy, r), rect (x, y, w, h), "
+                "line (x1, y1, x2, y2), polyline (points), or ellipse (cx, cy, rx, ry), "
+                "plus kind, stroke and integer stroke_width. Use no extra keys. Do not add "
+                "words, pictures, links, styles, or content beyond the subject."
+            ),
+        },
+        {"role": "user", "content": prompt},
+    ]
+    with worker_phase("prompt_encoding"):
+        encoded = processor.apply_chat_template(
+            messages,
+            tokenize=True,
+            add_generation_prompt=True,
+            enable_thinking=False,
+            return_tensors="pt",
+            return_dict=True,
+        ).to(model.device)
+    import torch
+
+    with worker_phase("constrained_decoder_setup"):
+        prefix_allowed_tokens_fn = _build_json_prefix_allowed_tokens_fn(
+            tokenizer,
+            _presentation_svg_draft_json_schema(),
+            eos_token_id=model.generation_config.eos_token_id,
+        )
+    with worker_phase("model_inference"), torch.inference_mode():
+        generated = model.generate(
+            **_qwen_text_model_generation_inputs(encoded),
+            do_sample=False,
+            max_new_tokens=2_048,
+            pad_token_id=_generation_pad_token_id(model, tokenizer),
+            prefix_allowed_tokens_fn=prefix_allowed_tokens_fn,
+        )
+    text = tokenizer.decode(
+        generated[0, encoded["input_ids"].shape[-1] :], skip_special_tokens=True
+    ).strip()
+    with worker_phase("output_parse_and_contract_validation"):
+        draft = _parse_presentation_svg_draft(text)
+    worker_stage("presentation_svg_draft_validated")
+    return draft
+
+
+def _maybe_add_teacher_svg_draft(
+    deck: dict[str, Any], data: dict[str, Any], processor: Any, model: Any
+) -> bool:
+    """Add one optional occurrence drawing; failures never escape into the text deck call."""
+
+    subject = data.get("drawing_subject")
+    if (
+        not isinstance(subject, str)
+        or not subject.strip()
+        or data.get("drawing_source_available") is True
+        or not _presentation_svg_draft_enabled()
+    ):
+        return False
+    try:
+        draft_input = _presentation_svg_input_for_subject(subject.strip())
+        _validate_presentation_svg_input(draft_input)
+        deck["drawing"] = _infer_presentation_svg_draft(draft_input, processor, model)
+    except Exception as exc:  # noqa: BLE001 - optional drafts must never fail the text deck
+        print(
+            json.dumps(
+                {
+                    "event": "teacher_deck_optional_svg_draft_failed",
+                    "error_type": type(exc).__name__,
+                },
+                sort_keys=True,
+            ),
+            flush=True,
+        )
+        return False
+    return True
+
+
+@app.function(
+    name="generate-presentation-svg-draft",
+    image=_story_text_image,
+    gpu="L40S",
+    cpu=4.0,
+    memory=32_768,
+    volumes={
+        MODEL_MOUNT: model_volume.with_mount_options(read_only=True),
+        SCRATCH_MOUNT: scratch_volume.with_mount_options(read_only=True),
+    },
+    min_containers=0,
+    max_containers=1,
+    scaledown_window=120,
+    timeout=1_800,
+    retries=0,
+)
+@observed_worker(
+    workload="presentation.svg-draft.generate",
+    model_id=TEXT_MODEL_ID,
+    model_revision=TEXT_MODEL_REVISION,
+    gpu_class="L40S",
+)
+def generate_presentation_svg_draft(payload: dict[str, Any]) -> dict[str, Any]:
+    """Generate a bounded vector description for an adult-reviewed slide draft."""
+
+    with worker_phase("input_envelope"):
+        request = parse_worker_input(payload, execution_group="l4")
+    worker_stage("workload_gate")
+    if request.workload != "presentation.svg-draft.generate":
+        raise WorkerContractError("MODAL_WORKLOAD_NOT_ALLOWED")
+    refresh_worker_volume(scratch_volume)
+    with worker_phase("input_manifest_read"):
+        data = _read_json_asset(request, expected_asset="input/request.json")
+    with worker_phase("presentation_svg_input_validation"):
+        _validate_presentation_svg_input(data)
+    with worker_phase("checkpoint_verification"):
+        _verify_marker(Path(TEXT_MODEL_MARKER), TEXT_MODEL_ID, TEXT_MODEL_REVISION)
+    with worker_phase("model_load"):
+        processor, model = _load_text_model()
+    draft = _infer_presentation_svg_draft(data, processor, model)
+    return {
+        "schema_version": WORKER_OUTPUT_SCHEMA,
+        "workload": request.workload,
+        "job_id": request.job_id,
+        "generation_id": request.generation_id,
+        "attempt_id": request.attempt_id,
+        "model": {"id": TEXT_MODEL_ID, "revision": TEXT_MODEL_REVISION},
+        "result": draft,
+    }

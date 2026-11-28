@@ -212,6 +212,28 @@
       "human_gate": "the finished video is reviewed by the adult before use",
       "quota_owner": "backend admission and AI Policy reservation of the video request",
       "implementation_status": "FEAT-094: runs as a child process of the generate-video-scene container, so preparation and rendering share one L40S; disabled pending live verification."
+    },
+    {
+      "id": "presentation.svg-draft.generate",
+      "execution_group": "l4",
+      "candidate": "Qwen/Qwen3.8-27B-FP8@c3a462cc3d38cf351f3b26cbd763469eeb74ef81",
+      "candidate_status": "Uses the dev shared text-model pin; output quality and live runtime remain unverified; the artifact stays a private human-reviewed draft.",
+      "enabled": true,
+      "inputs": "activity title and subject text only; no child, profile, voice, photo or drawing data",
+      "human_gate": "Teacher reviews and ACCEPTs or DISCARDs; draft never publishes by itself",
+      "quota_owner": "separate presentation SVG draft cap; never video quota",
+      "implementation_status": "Teacher presentation SVG flow retained with the dev language worker model identity and strict geometry gates; real Modal smoke not run here; disabled."
+    },
+    {
+      "id": "lesson.visual.generate",
+      "execution_group": "l4-candidate",
+      "candidate": "black-forest-labs/flux-3-image-klein@09561231f44e41381c461caf53d5452005a60ac9 + black-forest-labs/flux-3-image-klein-pup@a57899549f8f6f64c6c4d88db30827d496ff76d0",
+      "candidate_status": "Dev single-image FLUX candidate; historical panel-generation evidence does not verify this implementation; live runtime and quality remain unverified.",
+      "enabled": false,
+      "inputs": "reviewed allowlisted lesson/activity content; never replace the child's original drawing",
+      "human_gate": "private draft, provenance, safety check, and authorized review",
+      "quota_owner": "separate AI Policy compute ledger",
+      "implementation_status": "Teacher optional picture uses one private PNG draft with reviewed-plan lineage and adult review; retained as disabled Rev75 compatibility flow; real Modal smoke not run here."
     }
   ]
 }

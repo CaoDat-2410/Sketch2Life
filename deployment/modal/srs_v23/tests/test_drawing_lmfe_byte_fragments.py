@@ -128,3 +128,53 @@ def test_box_values_are_a_closed_enum_0_to_20() -> None:
     assert b"5" not in allowed_text and b"9" not in allowed_text  # 25 / 29 are out of the grid
     after_one = {pieces[i] for i in _allowed_after(_enforcer(), _ids(head + "1"))}
     assert b"5" in after_one  # 15 is valid
+
+
+def test_token_id_and_generation_pad_helpers() -> None:
+    assert drawing_worker._normalize_token_ids(4) == [4]
+    assert drawing_worker._normalize_token_ids([4, True, 5, "6"]) == [4, 5]
+    assert drawing_worker._normalize_token_ids(None) == []
+
+    class PadTokenizer:
+        pad_token_id = 7
+
+    assert drawing_worker._drawing_generation_pad_token_id([3, 4], PadTokenizer()) == 3
+    assert drawing_worker._drawing_generation_pad_token_id(None, PadTokenizer()) == 7
+    with pytest.raises(RuntimeError, match="MODAL_GENERATION_EOS_UNAVAILABLE"):
+        drawing_worker._drawing_generation_pad_token_id(None, object())
+
+
+def test_all_model_eos_ids_are_special_tokens() -> None:
+    data = drawing_worker._build_qwen_tokenizer_data(
+        ByteTokenizer(), TokenEnforcerTokenizerData, eos_token_id=[EOS, 1]
+    )
+    regular_ids = {token_id for token_id, _text, _new_word in data.regular_tokens}
+    assert data.eos_token_id == [EOS, 1]
+    assert EOS not in regular_ids and 1 not in regular_ids
+
+
+def test_decoder_diagnostics_contain_only_counts_and_flags() -> None:
+    def callback(_batch_id, _input_ids):
+        return []
+
+    callback.decoder_diagnostics = {
+        "callback_calls": 2,
+        "last_parser_can_end": True,
+        "last_model_eos_allowed": True,
+        "last_parser_state_class": "SensitiveTextMustNotBeCopied",
+    }
+    diagnostics = drawing_worker._drawing_decoder_diagnostics(
+        callback,
+        generated_ids=[11, EOS],
+        input_token_count=23,
+        model_eos_token_ids=[EOS],
+    )
+    assert diagnostics == {
+        "callback_calls": 2,
+        "last_parser_can_end": True,
+        "last_model_eos_allowed": True,
+        "final_token_is_model_eos": True,
+        "final_model_eos_was_allowed_at_previous_prefix": True,
+        "input_token_count": 23,
+        "output_token_count": 2,
+    }
