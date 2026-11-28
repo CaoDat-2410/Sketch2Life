@@ -5,6 +5,7 @@ import {
   ArrowUpRight,
   BookOpen,
   CalendarDays,
+  Check,
   ClipboardList,
   CreditCard,
   ChevronDown,
@@ -17,14 +18,16 @@ import {
   Inbox,
   KeyRound,
   LayoutDashboard,
+  LoaderCircle,
   PanelsTopLeft,
   LogOut,
   Menu,
   MessageSquareText,
-  Presentation,
   School,
   Settings2,
+  WandSparkles,
   ShieldCheck,
+  TriangleAlert,
   Users,
   X,
   type LucideIcon,
@@ -47,26 +50,45 @@ export type PortalNavigationGroup = {
   items: PortalNavigationItem[];
 };
 
+type PortalNavigationStatus = "pending" | "done" | "failed";
+
+const NAV_STATUS_LABELS: Record<PortalNavigationStatus, string> = {
+  pending: "Đang xử lý yêu cầu AI",
+  done: "Yêu cầu AI đã xong",
+  failed: "Yêu cầu AI chưa thành công",
+};
+
 export const TEACHER_NAVIGATION: PortalNavigationGroup[] = [
   {
-    label: "Dạy học",
+    label: "",
     items: [
       { href: "/teacher/t01-lesson-workspace", label: "Tổng quan", icon: LayoutDashboard, state: "available" },
-      { href: "/teacher/t05-classes-and-children", label: "Lớp được phân công", icon: Users, state: "available", matchPrefix: true },
+    ],
+  },
+  {
+    label: "Học liệu",
+    items: [
       { href: "/teacher/t02-lesson-authoring", label: "Giáo án", icon: BookOpen, state: "available" },
+      { href: "/teacher/t13-ai-lesson-workflow", label: "Gợi ý giáo án AI", icon: WandSparkles, state: "available" },
       { href: "/teacher/t03-document-import-review", label: "Nhập tài liệu", icon: FileUp, state: "available" },
+      { href: "/teacher/t12-activities", label: "Hoạt động", icon: ClipboardList, state: "available" },
+      { href: "/teacher/svg-catalog", label: "Danh mục SVG", icon: PanelsTopLeft, state: "available" },
+      { href: "/teacher/t14-feedback", label: "Phản hồi giáo án", icon: MessageSquareText, state: "available" },
+    ],
+  },
+  {
+    label: "Lên lớp",
+    items: [
+      { href: "/teacher/t05-classes-and-children", label: "Lớp được phân công", icon: Users, state: "available", matchPrefix: true },
       { href: "/teacher/t04-session-sketch-deck", label: "Buổi dạy", icon: CalendarDays, state: "available" },
-      { href: "/teacher/t02-presentation", label: "Trình bày giáo án", icon: Presentation, state: "waiting" },
-      { href: "/teacher/t12-activities", label: "Hoạt động", icon: ClipboardList, state: "waiting" },
-      { href: "/teacher/t13-ai-lesson-workflow", label: "Gợi ý giáo án AI", icon: BookOpen, state: "available" },
+      { href: "/teacher/t09-history", label: "Lịch sử buổi dạy", icon: History, state: "available" },
     ],
   },
   {
     label: "Tài khoản",
     items: [
-      { href: "/teacher/t09-history", label: "Lịch sử", icon: History, state: "waiting" },
       { href: "/teacher/t10-inbox", label: "Hộp thư", icon: Inbox, state: "available" },
-      { href: "/teacher/t11-profile", label: "Hồ sơ cá nhân", icon: GraduationCap, state: "waiting" },
+      { href: "/teacher/t11-profile", label: "Hồ sơ cá nhân", icon: GraduationCap, state: "available" },
       { href: "/teacher/t08-settings", label: "Cài đặt", icon: Settings2, state: "available" },
     ],
   },
@@ -78,9 +100,10 @@ export const SCHOOL_MANAGER_NAVIGATION: PortalNavigationGroup[] = [
     items: [
       { href: "/school", label: "Tổng quan", icon: LayoutDashboard, state: "available" },
       { href: "/school/classes", label: "Lớp học", icon: School, state: "available" },
-      { href: "/school/teachers", label: "Hồ sơ & consent", icon: ClipboardList, state: "available" },
+      { href: "/school/teachers", label: "Hồ sơ & đồng ý", icon: ClipboardList, state: "available" },
       { href: "/school/teacher-assignments", label: "Phân công giáo viên", icon: GraduationCap, state: "available" },
       { href: "/school/parent-groups", label: "Nhóm phụ huynh", icon: Users, state: "available" },
+      { href: "/school/data-requests", label: "Yêu cầu dữ liệu", icon: FileClock, state: "available" },
     ],
   },
   {
@@ -93,7 +116,7 @@ export const SCHOOL_MANAGER_NAVIGATION: PortalNavigationGroup[] = [
   {
     label: "Nguồn lực",
     items: [
-      { href: "/school/capacity", label: "Sức chứa", icon: Gauge, state: "waiting" },
+      { href: "/school/capacity", label: "Sức chứa", icon: Gauge, state: "available" },
       { href: "/school/quota", label: "Hạn mức video", icon: Activity, state: "available" },
       { href: "/school/billing", label: "Thanh toán", icon: CreditCard, state: "available" },
     ],
@@ -124,6 +147,7 @@ export const PLATFORM_ADMIN_NAVIGATION: PortalNavigationGroup[] = [
     { href: "/platform/a01-content-moderation", label: "Học liệu", icon: BookOpen, state: "available" },
     { href: "/platform/a02-platform-operations?panel=catalog", label: "Hoạt động", icon: ClipboardList, state: "available" },
     { href: "/platform/a02-platform-operations?panel=feedback", label: "Phản hồi", icon: MessageSquareText, state: "available" },
+    { href: "/platform/a02-platform-operations?panel=svgcatalog", label: "Danh mục SVG", icon: PanelsTopLeft, state: "available" },
   ] },
   { label: "Tài chính & hạn mức", items: [
     { href: "/platform/a02-platform-operations?panel=billing", label: "Thanh toán", icon: CreditCard, state: "available" },
@@ -151,6 +175,7 @@ function navigationMatches(href: string, pathname: string, search: string, match
   if (itemPath.startsWith("/platform/")) {
     return itemParams.has("panel") || !currentParams.has("panel");
   }
+  if (!query) return true;
   return itemParams.toString() === currentParams.toString();
 }
 
@@ -160,6 +185,9 @@ function pageTitle(groups: PortalNavigationGroup[], pathname: string, search: st
       if (navigationMatches(item.href, pathname, search, item.matchPrefix)) return item.label;
     }
   }
+  if (pathname.startsWith("/teacher/t02-presentation")) return "Trình bày giáo án";
+  if (pathname.startsWith("/teacher/t06-sample-story-run")) return "Video mẫu";
+  if (pathname.startsWith("/teacher/t07-video-presentation-confirmation")) return "Chiếu cho lớp";
   return "Không gian làm việc";
 }
 
@@ -168,6 +196,7 @@ export function WebAppShell({
   roleLabel,
   roleSubtitle,
   navigation,
+  navStatus,
   loginHref,
   modeLabel,
   toast,
@@ -178,6 +207,7 @@ export function WebAppShell({
   roleLabel: string;
   roleSubtitle: string;
   navigation: PortalNavigationGroup[];
+  navStatus?: Partial<Record<string, PortalNavigationStatus | undefined>>;
   loginHref: string;
   modeLabel: string;
   toast?: SessionToast | null;
@@ -218,6 +248,13 @@ export function WebAppShell({
     : isSchoolManager
       ? "Không gian quản lý"
       : "Không gian giáo viên";
+  const navStatusAnnouncement = navigation
+    .flatMap((group) => group.items)
+    .flatMap((item) => {
+      const status = navStatus?.[item.href];
+      return status ? [item.label + ": " + NAV_STATUS_LABELS[status]] : [];
+    })
+    .join(". ");
 
   useEffect(() => {
     const closeAccount = (event: PointerEvent) => {
@@ -290,18 +327,21 @@ export function WebAppShell({
       }
     }}>
       <a className="s2l-skip-link" href="#s2l-main">Bỏ qua điều hướng</a>
+      <div className="s2l-visually-hidden" role="status" aria-live="polite" aria-atomic="true">{navStatusAnnouncement}</div>
       <aside className="s2l-sidebar" id="s2l-navigation" aria-label={"Cổng " + roleLabel}>
         <div className="s2l-brand-lockup">
           <span className="s2l-brand-logo-chip"><img src={platformAdminLogo} alt="Sketch2Life" /></span>
           <div className="s2l-brand-wordmark"><strong>Sketch2Life</strong>{!isPlatformAdmin && <span>{roleLabel}</span>}</div>
           <button type="button" className="s2l-close-menu" aria-label="Đóng điều hướng" onClick={closeMenu}><X size={19} /></button>
         </div>
-        {!isPlatformAdmin && <div className="s2l-sidebar-caption">{roleSubtitle}</div>}
+        {!isPlatformAdmin && portal !== "teacher" && <div className="s2l-sidebar-caption">{roleSubtitle}</div>}
         <nav className="s2l-nav" aria-label={"Điều hướng " + roleLabel}>
           {navigation.map((group, groupIndex) => {
             const groupId = `s2l-nav-group-${groupIndex}`;
             const preference = expandedGroups[group.label];
-            const defaultOpen = group.label === "Quản lý" || group.label === "Nội dung" || activeGroup === group.label;
+            const defaultOpen = group.label === "Quản lý" || group.label === "Nội dung"
+              || (portal === "teacher" && (group.label === "Học liệu" || group.label === "Lên lớp"))
+              || activeGroup === group.label;
             const isActiveGroup = activeGroup === group.label;
             const isCollapsed = !!group.label && !isActiveGroup && !(preference ?? defaultOpen);
             return (
@@ -325,18 +365,30 @@ export function WebAppShell({
               {group.items.map((item, index) => {
                 const active = navigationMatches(item.href, location.pathname, location.search, item.matchPrefix);
                 const Icon = item.icon;
+                const hasNavStatus = navStatus !== undefined && Object.prototype.hasOwnProperty.call(navStatus, item.href);
+                const taskStatus = navStatus?.[item.href];
+                const statusText = taskStatus ? NAV_STATUS_LABELS[taskStatus] : undefined;
+                const StatusIcon = taskStatus === "pending" ? LoaderCircle : taskStatus === "done" ? Check : taskStatus === "failed" ? TriangleAlert : null;
                 return (
                   <NavLink
                     key={item.href}
                     ref={group === navigation[0] && index === 0 ? firstLink : undefined}
                     to={item.href}
-                    className={"s2l-nav-link" + (active ? " is-active" : "")}
+                    className={"s2l-nav-link" + (active ? " is-active" : "") + (hasNavStatus ? " has-ai-status" : "")}
                     aria-current={active ? "page" : false}
+                    aria-label={statusText ? item.label + " " + statusText : undefined}
+                    title={statusText}
                     onClick={() => { if (menuOpen) menuButton.current?.focus(); setMenuOpen(false); }}
                   >
                     <Icon size={18} strokeWidth={1.85} aria-hidden="true" />
                     <span>{item.label}</span>
-                    {item.state === "waiting" && <span className="s2l-nav-state" title="Đang chờ API">Chờ API</span>}
+                    {item.state === "waiting" && <span className="s2l-nav-state" title="Đang chờ dịch vụ">Chờ dịch vụ</span>}
+                    {statusText && <span className="s2l-visually-hidden"> {statusText}</span>}
+                    {hasNavStatus && (
+                      <span className={"s2l-nav-ai-status" + (taskStatus ? " is-" + taskStatus : "")} aria-hidden="true">
+                        {StatusIcon && <StatusIcon size={18} strokeWidth={2} aria-hidden="true" />}
+                      </span>
+                    )}
                   </NavLink>
                 );
               })}
@@ -345,7 +397,7 @@ export function WebAppShell({
           );})}
         </nav>
         {!isPlatformAdmin && <div className="s2l-sidebar-bottom">
-          <div className="s2l-session-status"><span aria-hidden="true" /><div><strong>{modeLabel}</strong><span>Quyền được kiểm tra theo phiên</span></div></div>
+          <div className="s2l-session-status"><span aria-hidden="true" /><div><strong>{modeLabel}</strong>{portal !== "teacher" && <span>Quyền được kiểm tra theo phiên</span>}</div></div>
           <button className="s2l-password-button" type="button" onClick={() => { setPasswordMessage(""); setPasswordDialogOpen(true); }}><KeyRound size={17} aria-hidden="true" />Đổi mật khẩu</button>
           <button className="s2l-logout-button" type="button" onClick={logout}><LogOut size={17} aria-hidden="true" />Đăng xuất</button>
         </div>}
@@ -364,7 +416,7 @@ export function WebAppShell({
             </nav>
           </div>
           <div className="s2l-topbar-tools">
-            {!isPlatformAdmin && <span className="s2l-mode-chip"><span aria-hidden="true" />{modeLabel}</span>}
+            {!isPlatformAdmin && portal !== "teacher" && <span className="s2l-mode-chip"><span aria-hidden="true" />{modeLabel}</span>}
             {isPlatformAdmin ? <details className="s2l-topbar-account" ref={topAccountDetails}>
               <summary aria-label="Mở tài khoản quản trị viên">
                 <span className="s2l-account-avatar" aria-hidden="true">PA</span>
@@ -376,9 +428,9 @@ export function WebAppShell({
                 {accountOptions}
               </div>
             </details> : isSchoolManager ? (
-              <span className="s2l-account-indicator" role="group" aria-label="Vai trò hiện tại: School Manager">
-                <span className="s2l-account-avatar" aria-hidden="true">SM</span>
-                <span>School Manager</span>
+              <span className="s2l-account-indicator" role="group" aria-label="Vai trò hiện tại: Quản lý trường">
+                <span className="s2l-account-avatar" aria-hidden="true">QL</span>
+                <span>Quản lý trường</span>
                 <ShieldCheck size={16} aria-hidden="true" />
               </span>
             ) : (

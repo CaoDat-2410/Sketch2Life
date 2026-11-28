@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Alert, Button, Card, FormField, PageHeader, Section, Select, StatusBadge } from "../ui";
+import { PageHeading } from "../components/FeatureAvailability";
 import { BackendApiError, backendMessage } from "../api/backendApi";
 import { getPreferences, updatePreferences, type AccountPreferences } from "../api/accountPreferencesApi";
 import "./AccountSettingsPage.css";
@@ -7,11 +8,13 @@ import "./AccountSettingsPage.css";
 type AccountSettingsRole = "Teacher" | "School Manager";
 
 function PreferenceForm({
+  isTeacher,
   value,
   saving,
   saveError,
   onSave,
 }: {
+  isTeacher: boolean;
   value: AccountPreferences;
   saving: boolean;
   saveError: string;
@@ -19,6 +22,7 @@ function PreferenceForm({
 }) {
   const [enabled, setEnabled] = useState(value.email_notifications);
   const unchanged = enabled === value.email_notifications;
+  const disabledHint = !saving && unchanged ? "Thay đổi lựa chọn ở trên để bật nút lưu." : null;
 
   return (
     <form
@@ -44,19 +48,39 @@ function PreferenceForm({
         </Select>
       </FormField>
       {saveError && <Alert tone="danger" role="alert">{saveError}</Alert>}
-      {!saving && unchanged && (
-        <p className="cozy-form-disabled-hint">Thay đổi lựa chọn ở trên để bật nút lưu.</p>
+      {isTeacher ? (
+        <div className="tp-form-action-bar">
+          <div className="tp-form-action-bar-lead">
+            {disabledHint && <p className="tp-form-action-hint">{disabledHint}</p>}
+          </div>
+          <div className="tp-form-action-bar-buttons">
+            <Button
+              type="submit"
+              variant="primary"
+              loading={saving}
+              disabled={saving || unchanged}
+            >
+              Lưu tùy chọn
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <>
+          {disabledHint && (
+            <p className="cozy-form-disabled-hint">{disabledHint}</p>
+          )}
+          <div className="cozy-form-actions" style={{ marginTop: 0 }}>
+            <Button
+              type="submit"
+              variant="primary"
+              loading={saving}
+              disabled={saving || unchanged}
+            >
+              Lưu tùy chọn
+            </Button>
+          </div>
+        </>
       )}
-      <div className="cozy-form-actions" style={{ marginTop: 0 }}>
-        <Button
-          type="submit"
-          variant="primary"
-          loading={saving}
-          disabled={saving || unchanged}
-        >
-          Lưu tùy chọn
-        </Button>
-      </div>
     </form>
   );
 }
@@ -125,13 +149,16 @@ export function AccountSettingsPage({ role }: { role: AccountSettingsRole }) {
     }
   };
 
+  const isTeacher = role === "Teacher";
+  const roleLabel = isTeacher ? "Giáo viên" : "Quản lý trường";
+
   return (
     <div className="s2l-page account-settings-page grid min-w-0 gap-6">
-      <PageHeader
-        eyebrow={`${role.toUpperCase()} · CÀI ĐẶT`}
-        title="Cài đặt"
-        description="Quản lý thông báo cho tài khoản của bạn."
-      />
+      {isTeacher ? (
+        <PageHeading eyebrow="Tài khoản" title="Cài đặt" description="Quản lý thông báo cho tài khoản của bạn." />
+      ) : (
+        <PageHeader eyebrow={`${roleLabel.toLocaleUpperCase("vi-VN")} · CÀI ĐẶT`} title="Cài đặt" description="Quản lý thông báo cho tài khoản của bạn." />
+      )}
 
       <div className="grid min-w-0 gap-3" aria-live={loadError ? "assertive" : "polite"} aria-atomic="true">
         {saved && <Alert tone="success">Đã lưu thay đổi.</Alert>}
@@ -142,7 +169,9 @@ export function AccountSettingsPage({ role }: { role: AccountSettingsRole }) {
         <Section
           title="Thông báo cá nhân"
           variant="plain"
-          actions={preferences ? <StatusBadge tone={saving ? "info" : saved ? "success" : "neutral"}>{saving ? "Đang lưu" : saved ? "Đã lưu" : "Đã tải"}</StatusBadge> : undefined}
+          actions={preferences && (saving || saved)
+            ? <StatusBadge tone={saving ? "info" : "success"}>{saving ? "Đang lưu" : "Đã lưu"}</StatusBadge>
+            : undefined}
         >
           {loading ? (
             <div className="grid min-w-0 gap-4" role="status" aria-label="Đang tải cài đặt" aria-busy="true">
@@ -151,7 +180,7 @@ export function AccountSettingsPage({ role }: { role: AccountSettingsRole }) {
               <span className="h-4 w-72 max-w-full animate-pulse rounded bg-neutral-soft" />
             </div>
           ) : preferences ? (
-            <PreferenceForm key={preferences.revision} value={preferences} saving={saving} saveError={saveError} onSave={save} />
+            <PreferenceForm key={preferences.revision} isTeacher={isTeacher} value={preferences} saving={saving} saveError={saveError} onSave={save} />
           ) : (
             <div className="grid min-w-0 gap-3">
               <p className="m-0 font-ui text-sm leading-6 text-ink-soft">Không tải được tùy chọn tài khoản.</p>

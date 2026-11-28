@@ -8,9 +8,12 @@ type AccessibleDialogProps = {
   title: string;
   description?: string;
   showTitle?: boolean;
+  showDescription?: boolean;
   className?: string;
   showClose?: boolean;
   container?: HTMLElement | null;
+  onOpenAutoFocus?: (event: Event) => void;
+  onCloseAutoFocus?: (event: Event) => void;
   children: React.ReactNode;
 };
 
@@ -20,18 +23,29 @@ export function AccessibleDialog({
   title,
   description,
   showTitle = false,
+  showDescription = false,
   className = "",
   showClose = true,
   container,
+  onOpenAutoFocus,
+  onCloseAutoFocus,
   children,
 }: AccessibleDialogProps) {
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal container={container ?? undefined}>
         <DialogPrimitive.Overlay className={`s2l-dialog-overlay ${className.includes("is-sheet") ? "is-sheet" : ""}`.trim()} />
-        <DialogPrimitive.Content className={`s2l-dialog-content ${className}`.trim()}>
+        <DialogPrimitive.Content
+          className={`s2l-dialog-content ${className}`.trim()}
+          onOpenAutoFocus={onOpenAutoFocus}
+          onCloseAutoFocus={onCloseAutoFocus}
+        >
           <DialogPrimitive.Title className={showTitle ? "s2l-dialog-title" : "s2l-sr-only"}>{title}</DialogPrimitive.Title>
-          {description && <DialogPrimitive.Description className="s2l-sr-only">{description}</DialogPrimitive.Description>}
+          {description && (
+            <DialogPrimitive.Description className={showDescription ? "s2l-dialog-description" : "s2l-sr-only"}>
+              {description}
+            </DialogPrimitive.Description>
+          )}
           {showClose && (
             <DialogPrimitive.Close className="s2l-dialog-close" aria-label="Đóng">
               <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">

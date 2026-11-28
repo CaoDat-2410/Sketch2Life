@@ -1,0 +1,109 @@
+html[data-portal] .s2l-dialog-content.s2l-confirm-dialog,
+.s2l-dialog-content.s2l-confirm-dialog {
+  width: min(440px, calc(100vw - 32px));
+  padding: var(--s2l-form-card-padding, 22px);
+  border: 1px solid var(--s2l-ui-rule);
+  border-radius: 20px;
+  background: var(--s2l-ui-paper);
+  color: var(--s2l-ui-ink);
+  box-shadow: var(--s2l-ui-shadow-hover);
+  font-family: var(--s2l-ui-font);
+}
+
+html[data-portal] .s2l-confirm-dialog .s2l-dialog-close,
+.s2l-confirm-dialog .s2l-dialog-close {
+  width: 44px;
+  height: 44px;
+  border-color: var(--s2l-ui-rule);
+  border-radius: 12px;
+  background: var(--s2l-ui-paper);
+  color: var(--s2l-ui-ink-soft);
+}
+
+html[data-portal] .s2l-confirm-dialog .s2l-dialog-close:hover,
+.s2l-confirm-dialog .s2l-dialog-close:hover {
+  background: var(--s2l-ui-paper-muted);
+  color: var(--s2l-ui-ink);
+}
+
+html[data-portal] .s2l-confirm-dialog .s2l-dialog-close:focus-visible,
+.s2l-confirm-dialog .s2l-dialog-close:focus-visible {
+  outline: 3px solid var(--s2l-ui-focus);
+  outline-offset: 2px;
+}
+
+.s2l-confirm-dialog .s2l-dialog-title {
+  margin: 0 0 10px;
+  padding-right: 48px;
+  color: var(--s2l-ui-ink);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.s2l-dialog-description {
+  margin: 0;
+  color: var(--s2l-ui-ink-soft);
+  font-size: 14px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.s2l-confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.s2l-confirm-actions > .s2l-ui-button {
+  min-height: 44px;
+}
+
+.s2l-confirm-actions > .s2l-confirm-cancel {
+  border-color: var(--s2l-ui-rule);
+  background: var(--s2l-ui-paper);
+  color: var(--s2l-ui-ink);
+}
+
+.s2l-confirm-actions > .s2l-confirm-cancel:hover:not(:disabled) {
+  background: var(--s2l-ui-paper-muted);
+}
+
+.s2l-confirm-actions > .s2l-confirm-action.is-primary {
+  border-color: transparent;
+  background: var(--s2l-ui-primary);
+  color: var(--s2l-ui-on-primary);
+}
+
+.s2l-confirm-actions > .s2l-confirm-action.is-primary:hover:not(:disabled) {
+  background: var(--s2l-ui-primary-hover);
+}
+
+.s2l-confirm-actions > .s2l-confirm-action.is-danger {
+  border-color: transparent;
+  background: var(--s2l-ui-danger-base);
+  color: var(--s2l-ui-on-primary);
+}
+
+.s2l-confirm-actions > .s2l-confirm-action.is-danger:hover:not(:disabled) {
+  background: var(--s2l-ui-coral-600);
+}
+
+@media (max-width: 620px) {
+  html[data-portal] .s2l-dialog-content.s2l-confirm-dialog,
+  .s2l-dialog-content.s2l-confirm-dialog {
+    padding: 18px;
+  }
+
+  .s2l-confirm-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .s2l-confirm-actions > .s2l-ui-button {
+    width: 100%;
+  }
+}

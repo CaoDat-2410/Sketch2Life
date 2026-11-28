@@ -34,7 +34,9 @@ describe("AccountSettingsPage", () => {
     render(<AccountSettingsPage role="Teacher" />);
 
     expect(await screen.findByRole("heading", { name: "Cài đặt" })).toBeTruthy();
+    expect(document.querySelector(".s2l-page-heading")).toBeTruthy();
     expect(screen.getByText("Thông báo cá nhân")).toBeTruthy();
+    expect(screen.queryByText("Đã tải")).toBeNull();
     expect(screen.getByRole("combobox", { name: "Thông báo qua email" })).toBeTruthy();
     expect((screen.getByRole("button", { name: "Lưu tùy chọn" }) as HTMLButtonElement).disabled).toBe(true);
     expect(screen.getByText("Email bảo mật và thiết lập tài khoản vẫn được gửi.")).toBeTruthy();
@@ -47,6 +49,8 @@ describe("AccountSettingsPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Lưu tùy chọn" }));
 
     await screen.findByText("Đã lưu thay đổi.");
+    expect(screen.getByText("Đã lưu")).toBeTruthy();
+    expect(screen.queryByText("Đã tải")).toBeNull();
     expect(updatePreferences).toHaveBeenCalledWith({
       locale: "vi-VN",
       email_notifications: false,

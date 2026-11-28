@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { ArrowRight, Eye, EyeOff, GraduationCap, LoaderCircle, School, ShieldCheck } from "lucide-react";
+import { ArrowRight, Check, Eye, EyeOff, GraduationCap, LoaderCircle, School, ShieldCheck } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import "./WebPortalLoginPage.css";
 import { backendMessage } from "../api/backendApi";
@@ -13,6 +13,7 @@ type PortalDetails = {
   code: string;
   heading: string;
   description: string;
+  highlights: readonly string[];
   icon: typeof GraduationCap;
 };
 
@@ -24,12 +25,45 @@ type LoginFieldState = {
   errorFields: { email?: boolean; password?: boolean };
 };
 
+function loginError(cause: unknown, email: string, password: string) {
+  const code = (cause as { code?: unknown } | null)?.code;
+  if (typeof code === "string" && code.startsWith("auth/")) {
+    if (["auth/invalid-credential", "auth/wrong-password", "auth/user-not-found"].includes(code)) {
+      return {
+        message: "Email hoặc mật khẩu không đúng.",
+        errorFields: { email: true, password: true },
+      };
+    }
+    if (code === "auth/invalid-email") {
+      return { message: "Email không hợp lệ.", errorFields: { email: true } };
+    }
+    if (code === "auth/too-many-requests") {
+      return { message: "Bạn đã thử đăng nhập quá nhiều lần. Vui lòng thử lại sau.", errorFields: {} };
+    }
+    if (code === "auth/user-disabled") {
+      return { message: "Bạn chưa thể đăng nhập lúc này. Hãy liên hệ quản trị viên nếu cần hỗ trợ.", errorFields: {} };
+    }
+    if (code === "auth/network-request-failed") {
+      return { message: "Không thể kết nối để đăng nhập. Hãy kiểm tra kết nối mạng và thử lại.", errorFields: {} };
+    }
+    return { message: "Không thể đăng nhập lúc này. Vui lòng thử lại.", errorFields: {} };
+  }
+
+  const errorFields = !email.trim() || code === "auth/invalid-email"
+    ? { email: true }
+    : !password
+      ? { password: true }
+      : {};
+  return { message: backendMessage(cause), errorFields };
+}
+
 const PORTALS: Record<WebPortalAppRole, PortalDetails> = {
   TEACHER: {
     label: "Giáo viên",
     code: "CỔNG GIÁO VIÊN",
     heading: "Chuẩn bị buổi học",
     description: "Mở các lớp được phân công, giáo án và tài liệu của bạn.",
+    highlights: ["Soạn giáo án và kế hoạch buổi dạy", "Trình chiếu từng bước vẽ cho cả lớp", "Theo dõi lớp và hồ sơ của trẻ"],
     icon: GraduationCap,
   },
   MANAGER: {
@@ -37,6 +71,7 @@ const PORTALS: Record<WebPortalAppRole, PortalDetails> = {
     code: "CỔNG NHÀ TRƯỜNG",
     heading: "Quản lý hoạt động trường",
     description: "Quản lý lớp học, giáo viên và học liệu của trường.",
+    highlights: ["Tổ chức lớp học và phân công giáo viên", "Quản lý nhóm phụ huynh của từng lớp", "Theo dõi hạn mức video của trường"],
     icon: School,
   },
   ADMIN: {
@@ -44,6 +79,7 @@ const PORTALS: Record<WebPortalAppRole, PortalDetails> = {
     code: "CỔNG NỀN TẢNG",
     heading: "Vận hành nền tảng",
     description: "Quản lý tài khoản và hoạt động nền tảng.",
+    highlights: ["Quản lý tổ chức và tài khoản", "Kiểm duyệt nội dung và danh mục", "Theo dõi vận hành và thanh toán"],
     icon: ShieldCheck,
   },
 };
@@ -98,18 +134,25 @@ export function WebPortalLoginPage({
     event.preventDefault();
     if (pending) return;
     setNotice("");
+    if (!email.trim()) {
+      updateFields({ error: "Nhập email tài khoản.", errorFields: { email: true } });
+      return;
+    }
+    if (event.currentTarget.querySelector<HTMLInputElement>("#s2l-login-email")?.validity.typeMismatch) {
+      updateFields({ error: "Email chưa đúng định dạng.", errorFields: { email: true } });
+      return;
+    }
+    if (!fields.password) {
+      updateFields({ error: "Nhập mật khẩu.", errorFields: { password: true } });
+      return;
+    }
     updateFields({ error: null, errorFields: {} });
     setPending(true);
     try {
       await onAuthenticate(portalRole, email.trim(), fields.password);
     } catch (cause) {
-      const code = (cause as { code?: string }).code;
-      const errorFields = !email.trim() || code === "auth/invalid-email" || code === "auth/user-not-found"
-        ? { email: true }
-        : !fields.password || code === "auth/wrong-password"
-          ? { password: true }
-          : {};
-      updateFields({ error: backendMessage(cause), errorFields });
+      const result = loginError(cause, email, fields.password);
+      updateFields({ error: result.message, errorFields: result.errorFields });
     } finally {
       setPending(false);
     }
@@ -151,6 +194,9 @@ export function WebPortalLoginPage({
             <p className="s2l-login-eyebrow">{portal.code}</p>
             <h1>{portal.heading}</h1>
             <p>{portal.description}</p>
+            <ul className="s2l-login-highlights">
+              {portal.highlights.map((item) => <li key={item}><Check size={14} aria-hidden="true" /><span>{item}</span></li>)}
+            </ul>
           </div>
           <img className="s2l-login-illustration" src="/images/sketch2life-login-learning.png" alt="" aria-hidden="true" />
         </section>
@@ -187,7 +233,7 @@ export function WebPortalLoginPage({
             })}
           </div>}
 
-          <form className="s2l-login-form" onSubmit={(event) => { if (recovering) { event.preventDefault(); void resetPassword(); } else { void submit(event); } }} aria-busy={pending}>
+          <form className="s2l-login-form" noValidate onSubmit={(event) => { if (recovering) { event.preventDefault(); void resetPassword(); } else { void submit(event); } }} aria-busy={pending}>
             <FormField label="Email tài khoản" htmlFor="s2l-login-email" required className="s2l-login-field">
               <input
                 id="s2l-login-email"

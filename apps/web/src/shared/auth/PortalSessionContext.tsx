@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { backendApi, BackendApiError } from "../api/backendApi";
+import { clearSessionScopedDrafts } from "../hooks/useSessionScopedDraft";
 
 export type WebPortalRole = "TEACHER" | "MANAGER" | "ADMIN";
 export type SessionToastKind = "ok" | "info" | "warn" | "err";
@@ -42,7 +43,7 @@ function readSession() {
 
 function roleLabel(role: WebPortalRole) {
   if (role === "TEACHER") return "Giáo viên";
-  if (role === "MANAGER") return "School Manager";
+  if (role === "MANAGER") return "Quản lý trường";
   return "Platform Admin";
 }
 
@@ -73,6 +74,7 @@ export function PortalSessionProvider({ children }: { children: React.ReactNode 
   }, [showToast]);
 
   const logout = useCallback(() => {
+    clearSessionScopedDrafts();
     setIsAuthenticated(false);
     window.sessionStorage.removeItem(ROLE_STORAGE_KEY);
     window.sessionStorage.removeItem(AUTH_STORAGE_KEY);

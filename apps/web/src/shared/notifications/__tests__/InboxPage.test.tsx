@@ -49,7 +49,11 @@ describe("InboxPage", () => {
 
     render(<InboxPage />);
 
-    expect(await screen.findByText("Hộp thư hiện đang trống.")).toBeTruthy();
+    const emptyMessage = await screen.findByText("Hộp thư hiện đang trống.");
+    expect(emptyMessage.tagName).toBe("P");
+    expect(emptyMessage.className).toContain("s2l-empty-copy");
+    expect(emptyMessage.closest("section")).toBeNull();
+    expect(screen.queryByText("Chưa đọc: 0")).toBeNull();
   });
 
   it("shows a mapped error and retries a failed first-page request", async () => {

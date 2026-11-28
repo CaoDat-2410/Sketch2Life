@@ -32,9 +32,18 @@ export function DataTable<Row>({
   className?: string;
 }) {
   const cellPadding = density === "dense" ? "px-3 py-2.5" : "px-4 py-3.5";
+  const isEmpty = !loading && rows.length === 0;
+  const headerText = (header: ReactNode) =>
+    typeof header === "string" || typeof header === "number" ? String(header) : undefined;
   return (
     <div aria-busy={loading || undefined} className={cn("box-border w-full max-w-full min-w-0 overflow-x-auto overscroll-x-contain", className)}>
-      <table className="s2l-admin-table box-border min-w-[34rem] w-full border-separate border-spacing-0 font-ui text-sm tabular-nums">
+      <table
+        data-empty={isEmpty ? "true" : undefined}
+        className={cn(
+          "s2l-admin-table box-border w-full border-separate border-spacing-0 font-ui text-sm tabular-nums",
+          !isEmpty && "sm:min-w-[34rem]",
+        )}
+      >
         <caption className="sr-only">{caption}</caption>
         <thead>
           <tr>
@@ -55,7 +64,7 @@ export function DataTable<Row>({
             </tr>
           )) : rows.length ? rows.map((row) => (
             <tr key={getRowKey(row)} className="last:[&>td]:border-b-0 hover:bg-paper-muted/45">
-              {columns.map((column) => <td key={column.key} className={cn(
+              {columns.map((column) => <td key={column.key} data-label={headerText(column.header)} className={cn(
                 "box-border border-b border-rule font-ui text-sm leading-5 text-ink",
                 cellPadding,
                 column.numeric && "text-right tabular-nums",

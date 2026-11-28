@@ -1,14 +1,17 @@
-// Teacher BE1 roster client (goal v3 Phase B: T-7a roster reads, T-7c keyed profile create, T-7d
-// enrollment move). The class is always a path segment; a command body never carries `class_id`.
-// Every command sends one Idempotency-Key (1-128 visible ASCII) per user action and the strong
-// `If-Match: "<class_revision>"` (SRS §21.4 l.1697-1699). Errors keep the server code, the safe
-// Vietnamese message and, for 429, the wait from Retry-After (SRS §21.6 l.1735).
+// Teacher BE1 roster client (goal v4 Phase B T-7e paging and goal v3 T-7a reads, T-7c keyed profile
+// create, T-7d enrollment move). Commands use the path and headers defined by each route contract.
+// Profile create/move send Idempotency-Key and If-Match; consent record/revoke do not use If-Match.
+// Errors retain the server code, safe Vietnamese message and, for 429, Retry-After (SRS §21.6 l.1735).
 import { BackendApiError, apiBaseUrl, createIdempotencyKey } from "./backendApi";
 import { CURSOR_PAGE_LIMIT, collectCursorPages, pageQuery, type CursorPage } from "./cursorPages";
 import { parseApiError } from "./errorEnvelope";
 
 export interface TeacherProfile { child_id: string; class_id: string; display_name: string; age_months: number }
+export interface TeacherProfileList { items: TeacherProfile[]; activeProfileCount: number }
 export interface TeacherConsent { consent_id: string; child_id: string; purpose_ref: string; state: string; effective: boolean }
+export interface TeacherConsentRecord extends TeacherConsent { contract: "Be1ConsentV1" }
+export interface TeacherConsentRevocation { consent_id?: string; state: "revoked" }
+export interface TeacherConsentInput { childId: string; purposeRef: string; evidenceRef?: string }
 export interface CreatedProfile {
   contract: "Be1ManagedProfileV1"; child_id: string; class_id: string; enrollment_id: string;
   display_name: string; age_months: number; data_origin: string; class_revision: number;
@@ -31,7 +34,7 @@ export const CLASS_READ_ONLY = "Lớp tạm ngưng chỉ đọc, mọi dữ li�
 const CODE_MESSAGES: Record<string, string> = {
   ACTION_NOT_ALLOWED: "Tài khoản không được phép thực hiện thao tác này.",
   INVALID_STATE_TRANSITION: `Lớp hoặc hồ sơ không còn ở trạng thái cho phép thao tác này. ${CLASS_READ_ONLY}`,
-  SYNTHETIC_PROFILE_CREATION_UNAVAILABLE: "Môi trường này chưa cho phép tạo hồ sơ thử nghiệm (synthetic).",
+  SYNTHETIC_PROFILE_CREATION_UNAVAILABLE: "Môi trường này chưa cho phép tạo hồ sơ thử nghiệm.",
 };
 
 const visibleAscii = /^[\x21-\x7E]{1,128}$/;
@@ -42,6 +45,22 @@ export class TeacherRosterApiError extends BackendApiError {
     super(message, code, status, requestId);
     this.name = "BackendApiError";
     this.retryAfterSeconds = retryAfterSeconds;
+  }
+}
+
+/** A later roster page failed after one or more safe rows were already loaded. */
+export class TeacherRosterPageError extends TeacherRosterApiError {
+  readonly partial: TeacherProfileList;
+  readonly cause: unknown;
+
+  constructor(cause: unknown, partial: TeacherProfileList) {
+    const source = cause instanceof TeacherRosterApiError
+      ? cause
+      : new TeacherRosterApiError("Không thể tải đầy đủ danh sách hồ sơ. Hãy thử tải lại.", "ROSTER_PAGE_FAILED", 0);
+    super(source.message, source.code, source.status, source.requestId, source.retryAfterSeconds);
+    this.name = "TeacherRosterPageError";
+    this.partial = partial;
+    this.cause = cause;
   }
 }
 
@@ -110,7 +129,7 @@ function commandHeaders(key: string, revision: number): Record<string, string> {
 export function profileInputProblem(input: ProfileInput): string | null {
   const name = input.display_name;
   if (!name.startsWith(SYNTHETIC_NAME_PREFIX) || name.trim().length <= SYNTHETIC_NAME_PREFIX.trim().length) {
-    return `Tên hồ sơ thử nghiệm phải bắt đầu bằng “${SYNTHETIC_NAME_PREFIX}” và có thêm tên phía sau.`;
+    return `Tên phải bắt đầu bằng “${SYNTHETIC_NAME_PREFIX}” rồi có tên hiển thị phía sau.`;
   }
   if (name.length > PROFILE_NAME_MAX) return `Tên hồ sơ tối đa ${PROFILE_NAME_MAX} ký tự.`;
   if (!Number.isInteger(input.age_months) || input.age_months < PROFILE_AGE_MONTHS.min || input.age_months > PROFILE_AGE_MONTHS.max) {
@@ -119,24 +138,133 @@ export function profileInputProblem(input: ProfileInput): string | null {
   return null;
 }
 
+function consentInputProblem(input: TeacherConsentInput): string | null {
+  if (!input.childId.trim() || input.childId.length > 128) return "Mã trẻ phải có từ 1 đến 128 ký tự.";
+  if (!input.purposeRef.trim() || input.purposeRef.length > 128) return "Mục đích consent phải có từ 1 đến 128 ký tự.";
+  if (input.evidenceRef !== undefined && input.evidenceRef.length > 512) return "Tham chiếu bằng chứng tối đa 512 ký tự.";
+  return null;
+}
+
 const enc = encodeURIComponent;
 const classPath = (organizationId: string, classId: string) =>
   `/api/be1/v1/organizations/${enc(organizationId)}/classes/${enc(classId)}`;
 
+function consentFailure(cause: unknown): TeacherRosterApiError {
+  if (!(cause instanceof TeacherRosterApiError)) {
+    return new TeacherRosterApiError("Không thể cập nhật consent. Vui lòng thử lại.", "REQUEST_FAILED", 0);
+  }
+
+  let message = "Không thể cập nhật consent. Vui lòng thử lại.";
+  if (cause.status === 404) message = NOT_FOUND_OR_NO_ACCESS;
+  else if (cause.status === 403) message = CODE_MESSAGES.ACTION_NOT_ALLOWED;
+  else if (cause.status === 409 && cause.code === "INVALID_STATE_TRANSITION") message = CLASS_READ_ONLY;
+  else if (cause.status === 422 && cause.code === "CLASS_SCOPE_MISMATCH") message = "Lớp trong yêu cầu không khớp với lớp đã chọn.";
+  else if (cause.status === 400 || cause.status === 422) message = "Thông tin consent không hợp lệ. Vui lòng kiểm tra lại.";
+  else if (cause.status === 429) {
+    message = cause.retryAfterSeconds
+      ? "Bạn đã gửi quá nhiều yêu cầu. Vui lòng thử lại sau " + cause.retryAfterSeconds + " giây."
+      : "Bạn đã gửi quá nhiều yêu cầu. Vui lòng thử lại sau.";
+  } else if (cause.status === 401) message = "Phiên đăng nhập chưa sẵn sàng.";
+  else if (cause.status === 0) message = "Không kết nối được dịch vụ. Hãy thử lại.";
+  else if (cause.status >= 500) message = "Dịch vụ tạm thời chưa sẵn sàng. Vui lòng thử lại sau.";
+
+  return new TeacherRosterApiError(message, cause.code, cause.status, cause.requestId, cause.retryAfterSeconds);
+}
+
+async function consentRequest<T>(path: string, init: RequestInit): Promise<T> {
+  try {
+    return await request<T>(path, init);
+  } catch (cause) {
+    throw consentFailure(cause);
+  }
+}
+
+function isConsentRecord(value: unknown): value is Pick<TeacherConsentRecord, "consent_id" | "state"> {
+  if (!value || typeof value !== "object") return false;
+  const record = value as Record<string, unknown>;
+  return typeof record.consent_id === "string" && typeof record.state === "string";
+}
+
+function consentResponseError(): TeacherRosterApiError {
+  return new TeacherRosterApiError("Dịch vụ trả về trạng thái consent không hợp lệ. Hãy tải lại danh sách.", "INVALID_RESPONSE", 502);
+}
+
+function isConsentRevocation(value: unknown, consentId: string): value is TeacherConsentRevocation {
+  if (!value || typeof value !== "object") return false;
+  const record = value as Record<string, unknown>;
+  return record.state === "revoked" && (record.consent_id === undefined || record.consent_id === consentId);
+}
+
 export const teacherRosterApi = {
-  /** A09 for the class's own Teacher; a Manager-shaped count body is refused, never rendered. */
-  profiles: async (organizationId: string, classId: string): Promise<TeacherProfile[]> => {
-    const body = await request<{ contract?: string; items?: TeacherProfile[] }>(`${classPath(organizationId, classId)}/profiles`);
-    if (body.contract !== "Be1ManagedProfileListV1" || !Array.isArray(body.items)) {
-      throw new TeacherRosterApiError("Dịch vụ trả roster không đúng contract cho Teacher.", "INVALID_RESPONSE", 200);
-    }
-    return body.items;
+  /** T-7e: every filtered Teacher roster page; Manager-shaped responses are refused. */
+  profiles: async (organizationId: string, classId: string): Promise<TeacherProfileList> => {
+    type ProfilePage = CursorPage<TeacherProfile> & {
+      contract?: string;
+      active_profile_count?: number;
+    };
+    const path = `${classPath(organizationId, classId)}/profiles`;
+    const pages = await collectCursorPages<TeacherProfile, ProfilePage>(async (cursor) => {
+      const body = await request<ProfilePage>(`${path}${pageQuery({ limit: CURSOR_PAGE_LIMIT, cursor })}`);
+      if (
+        body.contract !== "Be1ManagedProfileListV1"
+        || !Array.isArray(body.items)
+        || (body.next_cursor !== null && typeof body.next_cursor !== "string")
+        || !Number.isInteger(body.active_profile_count)
+        || (body.active_profile_count ?? -1) < 0
+      ) {
+        throw new TeacherRosterApiError("Dịch vụ trả danh sách không đúng định dạng cho Giáo viên.", "INVALID_RESPONSE", 200);
+      }
+      return body;
+    }, undefined, { retainLoadedOnError: true });
+
+    const seen = new Set<string>();
+    const items = pages.items.filter((profile) => {
+      if (seen.has(profile.child_id)) return false;
+      seen.add(profile.child_id);
+      return true;
+    });
+    const result = { items, activeProfileCount: pages.first.active_profile_count! };
+    if (pages.failure) throw new TeacherRosterPageError(pages.failure.cause, result);
+    return result;
   },
   /** A10, every page (T-7a cursor, newest first). */
   consents: async (organizationId: string, classId: string): Promise<TeacherConsent[]> => {
     const { items } = await collectCursorPages<TeacherConsent>((cursor) =>
       request<CursorPage<TeacherConsent>>(`${classPath(organizationId, classId)}/consents${pageQuery({ limit: CURSOR_PAGE_LIMIT, cursor })}`));
     return items;
+  },
+  recordConsent: async (organizationId: string, classId: string, input: TeacherConsentInput, key?: string): Promise<Pick<TeacherConsentRecord, "consent_id" | "state">> => {
+    const problem = consentInputProblem(input);
+    if (problem) throw new TeacherRosterApiError(problem, "INVALID_REQUEST", 400);
+    if (key !== undefined && !visibleAscii.test(key)) {
+      throw new TeacherRosterApiError("Khóa yêu cầu không hợp lệ.", "INVALID_IDEMPOTENCY_KEY", 400);
+    }
+    const headers = key === undefined ? undefined : { "Idempotency-Key": key };
+    const consent = await consentRequest<unknown>(classPath(organizationId, classId) + "/consents", {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        class_id: classId,
+        child_id: input.childId,
+        purpose_ref: input.purposeRef,
+        ...(input.evidenceRef === undefined ? {} : { evidence_ref: input.evidenceRef }),
+      }),
+    });
+    if (!isConsentRecord(consent)) {
+      throw consentResponseError();
+    }
+    return { consent_id: consent.consent_id, state: consent.state };
+  },
+  revokeConsent: async (organizationId: string, classId: string, consentId: string): Promise<TeacherConsentRevocation> => {
+    if (!consentId.trim() || consentId.length > 128) {
+      throw new TeacherRosterApiError("Không thể xác định consent cần thu hồi.", "INVALID_REQUEST", 400);
+    }
+    const consent = await consentRequest<TeacherConsentRevocation>(
+      classPath(organizationId, classId) + "/consents/" + enc(consentId) + "/revoke",
+      { method: "POST" },
+    );
+    if (!isConsentRevocation(consent, consentId)) throw consentResponseError();
+    return consent;
   },
   /** T-7c: synthetic profile create; the class is the path and its revision the strong If-Match. */
   createProfile: async (organizationId: string, classId: string, classRevision: number, input: ProfileInput, key: string): Promise<CreatedProfile> => {

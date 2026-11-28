@@ -5,8 +5,12 @@ import {
   PRIVATE_SHARE_GROUP_STATE_MESSAGE,
   PRIVATE_SHARE_NOT_FOUND_MESSAGE,
   PRIVATE_SHARE_VALIDATION_MESSAGE,
+  PRIVATE_SHARE_REVOKE_REQUEST_MESSAGE,
+  PRIVATE_SHARE_REVOKE_STALE_MESSAGE,
+  StaleAccessGrantRevisionError,
   type PrivateShareAudience,
   type PrivateShareInput,
+  revokeAccessGrant,
 } from "../lessonSharingApi";
 
 afterEach(() => {
@@ -64,7 +68,7 @@ function grant(audienceKind: string) {
 
 function request(fetcher: ReturnType<typeof setup>, index = 0) {
   const [url, init] = fetcher.mock.calls[index];
-  return { url, init, headers: new Headers(init.headers), body: JSON.parse(String(init.body)) as Record<string, unknown> };
+  return { url, init, headers: new Headers(init.headers), body: init.body === undefined ? undefined : JSON.parse(String(init.body)) as Record<string, unknown> };
 }
 
 describe("private lesson sharing API", () => {
@@ -130,5 +134,45 @@ describe("private lesson sharing API", () => {
     const other = await createPrivateShare("org-1", input("PRINCIPAL"), "key-6").catch((cause: unknown) => cause);
     expect((other as BackendApiError).message).not.toBe(PRIVATE_SHARE_GROUP_STATE_MESSAGE);
     expect(fetcher).toHaveBeenCalledTimes(6);
+  });
+
+  it("revokes with the quoted revision and action key, then parses the returned grant", async () => {
+    const revoked = { ...grant("ORGANIZATION"), state: "REVOKED", revision: 2 };
+    const fetcher = setup([response(200, revoked)]);
+
+    await expect(revokeAccessGrant("org /1", "lesson /1", "grant /1", 1, "revoke-key-1")).resolves.toEqual(revoked);
+
+    const sent = request(fetcher);
+    expect(new URL(sent.url).pathname).toBe("/api/lesson-library/v1/organizations/org%20%2F1/lessons/lesson%20%2F1/access-grants/grant%20%2F1");
+    expect(sent.init.method).toBe("DELETE");
+    expect(sent.headers.get("If-Match")).toBe('"1"');
+    expect(sent.headers.get("Idempotency-Key")).toBe("revoke-key-1");
+    expect(sent.headers.get("Authorization")).toBe("Bearer token-1");
+    expect(sent.init.body).toBeUndefined();
+  });
+
+  it("maps stale revoke revisions and preserves the current version for a retry", async () => {
+    setup([response(409, { detail: { code: "STALE_REVISION", current_version: 7 } })]);
+
+    const error = await revokeAccessGrant("org-1", "lesson-1", "grant-1", 2, "revoke-key-2").catch((cause: unknown) => cause);
+
+    expect(error).toBeInstanceOf(StaleAccessGrantRevisionError);
+    expect(error).toMatchObject({ status: 409, code: "STALE_REVISION", currentVersion: 7, message: PRIVATE_SHARE_REVOKE_STALE_MESSAGE });
+    expect((error as BackendApiError).message).not.toContain("STALE_REVISION");
+  });
+
+  it("maps missing grants uniformly and gives bad If-Match requests safe Vietnamese copy", async () => {
+    const fetcher = setup([
+      response(404, { detail: { code: "RESOURCE_NOT_FOUND" } }),
+      response(400, { detail: { code: "INVALID_IF_MATCH" } }),
+    ]);
+
+    await expect(revokeAccessGrant("org-1", "lesson-1", "grant-1", 1, "revoke-key-3"))
+      .rejects.toMatchObject({ status: 404, message: PRIVATE_SHARE_NOT_FOUND_MESSAGE });
+    await expect(revokeAccessGrant("org-1", "lesson-1", "grant-1", 0, "revoke-key-4"))
+      .rejects.toMatchObject({ status: 400, message: PRIVATE_SHARE_REVOKE_REQUEST_MESSAGE });
+    await expect(revokeAccessGrant("org-1", "lesson-1", "grant-1", 1, "revoke-key-5"))
+      .rejects.toMatchObject({ status: 400, message: PRIVATE_SHARE_REVOKE_REQUEST_MESSAGE });
+    expect(fetcher).toHaveBeenCalledTimes(2);
   });
 });

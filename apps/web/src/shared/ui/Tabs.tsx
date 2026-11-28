@@ -9,15 +9,18 @@ export function Tabs({
   value,
   onValueChange,
   label = "Sections",
+  idPrefix,
   className,
 }: {
   items: readonly TabItem[];
   value: string;
   onValueChange: (value: string) => void;
   label?: string;
+  idPrefix?: string;
   className?: string;
 }) {
-  const baseId = useId();
+  const generatedId = useId();
+  const baseId = idPrefix ?? generatedId;
   const refs = useRef<Array<HTMLButtonElement | null>>([]);
 
   function moveFocus(event: KeyboardEvent<HTMLButtonElement>, currentIndex: number) {
@@ -44,8 +47,9 @@ export function Tabs({
             key={item.value}
             type="button"
             role="tab"
-            id={`${baseId}-tab-${index}`}
+            id={idPrefix ? `${baseId}-tab-${item.value}` : `${baseId}-tab-${index}`}
             aria-selected={selected}
+            aria-controls={idPrefix ? `${baseId}-panel-${item.value}` : undefined}
             tabIndex={selected ? 0 : -1}
             disabled={item.disabled}
             onClick={() => onValueChange(item.value)}

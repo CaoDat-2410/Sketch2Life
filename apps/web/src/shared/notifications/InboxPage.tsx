@@ -43,20 +43,20 @@ export function InboxPage() {
         </section>
       )}
 
-      {(inbox.status === "ready" || hasItems) && (
+      {(inbox.status === "ready" || hasItems) && inbox.unreadCount > 0 && (
         <p className="s2l-empty-copy tw-meta" aria-label={`Thông báo chưa đọc: ${unreadLabel(inbox.unreadCount)}`}>
           Chưa đọc: <strong>{unreadLabel(inbox.unreadCount)}</strong>
         </p>
       )}
 
-      <p className={inbox.messageIsError ? "s2l-alert" : "s2l-empty-copy"} aria-live="polite">
-        {inbox.message}
-      </p>
+      {inbox.message ? (
+        <p className={inbox.messageIsError ? "s2l-alert" : "s2l-empty-copy"} aria-live="polite">
+          {inbox.message}
+        </p>
+      ) : null}
 
       {inbox.status === "ready" && !hasItems && (
-        <section className="s2l-data-card" aria-label="Hộp thư trống">
-          <p className="s2l-empty-copy">Hộp thư hiện đang trống.</p>
-        </section>
+        <p className="s2l-empty-copy">Hộp thư hiện đang trống.</p>
       )}
 
       {hasItems && (
