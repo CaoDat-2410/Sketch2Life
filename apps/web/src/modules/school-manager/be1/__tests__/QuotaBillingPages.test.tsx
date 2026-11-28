@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { MemoryRouter } from "react-router-dom";
 import { AdminBe1Error, adminBe1Request } from "../services/be1Client";
 import { managerBusinessService } from "../services/managerBusinessService";
-import { SchoolBillingPage } from "../pages/QuotaBillingPages";
+import { SchoolBillingPage, SchoolQuotaPage } from "../pages/QuotaBillingPages";
 
 vi.mock("../services/be1Client", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../services/be1Client")>();
@@ -30,13 +30,18 @@ function pendingInvoice(overrides: Record<string, unknown> = {}) {
   };
 }
 
-function mockInitialLoad(request: ReturnType<typeof vi.mocked<typeof adminBe1Request>>, invoices: unknown[]) {
+function mockInitialLoad(
+  request: ReturnType<typeof vi.mocked<typeof adminBe1Request>>,
+  invoices: unknown[],
+  allocations: unknown[] = [],
+  teachers: unknown[] = [],
+) {
   request
     .mockResolvedValueOnce({ owner_kind: "ORGANIZATION", available_units: 8, granted_units: 10, used_units: 2, grants: [], allocation: { allocated_unused_units: 0, available_school_units: 8, teachers: [] } } as never)
     .mockResolvedValueOnce({ items: [{ product_id: "product-1", offer_id: "offer-1", version: 1, display_name: "Gói mua thêm", offer_kind: "TOP_UP", cycle_months: null, units: 100, amount_vnd: 100000, active: true }] } as never)
     .mockResolvedValueOnce({ items: invoices, total: invoices.length } as never)
-    .mockResolvedValueOnce({ items: [], total: 0 } as never)
-    .mockResolvedValueOnce({ items: [] } as never)
+    .mockResolvedValueOnce({ items: allocations, total: allocations.length } as never)
+    .mockResolvedValueOnce({ items: teachers } as never)
     .mockResolvedValueOnce({ real_payments_enabled: true, momo_checkout_enabled: true, vnpay_checkout_enabled: false, momo_sandbox_enabled: true, vnpay_sandbox_enabled: true, monthly_auto_renew_enabled: false } as never);
 }
 
@@ -52,6 +57,37 @@ afterEach(() => {
 });
 
 describe("School billing payment lifecycle", () => {
+  it("explains scheduled renewal without exposing the English billing term", async () => {
+    mockOrganization();
+    const request = vi.mocked(adminBe1Request);
+    mockInitialLoad(request, []);
+    const { container } = render(<MemoryRouter><SchoolBillingPage /></MemoryRouter>);
+
+    expect(await screen.findByText(/tự động gia hạn chỉ mở khi cổng thanh toán hỗ trợ tính năng này/)).toBeTruthy();
+    expect(container.textContent).not.toContain("recurring");
+  });
+
+  it("uses the Teacher candidate name and masked-email labels for selects and allocation rows", async () => {
+    mockOrganization();
+    const request = vi.mocked(adminBe1Request);
+    mockInitialLoad(request, [], [
+      { allocation_id: "allocation-1", teacher_ref: "teacher-ccOMFV", available_units: 3, active: true, revision: 1, updated_at: null },
+      { allocation_id: "allocation-2", teacher_ref: "teacher-dd2PQR", available_units: 2, active: true, revision: 1, updated_at: null, display_name: null, email_masked: "ma***@school.test" },
+      { allocation_id: "allocation-3", teacher_ref: "teacher-ee3STU", available_units: 1, active: false, revision: 1, updated_at: null },
+    ], [
+      { teacher_ref: "teacher-ccOMFV", label: "ignored", display_name: "Cô Lan", email_masked: "l***@school.test" },
+      { teacher_ref: "teacher-dd2PQR", label: "ignored", display_name: null, email_masked: "ma***@school.test" },
+    ]);
+
+    render(<MemoryRouter><SchoolQuotaPage /></MemoryRouter>);
+
+    expect(await screen.findByText("Cô Lan · l***@school.test", { selector: "strong" })).toBeTruthy();
+    expect(screen.getByText("ma***@school.test", { selector: "strong" })).toBeTruthy();
+    expect(screen.getByText("Giáo viên chưa có tên hiển thị", { selector: "strong" })).toBeTruthy();
+    expect(screen.getByRole("option", { name: "Cô Lan · l***@school.test" })).toHaveProperty("value", "teacher-ccOMFV");
+    expect(screen.queryByText(/ccOMFV|dd2PQR/)).toBeNull();
+  });
+
   it("keeps an unresolved invoice open, explains that closing checkout does not cancel it, and blocks a duplicate purchase", async () => {
     mockOrganization();
     const request = vi.mocked(adminBe1Request);
@@ -111,7 +147,7 @@ describe("School billing payment lifecycle", () => {
     fireEvent.click(reconcile);
 
     expect(await screen.findByText(/VNPay chưa trả phản hồi đối soát có chữ ký hợp lệ/)).toBeTruthy();
-    expect(await screen.findByText(/Hóa đơn chưa chuyển trạng thái và quota chưa thay đổi/)).toBeTruthy();
+    expect(await screen.findByText(/Hóa đơn chưa chuyển trạng thái và hạn mức chưa thay đổi/)).toBeTruthy();
     await waitFor(() => expect(reconcile).toHaveProperty("disabled", true));
     expect(screen.getByRole("button", { name: "Thanh toán MoMo" })).toHaveProperty("disabled", true);
   });
@@ -150,7 +186,7 @@ describe("School billing payment lifecycle", () => {
 
     render(<MemoryRouter><SchoolBillingPage /></MemoryRouter>);
 
-    expect(await screen.findByText("Thanh toán đã được xác nhận; quota đã được cộng vào số dư trường.")).toBeTruthy();
+    expect(await screen.findByText("Thanh toán đã được xác nhận; hạn mức đã được cộng vào số dư trường.")).toBeTruthy();
     await waitFor(() => expect(window.location.search).toBe("") );
     expect(request).toHaveBeenCalledWith("/organizations/org-qa/video-quota/invoices?limit=50");
   });

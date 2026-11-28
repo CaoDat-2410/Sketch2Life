@@ -520,7 +520,7 @@ export function LessonsPage() {
                         <div className="pa-command-area">
                           {!canReview && (
                             <p className="pa-muted">
-                              Duyệt và xuất bản cần quyền Content Admin. Người
+                              Duyệt và xuất bản cần quyền Quản trị nội dung. Người
                               soạn không tự duyệt bài của mình.
                             </p>
                           )}
@@ -971,7 +971,7 @@ export function CatalogPage() {
                           </div>
                           {!canReview && (
                             <p className="pa-muted">
-                              Tài khoản cần quyền Content Admin để duyệt và xuất
+                              Tài khoản cần quyền Quản trị nội dung để duyệt và xuất
                               bản.
                             </p>
                           )}

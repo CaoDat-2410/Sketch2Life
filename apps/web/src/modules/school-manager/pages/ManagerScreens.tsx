@@ -14,6 +14,21 @@ import {
 
 type Toast = (text: string, kind?: "ok" | "info" | "warn" | "err") => void;
 
+function lessonTitle(detail: TeacherLessonDetail): string | null {
+  const title = detail.current_version.content?.title;
+  return typeof title === "string" && title.trim() ? title.trim() : null;
+}
+
+function grantStateLabel(state: string): string {
+  const labels: Record<string, string> = {
+    PENDING_REVIEW: "Chờ duyệt",
+    ACTIVE: "Đang hoạt động",
+    REVOKED: "Đã thu hồi",
+    EXPIRED: "Đã hết hạn",
+  };
+  return labels[state] ?? "Trạng thái chưa rõ";
+}
+
 function PageHeading({ eyebrow, title, description, actions }: {
   eyebrow: string;
   title: string;
@@ -55,6 +70,7 @@ function ManagerApiReviewPage({ showToast }: { showToast: Toast }) {
   const [grants, setGrants] = useState<AccessGrant[]>([]);
   const [selectedId, setSelectedId] = useState("");
   const [lesson, setLesson] = useState<TeacherLessonDetail | null>(null);
+  const [lessonTitles, setLessonTitles] = useState<Record<string, string | null>>({});
   const [reviewConfirmed, setReviewConfirmed] = useState(false);
   const [reason, setReason] = useState("");
   const [loadState, setLoadState] = useState<ReviewLoadState>("loading");
@@ -77,16 +93,17 @@ function ManagerApiReviewPage({ showToast }: { showToast: Toast }) {
     let active = true;
     setGrants([]);
     setSelectedId("");
+    setLessonTitles({});
     setNextCursor(null);
     setError(null);
     const organizationId = configuredOrganizationId();
     if (!hasFirebaseAuthBridge()) {
-      setError("Cần phiên Firebase đã xác thực để xác minh quyền School Manager.");
+      setError("Cần phiên Firebase đã xác thực để xác minh quyền Quản lý trường.");
       setLoadState("error");
       return () => { active = false; };
     }
     if (!organizationId) {
-      setError("Chưa cấu hình organization_id cho API duyệt công khai.");
+      setError("Chưa cấu hình tổ chức để xem yêu cầu duyệt công khai.");
       setLoadState("error");
       return () => { active = false; };
     }
@@ -95,7 +112,7 @@ function ManagerApiReviewPage({ showToast }: { showToast: Toast }) {
     backendApi.assignments(organizationId)
       .then((identity) => {
         if (!identity.assignments.some((assignment) => assignment.role === "school_admin" && assignment.active !== false)) {
-          throw new BackendApiError("Tài khoản không có assignment School Manager đang hoạt động trong tổ chức này.", "ROLE_MISMATCH", 403);
+          throw new BackendApiError("Tài khoản không có phân công Quản lý trường đang hoạt động trong trường này.", "ROLE_MISMATCH", 403);
         }
         return backendApi.accessGrants(organizationId, { state: "PENDING_REVIEW", audience_kind: "PUBLIC" });
       })
@@ -128,17 +145,52 @@ function ManagerApiReviewPage({ showToast }: { showToast: Toast }) {
     }
     const organizationId = configuredOrganizationId();
     if (!organizationId) {
-      setLessonError("Chưa cấu hình organization_id để tải nội dung giáo án.");
+      setLessonError("Chưa cấu hình trường để tải nội dung giáo án.");
       setLessonLoading(false);
       return () => { active = false; };
     }
     setLessonLoading(true);
     backendApi.teacherLesson(organizationId, selected.lesson_id)
-      .then((result) => { if (active) setLesson(result); })
-      .catch((cause: unknown) => { if (active) setLessonError(backendMessage(cause)); })
+      .then((result) => {
+        if (!active) return;
+        setLesson(result);
+        setLessonTitles((current) => ({ ...current, [result.lesson_id]: lessonTitle(result) }));
+      })
+      .catch((cause: unknown) => {
+        if (!active) return;
+        setLessonError(backendMessage(cause));
+        setLessonTitles((current) => ({ ...current, [selected.lesson_id]: null }));
+      })
       .finally(() => { if (active) setLessonLoading(false); });
     return () => { active = false; };
-  }, [selected?.access_grant_id, selected?.lesson_id, selected?.version_id, loadState]);
+  }, [selected, loadState]);
+
+  useEffect(() => {
+    if (loadState !== "ready" || grants.length === 0) return;
+    const organizationId = configuredOrganizationId();
+    if (!organizationId) return;
+    const missingLessonIds = Array.from(new Set(grants.map((grant) => grant.lesson_id)))
+      .filter((lessonId) => lessonId !== selected?.lesson_id && !Object.prototype.hasOwnProperty.call(lessonTitles, lessonId));
+    if (missingLessonIds.length === 0) return;
+
+    let active = true;
+    void Promise.all(missingLessonIds.map(async (lessonId) => {
+      try {
+        const detail = await backendApi.teacherLesson(organizationId, lessonId);
+        return [lessonId, lessonTitle(detail)] as const;
+      } catch {
+        return [lessonId, null] as const;
+      }
+    })).then((results) => {
+      if (!active) return;
+      setLessonTitles((current) => {
+        const next = { ...current };
+        results.forEach(([lessonId, title]) => { next[lessonId] = title; });
+        return next;
+      });
+    });
+    return () => { active = false; };
+  }, [grants, lessonTitles, loadState, selected?.lesson_id]);
 
   const loadMore = async () => {
     const cursor = nextCursor;
@@ -162,6 +214,12 @@ function ManagerApiReviewPage({ showToast }: { showToast: Toast }) {
     }
   };
 
+  const queueTitle = (grant: AccessGrant, index: number) =>
+    grant.lesson_title?.trim() || lessonTitles[grant.lesson_id] || `Giáo án chờ duyệt ${index + 1}`;
+  const selectedIndex = selected ? grants.findIndex((grant) => grant.access_grant_id === selected.access_grant_id) : -1;
+  const selectedTitle = selected?.lesson_title?.trim()
+    || (selected && lesson?.lesson_id === selected.lesson_id ? lessonTitle(lesson) : null);
+
   const decide = async (decision: "APPROVE" | "REQUEST_CHANGES") => {
     if (!selected || !canReview || (decision === "APPROVE" && !reviewConfirmed)) return;
     const normalizedReason = reason.trim();
@@ -178,11 +236,11 @@ function ManagerApiReviewPage({ showToast }: { showToast: Toast }) {
     try {
       await backendApi.decideAccessGrant(organizationId, selected, decision, normalizedReason || undefined, idempotencyKey);
       decisionKeys.current.delete(signature);
-      showToast(decision === "APPROVE" ? "API đã nhận quyết định duyệt grant PUBLIC." : "API đã nhận yêu cầu chỉnh sửa cho grant PUBLIC.", "ok");
+      showToast(decision === "APPROVE" ? "Đã ghi nhận quyết định duyệt học liệu công khai." : "Đã gửi yêu cầu chỉnh sửa học liệu công khai.", "ok");
       setReload((value) => value + 1);
     } catch (cause) {
       setDecisionError(backendMessage(cause));
-      showToast("API chưa xác nhận quyết định. Kiểm tra trạng thái trước khi gửi lại.", "err");
+      showToast("Chưa xác nhận được quyết định. Hãy kiểm tra trạng thái trước khi gửi lại.", "err");
     } finally {
       setBusy(false);
     }
@@ -192,7 +250,7 @@ function ManagerApiReviewPage({ showToast }: { showToast: Toast }) {
     <PageHeading
       eyebrow="HỌC LIỆU / QUYỀN CÔNG KHAI"
       title="Duyệt học liệu công khai"
-      description="Xem nội dung đúng immutable version được gửi duyệt trước khi ra quyết định. Màn này không tải media hoặc story của trẻ."
+      description="Xem nội dung đúng phiên bản cố định được gửi duyệt trước khi ra quyết định. Màn này không tải ảnh, video hoặc câu chuyện của trẻ."
       actions={<button type="button" className="manager-button is-outline" disabled={loadState === "loading" || busy} onClick={() => setReload((value) => value + 1)}><MgIcon name="refresh" size={16} variant="navigation" /> Tải lại</button>}
     />
   );
@@ -201,22 +259,22 @@ function ManagerApiReviewPage({ showToast }: { showToast: Toast }) {
     <div className="manager-page">
       {pageHeading}
       {error && <StatusPanel title="Không tải hoặc cập nhật được hàng đợi" kind="error">{error}</StatusPanel>}
-      {loadState === "loading" && <StatusPanel title="Đang xác minh quyền và hàng đợi" kind="loading">Đang kiểm tra assignment School Manager, sau đó đọc grant PUBLIC đang chờ.</StatusPanel>}
+      {loadState === "loading" && <StatusPanel title="Đang xác minh quyền và hàng đợi" kind="loading">Đang tải danh sách yêu cầu công khai đang chờ duyệt.</StatusPanel>}
       {pageError && <StatusPanel title="Không tải được trang tiếp theo" kind="error">{pageError}</StatusPanel>}
 
-      <div className="manager-review-counts" aria-label="Tóm tắt trạng thái review">
+      <div className="manager-review-counts" aria-label="Tóm tắt trạng thái duyệt">
         <div><span className="manager-count-dot is-pending" aria-hidden="true" /><strong>{loadState === "ready" ? grants.length : "—"}</strong><span>Yêu cầu đang hiển thị · chờ duyệt</span></div>
-        <div><span className="manager-count-dot is-approved" aria-hidden="true" /><strong>Chưa có API tổng hợp</strong><span>Đã duyệt</span></div>
-        <div><span className="manager-count-dot is-changes" aria-hidden="true" /><strong>Chưa có API tổng hợp</strong><span>Yêu cầu chỉnh sửa</span></div>
+        <div><span className="manager-count-dot is-approved" aria-hidden="true" /><strong>—</strong><span>Đã duyệt</span></div>
+        <div><span className="manager-count-dot is-changes" aria-hidden="true" /><strong>—</strong><span>Yêu cầu chỉnh sửa</span></div>
       </div>
 
-      {loadState === "ready" && grants.length === 0 && <StatusPanel kind="empty" title="Không có grant PUBLIC đang chờ">API không trả về grant ở trạng thái PENDING_REVIEW trong trang hiện tại.</StatusPanel>}
+      {loadState === "ready" && grants.length === 0 && <StatusPanel kind="empty" title="Chưa có yêu cầu công khai đang chờ">Hiện chưa có học liệu công khai nào đang chờ duyệt.</StatusPanel>}
       {loadState === "ready" && grants.length > 0 && (
         <div className="manager-review-grid">
           <section className="manager-section-card manager-review-queue" aria-labelledby="manager-review-queue-title">
             <div className="manager-section-heading"><div><p className="manager-eyebrow"><span aria-hidden="true" />HÀNG ĐỢI</p><h2 id="manager-review-queue-title">Đang chờ quyết định</h2></div><span className="manager-count-tag">{grants.length}</span></div>
             <div className="manager-review-list">
-              {grants.map((grant) => (
+              {grants.map((grant, index) => (
                 <button
                   type="button"
                   key={grant.access_grant_id}
@@ -226,7 +284,7 @@ function ManagerApiReviewPage({ showToast }: { showToast: Toast }) {
                   onClick={() => { setSelectedId(grant.access_grant_id); setReviewConfirmed(false); setReason(""); }}
                 >
                   <span className="manager-review-item-icon" aria-hidden="true"><MgIcon name="book" size={19} variant="navigation" /></span>
-                  <span className="manager-review-item-copy"><strong>{grant.lesson_id}</strong><span>Phiên bản {grant.version_id}</span></span>
+                  <span className="manager-review-item-copy"><strong>{queueTitle(grant, index)}</strong><span>Phiên bản {grant.version_no ?? "—"}</span></span>
                   <span className="manager-status-tag is-pending">Chờ duyệt</span>
                 </button>
               ))}
@@ -236,19 +294,18 @@ function ManagerApiReviewPage({ showToast }: { showToast: Toast }) {
 
           {selected && <section className="manager-section-card cozy-form-card manager-review-detail" aria-labelledby="manager-review-detail-title">
             <div className="manager-section-heading manager-review-detail-heading">
-              <div><p className="manager-eyebrow"><span aria-hidden="true" />CHI TIẾT GRANT</p><h2 id="manager-review-detail-title">{content?.title ?? `Giáo án ${selected.lesson_id}`}</h2></div>
-              <span className="manager-status-tag is-pending">PUBLIC · {selected.state}</span>
+              <div><p className="manager-eyebrow"><span aria-hidden="true" />CHI TIẾT YÊU CẦU DUYỆT</p><h2 id="manager-review-detail-title">{selectedTitle ?? queueTitle(selected, Math.max(0, selectedIndex))}</h2></div>
+              <span className="manager-status-tag is-pending">Công khai · {grantStateLabel(selected.state)}</span>
             </div>
             <div className="manager-review-meta">
-              <div><span>Phiên bản trong grant</span><strong>{selected.version_id}</strong></div>
-              <div><span>Phiên bản hiện tại</span><strong>{lesson ? lesson.current_version.version_id : lessonLoading ? "Đang tải…" : "Chưa tải được"}</strong></div>
-              <div><span>Revision</span><strong>{selected.revision}</strong></div>
+              <div><span>Phiên bản được yêu cầu</span><strong>{selected.version_no ?? "—"}</strong></div>
+              <div><span>Phiên bản hiện tại</span><strong>{lesson ? lesson.current_version.version_no : lessonLoading ? "Đang tải…" : "Chưa tải được"}</strong></div>
             </div>
-            <div className="manager-privacy-note"><MgIcon name="lock" size={17} variant="navigation" /> Chỉ structured content của giáo án; không tải media/story của trẻ.</div>
-            {lessonLoading && <StatusPanel kind="loading" title="Đang tải chi tiết giáo án">Đang so sánh current version từ API với version_id trong grant.</StatusPanel>}
+            <div className="manager-privacy-note"><MgIcon name="lock" size={17} variant="navigation" /> Chỉ hiển thị nội dung giáo án; không tải ảnh, video hay câu chuyện của trẻ.</div>
+            {lessonLoading && <StatusPanel kind="loading" title="Đang tải chi tiết giáo án">Đang so sánh phiên bản hiện tại với phiên bản được yêu cầu.</StatusPanel>}
             {lessonError && <StatusPanel kind="error" title="Không tải được nội dung">{lessonError}</StatusPanel>}
-            {!lessonLoading && lesson && lesson.current_version.version_id !== selected.version_id && <StatusPanel kind="warning" title="Grant trỏ tới phiên bản cũ">API hiện chỉ trả current version ({lesson.current_version.version_id}); grant yêu cầu {selected.version_id}. Chưa có GET-by-version nên không thể xem hoặc ra quyết định.</StatusPanel>}
-            {!lessonLoading && versionMatches && !content && <StatusPanel kind="warning" title="API chưa trả structured content">Không có nội dung để rà; thao tác quyết định vẫn bị khóa.</StatusPanel>}
+            {!lessonLoading && lesson && lesson.current_version.version_id !== selected.version_id && <StatusPanel kind="warning" title="Yêu cầu duyệt dùng phiên bản cũ">Hiện chỉ xem được phiên bản mới nhất (phiên bản {lesson.current_version.version_no}); yêu cầu này gắn với phiên bản {selected.version_no ?? "không xác định"}. Không thể mở hoặc quyết định dựa trên phiên bản cũ.</StatusPanel>}
+            {!lessonLoading && versionMatches && !content && <StatusPanel kind="warning" title="Chưa có nội dung giáo án">Không có nội dung để rà; thao tác quyết định vẫn bị khóa.</StatusPanel>}
             {content && <div className="manager-lesson-content">
               <div className="manager-content-block"><span>Chủ đề</span><p>{content.topic}</p></div>
               <div className="manager-content-block"><span>Mục tiêu</span><ul>{content.objectives.map((objective, index) => <li key={`${index}-${objective}`}>{objective}</li>)}</ul></div>
@@ -260,7 +317,7 @@ function ManagerApiReviewPage({ showToast }: { showToast: Toast }) {
               <div className="cozy-form-field">
                 <label className={`manager-confirm-row${!canReview ? " is-disabled" : ""}`}>
                   <input type="checkbox" checked={reviewConfirmed} disabled={!canReview || busy} onChange={(event) => setReviewConfirmed(event.target.checked)} />
-                  <span>Tôi đã rà đúng nội dung của phiên bản trong grant.</span>
+                  <span>Tôi đã rà đúng nội dung giáo án của phiên bản được yêu cầu.</span>
                 </label>
                 {canReview && !reviewConfirmed && (
                   <p className="cozy-form-hint" style={{ marginTop: 0 }}>
@@ -284,7 +341,7 @@ function ManagerApiReviewPage({ showToast }: { showToast: Toast }) {
                   Duyệt công khai
                 </Button>
               </div>
-              <p className="manager-counter-boundary">Danh sách API hiện chỉ cung cấp grant đang chờ. Bộ đếm lịch sử “Đã duyệt” và “Yêu cầu chỉnh sửa” không được suy ra từ hàng đợi này.</p>
+              <p className="manager-counter-boundary">Danh sách này chỉ gồm yêu cầu đang chờ duyệt.</p>
             </form>
           </section>}
         </div>

@@ -41,13 +41,14 @@ function fixtureFetch() {
     if (path.endsWith("/audit/retention")) return response({ retention_days: 365, revision: 2, total_entries: 10, eligible_count: 2, oldest_entry_at: "2025-01-01T00:00:00Z", newest_entry_at: "2026-11-20T07:00:00Z", last_purged_at: null, last_purged_count: 0 });
     if (path.endsWith("/audit")) return response({ items: [{ audit_id: "audit-smoke-01", action: "REVIEW", resource_type: "lesson", resource_id: "lesson-smoke", actor_ref: "admin-smoke", organization_id: "platform", created_at: "2026-11-20T07:00:00Z", decision: "allow" }], total: 1, next_cursor: null });
     if (path.endsWith("/organizations") && method === "GET") return response({ items: [school], total: 1, limit: 25, next_cursor: null });
-    if (path.endsWith("/feedback/thread-smoke-01")) return response({ thread_id: "thread-smoke-01", revision: 1, lesson_id: "lesson-smoke-01", next_cursor: null, items: [{ message_id: "message-smoke-01", body: "Nội dung trao đổi mẫu.", from_you: false, created_at: "2026-11-20T07:00:00Z" }] });
-    if (path.endsWith("/feedback")) return response({ items: [{ thread_id: "thread-smoke-01", lesson_id: "lesson-smoke-01", revision: 1, created_at: "2026-11-20T07:00:00Z" }], total: 1, next_cursor: null });
+    if (path.endsWith("/feedback/thread-smoke-01")) return response({ thread_id: "thread-smoke-01", revision: 1, lesson_id: "lesson-smoke-01", lesson_title: "Hạt mầm lớn lên", version_no: 2, next_cursor: null, items: [{ message_id: "message-smoke-01", body: "Nội dung trao đổi mẫu.", from_you: false, author_role: "parent", author_display_name: "Phụ huynh Lan", created_at: "2026-11-20T07:00:00Z" }] });
+    if (path.endsWith("/feedback")) return response({ items: [{ thread_id: "thread-smoke-01", lesson_id: "lesson-smoke-01", lesson_title: "Hạt mầm lớn lên", version_no: 2, revision: 1, created_at: "2026-11-20T07:00:00Z" }], total: 1, next_cursor: null });
     if (path.endsWith("/catalog") && method === "GET") return response({ items: [catalogRecord], total: 1, next_cursor: null });
     if (path.includes("/catalog/")) return response(catalogRecord);
     if (path.endsWith("/settings")) return response({ environment: "Preview", real_payments_enabled: false, billing_sandbox_enabled: true, smtp_configured: true, preferences: { locale: "vi-VN", email_notifications: true, revision: 1 } });
     if (path.endsWith("/billing/sandbox/invoices")) return response({ items: [{ invoice_id: "invoice-smoke-01", owner_kind: "ORGANIZATION", owner_ref: school.organization_id, offer_id: "offer-smoke-01", units: 100, amount_vnd: 50000, state: "PAID", revision: 1 }], total: 1, next_cursor: null });
     if (path.endsWith("/billing/sandbox/offers")) return response({ items: [{ offer_id: "offer-smoke-01", owner_kind: "ORGANIZATION", units: 100, amount_vnd: 50000 }], total: 1, next_cursor: null });
+    if (path.endsWith("/billing/sandbox/quota")) return response({ available_units: 42, granted_units: 50, used_units: 8, grants: [] });
     if (path.endsWith("/billing/quota")) return response({ available_units: 42, granted_units: 50, used_units: 8, owner_kind: "ORGANIZATION", owner_ref: school.organization_id, grants: [{ grant_id: "grant-smoke-01", kind: "included", units: 50, used: 8, available: 42, expires_at: null }] });
     if (path.endsWith("/billing/sandbox/subscriptions")) return response({ items: [{ subscription_id: "sub-smoke-01", organization_ref: school.organization_id, capacity: 10, addon_slots: 2, revision: 1, state: "active", period_end: "2026-12-20T00:00:00Z", scheduled_addon_slots: null, suspended_class_refs: [] }], total: 1, next_cursor: null });
     if (path.endsWith("/billing/sandbox/capacity-prices")) return response({ items: [{ price_id: "price-smoke-01", cycle_months: 1, base_amount_vnd: 200000, slot_amount_vnd: 20000 }], total: 1, next_cursor: null });
@@ -74,7 +75,7 @@ describe("Platform Admin page data and interactions", () => {
     const fetch = fixtureFetch();
     vi.stubGlobal("fetch", fetch);
     mount("audit");
-    fireEvent.click(await screen.findByText(/Chính sách lưu nhật ký/));
+    fireEvent.click(await screen.findByText(/Chính sách lưu nhật ký/, { selector: "summary" }));
     fireEvent.click(await screen.findByRole("button", { name: "Xem trước bản ghi đến hạn" }));
     expect(await screen.findByText("2 bản ghi đã quá hạn")).toBeTruthy();
     await waitFor(() => expect(fetch.mock.calls.some(([input]) => String(input).includes("/audit/retention/preview"))).toBe(true));
@@ -100,8 +101,9 @@ describe("Platform Admin page data and interactions", () => {
   it("opens a feedback thread and shows its message", async () => {
     vi.stubGlobal("fetch", fixtureFetch());
     mount("feedback", "&org=org-smoke-01");
-    fireEvent.click(await screen.findByRole("button", { name: /Phản hồi thread/ }));
+    fireEvent.click(await screen.findByRole("button", { name: /Giáo án Hạt mầm lớn lên/ }));
     expect(await screen.findByText("Nội dung trao đổi mẫu.")).toBeTruthy();
+    expect(screen.getByText("Phụ huynh Lan · Phụ huynh")).toBeTruthy();
     expect(screen.getByLabelText("Phản hồi của bạn")).toBeTruthy();
   });
 
@@ -113,12 +115,33 @@ describe("Platform Admin page data and interactions", () => {
     expect(screen.getByText("Cách thực hiện")).toBeTruthy();
   });
 
-  it("opens the test invoice form from billing", async () => {
+  it("opens the invoice thử nghiệm form from billing", async () => {
     vi.stubGlobal("fetch", fixtureFetch());
     mount("billing");
-    fireEvent.click(await screen.findByRole("button", { name: /Tạo hóa đơn test/ }));
+    fireEvent.click(await screen.findByRole("button", { name: /Tạo hóa đơn thử nghiệm/ }));
     expect(await screen.findByRole("heading", { name: "Tạo hóa đơn thử nghiệm" })).toBeTruthy();
     expect(screen.getByLabelText("Phạm vi")).toBeTruthy();
+  });
+
+  it("uses Vietnamese terms across the sandbox billing screen", async () => {
+    const fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const href = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+      const url = new URL(href, "http://localhost");
+      if (url.pathname.endsWith("/billing/sandbox/invoices")) return response({ items: [{ invoice_id: "invoice-pending-01", owner_kind: "ORGANIZATION", owner_ref: school.organization_id, offer_id: "offer-smoke-01", units: 100, amount_vnd: 50000, state: "PENDING", revision: 1 }], total: 1, next_cursor: null });
+      return fixtureFetch()(input, init);
+    });
+    vi.stubGlobal("fetch", fetch);
+    const billing = mount("billing");
+
+    fireEvent.click(await screen.findByRole("button", { name: /Tạo hóa đơn thử nghiệm/ }));
+    expect(await screen.findByRole("button", { name: "Kiểm tra thanh toán" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Kiểm tra thanh toán" }));
+    expect(await screen.findByRole("button", { name: "Ghi nhận thanh toán thử nghiệm" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Đóng" }));
+    fireEvent.click(screen.getByRole("button", { name: "Tạo gói hạn mức" }));
+    expect(await screen.findByLabelText("Giá thử nghiệm (VND)")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Tạo gói thử nghiệm" })).toBeTruthy();
+    expect(billing.container.textContent).not.toMatch(/\btest\b|\boffer\b|\baudit\b/i);
   });
 
   it("loads quota after selecting a school", async () => {
@@ -130,11 +153,41 @@ describe("Platform Admin page data and interactions", () => {
     expect(screen.getByText("Còn khả dụng").closest("div")?.textContent).toContain("42");
   });
 
-  it("opens the capacity price form while showing the active subscription", async () => {
+  it("opens the capacity price form while showing the active subscription and polished form controls", async () => {
     vi.stubGlobal("fetch", fixtureFetch());
     mount("capacity");
     expect((await screen.findAllByText(school.display_name)).length).toBeGreaterThan(0);
-    fireEvent.click(screen.getByRole("button", { name: /Tạo bảng giá test/ }));
+    expect(screen.getByText("Chạy thử")).toBeTruthy();
+    expect(screen.getByRole("combobox", { name: "Bảng giá" }).className).toContain("is-placeholder");
+    const slotsInput = screen.getByLabelText("Số lớp bổ sung");
+    expect(slotsInput.getAttribute("aria-describedby")).toBeTruthy();
+    expect(screen.getByText(/Ngoài 10 lớp cơ bản/)).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Tạo báo giá cho trường" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /\+ Thêm bảng giá/ }));
     expect(await screen.findByRole("heading", { name: "Bảng giá mới" })).toBeTruthy();
+  });
+
+  it("shows empty capacity guidance and zero-price hint pointing to + Thêm bảng giá", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL) => {
+        const path = new URL(String(input), "http://localhost").pathname;
+        if (path.endsWith("/settings")) {
+          return response({
+            environment: "local",
+            real_payments_enabled: false,
+            billing_sandbox_enabled: true,
+            smtp_configured: true,
+            preferences: { locale: "vi-VN", email_notifications: true, revision: 1 },
+          });
+        }
+        return response({ items: [], total: 0, next_cursor: null });
+      }),
+    );
+    const { container } = mount("capacity");
+    expect(await screen.findByText("Chưa có gói sức chứa")).toBeTruthy();
+    expect(await screen.findByText(/Chưa có bảng giá nào\. Nhấn "\+ Thêm bảng giá"/)).toBeTruthy();
+    expect(container.querySelector(".pa-capacity-table-panel table")).toBeNull();
+    expect(container.querySelector(".pa-capacity-table-panel .s2l-empty-state")).toBeTruthy();
   });
 });

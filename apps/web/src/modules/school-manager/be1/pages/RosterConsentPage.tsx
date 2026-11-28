@@ -5,6 +5,7 @@ import { Alert, EmptyState, FormField, Select, StatCard, StatusBadge, type Statu
 import { classService, classStateLabel, type Be1Class } from "../services/classService";
 import { AdminBe1Error } from "../services/be1Client";
 import { TeacherAssignmentCard } from "./TeacherAssignmentCard";
+import "../styles/manager-business.css";
 import {
   managerBusinessService,
   type Be1ManagerConsentStatus,
@@ -24,19 +25,14 @@ function rosterErrorMessage(cause: unknown, fallback: string) {
 }
 
 function consentStateLabel(state: string) {
-  // The backend stores lower-case states; compare case-insensitively.
-  const key = state.toUpperCase();
-  if (key === "ACTIVE" || key === "EFFECTIVE") return "Đã ghi nhận";
-  if (key === "PENDING") return "Đang chờ xác nhận";
-  if (key === "REVOKED") return "Đã thu hồi";
-  return state;
+  if (state === "pending") return "Đang chờ xác nhận";
+  if (state === "revoked") return "Đã thu hồi";
+  return "Trạng thái không xác định";
 }
 
 function consentStateTone(state: string): StatusTone {
-  const key = state.toUpperCase();
-  if (key === "ACTIVE" || key === "EFFECTIVE") return "success";
-  if (key === "PENDING") return "warn";
-  if (key === "REVOKED") return "danger";
+  if (state === "pending") return "warn";
+  if (state === "revoked") return "danger";
   return "neutral";
 }
 
@@ -54,6 +50,11 @@ export function RosterConsentPage() {
   const [consents, setConsents] = useState<Be1ManagerConsentStatus[]>([]);
   const [consentState, setConsentState] = useState<LoadState>("idle");
   const [consentError, setConsentError] = useState("");
+  const [pendingRevoke, setPendingRevoke] = useState<{ classId: string; consentId: string; rowNumber: number } | null>(null);
+  const [revokingConsentId, setRevokingConsentId] = useState<string | null>(null);
+  const revocationLockRef = useRef(false);
+  const [consentActionError, setConsentActionError] = useState("");
+  const [consentActionMessage, setConsentActionMessage] = useState("");
 
   useEffect(() => {
     let current = true;
@@ -72,6 +73,9 @@ export function RosterConsentPage() {
         setConsents([]);
         setProfileError("");
         setConsentError("");
+        setPendingRevoke(null);
+        setConsentActionError("");
+        setConsentActionMessage("");
         setProfileState(nextSelected ? "loading" : "idle");
         setConsentState(nextSelected ? "loading" : "idle");
         setClassError("");
@@ -82,7 +86,7 @@ export function RosterConsentPage() {
         setClasses([]);
         selectedClassIdRef.current = "";
         setSelectedClassId("");
-        setClassError(errorMessage(cause, "Không tải được danh sách lớp từ BE1."));
+        setClassError(errorMessage(cause, "Không tải được danh sách lớp."));
         setProfileState("idle");
         setConsentState("idle");
         setClassState("error");
@@ -105,7 +109,7 @@ export function RosterConsentPage() {
       .catch((cause: unknown) => {
         if (!controller.signal.aborted) {
           setProfileCount(null);
-          setProfileError(rosterErrorMessage(cause, "Không tải được roster từ BE1."));
+          setProfileError(rosterErrorMessage(cause, "Không tải được danh sách."));
           setProfileState("error");
         }
       });
@@ -120,7 +124,7 @@ export function RosterConsentPage() {
       .catch((cause: unknown) => {
         if (!controller.signal.aborted) {
           setConsents([]);
-          setConsentError(errorMessage(cause, "Không tải được trạng thái consent từ BE1."));
+          setConsentError(errorMessage(cause, "Không tải được trạng thái đồng ý."));
           setConsentState("error");
         }
       });
@@ -129,12 +133,14 @@ export function RosterConsentPage() {
   }, [reloadCount, selectedClassId]);
 
   const selectedClass = classes.find((item) => item.class_id === selectedClassId);
-  const recordedConsentCount = consents.filter((item) => ["ACTIVE", "EFFECTIVE"].includes(item.state.toUpperCase())).length;
-  const pendingConsentCount = consents.filter((item) => item.state.toUpperCase() === "PENDING").length;
-  const revokedConsentCount = consents.filter((item) => item.state.toUpperCase() === "REVOKED").length;
+  const pendingConsentCount = consents.filter((item) => item.state === "pending").length;
+  const revokedConsentCount = consents.filter((item) => item.state === "revoked").length;
   const changeSelectedClass = (classId: string) => {
     selectedClassIdRef.current = classId;
     setSelectedClassId(classId);
+    setPendingRevoke(null);
+    setConsentActionError("");
+    setConsentActionMessage("");
     setProfileCount(null);
     setConsents([]);
     setProfileError("");
@@ -143,12 +149,55 @@ export function RosterConsentPage() {
     setConsentState(classId ? "loading" : "idle");
   };
 
+  const reloadConsents = async (classId: string) => {
+    const next = await managerBusinessService.consents(classId);
+    if (selectedClassIdRef.current === classId) {
+      setConsents(next);
+      setConsentState("loaded");
+      setConsentError("");
+    }
+  };
+
+  const confirmRevoke = async () => {
+    if (!pendingRevoke || revocationLockRef.current) return;
+    const { classId, consentId } = pendingRevoke;
+    revocationLockRef.current = true;
+    setRevokingConsentId(consentId);
+    setConsentActionError("");
+    setConsentActionMessage("");
+    try {
+      await managerBusinessService.revokeConsent(classId, consentId);
+      setConsentActionMessage("Đã thu hồi bản ghi.");
+      try {
+        await reloadConsents(classId);
+      } catch {
+        if (selectedClassIdRef.current === classId) {
+          setConsentState("error");
+          setConsentError("Đã thu hồi bản ghi nhưng không tải lại được danh sách.");
+        }
+      }
+    } catch (cause) {
+      const status = cause instanceof AdminBe1Error ? cause.status : 0;
+      setConsentActionError(status === 404 ? "Không tìm thấy bản ghi"
+        : status === 403 ? "Không có quyền"
+        : status === 0 ? "Chưa rõ kết quả, hãy tải lại"
+        : "Không thể thu hồi bản ghi. Hãy tải lại danh sách.");
+      if (status !== 403 && status !== 0) {
+        try { await reloadConsents(classId); } catch { /* Keep the safe not-found message visible. */ }
+      }
+    } finally {
+      revocationLockRef.current = false;
+      setRevokingConsentId(null);
+      setPendingRevoke(null);
+    }
+  };
+
   return (
     <div className="s2l-page manager-business-page">
       <PageHeading
-        eyebrow="School Manager · BE1"
-        title="Roster & consent"
-        description="Chỉ hiển thị trường tối thiểu backend trả về; màn này không đọc ảnh, media hoặc story."
+        eyebrow="Quản lý trường"
+        title="Danh sách lớp & đồng ý"
+        description="Hiển thị sĩ số và trạng thái xác nhận tối thiểu theo lớp; không đọc ảnh, video hoặc nội dung câu chuyện."
         action={
           <button
             type="button"
@@ -178,9 +227,9 @@ export function RosterConsentPage() {
         {classState === "loading" ? (
           <Alert role="status">Đang tải lớp được cấp quyền…</Alert>
         ) : classState === "error" ? (
-          <Alert role="status" tone="warning">Không thể chọn lớp khi danh sách BE1 chưa tải được.</Alert>
+          <Alert role="status" tone="warning">Không thể chọn lớp khi chưa tải được danh sách lớp.</Alert>
         ) : classes.length === 0 ? (
-          <EmptyState title="Organization chưa có lớp được cấp quyền. Roster và consent chỉ tải sau khi chọn một lớp." />
+          <EmptyState title="Trường chưa có lớp nào được cấp quyền. Sĩ số và xác nhận chỉ tải sau khi chọn một lớp." />
         ) : (
           <div className="cozy-form-grid">
             <FormField
@@ -201,9 +250,9 @@ export function RosterConsentPage() {
             {selectedClass && (
               <div className="cozy-span-3 cozy-form-field" style={{ alignSelf: "end" }}>
                 <p className="s2l-note" style={{ margin: 0 }}>
-                  Trạng thái lớp từ BE1: {classStateLabel(selectedClass.state)}
+                  Trạng thái lớp: {classStateLabel(selectedClass.state)}
                   {selectedClass.state === "suspended" ? " · Lớp tạm ngưng chỉ đọc, mọi dữ liệu vẫn được giữ." : ""}
-                  {selectedClass.state === "archived" ? " · Lớp đã lưu trữ; chỉ School Manager còn xem được." : ""}
+                  {selectedClass.state === "archived" ? " · Lớp đã lưu trữ; chỉ Quản lý trường còn xem được." : ""}
                 </p>
               </div>
             )}
@@ -212,9 +261,8 @@ export function RosterConsentPage() {
       </section>
 
       {selectedClassId && <>
-        <section className="manager-business-stats manager-business-roster-stats" aria-label="Thống kê hồ sơ và consent">
+        <section className="manager-business-stats manager-business-roster-stats" aria-label="Thống kê hồ sơ và đồng ý">
           <StatCard label="Hồ sơ đang hoạt động" value={profileCount ?? "—"} accent="primary" loading={profileState === "loading"} />
-          <StatCard label="Đã ghi nhận" value={consentState === "loaded" ? recordedConsentCount : "—"} accent="mint" loading={consentState === "loading"} />
           <StatCard label="Đang chờ xác nhận" value={consentState === "loaded" ? pendingConsentCount : "—"} accent="butter" loading={consentState === "loading"} />
           <StatCard label="Đã thu hồi" value={consentState === "loaded" ? revokedConsentCount : "—"} accent="coral" loading={consentState === "loading"} />
         </section>
@@ -223,12 +271,12 @@ export function RosterConsentPage() {
           <article className="manager-business-card">
             <div className="manager-business-card-heading">
               <div>
-                <p className="manager-business-eyebrow">GET · BE1</p>
-                <h2><Users size={18} aria-hidden="true" /> Tóm tắt roster</h2>
+                <p className="manager-business-eyebrow">Sĩ số lớp</p>
+                <h2><Users size={18} aria-hidden="true" /> Tóm tắt danh sách</h2>
               </div>
             </div>
             {profileState === "loading" ? (
-              <Alert role="status">Đang kiểm tra quyền và tải tóm tắt roster…</Alert>
+              <Alert role="status">Đang kiểm tra quyền và tải tóm tắt danh sách…</Alert>
             ) : profileState === "error" ? (
               <Alert role="alert" tone="danger">{profileError}</Alert>
             ) : profileState === "loaded" && profileCount !== null ? (
@@ -236,49 +284,87 @@ export function RosterConsentPage() {
                 <strong>{profileCount}</strong> hồ sơ đang hoạt động trong lớp
               </p>
             ) : (
-              <p className="manager-business-state">Chọn lớp để đọc tóm tắt roster.</p>
+              <p className="manager-business-state">Chọn lớp để đọc tóm tắt danh sách.</p>
             )}
-            <p className="manager-business-subtle">School Manager chỉ xem số hồ sơ; không hiển thị tên, tuổi, mã hồ sơ, ảnh, media hoặc nội dung story.</p>
+            <p className="manager-business-subtle">Quản lý trường chỉ xem số hồ sơ; không hiển thị tên, tuổi, mã hồ sơ, ảnh, video hoặc nội dung câu chuyện.</p>
           </article>
 
           <article className="manager-business-card">
             <div className="manager-business-card-heading">
               <div>
-                <p className="manager-business-eyebrow">GET · BE1</p>
-                <h2>Trạng thái consent</h2>
+                <p className="manager-business-eyebrow">Xác nhận phụ huynh</p>
+                <h2>Trạng thái đồng ý</h2>
               </div>
               {consentState === "loaded" && <span className="manager-business-chip">{consents.length} bản ghi</span>}
             </div>
+            {consentActionError && <Alert role="alert" tone="danger">{consentActionError}</Alert>}
+            {consentActionMessage && <Alert role="status">{consentActionMessage}</Alert>}
             {consentState === "loading" ? (
-              <Alert role="status">Đang tải trạng thái consent…</Alert>
+              <Alert role="status">Đang tải trạng thái đồng ý…</Alert>
             ) : consentState === "error" ? (
               <Alert role="alert" tone="danger">{consentError}</Alert>
             ) : consentState === "loaded" && consents.length === 0 ? (
-              <EmptyState title="BE1 chưa trả bản ghi consent cho lớp này." />
+              <EmptyState title="Chưa có bản ghi đồng ý cho lớp này." />
             ) : consentState === "loaded" ? (
               <div className="manager-business-table-wrap">
                 <table className="manager-business-table">
                   <thead>
-                    <tr><th>Bản ghi</th><th>Trạng thái</th><th>Hiệu lực</th></tr>
+                    <tr><th>Bản ghi</th><th>Trạng thái</th><th>Thao tác</th></tr>
                   </thead>
                   <tbody>
                     {consents.map((consent, index) => (
                       <tr key={consent.consent_id}>
                         <td>Bản ghi {index + 1}</td>
                         <td><StatusBadge tone={consentStateTone(consent.state)} size="sm">{consentStateLabel(consent.state)}</StatusBadge></td>
-                        <td><StatusBadge tone={consent.effective ? "success" : "neutral"} size="sm">{consent.effective ? "Có" : "Không"}</StatusBadge></td>
+                        <td>{consent.state === "pending" && (
+                          <button
+                            type="button"
+                            className="manager-business-button"
+                            aria-label={`Thu hồi bản ghi ${index + 1}`}
+                            disabled={revokingConsentId !== null}
+                            onClick={() => {
+                              setConsentActionError("");
+                              setConsentActionMessage("");
+                              setPendingRevoke({ classId: selectedClassId, consentId: consent.consent_id, rowNumber: index + 1 });
+                            }}
+                          >
+                            Thu hồi
+                          </button>
+                        )}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
             ) : (
-              <p className="manager-business-state">Chọn lớp để đọc trạng thái consent.</p>
+              <p className="manager-business-state">Chọn lớp để đọc trạng thái đồng ý.</p>
             )}
-            <p className="manager-business-subtle">Màn này chỉ đọc; yêu cầu cấp hoặc thu hồi consent vẫn chờ policy phù hợp.</p>
+            <p className="manager-business-subtle">Danh sách không nêu trẻ hoặc mục đích. Thu hồi bản ghi đang chờ là vĩnh viễn và không thể hoàn tác.</p>
           </article>
         </section>
       </>}
+
+      {pendingRevoke && (
+        <div className="manager-business-confirm-backdrop">
+          <section
+            className="manager-business-card manager-business-confirm-dialog"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="manager-consent-revoke-title"
+            aria-describedby="manager-consent-revoke-copy"
+          >
+            <h2 id="manager-consent-revoke-title">Thu hồi bản ghi {pendingRevoke.rowNumber}?</h2>
+            <p id="manager-consent-revoke-copy">Ở màn này không thể xác định bản ghi thuộc trẻ nào. Thu hồi là vĩnh viễn và không thể hoàn tác.</p>
+            {revokingConsentId && <p role="status">Đang thu hồi bản ghi…</p>}
+            <div className="manager-business-confirm-actions">
+              <button type="button" className="manager-business-button" disabled={revokingConsentId !== null} onClick={() => setPendingRevoke(null)}>Hủy</button>
+              <button type="button" className="manager-business-button is-primary" disabled={revokingConsentId !== null} onClick={() => void confirmRevoke()}>
+                {revokingConsentId ? "Đang thu hồi…" : "Xác nhận thu hồi"}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
 
       <TeacherAssignmentCard
         key={selectedClass?.class_id ?? "none"}

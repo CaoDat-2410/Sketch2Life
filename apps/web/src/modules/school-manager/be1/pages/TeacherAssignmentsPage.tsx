@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { PageHeading } from "../../../../shared/components/FeatureAvailability";
 import { classService, classStateLabel, type Be1Class } from "../services/classService";
 import { TeacherAssignmentCard } from "./TeacherAssignmentCard";
+import { TeacherInvitationsPanel } from "./TeacherInvitationsPanel";
+import { StoryRunForceClosePanel } from "./StoryRunForceClosePanel";
 import { Alert, Button, EmptyState, FormField, Select, StatCard, StatusBadge, type StatusTone } from "../../../../shared/ui";
 
 function classStateTone(state: Be1Class["state"]): StatusTone {
@@ -30,12 +32,13 @@ export function TeacherAssignmentsPage() {
   const assignedCount = classes.filter((item) => item.has_active_teacher === true).length;
   const unassignedCount = classes.filter((item) => item.has_active_teacher === false).length;
   return <div className="s2l-page manager-business-page">
-    <PageHeading eyebrow="School Manager" title="Phân công giáo viên" description="Xem lớp và phân công giáo viên phụ trách." />
+    <PageHeading eyebrow="Quản lý trường" title="Phân công giáo viên" description="Xem lớp và phân công giáo viên phụ trách." />
     {state === "loaded" && <section className="manager-business-stats" aria-label="Thống kê phân công">
       <StatCard label="Tổng số lớp" value={classes.length} accent="primary" />
       <StatCard label="Có giáo viên phụ trách" value={assignedCount} accent="mint" />
       <StatCard label="Chưa có giáo viên phụ trách" value={unassignedCount} accent="butter" />
     </section>}
+    <TeacherInvitationsPanel />
     <section className="manager-business-card cozy-form-card cozy-form-card--wide cozy-form-stack">
       {state === "loading" && <Alert role="status">Đang tải danh sách lớp…</Alert>}
       {state === "error" && (
@@ -65,5 +68,6 @@ export function TeacherAssignmentsPage() {
       )}
     </section>
     {state === "loaded" && selectedClass && <TeacherAssignmentCard key={selectedClass.class_id} selectedClass={selectedClass} onAssigned={() => setReload((n) => n + 1)} />}
+    <StoryRunForceClosePanel />
   </div>;
 }

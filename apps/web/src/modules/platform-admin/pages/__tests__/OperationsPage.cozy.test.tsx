@@ -63,7 +63,7 @@ describe("Platform Admin operations cozy pilot", () => {
   it("shows healthy API, database, broker, and active workers", async () => {
     mockApi(emptyOperations);
     renderOperationsPage();
-    expect(await screen.findByText("Sketch2Life API")).toBeTruthy();
+    expect(await screen.findByText("Dịch vụ Sketch2Life")).toBeTruthy();
     expect(screen.getAllByText("Đang hoạt động")).toHaveLength(4);
     expect(screen.getByText("Kết nối ổn định")).toBeTruthy();
   });
@@ -102,7 +102,7 @@ describe("Platform Admin operations cozy pilot", () => {
     expect(screen.getByText("2.345")).toBeTruthy();
     expect(screen.getByText("12")).toBeTruthy();
     expect(screen.getByText("8.765")).toBeTruthy();
-    expect(screen.getByText("Chưa có bản ghi công việc ai")).toBeTruthy();
+    expect(screen.getByText("Chưa có bản ghi công việc AI")).toBeTruthy();
     expect(screen.getByText("Chưa có bản ghi sự kiện chờ xử lý")).toBeTruthy();
     expect(screen.getByText("Chưa có bản ghi gửi email")).toBeTruthy();
     expect(screen.getByText("Chưa có bản ghi vòng đời dữ liệu")).toBeTruthy();

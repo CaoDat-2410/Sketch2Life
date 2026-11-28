@@ -12,7 +12,9 @@ const grant = (id: string): AccessGrant => ({
   contract: "LessonAccessGrantV1",
   access_grant_id: "grant-" + id,
   lesson_id: "lesson-" + id,
+  lesson_title: "Giáo án " + id,
   version_id: "version-" + id,
+  version_no: 3,
   audience_kind: "PUBLIC",
   audience_ref: null,
   capability: "VIEW",
@@ -102,17 +104,54 @@ describe("School Manager public review queue", () => {
 
     render(<M01PublicationReviewPage showToast={vi.fn()} />);
 
-    expect(await screen.findByText("lesson-1")).toBeTruthy();
+    expect(await screen.findByRole("button", { name: /^Giáo án 1/ })).toBeTruthy();
     fireEvent.click(await screen.findByRole("button", { name: "Tải thêm yêu cầu" }));
-    expect(await screen.findByText("lesson-2")).toBeTruthy();
+    expect(await screen.findByText("Giáo án 2", { selector: ".manager-review-item-copy strong" })).toBeTruthy();
     // The first page stays in the list: the second page was merged in, not swapped for it.
-    expect(screen.getAllByText("lesson-1")).toHaveLength(1);
+    expect(screen.getByText("Giáo án 1", { selector: ".manager-review-item-copy strong" })).toBeTruthy();
+    expect(screen.getAllByText("Phiên bản 3", { selector: ".manager-review-item-copy span" })).toHaveLength(2);
+    expect(screen.getByText("Công khai · Chờ duyệt")).toBeTruthy();
+    expect(screen.queryByText("lesson-1", { selector: ".manager-review-item-copy strong" })).toBeNull();
+    expect(screen.queryByText("lesson-2", { selector: ".manager-review-item-copy strong" })).toBeNull();
     expect(list).toHaveBeenLastCalledWith("org-test", {
       state: "PENDING_REVIEW",
       audience_kind: "PUBLIC",
       cursor: "c2",
     });
     expect(screen.queryByRole("button", { name: "Tải thêm yêu cầu" })).toBeNull();
+  });
+
+  it("uses a readable ordinal when the existing lesson read has no title", async () => {
+    vi.spyOn(backendApi, "accessGrants").mockResolvedValue(grantPage([{ ...grant("1"), lesson_title: null }], null));
+    vi.spyOn(backendApi, "teacherLesson").mockRejectedValue(new Error("private lesson read error"));
+
+    render(<M01PublicationReviewPage showToast={vi.fn()} />);
+
+    expect(await screen.findByRole("button", { name: /^Giáo án chờ duyệt 1/ })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Giáo án chờ duyệt 1" })).toBeTruthy();
+    expect(screen.queryByText("lesson-1")).toBeNull();
+  });
+
+  it("uses plain Vietnamese for approval and change-request toasts", async () => {
+    vi.spyOn(backendApi, "accessGrants").mockResolvedValue(grantPage([grant("1")], null));
+    const decide = vi.spyOn(backendApi, "decideAccessGrant").mockResolvedValue({});
+    const showToast = vi.fn();
+    render(<M01PublicationReviewPage showToast={showToast} />);
+
+    const confirm = await screen.findByRole("checkbox");
+    await waitFor(() => expect(confirm.hasAttribute("disabled")).toBe(false));
+    fireEvent.click(confirm);
+    fireEvent.click(screen.getByRole("button", { name: "Duyệt công khai" }));
+    await waitFor(() => expect(decide).toHaveBeenCalledTimes(1));
+    expect(showToast).toHaveBeenCalledWith("Đã ghi nhận quyết định duyệt học liệu công khai.", "ok");
+
+    const reason = await screen.findByLabelText(/Lý do yêu cầu chỉnh sửa/);
+    await waitFor(() => expect(reason.hasAttribute("disabled")).toBe(false));
+    fireEvent.change(reason, { target: { value: "Cần bổ sung hướng dẫn." } });
+    fireEvent.click(screen.getByRole("button", { name: "Yêu cầu chỉnh sửa" }));
+    await waitFor(() => expect(decide).toHaveBeenCalledTimes(2));
+    expect(showToast).toHaveBeenCalledWith("Đã gửi yêu cầu chỉnh sửa học liệu công khai.", "ok");
+    expect(showToast.mock.calls.every(([text]) => !/\b(API|grant|PUBLIC)\b/.test(text))).toBe(true);
   });
 
   it("keeps the decision key for the same decision and changes it when the reason changes", async () => {
