@@ -36,13 +36,23 @@ REQUIRED = [
 ]
 
 
+# The older apps/mobile scaffold is optional: this repository's runnable app is apps/ui-mobile.
+# Its checks run only when the whole scaffold is present (package.json and the Android root
+# build file): `dev` carries a partial apps/mobile app. The active app is always checked.
+LEGACY_MOBILE = (ROOT / "apps/mobile/package.json").is_file() and (
+    ROOT / "apps/mobile/android/build.gradle"
+).is_file()
+
+
 def main() -> int:
     errors: list[str] = []
     for relative in REQUIRED:
+        if relative.startswith("apps/mobile/") and not LEGACY_MOBILE:
+            continue
         if not (ROOT / relative).exists():
             errors.append(f"missing: {relative}")
 
-    for relative in ("package.json", "apps/mobile/package.json", "packages/art-renderer/package.json"):
+    for relative in ("package.json", "apps/mobile/package.json" if LEGACY_MOBILE else "apps/ui-mobile/package.json", "packages/art-renderer/package.json"):
         try:
             json.loads((ROOT / relative).read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as exc:
@@ -60,51 +70,52 @@ def main() -> int:
     if "FIREBASE_STORAGE" in env_text or "FIREBASE_DATABASE" in env_text:
         errors.append("Firebase storage/database configuration is forbidden")
 
-    mobile_package = json.loads((ROOT / "apps/mobile/package.json").read_text(encoding="utf-8"))
-    if "ios" in mobile_package.get("scripts", {}):
-        errors.append("Android-only mobile package must not expose an iOS script")
-    for script in ("android:apk:debug", "android:apk:release", "android:aab:release"):
-        if script not in mobile_package.get("scripts", {}):
-            errors.append(f"missing Android distribution script: {script}")
+    if LEGACY_MOBILE:
+        mobile_package = json.loads((ROOT / "apps/mobile/package.json").read_text(encoding="utf-8"))
+        if "ios" in mobile_package.get("scripts", {}):
+            errors.append("Android-only mobile package must not expose an iOS script")
+        for script in ("android:apk:debug", "android:apk:release", "android:aab:release"):
+            if script not in mobile_package.get("scripts", {}):
+                errors.append(f"missing Android distribution script: {script}")
 
-    forbidden_mobile_dependencies = {
-        "@react-native-firebase/database",
-        "@react-native-firebase/firestore",
-        "@react-native-firebase/storage",
-        "firebase-admin",
-    }
-    mobile_dependencies = set(mobile_package.get("dependencies", {})) | set(
-        mobile_package.get("devDependencies", {})
-    )
-    for dependency in sorted(forbidden_mobile_dependencies & mobile_dependencies):
-        errors.append(f"forbidden mobile data/provider dependency: {dependency}")
+        forbidden_mobile_dependencies = {
+            "@react-native-firebase/database",
+            "@react-native-firebase/firestore",
+            "@react-native-firebase/storage",
+            "firebase-admin",
+        }
+        mobile_dependencies = set(mobile_package.get("dependencies", {})) | set(
+            mobile_package.get("devDependencies", {})
+        )
+        for dependency in sorted(forbidden_mobile_dependencies & mobile_dependencies):
+            errors.append(f"forbidden mobile data/provider dependency: {dependency}")
 
-    android_root_gradle = (ROOT / "apps/mobile/android/build.gradle").read_text(encoding="utf-8")
-    android_app_gradle = (ROOT / "apps/mobile/android/app/build.gradle").read_text(encoding="utf-8")
-    android_manifest = (
-        ROOT / "apps/mobile/android/app/src/main/AndroidManifest.xml"
-    ).read_text(encoding="utf-8")
-    for expected in (
-        "minSdkVersion = 29",
-        "compileSdkVersion = 37",
-        "targetSdkVersion = 36",
-    ):
-        if expected not in android_root_gradle:
-            errors.append(f"missing Android SDK baseline: {expected}")
-    for expected in (
-        'namespace "com.sketch2life.mobile"',
-        'applicationId "com.sketch2life.mobile"',
-    ):
-        if expected not in android_app_gradle:
-            errors.append(f"missing Android identity: {expected}")
-    if 'android:usesCleartextTraffic="false"' not in android_manifest:
-        errors.append("Android main manifest must disable cleartext traffic")
-    if re.search(
-        r"release\s*\{[^}]*signingConfig\s+signingConfigs\.debug",
-        android_app_gradle,
-        re.DOTALL,
-    ):
-        errors.append("Android release build must not use the debug signing key")
+        android_root_gradle = (ROOT / "apps/mobile/android/build.gradle").read_text(encoding="utf-8")
+        android_app_gradle = (ROOT / "apps/mobile/android/app/build.gradle").read_text(encoding="utf-8")
+        android_manifest = (
+            ROOT / "apps/mobile/android/app/src/main/AndroidManifest.xml"
+        ).read_text(encoding="utf-8")
+        for expected in (
+            "minSdkVersion = 29",
+            "compileSdkVersion = 37",
+            "targetSdkVersion = 36",
+        ):
+            if expected not in android_root_gradle:
+                errors.append(f"missing Android SDK baseline: {expected}")
+        for expected in (
+            'namespace "com.sketch2life.mobile"',
+            'applicationId "com.sketch2life.mobile"',
+        ):
+            if expected not in android_app_gradle:
+                errors.append(f"missing Android identity: {expected}")
+        if 'android:usesCleartextTraffic="false"' not in android_manifest:
+            errors.append("Android main manifest must disable cleartext traffic")
+        if re.search(
+            r"release\s*\{[^}]*signingConfig\s+signingConfigs\.debug",
+            android_app_gradle,
+            re.DOTALL,
+        ):
+            errors.append("Android release build must not use the debug signing key")
 
     # The runnable app is apps/ui-mobile; keep the older apps/mobile skeleton checks above
     # for the approved architecture scaffold, but validate the app used by the workspace too.
@@ -130,8 +141,9 @@ def main() -> int:
         ):
             if expected not in active_gradle_text:
                 errors.append(f"active Android app does not match ADR-0004 SDK baseline: {expected}")
-        if 'applicationId \'com.sketch2life.mobile\'' not in active_build_text:
-            errors.append("active Android app must retain applicationId com.sketch2life.mobile")
+        # Owner decision 2026-11-27: the Parent app keeps the application ID used on `dev`.
+        if "applicationId 'com.sketch2life.parentexpo.dev'" not in active_build_text:
+            errors.append("active Android app must use applicationId com.sketch2life.parentexpo.dev")
         if 'android.permission.RECORD_AUDIO' not in active_manifest_text:
             errors.append("active Android manifest must declare RECORD_AUDIO for explicit narration")
         if re.search(

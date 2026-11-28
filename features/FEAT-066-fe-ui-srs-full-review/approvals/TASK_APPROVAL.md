@@ -773,3 +773,36 @@ Mobile Phase D approval, 2026-11-22: The owner approved the goal v3 Phase D Andr
 - **Scope:** apps/ui-mobile on feature/fe-mobile-remediation; this task's FEAT-066 plan, approval, context/decision/status and evidence records. No backend, apps/mobile, credentials/signing files, .env, commit, stage, stash, branch switch or push.
 - **Contract:** final Phase A route list 2026-11-23 and user's task prompt; FEAT-063 SRS remains a draft and is not signed off.
 - This entry approves only Goal v4 Phase A Parent Android wiring and does not alter other FEAT-066 approvals or scopes.
+
+## Goal v4 Phase B — T-7e Teacher roster paging (2026-11-24)
+
+- **Status:** APPROVED_FOR_IMPLEMENTATION by the owner's direct task prompt; launch word is GIVEN and running the prompt is the launch.
+- **Approver/timestamp:** User, explicit launch in the task prompt, 2026-11-24 (Asia/Saigon).
+- **Plan:** `plan/PLAN_V4B_FE_WEB_T-7E_20261124.md`, revision 53, SHA-256 `6D0CB1511BB9468AEC030D338AEE1873D72D08F5810B0602239C4F90679DB14C`.
+- **Contract:** `tmp/phase-v4/PHASE_B_FINAL_ROUTE_LIST_20261124.md` §1 and D-066-100. The canonical FEAT-063 SRS v2.7-draft remains unsigned.
+- **Approved scope:** only `apps/web/src/shared/api/teacherRosterApi.ts`, `apps/web/src/shared/api/cursorPages.ts`, `apps/web/src/modules/teacher/pages/T05ClassesScreen.tsx`, and the named Teacher roster API and T05 screen tests; plus this feature's plan, approval, context, decision, status, and evidence records.
+- **Acceptance:** page the Teacher roster at limit 100; preserve cursor values; de-duplicate by `child_id`; return the first page's active count; retain loaded rows on a later-page failure; use count-aware empty text; remove roster-specific 409 handling; preserve the independent consents read and its failure notice; correct synthetic create success copy; add focused tests and run the five gates listed in the plan.
+- **Boundaries:** do not modify backend, mobile, School Manager, `modules/school-manager/**`, contracts, credentials, `.env`, `debug.keystore`, or model weights. No stage, stash, branch switch, commit, or push. Run logs stay in `E:\AI_LOG\CODEX\fe-v4b-web-t7e\`.
+- This amendment supersedes earlier exclusions only for the stated T-7e web scope. It authorizes no backend deployment, shared-environment change, commit, or push.
+
+## Goal v4 Phase B — T-12b/T-12c Teacher profile revisions and support needs (2026-11-24)
+
+- **Status:** APPROVED_FOR_IMPLEMENTATION by the owner's direct task prompt; launch word is GIVEN and running the prompt is the launch.
+- **Approver/timestamp:** User, explicit launch in the task prompt, 2026-11-24 (Asia/Saigon).
+- **Plan:** `plan/PLAN_V4B_FE_WEB_T-12BC_20261124.md`, revision 54, SHA-256 `B026CDCF00B9B8C532035DA3637F69FED4813A325CCCCD650D6CD5D4BDA5051F`.
+- **Contract:** `tmp/phase-v4/PHASE_B_FINAL_ROUTE_LIST_20261124.md` sections 3 and 4, plus D-066-101. The canonical FEAT-063 SRS v2.7-draft remains unsigned.
+- **Approved scope:** Teacher profile revisions, profile edit, and support-needs client/UI/tests under `apps/web/src`; this plan and FEAT-066 context, decision, status, evidence, and approval records in the stated worktree.
+- **Acceptance:** implement all seven criteria in plan revision 54, including on-demand revision paging, changed-fields-only profile edits with expected revision, safe stale/consent/state/not-found/service-error handling, support-needs default-unavailable behavior with identical neutral text for 404/503/consent refusal, no value logging or browser persistence, close-time state clearing, mocked tests, and the five listed gates.
+- **Boundaries:** no backend, mobile, School Manager, contract, credential, `.env`, debug-keystore, or model-weight changes. Preserve uncommitted T-7e edits. No stage, stash, branch switch, commit, or push. Run logs stay in `E:\AI_LOG\CODEX\fe-v4b-web-t12bc\`.
+- This amendment approves only the stated T-12b/T-12c Teacher web scope. It authorizes no backend deployment, shared-environment change, commit, or push.
+
+## Goal v4 Phase B Android Parent T-12a/T-12c/BR-20 — job fe-v4b-android-t12ac (2026-11-24)
+
+- **Status:** APPROVED_FOR_IMPLEMENTATION by the owner's explicit launch in this prompt (launch word GIVEN; running the prompt is the launch).
+- **Reviewer/approver:** Owner, direct prompt dated 2026-11-24; implementation review is recorded against the gates and evidence below.
+- **Plan revision:** 1, `plan/GOAL_V4_PHASE_B_ANDROID_T12AC_PLAN_20261124.md`.
+- **Plan SHA-256:** 242F336DD85B53FC9087F29399ECE476851158E8805E43CBD8EC4A284FF49CFD.
+- **Scope:** `apps/ui-mobile` on `feature/fe-mobile-remediation`, plus this FEAT-066 plan, approval amendment, context/decision/status and feature-local evidence. No backend, web, obsolete `apps/mobile`, secrets, signing material, `.env`, screenshots containing support values, repository run logs, commit, stage, stash, branch switch or push.
+- **Contract:** `tmp/phase-v4/PHASE_B_FINAL_ROUTE_LIST_20261124.md` §§2, 3.4, 4 and D-066-101. Canonical FEAT-063 SRS v2.7-draft remains unsigned.
+- **Acceptance criteria:** the seven criteria in the approved plan, covering the four Parent routes, V2 context selection, ephemeral support-needs state, BR-20 safe errors, mock tests and requested gates.
+- This amendment approves only the named Goal v4 Phase B Android Parent task. It does not alter earlier FEAT-066 scopes or approve backend, production key-source, Teacher, or SRS changes.

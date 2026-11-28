@@ -15,7 +15,7 @@ REQUIRED = [
     "pnpm-workspace.yaml",
     "pnpm-lock.yaml",
     "backend/pyproject.toml",
-    "apps/mobile/package.json",
+    "apps/ui-mobile/package.json",
     "packages/art-renderer/package.json",
     "docs/context/PROJECT_CONTEXT.md",
     "docs/context/SOURCE_REGISTER.md",

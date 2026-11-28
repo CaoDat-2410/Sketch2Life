@@ -725,3 +725,54 @@ The canonical working SRS `features/FEAT-063-system-architecture-rearchitecture/
 - Evidence: evidence/notes/PHASE_A_PARENT_ANDROID_WIRING_EVIDENCE_20261123.md.
 - Limitations: no lint script or native Android test suite exists in apps/ui-mobile; optional Gradle assembly was not run.
 - Working tree: changes remain unstaged and uncommitted for owner review. No push was made.
+
+## Goal v4 Phase B T-7e Teacher roster paging — 2026-11-24
+
+- Status: IN_PROGRESS; app implementation is complete and final evidence/gate review is underway.
+- Active plan: revision 53, plan/PLAN_V4B_FE_WEB_T-7E_20261124.md, SHA-256 6D0CB1511BB9468AEC030D338AEE1873D72D08F5810B0602239C4F90679DB14C.
+- Scope: Teacher roster API, reusable cursor pager, T05 class detail screen and the two named test files, plus FEAT-066 records. No School Manager or backend changes.
+- Implemented: limit-100 paging, unchanged cursor pass-through, child-ID dedupe, first-page active count, partial results on later-page failure, count-aware empty copy, generic legacy-409 error path, and corrected synthetic-profile success copy.
+- Consent detail read stays independent; its failure notice does not hide the API-filtered roster.
+- Initial gates: web check passed (67 files, 696 tests); security and architecture validators passed; diff check passed with a CRLF normalization warning. Harness validation reports missing apps/mobile/package.json.
+- Evidence: evidence/notes/EV-066-060_V4B_WEB_T7E_20261124.md.
+- No stage, commit, push, stash, or branch switch. Keep the working tree for owner review.
+
+## Goal v4 Phase B T-7e implementation result — 2026-11-24
+
+- Status: IMPLEMENTATION_COMPLETE_PENDING_OWNER_REVIEW.
+- Final web check: build and lint completed; Vitest passed 67 files and 696 tests. Lint exited 0 with warnings.
+- Final validators: harness exited 1 only for the missing apps/mobile/package.json path; repository security and architecture validators exited 0.
+- Final diff check exited 0 with Git line-ending normalization warnings for the new FEAT-066 records.
+- Evidence: evidence/notes/EV-066-060_V4B_WEB_T7E_20261124.md.
+- No commit, push, stage, stash, or branch switch. Changes remain unstaged for owner review.
+
+## Goal v4 Phase B T-12b/T-12c Teacher profile revisions and support needs - 2026-11-24
+
+- Status: IMPLEMENTATION_COMPLETE_PENDING_OWNER_REVIEW; requested app tests pass and final repository gates are being recorded.
+- Plan: revision 54, plan/PLAN_V4B_FE_WEB_T-12BC_20261124.md; task approval recorded before apps/web edits.
+- Scope: Teacher API, revision/edit and support-needs panels, T05 row integration, safe error copy, and mocked tests under apps/web/src; FEAT-066 governance and evidence only.
+- Paging choice: load history on demand at limit 100; fetch the next cursor after the user selects Tải thêm.
+- UI check: npm --prefix apps/web run check passed; Vitest 69 files / 723 tests. Build passed; lint exited 0 with project warnings.
+- Open harness gap: validate_harness.py reports the pre-existing missing apps/mobile/package.json path.
+- Evidence: evidence/notes/EV-066-061_V4B_WEB_T12BC_20261124.md.
+- No commit, push, stage, stash, or branch switch. Working tree remains for owner review.
+
+## Goal v4 Phase B T-12b/T-12c final verification - 2026-11-24
+
+- Status: IMPLEMENTATION_COMPLETE_PENDING_OWNER_REVIEW.
+- Final web check: exit 0; build passed; lint exited 0 with project warnings; 69 test files and 723 tests passed.
+- Harness: exit 1 only for the pre-existing missing apps/mobile/package.json path; not repaired.
+- Repository security: exit 0; 8,870 files scanned; no absolute machine paths or prohibited files detected.
+- Architecture: exit 0; dependency direction, mobile isolation, frontend asset gate, mobile AI boundary, and Firebase data-product checks valid.
+- git diff --check: exit 0; line-ending normalization warnings only.
+- Evidence: evidence/notes/EV-066-061_V4B_WEB_T12BC_20261124.md.
+- No commit, push, stage, stash, or branch switch; working tree remains for owner review.
+
+## Goal v4 Phase B Android Parent T-12a/T-12c/BR-20 — implemented and verified — 2026-11-24
+
+- **Status:** IMPLEMENTED AND VERIFIED; pending owner review. Changes remain local, unstaged and uncommitted.
+- **Scope:** `apps/ui-mobile` plus this task's FEAT-066 plan, approval amendment, context, implementation record and evidence. No backend or obsolete `apps/mobile` changes.
+- **Tests:** 22 files and 252 tests passed; `UI_COPY_AND_RECOVERY_VALID` printed.
+- **Gates:** typecheck, harness, repository security, architecture and `git diff --check` all exited 0. The diff check printed a CRLF-to-LF warning for `approvals/TASK_APPROVAL.md` but no whitespace errors.
+- **Limitations:** no Android lint script or native test suite exists in `apps/ui-mobile`; optional Gradle assembly was not run. No backend/runtime request was made. D-066-101 governs the unavailable support-needs production state while no key source is configured.
+- **Evidence:** `evidence/notes/GOAL_V4_PHASE_B_ANDROID_T12AC_EVIDENCE_20261124.md`; the append-only run log is in the designated external log folder.

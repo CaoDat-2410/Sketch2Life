@@ -1,0 +1,22 @@
+# Local end-to-end overlay (local/test only). Use it on top of compose.yaml:
+#   docker compose -f compose.yaml -f compose.e2e.yaml -p s2le2e --env-file <env> \
+#     --profile firebase-emulator up -d --build
+# It swaps ClamAV for the fixture-hash allowlist scanner and moves ClamAV behind the
+# "clamav" profile, so the stack starts without the 4 GiB scanner. Without this file the
+# default behaviour of compose.yaml is unchanged.
+services:
+  clamav:
+    profiles: ["clamav"]
+  api:
+    depends_on: !override
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    environment:
+      SKETCH2LIFE_SCANNER_ADAPTER: local_test_allowlist
+      SKETCH2LIFE_LOCAL_SCANNER_ALLOWLIST_FILE: /app/deployment/e2e/scanner-allowlist.json
+    volumes:
+      - ./deployment/e2e/scanner-allowlist.json:/app/deployment/e2e/scanner-allowlist.json:ro

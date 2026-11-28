@@ -93,6 +93,27 @@ services:
     # ClamAV's official image needs several GiB of memory for signature databases.
     mem_limit: 4g
 
+  firebase-auth:
+    profiles: ["firebase-emulator"]
+    build:
+      context: deployment/firebase-auth
+      dockerfile: Dockerfile
+    environment:
+      SKETCH2LIFE_ENV: ${SKETCH2LIFE_ENV:-local}
+      SKETCH2LIFE_FIREBASE_PROJECT_ID: ${SKETCH2LIFE_FIREBASE_PROJECT_ID:-${VITE_FIREBASE_PROJECT_ID:-sketch2life-local}}
+    ports:
+      - "127.0.0.1:${SKETCH2LIFE_FIREBASE_AUTH_PORT:-9099}:9099"
+    volumes:
+      - sketch2life-firebase-auth:/data
+      - sketch2life-firebase-cache:/root/.cache/firebase/emulators
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:9099/').then(()=>process.exit(0)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 20s
+    restart: unless-stopped
+
   # One-shot local bootstrap: migrates a fresh database (live Parent line only) and seeds the demo
   # Parent identity from .env. `docker compose up -d` runs it before the api starts.
   bootstrap:
@@ -166,11 +187,18 @@ services:
       SKETCH2LIFE_CLAMAV_PORT: 3310
       SKETCH2LIFE_PLATFORM_ADMIN_BOOTSTRAP_EMAIL: ${SKETCH2LIFE_PLATFORM_ADMIN_BOOTSTRAP_EMAIL:-}
       SKETCH2LIFE_AUTH_PROVIDER: ${SKETCH2LIFE_AUTH_PROVIDER:-development}
+      FIREBASE_AUTH_EMULATOR_HOST: ${SKETCH2LIFE_FIREBASE_EMULATOR_HOST:-}
       SKETCH2LIFE_SYNTHETIC_PILOT_ENABLED: ${SKETCH2LIFE_SYNTHETIC_PILOT_ENABLED:-false}
       SKETCH2LIFE_FIREBASE_PROJECT_ID: ${SKETCH2LIFE_FIREBASE_PROJECT_ID:-}
       SKETCH2LIFE_FIREBASE_ADMIN_JSON_BASE64: ${SKETCH2LIFE_FIREBASE_ADMIN_JSON_BASE64:-}
       SKETCH2LIFE_FIREBASE_CHECK_REVOKED_TOKENS: ${SKETCH2LIFE_FIREBASE_CHECK_REVOKED_TOKENS:-true}
+      SKETCH2LIFE_PARENT_SELF_REGISTRATION_ENABLED: ${SKETCH2LIFE_PARENT_SELF_REGISTRATION_ENABLED:-false}
+      SKETCH2LIFE_PARENT_TOPIC_SUBJECT_AI_ENABLED: ${SKETCH2LIFE_PARENT_TOPIC_SUBJECT_AI_ENABLED:-false}
       SKETCH2LIFE_AI_PROVIDER: ${SKETCH2LIFE_AI_PROVIDER:-disabled}
+      SKETCH2LIFE_TEACHER_AI_ENGINE: ${SKETCH2LIFE_TEACHER_AI_ENGINE:-vllm}
+      SKETCH2LIFE_STORY_GENERATION_PROFILE: ${SKETCH2LIFE_STORY_GENERATION_PROFILE:-v4_qwen38}
+      SKETCH2LIFE_MODAL_QWEN_PROFILE: ${SKETCH2LIFE_MODAL_QWEN_PROFILE:-qwen38}
+      SKETCH2LIFE_QWEN38_ALLOW_UNPINNED_DEV: ${SKETCH2LIFE_QWEN38_ALLOW_UNPINNED_DEV:-false}
       SKETCH2LIFE_STORY_VIDEO_ADAPTERS: ${SKETCH2LIFE_STORY_VIDEO_ADAPTERS:-unconfigured}
       # FEAT-094 S6: start the video GPU while the adult reviews the story.
       SKETCH2LIFE_STORY_VIDEO_WARM_UP: ${SKETCH2LIFE_STORY_VIDEO_WARM_UP:-true}
@@ -253,6 +281,7 @@ services:
       SKETCH2LIFE_STORY_VIDEO_RENDERER: ${SKETCH2LIFE_STORY_VIDEO_RENDERER:-modal_dev}
       SKETCH2LIFE_STORY_VIDEO_SCENE_CHECK: ${SKETCH2LIFE_STORY_VIDEO_SCENE_CHECK:-report}
       SKETCH2LIFE_STORY_VIDEO_ADAPTERS: ${SKETCH2LIFE_STORY_VIDEO_ADAPTERS:-local_test}
+      SKETCH2LIFE_TEACHER_AI_ENGINE: ${SKETCH2LIFE_TEACHER_AI_ENGINE:-vllm}
       SKETCH2LIFE_S3_ENDPOINT: ${SKETCH2LIFE_S3_ENDPOINT-http://minio:9000}
       SKETCH2LIFE_S3_REGION: ${SKETCH2LIFE_S3_REGION:-us-east-1}
       SKETCH2LIFE_S3_BUCKET: ${SKETCH2LIFE_S3_BUCKET:-sketch2life-private}
@@ -272,3 +301,5 @@ volumes:
   sketch2life-redis:
   sketch2life-minio:
   sketch2life-clamav-database:
+  sketch2life-firebase-auth:
+  sketch2life-firebase-cache:

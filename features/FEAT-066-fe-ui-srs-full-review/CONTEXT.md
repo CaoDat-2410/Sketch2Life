@@ -504,3 +504,31 @@ Implementation covers activity list and selection, implicit first-story start fr
 The task text has one sequencing conflict: work item 3 says load activities after both subject and context confirmation, while the final R3 text says activity selection is expected first and context confirmation last. The implementation follows the explicit final order and still handles either gate as the last successful gate. No other conflict with the supplied final route list was found during this task.
 
 Verification: all six requested gates passed. Vitest: 18 files, 228 tests, and `UI_COPY_AND_RECOVERY_VALID`. `evidence/notes/PHASE_A_PARENT_ANDROID_WIRING_EVIDENCE_20261123.md` records the gate outputs. No lint script or native Android test suite is present in `apps/ui-mobile`; optional Gradle assembly was not run.
+
+## Goal v4 Phase B T-7e Teacher roster paging — 2026-11-24
+
+- Current task: update only the Teacher roster API and T05 class detail UI in apps/web for the final Phase B contract. The route list is tmp/phase-v4/PHASE_B_FINAL_ROUTE_LIST_20261124.md §1; decision D-066-100 controls eligibility, count, paging, and removed-409 behavior. FEAT-063 SRS v2.7-draft remains unsigned.
+- Plan: revision 53, plan/PLAN_V4B_FE_WEB_T-7E_20261124.md; owner launch recorded in approvals/TASK_APPROVAL.md before app edits.
+- The worktree decision file lacked D-066-100 even though the repository-root copy and final route list contained it. The D-066-100 record was synchronized into this worktree's FEAT-066 decision file for traceability.
+- teacherRosterApi.profiles follows pages at limit 100, passes cursors through, deduplicates child IDs, returns the first page's active_profile_count, and preserves rows loaded before a later-page error. T05 renders this server-filtered list and uses the aggregate count for the safe empty state.
+- teacherRosterApi.consents remains for consent purpose/status details. Its failure now shows a consent-detail warning only when that call fails; it does not suppress the roster because the roster endpoint already applies the synthetic/effective-consent filter. No per-child exclusion reason is shown. The roster-specific CONSENT_NOT_EFFECTIVE branch and rosterError carve-out are removed.
+- Synthetic create success copy now allows the synthetic profile to appear in the roster. School Manager modules, backend, and mobile remain out of scope.
+- Implementation and checks are recorded in evidence/notes/EV-066-060_V4B_WEB_T7E_20261124.md. The harness validator reports the repository's missing apps/mobile/package.json; no unrelated repair is included.
+- No stage, commit, push, stash, or branch switch occurred. Changes remain in the named worktree for owner review.
+
+## Goal v4 Phase B T-12b/T-12c Teacher profile wiring - 2026-11-24
+
+- Current task: implement the Teacher profile revisions/edit and support-needs client in apps/web only, using the final Phase B route list sections 3 and 4 and D-066-101.
+- Plan: revision 54 in plan/PLAN_V4B_FE_WEB_T-12BC_20261124.md; task-specific approval and plan hash are in approvals/TASK_APPROVAL.md.
+- T-7e completed its implementation and left uncommitted Teacher roster changes; this task preserved and built on them.
+- The worktree copy lacked D-066-101. The root decision record was synchronized before app edits. D-066-102 records the UI paging/safe-state choices; D-066-103 clarifies support-needs same-key retry behavior.
+- Implemented revision history on demand at limit 100, changed-fields-only editing, safe error handling, and a support-needs panel with no-store requests and close-time state clearing.
+- The BE1 support-needs routes remain outside the published SRS operation set. The final route contract controls this integration; the SRS route addition remains an owner open item.
+- Evidence: evidence/notes/EV-066-061_V4B_WEB_T12BC_20261124.md. Final repository gate results are recorded there.
+- No backend, mobile, or School Manager code changed. No stage, stash, branch switch, commit, or push.
+
+## Goal v4 Phase B Android Parent T-12a/T-12c/BR-20 — 2026-11-24
+
+The owner-launched task `fe-v4b-android-t12ac` is implemented in `apps/ui-mobile` on `feature/fe-mobile-remediation`. Its approved plan and task-specific approval amendment are recorded in `plan/GOAL_V4_PHASE_B_ANDROID_T12AC_PLAN_20261124.md` and `approvals/TASK_APPROVAL.md`. The implementation adds Parent context entries and the selected-context V2 confirmation path, the ephemeral support-needs screen, and BR-20 safe field errors. D-066-101 remains the product decision; no new product or backend decision was made, and no production support-needs key source is configured.
+
+All six requested gates passed after the final source changes. Detailed results and implementation evidence are in `evidence/notes/GOAL_V4_PHASE_B_ANDROID_T12AC_EVIDENCE_20261124.md`. Status is implemented and verified, pending owner review. The FEAT-063 v2.7-draft remains unsigned. No backend/runtime call, commit, stage, push, branch change or screenshot was made; optional Gradle assembly was not run.

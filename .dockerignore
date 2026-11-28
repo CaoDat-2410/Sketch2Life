@@ -17,5 +17,6 @@
 !features/FEAT-028-pixi-topic-asset-library/assets/generated/**
 !packages/
 !packages/art-renderer/
+!packages/art-renderer/package.json
 !packages/art-renderer/dist-demo/
 !packages/art-renderer/dist-demo/**
