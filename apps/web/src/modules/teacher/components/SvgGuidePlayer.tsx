@@ -61,7 +61,7 @@ export function SvgGuidePlayer({ guide, document, onClose, onSkip }: SvgGuidePla
   }
 
   return (
-    <div ref={playerRef} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="svg-guide-player-title" style={overlayStyle}>
+    <div data-s2l-presenting="true" ref={playerRef} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="svg-guide-player-title" style={overlayStyle}>
       <section style={playerStyle}>
         <header style={{ display: "flex", justifyContent: "space-between", alignItems: "start", gap: 18 }}>
           <div>

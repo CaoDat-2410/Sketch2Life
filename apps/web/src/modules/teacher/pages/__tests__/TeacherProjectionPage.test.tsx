@@ -70,3 +70,10 @@ describe("TeacherProjectionPage after completion without a confirmation", () => 
     expect(screen.queryByRole("alert")).toBeNull();
   });
 });
+
+it("marks the confirmed projection panel, but not its confirmation step", async () => {
+  setup(); await screen.findByText(text.confirmationRequired);
+  expect(document.querySelector('[data-s2l-presenting="true"]')).toBeNull();
+  await acknowledge(); await screen.findByRole("button", { name: text.play });
+  expect(document.querySelector('[data-s2l-presenting="true"]')).toBeTruthy();
+});

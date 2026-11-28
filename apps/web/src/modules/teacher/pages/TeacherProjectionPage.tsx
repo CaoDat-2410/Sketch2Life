@@ -149,7 +149,7 @@ function ProjectionForOccurrence({ id }: { id: string }) {
                   </div>
                 )}
                 {confirmed && (
-                  <div className="cozy-form-section">
+                  <div className="cozy-form-section" data-s2l-presenting="true">
                     <div className="tp-form-section-intro">
                       <h3>Phát video cho lớp</h3>
                     </div>

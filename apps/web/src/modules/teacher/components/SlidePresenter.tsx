@@ -135,6 +135,7 @@ export function SlidePresenter({ revisionLabel, slideIndex, slideCount, onPrevio
   const content = (
     <div
       ref={rootRef}
+      data-s2l-presenting={isPresenting ? "true" : undefined}
       className={`tp-presenter-root${isPresenting ? " is-open" : ""}`}
       role={isPresenting ? "dialog" : undefined}
       aria-modal={isPresenting || undefined}

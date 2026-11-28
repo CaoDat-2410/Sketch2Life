@@ -1,4 +1,5 @@
-import { useState, type FormEvent } from "react";
+import { EXPIRY_NOTICE_EVENT, takeExpiryNotice } from "./SessionLimitGuard";
+import { useEffect, useState, type FormEvent } from "react";
 import { ArrowRight, Check, Eye, EyeOff, GraduationCap, LoaderCircle, School, ShieldCheck } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import "./WebPortalLoginPage.css";
@@ -113,6 +114,12 @@ export function WebPortalLoginPage({
   });
   const [pending, setPending] = useState(false);
   const [notice, setNotice] = useState("");
+  useEffect(() => {
+    const receiveNotice = () => { const reason = takeExpiryNotice(); if (reason) setNotice(reason); };
+    window.addEventListener(EXPIRY_NOTICE_EVENT, receiveNotice);
+    receiveNotice();
+    return () => window.removeEventListener(EXPIRY_NOTICE_EVENT, receiveNotice);
+  }, []);
   const [recovering, setRecovering] = useState(false);
   const fields = formState.role === portalRole
     ? formState

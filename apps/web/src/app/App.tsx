@@ -1,6 +1,7 @@
 import { lazy, Suspense, useLayoutEffect } from "react";
 import { BrowserRouter, Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { PortalEntryPage } from "./PortalEntryPage";
+import { SessionLimitGuard } from "../shared/auth/SessionLimitGuard";
 import { PortalSessionProvider } from "../shared/auth/PortalSessionContext";
 
 const TeacherPortalApp = lazy(() => import("../modules/teacher/App").then((module) => ({ default: module.TeacherPortalApp })));
@@ -61,7 +62,7 @@ export default function App() {
   return (
     <PortalSessionProvider>
       <BrowserRouter>
-        <PortalRoutes />
+        <SessionLimitGuard><PortalRoutes /></SessionLimitGuard>
       </BrowserRouter>
     </PortalSessionProvider>
   );
